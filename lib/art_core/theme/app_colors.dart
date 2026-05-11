@@ -49,7 +49,7 @@ class AppColors {
   });
 
   // ─── App Background & Surfaces ────────────────────────────────
-  static const Color scaffoldBackground = Color(0xFF212121); // main bg
+  static const Color scaffoldBackground = Color(0xFF0B0A10); // main bg
   static const Color cardBackground     = Color(0xFF2C2C2C); // cards
   static const Color sidebarBackground  = Color(0xFF1A1A1A); // sidebar
   static const Color inputField         = Color(0xFF2C2C2C); // input bg
@@ -62,7 +62,7 @@ class AppColors {
 
   // ─── Accent Colors ────────────────────────────────────────────
   static const Color electricBlue = Color(0xFF1E88E5); // primary accent
-  static const Color lightBlue    = Color(0xFF42A5F5); // secondary accent
+  static const Color lightBlue    = Color(0xFF01D9FF); // secondary accent
   static const Color darkBlue     = Color(0xFF0D47A1); // deep blue
 
   // ─── Status Colors ────────────────────────────────────────────

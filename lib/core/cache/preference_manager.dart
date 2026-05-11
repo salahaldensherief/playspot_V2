@@ -1,0 +1,173 @@
+// import 'dart:io';
+//
+// import 'package:flutter/cupertino.dart';
+// import 'package:get_storage/get_storage.dart';
+//
+// import 'caching_key.dart';
+//
+// class PreferenceManager {
+//   static Future<void> init() async {
+//     await GetStorage.init(); // default box
+//   }
+//
+//   final GetStorage _box = GetStorage();
+//
+//   void saveLatitude(double latitude) => _box.write(CachingKey.LATITUDE, latitude);
+//
+//   String latitude() => _box.read(CachingKey.LATITUDE)?.toString() ?? '';
+//
+//   void saveLongitude(double longitude) => _box.write(CachingKey.LONGITUDE, longitude);
+//
+//   String longitude() => _box.read(CachingKey.LONGITUDE)?.toString() ?? '';
+//
+//   void saveFCMToken(String fcmToken) => _box.write(CachingKey.FCM_TOKEN, fcmToken);
+//
+//   String fcmToken() => _box.read(CachingKey.FCM_TOKEN) as String? ?? "";
+//
+//   void saveIsFirstTime(bool isFirstTime) => _box.write(CachingKey.IS_FIRST_TIME, isFirstTime);
+//
+//   bool isFirstTime() => _box.read(CachingKey.IS_FIRST_TIME) as bool? ?? true;
+//
+//   void saveIsOpenAsGuestUser(bool isGustUser) => _box.write(CachingKey.IS_GUEST_USER, isGustUser);
+//
+//   bool isOpenAsGuestUser() => _box.read(CachingKey.IS_GUEST_USER) as bool? ?? false;
+//
+//   void saveIsLoggedIn(bool isLoggedIn) => _box.write(CachingKey.IS_LOGGED_IN, isLoggedIn);
+//
+//   bool get isLoggedIn => _box.read(CachingKey.IS_LOGGED_IN) as bool? ?? false;
+//
+//   void saveAuthToken(String? authToken) => _box.write(CachingKey.AUTH_TOKEN, authToken ?? '');
+//
+//   String authToken() => _box.read(CachingKey.AUTH_TOKEN) as String? ?? "";
+//
+//   void saveToken(String? cooke) => _box.write(CachingKey.TOKEN, cooke ?? '');
+//
+//   String token() => _box.read(CachingKey.TOKEN) as String? ?? "";
+//
+//   bool get isSubscribed => (getUserData()?.isSubscribe ?? false);
+//
+//   void saveFullName(String? fullName) => _box.write(CachingKey.FullName, fullName ?? '');
+//
+//   String? fullName() => _box.read(CachingKey.FullName) as String? ?? "";
+//
+//   String? phoneNumber() => getUserData()?.mobileNumber ?? '';
+//
+//   String? countryCode() => getUserData()?.countryCode ?? '';
+//
+//   void saveValue(String cachingKey, String value) => _box.write(cachingKey, value);
+//
+//   String getValue(String cachingKey) => _box.read(cachingKey) as String;
+//
+//   void saveLanguage(String lang) => _box.write(CachingKey.LANGUAGE, lang);
+//
+//   String currentLang() =>
+//       _box.read(CachingKey.LANGUAGE) as String? ?? Platform.localeName.split("_").firstOrNull ?? 'en';
+//
+//   void saveUserId(String? userId) => _box.write(CachingKey.UserId, userId ?? '');
+//
+//   String? userId() => _box.read(CachingKey.UserId) as String? ?? "";
+//
+//   // bool? isUserSubscription() => _box.read(CachingKey.isUserSubscription) as bool?;
+//   //
+//   // void setUserSubscription(bool subscription) =>
+//   //     _box.write(CachingKey.isUserSubscription, isDarkMode);
+//   //
+//   //
+//
+//   void saveUserData(UserModel user) {
+//     final json = user.toJson();
+//     _box.write(CachingKey.UserData, json);
+//
+//     // ✅ Backup copy (self-healing if UserData becomes null)
+//     _box.write(CachingKey.UserDataBackup, json);
+//   }
+//
+//   UserModel? getUserData() {
+//     final data = _box.read(CachingKey.UserData);
+//     if (data != null) {
+//       return UserModel.fromJson(data);
+//     }
+//
+//     // ✅ Restore from backup automatically
+//     final backup = _box.read(CachingKey.UserDataBackup);
+//     if (backup != null) {
+//       try {
+//         final user = UserModel.fromJson(backup);
+//         _box.write(CachingKey.UserData, user.toJson()); // restore primary
+//         return user;
+//       } catch (_) {
+//         // ignore parsing errors
+//       }
+//     }
+//
+//     return null;
+//   }
+//
+//
+//   // =========================
+//   // Apple Profile Cache (email/name first time)
+//   // =========================
+//   String _appleProfileKey(String appleUserId) => '${CachingKey.AppleProfilePrefix}$appleUserId';
+//
+//   void saveAppleProfile({required String appleUserId, String? email, String? name}) {
+//     _box.write(_appleProfileKey(appleUserId), {
+//       'email': email,
+//       'name': name,
+//       'updatedAt': DateTime.now().toIso8601String(),
+//     });
+//   }
+//
+//   Map<String, dynamic>? getAppleProfile(String appleUserId) {
+//     final data = _box.read(_appleProfileKey(appleUserId));
+//     if (data == null) return null;
+//     return Map<String, dynamic>.from(data);
+//   }
+//
+//   // UserModel? getUserData() {
+//   //   final data = _box.read(CachingKey.UserData);
+//   //   if (data == null) return null;
+//   //   return UserModel.fromJson(data);
+//   // }
+//
+//   bool? isDarkMode() => _box.read(CachingKey.IS_DARK_MODE) as bool?;
+//
+//   void setDarkMode(bool? isDarkMode) => _box.write(CachingKey.IS_DARK_MODE, isDarkMode);
+//
+//   bool? isGuestUser() => authToken().isEmpty;
+//
+//   void saveActiveCountry(ActiveCountryModel activeCountry) =>
+//       _box.write(CachingKey.ActiveCountry, activeCountry.toJson());
+//
+//   ActiveCountryModel? getActiveCountry() {
+//     final data = _box.read(CachingKey.ActiveCountry);
+//     if (data == null) return null;
+//     return ActiveCountryModel.fromJson(data);
+//   }
+//
+//   void logout() {
+//     LogoutService().logout();
+//     _box.remove(CachingKey.UserData);
+//     _box.remove(CachingKey.UserDataBackup);
+//
+//     _box.remove(CachingKey.AUTH_TOKEN);
+//     _box.remove(CachingKey.FullName);
+//     saveIsLoggedIn(false);
+//     saveIsOpenAsGuestUser(true);
+//     GoogleAuthService().signOutFromGoogle();
+//   }
+//
+//   void login({required String authToken, required UserModel user, bool rememberMe = true}) {
+//     saveUserId(user.id.toString());
+//     saveIsOpenAsGuestUser(false);
+//     saveAuthToken(authToken);
+//     saveIsLoggedIn(true);
+//     saveFullName(user.name);
+//     saveUserData(user);
+//   }
+//
+//   void changeLanguage(BuildContext context, String lang) {
+//     if (currentLang() == lang) return;
+//     context.setLocale(Locale(lang));
+//     saveLanguage(lang);
+//   }
+// }

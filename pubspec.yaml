@@ -15,38 +15,39 @@ dependencies:
   get_it: ^7.6.7
   equatable: ^2.0.5
 
-  # Supabase
-  supabase_flutter: ^2.5.0
+#  # Supabase
+#  supabase_flutter: ^2.5.0
 
-  # Location
-  geolocator: ^11.0.0
-  geocoding: ^3.0.0
-  permission_handler: ^11.3.1
+#  # Location
+#  geolocator: ^11.0.0
+#  geocoding: ^3.0.0
+#  permission_handler: ^11.3.1
 
-  # Payment
-  webview_flutter: ^4.7.0
-  dio: ^5.4.3
+#  # Payment
+#  webview_flutter: ^4.7.0
+#  dio: ^5.4.3
 
   # UI
   cached_network_image: ^3.3.1
   shimmer: ^3.0.0
-  lottie: ^3.1.0
   flutter_svg: ^2.0.10
   smooth_page_indicator: ^1.1.0
   url_launcher: ^6.2.5
+  get_storage: ^2.1.1
+  flutter_tabler_icons: ^1.43.0
 
-  # Booking
-  qr_flutter: ^4.1.0
-  table_calendar: ^3.1.2
-  intl: ^0.19.0
+  #  # Booking
+#  qr_flutter: ^4.1.0
+#  table_calendar: ^3.1.2
+#  intl: ^0.19.0
 
-  # Notifications
-  firebase_messaging: ^15.0.0
-  flutter_local_notifications: ^17.2.0
+#  # Notifications
+#  firebase_messaging: ^15.0.0
+#  flutter_local_notifications: ^17.2.0
 
-  # Storage
-  shared_preferences: ^2.2.3
-  flutter_secure_storage: ^9.2.2
+#  # Storage
+#  shared_preferences: ^2.2.3
+#  flutter_secure_storage: ^9.2.2
 
   # Utils
   connectivity_plus: ^6.0.3
