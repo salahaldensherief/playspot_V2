@@ -1,108 +1,133 @@
-
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // ─── Primary - Electric Blue #1E88E5 ─────────────────────────
-  static const MaterialColor primary = MaterialColor(0xFF1E88E5, <int, Color>{
-    0:   Color(0xFFF0F7FF),
-    50:  Color(0xFFE3F2FD),
-    100: Color(0xFFBBDEFB),
-    200: Color(0xFF90CAF9),
-    300: Color(0xFF64B5F6),
-    400: Color(0xFF42A5F5),
-    500: Color(0xFF1E88E5),
-    600: Color(0xFF1976D2),
-    700: Color(0xFF1565C0),
-    800: Color(0xFF0D47A1),
-    900: Color(0xFF082F6B),
-    950: Color(0xFF041838),
+  // ─── Primary - Neon Blue #00D9FF ─────────────────────────────
+  static const MaterialColor primary = MaterialColor(0xFF00D9FF, <int, Color>{
+    0:   Color(0xFFE0FAFF),
+    50:  Color(0xFFB3F4FF),
+    100: Color(0xFF80EEFF),
+    200: Color(0xFF4DE8FF),
+    300: Color(0xFF1AE2FF),
+    400: Color(0xFF00D9FF),
+    500: Color(0xFF00D4FF),
+    600: Color(0xFF00B8D9),
+    700: Color(0xFF0099B3),
+    800: Color(0xFF006B7D),
+    900: Color(0xFF003D47),
+    950: Color(0xFF001E24),
   });
 
-  // ─── Charcoal - #212121 ───────────────────────────────────────
-  static const MaterialColor charcoal = MaterialColor(0xFF212121, <int, Color>{
-    50:  Color(0xFFF5F5F5),
-    100: Color(0xFFE0E0E0),
-    200: Color(0xFFBDBDBD),
-    300: Color(0xFF9E9E9E),
-    400: Color(0xFF757575),
-    500: Color(0xFF212121),
-    600: Color(0xFF2C2C2C),
-    700: Color(0xFF1A1A1A),
-    800: Color(0xFF141414),
-    900: Color(0xFF0D0D0D),
-    950: Color(0xFF080808),
+  // ─── Secondary - Neon Purple #A855F7 ─────────────────────────
+  static const MaterialColor purple = MaterialColor(0xFFA855F7, <int, Color>{
+    0:   Color(0xFFF5E6FF),
+    50:  Color(0xFFEDD5FE),
+    100: Color(0xFFD9AAFD),
+    200: Color(0xFFC57FFB),
+    300: Color(0xFFB154F9),
+    400: Color(0xFFA855F7),
+    500: Color(0xFF8B5CF6),
+    600: Color(0xFF7C3AED),
+    700: Color(0xFF6D28D9),
+    800: Color(0xFF5B21B6),
+    900: Color(0xFF4C1D95),
+    950: Color(0xFF2E1065),
   });
 
-  // ─── Grey ─────────────────────────────────────────────────────
-  static const MaterialColor grey = MaterialColor(0xFF9E9E9E, <int, Color>{
-    50:  Color(0xFFFAFAFA),
-    100: Color(0xFFF5F5F5),
-    200: Color(0xFFEEEEEE),
-    300: Color(0xFFE0E0E0),
-    400: Color(0xFFBDBDBD),
-    500: Color(0xFF9E9E9E),
-    600: Color(0xFF757575),
-    700: Color(0xFF616161),
-    800: Color(0xFF424242),
-    900: Color(0xFF383838),
-    950: Color(0xFF212121),
-  });
+  // ─── Backgrounds ──────────────────────────────────────────────
+  static const Color scaffoldBackground = Color(0xFF0A0A0F);
+  static const Color backgroundAlt      = Color(0xFF0D0D0D);
+  static const Color cardBackground     = Color(0xFF1A1A24);
+  static const Color mutedBackground    = Color(0xFF1F1F2E);
+  static const Color inputField         = Color(0xFF1A1A24);
 
-  // ─── App Background & Surfaces ────────────────────────────────
-  static const Color scaffoldBackground = Color(0xFF0B0A10); // main bg
-  static const Color cardBackground     = Color(0xFF2C2C2C); // cards
-  static const Color sidebarBackground  = Color(0xFF1A1A1A); // sidebar
-  static const Color inputField         = Color(0xFF2C2C2C); // input bg
-  static const Color divider            = Color(0xFF383838); // borders
+  // ─── Text ─────────────────────────────────────────────────────
+  static const Color textPrimary   = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFF9CA3AF);
+  static const Color hintText      = Color(0xFF9CA3AF);
+  static const Color splashHint    = Color(0xFF9CA3AF); // alias for hintText
 
-  // ─── Text Colors ──────────────────────────────────────────────
-  static const Color textPrimary   = Color(0xFFFFFFFF); // white
-  static const Color textSecondary = Color(0xFF9E9E9E); // muted
-  static const Color hintText      = Color(0xFF757575); // placeholder
+  // ─── Accent / Neon ────────────────────────────────────────────
+  static const Color neonBlue      = Color(0xFF00D9FF);
+  static const Color neonBlueAlt   = Color(0xFF00D4FF);
+  static const Color neonPurple    = Color(0xFFA855F7);
+  static const Color purpleVariant = Color(0xFF8B5CF6);
+  static const Color cyan          = Color(0xFF06B6D4);
+  static const Color lightPurple   = Color(0xFFC084FC);
 
-  // ─── Accent Colors ────────────────────────────────────────────
-  static const Color electricBlue = Color(0xFF1E88E5); // primary accent
-  static const Color lightBlue    = Color(0xFF01D9FF); // secondary accent
-  static const Color darkBlue     = Color(0xFF0D47A1); // deep blue
+  // lightBlue alias — used across onboarding & splash
+  static const Color lightBlue     = Color(0xFF00D9FF);
 
-  // ─── Status Colors ────────────────────────────────────────────
-  static const Color success = Color(0xFF66BB6A); // green
-  static const Color warning = Color(0xFFFFA726); // amber
-  static const Color danger  = Color(0xFFEF5350); // red
-  static const Color info    = Color(0xFF1E88E5); // blue
+  // ─── Gradient ─────────────────────────────────────────────────
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF00D9FF), Color(0xFFA855F7)],
+  );
+
+  // ─── Buttons ──────────────────────────────────────────────────
+  static const Color buttonPrimary     = Color(0xFF00D9FF);
+  static const Color buttonPrimary2    = Color(0xFF1B1A24);
+  static const Color buttonPrimaryText = Color(0xFF0A0A0F);
+  static const Color buttonDeactive    = Color(0xFF1F1F2E); // deactivated button bg
+  static const Color disableButton     = Color(0xFF9CA3AF);
+
+  // ─── Status — Success ─────────────────────────────────────────
+  static const Color success           = Color(0xFF22C55E);
+  static const Color successBackground = Color(0x3322C55E);
+  static const Color successBorder     = Color(0x6622C55E);
+
+  // ─── Status — Error ───────────────────────────────────────────
+  static const Color danger            = Color(0xFFEF4444);
+  static const Color dangerDark        = Color(0xFFD4183D);
+  static const Color dangerBackground  = Color(0x33EF4444);
+  static const Color dangerBorder      = Color(0x66EF4444);
+
+  // ─── Status — Warning ─────────────────────────────────────────
+  static const Color warning   = Color(0xFFFBBF24);
+  static const Color starColor = Color(0xFFFBBF24);
 
   // ─── Booking Status ───────────────────────────────────────────
-  static const Color statusUpcoming  = Color(0xFF1E88E5); // blue
-  static const Color statusCompleted = Color(0xFF66BB6A); // green
-  static const Color statusCancelled = Color(0xFFEF5350); // red
-  static const Color statusPending   = Color(0xFFFFA726); // amber
+  static const Color statusUpcoming  = Color(0xFF00D9FF);
+  static const Color statusCompleted = Color(0xFF22C55E);
+  static const Color statusCancelled = Color(0xFFEF4444);
+  static const Color statusPending   = Color(0xFFFBBF24);
 
   // ─── Room Status ──────────────────────────────────────────────
-  static const Color roomAvailable   = Color(0xFF66BB6A); // green
-  static const Color roomMaintenance = Color(0xFFFFA726); // amber
-  static const Color roomBooked      = Color(0xFFEF5350); // red
+  static const Color roomAvailable   = Color(0xFF22C55E);
+  static const Color roomBooked      = Color(0xFFEF4444);
+  static const Color roomMaintenance = Color(0xFFFBBF24);
 
   // ─── Product Categories ───────────────────────────────────────
-  static const Color categoryDrinks = Color(0xFF1E88E5); // blue
-  static const Color categoryFood   = Color(0xFFFFA726); // amber
-  static const Color categorySnacks = Color(0xFF66BB6A); // green
+  static const Color categoryDrinks = Color(0xFF00D9FF);
+  static const Color categoryFood   = Color(0xFFFBBF24);
+  static const Color categorySnacks = Color(0xFFA855F7);
 
-  // ─── Lounge Status ────────────────────────────────────────────
-  static const Color loungeActive   = Color(0xFF66BB6A);
-  static const Color loungePending  = Color(0xFFFFA726);
-  static const Color loungeDisabled = Color(0xFFEF5350);
+  // ─── Borders & Dividers ───────────────────────────────────────
+  static const Color borderDefault = Color(0x1AFFFFFF);
+  static const Color borderSubtle  = Color(0x0DFFFFFF);
+  static const Color divider       = Color(0x1AFFFFFF);
+
+  // ─── Neon Blue Overlays ───────────────────────────────────────
+  static const Color neonBlue10 = Color(0x1A00D4FF);
+  static const Color neonBlue20 = Color(0x3300D4FF);
+  static const Color neonBlue30 = Color(0x4D00D4FF);
+  static const Color neonBlue40 = Color(0x6600D4FF);
+  static const Color neonBlue50 = Color(0x8000D4FF);
+
+  // ─── Neon Purple Overlays ─────────────────────────────────────
+  static const Color neonPurple10 = Color(0x1AA855F7);
+  static const Color neonPurple20 = Color(0x33A855F7);
+  static const Color neonPurple30 = Color(0x4DA855F7);
 
   // ─── Misc ─────────────────────────────────────────────────────
-  static const Color transparent    = Color(0x00000000);
-  static const Color white          = Color(0xFFFFFFFF);
-  static const Color black          = Color(0xFF000000);
-  static const Color starColor      = Color(0xFFFFA726);
-  static const Color disableButton  = Color(0xFF757575);
-  static const Color shadowColor    = Color(0x40000000);
+  static const Color transparent = Color(0x00000000);
+  static const Color white       = Color(0xFFFFFFFF);
+  static const Color black       = Color(0xFF000000);
+  static const Color shadowColor = Color(0x8000D4FF);
 
   // ─── Shimmer ──────────────────────────────────────────────────
-  static const Color shimmerBase      = Color(0xFF2C2C2C);
-  static const Color shimmerHighlight = Color(0xFF383838);
+  static const Color shimmerBase      = Color(0xFF1A1A24);
+  static const Color shimmerHighlight = Color(0xFF1F1F2E);
 
   // ─── Helper ───────────────────────────────────────────────────
   static Color withOpacity(Color color, double opacity) =>

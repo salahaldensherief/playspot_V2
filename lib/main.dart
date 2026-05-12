@@ -1,23 +1,55 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:playspot/features/splash/presentation/splash_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/helper/screens_size_handler.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'art_core/router/AppRouter.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+
+  runApp(
+    EasyLocalization(
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ar'),
+      ],
+      path: 'assets/lang/',
+      fallbackLocale: const Locale('en'),
+      startLocale: const Locale('en'),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ScreenUtilInit(
+      designSize: DeviceTypeHelper.getSize(context),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, child) {
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'PlaySpot',
 
-      title: 'Flutter Demo',
-      theme: ThemeData(
-          fontFamily: 'Orbitron',
-          colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: SplashScreen(),
+          // easy_localization
+          locale: context.locale,
+          supportedLocales: context.supportedLocales,
+          localizationsDelegates: context.localizationDelegates,
+
+          theme: ThemeData(
+            scaffoldBackgroundColor: AppColors.scaffoldBackground,
+            fontFamily: 'Orbitron',
+          ),
+          routerConfig: AppRouter().router,
+        );
+      },
     );
   }
 }
