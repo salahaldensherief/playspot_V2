@@ -6,7 +6,7 @@ class FontsManager {
 
   // Fonts
   static const String _arabicFontFamily = _familyMontserrat;
-  static const String _englishFontFamily = "SourceSans3";
+  static const String _englishFontFamily = "Orbitron";
   static const String _familyMontserrat = 'SourceSans3';
 
 

@@ -143,9 +143,10 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
 
         textStyle = textStyle ??
             TextStyle(
-              color: Colors.white,
+
+              color: Colors.black,
               fontSize: 15.5.sp,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w400,
               fontFamily: FontsManager.fontFamily,
             );
 }

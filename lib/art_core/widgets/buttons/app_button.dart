@@ -84,7 +84,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
             : widget.buttonConfig.backgroundColor,
         border: Border.all(
           color: widget.behavior.isEnabled
-              ? (widget.buttonConfig.borderColor ?? widget.buttonConfig.backgroundColor) // 👈
+              ? (widget.buttonConfig.borderColor ?? widget.buttonConfig.backgroundColor)
               : widget.buttonConfig.disabledColor,
           width: .3,
         ),
@@ -96,7 +96,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
         gradient: widget.behavior.isEnabled  // 👈
             ? widget.buttonConfig.gradient
             : null,
-        color: widget.buttonConfig.gradient != null  // 👈 لو فيه gradient متحطش color
+        color: widget.buttonConfig.gradient != null
             ? null
             : widget.behavior.isEnabled
             ? widget.buttonConfig.backgroundColor
@@ -115,7 +115,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
             BoxShadow(
               color: AppColors.black.withOpacity(0.1),
               blurRadius: 6.0,
-              offset: const Offset(0, 2),
+              offset: const Offset(0, 5),
             ),
         ]
             : null,

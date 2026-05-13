@@ -6,6 +6,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import '../../../art_core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -53,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (_navigated || !mounted) return;
     _navigated = true;
 
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 4));
     if (!mounted) return;
 
     context.go(RouterKeys.onboarding);
@@ -69,35 +70,13 @@ class _SplashScreenState extends State<SplashScreen>
           children: [
             ScaleTransition(
               scale: _scaleAnim,
-              child: Icon(
-                TablerIcons.device_gamepad,
-                size: 100.sp,
-                color: AppColors.primary,
-                shadows: [
-                  Shadow(
-                    color: AppColors.primary.withOpacity(0.8),
-                    blurRadius: 20,
-                    offset: const Offset(0, 0),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 8.h),
-            FadeTransition(
-              opacity: _fadeAnim,
-              child: Text(
-                AppStrings.playSpot.tr(),
-                style: TextStyle(
-                  fontSize: 40.sp,
-                  fontWeight: FontWeight.bold,
+              child: Center(
+                child: LogoWidget(
+                  animate: true,
                   color: AppColors.primary,
-                  shadows: [
-                    Shadow(
-                      color: AppColors.primary.withOpacity(0.8),
-                      blurRadius: 20,
-                      offset: const Offset(0, 0),
-                    ),
-                  ],
+                  fontSize: 50.w,
+                  width: 40.w,
+                  height: 40.h,
                 ),
               ),
             ),
@@ -105,9 +84,17 @@ class _SplashScreenState extends State<SplashScreen>
             FadeTransition(
               opacity: _fadeAnim,
               child: Text(
+
                 AppStrings.bookPlayWin.tr(),
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  shadows: [
+                    Shadow(
+                      color: AppColors.primary.withOpacity(0.6),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 0.h),
+                    ),
+                  ],
+                  color: AppColors.primary,
                   fontSize: 18.sp,
                 ),
               ),

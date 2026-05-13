@@ -1,7 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
+import 'package:playspot/features/auth/presetation/signin/signin_screen.dart';
+import 'package:playspot/features/auth/presetation/signup/signup_screen.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 class AppRouter {
@@ -10,7 +13,7 @@ class AppRouter {
 
   late final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: RouterKeys.onboarding,
+    initialLocation: RouterKeys.splash,
     debugLogDiagnostics: true,
     routes: [
       GoRoute(
@@ -23,11 +26,17 @@ class AppRouter {
         name: RouterKeys.onboarding,
         builder: (context, state) => const OnBoardingPage(),
       ),
-      // ),
-      // GoRoute(
-      //   path: RouterKeys.login,
-      //   builder: (context, state) => const LoginScreen(),
-      // ),
+
+      GoRoute(
+        path: RouterKeys.signUp,
+        name: RouterKeys.signUp,
+        builder: (context, state) => const SignUpScreen(),
+      ),
+      GoRoute(
+        path: RouterKeys.signIn,
+        name: RouterKeys.signIn,
+        builder: (context, state) => const SignInScreen(),
+      ),
       // GoRoute(
       //   path: RouterKeys.home,
       //   builder: (context, state) => const HomeScreen(),

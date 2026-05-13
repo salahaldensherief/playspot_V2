@@ -7,21 +7,12 @@ class AssetsManager {
 
 
   ///---- Json
-  static const String giftsLoading = '$_jsonPath/gifts.gif';
   static const String cancelGif = '$_jsonPath/cancel_gif.gif';
   static const String congratsGif = '$_jsonPath/congrats.json';
+  static const String giftsLoading = '$_jsonPath/gifts.gif';
+  static const String joystickIcon = '$_imagePath/joystik.svg';
+
   ///---- Nav Bar Icons
-  static const String homeNavBar = '$_iconPath/home_nav_bar.svg';
-  static const String servicesNavBar = '$_iconPath/services_nav_bar.svg';
-  static const String addFriend = '$_iconPath/add_friend.svg';
-  static const String communityNavBar = '$_iconPath/community_nav_bar.svg';
-  static const String viccinated = '$_iconPath/viccinated.svg';
-  static const String referalCode = '$_iconPath/referal_code.svg';
-  static const String savedNavBar = '$_iconPath/saved_nav_bar.svg';
-  static const String vendor = '$_iconPath/vendor.svg';
-  static const String vendorEmail = '$_iconPath/vendor_email.svg';
-  static const String vendorPhone = '$_iconPath/vendor_phone.svg';
-  static const String profileNavBar = '$_iconPath/profile_nav_bar.svg';
 
   static const String eventsNavBar = '$_iconPath/events_nav_bar.svg';
   static const String ukFlag = '$_iconPath/uk_flag.svg';

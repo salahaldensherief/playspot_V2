@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/text/font_manager.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
@@ -63,17 +65,17 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                       child: Icon(
                         boardingData[index]["icon"] as IconData,
                         size: 90.sp,
-                        color: AppColors.primary,
+                        color: _currentIndex==0? AppColors.primary:AppColors.purple,
                       ),
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: _currentIndex==0?AppColors.primary.withOpacity(0.1):AppColors.purple.withOpacity(0.1),
                             blurRadius: 40,
                             offset: const Offset(0, 0),
                           ),
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: _currentIndex==0?AppColors.primary.withOpacity(0.1):AppColors.purple.withOpacity(0.1),
                             blurRadius: 70,
                             offset: const Offset(0, 0),
                           ),
@@ -91,7 +93,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     ),
                     SizedBox(height: 10.h),
                     AppText(
-                      color: AppColors.textSecondary,
+                      color:  AppColors.textSecondary,
                       text: boardingData[index]["desc"]!,
                       fontSize: 16.sp,
                       fontWeight: FontWeight.w400,
@@ -136,7 +138,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
             behavior: TapBehavior(
               onTap: () {
                 if (_currentIndex == boardingData.length - 1) {
-                  // _onFinish();
+                  context.goNamed(RouterKeys.signIn);
                 } else {
                   _pageController.nextPage(
                     duration: const Duration(milliseconds: 400),
@@ -155,11 +157,14 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     glowColor: _currentIndex == boardingData.length - 1
                         ? const Color(0xFF00D4FF)
                         : null,
-                    borderRadius: 15.r,
+                    borderRadius: 20.r,
                     width: 340.w,
                     height: 50.h,
                   )
                 : ButtonConfig(
+              textStyle: TextStyle(
+                color: _currentIndex == -1? AppColors.black:AppColors.white
+              ),
                     borderColor: AppColors.textSecondary,
                     isOutlined: true,
                     backgroundColor: AppColors.buttonPrimary2,
@@ -168,6 +173,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     height: 50.h,
                   ),
             content: ButtonContent(
+
               label: _currentIndex == boardingData.length - 1
                   ? AppStrings.getStarted.tr()
                   : AppStrings.next.tr(),
