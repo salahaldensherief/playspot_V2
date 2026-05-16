@@ -1,4 +1,4 @@
-package com.example.playspot
+package com.playspot.app
 
 import io.flutter.embedding.android.FlutterActivity
 
