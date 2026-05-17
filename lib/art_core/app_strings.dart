@@ -31,6 +31,9 @@ class AppStrings {
   static const String createAnAcc = "createAnAcc";
   static const String signInSubtitle = "signInSubtitle";
   static const String signUpSubtitle = "signUpSubtitle";
+  static const completeProfile = 'completeProfile';
+  static const completeProfileSubtitle = 'completeProfileSubtitle';
+  static const continueText = 'continueText';
 
 
 

@@ -5,10 +5,13 @@ import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 
 import 'art_core/router/AppRouter.dart';
+import 'core/di.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  await init();
+
 
   runApp(
     EasyLocalization(

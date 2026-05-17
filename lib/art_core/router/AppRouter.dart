@@ -7,6 +7,8 @@ import 'package:playspot/features/auth/presetation/signin/signin_screen.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_screen.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
+
+import '../../features/auth/presetation/signup/complete_profile.dart';
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
   GlobalKey<NavigatorState>();
@@ -36,6 +38,11 @@ class AppRouter {
         path: RouterKeys.signIn,
         name: RouterKeys.signIn,
         builder: (context, state) => const SignInScreen(),
+      ),
+      GoRoute(
+        name: RouterKeys.completeProfile,
+        path: '/complete-profile',
+        builder: (context, state) => const CompleteProfileScreen(),
       ),
       // GoRoute(
       //   path: RouterKeys.home,

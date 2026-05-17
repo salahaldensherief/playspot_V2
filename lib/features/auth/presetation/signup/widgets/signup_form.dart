@@ -1,13 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:playspot/features/auth/presetation/signup/signup_cubit.dart';
 
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../../art_core/widgets/text_field/app_text_field.dart';
 
 class SignUpForm extends StatelessWidget {
+  final SignupCubit cubit;
   const SignUpForm({
-    super.key,
+    super.key, required this.cubit,
   });
 
   @override

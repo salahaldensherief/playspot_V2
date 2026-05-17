@@ -54,7 +54,10 @@
   "createAcc": "Create Account",
   "createAnAcc": "Create an Account",
   "signInSubtitle": "Ready to play? Sign in and find your perfect room",
-  "signUpSubtitle": "Your next gaming session starts here. Sign up and book in seconds."
+  "signUpSubtitle": "Your next gaming session starts here. Sign up and book in seconds.",
+  "completeProfile": "Complete Profile",
+  "completeProfileSubtitle": "Add your phone and profile image",
+  "continueText": "Continue"
 
 
 }
