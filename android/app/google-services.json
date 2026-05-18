@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1070210806389",
+    "project_id": "playspot-83bcb",
+    "storage_bucket": "playspot-83bcb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1070210806389:android:4b55c68cfed60125cb3e3c",
+        "android_client_info": {
+          "package_name": "com.playspot.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmM1rXwj252NZL-ff1lNz-PuvZu1h7MeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

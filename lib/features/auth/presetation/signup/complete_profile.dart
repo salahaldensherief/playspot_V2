@@ -12,16 +12,21 @@ import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text_field/app_text_field.dart';
+import '../../../../core/di.dart';
 import '../signup/signup_cubit.dart';
 import '../signup/signup_state.dart';
 import '../widgets/auth_app_bar.dart';
 
 class CompleteProfileScreen extends StatelessWidget {
-  const CompleteProfileScreen({super.key});
+  const CompleteProfileScreen({super.key, required this.userId});
+  final String userId;
 
   @override
   Widget build(BuildContext context) {
-    return const _CompleteProfileView();
+    return BlocProvider(
+      create: (_) => sl<SignupCubit>()..setUserId(userId),
+      child: const _CompleteProfileView(),
+    );
   }
 }
 
@@ -37,13 +42,10 @@ class _CompleteProfileView extends StatelessWidget {
         if (state.status == SignupStatus.success) {
           context.goNamed(RouterKeys.home);
         }
-
         if (state.status == SignupStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                state.errorMessage ?? 'Something went wrong',
-              ),
+              content: Text(state.errorMessage ?? 'Something went wrong'),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -58,21 +60,17 @@ class _CompleteProfileView extends StatelessWidget {
                   title: AppStrings.completeProfile.tr(),
                   subTitle: AppStrings.completeProfileSubtitle.tr(),
                 ),
-
-                SizedBox(height: 80.h),
-
+                SizedBox(height: 200.h),
                 BlocBuilder<SignupCubit, SignupState>(
                   builder: (context, state) {
                     return GestureDetector(
-                      onTap: () {
-                        cubit.pickAvatar();
-                      },
+                      onTap: () => cubit.pickAvatar(),
                       child: Stack(
                         alignment: Alignment.bottomRight,
                         children: [
                           CircleAvatar(
                             radius: 60.r,
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: AppColors.cardBackground,
                             backgroundImage: cubit.avatarFile != null
                                 ? FileImage(cubit.avatarFile!)
                                 : null,
@@ -84,11 +82,10 @@ class _CompleteProfileView extends StatelessWidget {
                             )
                                 : null,
                           ),
-
                           Container(
                             padding: EdgeInsets.all(8.r),
                             decoration: BoxDecoration(
-                              color: AppColors.primary,
+                              color: AppColors.cardBackground,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -102,9 +99,7 @@ class _CompleteProfileView extends StatelessWidget {
                     );
                   },
                 ),
-
                 SizedBox(height: 40.h),
-
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: AppTextField(
@@ -116,9 +111,7 @@ class _CompleteProfileView extends StatelessWidget {
                     hint: AppStrings.pleaseEnterPhoneNum.tr(),
                   ),
                 ),
-
                 SizedBox(height: 30.h),
-
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: BlocBuilder<SignupCubit, SignupState>(
@@ -138,21 +131,12 @@ class _CompleteProfileView extends StatelessWidget {
                           width: 340.w,
                           height: 50.h,
                         ),
-
                         content: ButtonContent(
                           label: AppStrings.continueText.tr(),
                         ),
-
                         behavior: TapBehavior(
-                          isEnabled:
-                          state.status != SignupStatus.loading,
-
-                          isLoading:
-                          state.status == SignupStatus.loading,
-
-                          onTap: () {
-                            cubit.completeProfile();
-                          },
+                          isLoading: state.status == SignupStatus.loading,
+                          onTap: () => cubit.completeProfile(),
                         ),
                       );
                     },

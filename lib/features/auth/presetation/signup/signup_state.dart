@@ -1,18 +1,19 @@
 
-import 'package:playspot/features/auth/data/models/user_model.dart';
+
+import '../../data/models/user_model.dart';
 
 enum SignupStatus {
   initial,
   loading,
-  success,
-  successSocial, // بعد Google/Facebook محتاج complete profile
+  success,         // روح Home
+  successSocial,   // روح Complete Profile (يوزر جديد)
   failure;
 
-  bool get isInitial      => this == SignupStatus.initial;
-  bool get isLoading      => this == SignupStatus.loading;
-  bool get isSuccess      => this == SignupStatus.success;
+  bool get isInitial       => this == SignupStatus.initial;
+  bool get isLoading       => this == SignupStatus.loading;
+  bool get isSuccess       => this == SignupStatus.success;
   bool get isSuccessSocial => this == SignupStatus.successSocial;
-  bool get isFailure      => this == SignupStatus.failure;
+  bool get isFailure       => this == SignupStatus.failure;
 }
 
 class SignupState {
@@ -28,12 +29,7 @@ class SignupState {
 
   factory SignupState.init() {
     return SignupState(
-      params: UserModel(
-        id: '',
-        email: '',
-        phone: '',
-        avatarUrl: '',
-      ),
+      params: UserModel(id: '', email: '', phone: '', avatarUrl: ''),
       status: SignupStatus.initial,
     );
   }

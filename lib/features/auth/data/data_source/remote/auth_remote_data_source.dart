@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../../art_core/exceptions/app_exceptions.dart';
 import '../../models/user_model.dart';
 
 abstract class AuthRemoteSource {
@@ -39,15 +41,24 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     required String password,
   }) async {
     try {
+      debugPrint('🔐 [Auth] Signing in with email: $email');
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
-      if (response.user == null) throw Exception('Sign in failed');
+      if (response.user == null) throw const ServerException('Sign in failed');
+      debugPrint('✅ [Auth] Email sign in success: ${response.user!.id}');
       await _upsertUser(response.user!);
       return UserModel.fromSupabaseUser(response.user!.toJson());
+    } on AuthException catch (e) {
+      debugPrint('❌ [Auth] AuthException: ${e.message}');
+      if (e.message.contains('Invalid login')) {
+        throw const InvalidCredentialsException();
+      }
+      throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      throw Exception('Email sign in failed: $e');
+      debugPrint('❌ [Auth] Email sign in error: $e');
+      throw AppException(e.toString());
     }
   }
 
@@ -61,13 +72,16 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     File? avatarFile,
   }) async {
     try {
+      debugPrint('📝 [Auth] Signing up with email: $email');
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
       );
-      if (response.user == null) throw Exception('Sign up failed');
+      if (response.user == null) throw const ServerException('Sign up failed');
 
       final userId = response.user!.id;
+      debugPrint('✅ [Auth] Sign up success: $userId');
+
       String? avatarUrl;
       if (avatarFile != null) {
         avatarUrl = await _uploadAvatar(userId, avatarFile);
@@ -82,13 +96,21 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'is_banned': false,
       });
 
-      return UserModel.fromSupabaseUser(response.user!.toJson()).copyWith(
-        name: name,
-        phone: phone,
-        avatarUrl: avatarUrl,
-      );
+      debugPrint('✅ [Auth] User saved to DB');
+
+      return UserModel.fromSupabaseUser(
+        response.user!.toJson(),
+        isNewUser: false, // Email sign up مش محتاج complete profile
+      ).copyWith(name: name, phone: phone, avatarUrl: avatarUrl);
+    } on AuthException catch (e) {
+      debugPrint('❌ [Auth] AuthException: ${e.message}');
+      if (e.message.contains('already registered')) {
+        throw const EmailAlreadyInUseException();
+      }
+      throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      throw Exception('Email sign up failed: $e');
+      debugPrint('❌ [Auth] Email sign up error: $e');
+      throw AppException(e.toString());
     }
   }
 
@@ -96,27 +118,59 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<UserModel> signInWithGoogle() async {
     try {
+      debugPrint('🔵 [Auth] Starting Google sign in...');
+
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
+        serverClientId:
+        '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
         scopes: ['email'],
       );
+
       final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) throw Exception('Google sign in cancelled');
+      if (googleUser == null) throw const GoogleSignInCancelledException();
+
+      debugPrint('✅ [Auth] Google user: ${googleUser.email}');
 
       final googleAuth = await googleUser.authentication;
-      if (googleAuth.idToken == null) throw Exception('No ID token found');
+      if (googleAuth.idToken == null) throw const ServerException('No ID token found');
 
       final response = await _supabase.auth.signInWithIdToken(
         provider: OAuthProvider.google,
         idToken: googleAuth.idToken!,
         accessToken: googleAuth.accessToken,
       );
-      if (response.user == null) throw Exception('Sign in failed');
+
+      if (response.user == null) throw const ServerException('Sign in failed');
+
+      debugPrint('✅ [Auth] Google sign in success: ${response.user!.id}');
+
+      // ─── هنا بنتحقق لو اليوزر جديد أو لأ ────────────────────
+      final existingUser = await _supabase
+          .from('users')
+          .select()
+          .eq('id', response.user!.id)
+          .maybeSingle();
+
+      final isNewUser = existingUser == null ||
+          existingUser['phone'] == null ||
+          (existingUser['phone'] as String).isEmpty;
+
+      debugPrint('ℹ️ [Auth] Is new user: $isNewUser');
 
       await _upsertUser(response.user!);
-      return UserModel.fromSupabaseUser(response.user!.toJson());
+
+      return UserModel.fromSupabaseUser(
+        response.user!.toJson(),
+        isNewUser: isNewUser, // ← بيحدد هيروح فين
+      );
+    } on AppException {
+      rethrow;
+    } on AuthException catch (e) {
+      debugPrint('❌ [Auth] AuthException: ${e.message}');
+      throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      throw Exception('Google sign in failed: $e');
+      debugPrint('❌ [Auth] Google sign in error: $e');
+      throw AppException(e.toString());
     }
   }
 
@@ -124,27 +178,58 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<UserModel> signInWithFacebook() async {
     try {
+      debugPrint('🔵 [Auth] Starting Facebook sign in...');
+
       final result = await FacebookAuth.instance.login(
         permissions: ['email', 'public_profile'],
       );
+
       if (result.status != LoginStatus.success) {
-        throw Exception('Facebook sign in cancelled');
+        throw const FacebookSignInCancelledException();
       }
+
+      debugPrint('✅ [Auth] Facebook login success');
 
       final response = await _supabase.auth.signInWithIdToken(
         provider: OAuthProvider.facebook,
         idToken: result.accessToken!.tokenString,
       );
-      if (response.user == null) throw Exception('Sign in failed');
+
+      if (response.user == null) throw const ServerException('Sign in failed');
+
+      debugPrint('✅ [Auth] Facebook sign in success: ${response.user!.id}');
+
+      // ─── هنا بنتحقق لو اليوزر جديد أو لأ ────────────────────
+      final existingUser = await _supabase
+          .from('users')
+          .select()
+          .eq('id', response.user!.id)
+          .maybeSingle();
+
+      final isNewUser = existingUser == null ||
+          existingUser['phone'] == null ||
+          (existingUser['phone'] as String).isEmpty;
+
+      debugPrint('ℹ️ [Auth] Is new user: $isNewUser');
 
       await _upsertUser(response.user!);
-      return UserModel.fromSupabaseUser(response.user!.toJson());
+
+      return UserModel.fromSupabaseUser(
+        response.user!.toJson(),
+        isNewUser: isNewUser,
+      );
+    } on AppException {
+      rethrow;
+    } on AuthException catch (e) {
+      debugPrint('❌ [Auth] AuthException: ${e.message}');
+      throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      throw Exception('Facebook sign in failed: $e');
+      debugPrint('❌ [Auth] Facebook sign in error: $e');
+      throw AppException(e.toString());
     }
   }
 
-  // ─── Complete Profile (بعد Google/Facebook) ───────────────────
+  // ─── Complete Profile ─────────────────────────────────────────
   @override
   Future<UserModel> completeProfile({
     required String userId,
@@ -152,6 +237,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     File? avatarFile,
   }) async {
     try {
+      debugPrint('📝 [Auth] Completing profile for: $userId');
+
       String? avatarUrl;
       if (avatarFile != null) {
         avatarUrl = await _uploadAvatar(userId, avatarFile);
@@ -162,15 +249,20 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       }).eq('id', userId);
 
+      debugPrint('✅ [Auth] Profile completed');
+
       final user = _supabase.auth.currentUser;
-      if (user == null) throw Exception('User not found');
+      if (user == null) throw const UserNotFoundException();
 
       return UserModel.fromSupabaseUser(user.toJson()).copyWith(
         phone: phone,
         avatarUrl: avatarUrl,
       );
+    } on AppException {
+      rethrow;
     } catch (e) {
-      throw Exception('Complete profile failed: $e');
+      debugPrint('❌ [Auth] Complete profile error: $e');
+      throw AppException(e.toString());
     }
   }
 
@@ -178,11 +270,14 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> signOut() async {
     try {
+      debugPrint('🔓 [Auth] Signing out...');
       await GoogleSignIn().signOut();
       await FacebookAuth.instance.logOut();
       await _supabase.auth.signOut();
+      debugPrint('✅ [Auth] Signed out successfully');
     } catch (e) {
-      throw Exception('Sign out failed: $e');
+      debugPrint('❌ [Auth] Sign out error: $e');
+      throw AppException(e.toString());
     }
   }
 
@@ -190,7 +285,11 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   UserModel? getCurrentUser() {
     final user = _supabase.auth.currentUser;
-    if (user == null) return null;
+    if (user == null) {
+      debugPrint('ℹ️ [Auth] No current user');
+      return null;
+    }
+    debugPrint('ℹ️ [Auth] Current user: ${user.id}');
     return UserModel.fromSupabaseUser(user.toJson());
   }
 
@@ -206,19 +305,25 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       );
       return _supabase.storage.from('avatars').getPublicUrl(fileName);
     } catch (e) {
+      debugPrint('⚠️ [Auth] Avatar upload failed: $e');
       return null;
     }
   }
 
   // ─── Upsert User ──────────────────────────────────────────────
   Future<void> _upsertUser(User user) async {
-    final metadata = user.userMetadata ?? {};
-    await _supabase.from('users').upsert({
-      'id': user.id,
-      'name': metadata['full_name'] ?? metadata['name'],
-      'email': user.email,
-      'avatar_url': metadata['avatar_url'] ?? metadata['picture'],
-      'is_banned': false,
-    });
+    try {
+      final metadata = user.userMetadata ?? {};
+      await _supabase.from('users').upsert({
+        'id': user.id,
+        'name': metadata['full_name'] ?? metadata['name'],
+        'email': user.email,
+        'avatar_url': metadata['avatar_url'] ?? metadata['picture'],
+        'is_banned': false,
+      });
+      debugPrint('✅ [Auth] User upserted: ${user.id}');
+    } catch (e) {
+      debugPrint('⚠️ [Auth] Upsert user failed: $e');
+    }
   }
 }

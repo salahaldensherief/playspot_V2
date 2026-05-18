@@ -8,7 +8,6 @@ import '../../data/repos/auth_repos.dart';
 class LoginCubit extends Cubit<LoginState> {
   final AuthRepository _authRepository;
 
-  // ─── Controllers ──────────────────────────────────────────────
   final TextEditingController emailController    = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -50,7 +49,9 @@ class LoginCubit extends Cubit<LoginState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        status: LoginStatus.success,
+        status: user.isNewUser
+            ? LoginStatus.successSocial
+            : LoginStatus.success,
         params: user,
       )),
     );
@@ -68,7 +69,9 @@ class LoginCubit extends Cubit<LoginState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        status: LoginStatus.success,
+        status: user.isNewUser
+            ? LoginStatus.successSocial
+            : LoginStatus.success,
         params: user,
       )),
     );
@@ -77,7 +80,6 @@ class LoginCubit extends Cubit<LoginState> {
   // ─── Reset ────────────────────────────────────────────────────
   void reset() => emit(LoginState.init());
 
-  // ─── Dispose Controllers ──────────────────────────────────────
   @override
   Future<void> close() {
     emailController.dispose();

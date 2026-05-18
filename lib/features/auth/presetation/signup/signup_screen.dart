@@ -47,12 +47,15 @@ class _SignUpView extends StatelessWidget {
         }
 
         if (state.status == SignupStatus.success) {
+
           context.goNamed(RouterKeys.home);
         }
 
         if (state.status == SignupStatus.successSocial) {
-          context.goNamed(RouterKeys.completeProfile);
-        }
+          context.goNamed(
+            RouterKeys.completeProfile,
+            extra: state.params.id.toString(),
+          );        }
       },
       builder: (context, state) {
         final cubit = context.read<SignupCubit>();

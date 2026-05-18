@@ -10,16 +10,21 @@ import '../../data/repos/auth_repos.dart';
 class SignupCubit extends Cubit<SignupState> {
   final AuthRepository _authRepository;
 
-  // ─── Controllers ──────────────────────────────────────────────
   final TextEditingController nameController     = TextEditingController();
   final TextEditingController emailController    = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController    = TextEditingController();
 
-  // ─── Avatar ───────────────────────────────────────────────────
   File? avatarFile;
 
   SignupCubit(this._authRepository) : super(SignupState.init());
+
+  // ─── Set User ID (بعد ما بييجي من الـ Router) ─────────────────
+  void setUserId(String id) {
+    emit(state.copyWith(
+      params: state.params.copyWith(id: id),
+    ));
+  }
 
   // ─── Pick Avatar ──────────────────────────────────────────────
   Future<void> pickAvatar() async {
@@ -54,7 +59,7 @@ class SignupCubit extends Cubit<SignupState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        status: SignupStatus.success, // روح Home مباشرة
+        status: SignupStatus.success, // Email → Home مباشرة
         params: user,
       )),
     );
@@ -72,7 +77,10 @@ class SignupCubit extends Cubit<SignupState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        status: SignupStatus.successSocial, // روح Complete Profile
+        // لو isNewUser روح Complete Profile، لو مش جديد روح Home
+        status: user.isNewUser
+            ? SignupStatus.successSocial
+            : SignupStatus.success,
         params: user,
       )),
     );
@@ -90,13 +98,15 @@ class SignupCubit extends Cubit<SignupState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        status: SignupStatus.successSocial, // روح Complete Profile
+        status: user.isNewUser
+            ? SignupStatus.successSocial
+            : SignupStatus.success,
         params: user,
       )),
     );
   }
 
-  // ─── Complete Profile (بعد Google/Facebook) ───────────────────
+  // ─── Complete Profile ─────────────────────────────────────────
   Future<void> completeProfile() async {
     emit(state.copyWith(status: SignupStatus.loading));
 
@@ -112,7 +122,7 @@ class SignupCubit extends Cubit<SignupState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        status: SignupStatus.success, // روح Home
+        status: SignupStatus.success,
         params: user,
       )),
     );
@@ -121,7 +131,6 @@ class SignupCubit extends Cubit<SignupState> {
   // ─── Reset ────────────────────────────────────────────────────
   void reset() => emit(SignupState.init());
 
-  // ─── Dispose ──────────────────────────────────────────────────
   @override
   Future<void> close() {
     nameController.dispose();

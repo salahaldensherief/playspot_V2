@@ -15,7 +15,7 @@ class AppRouter {
 
   late final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: RouterKeys.splash,
+    initialLocation:  RouterKeys.splash,
     debugLogDiagnostics: true,
     routes: [
       GoRoute(
@@ -41,8 +41,11 @@ class AppRouter {
       ),
       GoRoute(
         name: RouterKeys.completeProfile,
-        path: '/complete-profile',
-        builder: (context, state) => const CompleteProfileScreen(),
+        path: RouterKeys.completeProfile,
+
+        builder: (context, state) {
+          final userId = state.extra as String;
+          return CompleteProfileScreen(userId: userId,); },
       ),
       // GoRoute(
       //   path: RouterKeys.home,

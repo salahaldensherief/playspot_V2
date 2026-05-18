@@ -1,6 +1,8 @@
 import '../entities/user_entity.dart';
 
 class UserModel extends UserEntity {
+  final bool isNewUser;
+
   const UserModel({
     required super.id,
     super.name,
@@ -9,6 +11,7 @@ class UserModel extends UserEntity {
     super.avatarUrl,
     super.isBanned,
     super.createdAt,
+    this.isNewUser = false,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -25,15 +28,21 @@ class UserModel extends UserEntity {
     );
   }
 
-  factory UserModel.fromSupabaseUser(Map<String, dynamic> supabaseUser) {
-    final metadata = supabaseUser['user_metadata'] as Map<String, dynamic>? ?? {};
+  factory UserModel.fromSupabaseUser(
+      Map<String, dynamic> supabaseUser, {
+        bool isNewUser = false,
+      }) {
+    final metadata =
+        supabaseUser['user_metadata'] as Map<String, dynamic>? ?? {};
     return UserModel(
       id: supabaseUser['id'] as String,
       name: metadata['full_name'] as String? ?? metadata['name'] as String?,
       email: supabaseUser['email'] as String?,
       phone: supabaseUser['phone'] as String?,
-      avatarUrl: metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
+      avatarUrl:
+      metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
       isBanned: false,
+      isNewUser: isNewUser,
       createdAt: supabaseUser['created_at'] != null
           ? DateTime.parse(supabaseUser['created_at'] as String)
           : null,
@@ -59,6 +68,7 @@ class UserModel extends UserEntity {
     String? phone,
     String? avatarUrl,
     bool? isBanned,
+    bool? isNewUser,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -68,6 +78,7 @@ class UserModel extends UserEntity {
       phone: phone ?? this.phone,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       isBanned: isBanned ?? this.isBanned,
+      isNewUser: isNewUser ?? this.isNewUser,
       createdAt: createdAt ?? this.createdAt,
     );
   }

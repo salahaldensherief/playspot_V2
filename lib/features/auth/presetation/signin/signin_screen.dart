@@ -42,7 +42,7 @@ class _SignInView extends StatelessWidget {
     return BlocListener<LoginCubit, LoginState>(
       listener: (context, state) {
         if (state.status.isSuccess) {
-          context.goNamed(RouterKeys.home);
+          context.goNamed(RouterKeys.completeProfile);
         }
         if (state.status.isFailure) {
           ScaffoldMessenger.of(context).showSnackBar(

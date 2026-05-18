@@ -24,6 +24,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scaleAnim;
 
   @override
+  @override
   void initState() {
     super.initState();
 
@@ -41,24 +42,25 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
-    _handleNavigation();
-  }
 
+    Future.microtask(() async {
+      await Future.delayed(const Duration(seconds: 3));
+
+      if (!mounted) return;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go(RouterKeys.onboarding);
+        }
+      });
+    });
+  }
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _handleNavigation() async {
-    if (_navigated || !mounted) return;
-    _navigated = true;
-
-    await Future.delayed(const Duration(seconds: 4));
-    if (!mounted) return;
-
-    context.go(RouterKeys.onboarding);
-  }
 
   @override
   Widget build(BuildContext context) {
