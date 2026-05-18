@@ -39,8 +39,8 @@ void _initAuth() {
   );
 
   // Login Cubit
-  sl.registerFactory<LoginCubit>(
-        () => LoginCubit(sl()),
+  sl.registerFactory<SignInCubit>(
+        () => SignInCubit(sl()),
   );
 
   // Signup Cubit

@@ -5,15 +5,14 @@ import 'package:playspot/features/auth/presetation/signin/signin_state.dart';
 import '../../data/repos/auth_repos.dart';
 
 
-class LoginCubit extends Cubit<LoginState> {
+class SignInCubit extends Cubit<LoginState> {
   final AuthRepository _authRepository;
 
   final TextEditingController emailController    = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  LoginCubit(this._authRepository) : super(LoginState.init());
+  SignInCubit(this._authRepository) : super(LoginState.init());
 
-  // ─── Email Sign In ────────────────────────────────────────────
   Future<void> signInWithEmail({
     required String email,
     required String password,
@@ -37,7 +36,6 @@ class LoginCubit extends Cubit<LoginState> {
     );
   }
 
-  // ─── Google Sign In ───────────────────────────────────────────
   Future<void> signInWithGoogle() async {
     emit(state.copyWith(status: LoginStatus.loading));
 
@@ -57,7 +55,6 @@ class LoginCubit extends Cubit<LoginState> {
     );
   }
 
-  // ─── Facebook Sign In ─────────────────────────────────────────
   Future<void> signInWithFacebook() async {
     emit(state.copyWith(status: LoginStatus.loading));
 
@@ -77,7 +74,6 @@ class LoginCubit extends Cubit<LoginState> {
     );
   }
 
-  // ─── Reset ────────────────────────────────────────────────────
   void reset() => emit(LoginState.init());
 
   @override

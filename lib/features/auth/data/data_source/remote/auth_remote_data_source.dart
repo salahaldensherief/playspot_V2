@@ -122,8 +122,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
         serverClientId:
-        '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
+              '985314084575-52evmg4ntg228umakt8tetesjs0pnfj0.apps.googleusercontent.com',
         scopes: ['email'],
+
       );
 
       final googleUser = await googleSignIn.signIn();
@@ -174,61 +175,35 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     }
   }
 
-  // ─── Facebook Sign In/Up ──────────────────────────────────────
+  // ─── Facebook Sign In/Up ────\──────────────────────────────────
+
+  @override
   @override
   Future<UserModel> signInWithFacebook() async {
     try {
       debugPrint('🔵 [Auth] Starting Facebook sign in...');
 
-      final result = await FacebookAuth.instance.login(
-        permissions: ['email', 'public_profile'],
+      await _supabase.auth.signInWithOAuth(
+        OAuthProvider.facebook,
+        redirectTo: 'com.playspot.app://login-callback',
       );
 
-      if (result.status != LoginStatus.success) {
-        throw const FacebookSignInCancelledException();
+      final user = _supabase.auth.currentUser;
+
+      if (user == null) {
+        throw const ServerException('Facebook sign in failed');
       }
 
-      debugPrint('✅ [Auth] Facebook login success');
+      debugPrint('✅ [Auth] Facebook sign in success: ${user.id}');
 
-      final response = await _supabase.auth.signInWithIdToken(
-        provider: OAuthProvider.facebook,
-        idToken: result.accessToken!.tokenString,
-      );
+      await _upsertUser(user);
 
-      if (response.user == null) throw const ServerException('Sign in failed');
-
-      debugPrint('✅ [Auth] Facebook sign in success: ${response.user!.id}');
-
-      // ─── هنا بنتحقق لو اليوزر جديد أو لأ ────────────────────
-      final existingUser = await _supabase
-          .from('users')
-          .select()
-          .eq('id', response.user!.id)
-          .maybeSingle();
-
-      final isNewUser = existingUser == null ||
-          existingUser['phone'] == null ||
-          (existingUser['phone'] as String).isEmpty;
-
-      debugPrint('ℹ️ [Auth] Is new user: $isNewUser');
-
-      await _upsertUser(response.user!);
-
-      return UserModel.fromSupabaseUser(
-        response.user!.toJson(),
-        isNewUser: isNewUser,
-      );
-    } on AppException {
-      rethrow;
-    } on AuthException catch (e) {
-      debugPrint('❌ [Auth] AuthException: ${e.message}');
-      throw AppException(e.message, code: e.statusCode);
+      return UserModel.fromSupabaseUser(user.toJson());
     } catch (e) {
       debugPrint('❌ [Auth] Facebook sign in error: $e');
       throw AppException(e.toString());
     }
   }
-
   // ─── Complete Profile ─────────────────────────────────────────
   @override
   Future<UserModel> completeProfile({

@@ -9,6 +9,7 @@ import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 
 import '../../features/auth/presetation/signup/complete_profile.dart';
+import '../../features/home/presentation/home_screen.dart';
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
   GlobalKey<NavigatorState>();
@@ -42,15 +43,14 @@ class AppRouter {
       GoRoute(
         name: RouterKeys.completeProfile,
         path: RouterKeys.completeProfile,
-
         builder: (context, state) {
           final userId = state.extra as String;
           return CompleteProfileScreen(userId: userId,); },
       ),
-      // GoRoute(
-      //   path: RouterKeys.home,
-      //   builder: (context, state) => const HomeScreen(),
-      // ),
+      GoRoute(
+        path: RouterKeys.home,
+        builder: (context, state) => const HomeScreen(),
+      ),
     ],
   );
 }
