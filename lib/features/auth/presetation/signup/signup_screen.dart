@@ -88,7 +88,7 @@ class _SignUpView extends StatelessWidget {
 
   void _handleStateChange(BuildContext context, SignupState state) {
     if (state.status == SignupStatus.success) {
-      context.goNamed(RouterKeys.home);
+       context.goNamed(RouterKeys.home);
     }
 
     if (state.status == SignupStatus.successSocial) {

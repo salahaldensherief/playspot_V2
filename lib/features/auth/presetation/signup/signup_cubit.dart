@@ -59,7 +59,7 @@ class SignupCubit extends Cubit<SignupState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        status: SignupStatus.success, // Email → Home مباشرة
+        status: SignupStatus.success,
         params: user,
       )),
     );

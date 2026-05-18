@@ -114,7 +114,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     }
   }
 
-  // ─── Google Sign In/Up ────────────────────────────────────────
+  // Google Sign In/Up
   @override
   Future<UserModel> signInWithGoogle() async {
     try {
@@ -155,7 +155,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final isNewUser = existingUser == null ||
           existingUser['phone'] == null ||
           (existingUser['phone'] as String).isEmpty;
-
       debugPrint('ℹ️ [Auth] Is new user: $isNewUser');
 
       await _upsertUser(response.user!);

@@ -78,6 +78,9 @@ class _SignInView extends StatelessWidget {
     if (state.status.isSuccess) {
       context.goNamed(RouterKeys.home);
     }
+    if(state.status.isSuccessSocial){
+        context.goNamed(RouterKeys.completeProfile);
+    }
 
     if (state.status.isFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -124,6 +127,7 @@ class _SignInButton extends StatelessWidget {
           ),
           content: ButtonContent(label: AppStrings.signIn.tr()),
           behavior: TapBehavior(
+            isEnabled: !isLoading,
             isLoading: isLoading,
             onTap: () => cubit.signInWithEmail(
               email: cubit.emailController.text.trim(),
