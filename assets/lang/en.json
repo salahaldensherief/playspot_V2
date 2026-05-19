@@ -12,7 +12,7 @@
   "skip": "Skip",
   "getStarted": "Get Started",
   "next": "Next",
-    "or": "Or",
+  "or": "Or",
   "login": "Login",
   "register": "Register",
   "email": "Email",
@@ -45,9 +45,9 @@
   "pleaseEnterPassword": "Please enter password",
   "pleaseEnterValidEmail": "Please enter a valid email",
   "pleaseEnterValidPassword": "Please enter a valid password",
-"passwordsDoNotMatch": "Passwords do not match",
+  "passwordsDoNotMatch": "Passwords do not match",
   "pleaseEnterPhoneNum": "please enter your phone number",
-  "pleaseEnterValidPhoneNum": "please enter a valid phone number",
+  "pleaseEnterValidPhoneNum": "Please enter a valid phone number",
   "signIn": "Sign In",
   "name": "Full Name",
   "phone": "Phone Number",
@@ -57,7 +57,17 @@
   "signUpSubtitle": "Your next gaming session starts here. Sign up and book in seconds.",
   "completeProfile": "Complete Profile",
   "completeProfileSubtitle": "Add your phone and profile image",
-  "continueText": "Continue"
-
-
+  "continueText": "Continue",
+  "resetPassword": "Reset Password",
+  "verifyOTP": "Verify OTP",
+  "enterOTP": "Enter OTP",
+  "newPassword": "New Password",
+  "otpSentTo": "OTP sent to: ",
+  "resendOTP": "Resend OTP",
+  "sendResetLink": "Send Reset Link",
+  "resetPasswordSubtitle": "Enter your new password to reset it",
+  "forgotPasswordSubtitle": "Don't worry! It happens. Please enter the email address associated with your account.",
+  "otpVerificationSubtitle": "Enter the verification code we just sent to your email address.",
+  "isRequired": "is required",
+  "passwordResetSuccess": "Password reset successfully"
 }

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
+import 'package:playspot/core/utils/app_validators.dart';
 
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/router/router_keys.dart';
@@ -69,58 +70,66 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           return Scaffold(
             body: SafeArea(
               child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    AuthAppBar(
-                      title: AppStrings.completeProfile.tr(),
-                      subTitle: AppStrings.completeProfileSubtitle.tr(),
-                    ),
-                    SizedBox(height: 200.h),
-
-                    AvatarPickerWidget(
-                      avatarFile: _cubit.avatarFile,
-                      onTap: _cubit.pickAvatar,
-                    ),
-
-                    SizedBox(height: 40.h),
-
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: AppTextField(
-                        controller: _cubit.phoneController,
-                        contentPadding: const EdgeInsets.all(4),
-                        label: AppStrings.phone.tr(),
-                        isRequired: true,
-                        textInputType: TextInputType.phone,
-                        hint: AppStrings.pleaseEnterPhoneNum.tr(),
+                child: Form(
+                  key: _cubit.formKey,
+                  child: Column(
+                    children: [
+                      AuthAppBar(
+                        title: AppStrings.completeProfile.tr(),
+                        subTitle: AppStrings.completeProfileSubtitle.tr(),
                       ),
-                    ),
+                      SizedBox(height: 200.h),
 
-                    SizedBox(height: 30.h),
+                      AvatarPickerWidget(
+                        avatarFile: _cubit.avatarFile,
+                        onTap: _cubit.pickAvatar,
+                      ),
 
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: AppButton(
-                        buttonConfig: ButtonConfig.gradient(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
+                      SizedBox(height: 40.h),
+
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: AppTextField(
+                          controller: _cubit.phoneController,
+                          contentPadding: const EdgeInsets.all(4),
+                          label: AppStrings.phone.tr(),
+                          isRequired: true,
+                          textInputType: TextInputType.phone,
+                          hint: AppStrings.pleaseEnterPhoneNum.tr(),
+                          validator: AppValidators.validatePhone,
+                        ),
+                      ),
+
+                      SizedBox(height: 30.h),
+
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: AppButton(
+                          buttonConfig: ButtonConfig.gradient(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            glowColor: const Color(0xFF00D4FF),
+                            borderRadius: 15.r,
+                            width: 340.w,
+                            height: 50.h,
                           ),
-                          glowColor: const Color(0xFF00D4FF),
-                          borderRadius: 15.r,
-                          width: 340.w,
-                          height: 50.h,
-                        ),
-                        content: ButtonContent(label: AppStrings.continueText.tr()),
-                        behavior: TapBehavior(
-                          isEnabled: !isLoading,
-                          isLoading: isLoading,
-                          onTap: _cubit.completeProfile,
+                          content: ButtonContent(label: AppStrings.continueText.tr()),
+                          behavior: TapBehavior(
+                            isEnabled: !isLoading,
+                            isLoading: isLoading,
+                            onTap: () {
+                              if (_cubit.formKey.currentState?.validate() ?? false) {
+                                _cubit.completeProfile();
+                              }
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

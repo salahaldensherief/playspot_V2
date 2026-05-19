@@ -14,6 +14,7 @@ class SignupCubit extends Cubit<SignupState> {
   final TextEditingController emailController    = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController    = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   File? avatarFile;
 

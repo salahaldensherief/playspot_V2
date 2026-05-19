@@ -34,9 +34,15 @@ class AppStrings {
   static const completeProfile = 'completeProfile';
   static const completeProfileSubtitle = 'completeProfileSubtitle';
   static const continueText = 'continueText';
-
-
-
-
-
+  static const String resetPassword = "resetPassword";
+  static const String verifyOTP = "verifyOTP";
+  static const String enterOTP = "enterOTP";
+  static const String newPassword = "newPassword";
+  static const String confirmPassword = "confirmPassword";
+  static const String otpSentTo = "otpSentTo";
+  static const String resendOTP = "resendOTP";
+  static const String sendResetLink = "sendResetLink";
+  static const String resetPasswordSubtitle = "resetPasswordSubtitle";
+  static const String forgotPasswordSubtitle = "forgotPasswordSubtitle";
+  static const String otpVerificationSubtitle = "otpVerificationSubtitle";
 }

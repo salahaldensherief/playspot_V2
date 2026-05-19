@@ -10,6 +10,7 @@ class SignInCubit extends Cubit<LoginState> {
 
   final TextEditingController emailController    = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   SignInCubit(this._authRepository) : super(LoginState.init());
 

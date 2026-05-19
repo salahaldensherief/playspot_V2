@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:playspot/features/auth/presetation/forgot_password/forgot_password_cubit.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_cubit.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -39,5 +40,9 @@ void _initAuth() {
 
   sl.registerFactory<SignupCubit>(
         () => SignupCubit(sl()),
+  );
+
+  sl.registerLazySingleton<ForgotPasswordCubit>(
+        () => ForgotPasswordCubit(sl()),
   );
 }

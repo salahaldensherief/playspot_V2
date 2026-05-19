@@ -145,7 +145,11 @@ class _SignUpButton extends StatelessWidget {
           behavior: TapBehavior(
             isEnabled: !isLoading,
             isLoading: isLoading,
-            onTap: cubit.signUpWithEmail,
+            onTap: () {
+              if (cubit.formKey.currentState?.validate() ?? false) {
+                cubit.signUpWithEmail();
+              }
+            },
           ),
         );
       },

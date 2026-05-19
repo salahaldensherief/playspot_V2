@@ -30,6 +30,12 @@ abstract class AuthRemoteSource {
   });
   Future<void> signOut();
   UserModel? getCurrentUser();
+  Future<void> sendPasswordResetEmail(String email);
+  Future<void> verifyPasswordResetOTP({
+    required String email,
+    required String otp,
+  });
+  Future<void> resetPassword(String newPassword);
 }
 
 class AuthRemoteSourceImpl implements AuthRemoteSource {
@@ -267,6 +273,60 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     }
     debugPrint('[Auth] Current user: ${user.id}');
     return UserModel.fromSupabaseUser(user.toJson());
+  }
+
+  // Send Password Reset Email
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      debugPrint('[Auth] Sending password reset email to: $email');
+      await _supabase.auth.resetPasswordForEmail(email);
+    } on AuthException catch (e) {
+      debugPrint(' [Auth] AuthException: ${e.message}');
+      throw AppException(e.message, code: e.statusCode);
+    } catch (e) {
+      debugPrint(' [Auth] Reset password error: $e');
+      throw AppException(e.toString());
+    }
+  }
+
+  // Verify Password Reset OTP
+  @override
+  Future<void> verifyPasswordResetOTP({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      debugPrint('[Auth] Verifying reset password OTP for: $email');
+      await _supabase.auth.verifyOTP(
+        email: email,
+        token: otp,
+        type: OtpType.recovery,
+      );
+    } on AuthException catch (e) {
+      debugPrint(' [Auth] AuthException: ${e.message}');
+      throw AppException(e.message, code: e.statusCode);
+    } catch (e) {
+      debugPrint(' [Auth] OTP verification error: $e');
+      throw AppException(e.toString());
+    }
+  }
+
+  // Reset Password
+  @override
+  Future<void> resetPassword(String newPassword) async {
+    try {
+      debugPrint('[Auth] Resetting password...');
+      await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } on AuthException catch (e) {
+      debugPrint(' [Auth] AuthException: ${e.message}');
+      throw AppException(e.message, code: e.statusCode);
+    } catch (e) {
+      debugPrint(' [Auth] Reset password error: $e');
+      throw AppException(e.toString());
+    }
   }
 
   // Upload Avatar

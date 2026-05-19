@@ -28,6 +28,12 @@ abstract class AuthRepository {
     required String phone,
     File? avatarFile,
   });
+  Future<Either<String, void>> sendPasswordResetEmail(String email);
+  Future<Either<String, void>> verifyPasswordResetOTP({
+    required String email,
+    required String otp,
+  });
+  Future<Either<String, void>> resetPassword(String newPassword);
 
   Future<Either<String, void>> signOut();
   UserModel? getCurrentUser();
@@ -147,5 +153,36 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   UserModel? getCurrentUser() {
     return _remoteSource.getCurrentUser();
+  }
+  @override
+  Future<Either<String, void>> verifyPasswordResetOTP({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      await _remoteSource.verifyPasswordResetOTP(email: email, otp: otp);
+      return const Right(null);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+
+  @override
+  Future<Either<String, void>> resetPassword(String newPassword) async {
+    try {
+      await _remoteSource.resetPassword(newPassword);
+      return const Right(null);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
+  @override
+  Future<Either<String, void>> sendPasswordResetEmail(String email) async {
+    try {
+      await _remoteSource.sendPasswordResetEmail(email);
+      return const Right(null);
+    } catch (e) {
+      return Left(e.toString());
+    }
   }
 }

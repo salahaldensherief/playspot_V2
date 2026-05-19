@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../art_core/widgets/logo/logo_widget.dart';
-
 class AuthAppBar extends StatelessWidget {
   const AuthAppBar({super.key, this.title, this.subTitle});
-final String? title;
-final String? subTitle;
+  final String? title;
+  final String? subTitle;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -53,13 +52,18 @@ final String? subTitle;
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
                   ),
-                ),
-                SizedBox(height: 12.h),
-                Text(
-                  'To create an account provide details\nverify email and set a password.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white54, fontSize: 14.sp),
-                ),
+                    ),
+                if (subTitle != null) ...[
+                  SizedBox(height: 12.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w),
+                    child: Text(
+                      subTitle!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white54, fontSize: 14.sp),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -76,6 +76,7 @@ class AppTextField extends StatefulWidget {
 
 class _AppTextFieldState extends State<AppTextField> {
   late bool obscureText;
+  String? _internalErrorText;
 
   @override
   void initState() {
@@ -85,6 +86,8 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final hasError = widget.errorText != null || _internalErrorText != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -102,7 +105,7 @@ class _AppTextFieldState extends State<AppTextField> {
                     style: widget.labelStyle ??
                         TextStyle(
                           fontSize: 14.sp,
-                          color: AppColors.textSecondary, // 🎨 label color
+                          color: hasError ? AppColors.danger : AppColors.textSecondary, // 🎨 label color changes on error
                           fontWeight: FontWeight.w400,
                           height: 1,
                         ),
@@ -125,7 +128,7 @@ class _AppTextFieldState extends State<AppTextField> {
             color: widget.fillColor ?? AppColors.cardBackground, // 🎨 card bg
             border: widget.enableBorder
                 ? Border.all(
-              color: widget.errorText != null
+              color: hasError
                   ? AppColors.danger          // 🎨 error border
                   : AppColors.borderDefault,  // 🎨 default border
             )
@@ -163,8 +166,28 @@ class _AppTextFieldState extends State<AppTextField> {
                         obscureText: obscureText,
                         keyboardType: widget.textInputType,
                         textInputAction: widget.textInputAction,
-                        onChanged: widget.onChanged,
-                        validator: widget.validator,
+                        onChanged: (val) {
+                          if (_internalErrorText != null) {
+                            setState(() {
+                              _internalErrorText = null;
+                            });
+                          }
+                          widget.onChanged?.call(val);
+                        },
+                        validator: (val) {
+                          final error = widget.validator?.call(val);
+                          if (error != _internalErrorText) {
+                            // Update the border color by triggering a rebuild
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                setState(() {
+                                  _internalErrorText = error;
+                                });
+                              }
+                            });
+                          }
+                          return error;
+                        },
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         onTap: widget.onTap,
                         scrollPadding: EdgeInsets.zero,
@@ -225,7 +248,7 @@ class _AppTextFieldState extends State<AppTextField> {
               if (widget.isPassword) ...[
                 Padding(
                   padding: REdgeInsets.only(
-                    top: obscureText ? 10 : 20,
+                    top: 15.h, // Fixed consistent padding
                     right: 5,
                   ),
                   child: SvgIconWidget(

@@ -131,10 +131,14 @@ class _SignInButton extends StatelessWidget {
           behavior: TapBehavior(
             isEnabled: !isLoading,
             isLoading: isLoading,
-            onTap: () => cubit.signInWithEmail(
-              email: cubit.emailController.text.trim(),
-              password: cubit.passwordController.text.trim(),
-            ),
+            onTap: () {
+              if (cubit.formKey.currentState?.validate() ?? false) {
+                cubit.signInWithEmail(
+                  email: cubit.emailController.text.trim(),
+                  password: cubit.passwordController.text.trim(),
+                );
+              }
+            },
           ),
         );
       },

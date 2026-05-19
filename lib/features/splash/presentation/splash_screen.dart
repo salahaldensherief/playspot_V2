@@ -2,11 +2,12 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
+import 'package:playspot/core/di.dart';
+import 'package:playspot/features/auth/data/repos/auth_repos.dart';
 import '../../../art_core/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -18,13 +19,10 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  bool _navigated = false;
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
 
-  @override
-  @override
   @override
   void initState() {
     super.initState();
@@ -44,16 +42,27 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
+    _startNavigation();
+  }
+
+  void _startNavigation() {
     Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
-      context.go(RouterKeys.onboarding);
+
+      final user = sl<AuthRepository>().getCurrentUser();
+      if (user != null) {
+        context.goNamed(RouterKeys.home);
+      } else {
+        context.goNamed(RouterKeys.onboarding);
+      }
     });
-  }  @override
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +88,6 @@ class _SplashScreenState extends State<SplashScreen>
             FadeTransition(
               opacity: _fadeAnim,
               child: Text(
-
                 AppStrings.bookPlayWin.tr(),
                 style: TextStyle(
                   shadows: [
