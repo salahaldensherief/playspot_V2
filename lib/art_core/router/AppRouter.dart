@@ -49,6 +49,7 @@ class AppRouter {
       ),
       GoRoute(
         path: RouterKeys.home,
+        name: RouterKeys.home,
         builder: (context, state) => const HomeScreen(),
       ),
     ],

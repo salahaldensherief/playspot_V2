@@ -24,7 +24,6 @@ Future<void> initSupabase() async {
         () => Supabase.instance.client,
   );
 }
-
 // ─── Auth ─────────────────────────────────────────────────────
 void _initAuth() {
 

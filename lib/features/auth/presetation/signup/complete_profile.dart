@@ -18,134 +18,114 @@ import '../signup/signup_cubit.dart';
 import '../signup/signup_state.dart';
 import '../widgets/auth_app_bar.dart';
 
-class CompleteProfileScreen extends StatelessWidget {
+class CompleteProfileScreen extends StatefulWidget {
   final String userId;
 
   const CompleteProfileScreen({super.key, required this.userId});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<SignupCubit>()..setUserId(userId),
-      child: const _CompleteProfileView(),
-    );
-  }
+  State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
 }
 
-class _CompleteProfileView extends StatelessWidget {
-  const _CompleteProfileView();
+class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
+  late final SignupCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _cubit = sl<SignupCubit>()..setUserId(widget.userId);
+  }
+
+  @override
+  void dispose() {
+    _cubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<SignupCubit, SignupState>(
-      listener: _handleStateChange,
-      child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                AuthAppBar(
-                  title: AppStrings.completeProfile.tr(),
-                  subTitle: AppStrings.completeProfileSubtitle.tr(),
-                ),
-                SizedBox(height: 200.h),
-                const _AvatarSection(),
-                SizedBox(height: 40.h),
-                const _PhoneSection(),
-                SizedBox(height: 30.h),
-                const _ContinueButton(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _handleStateChange(BuildContext context, SignupState state) {
-    if (state.status == SignupStatus.success) {
-      context.goNamed(RouterKeys.home);
-    }
-    if (state.status == SignupStatus.failure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.errorMessage ?? 'Something went wrong'),
-          backgroundColor: AppColors.danger,
-        ),
-      );
-    }
-  }
-}
-
-// ─── Avatar Section ───────────────────────────────────────────
-class _AvatarSection extends StatelessWidget {
-  const _AvatarSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocSelector<SignupCubit, SignupState, String?>(
-      selector: (state) => state.params.avatarUrl,
-      builder: (context, _) {
-        final cubit = context.read<SignupCubit>();
-        return AvatarPickerWidget(
-          avatarFile: cubit.avatarFile,
-          onTap: cubit.pickAvatar,
-        );
-      },
-    );
-  }
-}
-
-// ─── Phone Section ────────────────────────────────────────────
-class _PhoneSection extends StatelessWidget {
-  const _PhoneSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<SignupCubit>();
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: AppTextField(
-        controller: cubit.phoneController,
-        contentPadding: const EdgeInsets.all(4),
-        label: AppStrings.phone.tr(),
-        isRequired: true,
-        textInputType: TextInputType.phone,
-        hint: AppStrings.pleaseEnterPhoneNum.tr(),
-      ),
-    );
-  }
-}
-
-// ─── Continue Button ──────────────────────────────────────────
-class _ContinueButton extends StatelessWidget {
-  const _ContinueButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: BlocSelector<SignupCubit, SignupState, bool>(
-        selector: (state) => state.status == SignupStatus.loading,
-        builder: (context, isLoading) {
-          final cubit = context.read<SignupCubit>();
-          return AppButton(
-            buttonConfig: ButtonConfig.gradient(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
+    return BlocProvider.value(
+      value: _cubit,
+      child: BlocConsumer<SignupCubit, SignupState>(
+        listenWhen: (previous, current) => previous.status != current.status,
+        listener: (context, state) {
+          if (state.status == SignupStatus.success) {
+            context.goNamed(RouterKeys.home);
+          }
+          if (state.status == SignupStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage ?? 'Something went wrong'),
+                backgroundColor: AppColors.danger,
               ),
-              glowColor: const Color(0xFF00D4FF),
-              borderRadius: 15.r,
-              width: 340.w,
-              height: 50.h,
-            ),
-            content: ButtonContent(label: AppStrings.continueText.tr()),
-            behavior: TapBehavior(
-              isEnabled: !isLoading,
-              isLoading: isLoading,
-              onTap: cubit.completeProfile,
+            );
+          }
+        },
+        buildWhen: (previous, current) =>
+        previous.status != current.status ||
+            previous.params.avatarUrl != current.params.avatarUrl,
+        builder: (context, state) {
+          final isLoading = state.status == SignupStatus.loading;
+          return Scaffold(
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    AuthAppBar(
+                      title: AppStrings.completeProfile.tr(),
+                      subTitle: AppStrings.completeProfileSubtitle.tr(),
+                    ),
+                    SizedBox(height: 200.h),
+
+                    // Avatar
+                    AvatarPickerWidget(
+                      avatarFile: _cubit.avatarFile,
+                      onTap: _cubit.pickAvatar,
+                    ),
+
+                    SizedBox(height: 40.h),
+
+                    // Phone
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: AppTextField(
+                        controller: _cubit.phoneController,
+                        contentPadding: const EdgeInsets.all(4),
+                        label: AppStrings.phone.tr(),
+                        isRequired: true,
+                        textInputType: TextInputType.phone,
+                        hint: AppStrings.pleaseEnterPhoneNum.tr(),
+                      ),
+                    ),
+
+                    SizedBox(height: 30.h),
+
+                    // Continue Button
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: AppButton(
+                        buttonConfig: ButtonConfig.gradient(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          glowColor: const Color(0xFF00D4FF),
+                          borderRadius: 15.r,
+                          width: 340.w,
+                          height: 50.h,
+                        ),
+                        content: ButtonContent(label: AppStrings.continueText.tr()),
+                        behavior: TapBehavior(
+                          isEnabled: !isLoading,
+                          isLoading: isLoading,
+                          onTap: _cubit.completeProfile,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         },

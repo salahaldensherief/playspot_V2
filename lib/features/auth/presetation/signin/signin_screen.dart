@@ -20,7 +20,6 @@ import '../signup/widgets/signup_form.dart';
 import '../widgets/auth_app_bar.dart';
 import '../widgets/social_buttons.dart';
 
-
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
 
@@ -78,8 +77,11 @@ class _SignInView extends StatelessWidget {
     if (state.status.isSuccess) {
       context.goNamed(RouterKeys.home);
     }
-    if(state.status.isSuccessSocial){
-        context.goNamed(RouterKeys.completeProfile);
+    if (state.status.isSuccessSocial) {
+      context.goNamed(
+        RouterKeys.completeProfile,
+        extra: state.params?.id,
+      );
     }
 
     if (state.status.isFailure) {

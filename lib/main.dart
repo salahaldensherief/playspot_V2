@@ -27,8 +27,15 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final _appRouter = AppRouter();
 
   @override
   Widget build(BuildContext context) {
@@ -40,17 +47,14 @@ class MyApp extends StatelessWidget {
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,
           title: 'PlaySpot',
-
-          // easy_localization
           locale: context.locale,
           supportedLocales: context.supportedLocales,
           localizationsDelegates: context.localizationDelegates,
-
           theme: ThemeData(
             scaffoldBackgroundColor: AppColors.scaffoldBackground,
             fontFamily: 'Orbitron',
           ),
-          routerConfig: AppRouter().router,
+          routerConfig: _appRouter.router,
         );
       },
     );
