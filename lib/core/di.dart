@@ -12,7 +12,6 @@ Future<void> init()  async {
   _initAuth();
 }
 
-// ─── Supabase ─────────────────────────────────────────────────
 Future<void> initSupabase() async {
   await Supabase.initialize(
     url: 'https://tgpdexoitemmpruepgyt.supabase.co',
@@ -24,25 +23,20 @@ Future<void> initSupabase() async {
         () => Supabase.instance.client,
   );
 }
-// ─── Auth ─────────────────────────────────────────────────────
 void _initAuth() {
 
-  // Data Source
   sl.registerLazySingleton<AuthRemoteSource>(
         () => AuthRemoteSourceImpl(),
   );
 
-  // Repository
   sl.registerLazySingleton<AuthRepository>(
         () => AuthRepositoryImpl(sl()),
   );
 
-  // Login Cubit
   sl.registerFactory<SignInCubit>(
         () => SignInCubit(sl()),
   );
 
-  // Signup Cubit
   sl.registerFactory<SignupCubit>(
         () => SignupCubit(sl()),
   );

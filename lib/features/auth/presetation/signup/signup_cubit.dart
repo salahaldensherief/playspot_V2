@@ -19,14 +19,12 @@ class SignupCubit extends Cubit<SignupState> {
 
   SignupCubit(this._authRepository) : super(SignupState.init());
 
-  // ─── Set User ID (بعد ما بييجي من الـ Router) ─────────────────
   void setUserId(String id) {
     emit(state.copyWith(
       params: state.params.copyWith(id: id),
     ));
   }
 
-  // ─── Pick Avatar ──────────────────────────────────────────────
   Future<void> pickAvatar() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
@@ -41,7 +39,6 @@ class SignupCubit extends Cubit<SignupState> {
     }
   }
 
-  // ─── Email Sign Up ────────────────────────────────────────────
   Future<void> signUpWithEmail() async {
     emit(state.copyWith(status: SignupStatus.loading));
 
@@ -65,7 +62,6 @@ class SignupCubit extends Cubit<SignupState> {
     );
   }
 
-  // ─── Google Sign Up ───────────────────────────────────────────
   Future<void> signUpWithGoogle() async {
     emit(state.copyWith(status: SignupStatus.loading));
 
@@ -77,7 +73,6 @@ class SignupCubit extends Cubit<SignupState> {
         errorMessage: error,
       )),
           (user) => emit(state.copyWith(
-        // لو isNewUser روح Complete Profile، لو مش جديد روح Home
         status: user.isNewUser
             ? SignupStatus.successSocial
             : SignupStatus.success,
@@ -86,7 +81,6 @@ class SignupCubit extends Cubit<SignupState> {
     );
   }
 
-  // ─── Facebook Sign Up ─────────────────────────────────────────
   Future<void> signUpWithFacebook() async {
     emit(state.copyWith(status: SignupStatus.loading));
 
@@ -106,11 +100,9 @@ class SignupCubit extends Cubit<SignupState> {
     );
   }
 
-  // ─── Complete Profile ─────────────────────────────────────────
+
   Future<void> completeProfile() async {
     emit(state.copyWith(status: SignupStatus.loading));
-    debugPrint('📱 [Complete] userId: ${state.params.id}');
-    debugPrint('📱 [Complete] phone: ${phoneController.text.trim()}');
     final result = await _authRepository.completeProfile(
       userId: state.params.id,
       phone: phoneController.text.trim(),
@@ -129,7 +121,6 @@ class SignupCubit extends Cubit<SignupState> {
     );
   }
 
-  // ─── Reset ────────────────────────────────────────────────────
   void reset() => emit(SignupState.init());
 
   @override

@@ -25,6 +25,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   @override
+  @override
   void initState() {
     super.initState();
 
@@ -43,19 +44,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Future.microtask(() async {
-      await Future.delayed(const Duration(seconds: 3));
-
+    Future.delayed(const Duration(seconds: 3), () {
       if (!mounted) return;
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go(RouterKeys.onboarding);
-        }
-      });
+      context.go(RouterKeys.onboarding);
     });
-  }
-  @override
+  }  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

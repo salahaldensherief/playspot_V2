@@ -42,7 +42,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     required String password,
   }) async {
     try {
-      debugPrint('🔐 [Auth] Signing in with email: $email');
+      debugPrint('[Auth] Signing in with email: $email');
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -134,7 +134,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final googleUser = await googleSignIn.signIn();
       if (googleUser == null) throw const GoogleSignInCancelledException();
 
-      debugPrint('✅ [Auth] Google user: ${googleUser.email}');
+      debugPrint('[Auth] Google user: ${googleUser.email}');
 
       final googleAuth = await googleUser.authentication;
       if (googleAuth.idToken == null) throw const ServerException('No ID token found');
@@ -147,9 +147,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       if (response.user == null) throw const ServerException('Sign in failed');
 
-      debugPrint('✅ [Auth] Google sign in success: ${response.user!.id}');
+      debugPrint('[Auth] Google sign in success: ${response.user!.id}');
 
-      // ─── هنا بنتحقق لو اليوزر جديد أو لأ ────────────────────
       final existingUser = await _supabase
           .from('users')
           .select()
@@ -160,21 +159,21 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final isNewUser = existingUser == null ||
           phone == null ||
           phone.toString().trim().isEmpty;
-      debugPrint('ℹ️ [Auth] Is new user: $isNewUser');
+      debugPrint(' [Auth] Is new user: $isNewUser');
 
       await _upsertUser(response.user!);
 
       return UserModel.fromSupabaseUser(
         response.user!.toJson(),
-        isNewUser: isNewUser, // ← بيحدد هيروح فين
+        isNewUser: isNewUser,
       );
     } on AppException {
       rethrow;
     } on AuthException catch (e) {
-      debugPrint('❌ [Auth] AuthException: ${e.message}');
+      debugPrint(' [Auth] AuthException: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint('❌ [Auth] Google sign in error: $e');
+      debugPrint(' [Auth] Google sign in error: $e');
       throw AppException(e.toString());
     }
   }
@@ -247,7 +246,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> signOut() async {
     try {
-      debugPrint('🔓 [Auth] Signing out...');
+      debugPrint('[Auth] Signing out...');
       await GoogleSignIn().signOut();
       await FacebookAuth.instance.logOut();
       await _supabase.auth.signOut();

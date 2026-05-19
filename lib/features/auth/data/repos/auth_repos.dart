@@ -5,9 +5,7 @@ import 'package:dartz/dartz.dart';
 import '../../data/models/user_model.dart';
 import '../data_source/remote/auth_remote_data_source.dart';
 
-// ─── Abstract ─────────────────────────────────────────────────
 abstract class AuthRepository {
-  // Sign In
   Future<Either<String, UserModel>> signInWithEmail({
     required String email,
     required String password,
@@ -15,7 +13,6 @@ abstract class AuthRepository {
   Future<Either<String, UserModel>> signInWithGoogle();
   Future<Either<String, UserModel>> signInWithFacebook();
 
-  // Sign Up
   Future<Either<String, UserModel>> signUpWithEmail({
     required String email,
     required String password,
@@ -26,19 +23,16 @@ abstract class AuthRepository {
   Future<Either<String, UserModel>> signUpWithGoogle();
   Future<Either<String, UserModel>> signUpWithFacebook();
 
-  // Complete Profile (بعد Google/Facebook)
   Future<Either<String, UserModel>> completeProfile({
     required String userId,
     required String phone,
     File? avatarFile,
   });
 
-  // Other
   Future<Either<String, void>> signOut();
   UserModel? getCurrentUser();
 }
 
-// ─── Implementation ───────────────────────────────────────────
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteSource _remoteSource;
 

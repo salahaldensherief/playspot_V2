@@ -77,7 +77,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     ),
                     SizedBox(height: 200.h),
 
-                    // Avatar
                     AvatarPickerWidget(
                       avatarFile: _cubit.avatarFile,
                       onTap: _cubit.pickAvatar,
@@ -85,7 +84,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
                     SizedBox(height: 40.h),
 
-                    // Phone
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: AppTextField(
@@ -100,7 +98,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
                     SizedBox(height: 30.h),
 
-                    // Continue Button
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: AppButton(
