@@ -10,4 +10,6 @@ class RouterKeys {
   static const String forgotPassword = '/forgotPassword';
   static const String verifyOTP = '/verifyOTP';
   static const String resetPassword = '/resetPassword';
+  static const String search = '/searchScreen';
+  static const String loungeDetails = '/loungeDetails';
 }

@@ -131,6 +131,7 @@ class _AppTextFieldState extends State<AppTextField> {
               color: hasError
                   ? AppColors.danger          // 🎨 error border
                   : AppColors.borderDefault,  // 🎨 default border
+              width: 1.0,
             )
                 : null,
             borderRadius: BorderRadius.circular(widget.borderRadius ?? 12.r),
@@ -142,14 +143,15 @@ class _AppTextFieldState extends State<AppTextField> {
             children: [
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 4),
+                    if (widget.label != null) const SizedBox(height: 4),
                     Padding(
                       padding: REdgeInsets.only(
                         left: (widget.prefixIcon != null) ? 25.0 : 0,
                         top: 0,
-                        bottom: 4,
+                        bottom: 0,
                       ),
                       child: TextFormField(
                         onTapUpOutside: (value) {

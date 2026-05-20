@@ -1,0 +1,313 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/assets_manager.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
+import '../../home/data/models/lounge_model.dart';
+
+class SearchScreen extends StatefulWidget {
+  const SearchScreen({super.key});
+
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  String selectedCategory = "All";
+  final List<String> categories = ["All", "Open Now", "Highest Rated", "Nearest"];
+
+  final List<LoungeModel> mockLounges = [
+    // LoungeModel(
+    //   id: "1",
+    //   name: "GameZone Elite",
+    //   imageUrl: "https://img.freepik.com/free-photo/gaming-room-with-neon-lights_23-2149020464.jpg",
+    //   rating: 4.8,
+    //   distance: 1.2,
+    //   pricePerHour: 150,
+    //   isOpen: true,
+    //   location: "Downtown Mall, New Cairo",
+    //   availableRooms: 8,
+    // ),
+    // LoungeModel(
+    //   id: "2",
+    //   name: "PS Arena",
+    //   imageUrl: "https://img.freepik.com/free-photo/view-gaming-room-with-neon-lights_23-2149827014.jpg",
+    //   rating: 4.6,
+    //   distance: 2.5,
+    //   pricePerHour: 120,
+    //   isOpen: true,
+    //   location: "Fifth Settlement, Cairo",
+    //   availableRooms: 5,
+    // ),
+    //  LoungeModel(
+    //   id: "3",
+    //   name: "Premium Gaming Hub",
+    //   imageUrl: "https://img.freepik.com/free-photo/pro-gaming-video-player-room-with-high-end-graphics_23-2149827031.jpg",
+    //   rating: 4.9,
+    //   distance: 5.2,
+    //   pricePerHour: 200,
+    //   isOpen: true,
+    //   location: "Nasr City, Cairo",
+    //   availableRooms: 12,
+    // ),
+    //  LoungeModel(
+    //   id: "4",
+    //   name: "Neon Playstation",
+    //   imageUrl: "https://img.freepik.com/free-photo/neon-lighting-room-with-keyboard-mouse_23-2148911736.jpg",
+    //   rating: 4.8,
+    //   distance: 4.8,
+    //   pricePerHour: 180,
+    //   isOpen: true,
+    //   location: "Heliopolis, Cairo",
+    //   availableRooms: 6,
+    // ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            _buildCategories(),
+            Expanded(
+              child: ListView.separated(
+                padding: EdgeInsets.all(16.w),
+                itemCount: mockLounges.length,
+                separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                itemBuilder: (context, index) {
+                  return SearchLoungeCard(lounge: mockLounges[index]);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.arrow_back, color: AppColors.white),
+          ),
+          Expanded(
+            child: AppTextField(
+              hint: "PlayStation lounges near you",
+              borderRadius: 25.r,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Container(
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: AppColors.cardBackground,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: AppColors.borderDefault),
+            ),
+            child: SvgIconWidget(
+              path: AssetsManager.filter,
+              color: AppColors.white,
+              width: 20.w,
+              height: 20,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategories() {
+    return SizedBox(
+      height: 40.h,
+      child: ListView.separated(
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (context, index) => SizedBox(width: 8.w),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected = selectedCategory == category;
+          return GestureDetector(
+            onTap: () => setState(() => selectedCategory = category),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.transparent : AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(
+                  color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+                  width: .8,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: AppColors.neonBlue.withOpacity(0.2),
+                    blurRadius: 0,
+                    spreadRadius: 0,
+                  )
+                ] : null,
+              ),
+              alignment: Alignment.center,
+              child: AppText(
+                text: category,
+                fontSize: 14.sp,
+                color: isSelected ? AppColors.neonBlue : AppColors.white,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class SearchLoungeCard extends StatelessWidget {
+  final LoungeModel lounge;
+  const SearchLoungeCard({super.key, required this.lounge});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        context.pushNamed(
+          RouterKeys.loungeDetails,
+          extra: lounge,
+        );
+      },
+      child: Container(
+        padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: AppColors.borderDefault),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(15.r),
+            child: CachedNetworkImage(
+              imageUrl: lounge.imageUrl,
+              width: 100.w,
+              height: 100.h,
+              fit: BoxFit.cover,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: lounge.name,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.white,
+                ),
+                SizedBox(height: 4.h),
+                AppText(
+                  text: lounge.location ?? "",
+                  fontSize: 12.sp,
+                  color: AppColors.textSecondary,
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: AppColors.warning, size: 16.sp),
+                    SizedBox(width: 4.w),
+                    AppText(
+                      text: lounge.rating.toString(),
+                      fontSize: 12.sp,
+                      color: AppColors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    SizedBox(width: 12.w),
+                    Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16.sp),
+                    SizedBox(width: 4.w),
+                    AppText(
+                      text: "${lounge.distance} km",
+                      fontSize: 12.sp,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12.h),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "${lounge.pricePerHour.toInt()} EGP",
+                        style: TextStyle(
+                          color: AppColors.neonBlue,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "Orbitron",
+                        ),
+                      ),
+                      TextSpan(
+                        text: "/hour",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                 AppText(
+                  text: "${lounge.availableRooms} PS5 rooms available",
+                  fontSize: 10.sp,
+                  color: AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(height: 60.h),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.neonBlue, AppColors.neonBlueAlt],
+                  ),
+                  borderRadius: BorderRadius.circular(15.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonBlue.withOpacity(0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: AppText(
+                  text: "Book\nNow",
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.black,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+        );
+  }
+}

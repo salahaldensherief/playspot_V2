@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_screen.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_screen.dart';
+import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 
 import '../../core/di.dart';
@@ -15,6 +17,8 @@ import '../../features/auth/presetation/forgot_password/otp_verification_screen.
 import '../../features/auth/presetation/forgot_password/reset_password_screen.dart';
 import '../../features/auth/presetation/signup/complete_profile.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/lounge_details/presentation/lounge_details_screen.dart';
+import '../../features/main/presentation/main_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -51,7 +55,7 @@ class AppRouter {
         builder: (context, state) {
           final userId = state.extra as String? ?? '';
           if (userId.isEmpty) {
-            return const SignInScreen(); // Fallback if userId is missing
+            return const SignInScreen();
           }
           return CompleteProfileScreen(userId: userId);
         },
@@ -59,7 +63,7 @@ class AppRouter {
       GoRoute(
         path: RouterKeys.home,
         name: RouterKeys.home,
-        builder: (context, state) => const HomeScreen(),
+        builder: (context, state) => const MainScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) {
@@ -84,13 +88,24 @@ class AppRouter {
             name: RouterKeys.resetPassword,
             builder: (context, state) => const ResetPasswordScreen(),
           ),
+          GoRoute(
+            path: RouterKeys.search,
+            name: RouterKeys.search,
+            builder: (context, state) => const SearchScreen(),
+          ),
+          GoRoute(
+            path: RouterKeys.loungeDetails,
+            name: RouterKeys.loungeDetails,
+            builder: (context, state) {
+              final lounge = state.extra as LoungeModel;
+              return LoungeDetailsScreen(lounge: lounge);
+            },
+          ),
         ],
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Text('Page not found: ${state.uri.path}'),
-      ),
+      body: Center(child: Text('Page not found: ${state.uri.path}')),
     ),
   );
 }

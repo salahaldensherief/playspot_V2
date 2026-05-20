@@ -15,6 +15,7 @@ class AssetsManager {
   ///---- Nav Bar Icons
 
   static const String eventsNavBar = '$_iconPath/events_nav_bar.svg';
+  static const String home = '$_iconPath/home-1-svgrepo-com.svg';
   static const String ukFlag = '$_iconPath/uk_flag.svg';
   static const String saudiFlag = '$_iconPath/saudi_flag.svg';
 

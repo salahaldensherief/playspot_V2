@@ -6,11 +6,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../features/auth/data/data_source/remote/auth_remote_data_source.dart';
 import '../features/auth/data/repos/auth_repos.dart';
+import '../features/home/data/data_source/remote/home_remote_data_source.dart';
+import '../features/home/data/repos/home_repos.dart';
+import '../features/home/presentation/home_cubit.dart';
+import '../features/lounge_details/presentation/lounge_details_cubit.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init()  async {
   _initAuth();
+  _initHome();
 }
 
 Future<void> initSupabase() async {
@@ -44,5 +49,23 @@ void _initAuth() {
 
   sl.registerLazySingleton<ForgotPasswordCubit>(
         () => ForgotPasswordCubit(sl()),
+  );
+}
+
+void _initHome() {
+  sl.registerLazySingleton<HomeRemoteDataSource>(
+        () => HomeRemoteDataSourceImpl(sl()),
+  );
+
+  sl.registerLazySingleton<HomeRepository>(
+        () => HomeRepositoryImpl(sl()),
+  );
+
+  sl.registerFactory<HomeCubit>(
+        () => HomeCubit(sl()),
+  );
+
+  sl.registerFactory<LoungeDetailsCubit>(
+        () => LoungeDetailsCubit(sl()),
   );
 }

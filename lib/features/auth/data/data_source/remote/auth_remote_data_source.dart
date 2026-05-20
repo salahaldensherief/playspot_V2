@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -126,10 +129,12 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   // Google Sign In/Up
   @override
   Future<UserModel> signInWithGoogle() async {
+
     try {
       debugPrint('🔵 [Auth] Starting Google sign in...');
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
+
         clientId: '304793073372-q1lo1lo8bvvget42ooevpduqvb5v4m6j.apps.googleusercontent.com',
         serverClientId:
         '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
@@ -277,15 +282,25 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
   // Send Password Reset Email
   @override
+
+  @override
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      debugPrint('[Auth] Sending password reset email to: $email');
-      await _supabase.auth.resetPasswordForEmail(email);
+      debugPrint('[Auth] Sending OTP to: $email');
+
+      await _supabase.auth.signInWithOtp(
+        email: email,
+        shouldCreateUser: false,
+        emailRedirectTo: null,
+
+      );
+
+      debugPrint('✅ [Auth] OTP sent successfully');
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException: ${e.message}');
+      debugPrint('❌ [Auth] AuthException: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] Reset password error: $e');
+      debugPrint('❌ [Auth] Send OTP error: $e');
       throw AppException(e.toString());
     }
   }
@@ -301,7 +316,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       await _supabase.auth.verifyOTP(
         email: email,
         token: otp,
-        type: OtpType.recovery,
+        type: OtpType.email,
       );
     } on AuthException catch (e) {
       debugPrint(' [Auth] AuthException: ${e.message}');
@@ -361,5 +376,17 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     } catch (e) {
       debugPrint('[Auth] Upsert user failed: $e');
     }
+  }
+  // ─── Generate Nonce ───────────────────────────────────────────
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 }

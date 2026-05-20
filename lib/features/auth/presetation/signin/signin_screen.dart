@@ -78,12 +78,13 @@ class _SignInView extends StatelessWidget {
       context.goNamed(RouterKeys.home);
     }
     if (state.status.isSuccessSocial) {
-      context.goNamed(
-        RouterKeys.completeProfile,
-        extra: state.params?.id,
-      );
+      if (state.params.isNewUser) {
+        context.goNamed(RouterKeys.completeProfile, extra: state.params.id);
+      } else {
+        context.goNamed(RouterKeys.home);
+      }
+      return;
     }
-
     if (state.status.isFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

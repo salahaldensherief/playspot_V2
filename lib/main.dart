@@ -51,6 +51,7 @@ class _MyAppState extends State<MyApp> {
           supportedLocales: context.supportedLocales,
           localizationsDelegates: context.localizationDelegates,
           theme: ThemeData(
+            useMaterial3: false,
             scaffoldBackgroundColor: AppColors.scaffoldBackground,
             fontFamily: 'Orbitron',
           ),
