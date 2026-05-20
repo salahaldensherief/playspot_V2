@@ -9,7 +9,7 @@ class LoungeDetailsState extends Equatable {
   final LoungeDetailsStatus status;
   final List<RoomModel> rooms;
   final List<ExtraModel> extras;
-  final Map<String, int> selectedExtras; // id -> quantity
+  final Map<String, int> selectedExtras;
 
   const LoungeDetailsState({
     this.status = LoungeDetailsStatus.initial,
