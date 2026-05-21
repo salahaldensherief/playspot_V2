@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
@@ -23,7 +25,7 @@ class HomeHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
-            text: "Hey, $userName 👋",
+            text: AppStrings.heyUser.tr(args: [userName]),
             fontSize: 24.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.white,

@@ -24,17 +24,22 @@ class RoomModel {
   });
 
   factory RoomModel.fromJson(Map<String, dynamic> json) {
-    return RoomModel(
-      id: json['id'].toString(),
-      loungeId: json['lounge_id'].toString(),
-      name: json['name'] ?? '',
-      type: json['type'] ?? '',
-      pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
-      isAvailable: json['is_available'] ?? true,
-      images: List<String>.from(json['images'] ?? []),
-      features: List<String>.from(json['features'] ?? []),
-      controllersCount: json['controllers_count'] ?? 2,
-      screenSize: json['screen_size'] ?? '43"',
-    );
+    try {
+      return RoomModel(
+        id: json['id']?.toString() ?? '',
+        loungeId: json['lounge_id']?.toString() ?? '',
+        name: json['name']?.toString() ?? '',
+        type: json['type']?.toString() ?? '',
+        pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
+        isAvailable: json['is_available'] ?? true,
+        images: json['images'] != null ? List<String>.from(json['images']) : [],
+        features: json['features'] != null ? List<String>.from(json['features']) : [],
+        controllersCount: (json['controllers_count'] as num?)?.toInt() ?? 2,
+        screenSize: json['screen_size']?.toString() ?? '43"',
+      );
+    } catch (e) {
+      print("Error parsing RoomModel: $e");
+      rethrow;
+    }
   }
 }

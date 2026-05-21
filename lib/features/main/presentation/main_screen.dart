@@ -14,21 +14,29 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  late final List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const Center(
-      child: Text("Bookings", style: TextStyle(color: Colors.white)),
-    ),
-    const Center(
-      child: Text("Profile", style: TextStyle(color: Colors.white)),
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const HomeScreen(),
+      const Center(
+        child: Text("Bookings", style: TextStyle(color: Colors.white)),
+      ),
+      const Center(
+        child: Text("Profile", style: TextStyle(color: Colors.white)),
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: Container(
         height: 90.h,
         decoration: BoxDecoration(

@@ -7,6 +7,8 @@ abstract class HomeRepository {
   Future<List<LoungeModel>> getLounges();
   Future<List<RoomModel>> getRoomsByLoungeId(String loungeId);
   Future<List<ExtraModel>> getExtras();
+  Future<List<String>> getBookedRoomIds(String loungeId, DateTime start, DateTime end);
+  Future<List<Map<String, dynamic>>> getBookingsForRoom(String roomId, DateTime date);
 }
 
 class HomeRepositoryImpl implements HomeRepository {
@@ -27,5 +29,15 @@ class HomeRepositoryImpl implements HomeRepository {
   @override
   Future<List<ExtraModel>> getExtras() async {
     return await _remoteDataSource.getExtras();
+  }
+
+  @override
+  Future<List<String>> getBookedRoomIds(String loungeId, DateTime start, DateTime end) async {
+    return await _remoteDataSource.getBookedRoomIds(loungeId, start, end);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getBookingsForRoom(String roomId, DateTime date) async {
+    return await _remoteDataSource.getBookingsForRoom(roomId, date);
   }
 }

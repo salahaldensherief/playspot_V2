@@ -14,16 +14,31 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       final rooms = await _homeRepository.getRoomsByLoungeId(loungeId);
       final extras = await _homeRepository.getExtras();
 
+      print("CUBIT: Fetched ${rooms.length} rooms and ${extras.length} extras for lounge $loungeId");
+
       emit(state.copyWith(
         status: LoungeDetailsStatus.success,
         rooms: rooms,
         extras: extras,
       ));
-    } catch (e) {
+    } catch (e, stack) {
+      print("CUBIT ERROR: $e");
+      print(stack);
       emit(state.copyWith(status: LoungeDetailsStatus.error));
     }
   }
 
+  void selectDate(DateTime date) {
+    emit(state.copyWith(selectedDate: date));
+  }
+
+  void toggleRoomSelection(String roomId) {
+    if (state.selectedRoomId == roomId) {
+      emit(state.copyWith(clearRoom: true));
+    } else {
+      emit(state.copyWith(selectedRoomId: roomId));
+    }
+  }
 
   void updateExtraQuantity(String extraId, int delta) {
     final currentQty = state.selectedExtras[extraId] ?? 0;

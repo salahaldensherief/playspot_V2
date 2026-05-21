@@ -12,4 +12,5 @@ class RouterKeys {
   static const String resetPassword = '/resetPassword';
   static const String search = '/searchScreen';
   static const String loungeDetails = '/loungeDetails';
+  static const String booking = '/booking';
 }

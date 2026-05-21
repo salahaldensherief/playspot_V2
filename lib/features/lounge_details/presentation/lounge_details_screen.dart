@@ -1,13 +1,25 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/lounge_details/presentation/widgets/extra_category_item.dart';
 import 'package:playspot/features/lounge_details/presentation/widgets/extra_row.dart';
 import 'package:playspot/features/lounge_details/presentation/widgets/room_card.dart';
+import 'package:playspot/art_core/widgets/shimmer/extra_shimmer.dart';
+import 'package:playspot/art_core/widgets/shimmer/room_card_shimmer.dart';
+import '../../../art_core/router/router_keys.dart';
+import '../../../art_core/widgets/buttons/back_button_widget.dart';
+import '../../booking/presentation/widgets/date_selector.dart';
 import '../data/extra_model.dart';
 import '../../home/data/models/lounge_model.dart';
 import '../data/room_model.dart';
@@ -21,6 +33,7 @@ class LoungeDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("LoungeDetailsScreen: Building for lounge ID => '${lounge.id}'");
     return BlocProvider(
       create: (context) =>
           sl<LoungeDetailsCubit>()..getLoungeDetails(lounge.id),
@@ -32,9 +45,10 @@ class LoungeDetailsScreen extends StatelessWidget {
               slivers: [
                 _buildAppBar(context),
                 _buildInfoSection(),
-                _buildSectionTitle("Available Rooms"),
+                _buildDateSelectionSection(),
+                _buildSectionTitle(AppStrings.availableRooms.tr()),
                 _buildRoomsGrid(),
-                _buildSectionTitle("Extras"),
+                _buildSectionTitle(AppStrings.extras.tr()),
                 _buildExtrasList(),
                 SliverToBoxAdapter(child: SizedBox(height: 120.h)),
               ],
@@ -51,16 +65,7 @@ class LoungeDetailsScreen extends StatelessWidget {
       expandedHeight: 300.h,
       pinned: true,
       backgroundColor: AppColors.scaffoldBackground,
-      leading: Padding(
-        padding: EdgeInsets.all(8.w),
-        child: CircleAvatar(
-          backgroundColor: Colors.black.withOpacity(0.5),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-      ),
+      leading: Padding(padding: EdgeInsets.all(8.w), child: BackButtonWidget()),
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
@@ -100,7 +105,8 @@ class LoungeDetailsScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
                   AppText(
-                    text: "Open ${lounge.opensAt} - ${lounge.closesAt}",
+                    text:
+                        "${AppStrings.openHours.tr()} ${_formatTime(lounge.opensAt)} - ${_formatTime(lounge.closesAt)}",
                     fontSize: 14.sp,
                     color: AppColors.neonBlue,
                     fontWeight: FontWeight.w600,
@@ -112,6 +118,25 @@ class LoungeDetailsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatTime(String? time) {
+    if (time == null || !time.contains(':')) return time ?? "";
+    try {
+      final parts = time.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final timeOfDay = TimeOfDay(hour: hour, minute: minute);
+
+      final period = timeOfDay.period == DayPeriod.am ? 'AM' : 'PM';
+      final hourOfPeriod = timeOfDay.hourOfPeriod == 0
+          ? 12
+          : timeOfDay.hourOfPeriod;
+
+      return "$hourOfPeriod $period";
+    } catch (e) {
+      return time;
+    }
   }
 
   Widget _buildInfoSection() {
@@ -137,7 +162,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                 ),
                 SizedBox(width: 8.w),
                 AppText(
-                  text: "${lounge.rating} · 124 reviews",
+                  text: "${lounge.rating} · 124 ${AppStrings.reviews.tr()}",
                   fontSize: 14.sp,
                   color: AppColors.white,
                   fontWeight: FontWeight.w600,
@@ -146,7 +171,7 @@ class LoungeDetailsScreen extends StatelessWidget {
             ),
             SizedBox(height: 8.h),
             AppText(
-              text: "See Reviews →",
+              text: AppStrings.seeReviews.tr(),
               fontSize: 14.sp,
               color: AppColors.neonBlue,
               fontWeight: FontWeight.bold,
@@ -155,6 +180,39 @@ class LoungeDetailsScreen extends StatelessWidget {
             const Divider(color: AppColors.borderDefault),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDateSelectionSection() {
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            child: AppText(
+              text: AppStrings.selectDate.tr(),
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
+          ),
+          BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+            builder: (context, state) {
+              return DateSelector(
+                selectedDate: state.selectedDate ?? DateTime.now(),
+                onDateSelected: (date) =>
+                    context.read<LoungeDetailsCubit>().selectDate(date),
+              );
+            },
+          ),
+          SizedBox(height: 16.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: const Divider(color: AppColors.borderDefault),
+          ),
+        ],
       ),
     );
   }
@@ -177,18 +235,41 @@ class LoungeDetailsScreen extends StatelessWidget {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       builder: (context, state) {
         if (state.status == LoungeDetailsStatus.loading) {
+          return SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            sliver: SliverGrid(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12.w,
+                mainAxisSpacing: 12.h,
+                mainAxisExtent: 130.h,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => const RoomCardShimmer(),
+                childCount: 4,
+              ),
+            ),
+          );
+        }
+
+        if (state.status == LoungeDetailsStatus.error) {
           return const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: Text(
+                "Error loading rooms",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
           );
         }
 
         if (state.rooms.isEmpty) {
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Text(
-                "No rooms available",
-                style: TextStyle(color: Colors.white),
+                AppStrings.noRoomsAvailable.tr(),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           );
@@ -204,7 +285,7 @@ class LoungeDetailsScreen extends StatelessWidget {
               mainAxisExtent: 130.h,
             ),
             delegate: SliverChildBuilderDelegate(
-                  (context, index) => RoomCard(room: state.rooms[index]),
+              (context, index) => RoomCard(room: state.rooms[index]),
               childCount: state.rooms.length,
             ),
           ),
@@ -212,11 +293,28 @@ class LoungeDetailsScreen extends StatelessWidget {
       },
     );
   }
+
   Widget _buildExtrasList() {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       builder: (context, state) {
-        if (state.status == LoungeDetailsStatus.loading)
-          return const SliverToBoxAdapter(child: SizedBox());
+        if (state.status == LoungeDetailsStatus.loading) {
+          return SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => const ExtraShimmer(),
+              childCount: 3,
+            ),
+          );
+        }
+
+        if (state.status == LoungeDetailsStatus.error)
+          return const SliverToBoxAdapter(
+            child: Center(
+              child: Text(
+                "Error loading extras",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          );
 
         final categories = state.extras.map((e) => e.category).toSet().toList();
 
@@ -236,53 +334,79 @@ class LoungeDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildBottomBar() {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: EdgeInsets.all(20.w),
-        decoration: BoxDecoration(
-          color: AppColors.scaffoldBackground,
-          border: const Border(top: BorderSide(color: AppColors.borderDefault)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  text: "Price per hour",
-                  fontSize: 12.sp,
-                  color: AppColors.textSecondary,
-                ),
-                AppText(
-                  text: "${lounge.pricePerHour.toInt()} EGP",
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.neonBlue,
-                ),
-              ],
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 16.h),
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(15.r),
-                border: Border.all(color: AppColors.borderDefault),
-              ),
-              child: AppText(
-                text: "Book a Room",
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
+    return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      builder: (context, state) {
+        final isRoomSelected = state.selectedRoomId != null;
+        final total = state.totalPrice;
+        final displayPrice = total > 0 ? total : lounge.pricePerHour;
+
+        return Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.scaffoldBackground,
+              border: const Border(
+                top: BorderSide(color: AppColors.borderDefault),
               ),
             ),
-          ],
-        ),
-      ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 18.h, horizontal: 16.w),
+              child: AppButton(
+                content: ButtonContent(
+                  body: AppText(
+                    fontFamily: 'Orbitron',
+                    textAlign: TextAlign.center,
+                    text: AppStrings.bookARoom.tr(),
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: isRoomSelected ? AppColors.black : AppColors.white,
+                  ),
+                ),
+                behavior: ButtonBehavior.tap(
+                  isEnabled: isRoomSelected,
+                  onTap: isRoomSelected
+                      ? () {
+                          final selectedRoom = state.rooms.firstWhere(
+                            (r) => r.id == state.selectedRoomId,
+                          );
+                          context.pushNamed(
+                            RouterKeys.booking,
+                            extra: {
+                              'lounge': lounge,
+                              'room': selectedRoom,
+                              'selectedDate': state.selectedDate ?? DateTime.now(),
+                            },
+                          );
+                        }
+                      : null,
+                ),
+                buttonConfig: ButtonConfig(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  glowColor: const Color(0xFF00D4FF),
+                  borderRadius: 15.r,
+                  width: 340.w,
+                  height: 50.h,
+                  backgroundColor: isRoomSelected
+                      ? AppColors.neonBlue
+                      : AppColors.cardBackground,
+                  borderColor: isRoomSelected
+                      ? AppColors.neonBlue
+                      : AppColors.borderDefault,
+
+                ),
+
+
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

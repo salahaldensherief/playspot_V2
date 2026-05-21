@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../../art_core/theme/app_colors.dart';
 import '../../../../../art_core/widgets/text/app_text.dart';
 import '../../data/extra_model.dart';
@@ -17,6 +19,19 @@ class ExtraCategoryItem extends StatefulWidget {
 
 class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
   bool isExpanded = false;
+
+  String get translatedCategory {
+    switch (widget.category.toLowerCase()) {
+      case "drinks":
+        return AppStrings.drinks.tr();
+      case "food":
+        return AppStrings.food.tr();
+      case "snacks":
+        return AppStrings.snacks.tr();
+      default:
+        return widget.category.tr();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +52,7 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
                 color: AppColors.white,
               ),
               title: AppText(
-                text: widget.category,
+                text: translatedCategory,
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.white,

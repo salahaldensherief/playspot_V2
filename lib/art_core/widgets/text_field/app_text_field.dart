@@ -154,9 +154,6 @@ class _AppTextFieldState extends State<AppTextField> {
                         bottom: 0,
                       ),
                       child: TextFormField(
-                        onTapUpOutside: (value) {
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        },
                         inputFormatters: widget.inputFormatters,
                         controller: widget.controller,
                         initialValue: widget.initialText,
@@ -178,22 +175,13 @@ class _AppTextFieldState extends State<AppTextField> {
                         },
                         validator: (val) {
                           final error = widget.validator?.call(val);
-                          if (error != _internalErrorText) {
-                            // Update the border color by triggering a rebuild
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted) {
-                                setState(() {
-                                  _internalErrorText = error;
-                                });
-                              }
-                            });
-                          }
+                          // We don't update state here anymore as it can cause issues during build/layout
                           return error;
                         },
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         onTap: widget.onTap,
                         scrollPadding: EdgeInsets.zero,
-                        onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                        // onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(), // Temporarily disabled to debug focus issues
                         style: widget.textInputStyle ??
                             widget.textStyle ??
                             TextStyle(

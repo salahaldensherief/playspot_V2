@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 
+import '../../../../core/cache/preference_manager.dart';
 import '../../data/models/user_model.dart';
 import '../data_source/remote/auth_remote_data_source.dart';
 
@@ -41,8 +42,15 @@ abstract class AuthRepository {
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteSource _remoteSource;
+  final PreferenceManager _preferenceManager;
 
-  AuthRepositoryImpl(this._remoteSource);
+  AuthRepositoryImpl(this._remoteSource, this._preferenceManager);
+
+  void _saveUserData(UserModel user) {
+    _preferenceManager.saveUserId(user.id);
+    _preferenceManager.saveFullName(user.name);
+    _preferenceManager.saveIsLoggedIn(true);
+  }
 
   @override
   Future<Either<String, UserModel>> signInWithEmail({
@@ -54,6 +62,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         password: password,
       );
+      _saveUserData(user);
       return Right(user);
     } catch (e) {
       return Left(e.toString());
@@ -76,6 +85,7 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         avatarFile: avatarFile,
       );
+      _saveUserData(user);
       return Right(user);
     } catch (e) {
       return Left(e.toString());
@@ -86,6 +96,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<String, UserModel>> signUpWithGoogle() async {
     try {
       final user = await _remoteSource.signInWithGoogle();
+      _saveUserData(user);
       return Right(user);
     } catch (e) {
       return Left(e.toString());
@@ -96,6 +107,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<String, UserModel>> signUpWithFacebook() async {
     try {
       final user = await _remoteSource.signInWithFacebook();
+      _saveUserData(user);
       return Right(user);
     } catch (e) {
       return Left(e.toString());
@@ -114,6 +126,7 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         avatarFile: avatarFile,
       );
+      _saveUserData(user);
       return Right(user);
     } catch (e) {
       return Left(e.toString());
@@ -124,6 +137,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<String, UserModel>> signInWithGoogle() async {
     try {
       final user = await _remoteSource.signInWithGoogle();
+      _saveUserData(user);
       return Right(user);
     } catch (e) {
       return Left(e.toString());
@@ -134,6 +148,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<String, UserModel>> signInWithFacebook() async {
     try {
       final user = await _remoteSource.signInWithFacebook();
+      _saveUserData(user);
       return Right(user);
     } catch (e) {
       return Left(e.toString());
@@ -144,6 +159,8 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<String, void>> signOut() async {
     try {
       await _remoteSource.signOut();
+      _preferenceManager.saveIsLoggedIn(false);
+      _preferenceManager.saveFullName(null);
       return const Right(null);
     } catch (e) {
       return Left(e.toString());
@@ -152,7 +169,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   UserModel? getCurrentUser() {
-    return _remoteSource.getCurrentUser();
+    final user = _remoteSource.getCurrentUser();
+    if (user != null) {
+      _saveUserData(user);
+    }
+    return user;
   }
   @override
   Future<Either<String, void>> verifyPasswordResetOTP({

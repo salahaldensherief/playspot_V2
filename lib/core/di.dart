@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/features/auth/presetation/forgot_password/forgot_password_cubit.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_cubit.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_cubit.dart';
@@ -14,6 +15,9 @@ import '../features/lounge_details/presentation/lounge_details_cubit.dart';
 final sl = GetIt.instance;
 
 Future<void> init()  async {
+  await PreferenceManager.init();
+  sl.registerLazySingleton(() => PreferenceManager());
+
   _initAuth();
   _initHome();
 }
@@ -36,7 +40,7 @@ void _initAuth() {
   );
 
   sl.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(sl()),
+        () => AuthRepositoryImpl(sl(), sl()),
   );
 
   sl.registerFactory<SignInCubit>(

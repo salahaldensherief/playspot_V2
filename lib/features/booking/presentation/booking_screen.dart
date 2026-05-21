@@ -1,0 +1,152 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/core/di.dart';
+import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'package:playspot/features/lounge_details/data/room_model.dart';
+import 'booking_cubit.dart';
+import 'booking_state.dart';
+import 'widgets/date_selector.dart';
+import 'widgets/time_slot_grid.dart';
+import 'widgets/duration_selector.dart';
+
+class BookingScreen extends StatelessWidget {
+  final LoungeModel lounge;
+  final RoomModel room;
+  final DateTime? initialDate;
+
+  const BookingScreen({
+    super.key,
+    required this.lounge,
+    required this.room,
+    this.initialDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => BookingCubit(sl(), room.id, initialDate),
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: AppText(
+            text: "Book ${room.name}",
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.white,
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      text: "Select Time",
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    SizedBox(height: 16.h),
+                    const TimeSlotGrid(),
+                    SizedBox(height: 24.h),
+                    AppText(
+                      text: "Duration",
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    SizedBox(height: 16.h),
+                    const DurationSelector(),
+                  ],
+                ),
+              ),
+            ),
+            _buildBottomBar(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context) {
+    return BlocBuilder<BookingCubit, BookingState>(
+      builder: (context, state) {
+        final isReady = state.startTime != null;
+
+        return Container(
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: AppColors.scaffoldBackground,
+            border: const Border(
+              top: BorderSide(color: AppColors.borderDefault),
+            ),
+          ),
+          child: SafeArea(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      text: "Total Price",
+                      fontSize: 12.sp,
+                      color: AppColors.textSecondary,
+                    ),
+                    AppText(
+                      text:
+                          "${(room.pricePerHour * state.durationHours).toInt()} ${AppStrings.egp.tr()}",
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.neonBlue,
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  width: 180.w,
+                  child: AppButton(
+                    content: ButtonContent(
+                      body: AppText(text: AppStrings.confirmAndPay.tr()),
+                    ),
+                    behavior: ButtonBehavior.tap(
+                      isEnabled: isReady,
+                      onTap: isReady
+                          ? () {
+                              // TODO: Finalize booking
+                            }
+                          : null,
+                    ),
+                    buttonConfig: ButtonConfig(
+                      backgroundColor: isReady
+                          ? AppColors.success
+                          : AppColors.cardBackground,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

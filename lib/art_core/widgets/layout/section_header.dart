@@ -24,7 +24,7 @@ class SectionHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           AppText(
-            text: title,
+            text: title.tr(),
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.white,
@@ -33,7 +33,7 @@ class SectionHeader extends StatelessWidget {
             GestureDetector(
               onTap: onSeeAllTap,
               child: AppText(
-                text: seeAllText ?? "See all",
+                text: (seeAllText ?? "See all").tr(),
                 fontSize: 14.sp,
                 color: AppColors.neonBlue,
               ),

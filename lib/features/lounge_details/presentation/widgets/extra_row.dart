@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../../art_core/theme/app_colors.dart';
 import '../../../../../art_core/widgets/text/app_text.dart';
 import '../../data/extra_model.dart';
@@ -20,7 +22,7 @@ class ExtraRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppText(text: extra.name, fontSize: 14.sp, color: AppColors.white, fontWeight: FontWeight.bold),
-                AppText(text: "${extra.price.toInt()} EGP", fontSize: 12.sp, color: AppColors.neonPurple),
+                AppText(text: "${extra.price.toInt()} ${AppStrings.egp.tr()}", fontSize: 12.sp, color: AppColors.neonPurple),
               ],
             ),
           ),

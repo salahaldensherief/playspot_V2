@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
@@ -8,6 +10,10 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
+import 'package:playspot/art_core/widgets/shimmer/search_lounge_card_shimmer.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/features/home/presentation/home_cubit.dart';
+import 'package:playspot/features/home/presentation/home_state.dart';
 import '../../home/data/models/lounge_model.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -19,7 +25,12 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   String selectedCategory = "All";
-  final List<String> categories = ["All", "Open Now", "Highest Rated", "Nearest"];
+  List<String> get categories => [
+    AppStrings.all.tr(),
+    AppStrings.openNow.tr(),
+    AppStrings.highestRated.tr(),
+    AppStrings.nearest.tr()
+  ];
 
   final List<LoungeModel> mockLounges = [
     // LoungeModel(
@@ -78,12 +89,27 @@ class _SearchScreenState extends State<SearchScreen> {
             _buildAppBar(context),
             _buildCategories(),
             Expanded(
-              child: ListView.separated(
-                padding: EdgeInsets.all(16.w),
-                itemCount: mockLounges.length,
-                separatorBuilder: (context, index) => SizedBox(height: 16.h),
-                itemBuilder: (context, index) {
-                  return SearchLoungeCard(lounge: mockLounges[index]);
+              child: BlocBuilder<HomeCubit, HomeState>(
+                builder: (context, state) {
+                  if (state.status == HomeStatus.loading) {
+                    return ListView.separated(
+                      padding: EdgeInsets.all(16.w),
+                      itemCount: 5,
+                      separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                      itemBuilder: (context, index) => const SearchLoungeCardShimmer(),
+                    );
+                  }
+                  
+                  final lounges = state.nearestLounges; // Logic to filter can be added here
+                  
+                  return ListView.separated(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: lounges.length,
+                    separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                    itemBuilder: (context, index) {
+                      return SearchLoungeCard(lounge: lounges[index]);
+                    },
+                  );
                 },
               ),
             ),
@@ -104,7 +130,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           Expanded(
             child: AppTextField(
-              hint: "PlayStation lounges near you",
+              hint: AppStrings.searchLoungesHint.tr(),
               borderRadius: 25.r,
               contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
             ),
@@ -238,7 +264,7 @@ class SearchLoungeCard extends StatelessWidget {
                     Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16.sp),
                     SizedBox(width: 4.w),
                     AppText(
-                      text: "${lounge.distance} km",
+                      text: "${lounge.distance} ${AppStrings.km.tr()}",
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,
                     ),
@@ -249,7 +275,7 @@ class SearchLoungeCard extends StatelessWidget {
                   text: TextSpan(
                     children: [
                       TextSpan(
-                        text: "${lounge.pricePerHour.toInt()} EGP",
+                        text: "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
                         style: TextStyle(
                           color: AppColors.neonBlue,
                           fontSize: 18.sp,
@@ -258,7 +284,7 @@ class SearchLoungeCard extends StatelessWidget {
                         ),
                       ),
                       TextSpan(
-                        text: "/hour",
+                        text: AppStrings.perHour.tr(),
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12.sp,
@@ -269,7 +295,7 @@ class SearchLoungeCard extends StatelessWidget {
                 ),
                 SizedBox(height: 4.h),
                  AppText(
-                  text: "${lounge.availableRooms} PS5 rooms available",
+                  text: "${lounge.availableRooms} ${AppStrings.ps5RoomsAvailable.tr()}",
                   fontSize: 10.sp,
                   color: AppColors.textSecondary,
                 ),
@@ -296,7 +322,7 @@ class SearchLoungeCard extends StatelessWidget {
                   ],
                 ),
                 child: AppText(
-                  text: "Book\nNow",
+                  text: AppStrings.bookNow.tr(),
                   fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.black,

@@ -14,12 +14,17 @@ class ExtraModel {
   });
 
   factory ExtraModel.fromJson(Map<String, dynamic> json) {
-    return ExtraModel(
-      id: json['id'].toString(),
-      name: json['name'] ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      category: json['category'] ?? '',
-      icon: json['icon'],
-    );
+    try {
+      return ExtraModel(
+        id: json['id']?.toString() ?? '',
+        name: json['name']?.toString() ?? '',
+        price: (json['price'] as num?)?.toDouble() ?? 0.0,
+        category: json['category']?.toString() ?? '',
+        icon: json['icon']?.toString(),
+      );
+    } catch (e) {
+      print("Error parsing ExtraModel: $e");
+      rethrow;
+    }
   }
 }

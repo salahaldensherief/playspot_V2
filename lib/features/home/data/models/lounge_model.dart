@@ -31,20 +31,25 @@ class LoungeModel {
   });
 
   factory LoungeModel.fromJson(Map<String, dynamic> json) {
-    return LoungeModel(
-      id: json['id'].toString(),
-      name: json['name'] ?? '',
-      imageUrl: json['image_url'] ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-      pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
-      isOpen: json['is_open'] ?? true,
-      location: json['location'],
-      availableRooms: json['available_rooms'],
-      description: json['description'],
-      images: json['images'] != null ? List<String>.from(json['images']) : null,
-      opensAt: json['opens_at'],
-      closesAt: json['closes_at'],
-    );
+    try {
+      return LoungeModel(
+        id: json['id']?.toString() ?? '',
+        name: json['name']?.toString() ?? '',
+        imageUrl: json['image_url']?.toString() ?? '',
+        rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+        pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
+        isOpen: json['is_open'] ?? true,
+        location: json['location']?.toString(),
+        availableRooms: (json['available_rooms'] as num?)?.toInt(),
+        description: json['description']?.toString(),
+        images: json['images'] != null ? List<String>.from(json['images']) : null,
+        opensAt: json['opens_at']?.toString() ?? '',
+        closesAt: json['closes_at']?.toString() ?? '',
+      );
+    } catch (e) {
+      print("Error parsing LoungeModel: $e");
+      rethrow;
+    }
   }
 }

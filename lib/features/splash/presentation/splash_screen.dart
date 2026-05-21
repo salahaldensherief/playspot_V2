@@ -9,6 +9,7 @@ import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/data/repos/auth_repos.dart';
 import '../../../art_core/theme/app_colors.dart';
+import '../../../core/cache/preference_manager.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -51,6 +52,11 @@ class _SplashScreenState extends State<SplashScreen>
 
       final user = sl<AuthRepository>().getCurrentUser();
       if (user != null) {
+        // Ensure name is cached if user session is active
+        sl<PreferenceManager>().saveFullName(user.name);
+        sl<PreferenceManager>().saveUserId(user.id);
+        sl<PreferenceManager>().saveIsLoggedIn(true);
+
         context.goNamed(RouterKeys.home);
       } else {
         context.goNamed(RouterKeys.onboarding);
