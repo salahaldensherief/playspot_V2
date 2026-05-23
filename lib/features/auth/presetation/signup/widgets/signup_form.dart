@@ -21,7 +21,6 @@ class SignUpForm extends StatelessWidget {
         children: [
           AppTextField(
             controller: cubit.nameController,
-            contentPadding: const EdgeInsets.all(4),
             label: AppStrings.name.tr(),
             isRequired: true,
             textInputType: TextInputType.name,
@@ -31,7 +30,6 @@ class SignUpForm extends StatelessWidget {
           _space(),
           AppTextField(
             controller: cubit.emailController,
-            contentPadding: const EdgeInsets.all(4),
             textInputType: TextInputType.emailAddress,
             label: AppStrings.email.tr(),
             isRequired: true,
@@ -41,7 +39,6 @@ class SignUpForm extends StatelessWidget {
           _space(),
           AppTextField(
             controller: cubit.phoneController,
-            contentPadding: const EdgeInsets.all(4),
             label: AppStrings.phone.tr(),
             isRequired: true,
             textInputType: TextInputType.phone,
@@ -51,7 +48,6 @@ class SignUpForm extends StatelessWidget {
           _space(),
           AppTextField(
             controller: cubit.passwordController,
-            contentPadding: const EdgeInsets.all(4),
             label: AppStrings.password.tr(),
             hint: AppStrings.pleaseEnterPassword.tr(),
             isPassword: true,

@@ -78,4 +78,33 @@ class AppStrings {
   static const String startTime = "startTime";
   static const String endTime = "endTime";
   static const String confirmAndPay = "confirmAndPay";
+  static const String myBookings = "myBookings";
+  static const String paymentMethods = "paymentMethods";
+  static const String notifications = "notifications";
+  static const String language = "language";
+  static const String arabicEnglish = "arabicEnglish";
+  static const String helpSupport = "helpSupport";
+  static const String logOut = "logOut";
+  static const String totalBookings = "totalBookings";
+  static const String hoursPlayed = "hoursPlayed";
+  static const String favorite = "favorite";
+  static const String logoutConfirmation = "logoutConfirmation";
+  static const String accountSettings = "accountSettings";
+  static const String profile = "profile";
+  static const String editProfile = "editProfile";
+  static const String saveChanges = "saveChanges";
+  static const String changePassword = "changePassword";
+  static const String currentPassword = "currentPassword";
+  static const String newPasswordLabel = "newPasswordLabel";
+  static const String confirmNewPassword = "confirmNewPassword";
+  static const String deleteAccount = "deleteAccount";
+  static const String deleteAccountConfirmation = "deleteAccountConfirmation";
+  static const String support = "support";
+  static const String faq = "faq";
+  static const String contactUs = "contactUs";
+  static const String termsOfService = "termsOfService";
+  static const String privacyPolicy = "privacyPolicy";
+  static const String aboutUs = "aboutUs";
+  static const String version = "version";
+
 }

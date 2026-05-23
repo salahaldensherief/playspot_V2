@@ -46,13 +46,13 @@ class AuthAppBar extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  'Create an Account',
+                  title ?? 'Create an Account',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
                   ),
-                    ),
+                ),
                 if (subTitle != null) ...[
                   SizedBox(height: 12.h),
                   Padding(

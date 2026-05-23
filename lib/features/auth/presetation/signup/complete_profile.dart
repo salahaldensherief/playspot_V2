@@ -91,7 +91,6 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         padding: EdgeInsets.symmetric(horizontal: 16.w),
                         child: AppTextField(
                           controller: _cubit.phoneController,
-                          contentPadding: const EdgeInsets.all(4),
                           label: AppStrings.phone.tr(),
                           isRequired: true,
                           textInputType: TextInputType.phone,

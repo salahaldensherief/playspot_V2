@@ -135,7 +135,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
 
-        clientId: '304793073372-q1lo1lo8bvvget42ooevpduqvb5v4m6j.apps.googleusercontent.com',
+        // clientId: '304793073372-q1lo1lo8bvvget42ooevpduqvb5v4m6j.apps.googleusercontent.com',
         serverClientId:
         '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
         scopes: ['email'],
@@ -258,9 +258,20 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   Future<void> signOut() async {
     try {
       debugPrint('[Auth] Signing out...');
-      await GoogleSignIn().signOut();
-      await FacebookAuth.instance.logOut();
+      
+      try {
+        await GoogleSignIn().signOut();
+      } catch (e) {
+        debugPrint(' [Auth] Google sign out skipped: $e');
+      }
+
+      try {
+        await FacebookAuth.instance.logOut();
+      } catch (e) {
+        debugPrint(' [Auth] Facebook sign out skipped: $e');
+      }
       await _supabase.auth.signOut();
+
       debugPrint(' [Auth] Signed out successfully');
     } catch (e) {
       debugPrint(' [Auth] Sign out error: $e');

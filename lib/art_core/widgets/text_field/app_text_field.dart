@@ -102,10 +102,14 @@ class _AppTextFieldState extends State<AppTextField> {
                     widget.label!,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
-                    style: widget.labelStyle ??
+                    style:
+                        widget.labelStyle ??
                         TextStyle(
                           fontSize: 14.sp,
-                          color: hasError ? AppColors.danger : AppColors.textSecondary, // 🎨 label color changes on error
+                          color: hasError
+                              ? AppColors.danger
+                              : AppColors
+                                    .textSecondary, // 🎨 label color changes on error
                           fontWeight: FontWeight.w400,
                           height: 1,
                         ),
@@ -128,11 +132,12 @@ class _AppTextFieldState extends State<AppTextField> {
             color: widget.fillColor ?? AppColors.cardBackground, // 🎨 card bg
             border: widget.enableBorder
                 ? Border.all(
-              color: hasError
-                  ? AppColors.danger          // 🎨 error border
-                  : AppColors.borderDefault,  // 🎨 default border
-              width: 1.0,
-            )
+                    color: hasError
+                        ? AppColors
+                              .danger // 🎨 error border
+                        : AppColors.borderDefault, // 🎨 default border
+                    width: 1.0,
+                  )
                 : null,
             borderRadius: BorderRadius.circular(widget.borderRadius ?? 12.r),
             boxShadow: widget.boxShadow,
@@ -182,7 +187,8 @@ class _AppTextFieldState extends State<AppTextField> {
                         onTap: widget.onTap,
                         scrollPadding: EdgeInsets.zero,
                         // onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(), // Temporarily disabled to debug focus issues
-                        style: widget.textInputStyle ??
+                        style:
+                            widget.textInputStyle ??
                             widget.textStyle ??
                             TextStyle(
                               fontSize: 14.sp,
@@ -193,15 +199,16 @@ class _AppTextFieldState extends State<AppTextField> {
                         decoration: InputDecoration(
                           prefixIcon: widget.hintIcon != null
                               ? Padding(
-                            padding: REdgeInsets.only(
-                              right: 8.0,
-                              bottom: 2.0,
-                            ),
-                            child: SvgIconWidget(
-                              path: widget.hintIcon!,
-                              color: AppColors.textSecondary, // 🎨 prefix icon
-                            ),
-                          )
+                                  padding: REdgeInsets.only(
+                                    right: 8.0,
+                                    bottom: 2.0,
+                                  ),
+                                  child: SvgIconWidget(
+                                    path: widget.hintIcon!,
+                                    color: AppColors
+                                        .textSecondary, // 🎨 prefix icon
+                                  ),
+                                )
                               : null,
                           prefixIconConstraints: const BoxConstraints(
                             minWidth: 0,
@@ -209,7 +216,8 @@ class _AppTextFieldState extends State<AppTextField> {
                           ),
                           suffix: widget.suffixIcon,
                           hintText: widget.hint ?? "Enter your text",
-                          hintStyle: widget.hintStyle ??
+                          hintStyle:
+                              widget.hintStyle ??
                               TextStyle(
                                 fontSize: 12.sp,
                                 color: AppColors.hintText, // 🎨 hint text
@@ -217,12 +225,18 @@ class _AppTextFieldState extends State<AppTextField> {
                                 height: 1,
                               ),
                           fillColor: widget.filled
-                              ? (widget.fillColor ?? AppColors.cardBackground) // 🎨 fill
+                              ? (widget.fillColor ??
+                                    AppColors.cardBackground) // 🎨 fill
                               : null,
                           filled: widget.filled,
                           border: InputBorder.none,
                           contentPadding:
-                          widget.contentPadding ?? EdgeInsets.zero,
+                              widget.contentPadding ??
+                              EdgeInsets.symmetric(
+                                vertical: 6.h,
+                                horizontal: 8.w,
+                              ),
+
                           isCollapsed: true,
                           errorText: widget.errorText,
                           errorStyle: const TextStyle(

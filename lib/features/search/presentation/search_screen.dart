@@ -159,7 +159,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return SizedBox(
       height: 40.h,
       child: ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w,),
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         separatorBuilder: (context, index) => SizedBox(width: 8.w),
@@ -169,7 +169,8 @@ class _SearchScreenState extends State<SearchScreen> {
           return GestureDetector(
             onTap: () => setState(() => selectedCategory = category),
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
+
+              padding: EdgeInsets.symmetric(horizontal: 10.w),
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.transparent : AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(20.r),
@@ -214,7 +215,7 @@ class SearchLoungeCard extends StatelessWidget {
         );
       },
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20.r),
@@ -227,110 +228,82 @@ class SearchLoungeCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(15.r),
             child: CachedNetworkImage(
               imageUrl: lounge.imageUrl,
-              width: 100.w,
-              height: 100.h,
+              width: 140.w,
+              height: 140.h,
               fit: BoxFit.cover,
             ),
           ),
-          SizedBox(width: 12.w),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  text: lounge.name,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.white,
-                ),
-                SizedBox(height: 4.h),
-                AppText(
-                  text: lounge.location ?? "",
-                  fontSize: 12.sp,
-                  color: AppColors.textSecondary,
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    Icon(Icons.star, color: AppColors.warning, size: 16.sp),
-                    SizedBox(width: 4.w),
-                    AppText(
-                      text: lounge.rating.toString(),
-                      fontSize: 12.sp,
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    SizedBox(width: 12.w),
-                    Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16.sp),
-                    SizedBox(width: 4.w),
-                    AppText(
-                      text: "${lounge.distance} ${AppStrings.km.tr()}",
-                      fontSize: 12.sp,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-                RichText(
-                  text: TextSpan(
+            child: Padding(
+              padding:  EdgeInsets.symmetric(horizontal: 16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    text: lounge.name,
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                  AppText(
+                    text: lounge.location ?? "",
+                    fontSize: 12.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                  Row(
                     children: [
-                      TextSpan(
-                        text: "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
-                        style: TextStyle(
-                          color: AppColors.neonBlue,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: "Orbitron",
-                        ),
+                      Icon(Icons.star, color: AppColors.warning, size: 16.sp),
+                      SizedBox(width: 4.w),
+                      AppText(
+                        text: lounge.rating.toString(),
+                        fontSize: 12.sp,
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
                       ),
-                      TextSpan(
-                        text: AppStrings.perHour.tr(),
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12.sp,
-                        ),
+                      SizedBox(width: 12.w),
+                      Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16.sp),
+                      SizedBox(width: 4.w),
+                      AppText(
+                        text: "${lounge.distance} ${AppStrings.km.tr()}",
+                        fontSize: 12.sp,
+                        color: AppColors.textSecondary,
                       ),
                     ],
                   ),
-                ),
-                SizedBox(height: 4.h),
-                 AppText(
-                  text: "${lounge.availableRooms} ${AppStrings.ps5RoomsAvailable.tr()}",
-                  fontSize: 10.sp,
-                  color: AppColors.textSecondary,
-                ),
-              ],
+                  SizedBox(height: 12.h),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
+                          style: TextStyle(
+                            color: AppColors.neonBlue,
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: "Orbitron",
+                          ),
+                        ),
+                        TextSpan(
+                          text: AppStrings.perHour.tr(),
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 4.h),
+                   AppText(
+                    text: "${lounge.availableRooms} ${AppStrings.ps5RoomsAvailable.tr()}",
+                    fontSize: 10.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
             ),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 60.h),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.neonBlue, AppColors.neonBlueAlt],
-                  ),
-                  borderRadius: BorderRadius.circular(15.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.neonBlue.withOpacity(0.4),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: AppText(
-                  text: AppStrings.bookNow.tr(),
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.black,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
+
         ],
       ),
     ),

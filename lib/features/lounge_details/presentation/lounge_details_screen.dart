@@ -352,7 +352,7 @@ class LoungeDetailsScreen extends StatelessWidget {
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 18.h, horizontal: 16.w),
+              padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
               child: AppButton(
                 content: ButtonContent(
                   body: AppText(

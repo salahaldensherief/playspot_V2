@@ -12,6 +12,8 @@ import '../features/home/data/repos/home_repos.dart';
 import '../features/home/presentation/home_cubit.dart';
 import '../features/lounge_details/presentation/lounge_details_cubit.dart';
 
+import '../features/profile/presentation/profile_cubit.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init()  async {
@@ -20,6 +22,7 @@ Future<void> init()  async {
 
   _initAuth();
   _initHome();
+  _initProfile();
 }
 
 Future<void> initSupabase() async {
@@ -71,5 +74,11 @@ void _initHome() {
 
   sl.registerFactory<LoungeDetailsCubit>(
         () => LoungeDetailsCubit(sl()),
+  );
+}
+
+void _initProfile() {
+  sl.registerFactory<ProfileCubit>(
+    () => ProfileCubit(sl()),
   );
 }

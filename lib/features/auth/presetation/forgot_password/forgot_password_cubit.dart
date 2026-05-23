@@ -10,7 +10,10 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
   final TextEditingController otpController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  
+  final GlobalKey<FormState> forgotFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> otpFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> resetFormKey = GlobalKey<FormState>();
 
   ForgotPasswordCubit(this._authRepository) : super(ForgotPasswordState.initial());
 

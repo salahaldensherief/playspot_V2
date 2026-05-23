@@ -27,6 +27,33 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
+  static CustomTransitionPage _buildPageWithTransition<T>({
+    required BuildContext context,
+    required GoRouterState state,
+    required Widget child,
+  }) {
+    return CustomTransitionPage<T>(
+      key: state.pageKey,
+      child: child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: CurveTween(curve: Curves.easeInOutCirc).animate(animation),
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.00),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.linear,
+            )),
+            child: child,
+          ),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 400),
+    );
+  }
+
   late final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: RouterKeys.splash,
@@ -35,32 +62,49 @@ class AppRouter {
       GoRoute(
         path: RouterKeys.splash,
         name: RouterKeys.splash,
-        builder: (context, state) => const SplashScreen(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const SplashScreen(),
+        ),
       ),
       GoRoute(
         path: RouterKeys.onboarding,
         name: RouterKeys.onboarding,
-        builder: (context, state) => const OnBoardingPage(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const OnBoardingPage(),
+        ),
       ),
       GoRoute(
         path: RouterKeys.signUp,
         name: RouterKeys.signUp,
-        builder: (context, state) => const SignUpScreen(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const SignUpScreen(),
+        ),
       ),
       GoRoute(
         path: RouterKeys.signIn,
         name: RouterKeys.signIn,
-        builder: (context, state) => const SignInScreen(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const SignInScreen(),
+        ),
       ),
       GoRoute(
         name: RouterKeys.completeProfile,
         path: RouterKeys.completeProfile,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final userId = state.extra as String? ?? '';
-          if (userId.isEmpty) {
-            return const SignInScreen();
-          }
-          return CompleteProfileScreen(userId: userId);
+          return _buildPageWithTransition(
+            context: context,
+            state: state,
+            child: userId.isEmpty ? const SignInScreen() : CompleteProfileScreen(userId: userId),
+          );
         },
       ),
 
@@ -76,17 +120,24 @@ class AppRouter {
           GoRoute(
             path: RouterKeys.home,
             name: RouterKeys.home,
-            builder: (context, state) => const MainScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const MainScreen(),
+            ),
           ),
           GoRoute(
             path: RouterKeys.search,
             name: RouterKeys.search,
-            builder: (context, state) => const SearchScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const SearchScreen(),
+            ),
           ),
         ],
       ),
 
-      // Forgot password flow
       ShellRoute(
         builder: (context, state, child) {
           return BlocProvider(
@@ -98,17 +149,29 @@ class AppRouter {
           GoRoute(
             path: RouterKeys.forgotPassword,
             name: RouterKeys.forgotPassword,
-            builder: (context, state) => const ForgotPasswordScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const ForgotPasswordScreen(),
+            ),
           ),
           GoRoute(
             path: RouterKeys.verifyOTP,
             name: RouterKeys.verifyOTP,
-            builder: (context, state) => const OTPVerificationScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const OTPVerificationScreen(),
+            ),
           ),
           GoRoute(
             path: RouterKeys.resetPassword,
             name: RouterKeys.resetPassword,
-            builder: (context, state) => const ResetPasswordScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const ResetPasswordScreen(),
+            ),
           ),
         ],
       ),
@@ -116,23 +179,31 @@ class AppRouter {
       GoRoute(
         path: RouterKeys.loungeDetails,
         name: RouterKeys.loungeDetails,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final lounge = state.extra as LoungeModel;
-          return LoungeDetailsScreen(lounge: lounge);
+          return _buildPageWithTransition(
+            context: context,
+            state: state,
+            child: LoungeDetailsScreen(lounge: lounge),
+          );
         },
       ),
       GoRoute(
         path: RouterKeys.booking,
         name: RouterKeys.booking,
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           final lounge = extra['lounge'] as LoungeModel;
           final room = extra['room'] as RoomModel;
           final initialDate = extra['selectedDate'] as DateTime?;
-          return BookingScreen(
-            lounge: lounge,
-            room: room,
-            initialDate: initialDate,
+          return _buildPageWithTransition(
+            context: context,
+            state: state,
+            child: BookingScreen(
+              lounge: lounge,
+              room: room,
+              initialDate: initialDate,
+            ),
           );
         },
       ),

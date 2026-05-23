@@ -24,7 +24,6 @@ class SignInForm extends StatelessWidget {
         children: [
           AppTextField(
             controller: cubit.emailController,
-            contentPadding: const EdgeInsets.all(4),
             textInputType: TextInputType.emailAddress,
             label: AppStrings.email.tr(),
             isRequired: true,
@@ -34,7 +33,6 @@ class SignInForm extends StatelessWidget {
           _space(),
           AppTextField(
             controller: cubit.passwordController,
-            contentPadding: const EdgeInsets.all(4),
             label: AppStrings.password.tr(),
             hint: AppStrings.pleaseEnterPassword.tr(),
             isPassword: true,

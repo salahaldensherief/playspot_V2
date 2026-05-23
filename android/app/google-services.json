@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1070210806389:android:4b55c68cfed60125cb3e3c",
+        "mobilesdk_app_id": "1:1070210806389:android:d7d5a3b1db6f74cecb3e3c",
         "android_client_info": {
           "package_name": "com.playspot.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDmM1rXwj252NZL-ff1lNz-PuvZu1h7MeM"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1070210806389-o8gnmeqe0bbritv4ckg14p5cdlqck165.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.playspot.app"
+              }
+            }
+          ]
         }
       }
     }

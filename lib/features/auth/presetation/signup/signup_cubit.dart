@@ -30,7 +30,9 @@ class SignupCubit extends Cubit<SignupState> {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80,
+      imageQuality: 100,
+      maxWidth: 1024,
+      maxHeight: 1024,
     );
     if (picked != null) {
       avatarFile = File(picked.path);

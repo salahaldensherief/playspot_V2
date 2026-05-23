@@ -102,5 +102,15 @@
   "selectDate": "Select Date",
   "startTime": "Start Time",
   "endTime": "End Time",
-  "confirmAndPay": "Confirm & Pay"
+  "confirmAndPay": "Confirm & Pay",
+  "myBookings": "My Bookings",
+  "paymentMethods": "Payment Methods",
+  "notifications": "Notifications",
+  "language": "Language",
+  "arabicEnglish": "Arabic / English",
+  "helpSupport": "Help & Support",
+  "logOut": "Log Out",
+  "totalBookings": "Total Bookings",
+  "hoursPlayed": "Hours Played",
+  "favorite": "Favorite"
 }

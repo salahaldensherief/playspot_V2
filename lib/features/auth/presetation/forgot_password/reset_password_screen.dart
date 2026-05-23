@@ -46,17 +46,18 @@ class ResetPasswordScreen extends StatelessWidget {
       child: Scaffold(
         body: SingleChildScrollView(
           child: Form(
-            key: cubit.formKey,
+            key: cubit.resetFormKey,
             child: Column(
               children: [
                 AuthAppBar(
                   title: AppStrings.resetPassword.tr(),
                   subTitle: AppStrings.resetPasswordSubtitle.tr(),
                 ),
-                SizedBox(height: 100.h),
+                SizedBox(height: 260.h),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: AppTextField(
+
                     controller: cubit.passwordController,
                     hint: AppStrings.newPassword.tr(),
                     isPassword: true,
@@ -94,7 +95,7 @@ class ResetPasswordScreen extends StatelessWidget {
                         behavior: TapBehavior(
                           isLoading: state.status.isLoading,
                           onTap: () {
-                            if (cubit.formKey.currentState?.validate() ?? false) {
+                            if (cubit.resetFormKey.currentState?.validate() ?? false) {
                               cubit.resetPassword();
                             }
                           },

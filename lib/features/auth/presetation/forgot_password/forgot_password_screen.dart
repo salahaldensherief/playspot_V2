@@ -26,7 +26,7 @@ class ForgotPasswordScreen extends StatelessWidget {
     return BlocListener<ForgotPasswordCubit, ForgotPasswordState>(
       listener: (context, state) {
         if (state.status.isEmailSent) {
-          context.pushNamed(RouterKeys.verifyOTP);
+          context.goNamed(RouterKeys.verifyOTP);
         }
         if (state.status.isFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -40,14 +40,14 @@ class ForgotPasswordScreen extends StatelessWidget {
       child: Scaffold(
         body: SingleChildScrollView(
           child: Form(
-            key: cubit.formKey,
+            key: cubit.forgotFormKey,
             child: Column(
               children: [
                 AuthAppBar(
                   title: AppStrings.forgotPassword.tr(),
                   subTitle: AppStrings.forgotPasswordSubtitle.tr(),
                 ),
-                SizedBox(height: 250.h),
+                SizedBox(height: 260.h),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: AppTextField(
@@ -78,7 +78,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                         behavior: TapBehavior(
                           isLoading: state.status.isLoading,
                           onTap: () {
-                            if (cubit.formKey.currentState?.validate() ?? false) {
+                            if (cubit.forgotFormKey.currentState?.validate() ?? false) {
                               cubit.sendResetEmail();
                             }
                           },

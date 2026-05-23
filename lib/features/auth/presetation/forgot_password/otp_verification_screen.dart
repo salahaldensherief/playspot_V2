@@ -11,6 +11,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/otp/app_otp_field.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 import 'package:playspot/features/auth/presetation/widgets/auth_app_bar.dart';
@@ -27,7 +28,7 @@ class OTPVerificationScreen extends StatelessWidget {
     return BlocListener<ForgotPasswordCubit, ForgotPasswordState>(
       listener: (context, state) {
         if (state.status.isOtpVerified) {
-          context.pushNamed(RouterKeys.resetPassword);
+          context.goNamed(RouterKeys.resetPassword);
         }
         if (state.status.isFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -41,21 +42,22 @@ class OTPVerificationScreen extends StatelessWidget {
       child: Scaffold(
         body: SingleChildScrollView(
           child: Form(
-            key: cubit.formKey,
+            key: cubit.otpFormKey,
             child: Column(
               children: [
                 AuthAppBar(
                   title: AppStrings.verifyOTP.tr(),
                   subTitle: AppStrings.otpVerificationSubtitle.tr(),
                 ),
-                SizedBox(height: 100.h),
+                SizedBox(height: 250.h),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: AppTextField(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  child: AppOtpField(
                     controller: cubit.otpController,
-                    hint: AppStrings.enterOTP.tr(),
-                    textInputType: TextInputType.number,
-                    validator: (val) => AppValidators.validateNotEmpty(val, AppStrings.enterOTP.tr()),
+                    length: 8,
+                    onCompleted: (otp) {
+                      cubit.verifyOTP();
+                    },
                   ),
                 ),
                 SizedBox(height: 40.h),
@@ -79,7 +81,7 @@ class OTPVerificationScreen extends StatelessWidget {
                         behavior: TapBehavior(
                           isLoading: state.status.isLoading,
                           onTap: () {
-                            if (cubit.formKey.currentState?.validate() ?? false) {
+                            if (cubit.otpFormKey.currentState?.validate() ?? false) {
                               cubit.verifyOTP();
                             }
                           },
