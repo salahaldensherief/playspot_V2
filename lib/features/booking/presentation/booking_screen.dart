@@ -34,8 +34,23 @@ class BookingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => BookingCubit(sl(), room.id, initialDate),
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
+      child: BlocListener<BookingCubit, BookingState>(
+        listener: (context, state) {
+          if (state.status == BookingStatus.success && state.startTime == null) {
+             // This means a booking was just created successfully
+             ScaffoldMessenger.of(context).showSnackBar(
+               const SnackBar(content: Text("Booking Confirmed Successfully!"), backgroundColor: AppColors.success),
+             );
+          }
+          if (state.status == BookingStatus.error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Booking Failed. Please try again."), backgroundColor: AppColors.danger),
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          // ... rest of scaffold
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -83,7 +98,8 @@ class BookingScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+        );
   }
 
   Widget _buildBottomBar(BuildContext context) {
@@ -125,14 +141,14 @@ class BookingScreen extends StatelessWidget {
                   width: 180.w,
                   child: AppButton(
                     content: ButtonContent(
-                      body: AppText(text: AppStrings.confirmAndPay.tr()),
+                      label: state.status == BookingStatus.loading 
+                          ? "Loading..." 
+                          : AppStrings.confirmAndPay.tr(),
                     ),
                     behavior: ButtonBehavior.tap(
-                      isEnabled: isReady,
+                      isEnabled: isReady && state.status != BookingStatus.loading,
                       onTap: isReady
-                          ? () {
-                              // TODO: Finalize booking
-                            }
+                          ? () => context.read<BookingCubit>().confirmBooking(lounge.id, room.pricePerHour)
                           : null,
                     ),
                     buttonConfig: ButtonConfig(

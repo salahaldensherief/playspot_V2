@@ -44,26 +44,77 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   void selectStartTime(TimeOfDay time) {
+    if (isSlotBooked(time)) return;
+    
+    // Check if the current duration is possible with this start time
+    // If not, we might want to reduce the duration or show a warning
     emit(state.copyWith(startTime: time));
   }
 
   void updateDuration(int delta) {
     final newDuration = (state.durationHours + delta).clamp(1, 12);
+    
+    // Validating if the new duration is possible with the selected start time
+    if (state.startTime != null) {
+      if (!isRangeAvailable(state.startTime!, newDuration)) {
+        // You could emit a specific error state here if you want to show a SnackBar
+        return;
+      }
+    }
+    
     emit(state.copyWith(durationHours: newDuration));
   }
 
   bool isSlotBooked(TimeOfDay time) {
+    // Only check the exact hour
     return state.bookedTimeSlots.any((slot) => slot.hour == time.hour);
   }
 
-  bool isSlotAvailable(TimeOfDay start) {
-    // Check if the requested range (start to start + duration) overlaps with any booked slot
-    for (int i = 0; i < state.durationHours; i++) {
+  bool isRangeAvailable(TimeOfDay start, int duration) {
+    for (int i = 0; i < duration; i++) {
       final hourToCheck = (start.hour + i) % 24;
       if (state.bookedTimeSlots.any((slot) => slot.hour == hourToCheck)) {
         return false;
       }
     }
     return true;
+  }
+
+  bool isSlotAvailable(TimeOfDay slotStart) {
+    return !isSlotBooked(slotStart);
+  }
+
+  Future<void> confirmBooking(String loungeId, double pricePerHour) async {
+    if (state.startTime == null) return;
+
+    emit(state.copyWith(status: BookingStatus.loading));
+
+    try {
+      final start = DateTime(
+        state.selectedDate.year,
+        state.selectedDate.month,
+        state.selectedDate.day,
+        state.startTime!.hour,
+        state.startTime!.minute,
+      );
+
+      final end = start.add(Duration(hours: state.durationHours));
+      final total = pricePerHour * state.durationHours;
+
+      await _homeRepository.createBooking(
+        roomId: roomId,
+        loungeId: loungeId,
+        startTime: start,
+        endTime: end,
+        totalPrice: total,
+      );
+
+      emit(state.copyWith(status: BookingStatus.success));
+      // Refresh slots after booking
+      fetchBookedSlots(state.selectedDate);
+    } catch (e) {
+      print("BOOKING ERROR: $e");
+      emit(state.copyWith(status: BookingStatus.error));
+    }
   }
 }

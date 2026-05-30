@@ -13,13 +13,21 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     try {
       final rooms = await _homeRepository.getRoomsByLoungeId(loungeId);
       final extras = await _homeRepository.getExtras();
+      final date = state.selectedDate ?? DateTime.now();
+      final start = DateTime(date.year, date.month, date.day);
+      final end = start.add(const Duration(days: 1));
+      
+      final bookedRoomIds = await _homeRepository.getBookedRoomIds(loungeId, start, end);
 
-      print("CUBIT: Fetched ${rooms.length} rooms and ${extras.length} extras for lounge $loungeId");
+      print("CUBIT: Fetched ${rooms.length} rooms, ${extras.length} extras, and ${bookedRoomIds.length} booked rooms for lounge $loungeId");
 
       emit(state.copyWith(
         status: LoungeDetailsStatus.success,
         rooms: rooms,
         extras: extras,
+        bookedRoomIds: bookedRoomIds,
+        selectedDate: date,
+        availableRoomsCount: rooms.length - bookedRoomIds.length,
       ));
     } catch (e, stack) {
       print("CUBIT ERROR: $e");
@@ -28,8 +36,33 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     }
   }
 
-  void selectDate(DateTime date) {
-    emit(state.copyWith(selectedDate: date));
+  Future<void> selectDate(DateTime date) async {
+    if (state.rooms.isEmpty) {
+      emit(state.copyWith(selectedDate: date));
+      return;
+    }
+
+    emit(state.copyWith(selectedDate: date, status: LoungeDetailsStatus.loading));
+    
+    try {
+      final loungeId = state.rooms.first.loungeId;
+      final start = DateTime(date.year, date.month, date.day);
+      final end = start.add(const Duration(days: 1));
+      
+      final bookedRoomIds = await _homeRepository.getBookedRoomIds(loungeId, start, end);
+      
+      // If the currently selected room is now booked on the new date, clear the selection
+      bool shouldClearRoom = state.selectedRoomId != null && bookedRoomIds.contains(state.selectedRoomId);
+
+      emit(state.copyWith(
+        status: LoungeDetailsStatus.success,
+        bookedRoomIds: bookedRoomIds,
+        availableRoomsCount: state.rooms.length - bookedRoomIds.length,
+        clearRoom: shouldClearRoom,
+      ));
+    } catch (e) {
+      emit(state.copyWith(status: LoungeDetailsStatus.error));
+    }
   }
 
   void toggleRoomSelection(String roomId) {

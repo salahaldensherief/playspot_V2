@@ -18,7 +18,8 @@ class RoomCard extends StatelessWidget {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       builder: (context, state) {
         final isSelected = state.selectedRoomId == room.id;
-        final isAvailable = room.isAvailable;
+        // Room is available if it's not statically disabled AND not booked for the selected date
+        final isAvailable = room.isAvailable && !state.bookedRoomIds.contains(room.id);
 
         return GestureDetector(
           onTap: isAvailable 
@@ -46,7 +47,7 @@ class RoomCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     AppText(
@@ -55,25 +56,26 @@ class RoomCard extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: isAvailable ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: AppText(
-                        text: isAvailable ? AppStrings.available.tr() : AppStrings.booked.tr(),
-                        fontSize: 10.sp,
-                        color: isAvailable ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                   ],
                 ),
-                 Spacer(),
                 _buildInfoRow(Icons.videogame_asset_outlined, "${room.controllersCount} ${AppStrings.controllers.tr()}"),
                 SizedBox(height: 4.h),
                 _buildInfoRow(Icons.tv_outlined, "${room.screenSize} ${AppStrings.screen.tr()}"),
+                Spacer(),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                  decoration: BoxDecoration(
+                    color: isAvailable ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+
+                  child: AppText(
+                    text: isAvailable ? AppStrings.available.tr() : AppStrings.booked.tr(),
+                    fontSize: 10.sp,
+                    color: isAvailable ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),

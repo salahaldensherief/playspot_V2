@@ -31,54 +31,6 @@ class _SearchScreenState extends State<SearchScreen> {
     AppStrings.highestRated.tr(),
     AppStrings.nearest.tr()
   ];
-
-  final List<LoungeModel> mockLounges = [
-    // LoungeModel(
-    //   id: "1",
-    //   name: "GameZone Elite",
-    //   imageUrl: "https://img.freepik.com/free-photo/gaming-room-with-neon-lights_23-2149020464.jpg",
-    //   rating: 4.8,
-    //   distance: 1.2,
-    //   pricePerHour: 150,
-    //   isOpen: true,
-    //   location: "Downtown Mall, New Cairo",
-    //   availableRooms: 8,
-    // ),
-    // LoungeModel(
-    //   id: "2",
-    //   name: "PS Arena",
-    //   imageUrl: "https://img.freepik.com/free-photo/view-gaming-room-with-neon-lights_23-2149827014.jpg",
-    //   rating: 4.6,
-    //   distance: 2.5,
-    //   pricePerHour: 120,
-    //   isOpen: true,
-    //   location: "Fifth Settlement, Cairo",
-    //   availableRooms: 5,
-    // ),
-    //  LoungeModel(
-    //   id: "3",
-    //   name: "Premium Gaming Hub",
-    //   imageUrl: "https://img.freepik.com/free-photo/pro-gaming-video-player-room-with-high-end-graphics_23-2149827031.jpg",
-    //   rating: 4.9,
-    //   distance: 5.2,
-    //   pricePerHour: 200,
-    //   isOpen: true,
-    //   location: "Nasr City, Cairo",
-    //   availableRooms: 12,
-    // ),
-    //  LoungeModel(
-    //   id: "4",
-    //   name: "Neon Playstation",
-    //   imageUrl: "https://img.freepik.com/free-photo/neon-lighting-room-with-keyboard-mouse_23-2148911736.jpg",
-    //   rating: 4.8,
-    //   distance: 4.8,
-    //   pricePerHour: 180,
-    //   isOpen: true,
-    //   location: "Heliopolis, Cairo",
-    //   availableRooms: 6,
-    // ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

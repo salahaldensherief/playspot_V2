@@ -46,7 +46,12 @@ class LoungeDetailsScreen extends StatelessWidget {
                 _buildAppBar(context),
                 _buildInfoSection(),
                 _buildDateSelectionSection(),
-                _buildSectionTitle(AppStrings.availableRooms.tr()),
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (prev, curr) => prev.availableRoomsCount != curr.availableRoomsCount,
+                  builder: (context, state) {
+                    return _buildSectionTitle("${AppStrings.availableRooms.tr()} (${state.availableRoomsCount})");
+                  },
+                ),
                 _buildRoomsGrid(),
                 _buildSectionTitle(AppStrings.extras.tr()),
                 _buildExtrasList(),

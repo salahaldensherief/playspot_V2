@@ -11,6 +11,8 @@ class LoungeDetailsState extends Equatable {
   final Map<String, int> selectedExtras;
   final String? selectedRoomId;
   final DateTime? selectedDate;
+  final List<String> bookedRoomIds;
+  final int availableRoomsCount;
 
   const LoungeDetailsState({
     this.status = LoungeDetailsStatus.initial,
@@ -19,6 +21,8 @@ class LoungeDetailsState extends Equatable {
     this.selectedExtras = const {},
     this.selectedRoomId,
     this.selectedDate,
+    this.bookedRoomIds = const [],
+    this.availableRoomsCount = 0,
   });
 
   LoungeDetailsState copyWith({
@@ -29,6 +33,8 @@ class LoungeDetailsState extends Equatable {
     String? selectedRoomId,
     bool clearRoom = false,
     DateTime? selectedDate,
+    List<String>? bookedRoomIds,
+    int? availableRoomsCount,
   }) {
     return LoungeDetailsState(
       status: status ?? this.status,
@@ -37,6 +43,8 @@ class LoungeDetailsState extends Equatable {
       selectedExtras: selectedExtras ?? this.selectedExtras,
       selectedRoomId: clearRoom ? null : (selectedRoomId ?? this.selectedRoomId),
       selectedDate: selectedDate ?? this.selectedDate,
+      bookedRoomIds: bookedRoomIds ?? this.bookedRoomIds,
+      availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
     );
   }
 
@@ -57,5 +65,5 @@ class LoungeDetailsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, rooms, extras, selectedExtras, selectedRoomId, selectedDate];
+  List<Object?> get props => [status, rooms, extras, selectedExtras, selectedRoomId, selectedDate, bookedRoomIds];
 }

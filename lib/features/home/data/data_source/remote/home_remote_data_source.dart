@@ -9,12 +9,42 @@ abstract class HomeRemoteDataSource {
   Future<List<ExtraModel>> getExtras();
   Future<List<String>> getBookedRoomIds(String loungeId, DateTime start, DateTime end);
   Future<List<Map<String, dynamic>>> getBookingsForRoom(String roomId, DateTime date);
+  Future<void> createBooking({
+    required String roomId,
+    required String loungeId,
+    required DateTime startTime,
+    required DateTime endTime,
+    required double totalPrice,
+  });
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   final SupabaseClient _client;
 
   HomeRemoteDataSourceImpl(this._client);
+  
+  // ... (keeping existing methods)
+
+  @override
+  Future<void> createBooking({
+    required String roomId,
+    required String loungeId,
+    required DateTime startTime,
+    required DateTime endTime,
+    required double totalPrice,
+  }) async {
+    final user = _client.auth.currentUser;
+    
+    await _client.from('bookings').insert({
+      'room_id': int.tryParse(roomId) ?? roomId,
+      'lounge_id': int.tryParse(loungeId) ?? loungeId,
+      'user_id': user?.id, // حجز مرتبط بالمستخدم المسجل حالياً
+      'start_time': startTime.toIso8601String(),
+      'end_time': endTime.toIso8601String(),
+      'total_price': totalPrice,
+      'status': 'confirmed',
+    });
+  }
 
   @override
   Future<List<LoungeModel>> getLounges() async {

@@ -35,33 +35,65 @@ class TimeSlotGrid extends StatelessWidget {
           itemCount: slots.length,
           itemBuilder: (context, index) {
             final slot = slots[index];
-            final isBooked = context.read<BookingCubit>().isSlotBooked(slot);
+            final isBooked = state.bookedTimeSlots.any((s) => s.hour == slot.hour);
             final isSelected = state.startTime?.hour == slot.hour;
-            final isAvailable = context.read<BookingCubit>().isSlotAvailable(slot);
+            
+            // Checking if the CURRENT selection (startTime + duration) would overlap this slot
+            // This is for visual feedback
+            bool isPartOfCurrentSelection = false;
+            if (state.startTime != null) {
+              final startHour = state.startTime!.hour;
+              final currentHour = slot.hour;
+              // Handle next day overlap (e.g. 23:00 to 01:00)
+              final endHour = (startHour + state.durationHours) % 24;
+              
+              if (startHour < endHour) {
+                isPartOfCurrentSelection = currentHour >= startHour && currentHour < endHour;
+              } else {
+                // Overlaps midnight
+                isPartOfCurrentSelection = currentHour >= startHour || currentHour < endHour;
+              }
+            }
 
             return GestureDetector(
-              onTap: (!isBooked && isAvailable) 
-                  ? () => context.read<BookingCubit>().selectStartTime(slot) 
-                  : null,
-              child: Container(
+              onTap: isBooked ? null : () => context.read<BookingCubit>().selectStartTime(slot),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.neonBlue.withOpacity(0.1) : AppColors.cardBackground,
+                  color: isSelected 
+                      ? AppColors.neonBlue 
+                      : (isPartOfCurrentSelection 
+                          ? AppColors.neonBlue.withOpacity(0.2)
+                          : (isBooked ? AppColors.danger.withOpacity(0.05) : AppColors.cardBackground)),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
                     color: isSelected 
                         ? AppColors.neonBlue 
                         : (isBooked ? AppColors.danger.withOpacity(0.3) : AppColors.borderDefault),
+                    width: isSelected ? 2 : 1,
                   ),
                 ),
                 alignment: Alignment.center,
-                child: AppText(
-                  text: _formatTime(slot),
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected 
-                      ? AppColors.neonBlue 
-                      : (isBooked ? AppColors.danger : AppColors.white),
-                  textDecoration: isBooked ? TextDecoration.lineThrough : null,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AppText(
+                      text: _formatTime(slot),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected 
+                          ? AppColors.black 
+                          : (isBooked ? AppColors.danger : AppColors.white),
+                      textDecoration: isBooked ? TextDecoration.lineThrough : null,
+                    ),
+                    if (isBooked)
+                      AppText(
+                        text: "Booked",
+                        fontSize: 8.sp,
+                        color: AppColors.danger,
+                        fontWeight: FontWeight.bold,
+                      ),
+                  ],
                 ),
               ),
             );

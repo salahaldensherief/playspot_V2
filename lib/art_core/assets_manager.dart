@@ -418,7 +418,7 @@ class AssetsManager {
   static const String _reminderLightIcon = '$_iconPath/reminder_light.svg';
   static const String _reminderDarkIcon = '$_iconPath/reminder_dark.svg';
 
-  static const String locationIcon = '$_iconPath/Location_icon.svg';
+  static const String locationIcon = '$_iconPath/location.svg';
 
 
   static const String petLoveFillIcon = '$_iconPath/pet_love_fill.svg';
