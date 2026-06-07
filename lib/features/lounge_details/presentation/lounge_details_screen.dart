@@ -23,6 +23,8 @@ import '../../booking/presentation/widgets/date_selector.dart';
 import '../data/extra_model.dart';
 import '../../home/data/models/lounge_model.dart';
 import '../data/room_model.dart';
+import 'package:playspot/art_core/widgets/layout/app_divider.dart';
+import 'package:playspot/art_core/widgets/layout/section_header.dart';
 import 'lounge_details_cubit.dart';
 import 'lounge_details_state.dart';
 
@@ -45,21 +47,102 @@ class LoungeDetailsScreen extends StatelessWidget {
               slivers: [
                 _buildAppBar(context),
                 _buildInfoSection(),
+                _buildCategorySelector(),
                 _buildDateSelectionSection(),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                  buildWhen: (prev, curr) => prev.availableRoomsCount != curr.availableRoomsCount,
+                  buildWhen: (prev, curr) =>
+                      prev.availableRoomsCount != curr.availableRoomsCount,
                   builder: (context, state) {
-                    return _buildSectionTitle("${AppStrings.availableRooms.tr()} (${state.availableRoomsCount})");
+                    return SliverToBoxAdapter(
+                      child: SectionHeader(
+                        title: "${state.selectedCategory} — select a unit",
+                      ),
+                    );
                   },
                 ),
                 _buildRoomsGrid(),
-                _buildSectionTitle(AppStrings.extras.tr()),
+                SliverToBoxAdapter(
+                  child: SectionHeader(title: AppStrings.extras.tr()),
+                ),
                 _buildExtrasList(),
                 SliverToBoxAdapter(child: SizedBox(height: 120.h)),
               ],
             ),
             _buildBottomBar(),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategorySelector() {
+    final categories = [
+      {'name': 'PS5 Rooms', 'icon': Icons.videogame_asset_outlined},
+      {'name': 'Simulator', 'icon': Icons.speed},
+      {'name': 'Billiard', 'icon': Icons.sports_baseball_rounded},
+    ];
+
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 60.h,
+        padding: EdgeInsets.symmetric(vertical: 10.h),
+        child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+          builder: (context, state) {
+            return ListView.separated(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              scrollDirection: Axis.horizontal,
+              itemCount: categories.length,
+              separatorBuilder: (context, index) => SizedBox(width: 12.w),
+              itemBuilder: (context, index) {
+                final cat = categories[index];
+                final isSelected = state.selectedCategory == cat['name'];
+
+                return GestureDetector(
+                  onTap: () => context
+                      .read<LoungeDetailsCubit>()
+                      .setCategory(cat['name'] as String),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.neonBlue.withOpacity(0.05)
+                          : AppColors.cardBackground,
+                      borderRadius: BorderRadius.circular(25.r),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.neonBlue
+                            : AppColors.borderDefault,
+                        width: isSelected ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          cat['icon'] as IconData,
+                          size: 18.sp,
+                          color: isSelected
+                              ? AppColors.neonBlue
+                              : AppColors.textSecondary,
+                        ),
+                        SizedBox(width: 8.w),
+                        AppText(
+                          text: cat['name'] as String,
+                          fontSize: 14.sp,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.neonBlue
+                              : AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -181,8 +264,7 @@ class LoungeDetailsScreen extends StatelessWidget {
               color: AppColors.neonBlue,
               fontWeight: FontWeight.bold,
             ),
-            SizedBox(height: 16.h),
-            const Divider(color: AppColors.borderDefault),
+            const AppDivider(),
           ],
         ),
       ),
@@ -194,15 +276,7 @@ class LoungeDetailsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-            child: AppText(
-              text: AppStrings.selectDate.tr(),
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.white,
-            ),
-          ),
+          SectionHeader(title: AppStrings.selectDate.tr()),
           BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
             builder: (context, state) {
               return DateSelector(
@@ -213,25 +287,11 @@ class LoungeDetailsScreen extends StatelessWidget {
             },
           ),
           SizedBox(height: 16.h),
-          Padding(
+           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: const Divider(color: AppColors.borderDefault),
+            child: AppDivider(verticalPadding: 0),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        child: AppText(
-          text: title,
-          fontSize: 20.sp,
-          fontWeight: FontWeight.bold,
-          color: AppColors.white,
-        ),
       ),
     );
   }
@@ -280,6 +340,30 @@ class LoungeDetailsScreen extends StatelessWidget {
           );
         }
 
+        final filteredRooms = state.rooms.where((r) {
+          if (state.selectedCategory == 'Billiard') {
+            return r.type.toLowerCase().contains('ps5') ||
+                r.type.isEmpty ||
+                r.type == 'Standard';
+          }
+          return r.type.toLowerCase().contains(
+                state.selectedCategory.toLowerCase().split(' ').first,
+              );
+        }).toList();
+
+        if (filteredRooms.isEmpty) {
+          return SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: AppText(
+                text: "No units found for this category",
+                fontSize: 14.sp,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          );
+        }
+
         return SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           sliver: SliverGrid(
@@ -287,11 +371,11 @@ class LoungeDetailsScreen extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 12.w,
               mainAxisSpacing: 12.h,
-              mainAxisExtent: 130.h,
+              mainAxisExtent: 160.h, // Increased height for new RoomCard design
             ),
             delegate: SliverChildBuilderDelegate(
-              (context, index) => RoomCard(room: state.rooms[index]),
-              childCount: state.rooms.length,
+              (context, index) => RoomCard(room: filteredRooms[index]),
+              childCount: filteredRooms.length,
             ),
           ),
         );
@@ -342,9 +426,6 @@ class LoungeDetailsScreen extends StatelessWidget {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       builder: (context, state) {
         final isRoomSelected = state.selectedRoomId != null;
-        final total = state.totalPrice;
-        final displayPrice = total > 0 ? total : lounge.pricePerHour;
-
         return Positioned(
           bottom: 0,
           left: 0,
@@ -376,12 +457,24 @@ class LoungeDetailsScreen extends StatelessWidget {
                           final selectedRoom = state.rooms.firstWhere(
                             (r) => r.id == state.selectedRoomId,
                           );
+                          final selectedExtras = state.selectedExtras.entries.map((entry) {
+                            final extra = state.extras.firstWhere((e) => e.id == entry.key);
+                            return {
+                              'id': extra.id,
+                              'name': extra.name,
+                              'price': extra.price,
+                              'quantity': entry.value,
+                            };
+                          }).toList();
+
                           context.pushNamed(
                             RouterKeys.booking,
                             extra: {
                               'lounge': lounge,
                               'room': selectedRoom,
-                              'selectedDate': state.selectedDate ?? DateTime.now(),
+                              'selectedDate':
+                                  state.selectedDate ?? DateTime.now(),
+                              'extras': selectedExtras,
                             },
                           );
                         }
@@ -403,10 +496,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                   borderColor: isRoomSelected
                       ? AppColors.neonBlue
                       : AppColors.borderDefault,
-
                 ),
-
-
               ),
             ),
           ),

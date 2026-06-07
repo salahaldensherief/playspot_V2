@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -12,6 +13,7 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/room_model.dart';
+import '../../../art_core/router/router_keys.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/date_selector.dart';
@@ -22,83 +24,69 @@ class BookingScreen extends StatelessWidget {
   final LoungeModel lounge;
   final RoomModel room;
   final DateTime? initialDate;
+  final List<Map<String, dynamic>> addOns;
 
   const BookingScreen({
     super.key,
     required this.lounge,
     required this.room,
     this.initialDate,
+    this.addOns = const [],
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => BookingCubit(sl(), room.id, initialDate),
-      child: BlocListener<BookingCubit, BookingState>(
-        listener: (context, state) {
-          if (state.status == BookingStatus.success && state.startTime == null) {
-             // This means a booking was just created successfully
-             ScaffoldMessenger.of(context).showSnackBar(
-               const SnackBar(content: Text("Booking Confirmed Successfully!"), backgroundColor: AppColors.success),
-             );
-          }
-          if (state.status == BookingStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Booking Failed. Please try again."), backgroundColor: AppColors.danger),
-            );
-          }
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          // ... rest of scaffold
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: AppText(
-            text: "Book ${room.name}",
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.white,
-          ),
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
-        body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(16.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(
-                      text: "Select Time",
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                    ),
-                    SizedBox(height: 16.h),
-                    const TimeSlotGrid(),
-                    SizedBox(height: 24.h),
-                    AppText(
-                      text: "Duration",
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                    ),
-                    SizedBox(height: 16.h),
-                    const DurationSelector(),
-                  ],
-                ),
-              ),
-            ),
-            _buildBottomBar(context),
-          ],
+        title: AppText(
+          text: "Book ${room.name}",
+          fontSize: 20.sp,
+          fontWeight: FontWeight.bold,
+          color: AppColors.white,
         ),
       ),
-    ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    text: "Select Time",
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                  SizedBox(height: 16.h),
+                  const TimeSlotGrid(),
+                  SizedBox(height: 24.h),
+                  AppText(
+                    text: "Duration",
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                  SizedBox(height: 16.h),
+                  const DurationSelector(),
+                ],
+              ),
+            ),
+          ),
+          _buildBottomBar(context),
+        ],
+      ),
+            ),
         );
   }
 
@@ -106,6 +94,8 @@ class BookingScreen extends StatelessWidget {
     return BlocBuilder<BookingCubit, BookingState>(
       builder: (context, state) {
         final isReady = state.startTime != null;
+        final extrasPrice = addOns.fold<double>(0, (sum, item) => sum + (item['price'] * item['quantity']));
+        final total = (room.pricePerHour * state.durationHours) + extrasPrice;
 
         return Container(
           padding: EdgeInsets.all(20.w),
@@ -130,7 +120,7 @@ class BookingScreen extends StatelessWidget {
                     ),
                     AppText(
                       text:
-                          "${(room.pricePerHour * state.durationHours).toInt()} ${AppStrings.egp.tr()}",
+                          "${total.toInt()} ${AppStrings.egp.tr()}",
                       fontSize: 24.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.neonBlue,
@@ -141,14 +131,25 @@ class BookingScreen extends StatelessWidget {
                   width: 180.w,
                   child: AppButton(
                     content: ButtonContent(
-                      label: state.status == BookingStatus.loading 
-                          ? "Loading..." 
-                          : AppStrings.confirmAndPay.tr(),
+                      label: AppStrings.confirmAndPay.tr(),
                     ),
                     behavior: ButtonBehavior.tap(
-                      isEnabled: isReady && state.status != BookingStatus.loading,
+                      isEnabled: isReady,
                       onTap: isReady
-                          ? () => context.read<BookingCubit>().confirmBooking(lounge.id, room.pricePerHour)
+                          ? () {
+                              context.pushNamed(
+                                RouterKeys.checkout,
+                                extra: {
+                                  'lounge': lounge,
+                                  'room': room,
+                                  'date': state.selectedDate,
+                                  'startTime': state.startTime!,
+                                  'duration': state.durationHours,
+                                  'totalPrice': total,
+                                  'addOns': addOns,
+                                },
+                              );
+                            }
                           : null,
                     ),
                     buttonConfig: ButtonConfig(

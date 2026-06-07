@@ -4,9 +4,9 @@ import 'package:playspot/features/auth/presetation/forgot_password/forgot_passwo
 import 'package:playspot/features/auth/presetation/signin/signin_cubit.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../features/auth/data/data_source/remote/auth_remote_data_source.dart';
 import '../features/auth/data/repos/auth_repos.dart';
+import '../features/checkout/presentation/checkout_cubit.dart';
 import '../features/home/data/data_source/remote/home_remote_data_source.dart';
 import '../features/home/data/repos/home_repos.dart';
 import '../features/home/presentation/home_cubit.dart';
@@ -74,6 +74,10 @@ void _initHome() {
 
   sl.registerFactory<LoungeDetailsCubit>(
         () => LoungeDetailsCubit(sl()),
+  );
+
+  sl.registerFactory<CheckoutCubit>(
+        () => CheckoutCubit(sl()),
   );
 }
 

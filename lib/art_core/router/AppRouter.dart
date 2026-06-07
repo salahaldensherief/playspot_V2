@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -18,8 +17,8 @@ import '../../features/auth/presetation/forgot_password/otp_verification_screen.
 import '../../features/auth/presetation/forgot_password/reset_password_screen.dart';
 import '../../features/auth/presetation/signup/complete_profile.dart';
 import '../../features/booking/presentation/booking_screen.dart';
+import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/home/presentation/home_cubit.dart';
-import '../../features/home/presentation/home_screen.dart';
 import '../../features/lounge_details/presentation/lounge_details_screen.dart';
 import '../../features/main/presentation/main_screen.dart';
 
@@ -196,6 +195,7 @@ class AppRouter {
           final lounge = extra['lounge'] as LoungeModel;
           final room = extra['room'] as RoomModel;
           final initialDate = extra['selectedDate'] as DateTime?;
+          final extras = extra['extras'] as List<Map<String, dynamic>>? ?? [];
           return _buildPageWithTransition(
             context: context,
             state: state,
@@ -203,6 +203,27 @@ class AppRouter {
               lounge: lounge,
               room: room,
               initialDate: initialDate,
+              addOns: extras,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouterKeys.checkout,
+        name: RouterKeys.checkout,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return _buildPageWithTransition(
+            context: context,
+            state: state,
+            child: CheckoutScreen(
+              lounge: extra['lounge'] as LoungeModel,
+              room: extra['room'] as RoomModel,
+              date: extra['date'] as DateTime,
+              startTime: extra['startTime'] as TimeOfDay,
+              duration: extra['duration'] as int,
+              totalPrice: extra['totalPrice'] as double,
+              addOns: extra['addOns'] as List<Map<String, dynamic>>,
             ),
           );
         },

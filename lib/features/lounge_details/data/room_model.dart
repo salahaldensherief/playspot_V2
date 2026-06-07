@@ -2,7 +2,7 @@ class RoomModel {
   final String id;
   final String loungeId;
   final String name;
-  final String type; // VIP, Standard, etc.
+  final String type;
   final double pricePerHour;
   final bool isAvailable;
   final List<String> images;

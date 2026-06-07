@@ -9,6 +9,7 @@ abstract class HomeRemoteDataSource {
   Future<List<ExtraModel>> getExtras();
   Future<List<String>> getBookedRoomIds(String loungeId, DateTime start, DateTime end);
   Future<List<Map<String, dynamic>>> getBookingsForRoom(String roomId, DateTime date);
+  Future<List<Map<String, dynamic>>> getBookingsForLounge(String loungeId, DateTime start, DateTime end);
   Future<void> createBooking({
     required String roomId,
     required String loungeId,
@@ -23,7 +24,6 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   HomeRemoteDataSourceImpl(this._client);
   
-  // ... (keeping existing methods)
 
   @override
   Future<void> createBooking({
@@ -38,7 +38,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     await _client.from('bookings').insert({
       'room_id': int.tryParse(roomId) ?? roomId,
       'lounge_id': int.tryParse(loungeId) ?? loungeId,
-      'user_id': user?.id, // حجز مرتبط بالمستخدم المسجل حالياً
+      'user_id': user?.id,
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
       'total_price': totalPrice,
@@ -68,15 +68,13 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<RoomModel>> getRoomsByLoungeId(String loungeId) async {
-    // Convert loungeId to int if it's numeric, as Supabase often uses int for IDs
-    final dynamic filterId = int.tryParse(loungeId) ?? loungeId;
-    
+
     final response = await _client
         .from('rooms')
         .select()
-        .eq('lounge_id', filterId);
+        .eq('lounge_id', loungeId);
     
-    print("ROOMS FETCHED for lounge $filterId: ${response.length} items");
+    print("ROOMS FETCHED for lounge $loungeId: ${response.length} items");
 
     return (response as List).map((e) => RoomModel.fromJson(e)).toList();
   }
@@ -90,12 +88,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<String>> getBookedRoomIds(String loungeId, DateTime start, DateTime end) async {
-    final dynamic filterId = int.tryParse(loungeId) ?? loungeId;
 
     final response = await _client
         .from('bookings')
         .select('room_id')
-        .eq('lounge_id', filterId)
+        .eq('lounge_id', loungeId)
         .neq('status', 'cancelled')
         .lt('start_time', end.toIso8601String())
         .gt('end_time', start.toIso8601String());
@@ -118,4 +115,21 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
     return List<Map<String, dynamic>>.from(response);
   }
-}
+
+  @override
+  @override
+  Future<List<Map<String, dynamic>>> getBookingsForLounge(
+      String loungeId,
+      DateTime start,
+      DateTime end,
+      ) async {
+    final response = await _client
+        .from('bookings')
+        .select('room_id, start_time, end_time, date')
+        .eq('lounge_id', loungeId)
+        .neq('status', 'cancelled')
+        .gte('date', start.toIso8601String().split('T')[0])
+        .lte('date', end.toIso8601String().split('T')[0]);
+
+    return List<Map<String, dynamic>>.from(response);
+  }}

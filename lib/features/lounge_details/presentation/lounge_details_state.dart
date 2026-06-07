@@ -13,6 +13,7 @@ class LoungeDetailsState extends Equatable {
   final DateTime? selectedDate;
   final List<String> bookedRoomIds;
   final int availableRoomsCount;
+  final String selectedCategory;
 
   const LoungeDetailsState({
     this.status = LoungeDetailsStatus.initial,
@@ -23,6 +24,7 @@ class LoungeDetailsState extends Equatable {
     this.selectedDate,
     this.bookedRoomIds = const [],
     this.availableRoomsCount = 0,
+    this.selectedCategory = 'PS5 Rooms',
   });
 
   LoungeDetailsState copyWith({
@@ -35,6 +37,7 @@ class LoungeDetailsState extends Equatable {
     DateTime? selectedDate,
     List<String>? bookedRoomIds,
     int? availableRoomsCount,
+    String? selectedCategory,
   }) {
     return LoungeDetailsState(
       status: status ?? this.status,
@@ -45,6 +48,7 @@ class LoungeDetailsState extends Equatable {
       selectedDate: selectedDate ?? this.selectedDate,
       bookedRoomIds: bookedRoomIds ?? this.bookedRoomIds,
       availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
+      selectedCategory: selectedCategory ?? this.selectedCategory,
     );
   }
 

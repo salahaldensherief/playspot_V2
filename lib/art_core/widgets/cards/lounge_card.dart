@@ -19,6 +19,7 @@ class LoungeCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+
         width: 250.w,
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
@@ -115,30 +116,7 @@ class LoungeCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 12.h),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "${lounge.pricePerHour.toInt()} EGP",
-                          style: TextStyle(
-                            fontFamily: 'Orbitron',
-                            color: AppColors.neonBlue,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(
-                          text: " /hour",
-                          style: TextStyle(
-                            fontFamily: 'Orbitron',
-                            color: AppColors.textSecondary,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+
                 ],
               ),
             ),

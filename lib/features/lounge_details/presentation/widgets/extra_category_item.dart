@@ -37,18 +37,27 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(color: isExpanded ? AppColors.neonPurple : AppColors.borderDefault),
+          border: Border.all(
+            color: isExpanded ? AppColors.neonPurple : AppColors.borderDefault,
+            width: isExpanded ? 1.5 : 1,
+          ),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
+
               onTap: () => setState(() => isExpanded = !isExpanded),
               leading: Icon(
-                widget.category == "Drinks" ? Icons.local_drink : Icons.fastfood,
+                widget.category.toLowerCase() == "drinks"
+                    ? Icons.local_drink
+                    : Icons.fastfood,
                 color: AppColors.white,
               ),
               title: AppText(
@@ -57,18 +66,29 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
                 fontWeight: FontWeight.bold,
                 color: AppColors.white,
               ),
-              trailing: Icon(
-                isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (isExpanded)
-              Padding(
-                padding: EdgeInsets.all(16.w),
-                child: Column(
-                  children: widget.items.map((extra) => ExtraRow(extra: extra)).toList(),
+              trailing: AnimatedRotation(
+                duration: const Duration(milliseconds: 300),
+                turns: isExpanded ? 0.5 : 0,
+                child: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppColors.textSecondary,
                 ),
               ),
+            ),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: isExpanded
+                  ? Padding(
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                      child: Column(
+                        children: widget.items
+                            .map((extra) => ExtraRow(extra: extra))
+                            .toList(),
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity, height: 0),
+            ),
           ],
         ),
       ),

@@ -33,7 +33,7 @@ class _HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userName = sl<PreferenceManager>().fullName() ?? "User";
-    final currentLocation = sl<PreferenceManager>().latitude().isNotEmpty 
+    final currentLocation = sl<PreferenceManager>().latitude().isNotEmpty
         ? "My Location" // TODO: Add reverse geocoding or use saved location name
         : "New Cairo, Cairo";
 
@@ -73,15 +73,6 @@ class _HomeView extends StatelessWidget {
                 ),
               ),
             ),
-            SliverToBoxAdapter(child: SizedBox(height: 16.h)),
-            const SliverToBoxAdapter(
-              child: SectionHeader(
-                title: AppStrings.nearestToYou,
-                seeAllText: AppStrings.seeAll,
-                onSeeAllTap: null, // Add a dummy tap to show See All
-              ),
-            ),
-            const _LoungeList(isNearest: true),
             SliverToBoxAdapter(child: SizedBox(height: 16.h)),
             const SliverToBoxAdapter(
               child: SectionHeader(
@@ -136,7 +127,7 @@ class _LoungeList extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 8.w,
               mainAxisSpacing: 8.h,
-              mainAxisExtent: 250.h,
+              mainAxisExtent: 230.h,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
               return LoungeCard(
