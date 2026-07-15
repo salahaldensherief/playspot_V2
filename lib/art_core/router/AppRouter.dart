@@ -11,7 +11,6 @@ import 'package:playspot/features/lounge_details/data/room_model.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/di.dart';
 import '../../features/auth/presetation/forgot_password/forgot_password_cubit.dart';
 import '../../features/auth/presetation/forgot_password/forgot_password_screen.dart';
@@ -260,6 +259,12 @@ class _MyExtraEncoder extends Converter<Object?, Object?> {
     if (input is RoomModel) {
       return {'__type': 'RoomModel', ...input.toJson()};
     }
+    if (input is DateTime) {
+      return {'__type': 'DateTime', 'value': input.toIso8601String()};
+    }
+    if (input is TimeOfDay) {
+      return {'__type': 'TimeOfDay', 'hour': input.hour, 'minute': input.minute};
+    }
     if (input is Map<String, dynamic>) {
       return input.map((key, value) => MapEntry(key, convert(value)));
     }
@@ -283,6 +288,10 @@ class _MyExtraDecoder extends Converter<Object?, Object?> {
             return LoungeModel.fromJson(map);
           case 'RoomModel':
             return RoomModel.fromJson(map);
+          case 'DateTime':
+            return DateTime.parse(map['value']);
+          case 'TimeOfDay':
+            return TimeOfDay(hour: map['hour'], minute: map['minute']);
         }
       }
       return map.map((key, value) => MapEntry(key, convert(value)));
