@@ -112,5 +112,8 @@
   "logOut": "Log Out",
   "totalBookings": "Total Bookings",
   "hoursPlayed": "Hours Played",
-  "favorite": "Favorite"
+  "favorite": "Favorite",
+  "ps5Rooms": "PS5 Rooms",
+  "simulator": "Simulator",
+  "billiard": "Billiard"
 }

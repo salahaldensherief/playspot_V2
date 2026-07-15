@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +11,7 @@ import 'package:playspot/features/lounge_details/data/room_model.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/di.dart';
 import '../../features/auth/presetation/forgot_password/forgot_password_cubit.dart';
 import '../../features/auth/presetation/forgot_password/forgot_password_screen.dart';
@@ -57,6 +59,7 @@ class AppRouter {
     navigatorKey: navigatorKey,
     initialLocation: RouterKeys.splash,
     debugLogDiagnostics: true,
+    extraCodec: const _MyExtraCodec(),
     routes: [
       GoRoute(
         path: RouterKeys.splash,
@@ -234,4 +237,59 @@ class AppRouter {
       body: Center(child: Text('Page not found: ${state.uri.path}')),
     ),
   );
+}
+
+class _MyExtraCodec extends Codec<Object?, Object?> {
+  const _MyExtraCodec();
+
+  @override
+  Converter<Object?, Object?> get decoder => const _MyExtraDecoder();
+
+  @override
+  Converter<Object?, Object?> get encoder => const _MyExtraEncoder();
+}
+
+class _MyExtraEncoder extends Converter<Object?, Object?> {
+  const _MyExtraEncoder();
+
+  @override
+  Object? convert(Object? input) {
+    if (input is LoungeModel) {
+      return {'__type': 'LoungeModel', ...input.toJson()};
+    }
+    if (input is RoomModel) {
+      return {'__type': 'RoomModel', ...input.toJson()};
+    }
+    if (input is Map<String, dynamic>) {
+      return input.map((key, value) => MapEntry(key, convert(value)));
+    }
+    if (input is List<dynamic>) {
+      return input.map(convert).toList();
+    }
+    return input;
+  }
+}
+
+class _MyExtraDecoder extends Converter<Object?, Object?> {
+  const _MyExtraDecoder();
+
+  @override
+  Object? convert(Object? input) {
+    if (input is Map<Object?, Object?>) {
+      final map = input.cast<String, dynamic>();
+      if (map.containsKey('__type')) {
+        switch (map['__type']) {
+          case 'LoungeModel':
+            return LoungeModel.fromJson(map);
+          case 'RoomModel':
+            return RoomModel.fromJson(map);
+        }
+      }
+      return map.map((key, value) => MapEntry(key, convert(value)));
+    }
+    if (input is List<dynamic>) {
+      return input.map(convert).toList();
+    }
+    return input;
+  }
 }

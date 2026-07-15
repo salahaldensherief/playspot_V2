@@ -134,12 +134,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       debugPrint('🔵 [Auth] Starting Google sign in...');
 
       final GoogleSignIn googleSignIn = GoogleSignIn(
-
-        // clientId: '304793073372-q1lo1lo8bvvget42ooevpduqvb5v4m6j.apps.googleusercontent.com',
-        serverClientId:
-        '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
+        clientId: '1070210806389-o8gnmeqe0bbritv4ckg14p5cdlqck165.apps.googleusercontent.com',
+        serverClientId: '1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com',
         scopes: ['email'],
-
       );
 
       final googleUser = await googleSignIn.signIn();

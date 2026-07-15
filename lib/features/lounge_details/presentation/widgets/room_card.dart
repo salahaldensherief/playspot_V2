@@ -24,8 +24,8 @@ class RoomCard extends StatelessWidget {
         return GestureDetector(
           onTap: isAvailable
               ? () => context.read<LoungeDetailsCubit>().toggleRoomSelection(
-            room.id,
-          )
+                    room.id,
+                  )
               : null,
           child: Stack(
             clipBehavior: Clip.none,
@@ -40,18 +40,18 @@ class RoomCard extends StatelessWidget {
                     color: isSelected
                         ? AppColors.neonBlue
                         : (isAvailable
-                        ? AppColors.success.withOpacity(0.3)
-                        : AppColors.danger.withOpacity(0.3)),
+                            ? AppColors.success.withOpacity(0.3)
+                            : AppColors.danger.withOpacity(0.3)),
                     width: 1.0,
                   ),
                   boxShadow: isSelected
                       ? [
-                    BoxShadow(
-                      color: AppColors.neonBlue.withValues(alpha: 0.1),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                  ]
+                          BoxShadow(
+                            color: AppColors.neonBlue.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            spreadRadius: 1,
+                          ),
+                        ]
                       : null,
                 ),
                 child: Column(
@@ -59,85 +59,128 @@ class RoomCard extends StatelessWidget {
                   children: [
                     AppText(
                       text: room.name,
-                      fontSize: 18.sp,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 8.h),
-                    AppText(
-                      text:
-                      "${room.controllersCount} ${AppStrings.controllers.tr()} · ${room.screenSize} ${AppStrings.screen.tr()}",
-                      fontSize: 12.sp,
-                      color: AppColors.textSecondary,
+                    if (room.spaceType != null) ...[
+                      SizedBox(height: 2.h),
+                      AppText(
+                        text: room.spaceType!.toUpperCase(),
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.neonPurple,
+                      ),
+                    ],
+                    SizedBox(height: 6.h),
+                    _buildIconInfo(
+                      Icons.videogame_asset_outlined,
+                      "${room.controllersCount} ${AppStrings.controllers.tr()}",
                     ),
-                    AppText(
-                      text: AppStrings.perHour.tr().replaceAll('/', ''),
-                      fontSize: 11.sp,
-                      color: AppColors.textSecondary,
+                    _buildIconInfo(
+                      Icons.tv_outlined,
+                      room.screenSize,
                     ),
-                    SizedBox(height: 4.h),
+                    _buildIconInfo(
+                      Icons.people_outline,
+                      "${room.capacity} Persons",
+                    ),
+                    const Spacer(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        RichText(
-                          text: TextSpan(
-                            children: [
-                              TextSpan(
-                                text: "${room.pricePerHour.toInt()}",
-                                style: TextStyle(
-                                  color: AppColors.neonBlue,
-                                  fontSize: 20.sp,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Orbitron',
-                                ),
-                              ),
-                              TextSpan(
-                                text: " ${AppStrings.egp.tr()}",
-                                style: TextStyle(
-                                  color: AppColors.neonBlue,
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Orbitron',
-                                ),
-                              ),
-                            ],
+                        _buildPrice(),
+                        if (isSelected)
+                          Icon(
+                            Icons.check_circle,
+                            color: AppColors.neonBlue,
+                            size: 18.sp,
                           ),
-                        ),
                       ],
                     ),
                   ],
                 ),
               ),
-              Positioned(
-                top: -6.h,
-                left: 16.w,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(8.r),
-                    border: Border.all(
-                      color: isAvailable
-                          ? AppColors.success.withOpacity(0.2)
-                          : AppColors.danger.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: AppText(
-                    text: isAvailable
-                        ? AppStrings.available.tr()
-                        : AppStrings.booked.tr(),
-                    fontSize: 8.sp,
-                    color: isAvailable ? AppColors.success : AppColors.danger,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              _buildStatusBadge(isAvailable),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildIconInfo(IconData icon, String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 2.h),
+      child: Row(
+        children: [
+          Icon(icon, size: 12.sp, color: AppColors.textSecondary),
+          SizedBox(width: 4.w),
+          Expanded(
+            child: AppText(
+              text: text,
+              fontSize: 10.sp,
+              color: AppColors.textSecondary,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrice() {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: "${room.pricePerHour.toInt()}",
+            style: TextStyle(
+              color: AppColors.neonBlue,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Orbitron',
+            ),
+          ),
+          TextSpan(
+            text: " ${AppStrings.egp.tr()}",
+            style: TextStyle(
+              color: AppColors.neonBlue,
+              fontSize: 10.sp,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Orbitron',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(bool isAvailable) {
+    return Positioned(
+      top: -6.h,
+      left: 16.w,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: isAvailable
+                ? AppColors.success.withOpacity(0.2)
+                : AppColors.danger.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: AppText(
+          text: isAvailable ? AppStrings.available.tr() : AppStrings.booked.tr(),
+          fontSize: 8.sp,
+          color: isAvailable ? AppColors.success : AppColors.danger,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }

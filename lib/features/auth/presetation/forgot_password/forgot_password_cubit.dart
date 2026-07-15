@@ -26,9 +26,9 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     final result = await _authRepository.sendPasswordResetEmail(email);
 
     result.fold(
-      (error) => emit(state.copyWith(
+      (failure) => emit(state.copyWith(
         status: ForgotPasswordStatus.failure,
-        errorMessage: error,
+        errorMessage: failure.message,
       )),
       (_) => emit(state.copyWith(
         status: ForgotPasswordStatus.emailSent,
@@ -49,9 +49,9 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     );
 
     result.fold(
-      (error) => emit(state.copyWith(
+      (failure) => emit(state.copyWith(
         status: ForgotPasswordStatus.failure,
-        errorMessage: error,
+        errorMessage: failure.message,
       )),
       (_) => emit(state.copyWith(
         status: ForgotPasswordStatus.otpVerified,
@@ -76,9 +76,9 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     final result = await _authRepository.resetPassword(password);
 
     result.fold(
-      (error) => emit(state.copyWith(
+      (failure) => emit(state.copyWith(
         status: ForgotPasswordStatus.failure,
-        errorMessage: error,
+        errorMessage: failure.message,
       )),
       (_) => emit(state.copyWith(
         status: ForgotPasswordStatus.success,

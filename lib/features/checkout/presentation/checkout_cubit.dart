@@ -20,24 +20,20 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
     
-    try {
-      // Create the booking in the database
-      await _homeRepository.createBooking(
-        roomId: roomId,
-        loungeId: loungeId,
-        startTime: startTime,
-        endTime: endTime,
-        totalPrice: totalPrice,
-      );
+    final result = await _homeRepository.createBooking(
+      roomId: roomId,
+      loungeId: loungeId,
+      startTime: startTime,
+      endTime: endTime,
+      totalPrice: totalPrice,
+    );
 
-      // If it's not cash, we would handle actual payment gateway logic here
-      // For now, we just mark as success
-      emit(state.copyWith(status: CheckoutStatus.success));
-    } catch (e) {
-      emit(state.copyWith(
+    result.fold(
+      (failure) => emit(state.copyWith(
         status: CheckoutStatus.failure,
-        errorMessage: "Failed to confirm booking. Please try again.",
-      ));
-    }
+        errorMessage: failure.message,
+      )),
+      (_) => emit(state.copyWith(status: CheckoutStatus.success)),
+    );
   }
 }

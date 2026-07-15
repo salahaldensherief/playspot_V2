@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../data/extra_model.dart';
 import '../data/room_model.dart';
 
@@ -24,7 +25,7 @@ class LoungeDetailsState extends Equatable {
     this.selectedDate,
     this.bookedRoomIds = const [],
     this.availableRoomsCount = 0,
-    this.selectedCategory = 'PS5 Rooms',
+    this.selectedCategory = AppStrings.ps5Rooms,
   });
 
   LoungeDetailsState copyWith({

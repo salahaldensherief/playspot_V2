@@ -107,5 +107,8 @@ class AppStrings {
   static const String aboutUs = "aboutUs";
   static const String version = "version";
   static const String cancel = "cancel";
+  static const String ps5Rooms = "ps5Rooms";
+  static const String simulator = "simulator";
+  static const String billiard = "billiard";
 
 }

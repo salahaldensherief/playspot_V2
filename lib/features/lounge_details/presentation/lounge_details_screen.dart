@@ -55,14 +55,14 @@ class LoungeDetailsScreen extends StatelessWidget {
                   builder: (context, state) {
                     return SliverToBoxAdapter(
                       child: SectionHeader(
-                        title: "${state.selectedCategory} — select a unit",
+                        title: state.selectedCategory,
                       ),
                     );
                   },
                 ),
                 _buildRoomsGrid(),
-                SliverToBoxAdapter(
-                  child: SectionHeader(title: AppStrings.extras.tr()),
+                const SliverToBoxAdapter(
+                  child: SectionHeader(title: AppStrings.extras),
                 ),
                 _buildExtrasList(),
                 SliverToBoxAdapter(child: SizedBox(height: 120.h)),
@@ -77,9 +77,9 @@ class LoungeDetailsScreen extends StatelessWidget {
 
   Widget _buildCategorySelector() {
     final categories = [
-      {'name': 'PS5 Rooms', 'icon': Icons.videogame_asset_outlined},
-      {'name': 'Simulator', 'icon': Icons.speed},
-      {'name': 'Billiard', 'icon': Icons.sports_baseball_rounded},
+      {'name': AppStrings.ps5Rooms, 'icon': Icons.videogame_asset_outlined},
+      {'name': AppStrings.simulator, 'icon': Icons.speed},
+      {'name': AppStrings.billiard, 'icon': Icons.sports_baseball_rounded},
     ];
 
     return SliverToBoxAdapter(
@@ -128,7 +128,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                         ),
                         SizedBox(width: 8.w),
                         AppText(
-                          text: cat['name'] as String,
+                          text: (cat['name'] as String).tr(),
                           fontSize: 14.sp,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.w500,
@@ -276,7 +276,7 @@ class LoungeDetailsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeader(title: AppStrings.selectDate.tr()),
+          const SectionHeader(title: AppStrings.selectDate),
           BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
             builder: (context, state) {
               return DateSelector(
@@ -341,14 +341,25 @@ class LoungeDetailsScreen extends StatelessWidget {
         }
 
         final filteredRooms = state.rooms.where((r) {
-          if (state.selectedCategory == 'Billiard') {
-            return r.type.toLowerCase().contains('ps5') ||
-                r.type.isEmpty ||
-                r.type == 'Standard';
+          final category = state.selectedCategory;
+          final roomActivities = r.activityNames.map((a) => a.toLowerCase()).toList();
+          
+          final isPS5Category = category == AppStrings.ps5Rooms;
+          final isSimulatorCategory = category == AppStrings.simulator;
+          final isBilliardCategory = category == AppStrings.billiard;
+
+          final isSimulatorRoom = roomActivities.any((a) => a.contains('simulator') || a.contains('racing') || a.contains('speed'));
+          final isBilliardRoom = roomActivities.any((a) => a.contains('billiard') || a.contains('pool') || a.contains('snooker'));
+          final isPS5Room = roomActivities.any((a) => a.contains('ps') || a.contains('playstation') || a.contains('console'));
+
+          if (isSimulatorCategory) return isSimulatorRoom;
+          if (isBilliardCategory) return isBilliardRoom;
+          
+          if (isPS5Category) {
+            return isPS5Room || (!isSimulatorRoom && !isBilliardRoom);
           }
-          return r.type.toLowerCase().contains(
-                state.selectedCategory.toLowerCase().split(' ').first,
-              );
+          
+          return roomActivities.any((a) => a.contains(category.toLowerCase().split(' ').first));
         }).toList();
 
         if (filteredRooms.isEmpty) {
@@ -371,7 +382,7 @@ class LoungeDetailsScreen extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 12.w,
               mainAxisSpacing: 12.h,
-              mainAxisExtent: 160.h, // Increased height for new RoomCard design
+              mainAxisExtent: 180.h, // Increased height for new RoomCard design
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) => RoomCard(room: filteredRooms[index]),

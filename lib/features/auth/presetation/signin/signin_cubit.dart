@@ -26,11 +26,11 @@ class SignInCubit extends Cubit<LoginState> {
     );
 
     result.fold(
-          (error) => emit(state.copyWith(
+      (failure) => emit(state.copyWith(
         status: LoginStatus.failure,
-        errorMessage: error,
+        errorMessage: failure.message,
       )),
-          (user) => emit(state.copyWith(
+      (user) => emit(state.copyWith(
         status: LoginStatus.success,
         params: user,
       )),
@@ -43,11 +43,11 @@ class SignInCubit extends Cubit<LoginState> {
     final result = await _authRepository.signInWithGoogle();
 
     result.fold(
-          (error) => emit(state.copyWith(
+      (failure) => emit(state.copyWith(
         status: LoginStatus.failure,
-        errorMessage: error,
+        errorMessage: failure.message,
       )),
-          (user) => emit(state.copyWith(
+      (user) => emit(state.copyWith(
         status: user.isNewUser
             ? LoginStatus.successSocial
             : LoginStatus.success,
@@ -62,11 +62,11 @@ class SignInCubit extends Cubit<LoginState> {
     final result = await _authRepository.signInWithFacebook();
 
     result.fold(
-          (error) => emit(state.copyWith(
+      (failure) => emit(state.copyWith(
         status: LoginStatus.failure,
-        errorMessage: error,
+        errorMessage: failure.message,
       )),
-          (user) => emit(state.copyWith(
+      (user) => emit(state.copyWith(
         status: user.isNewUser
             ? LoginStatus.successSocial
             : LoginStatus.success,

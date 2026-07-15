@@ -30,6 +30,24 @@ class LoungeModel {
     required this.closesAt,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'image_url': imageUrl,
+      'rating': rating,
+      'distance': distance,
+      'price_per_hour': pricePerHour,
+      'is_open': isOpen,
+      'location': location,
+      'available_rooms': availableRooms,
+      'description': description,
+      'images': images,
+      'opens_at': opensAt,
+      'closes_at': closesAt,
+    };
+  }
+
   factory LoungeModel.fromJson(Map<String, dynamic> json) {
     try {
       return LoungeModel(

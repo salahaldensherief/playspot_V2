@@ -115,7 +115,7 @@ class CheckoutScreen extends StatelessWidget {
           ),
           SizedBox(height: 4.h),
           AppText(
-            text: "${room.name} · ${room.controllersCount} Controllers · ${room.screenSize} Screen",
+            text: "${room.name} · ${room.controllersCount} Controllers · ${room.screenSize} Screen · ${room.capacity} Persons",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
           ),

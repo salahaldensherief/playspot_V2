@@ -99,10 +99,15 @@ class _SignInView extends StatelessWidget {
 class _SocialSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<SignInCubit>();
-    return SocialButtons(
-      googleOnTap: cubit.signInWithGoogle,
-      facebookOnTap: cubit.signInWithFacebook,
+    return BlocSelector<SignInCubit, LoginState, bool>(
+      selector: (state) => state.status.isLoading,
+      builder: (context, isLoading) {
+        final cubit = context.read<SignInCubit>();
+        return SocialButtons(
+          googleOnTap: isLoading ? null : cubit.signInWithGoogle,
+          facebookOnTap: isLoading ? null : cubit.signInWithFacebook,
+        );
+      },
     );
   }
 }

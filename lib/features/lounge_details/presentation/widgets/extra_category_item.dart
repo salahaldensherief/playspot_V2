@@ -41,17 +41,20 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
             color: isExpanded ? AppColors.neonPurple : AppColors.borderDefault,
             width: isExpanded ? 1.5 : 1,
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
+        child: Material(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(20.r),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
 
               onTap: () => setState(() => isExpanded = !isExpanded),
               leading: Icon(
@@ -92,6 +95,7 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
           ],
         ),
       ),
-    );
+    ),
+        );
   }
 }
