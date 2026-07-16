@@ -34,7 +34,7 @@ class _HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final userName = sl<PreferenceManager>().fullName() ?? "User";
     final currentLocation = sl<PreferenceManager>().latitude().isNotEmpty
-        ? "My Location" // TODO: Add reverse geocoding or use saved location name
+        ? "My Location"
         : "New Cairo, Cairo";
 
     return Scaffold(
@@ -43,6 +43,7 @@ class _HomeView extends StatelessWidget {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
+
               backgroundColor: AppColors.scaffoldBackground,
               expandedHeight: 180.h,
               pinned: true,

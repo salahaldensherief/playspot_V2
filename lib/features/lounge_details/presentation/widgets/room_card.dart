@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
-import '../../data/room_model.dart';
+import '../../data/models/room_model.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 

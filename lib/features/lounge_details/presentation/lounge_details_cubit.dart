@@ -1,23 +1,32 @@
 import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/models/time_range.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'package:playspot/features/lounge_details/data/extra_model.dart';
-import 'package:playspot/features/lounge_details/data/room_model.dart';
-import '../../home/data/repos/home_repos.dart';
+import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
+import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+import 'package:playspot/features/lounge_details/data/repos/lounge_details_repo.dart';
+import 'package:playspot/features/home/data/repos/home_repos.dart';
+import 'package:playspot/features/booking/data/repos/booking_repo.dart';
 import 'lounge_details_state.dart';
 
 class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
+  final LoungeDetailsRepository _loungeDetailsRepository;
   final HomeRepository _homeRepository;
+  final BookingRepository _bookingRepository;
 
-  LoungeDetailsCubit(this._homeRepository) : super(const LoungeDetailsState());
+  LoungeDetailsCubit(
+    this._loungeDetailsRepository,
+    this._homeRepository,
+    this._bookingRepository,
+  ) : super(const LoungeDetailsState());
 
   Future<void> getLoungeDetails(String loungeId) async {
     emit(state.copyWith(status: LoungeDetailsStatus.loading));
 
     try {
       final results = await Future.wait([
-        _homeRepository.getRoomsByLoungeId(loungeId),
-        _homeRepository.getExtras(),
+        _loungeDetailsRepository.getRoomsByLoungeId(loungeId),
+        _loungeDetailsRepository.getExtras(),
         _homeRepository.getLounges(),
       ]);
 
@@ -37,50 +46,104 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       }
 
       final date = state.selectedDate ?? DateTime.now();
-      final start = DateTime(date.year, date.month, date.day);
-      final end = start.add(const Duration(days: 1));
-
-      final bookingsResult = await _homeRepository.getBookingsForLounge(loungeId, start, end);
       
-      bookingsResult.fold(
-        (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
-        (bookings) {
-          final opHours = _calculateOperationalHours(lounge!.opensAt, lounge!.closesAt);
-          final List<String> fullyBookedIds = [];
-
-          for (final room in rooms!) {
-            double bookedDuration = 0;
-            final roomBookings = bookings.where((b) => b['room_id'].toString() == room.id);
-
-            for (final b in roomBookings) {
-              final startTimeStr = b['start_time']?.toString();
-              final endTimeStr = b['end_time']?.toString();
-
-              if (startTimeStr != null && endTimeStr != null) {
-                final startHour = int.parse(startTimeStr.split(':')[0]);
-                final endHour = int.parse(endTimeStr.split(':')[0]);
-                bookedDuration += (endHour - startHour).toDouble();
-              }
-            }
-            if (bookedDuration >= opHours) {
-              fullyBookedIds.add(room.id);
-            }
-          }
-
-          emit(state.copyWith(
-            status: LoungeDetailsStatus.success,
-            rooms: rooms,
-            extras: extras,
-            bookedRoomIds: fullyBookedIds,
-            selectedDate: date,
-            availableRoomsCount: rooms!.length - fullyBookedIds.length,
-          ));
-        },
+      await _updateBookings(
+        loungeId: loungeId,
+        date: date,
+        rooms: rooms!,
+        extras: extras!,
+        lounge: lounge!,
       );
     } catch (e, stack) {
       log("CUBIT ERROR: $e", stackTrace: stack);
       emit(state.copyWith(status: LoungeDetailsStatus.error));
     }
+  }
+
+  Future<void> selectDate(DateTime date) async {
+    if (state.rooms.isEmpty) {
+      emit(state.copyWith(selectedDate: date));
+      return;
+    }
+
+    emit(state.copyWith(selectedDate: date, status: LoungeDetailsStatus.loading));
+
+    try {
+      final loungeId = state.rooms.first.loungeId;
+      final loungesResult = await _homeRepository.getLounges();
+      
+      await loungesResult.fold(
+        (failure) async => emit(state.copyWith(status: LoungeDetailsStatus.error)),
+        (lounges) async {
+          final lounge = lounges.firstWhere((l) => l.id == loungeId);
+          await _updateBookings(
+            loungeId: loungeId,
+            date: date,
+            rooms: state.rooms,
+            extras: state.extras,
+            lounge: lounge,
+          );
+        },
+      );
+    } catch (e) {
+      emit(state.copyWith(status: LoungeDetailsStatus.error));
+    }
+  }
+
+  Future<void> _updateBookings({
+    required String loungeId,
+    required DateTime date,
+    required List<RoomModel> rooms,
+    required List<ExtraModel> extras,
+    required LoungeModel lounge,
+  }) async {
+    final bookingsResult = await _bookingRepository.getRoomBookingsForDate(loungeId, date);
+
+    bookingsResult.fold(
+      (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
+      (rawBookings) {
+        final Map<String, List<TimeRange>> bookedSlotsByRoom = {};
+        final List<String> fullyBookedIds = [];
+        final opHours = _calculateOperationalHours(lounge.opensAt, lounge.closesAt);
+
+        // Organize bookings by room
+        for (final b in rawBookings) {
+          final roomId = b['room_id'].toString();
+          final startAt = DateTime.parse(b['start_at']);
+          final endAt = DateTime.parse(b['end_at']);
+          
+          bookedSlotsByRoom.putIfAbsent(roomId, () => []).add(
+            TimeRange(start: startAt, end: endAt),
+          );
+        }
+
+        // Calculate fully booked rooms
+        for (final room in rooms) {
+          final slots = bookedSlotsByRoom[room.id] ?? [];
+          double totalBookedHours = 0;
+          for (final slot in slots) {
+            totalBookedHours += slot.durationInHours;
+          }
+
+          if (totalBookedHours >= opHours) {
+            fullyBookedIds.add(room.id);
+          }
+        }
+
+        bool shouldClearRoom = state.selectedRoomId != null && fullyBookedIds.contains(state.selectedRoomId);
+
+        emit(state.copyWith(
+          status: LoungeDetailsStatus.success,
+          rooms: rooms,
+          extras: extras,
+          bookedRoomIds: fullyBookedIds,
+          bookedSlotsByRoom: bookedSlotsByRoom,
+          selectedDate: date,
+          availableRoomsCount: rooms.length - fullyBookedIds.length,
+          clearRoom: shouldClearRoom,
+        ));
+      },
+    );
   }
 
   double _calculateOperationalHours(String opensAt, String closesAt) {
@@ -98,61 +161,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     } catch (e) {
       return 16.0;
     }
-  }
-
-  Future<void> selectDate(DateTime date) async {
-    if (state.rooms.isEmpty) {
-      emit(state.copyWith(selectedDate: date));
-      return;
-    }
-
-    emit(state.copyWith(selectedDate: date, status: LoungeDetailsStatus.loading));
-
-    final loungeId = state.rooms.first.loungeId;
-    final loungesResult = await _homeRepository.getLounges();
-    
-    loungesResult.fold(
-      (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
-      (lounges) async {
-        final lounge = lounges.firstWhere((l) => l.id == loungeId);
-        final start = DateTime(date.year, date.month, date.day);
-        final end = start.add(const Duration(days: 1));
-
-        final bookingsResult = await _homeRepository.getBookingsForLounge(loungeId, start, end);
-        
-        bookingsResult.fold(
-          (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
-          (bookings) {
-            final opHours = _calculateOperationalHours(lounge.opensAt, lounge.closesAt);
-            List<String> fullyBookedIds = [];
-            
-            for (var room in state.rooms) {
-              final roomBookings = bookings.where((b) => b['room_id'].toString() == room.id);
-              double bookedDuration = 0;
-              for (var b in roomBookings) {
-                final startTimeStr = b['start_time']?.toString();
-                final endTimeStr = b['end_time']?.toString();
-                if (startTimeStr != null && endTimeStr != null) {
-                  final startHour = int.parse(startTimeStr.split(':')[0]);
-                  final endHour = int.parse(endTimeStr.split(':')[0]);
-                  bookedDuration += (endHour - startHour).toDouble();
-                }
-              }
-              if (bookedDuration >= opHours) fullyBookedIds.add(room.id);
-            }
-
-            bool shouldClearRoom = state.selectedRoomId != null && fullyBookedIds.contains(state.selectedRoomId);
-
-            emit(state.copyWith(
-              status: LoungeDetailsStatus.success,
-              bookedRoomIds: fullyBookedIds,
-              availableRoomsCount: state.rooms.length - fullyBookedIds.length,
-              clearRoom: shouldClearRoom,
-            ));
-          },
-        );
-      },
-    );
   }
 
   void toggleRoomSelection(String roomId) {

@@ -1,11 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/features/home/data/repos/home_repos.dart';
+import 'package:playspot/features/booking/data/repos/booking_repo.dart';
 import 'checkout_state.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
-  final HomeRepository _homeRepository;
+  final BookingRepository _bookingRepository;
 
-  CheckoutCubit(this._homeRepository) : super(const CheckoutState());
+  CheckoutCubit(this._bookingRepository) : super(const CheckoutState());
 
   void selectPaymentMethod(PaymentMethod method) {
     emit(state.copyWith(selectedMethod: method));
@@ -17,15 +17,17 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     required DateTime startTime,
     required DateTime endTime,
     required double totalPrice,
+    required double roomPrice,
   }) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
     
-    final result = await _homeRepository.createBooking(
+    final result = await _bookingRepository.createBooking(
       roomId: roomId,
       loungeId: loungeId,
       startTime: startTime,
       endTime: endTime,
       totalPrice: totalPrice,
+      roomPrice: roomPrice,
     );
 
     result.fold(

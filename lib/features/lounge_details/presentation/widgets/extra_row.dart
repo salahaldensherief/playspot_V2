@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import '../../../../../art_core/theme/app_colors.dart';
 import '../../../../../art_core/widgets/text/app_text.dart';
-import '../../data/extra_model.dart';
+import '../../data/models/extra_model.dart';
 import 'quantity_selector.dart';
 
 class ExtraRow extends StatelessWidget {

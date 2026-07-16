@@ -12,8 +12,9 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'package:playspot/features/lounge_details/data/room_model.dart';
+import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../../art_core/router/router_keys.dart';
+import '../data/repos/booking_repo.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/date_selector.dart';
@@ -37,7 +38,7 @@ class BookingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => BookingCubit(sl(), room.id, initialDate),
+      create: (context) => BookingCubit(sl<BookingRepository>(), room.id, lounge.id, initialDate),
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../home/data/repos/home_repos.dart';
+import 'package:playspot/art_core/models/time_range.dart';
+import '../data/repos/booking_repo.dart';
 import 'booking_state.dart';
 
 class BookingCubit extends Cubit<BookingState> {
-  final HomeRepository _homeRepository;
+  final BookingRepository _bookingRepository;
   final String roomId;
+  final String loungeId;
 
-  BookingCubit(this._homeRepository, this.roomId, DateTime? initialDate)
+  BookingCubit(this._bookingRepository, this.roomId, this.loungeId, DateTime? initialDate)
       : super(BookingState(selectedDate: initialDate ?? DateTime.now())) {
     fetchBookedSlots(state.selectedDate);
   }
@@ -15,22 +17,28 @@ class BookingCubit extends Cubit<BookingState> {
   Future<void> fetchBookedSlots(DateTime date) async {
     emit(state.copyWith(status: BookingStatus.loading, selectedDate: date));
     
-    final result = await _homeRepository.getBookingsForRoom(roomId, date);
+    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date);
     
     result.fold(
       (failure) => emit(state.copyWith(status: BookingStatus.error)),
-      (bookings) {
+      (rawBookings) {
         List<TimeOfDay> bookedSlots = [];
-        for (var booking in bookings) {
-          final start = DateTime.parse(booking['start_time']);
-          final end = DateTime.parse(booking['end_time']);
-          
-          var current = start;
-          while (current.isBefore(end)) {
-            bookedSlots.add(TimeOfDay(hour: current.hour, minute: current.minute));
-            current = current.add(const Duration(hours: 1));
+        
+        final roomBookings = rawBookings
+            .where((b) => b['room_id'].toString() == roomId)
+            .map((b) => TimeRange(
+                  start: DateTime.parse(b['start_at']),
+                  end: DateTime.parse(b['end_at']),
+                ))
+            .toList();
+
+        for (int h = 0; h < 24; h++) {
+          final isOccupied = roomBookings.any((range) => range.overlaps(h, h + 1));
+          if (isOccupied) {
+            bookedSlots.add(TimeOfDay(hour: h, minute: 0));
           }
         }
+
         emit(state.copyWith(status: BookingStatus.success, bookedTimeSlots: bookedSlots));
       },
     );
@@ -65,38 +73,5 @@ class BookingCubit extends Cubit<BookingState> {
       if (state.bookedTimeSlots.any((slot) => slot.hour == hourToCheck)) return false;
     }
     return true;
-  }
-
-  Future<void> confirmBooking(String loungeId, double pricePerHour) async {
-    if (state.startTime == null) return;
-
-    emit(state.copyWith(status: BookingStatus.loading));
-
-    final start = DateTime(
-      state.selectedDate.year,
-      state.selectedDate.month,
-      state.selectedDate.day,
-      state.startTime!.hour,
-      state.startTime!.minute,
-    );
-
-    final end = start.add(Duration(hours: state.durationHours));
-    final total = pricePerHour * state.durationHours;
-
-    final result = await _homeRepository.createBooking(
-      roomId: roomId,
-      loungeId: loungeId,
-      startTime: start,
-      endTime: end,
-      totalPrice: total,
-    );
-
-    result.fold(
-      (failure) => emit(state.copyWith(status: BookingStatus.error)),
-      (_) {
-        emit(state.copyWith(status: BookingStatus.success));
-        fetchBookedSlots(state.selectedDate);
-      },
-    );
   }
 }

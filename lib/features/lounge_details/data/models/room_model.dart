@@ -2,8 +2,8 @@ class RoomModel {
   final String id;
   final String loungeId;
   final String name;
-  final List<String> activityNames; // بدل type - روم واحد ممكن يبقى فيه أكتر من نشاط
-  final String? spaceType; // 'open' / 'private' / 'vip'
+  final List<String> activityNames;
+  final String? spaceType;
   final int capacity;
   final double pricePerHour;
   final bool isAvailable;
@@ -18,7 +18,7 @@ class RoomModel {
     required this.name,
     required this.activityNames,
     this.spaceType,
-    this.capacity = 4,
+    required this.capacity,
     required this.pricePerHour,
     required this.isAvailable,
     required this.images,
@@ -52,7 +52,7 @@ class RoomModel {
         name: json['name']?.toString() ?? '',
         activityNames: json['activity_names'] != null
             ? List<String>.from(json['activity_names'])
-            : (json['type'] != null ? [json['type'].toString()] : []),
+            : [],
         spaceType: json['space_type_name']?.toString(),
         capacity: (json['capacity'] as num?)?.toInt() ?? 4,
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,

@@ -7,7 +7,7 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_screen.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_screen.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'package:playspot/features/lounge_details/data/room_model.dart';
+import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';

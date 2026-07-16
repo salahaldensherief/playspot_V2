@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/art_core/app_strings.dart';
-import '../data/extra_model.dart';
-import '../data/room_model.dart';
+import 'package:playspot/art_core/models/time_range.dart';
+import '../data/models/extra_model.dart';
+import '../data/models/room_model.dart';
 
 enum LoungeDetailsStatus { initial, loading, success, error }
 
@@ -13,6 +14,7 @@ class LoungeDetailsState extends Equatable {
   final String? selectedRoomId;
   final DateTime? selectedDate;
   final List<String> bookedRoomIds;
+  final Map<String, List<TimeRange>> bookedSlotsByRoom;
   final int availableRoomsCount;
   final String selectedCategory;
 
@@ -24,6 +26,7 @@ class LoungeDetailsState extends Equatable {
     this.selectedRoomId,
     this.selectedDate,
     this.bookedRoomIds = const [],
+    this.bookedSlotsByRoom = const {},
     this.availableRoomsCount = 0,
     this.selectedCategory = AppStrings.ps5Rooms,
   });
@@ -37,6 +40,7 @@ class LoungeDetailsState extends Equatable {
     bool clearRoom = false,
     DateTime? selectedDate,
     List<String>? bookedRoomIds,
+    Map<String, List<TimeRange>>? bookedSlotsByRoom,
     int? availableRoomsCount,
     String? selectedCategory,
   }) {
@@ -48,6 +52,7 @@ class LoungeDetailsState extends Equatable {
       selectedRoomId: clearRoom ? null : (selectedRoomId ?? this.selectedRoomId),
       selectedDate: selectedDate ?? this.selectedDate,
       bookedRoomIds: bookedRoomIds ?? this.bookedRoomIds,
+      bookedSlotsByRoom: bookedSlotsByRoom ?? this.bookedSlotsByRoom,
       availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
       selectedCategory: selectedCategory ?? this.selectedCategory,
     );
@@ -70,5 +75,16 @@ class LoungeDetailsState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, rooms, extras, selectedExtras, selectedRoomId, selectedDate, bookedRoomIds];
+  List<Object?> get props => [
+        status,
+        rooms,
+        extras,
+        selectedExtras,
+        selectedRoomId,
+        selectedDate,
+        bookedRoomIds,
+        bookedSlotsByRoom,
+        availableRoomsCount,
+        selectedCategory,
+      ];
 }
