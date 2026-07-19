@@ -130,6 +130,19 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           }
         }
 
+        // استخراج التصنيفات الديناميكية من الغرف
+        final allActivities = rooms.expand((r) => r.activityNames).toSet().toList();
+        // ترتيب التصنيفات بحيث يظهر PS5 أولاً لو موجود
+        allActivities.sort((a, b) {
+          if (a.toLowerCase().contains('ps')) return -1;
+          if (b.toLowerCase().contains('ps')) return 1;
+          return a.compareTo(b);
+        });
+
+        final currentCategory = state.selectedCategory.isEmpty 
+            ? (allActivities.isNotEmpty ? allActivities.first : '') 
+            : state.selectedCategory;
+
         bool shouldClearRoom = state.selectedRoomId != null && fullyBookedIds.contains(state.selectedRoomId);
 
         emit(state.copyWith(
@@ -138,8 +151,10 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           extras: extras,
           bookedRoomIds: fullyBookedIds,
           bookedSlotsByRoom: bookedSlotsByRoom,
+          categories: allActivities,
           selectedDate: date,
           availableRoomsCount: rooms.length - fullyBookedIds.length,
+          selectedCategory: currentCategory,
           clearRoom: shouldClearRoom,
         ));
       },

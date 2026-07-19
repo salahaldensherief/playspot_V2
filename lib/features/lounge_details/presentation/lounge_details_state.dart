@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import '../data/models/extra_model.dart';
 import '../data/models/room_model.dart';
@@ -15,6 +14,7 @@ class LoungeDetailsState extends Equatable {
   final DateTime? selectedDate;
   final List<String> bookedRoomIds;
   final Map<String, List<TimeRange>> bookedSlotsByRoom;
+  final List<String> categories;
   final int availableRoomsCount;
   final String selectedCategory;
 
@@ -27,8 +27,9 @@ class LoungeDetailsState extends Equatable {
     this.selectedDate,
     this.bookedRoomIds = const [],
     this.bookedSlotsByRoom = const {},
+    this.categories = const [],
     this.availableRoomsCount = 0,
-    this.selectedCategory = AppStrings.ps5Rooms,
+    this.selectedCategory = '',
   });
 
   LoungeDetailsState copyWith({
@@ -41,6 +42,7 @@ class LoungeDetailsState extends Equatable {
     DateTime? selectedDate,
     List<String>? bookedRoomIds,
     Map<String, List<TimeRange>>? bookedSlotsByRoom,
+    List<String>? categories,
     int? availableRoomsCount,
     String? selectedCategory,
   }) {
@@ -53,6 +55,7 @@ class LoungeDetailsState extends Equatable {
       selectedDate: selectedDate ?? this.selectedDate,
       bookedRoomIds: bookedRoomIds ?? this.bookedRoomIds,
       bookedSlotsByRoom: bookedSlotsByRoom ?? this.bookedSlotsByRoom,
+      categories: categories ?? this.categories,
       availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
       selectedCategory: selectedCategory ?? this.selectedCategory,
     );
@@ -84,6 +87,7 @@ class LoungeDetailsState extends Equatable {
         selectedDate,
         bookedRoomIds,
         bookedSlotsByRoom,
+        categories,
         availableRoomsCount,
         selectedCategory,
       ];

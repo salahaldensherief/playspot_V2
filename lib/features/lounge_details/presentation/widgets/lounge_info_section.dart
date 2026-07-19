@@ -16,7 +16,7 @@ class LoungeInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

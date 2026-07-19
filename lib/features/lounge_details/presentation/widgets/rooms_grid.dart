@@ -60,24 +60,8 @@ class RoomsGrid extends StatelessWidget {
 
         final filteredRooms = state.rooms.where((r) {
           final category = state.selectedCategory;
-          final roomActivities = r.activityNames.map((a) => a.toLowerCase()).toList();
-          
-          final isPS5Category = category == AppStrings.ps5Rooms;
-          final isSimulatorCategory = category == AppStrings.simulator;
-          final isBilliardCategory = category == AppStrings.billiard;
-
-          final isSimulatorRoom = roomActivities.any((a) => a.contains('simulator') || a.contains('racing') || a.contains('speed'));
-          final isBilliardRoom = roomActivities.any((a) => a.contains('billiard') || a.contains('pool') || a.contains('snooker'));
-          final isPS5Room = roomActivities.any((a) => a.contains('ps') || a.contains('playstation') || a.contains('console'));
-
-          if (isSimulatorCategory) return isSimulatorRoom;
-          if (isBilliardCategory) return isBilliardRoom;
-          
-          if (isPS5Category) {
-            return isPS5Room || (!isSimulatorRoom && !isBilliardRoom);
-          }
-          
-          return roomActivities.any((a) => a.contains(category.toLowerCase().split(' ').first));
+          if (category.isEmpty) return true;
+          return r.activityNames.any((a) => a.toLowerCase() == category.toLowerCase());
         }).toList();
 
         if (filteredRooms.isEmpty) {

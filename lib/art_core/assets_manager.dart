@@ -35,6 +35,9 @@ class AssetsManager {
 
   static const String city = '$_iconPath/city.svg';
 
+  static const String billiard = '$_iconPath/billiard.svg';
+  static const String vr = '$_iconPath/vr.svg';
+
   static const String activeEventsNavBar = '$_iconPath/active_event_nav.svg';
 
   static const String person = '$_iconPath/person.svg';
