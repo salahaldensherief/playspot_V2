@@ -22,15 +22,15 @@ import 'widgets/time_slot_grid.dart';
 import 'widgets/duration_selector.dart';
 
 class BookingScreen extends StatelessWidget {
-  final LoungeModel lounge;
-  final RoomModel room;
+  final LoungeModel? lounge;
+  final RoomModel? room;
   final DateTime? initialDate;
   final List<Map<String, dynamic>> addOns;
 
   const BookingScreen({
     super.key,
-    required this.lounge,
-    required this.room,
+     this.lounge,
+     this.room,
     this.initialDate,
     this.addOns = const [],
   });
@@ -38,7 +38,7 @@ class BookingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => BookingCubit(sl<BookingRepository>(), room.id, lounge.id, initialDate),
+      create: (context) => BookingCubit(sl<BookingRepository>(), room!.id, lounge!.id, initialDate),
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
@@ -49,7 +49,7 @@ class BookingScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: AppText(
-          text: "Book ${room.name}",
+          text: "Book ${room!.name}",
           fontSize: 20.sp,
           fontWeight: FontWeight.bold,
           color: AppColors.white,
@@ -96,7 +96,7 @@ class BookingScreen extends StatelessWidget {
       builder: (context, state) {
         final isReady = state.startTime != null;
         final extrasPrice = addOns.fold<double>(0, (sum, item) => sum + (item['price'] * item['quantity']));
-        final total = (room.pricePerHour * state.durationHours) + extrasPrice;
+        final total = (room!.pricePerHour * state.durationHours) + extrasPrice;
 
         return Container(
           padding: EdgeInsets.all(20.w),

@@ -15,6 +15,9 @@ import '../features/home/presentation/home_cubit.dart';
 import '../features/lounge_details/data/data_source/remote/lounge_details_remote_data_source.dart';
 import '../features/lounge_details/data/repos/lounge_details_repo.dart';
 import '../features/lounge_details/presentation/lounge_details_cubit.dart';
+import '../features/my_bookings/data/data_source/remote/my_bookings_remote_data_source.dart';
+import '../features/my_bookings/data/repos/my_bookings_repo.dart';
+import '../features/my_bookings/presentation/my_bookings_cubit.dart';
 import '../features/profile/presentation/profile_cubit.dart';
 
 final sl = GetIt.instance;
@@ -28,6 +31,7 @@ Future<void> init() async {
   _initLoungeDetails();
   _initBooking();
   _initCheckout();
+  _initMyBookings();
   _initProfile();
 }
 
@@ -106,6 +110,20 @@ void _initBooking() {
 void _initCheckout() {
   sl.registerFactory<CheckoutCubit>(
     () => CheckoutCubit(sl()),
+  );
+}
+
+void _initMyBookings() {
+  sl.registerLazySingleton<MyBookingsRemoteDataSource>(
+    () => MyBookingsRemoteDataSourceImpl(sl()),
+  );
+
+  sl.registerLazySingleton<MyBookingsRepository>(
+    () => MyBookingsRepositoryImpl(sl()),
+  );
+
+  sl.registerFactory<MyBookingsCubit>(
+    () => MyBookingsCubit(sl()),
   );
 }
 

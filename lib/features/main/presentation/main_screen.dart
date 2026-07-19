@@ -6,6 +6,7 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/features/home/presentation/home_screen.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/profile/presentation/profile_screen.dart';
+import 'package:playspot/features/my_bookings/presentation/my_bookings_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -23,9 +24,7 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens = [
       const HomeScreen(),
-      const Center(
-        child: Text("Booking", style: TextStyle(color: Colors.white)),
-      ),
+      const MyBookingsScreen(),
       const ProfileScreen(),
     ];
   }

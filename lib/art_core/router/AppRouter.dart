@@ -22,6 +22,7 @@ import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/home/presentation/home_cubit.dart';
 import '../../features/lounge_details/presentation/lounge_details_screen.dart';
 import '../../features/main/presentation/main_screen.dart';
+import '../../features/my_bookings/presentation/my_bookings_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -229,6 +230,15 @@ class AppRouter {
             ),
           );
         },
+      ),
+      GoRoute(
+        path: RouterKeys.myBookings,
+        name: RouterKeys.myBookings,
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const MyBookingsScreen(),
+        ),
       ),
     ],
 

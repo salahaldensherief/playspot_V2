@@ -35,8 +35,6 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   const ProfileHeader(),
                   SizedBox(height: 30.h),
-                  const ProfileStatsRow(),
-                  SizedBox(height: 30.h),
                   const ProfileMenuSection(),
                   SizedBox(height: 30.h),
                   const LogoutButton(),
