@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../features/auth/data/models/user_model.dart';
 
 import 'caching_key.dart';
 
@@ -67,41 +68,24 @@ class PreferenceManager {
 
   String? userId() => _box.read(CachingKey.UserId) as String? ?? "";
 
-  // bool? isUserSubscription() => _box.read(CachingKey.isUserSubscription) as bool?;
-  //
-  // void setUserSubscription(bool subscription) =>
-  //     _box.write(CachingKey.isUserSubscription, isDarkMode);
-  //
-  //
+  void saveUserData(UserModel user) {
+    _box.write(CachingKey.UserData, user.toJson());
+  }
 
-  // void saveUserData(UserModel user) {
-  //   final json = user.toJson();
-  //   _box.write(CachingKey.UserData, json);
-  //
-  //   // ✅ Backup copy (self-healing if UserData becomes null)
-  //   _box.write(CachingKey.UserDataBackup, json);
-  // }
+  UserModel? getUserData() {
+    final data = _box.read(CachingKey.UserData);
+    if (data != null) {
+      return UserModel.fromJson(Map<String, dynamic>.from(data));
+    }
+    return null;
+  }
 
-  // UserModel? getUserData() {
-  //   final data = _box.read(CachingKey.UserData);
-  //   if (data != null) {
-  //     return UserModel.fromJson(data);
-  //   }
-  //
-  //   // ✅ Restore from backup automatically
-  //   final backup = _box.read(CachingKey.UserDataBackup);
-  //   if (backup != null) {
-  //     try {
-  //       final user = UserModel.fromJson(backup);
-  //       _box.write(CachingKey.UserData, user.toJson()); // restore primary
-  //       return user;
-  //     } catch (_) {
-  //       // ignore parsing errors
-  //     }
-  //   }
-  //
-  //   return null;
-  // }
+  void clearUserData() {
+    _box.remove(CachingKey.UserData);
+    _box.remove(CachingKey.UserId);
+    _box.remove(CachingKey.FullName);
+    saveIsLoggedIn(false);
+  }
 
 
   // =========================

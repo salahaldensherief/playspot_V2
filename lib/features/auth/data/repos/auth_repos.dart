@@ -29,6 +29,7 @@ abstract class AuthRepository {
     required String phone,
     File? avatarFile,
   });
+
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
   Future<Either<Failure, void>> verifyPasswordResetOTP({
     required String email,
@@ -50,6 +51,7 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
     _preferenceManager.saveUserId(user.id);
     _preferenceManager.saveFullName(user.name);
     _preferenceManager.saveIsLoggedIn(true);
+    _preferenceManager.saveUserData(user);
   }
 
   @override
@@ -145,13 +147,17 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   Future<Either<Failure, void>> signOut() async {
     return await callRepository(() async {
       await _remoteSource.signOut();
-      _preferenceManager.saveIsLoggedIn(false);
-      _preferenceManager.saveFullName(null);
+      _preferenceManager.clearUserData();
     });
   }
 
   @override
   UserModel? getCurrentUser() {
+    final cachedUser = _preferenceManager.getUserData();
+    if (cachedUser != null) {
+      return cachedUser;
+    }
+
     final user = _remoteSource.getCurrentUser();
     if (user != null) {
       _saveUserData(user);

@@ -23,6 +23,7 @@ import '../../features/home/presentation/home_cubit.dart';
 import '../../features/lounge_details/presentation/lounge_details_screen.dart';
 import '../../features/main/presentation/main_screen.dart';
 import '../../features/my_bookings/presentation/my_bookings_screen.dart';
+import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -238,6 +239,15 @@ class AppRouter {
           context: context,
           state: state,
           child: const MyBookingsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: RouterKeys.editProfile,
+        name: RouterKeys.editProfile,
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const EditProfileScreen(),
         ),
       ),
     ],

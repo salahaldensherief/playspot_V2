@@ -18,6 +18,9 @@ import '../features/lounge_details/presentation/lounge_details_cubit.dart';
 import '../features/my_bookings/data/data_source/remote/my_bookings_remote_data_source.dart';
 import '../features/my_bookings/data/repos/my_bookings_repo.dart';
 import '../features/my_bookings/presentation/my_bookings_cubit.dart';
+import '../features/profile/data/data_source/remote/profile_remote_data_source.dart';
+import '../features/profile/data/repos/profile_repo.dart';
+import '../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 import '../features/profile/presentation/profile_cubit.dart';
 
 final sl = GetIt.instance;
@@ -128,7 +131,16 @@ void _initMyBookings() {
 }
 
 void _initProfile() {
-  sl.registerFactory<ProfileCubit>(
-    () => ProfileCubit(sl()),
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(sl(), sl()),
+  );
+  sl.registerLazySingleton<ProfileCubit>(
+    () => ProfileCubit(sl(), sl()),
+  );
+  sl.registerFactory<EditProfileCubit>(
+    () => EditProfileCubit(sl()),
   );
 }

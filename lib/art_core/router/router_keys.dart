@@ -15,4 +15,5 @@ class RouterKeys {
   static const String booking = '/booking';
   static const String checkout = '/checkout';
   static const String myBookings = '/myBookings';
+  static const String editProfile = '/editProfile';
 }

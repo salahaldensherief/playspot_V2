@@ -126,8 +126,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
   // Google Sign In/Up
   @override
-  // Google Sign In/Up
-  @override
   Future<UserModel> signInWithGoogle() async {
 
     try {
@@ -185,7 +183,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       throw AppException(e.toString());
     }
   }
-  //Facebook Sign In/Up
 
   @override
   Future<UserModel> signInWithFacebook() async {
@@ -213,7 +210,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     } catch (e) {
       throw AppException(e.toString());
     }
-  }  // Complete Profile
+  }
+
+  // Complete Profile
   @override
   Future<UserModel> completeProfile({
     required String userId,
@@ -287,9 +286,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     debugPrint('[Auth] Current user: ${user.id}');
     return UserModel.fromSupabaseUser(user.toJson());
   }
-
-  // Send Password Reset Email
-  @override
 
   @override
   Future<void> sendPasswordResetEmail(String email) async {
@@ -384,17 +380,5 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     } catch (e) {
       debugPrint('[Auth] Upsert user failed: $e');
     }
-  }
-  // ─── Generate Nonce ───────────────────────────────────────────
-  String _generateNonce([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-    final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
-  }
-
-  String _sha256ofString(String input) {
-    final bytes = utf8.encode(input);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
   }
 }

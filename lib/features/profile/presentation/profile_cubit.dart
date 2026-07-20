@@ -1,15 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../auth/data/repos/auth_repos.dart';
+import '../data/repos/profile_repo.dart';
 import 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   final AuthRepository _authRepository;
+  final ProfileRepository _profileRepository;
 
-  ProfileCubit(this._authRepository) : super(ProfileState());
+  ProfileCubit(this._authRepository, this._profileRepository) : super(ProfileState());
 
   void getUserData() {
     emit(state.copyWith(status: ProfileStatus.loading));
-    final user = _authRepository.getCurrentUser();
+    final user = _profileRepository.getCurrentUser();
     if (user != null) {
       emit(state.copyWith(status: ProfileStatus.success, user: user));
     } else {

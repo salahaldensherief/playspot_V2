@@ -115,5 +115,22 @@
   "favorite": "Favorite",
   "ps5Rooms": "PS5 Rooms",
   "simulator": "Simulator",
-  "billiard": "Billiard"
+  "billiard": "Billiard",
+  "editProfile": "Edit Profile",
+  "saveChanges": "Save Changes",
+  "changePassword": "Change Password",
+  "currentPassword": "Current Password",
+  "newPasswordLabel": "New Password",
+  "confirmNewPassword": "Confirm New Password",
+  "deleteAccount": "Delete Account",
+  "deleteAccountConfirmation": "Are you sure you want to delete your account?",
+  "support": "Support",
+  "faq": "FAQ",
+  "contactUs": "Contact Us",
+  "termsOfService": "Terms of Service",
+  "privacyPolicy": "Privacy Policy",
+  "aboutUs": "About Us",
+  "version": "Version",
+  "cancel": "Cancel",
+  "accountSettings": "Account Settings"
 }

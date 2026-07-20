@@ -1,16 +1,19 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 
 class AvatarPickerWidget extends StatelessWidget {
   final File? avatarFile;
+  final String? imageUrl;
   final VoidCallback onTap;
   final double radius;
 
   const AvatarPickerWidget({
     super.key,
     required this.avatarFile,
+    this.imageUrl,
     required this.onTap,
     this.radius = 60,
   });
@@ -27,7 +30,18 @@ class AvatarPickerWidget extends StatelessWidget {
             backgroundColor: AppColors.cardBackground,
             backgroundImage: avatarFile != null ? FileImage(avatarFile!) : null,
             child: avatarFile == null
-                ? Icon(Icons.person, size: radius.sp, color: AppColors.white)
+                ? imageUrl != null && imageUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(radius.r),
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrl!,
+                          width: radius * 2.r,
+                          height: radius * 2.r,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Icon(Icons.person,
+                        size: radius.sp, color: AppColors.white)
                 : null,
           ),
           Container(

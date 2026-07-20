@@ -18,8 +18,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<ProfileCubit>()..getUserData(),
+    return BlocProvider.value(
+      value: sl<ProfileCubit>()..getUserData(),
       child: BlocListener<ProfileCubit, ProfileState>(
         listener: (context, state) {
           if (state.status == ProfileStatus.logoutSuccess) {
