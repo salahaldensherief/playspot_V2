@@ -5,7 +5,10 @@ import '../data_source/remote/home_remote_data_source.dart';
 import '../models/lounge_model.dart';
 
 abstract class HomeRepository {
-  Future<Either<Failure, List<LoungeModel>>> getLounges();
+  Future<Either<Failure, List<LoungeModel>>> getLounges({
+    double? lat,
+    double? lng,
+  });
 }
 
 class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
@@ -14,7 +17,13 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   HomeRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, List<LoungeModel>>> getLounges() async {
-    return await callRepository(() => _remoteDataSource.getLounges());
+  Future<Either<Failure, List<LoungeModel>>> getLounges({
+    double? lat,
+    double? lng,
+  }) async {
+    return await callRepository(() => _remoteDataSource.getLounges(
+          lat: lat,
+          lng: lng,
+        ));
   }
 }

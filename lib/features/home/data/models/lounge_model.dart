@@ -50,12 +50,20 @@ class LoungeModel {
 
   factory LoungeModel.fromJson(Map<String, dynamic> json) {
     try {
+      // Logic to get distance from either 'distance' or 'dist_meters' (from RPC)
+      double calculatedDistance = 0.0;
+      if (json['distance'] != null) {
+        calculatedDistance = (json['distance'] as num).toDouble();
+      } else if (json['dist_meters'] != null) {
+        calculatedDistance = (json['dist_meters'] as num).toDouble() / 1000.0;
+      }
+
       return LoungeModel(
         id: json['id']?.toString() ?? '',
         name: json['name']?.toString() ?? '',
         imageUrl: json['image_url']?.toString() ?? '',
         rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-        distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
+        distance: calculatedDistance,
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         isOpen: json['is_open'] ?? true,
         location: json['location']?.toString(),

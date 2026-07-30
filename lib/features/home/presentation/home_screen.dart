@@ -32,10 +32,14 @@ class _HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userName = sl<PreferenceManager>().fullName() ?? "User";
-    final currentLocation = sl<PreferenceManager>().latitude().isNotEmpty
-        ? "My Location"
-        : "New Cairo, Cairo";
+    final pref = sl<PreferenceManager>();
+    final userName = pref.fullName() ?? "User";
+    
+    // Get saved address or default
+    final savedAddress = pref.getValue('CURRENT_ADDRESS');
+    final currentLocation = savedAddress.isNotEmpty 
+        ? savedAddress 
+        : "Searching location...";
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,

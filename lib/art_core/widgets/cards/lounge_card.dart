@@ -135,18 +135,20 @@ class LoungeCard extends StatelessWidget {
                         color: AppColors.white,
                       ),
                       SizedBox(width: 12.w),
-                      SvgIconWidget(
-                        path: AssetsManager.locationIcon,
-                        width: 14.w,
-                        height: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                      SizedBox(width: 4.w),
-                      AppText(
-                        text: "${lounge.distance} km",
-                        fontSize: 12.sp,
-                        color: AppColors.textSecondary,
-                      ),
+                      if (lounge.distance > 0) ...[
+                        SvgIconWidget(
+                          path: AssetsManager.locationIcon,
+                          width: 14.w,
+                          height: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        SizedBox(width: 4.w),
+                        AppText(
+                          text: "${lounge.distance.toStringAsFixed(1)} km",
+                          fontSize: 12.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
                     ],
                   ),
 

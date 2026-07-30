@@ -11,6 +11,7 @@ import 'package:playspot/features/auth/data/repos/auth_repos.dart';
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di/modules/auth_module.dart';
+import '../../../core/services/location_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -44,20 +45,49 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    _startNavigation();
+    _handleInitialization();
   }
 
-  void _startNavigation() {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) return;
+  Future<void> _handleInitialization() async {
+    // 1. Get Location (Concurrent with splash timer)
+    _fetchUserLocation();
 
-      final user = sl<AuthRepository>().getCurrentUser();
-      if (user != null) {
-        context.goNamed(RouterKeys.home);
-      } else {
-        context.goNamed(RouterKeys.onboarding);
+    // 2. Wait for Splash animation
+    await Future.delayed(const Duration(seconds: 3));
+
+    if (!mounted) return;
+
+    // 3. Navigate
+    final user = sl<AuthRepository>().getCurrentUser();
+    if (user != null) {
+      context.goNamed(RouterKeys.home);
+    } else {
+      context.goNamed(RouterKeys.onboarding);
+    }
+  }
+
+  Future<void> _fetchUserLocation() async {
+    try {
+      final locationService = sl<LocationService>();
+      final position = await locationService.getCurrentLocation();
+      if (position != null) {
+        final pref = sl<PreferenceManager>();
+        await pref.saveLatitude(position.latitude);
+        await pref.saveLongitude(position.longitude);
+        
+        // Optional: Get Address name
+        final address = await locationService.getAddressFromLatLng(
+          position.latitude,
+          position.longitude,
+        );
+        if (address != null) {
+          // We can save address name too if needed
+          await pref.saveValue('CURRENT_ADDRESS', address);
+        }
       }
-    });
+    } catch (e) {
+      debugPrint("SPLASH: Location fetch failed: $e");
+    }
   }
 
   @override

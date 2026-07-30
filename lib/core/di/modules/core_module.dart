@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../cache/preference_manager.dart';
 import '../../services/supabase_storage_service.dart';
 import '../../services/social_auth_service.dart';
+import '../../services/location_service.dart';
 
 final sl = GetIt.instance;
 
@@ -22,5 +23,8 @@ Future<void> initCoreModule() async {
   );
   sl.registerLazySingleton<SocialAuthService>(
     () => SocialAuthServiceImpl(),
+  );
+  sl.registerLazySingleton<LocationService>(
+    () => LocationServiceImpl(),
   );
 }

@@ -70,6 +70,9 @@ dependencies:
   go_router: ^17.2.3
   supabase_flutter: ^2.12.4
   crypto: ^3.0.3
+  geolocator: ^14.0.3
+  geocoding: ^4.0.0
+  permission_handler: ^12.0.3
 
 
 dev_dependencies:
