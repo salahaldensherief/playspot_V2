@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/layout/app_divider.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../home/data/models/lounge_model.dart';
@@ -16,7 +17,7 @@ class LoungeInfoSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
+        padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -34,7 +35,7 @@ class LoungeInfoSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: AppSizes.w8),
                 AppText(
                   text: "${lounge.rating} · 124 ${AppStrings.reviews.tr()}",
                   fontSize: 14.sp,
@@ -43,7 +44,7 @@ class LoungeInfoSection extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 8.h),
+            SizedBox(height: AppSizes.s8),
             AppText(
               text: AppStrings.seeReviews.tr(),
               fontSize: 14.sp,

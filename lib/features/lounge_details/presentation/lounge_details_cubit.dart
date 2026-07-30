@@ -130,7 +130,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           }
         }
 
-        // استخراج التصنيفات الديناميكية من الغرف
         final allActivities = rooms.expand((r) => r.activityNames).toSet().toList();
         // ترتيب التصنيفات بحيث يظهر PS5 أولاً لو موجود
         allActivities.sort((a, b) {

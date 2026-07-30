@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/text/price_widget.dart';
 import '../../data/models/room_model.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
@@ -91,7 +92,7 @@ class RoomCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        _buildPrice(),
+                        PriceWidget(price: room.pricePerHour),
                         if (isSelected)
                           Icon(
                             Icons.check_circle,
@@ -124,33 +125,6 @@ class RoomCard extends StatelessWidget {
               fontSize: 10.sp,
               color: AppColors.textSecondary,
               overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrice() {
-    return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: "${room.pricePerHour.toInt()}",
-            style: TextStyle(
-              color: AppColors.neonBlue,
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Orbitron',
-            ),
-          ),
-          TextSpan(
-            text: " ${AppStrings.egp.tr()}",
-            style: TextStyle(
-              color: AppColors.neonBlue,
-              fontSize: 10.sp,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Orbitron',
             ),
           ),
         ],

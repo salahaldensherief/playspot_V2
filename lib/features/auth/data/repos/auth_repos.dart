@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import '../../../../core/cache/preference_manager.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../data/models/user_model.dart';
 import '../data_source/remote/auth_remote_data_source.dart';
+import '../data_source/local/auth_local_data_source.dart';
 
 abstract class AuthRepository {
   Future<Either<Failure, UserModel>> signInWithEmail({
@@ -13,7 +13,6 @@ abstract class AuthRepository {
   });
   Future<Either<Failure, UserModel>> signInWithGoogle();
   Future<Either<Failure, UserModel>> signInWithFacebook();
-
   Future<Either<Failure, UserModel>> signUpWithEmail({
     required String email,
     required String password,
@@ -21,38 +20,26 @@ abstract class AuthRepository {
     required String phone,
     File? avatarFile,
   });
-  Future<Either<Failure, UserModel>> signUpWithGoogle();
-  Future<Either<Failure, UserModel>> signUpWithFacebook();
-
   Future<Either<Failure, UserModel>> completeProfile({
     required String userId,
     required String phone,
     File? avatarFile,
   });
-
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
   Future<Either<Failure, void>> verifyPasswordResetOTP({
     required String email,
     required String otp,
   });
   Future<Either<Failure, void>> resetPassword(String newPassword);
-
   Future<Either<Failure, void>> signOut();
   UserModel? getCurrentUser();
 }
 
 class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   final AuthRemoteSource _remoteSource;
-  final PreferenceManager _preferenceManager;
+  final AuthLocalDataSource _localDataSource;
 
-  AuthRepositoryImpl(this._remoteSource, this._preferenceManager);
-
-  void _saveUserData(UserModel user) {
-    _preferenceManager.saveUserId(user.id);
-    _preferenceManager.saveFullName(user.name);
-    _preferenceManager.saveIsLoggedIn(true);
-    _preferenceManager.saveUserData(user);
-  }
+  AuthRepositoryImpl(this._remoteSource, this._localDataSource);
 
   @override
   Future<Either<Failure, UserModel>> signInWithEmail({
@@ -60,11 +47,8 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
     required String password,
   }) async {
     return await callRepository(() async {
-      final user = await _remoteSource.signInWithEmail(
-        email: email,
-        password: password,
-      );
-      _saveUserData(user);
+      final user = await _remoteSource.signInWithEmail(email: email, password: password);
+      await _localDataSource.saveUserData(user);
       return user;
     });
   }
@@ -85,25 +69,25 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
         phone: phone,
         avatarFile: avatarFile,
       );
-      _saveUserData(user);
+      await _localDataSource.saveUserData(user);
       return user;
     });
   }
 
   @override
-  Future<Either<Failure, UserModel>> signUpWithGoogle() async {
+  Future<Either<Failure, UserModel>> signInWithGoogle() async {
     return await callRepository(() async {
       final user = await _remoteSource.signInWithGoogle();
-      _saveUserData(user);
+      await _localDataSource.saveUserData(user);
       return user;
     });
   }
 
   @override
-  Future<Either<Failure, UserModel>> signUpWithFacebook() async {
+  Future<Either<Failure, UserModel>> signInWithFacebook() async {
     return await callRepository(() async {
       final user = await _remoteSource.signInWithFacebook();
-      _saveUserData(user);
+      await _localDataSource.saveUserData(user);
       return user;
     });
   }
@@ -120,25 +104,7 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
         phone: phone,
         avatarFile: avatarFile,
       );
-      _saveUserData(user);
-      return user;
-    });
-  }
-
-  @override
-  Future<Either<Failure, UserModel>> signInWithGoogle() async {
-    return await callRepository(() async {
-      final user = await _remoteSource.signInWithGoogle();
-      _saveUserData(user);
-      return user;
-    });
-  }
-
-  @override
-  Future<Either<Failure, UserModel>> signInWithFacebook() async {
-    return await callRepository(() async {
-      final user = await _remoteSource.signInWithFacebook();
-      _saveUserData(user);
+      await _localDataSource.saveUserData(user);
       return user;
     });
   }
@@ -147,22 +113,23 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   Future<Either<Failure, void>> signOut() async {
     return await callRepository(() async {
       await _remoteSource.signOut();
-      _preferenceManager.clearUserData();
+      await _localDataSource.clearUserData();
     });
   }
 
   @override
   UserModel? getCurrentUser() {
-    final cachedUser = _preferenceManager.getUserData();
-    if (cachedUser != null) {
-      return cachedUser;
-    }
+    final cachedUser = _localDataSource.getCachedUser();
+    if (cachedUser != null) return cachedUser;
 
     final user = _remoteSource.getCurrentUser();
-    if (user != null) {
-      _saveUserData(user);
-    }
+    if (user != null) _localDataSource.saveUserData(user);
     return user;
+  }
+
+  @override
+  Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
+    return await callRepository(() => _remoteSource.sendPasswordResetEmail(email));
   }
 
   @override
@@ -170,22 +137,11 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
     required String email,
     required String otp,
   }) async {
-    return await callRepository(() async {
-      await _remoteSource.verifyPasswordResetOTP(email: email, otp: otp);
-    });
+    return await callRepository(() => _remoteSource.verifyPasswordResetOTP(email: email, otp: otp));
   }
 
   @override
   Future<Either<Failure, void>> resetPassword(String newPassword) async {
-    return await callRepository(() async {
-      await _remoteSource.resetPassword(newPassword);
-    });
-  }
-
-  @override
-  Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
-    return await callRepository(() async {
-      await _remoteSource.sendPasswordResetEmail(email);
-    });
+    return await callRepository(() => _remoteSource.resetPassword(newPassword));
   }
 }

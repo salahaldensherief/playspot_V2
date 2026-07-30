@@ -2,11 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../../../features/home/data/models/lounge_model.dart';
+import '../../../features/favorites/presentation/favorites_cubit.dart';
+import '../../../features/favorites/presentation/favorites_state.dart';
 
 class LoungeCard extends StatelessWidget {
   final LoungeModel lounge;
@@ -50,6 +53,36 @@ class LoungeCard extends StatelessWidget {
                   ),
                 ),
 
+                Positioned(
+                  top: 12.h,
+                  left: 12.w,
+                  child: BlocBuilder<FavoritesCubit, FavoritesState>(
+                    builder: (context, state) {
+                      final isFavorite = context
+                          .read<FavoritesCubit>()
+                          .isFavorite(lounge.id);
+                      return GestureDetector(
+                        onTap: () => context
+                            .read<FavoritesCubit>()
+                            .toggleFavorite(lounge.id),
+                        child: Container(
+                          padding: EdgeInsets.all(6.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.black.withOpacity(0.3),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite
+                                ? AppColors.danger
+                                : AppColors.white,
+                            size: 20.sp,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 Positioned(
                   top: 12.h,
                   right: 12.w,

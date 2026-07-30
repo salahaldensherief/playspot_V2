@@ -15,6 +15,7 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 
+import '../../../core/di/modules/auth_module.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 

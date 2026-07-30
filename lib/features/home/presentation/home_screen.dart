@@ -6,16 +6,16 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/widgets/layout/section_header.dart';
+import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
+import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/text_field/home_search_bar.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/widgets/home_header.dart';
-import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/art_core/widgets/shimmer/lounge_card_shimmer.dart';
 import '../../../art_core/widgets/cards/lounge_card.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
-import '../../lounge_details/presentation/lounge_details_screen.dart';
+import '../../../core/di/modules/auth_module.dart';
 import 'home_state.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -40,10 +40,14 @@ class _HomeView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-
+        child: RefreshIndicator(
+          onRefresh: () => context.read<HomeCubit>().getHomeData(),
+          color: AppColors.neonBlue,
+          backgroundColor: AppColors.cardBackground,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverAppBar(
               backgroundColor: AppColors.scaffoldBackground,
               expandedHeight: 180.h,
               pinned: true,
@@ -69,26 +73,24 @@ class _HomeView extends StatelessWidget {
                   readOnly: true,
                   onTap: () {
                     context.pushNamed(RouterKeys.search);
-
                   },
                 ),
               ),
             ),
             SliverToBoxAdapter(child: SizedBox(height: 16.h)),
-            const SliverToBoxAdapter(
-              child: SectionHeader(
-                title: AppStrings.topRated,
-                seeAllText: AppStrings.seeAll,
-                onSeeAllTap: null,
-              ),
+            const SliverSectionHeader(
+              title: AppStrings.topRated,
+              seeAllText: AppStrings.seeAll,
+              onSeeAllTap: null,
             ),
             const _LoungeList(isNearest: false),
-            SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+            const SliverBottomSpacing(height: 24),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _LoungeList extends StatelessWidget {

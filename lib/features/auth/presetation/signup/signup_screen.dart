@@ -19,6 +19,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../core/di.dart';
+import '../../../../core/di/modules/auth_module.dart';
 import '../../data/repos/auth_repos.dart';
 import '../widgets/auth_app_bar.dart';
 import '../widgets/social_buttons.dart';

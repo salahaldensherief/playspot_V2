@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
+import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../auth/data/models/user_model.dart';
 
 abstract class ProfileRemoteDataSource {
@@ -16,8 +17,9 @@ abstract class ProfileRemoteDataSource {
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final SupabaseClient _supabase;
+  final StorageService _storageService;
 
-  ProfileRemoteDataSourceImpl(this._supabase);
+  ProfileRemoteDataSourceImpl(this._supabase, this._storageService);
 
   @override
   Future<UserModel> updateProfile({
@@ -31,11 +33,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       if (user == null) throw const UserNotFoundException();
       final userId = user.id;
 
-      debugPrint('[Profile] Updating profile for: $userId');
-
       String? avatarUrl;
       if (avatarFile != null) {
-        avatarUrl = await _uploadAvatar(userId, avatarFile);
+        final fileExt = avatarFile.path.split('.').last;
+        avatarUrl = await _storageService.uploadFile(
+          bucket: 'avatars',
+          path: 'avatars/$userId.$fileExt',
+          file: avatarFile,
+        );
       }
 
       final updateData = {
@@ -78,21 +83,5 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     final user = _supabase.auth.currentUser;
     if (user == null) return null;
     return UserModel.fromSupabaseUser(user.toJson());
-  }
-
-  Future<String?> _uploadAvatar(String userId, File avatarFile) async {
-    try {
-      final fileExt = avatarFile.path.split('.').last;
-      final fileName = 'avatars/$userId.$fileExt';
-      await _supabase.storage.from('avatars').upload(
-        fileName,
-        avatarFile,
-        fileOptions: const FileOptions(upsert: true),
-      );
-      return _supabase.storage.from('avatars').getPublicUrl(fileName);
-    } catch (e) {
-      debugPrint('[Profile] Avatar upload failed: $e');
-      return null;
-    }
   }
 }

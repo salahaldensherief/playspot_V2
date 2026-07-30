@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/widgets/shimmer/category_shimmer.dart';
-import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
+import 'package:playspot/art_core/utils/category_helper.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
@@ -27,17 +28,14 @@ class CategorySelector extends StatelessWidget {
             if (state.categories.isEmpty) return const SizedBox.shrink();
 
             return ListView.separated(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
               scrollDirection: Axis.horizontal,
               itemCount: state.categories.length,
-              separatorBuilder: (context, index) => SizedBox(width: 12.w),
+              separatorBuilder: (context, index) => SizedBox(width: AppSizes.w12),
               itemBuilder: (context, index) {
                 final category = state.categories[index];
                 final isSelected = state.selectedCategory == category;
-                
-                final lower = category.toLowerCase();
-                final isBilliard = lower.contains('bill') || lower.contains('pool');
-                final isVR = lower.contains('vr') || lower.contains('virtual');
+                final svgPath = CategoryHelper.getSvgPath(category);
 
                 return GestureDetector(
                   onTap: () => context
@@ -46,12 +44,12 @@ class CategorySelector extends StatelessWidget {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding:
-                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                        EdgeInsets.symmetric(horizontal: AppSizes.w16, vertical: 8.h),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.neonBlue.withOpacity(0.05)
                           : AppColors.cardBackground,
-                      borderRadius: BorderRadius.circular(25.r),
+                      borderRadius: BorderRadius.circular(AppSizes.r25),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.neonBlue
@@ -61,17 +59,9 @@ class CategorySelector extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        if (isBilliard)
+                        if (svgPath != null)
                           SvgIconWidget(
-                            path: AssetsManager.billiard,
-                            width: 25.w,
-                            color: isSelected
-                                ? AppColors.neonBlue
-                                : AppColors.textSecondary,
-                          )
-                        else if (isVR)
-                          SvgIconWidget(
-                            path: AssetsManager.vr,
+                            path: svgPath,
                             width: 25.w,
                             color: isSelected
                                 ? AppColors.neonBlue
@@ -79,13 +69,13 @@ class CategorySelector extends StatelessWidget {
                           )
                         else
                           Icon(
-                            _getCategoryIcon(category),
+                            CategoryHelper.getIcon(category),
                             size: 18.sp,
                             color: isSelected
                                 ? AppColors.neonBlue
                                 : AppColors.textSecondary,
                           ),
-                        SizedBox(width: 8.w),
+                        SizedBox(width: AppSizes.w8),
                         AppText(
                           text: category.toUpperCase(),
                           fontSize: 14.sp,
@@ -105,14 +95,5 @@ class CategorySelector extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getCategoryIcon(String category) {
-    final lower = category.toLowerCase();
-    if (lower.contains('ps') || lower.contains('console')) return Icons.videogame_asset_outlined;
-    if (lower.contains('sim') || lower.contains('racing')) return Icons.speed;
-    if (lower.contains('pc') || lower.contains('comput')) return Icons.computer;
-    if (lower.contains('vip')) return Icons.star;
-    return Icons.category_outlined;
   }
 }

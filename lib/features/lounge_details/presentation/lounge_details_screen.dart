@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/core/di.dart';
-import 'package:playspot/art_core/widgets/layout/section_header.dart';
+import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
+import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
+import 'package:playspot/art_core/widgets/layout/sliver_app_divider.dart';
+import '../../../core/di/modules/auth_module.dart';
 import '../../home/data/models/lounge_model.dart';
 import 'lounge_details_cubit.dart';
 import 'lounge_details_state.dart';
@@ -30,35 +32,43 @@ class LoungeDetailsScreen extends StatelessWidget {
         backgroundColor: AppColors.scaffoldBackground,
         body: Stack(
           children: [
-            CustomScrollView(
-              slivers: [
-                LoungeDetailsAppBar(lounge: lounge),
+            RefreshIndicator(
+              onRefresh: () async {
+                await context
+                    .read<LoungeDetailsCubit>()
+                    .getLoungeDetails(lounge.id);
+              },
+              color: AppColors.neonBlue,
+              backgroundColor: AppColors.cardBackground,
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  LoungeDetailsAppBar(lounge: lounge),
                 LoungeInfoSection(lounge: lounge),
                 const CategorySelector(),
+                const SliverSectionHeader(title: AppStrings.selectDate),
                 const DateSelectionSection(),
+                const SliverAppDivider(verticalPadding: 16),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                   buildWhen: (prev, curr) =>
-                      prev.availableRoomsCount != curr.availableRoomsCount,
+                      prev.selectedCategory != curr.selectedCategory,
                   builder: (context, state) {
-                    return SliverToBoxAdapter(
-                      child: SectionHeader(
-                        title: state.selectedCategory,
-                      ),
+                    return SliverSectionHeader(
+                      title: state.selectedCategory,
                     );
                   },
                 ),
                 const RoomsGrid(),
-                const SliverToBoxAdapter(
-                  child: SectionHeader(title: AppStrings.extras),
-                ),
+                const SliverSectionHeader(title: AppStrings.extras),
                 const ExtrasList(),
-                SliverToBoxAdapter(child: SizedBox(height: 120.h)),
+                const SliverBottomSpacing(),
               ],
             ),
-            LoungeDetailsBottomBar(lounge: lounge),
-          ],
-        ),
+          ),
+          LoungeDetailsBottomBar(lounge: lounge),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
+  }

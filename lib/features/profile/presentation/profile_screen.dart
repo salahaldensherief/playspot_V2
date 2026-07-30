@@ -6,6 +6,7 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 
+import '../../../core/di/modules/auth_module.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
 import 'widgets/logout_button.dart';
@@ -34,6 +35,8 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const ProfileHeader(),
+                  SizedBox(height: 24.h),
+                  const ProfileStatsRow(),
                   SizedBox(height: 30.h),
                   const ProfileMenuSection(),
                   SizedBox(height: 30.h),

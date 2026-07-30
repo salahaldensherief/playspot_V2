@@ -1,11 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 
 import 'art_core/router/AppRouter.dart';
 import 'core/di.dart';
+import 'core/di/modules/auth_module.dart';
+import 'features/favorites/presentation/favorites_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,18 +47,25 @@ class _MyAppState extends State<MyApp> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: 'PlaySpot',
-          locale: context.locale,
-          supportedLocales: context.supportedLocales,
-          localizationsDelegates: context.localizationDelegates,
-          theme: ThemeData(
-            useMaterial3: false,
-            scaffoldBackgroundColor: AppColors.scaffoldBackground,
-            fontFamily: 'Orbitron',
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(
+              create: (context) => sl<FavoritesCubit>()..getFavoriteIds(),
+            ),
+          ],
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'PlaySpot',
+            locale: context.locale,
+            supportedLocales: context.supportedLocales,
+            localizationsDelegates: context.localizationDelegates,
+            theme: ThemeData(
+              useMaterial3: false,
+              scaffoldBackgroundColor: AppColors.scaffoldBackground,
+              fontFamily: 'Orbitron',
+            ),
+            routerConfig: _appRouter.router,
           ),
-          routerConfig: _appRouter.router,
         );
       },
     );

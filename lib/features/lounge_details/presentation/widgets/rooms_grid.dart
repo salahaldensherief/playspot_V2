@@ -4,8 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/shimmer/room_card_shimmer.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/layout/app_state_view.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 import 'room_card.dart';
@@ -19,12 +21,12 @@ class RoomsGrid extends StatelessWidget {
       builder: (context, state) {
         if (state.status == LoungeDetailsStatus.loading) {
           return SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 12.w,
-                mainAxisSpacing: 12.h,
+                crossAxisSpacing: AppSizes.w12,
+                mainAxisSpacing: AppSizes.s12,
                 mainAxisExtent: 130.h,
               ),
               delegate: SliverChildBuilderDelegate(
@@ -36,55 +38,45 @@ class RoomsGrid extends StatelessWidget {
         }
 
         if (state.status == LoungeDetailsStatus.error) {
-          return const SliverFillRemaining(
-            child: Center(
-              child: Text(
-                "Error loading rooms",
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
+          return SliverAppStateView(
+            type: AppStateViewType.error,
+            title: "Error loading rooms",
+            onRetry: () => context
+                .read<LoungeDetailsCubit>()
+                .getLoungeDetails(state.selectedRoomId ?? ""),
           );
         }
 
         if (state.rooms.isEmpty) {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                AppStrings.noRoomsAvailable.tr(),
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
+          return SliverAppStateView(
+            title: AppStrings.noRoomsAvailable,
+            icon: Icons.meeting_room_outlined,
           );
         }
 
         final filteredRooms = state.rooms.where((r) {
           final category = state.selectedCategory;
           if (category.isEmpty) return true;
-          return r.activityNames.any((a) => a.toLowerCase() == category.toLowerCase());
+          return r.activityNames
+              .any((a) => a.toLowerCase() == category.toLowerCase());
         }).toList();
 
         if (filteredRooms.isEmpty) {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: AppText(
-                text: "No units found for this category",
-                fontSize: 14.sp,
-                color: AppColors.textSecondary,
-              ),
-            ),
+          return SliverAppStateView(
+            title: "No units found for this category",
+            subtitle: "Try selecting another category",
+            icon: Icons.search_off_rounded,
           );
         }
 
         return SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
           sliver: SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 12.w,
-              mainAxisSpacing: 12.h,
-              mainAxisExtent: 180.h, 
+              crossAxisSpacing: AppSizes.w12,
+              mainAxisSpacing: AppSizes.s12,
+              mainAxisExtent: 180.h,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) => RoomCard(room: filteredRooms[index]),

@@ -28,6 +28,12 @@ class ProfileMenuSection extends StatelessWidget {
             showBorder: true,
           ),
           _buildMenuItem(
+            icon: TablerIcons.heart,
+            title: AppStrings.favorite.tr(),
+            onTap: () => context.pushNamed(RouterKeys.favorites),
+            showBorder: true,
+          ),
+          _buildMenuItem(
             icon: TablerIcons.credit_card,
             title: AppStrings.paymentMethods.tr(),
             onTap: () {},

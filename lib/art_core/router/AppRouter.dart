@@ -12,6 +12,7 @@ import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 import '../../core/di.dart';
+import '../../core/di/modules/auth_module.dart';
 import '../../features/auth/presetation/forgot_password/forgot_password_cubit.dart';
 import '../../features/auth/presetation/forgot_password/forgot_password_screen.dart';
 import '../../features/auth/presetation/forgot_password/otp_verification_screen.dart';
@@ -19,6 +20,7 @@ import '../../features/auth/presetation/forgot_password/reset_password_screen.da
 import '../../features/auth/presetation/signup/complete_profile.dart';
 import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
+import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/home/presentation/home_cubit.dart';
 import '../../features/lounge_details/presentation/lounge_details_screen.dart';
 import '../../features/main/presentation/main_screen.dart';
@@ -248,6 +250,15 @@ class AppRouter {
           context: context,
           state: state,
           child: const EditProfileScreen(),
+        ),
+      ),
+      GoRoute(
+        path: RouterKeys.favorites,
+        name: RouterKeys.favorites,
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const FavoritesScreen(),
         ),
       ),
     ],

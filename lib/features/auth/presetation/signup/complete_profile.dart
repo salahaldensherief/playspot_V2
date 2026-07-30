@@ -15,6 +15,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text_field/app_text_field.dart';
 import '../../../../core/di.dart';
+import '../../../../core/di/modules/auth_module.dart';
 import '../signup/signup_cubit.dart';
 import '../signup/signup_state.dart';
 import '../widgets/auth_app_bar.dart';

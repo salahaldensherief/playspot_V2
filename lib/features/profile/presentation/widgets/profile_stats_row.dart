@@ -2,9 +2,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import '../../../../art_core/router/router_keys.dart';
+import '../../../favorites/presentation/favorites_cubit.dart';
+import '../../../favorites/presentation/favorites_state.dart';
 
 class ProfileStatsRow extends StatelessWidget {
   const ProfileStatsRow({super.key});
@@ -26,11 +31,18 @@ class ProfileStatsRow extends StatelessWidget {
           AppStrings.hoursPlayed.tr(),
           AppColors.neonPurple,
         ),
-        _buildStatCard(
-          TablerIcons.map_pin,
-          "GameZone",
-          AppStrings.favorite.tr(),
-          AppColors.neonBlue,
+        BlocBuilder<FavoritesCubit, FavoritesState>(
+          builder: (context, state) {
+            return GestureDetector(
+              onTap: () => context.pushNamed(RouterKeys.favorites),
+              child: _buildStatCard(
+                TablerIcons.heart,
+                state.favoriteIds.length.toString(),
+                AppStrings.favorite.tr(),
+                AppColors.danger,
+              ),
+            );
+          },
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,6 +44,7 @@ class SignupCubit extends Cubit<SignupState> {
   }
 
   Future<void> signUpWithEmail() async {
+    log("SIGNUP_CUBIT: Signing up with email: ${emailController.text}");
     emit(state.copyWith(status: SignupStatus.loading));
 
     final result = await _authRepository.signUpWithEmail(
@@ -54,57 +56,77 @@ class SignupCubit extends Cubit<SignupState> {
     );
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: SignupStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (user) => emit(state.copyWith(
-        status: SignupStatus.success,
-        params: user,
-      )),
+      (failure) {
+        log("SIGNUP_CUBIT_ERROR: ${failure.message}");
+        emit(state.copyWith(
+          status: SignupStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+      (user) {
+        log("SIGNUP_CUBIT: Signup success for user: ${user.id}");
+        emit(state.copyWith(
+          status: SignupStatus.success,
+          params: user,
+        ));
+      },
     );
   }
 
   Future<void> signUpWithGoogle() async {
+    log("SIGNUP_CUBIT: Signing up with Google");
     emit(state.copyWith(status: SignupStatus.loading));
 
-    final result = await _authRepository.signUpWithGoogle();
+    final result = await _authRepository.signInWithGoogle();
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: SignupStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (user) => emit(state.copyWith(
-        status: user.isNewUser
-            ? SignupStatus.successSocial
-            : SignupStatus.success,
-        params: user,
-      )),
+      (failure) {
+        log("SIGNUP_CUBIT_ERROR (Google): ${failure.message}");
+        emit(state.copyWith(
+          status: SignupStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+      (user) {
+        log("SIGNUP_CUBIT: Google sign-in success. isNewUser: ${user.isNewUser}");
+        emit(state.copyWith(
+          status: user.isNewUser
+              ? SignupStatus.successSocial
+              : SignupStatus.success,
+          params: user,
+        ));
+      },
     );
   }
 
   Future<void> signUpWithFacebook() async {
+    log("SIGNUP_CUBIT: Signing up with Facebook");
     emit(state.copyWith(status: SignupStatus.loading));
 
-    final result = await _authRepository.signUpWithFacebook();
+    final result = await _authRepository.signInWithFacebook();
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: SignupStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (user) => emit(state.copyWith(
-        status: user.isNewUser
-            ? SignupStatus.successSocial
-            : SignupStatus.success,
-        params: user,
-      )),
+      (failure) {
+        log("SIGNUP_CUBIT_ERROR (Facebook): ${failure.message}");
+        emit(state.copyWith(
+          status: SignupStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+      (user) {
+        log("SIGNUP_CUBIT: Facebook sign-in success. isNewUser: ${user.isNewUser}");
+        emit(state.copyWith(
+          status: user.isNewUser
+              ? SignupStatus.successSocial
+              : SignupStatus.success,
+          params: user,
+        ));
+      },
     );
   }
 
-
   Future<void> completeProfile() async {
+    log("SIGNUP_CUBIT: Completing profile for user: ${state.params.id}");
     emit(state.copyWith(status: SignupStatus.loading));
     final result = await _authRepository.completeProfile(
       userId: state.params.id,
@@ -113,18 +135,31 @@ class SignupCubit extends Cubit<SignupState> {
     );
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: SignupStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (user) => emit(state.copyWith(
-        status: SignupStatus.success,
-        params: user,
-      )),
+      (failure) {
+        log("SIGNUP_CUBIT_ERROR (Complete): ${failure.message}");
+        emit(state.copyWith(
+          status: SignupStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
+      (user) {
+        log("SIGNUP_CUBIT: Profile completed successfully");
+        emit(state.copyWith(
+          status: SignupStatus.success,
+          params: user,
+        ));
+      },
     );
   }
 
-  void reset() => emit(SignupState.init());
+  void reset() {
+    nameController.clear();
+    emailController.clear();
+    passwordController.clear();
+    phoneController.clear();
+    avatarFile = null;
+    emit(SignupState.init());
+  }
 
   @override
   Future<void> close() {

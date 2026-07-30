@@ -11,6 +11,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/core/di.dart';
 
+import '../../../../core/di/modules/auth_module.dart';
 import 'edit_profile_cubit.dart';
 import 'edit_profile_state.dart';
 import '../widgets/edit_profile_form.dart';

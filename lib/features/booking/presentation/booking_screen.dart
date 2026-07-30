@@ -10,10 +10,12 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/text/price_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../../art_core/router/router_keys.dart';
+import '../../../core/di/modules/auth_module.dart';
 import '../data/repos/booking_repo.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
@@ -119,12 +121,9 @@ class BookingScreen extends StatelessWidget {
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,
                     ),
-                    AppText(
-                      text:
-                          "${total.toInt()} ${AppStrings.egp.tr()}",
+                    PriceWidget(
+                      price: total,
                       fontSize: 24.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.neonBlue,
                     ),
                   ],
                 ),

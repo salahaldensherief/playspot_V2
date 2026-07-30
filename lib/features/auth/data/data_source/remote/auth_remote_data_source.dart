@@ -1,15 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
-
-import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../../../art_core/exceptions/app_exceptions.dart';
+import '../../../../../core/services/supabase_storage_service.dart';
+import '../../../../../core/services/social_auth_service.dart';
 import '../../models/user_model.dart';
 
 abstract class AuthRemoteSource {
@@ -42,37 +37,39 @@ abstract class AuthRemoteSource {
 }
 
 class AuthRemoteSourceImpl implements AuthRemoteSource {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase;
+  final StorageService _storageService;
+  final SocialAuthService _socialAuthService;
 
-  // Email Sign In
+  AuthRemoteSourceImpl(
+    this._supabase,
+    this._storageService,
+    this._socialAuthService,
+  );
+
   @override
   Future<UserModel> signInWithEmail({
     required String email,
     required String password,
   }) async {
     try {
-      debugPrint('[Auth] Signing in with email: $email');
       final response = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
       );
       if (response.user == null) throw const ServerException('Sign in failed');
-      debugPrint(' [Auth] Email sign in success: ${response.user!.id}');
       await _upsertUser(response.user!);
       return UserModel.fromSupabaseUser(response.user!.toJson());
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException: ${e.message}');
       if (e.message.contains('Invalid login')) {
         throw const InvalidCredentialsException();
       }
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] Email sign in error: $e');
       throw AppException(e.toString());
     }
   }
 
-  //  Email Sign Up
   @override
   Future<UserModel> signUpWithEmail({
     required String email,
@@ -82,7 +79,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     File? avatarFile,
   }) async {
     try {
-      debugPrint('[Auth] Signing up with email: $email');
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
@@ -90,11 +86,14 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       if (response.user == null) throw const ServerException('Sign up failed');
 
       final userId = response.user!.id;
-      debugPrint(' [Auth] Sign up success: $userId');
-
       String? avatarUrl;
       if (avatarFile != null) {
-        avatarUrl = await _uploadAvatar(userId, avatarFile);
+        final fileExt = avatarFile.path.split('.').last;
+        avatarUrl = await _storageService.uploadFile(
+          bucket: 'avatars',
+          path: 'avatars/$userId.$fileExt',
+          file: avatarFile,
+        );
       }
 
       await _supabase.from('users').upsert({
@@ -106,54 +105,32 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'is_banned': false,
       });
 
-      debugPrint(' [Auth] User saved to DB');
-
       return UserModel.fromSupabaseUser(
         response.user!.toJson(),
         isNewUser: false,
       ).copyWith(name: name, phone: phone, avatarUrl: avatarUrl);
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException: ${e.message}');
       if (e.message.contains('already registered')) {
         throw const EmailAlreadyInUseException();
       }
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] Email sign up error: $e');
       throw AppException(e.toString());
     }
   }
 
-  // Google Sign In/Up
   @override
   Future<UserModel> signInWithGoogle() async {
-
     try {
-      debugPrint('🔵 [Auth] Starting Google sign in...');
-
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: '1070210806389-o8gnmeqe0bbritv4ckg14p5cdlqck165.apps.googleusercontent.com',
-        serverClientId: '1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com',
-        scopes: ['email'],
-      );
-
-      final googleUser = await googleSignIn.signIn();
-      if (googleUser == null) throw const GoogleSignInCancelledException();
-
-      debugPrint('[Auth] Google user: ${googleUser.email}');
-
-      final googleAuth = await googleUser.authentication;
-      if (googleAuth.idToken == null) throw const ServerException('No ID token found');
+      final idToken = await _socialAuthService.getGoogleIdToken();
+      if (idToken == null) throw const GoogleSignInCancelledException();
 
       final response = await _supabase.auth.signInWithIdToken(
         provider: OAuthProvider.google,
-        idToken: googleAuth.idToken!,
-        accessToken: googleAuth.accessToken,
+        idToken: idToken,
       );
 
       if (response.user == null) throw const ServerException('Sign in failed');
-
-      debugPrint('[Auth] Google sign in success: ${response.user!.id}');
 
       final existingUser = await _supabase
           .from('users')
@@ -165,7 +142,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final isNewUser = existingUser == null ||
           phone == null ||
           phone.toString().trim().isEmpty;
-      debugPrint(' [Auth] Is new user: $isNewUser');
 
       await _upsertUser(response.user!);
 
@@ -176,10 +152,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     } on AppException {
       rethrow;
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] Google sign in error: $e');
       throw AppException(e.toString());
     }
   }
@@ -194,7 +168,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       );
 
       final completer = Completer<UserModel>();
-
       _supabase.auth.onAuthStateChange.listen((data) async {
         if (data.event == AuthChangeEvent.signedIn && data.session != null) {
           final user = data.session!.user;
@@ -212,7 +185,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     }
   }
 
-  // Complete Profile
   @override
   Future<UserModel> completeProfile({
     required String userId,
@@ -220,19 +192,20 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     File? avatarFile,
   }) async {
     try {
-      debugPrint('[Auth] Completing profile for: $userId');
-
       String? avatarUrl;
       if (avatarFile != null) {
-        avatarUrl = await _uploadAvatar(userId, avatarFile);
+        final fileExt = avatarFile.path.split('.').last;
+        avatarUrl = await _storageService.uploadFile(
+          bucket: 'avatars',
+          path: 'avatars/$userId.$fileExt',
+          file: avatarFile,
+        );
       }
 
       await _supabase.from('users').update({
         'phone': phone,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       }).eq('id', userId);
-
-      debugPrint(' [Auth] Profile completed');
 
       final user = _supabase.auth.currentUser;
       if (user == null) throw const UserNotFoundException();
@@ -244,128 +217,74 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     } on AppException {
       rethrow;
     } catch (e) {
-      debugPrint(' [Auth] Complete profile error: $e');
       throw AppException(e.toString());
     }
   }
 
-  //  Sign Out
   @override
   Future<void> signOut() async {
     try {
-      debugPrint('[Auth] Signing out...');
-      
-      try {
-        await GoogleSignIn().signOut();
-      } catch (e) {
-        debugPrint(' [Auth] Google sign out skipped: $e');
-      }
-
-      try {
-        await FacebookAuth.instance.logOut();
-      } catch (e) {
-        debugPrint(' [Auth] Facebook sign out skipped: $e');
-      }
+      await _socialAuthService.googleSignOut();
+      await _socialAuthService.facebookSignOut();
       await _supabase.auth.signOut();
-
-      debugPrint(' [Auth] Signed out successfully');
     } catch (e) {
-      debugPrint(' [Auth] Sign out error: $e');
       throw AppException(e.toString());
     }
   }
 
-  // Get Current User
   @override
   UserModel? getCurrentUser() {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      debugPrint('[Auth] No current user');
-      return null;
-    }
-    debugPrint('[Auth] Current user: ${user.id}');
+    if (user == null) return null;
     return UserModel.fromSupabaseUser(user.toJson());
   }
 
   @override
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      debugPrint('[Auth] Sending OTP to: $email');
-
       await _supabase.auth.signInWithOtp(
         email: email,
         shouldCreateUser: false,
         emailRedirectTo: null,
-
       );
-
-      debugPrint('✅ [Auth] OTP sent successfully');
     } on AuthException catch (e) {
-      debugPrint('❌ [Auth] AuthException: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint('❌ [Auth] Send OTP error: $e');
       throw AppException(e.toString());
     }
   }
 
-  // Verify Password Reset OTP
   @override
   Future<void> verifyPasswordResetOTP({
     required String email,
     required String otp,
   }) async {
     try {
-      debugPrint('[Auth] Verifying reset password OTP for: $email');
       await _supabase.auth.verifyOTP(
         email: email,
         token: otp,
         type: OtpType.email,
       );
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] OTP verification error: $e');
       throw AppException(e.toString());
     }
   }
 
-  // Reset Password
   @override
   Future<void> resetPassword(String newPassword) async {
     try {
-      debugPrint('[Auth] Resetting password...');
       await _supabase.auth.updateUser(
         UserAttributes(password: newPassword),
       );
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] Reset password error: $e');
       throw AppException(e.toString());
     }
   }
 
-  // Upload Avatar
-  Future<String?> _uploadAvatar(String userId, File avatarFile) async {
-    try {
-      final fileExt = avatarFile.path.split('.').last;
-      final fileName = 'avatars/$userId.$fileExt';
-      await _supabase.storage.from('avatars').upload(
-        fileName,
-        avatarFile,
-        fileOptions: const FileOptions(upsert: true),
-      );
-      return _supabase.storage.from('avatars').getPublicUrl(fileName);
-    } catch (e) {
-      debugPrint('[Auth] Avatar upload failed: $e');
-      return null;
-    }
-  }
-
-  // Upsert User
   Future<void> _upsertUser(User user) async {
     try {
       final metadata = user.userMetadata ?? {};
@@ -376,9 +295,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'avatar_url': metadata['avatar_url'] ?? metadata['picture'],
         'is_banned': false,
       });
-      debugPrint(' [Auth] User upserted: ${user.id}');
-    } catch (e) {
-      debugPrint('[Auth] Upsert user failed: $e');
-    }
+    } catch (_) {}
   }
 }

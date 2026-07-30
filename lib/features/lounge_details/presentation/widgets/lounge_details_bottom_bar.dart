@@ -11,6 +11,7 @@ import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/layout/sticky_bottom_bar.dart';
 import '../../../home/data/models/lounge_model.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
@@ -25,78 +26,65 @@ class LoungeDetailsBottomBar extends StatelessWidget {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       builder: (context, state) {
         final isRoomSelected = state.selectedRoomId != null;
-        return Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.scaffoldBackground,
-              border: const Border(
-                top: BorderSide(color: AppColors.borderDefault),
+        return StickyBottomBar(
+          child: AppButton(
+            content: ButtonContent(
+              body: AppText(
+                fontFamily: 'Orbitron',
+                textAlign: TextAlign.center,
+                text: AppStrings.bookARoom.tr(),
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: isRoomSelected ? AppColors.black : AppColors.white,
               ),
             ),
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
-              child: AppButton(
-                content: ButtonContent(
-                  body: AppText(
-                    fontFamily: 'Orbitron',
-                    textAlign: TextAlign.center,
-                    text: AppStrings.bookARoom.tr(),
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: isRoomSelected ? AppColors.black : AppColors.white,
-                  ),
-                ),
-                behavior: ButtonBehavior.tap(
-                  isEnabled: isRoomSelected,
-                  onTap: isRoomSelected
-                      ? () {
-                          final selectedRoom = state.rooms.firstWhere(
-                            (r) => r.id == state.selectedRoomId,
-                          );
-                          final selectedExtras = state.selectedExtras.entries.map((entry) {
-                            final extra = state.extras.firstWhere((e) => e.id == entry.key);
-                            return {
-                              'id': extra.id,
-                              'name': extra.name,
-                              'price': extra.price,
-                              'quantity': entry.value,
-                            };
-                          }).toList();
+            behavior: ButtonBehavior.tap(
+              isEnabled: isRoomSelected,
+              onTap: isRoomSelected
+                  ? () {
+                      final selectedRoom = state.rooms.firstWhere(
+                        (r) => r.id == state.selectedRoomId,
+                      );
+                      final selectedExtras =
+                          state.selectedExtras.entries.map((entry) {
+                        final extra =
+                            state.extras.firstWhere((e) => e.id == entry.key);
+                        return {
+                          'id': extra.id,
+                          'name': extra.name,
+                          'price': extra.price,
+                          'quantity': entry.value,
+                        };
+                      }).toList();
 
-                          context.pushNamed(
-                            RouterKeys.booking,
-                            extra: {
-                              'lounge': lounge,
-                              'room': selectedRoom,
-                              'selectedDate':
-                                  state.selectedDate ?? DateTime.now(),
-                              'extras': selectedExtras,
-                            },
-                          );
-                        }
-                      : null,
-                ),
-                buttonConfig: ButtonConfig(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  glowColor: const Color(0xFF00D4FF),
-                  borderRadius: 15.r,
-                  width: 340.w,
-                  height: 50.h,
-                  backgroundColor: isRoomSelected
-                      ? AppColors.neonBlue
-                      : AppColors.cardBackground,
-                  borderColor: isRoomSelected
-                      ? AppColors.neonBlue
-                      : AppColors.borderDefault,
-                ),
+                      context.pushNamed(
+                        RouterKeys.booking,
+                        extra: {
+                          'lounge': lounge,
+                          'room': selectedRoom,
+                          'selectedDate': state.selectedDate ?? DateTime.now(),
+                          'extras': selectedExtras,
+                        },
+                      );
+                    }
+                  : null,
+            ),
+            buttonConfig: ButtonConfig(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
+              glowColor: const Color(0xFF00D4FF),
+              borderRadius: 15.r,
+              width: 340.w,
+              height: 50.h,
+              backgroundColor: isRoomSelected
+                  ? AppColors.neonBlue
+                  : AppColors.cardBackground,
+              borderColor: isRoomSelected
+                  ? AppColors.neonBlue
+                  : AppColors.borderDefault,
             ),
           ),
         );
