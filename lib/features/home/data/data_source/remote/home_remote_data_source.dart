@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'dart:developer';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/lounge_model.dart';
 
@@ -12,25 +14,34 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<LoungeModel>> getLounges({double? lat, double? lng}) async {
-    final response;
-    
-    if (lat != null && lng != null) {
-      // Call the RPC function created for geospatial sorting
-      response = await _client.rpc('get_nearby_lounges', params: {
-        'user_lat': lat,
-        'user_lng': lng,
-      });
-    } else {
-      // Fallback to normal fetch if location is not available
-      response = await _client.from('lounges').select();
-    }
+    try {
+      final response;
 
-    return (response as List).map((e) {
-      // Map dist_meters from RPC to the distance field in our model if present
-      if (e['dist_meters'] != null) {
-        e['distance'] = (e['dist_meters'] as num) / 1000.0; // Convert to KM
+      if (lat != null && lng != null) {
+        log("HOME_REMOTE: Calling get_nearby_lounges with lat: $lat, lng: $lng");
+        response = await _client.rpc('get_nearby_lounges', params: {
+          'user_lat': lat,
+          'user_lng': lng,
+          'max_distance_km': 20000.0,
+        });
+      } else {
+        log("HOME_REMOTE: Calling lounges select");
+        response = await _client.from('lounges').select();
       }
-      return LoungeModel.fromJson(e);
-    }).toList();
+
+      log("HOME_REMOTE: Response received. Count: ${(response as List).length}");
+
+      return (response).map((e) {
+        try {
+          return LoungeModel.fromJson(Map<String, dynamic>.from(e));
+        } catch (e, stack) {
+          log("HOME_REMOTE: Item parsing error: $e", stackTrace: stack);
+          rethrow;
+        }
+      }).toList();
+    } catch (e, stack) {
+      log("HOME_REMOTE_ERROR: $e", stackTrace: stack);
+      rethrow;
+    }
   }
 }

@@ -1,23 +1,38 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/layout/app_state_view.dart';
+import '../../../../art_core/widgets/layout/app_dialog.dart';
 import '../../../../core/di.dart';
-import '../../../core/di/modules/auth_module.dart';
 import 'my_bookings_cubit.dart';
 import 'my_bookings_state.dart';
-import 'widgets/booking_card.dart';
 
-class MyBookingsScreen extends StatelessWidget {
+class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
 
   @override
+  State<MyBookingsScreen> createState() => _MyBookingsScreenState();
+}
+
+class _MyBookingsScreenState extends State<MyBookingsScreen> {
+  late final MyBookingsCubit _cubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _cubit = sl<MyBookingsCubit>()..getMyBookings();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => MyBookingsCubit(sl())..getMyBookings(),
+    return BlocProvider.value(
+      value: _cubit,
       child: DefaultTabController(
         length: 3,
         child: Scaffold(
@@ -26,7 +41,7 @@ class MyBookingsScreen extends StatelessWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: AppText(
-              text: "My Bookings",
+              text: AppStrings.myBookings.tr(),
               fontSize: 24.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.white,
@@ -40,10 +55,10 @@ class MyBookingsScreen extends StatelessWidget {
               dividerColor: AppColors.borderDefault,
               labelStyle:
                   TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-              tabs: const [
-                Tab(text: "Upcoming"),
-                Tab(text: "Past"),
-                Tab(text: "Cancelled"),
+              tabs: [
+                Tab(text: AppStrings.upcoming.tr()),
+                Tab(text: AppStrings.past.tr()),
+                Tab(text: AppStrings.cancelled.tr()),
               ],
             ),
           ),
@@ -58,7 +73,7 @@ class MyBookingsScreen extends StatelessWidget {
 
               if (state.status == MyBookingsStatus.failure) {
                 return AppStateView.error(
-                  title: state.errorMessage ?? "Error loading bookings",
+                  title: state.errorMessage ?? AppStrings.errorLoadingBookings.tr(),
                   onRetry: () => context.read<MyBookingsCubit>().getMyBookings(),
                 );
               }
@@ -68,19 +83,19 @@ class MyBookingsScreen extends StatelessWidget {
                   _buildBookingsList(
                     context,
                     state.upcomingBookings,
-                    "No upcoming bookings",
+                    AppStrings.noUpcomingBookings.tr(),
                     Icons.calendar_today_outlined,
                   ),
                   _buildBookingsList(
                     context,
                     state.pastBookings,
-                    "No past bookings",
+                    AppStrings.noPastBookings.tr(),
                     Icons.history_rounded,
                   ),
                   _buildBookingsList(
                     context,
                     state.cancelledBookings,
-                    "No cancelled bookings",
+                    AppStrings.noCancelledBookings.tr(),
                     Icons.cancel_presentation_outlined,
                   ),
                 ],
@@ -123,11 +138,22 @@ class MyBookingsScreen extends StatelessWidget {
                 final booking = bookings[index];
                 return BookingCard(
                   booking: booking,
-                  onCancel: () =>
-                      context.read<MyBookingsCubit>().cancelBooking(booking.id),
+                  onCancel: () => _showCancelConfirmation(context, booking.id),
                 );
               },
             ),
+    );
+  }
+
+  void _showCancelConfirmation(BuildContext context, String bookingId) {
+    AppDialog.show(
+      context,
+      type: AppDialogType.confirm,
+      title: AppStrings.cancelBookingTitle,
+      description: AppStrings.cancelBookingSubtitle,
+      confirmText: AppStrings.yesCancel,
+      cancelText: AppStrings.keepBooking,
+      onConfirm: () => context.read<MyBookingsCubit>().cancelBooking(bookingId),
     );
   }
 }

@@ -111,4 +111,38 @@ class AppStrings {
   static const String simulator = "simulator";
   static const String billiard = "billiard";
 
+  // New Strings
+  static const String cancelBookingTitle = "cancelBookingTitle";
+  static const String cancelBookingSubtitle = "cancelBookingSubtitle";
+  static const String keepBooking = "keepBooking";
+  static const String yesCancel = "yesCancel";
+  static const String upcoming = "upcoming";
+  static const String past = "past";
+  static const String cancelled = "cancelled";
+  static const String noUpcomingBookings = "noUpcomingBookings";
+  static const String noPastBookings = "noPastBookings";
+  static const String noCancelledBookings = "noCancelledBookings";
+  static const String errorLoadingBookings = "errorLoadingBookings";
+  static const String bookingConfirmedTitle = "bookingConfirmedTitle";
+  static const String bookingConfirmedSubtitle = "bookingConfirmedSubtitle";
+  static const String viewMyBookings = "viewMyBookings";
+  static const String orderSummary = "orderSummary";
+  static const String paymentMethod = "paymentMethod";
+  static const String creditCard = "creditCard";
+  static const String vodafoneCash = "vodafoneCash";
+  static const String fawry = "fawry";
+  static const String cash = "cash";
+  static const String cardNumber = "cardNumber";
+  static const String cardholderName = "cardholderName";
+  static const String expiryDate = "expiryDate";
+  static const String cvv = "cvv";
+  static const String securedPayment = "securedPayment";
+  static const String confirmBookingWithPrice = "confirmBookingWithPrice";
+  static const String payNowWithPrice = "payNowWithPrice";
+  static const String processing = "processing";
+  static const String total = "total";
+  static const String addOns = "addOns";
+  static const String searchingLocation = "searchingLocation";
+  static const String retry = "retry";
+  static const String somethingWentWrong = "somethingWentWrong";
 }

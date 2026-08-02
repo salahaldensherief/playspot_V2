@@ -125,11 +125,17 @@ class AppRouter {
           GoRoute(
             path: RouterKeys.home,
             name: RouterKeys.home,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const MainScreen(),
-            ),
+            pageBuilder: (context, state) {
+              final index = state.extra is int ? state.extra as int : 0;
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: MainScreen(
+                  key: ValueKey(index),
+                  initialIndex: index,
+                ),
+              );
+            },
           ),
           GoRoute(
             path: RouterKeys.search,

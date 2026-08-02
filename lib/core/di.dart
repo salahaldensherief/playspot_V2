@@ -1,3 +1,4 @@
+import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'di/modules/core_module.dart';
 import 'di/modules/auth_module.dart';
@@ -7,6 +8,8 @@ import 'di/modules/lounge_module.dart';
 import 'di/modules/my_bookings_module.dart';
 import 'di/modules/profile_module.dart';
 import 'di/modules/favorites_module.dart';
+
+final sl = GetIt.instance;
 
 Future<void> init() async {
   // Core services & Cache

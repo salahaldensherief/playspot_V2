@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/utils/extensions/date_time_extensions.dart';
 import '../../data/models/booking_model.dart';
 
 class BookingCard extends StatelessWidget {
@@ -32,24 +32,34 @@ class BookingCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText(
-                text: booking.loungeName,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
+              Expanded(
+                child: AppText(
+                  text: booking.loungeName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.white,
+                ),
               ),
+              SizedBox(width: 8.w),
               _buildStatusBadge(),
             ],
           ),
           SizedBox(height: 8.h),
           Row(
             children: [
-              Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16.sp),
+              Icon(Icons.location_on_outlined,
+                  color: AppColors.textSecondary, size: 16.sp),
               SizedBox(width: 4.w),
-              AppText(
-                text: booking.loungeLocation,
-                fontSize: 12.sp,
-                color: AppColors.textSecondary,
+              Expanded(
+                child: AppText(
+                  text: booking.loungeLocation,
+                  fontSize: 12.sp,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ],
           ),
@@ -65,7 +75,7 @@ class BookingCard extends StatelessWidget {
               Icon(Icons.calendar_today_outlined, color: AppColors.neonBlue, size: 16.sp),
               SizedBox(width: 8.w),
               AppText(
-                text: _formatDate(booking.date),
+                text: booking.date.toAppDateString(),
                 fontSize: 14.sp,
                 color: AppColors.white,
                 fontWeight: FontWeight.w600,
@@ -78,7 +88,7 @@ class BookingCard extends StatelessWidget {
               Icon(Icons.access_time, color: AppColors.neonBlue, size: 16.sp),
               SizedBox(width: 8.w),
               AppText(
-                text: _formatTime(booking.startTime),
+                text: booking.startTime.toAppTimeString(),
                 fontSize: 14.sp,
                 color: AppColors.white,
                 fontWeight: FontWeight.bold,
@@ -184,24 +194,5 @@ class BookingCard extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    if (DateFormat('yyyy-MM-dd').format(date) == DateFormat('yyyy-MM-dd').format(DateTime.now())) {
-      return "Today, ${DateFormat('MMMM d').format(date)}";
-    }
-    return DateFormat('EEEE, MMMM d').format(date);
-  }
-
-  String _formatTime(String time) {
-    if (!time.contains(':')) return time;
-    final parts = time.split(':');
-    final hour = int.parse(parts[0]);
-    final minute = int.parse(parts[1]);
-    final tod = TimeOfDay(hour: hour, minute: minute);
-    
-    final h = tod.hourOfPeriod == 0 ? 12 : tod.hourOfPeriod;
-    final period = tod.period == DayPeriod.am ? 'AM' : 'PM';
-    return "$h:${tod.minute.toString().padLeft(2, '0')} $period";
   }
 }

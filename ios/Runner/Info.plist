@@ -49,6 +49,12 @@
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
 
+    <!-- Location Permissions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to show nearby gaming lounges.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>We need your location to show nearby gaming lounges.</string>
+
     <!-- ========================= -->
     <!-- Google Sign-In FIX -->
     <!-- ========================= -->

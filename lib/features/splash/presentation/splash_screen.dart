@@ -49,16 +49,18 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _handleInitialization() async {
-    // 1. Get Location (Concurrent with splash timer)
+    // 1. Start fetching location without waiting
     _fetchUserLocation();
 
-    // 2. Wait for Splash animation
+    // 2. Minimum display time for animation
     await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
-    // 3. Navigate
-    final user = sl<AuthRepository>().getCurrentUser();
+    // 3. Navigation logic
+    final authRepo = sl<AuthRepository>();
+    final user = authRepo.getCurrentUser();
+
     if (user != null) {
       context.goNamed(RouterKeys.home);
     } else {
