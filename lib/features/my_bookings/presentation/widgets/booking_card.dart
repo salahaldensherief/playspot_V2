@@ -68,6 +68,8 @@ class BookingCard extends StatelessWidget {
             text: "${booking.roomName} · ${booking.controllersCount} Controllers · ${booking.screenSize}",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: 16.h),
           Row(
@@ -123,7 +125,7 @@ class BookingCard extends StatelessWidget {
                     width: 100.w,
                     borderRadius: 12.r,
                     backgroundColor: AppColors.transparent,
-                    borderColor: AppColors.danger.withOpacity(0.3),
+                    borderColor: AppColors.danger.withValues(alpha: 0.3),
                   ),
                 ),
               ],
@@ -155,9 +157,9 @@ class BookingCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: AppText(
         text: text,

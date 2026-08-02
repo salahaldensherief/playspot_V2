@@ -6,7 +6,6 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_app_divider.dart';
-import '../../../core/di/modules/auth_module.dart';
 import '../../home/data/models/lounge_model.dart';
 import 'lounge_details_cubit.dart';
 import 'lounge_details_state.dart';

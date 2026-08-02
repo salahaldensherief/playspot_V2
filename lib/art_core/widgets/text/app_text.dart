@@ -27,6 +27,7 @@ class AppText extends StatefulWidget {
   final String? showMoreText;
   final String? showLessText;
   final TextStyle? showMoreStyle;
+  final double? letterSpacing;
 
   const AppText({
     super.key,
@@ -50,6 +51,7 @@ class AppText extends StatefulWidget {
     this.showMoreText,
     this.showLessText,
     this.showMoreStyle,
+    this.letterSpacing,
   });
 
   @override
@@ -82,6 +84,7 @@ class _AppTextState extends State<AppText> {
           fontFamily: widget.fontFamily ?? defaultFontFamily ?? FontsManager.fontFamily,
           decoration: widget.textDecoration,
           shadows: widget.shadows,
+          letterSpacing: widget.letterSpacing,
         );
   }
 

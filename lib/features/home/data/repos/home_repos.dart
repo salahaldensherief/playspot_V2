@@ -8,7 +8,9 @@ abstract class HomeRepository {
   Future<Either<Failure, List<LoungeModel>>> getLounges({
     double? lat,
     double? lng,
+    String? city,
   });
+  Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities();
 }
 
 class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
@@ -20,10 +22,17 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   Future<Either<Failure, List<LoungeModel>>> getLounges({
     double? lat,
     double? lng,
+    String? city,
   }) async {
     return await callRepository(() => _remoteDataSource.getLounges(
           lat: lat,
           lng: lng,
+          city: city,
         ));
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities() async {
+    return await callRepository(() => _remoteDataSource.getAvailableCities());
   }
 }

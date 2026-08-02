@@ -196,11 +196,15 @@ class SearchLoungeCard extends StatelessWidget {
                     fontSize: 20.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.white,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   AppText(
                     text: lounge.location ?? "",
                     fontSize: 12.sp,
                     color: AppColors.textSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Row(
                     children: [
@@ -215,10 +219,14 @@ class SearchLoungeCard extends StatelessWidget {
                       SizedBox(width: 12.w),
                       Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16.sp),
                       SizedBox(width: 4.w),
-                      AppText(
-                        text: "${lounge.distance} ${AppStrings.km.tr()}",
-                        fontSize: 12.sp,
-                        color: AppColors.textSecondary,
+                      Expanded(
+                        child: AppText(
+                          text: "${lounge.distance} ${AppStrings.km.tr()}",
+                          fontSize: 12.sp,
+                          color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),

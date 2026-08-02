@@ -83,7 +83,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: AppSizes.w12,
                       mainAxisSpacing: AppSizes.s12,
-                      mainAxisExtent: 230.h,
+                      mainAxisExtent: 260.h,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

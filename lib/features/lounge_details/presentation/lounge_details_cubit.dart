@@ -190,8 +190,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     final newQty = (currentQty + delta).clamp(0, 99);
     final updatedExtras = Map<String, int>.from(state.selectedExtras);
     
-    if (newQty == 0) updatedExtras.remove(extraId);
-    else updatedExtras[extraId] = newQty;
+    if (newQty == 0) {
+      updatedExtras.remove(extraId);
+    } else {
+      updatedExtras[extraId] = newQty;
+    }
 
     emit(state.copyWith(selectedExtras: updatedExtras));
   }
