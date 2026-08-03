@@ -3,6 +3,8 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../data_source/remote/home_remote_data_source.dart';
 import '../models/lounge_model.dart';
+import '../models/promo_model.dart';
+import '../models/category_model.dart';
 
 abstract class HomeRepository {
   Future<Either<Failure, List<LoungeModel>>> getLounges({
@@ -11,6 +13,8 @@ abstract class HomeRepository {
     String? city,
   });
   Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities();
+  Future<Either<Failure, List<PromoModel>>> getPromotions();
+  Future<Either<Failure, List<CategoryModel>>> getCategories();
 }
 
 class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
@@ -35,4 +39,15 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities() async {
     return await callRepository(() => _remoteDataSource.getAvailableCities());
   }
+
+  @override
+  Future<Either<Failure, List<PromoModel>>> getPromotions() async {
+    return await callRepository(() => _remoteDataSource.getPromotions());
+  }
+
+  @override
+  Future<Either<Failure, List<CategoryModel>>> getCategories() async {
+    return await callRepository(() => _remoteDataSource.getCategories());
+  }
 }
+

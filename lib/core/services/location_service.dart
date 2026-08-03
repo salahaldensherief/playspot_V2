@@ -49,14 +49,24 @@ class LocationServiceImpl implements LocationService {
   @override
   Future<String?> getAddressFromLatLng(double lat, double lng) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      // Timeout to prevent long waiting on bad networks
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng)
+          .timeout(const Duration(seconds: 3));
+      
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
-        return "${place.subLocality}, ${place.locality}";
+        // Smart formatting: Priority to neighborhood then city
+        final area = place.subLocality ?? place.locality ?? place.administrativeArea;
+        final city = place.locality ?? place.administrativeArea;
+        if (area != null && city != null && area != city) {
+          return "$area, $city";
+        }
+        return area ?? city ?? "Unknown Location";
       }
       return null;
     } catch (e) {
-      log("LOCATION_SERVICE_ERROR (Geocoding): $e");
+      // Don't log full error for network-related geocoding issues
+      log("GEOCODING_INFO: Could not resolve address (Check network/Simulator)");
       return null;
     }
   }

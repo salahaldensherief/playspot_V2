@@ -37,7 +37,8 @@ class HomeHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      text: AppStrings.heyUser.tr(args: [userName]),
+                      text: AppStrings.heyUser
+                          .tr(args: [userName.split(' ').first]),
                       fontSize: 22.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
@@ -56,7 +57,6 @@ class HomeHeader extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            // letterSpacing: 1,
                           ),
                         ),
                       ],
@@ -68,10 +68,7 @@ class HomeHeader extends StatelessWidget {
               _buildPointsBadge(),
             ],
           ),
-          
           SizedBox(height: 20.h),
-          
-          // City Selection Chips
           if (cities.isNotEmpty)
             SizedBox(
               height: 38.h,
@@ -116,7 +113,6 @@ class HomeHeader extends StatelessWidget {
 
   Widget _buildCityChip(String? cityValue, String label) {
     final isSelected = selectedCity == cityValue;
-    
     return GestureDetector(
       onTap: () => onCitySelected(cityValue),
       child: AnimatedContainer(

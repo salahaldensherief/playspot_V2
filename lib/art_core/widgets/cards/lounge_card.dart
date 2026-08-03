@@ -5,9 +5,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../theme/app_colors.dart';
 import '../text/app_text.dart';
 import '../layout/glass_container.dart';
+import '../lounge/lounge_favorite_button.dart';
+import '../lounge/lounge_status_badge.dart';
 import '../../../features/home/data/models/lounge_model.dart';
-import '../../../features/favorites/presentation/favorites_cubit.dart';
-import '../../../features/favorites/presentation/favorites_state.dart';
 
 class LoungeCard extends StatelessWidget {
   final LoungeModel lounge;
@@ -30,39 +30,42 @@ class LoungeCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius:
                       BorderRadius.vertical(top: Radius.circular(24.r)),
-                  child: CachedNetworkImage(
-                    imageUrl: "${lounge.imageUrl}?width=400&quality=80",
-                    height: 130.h,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    memCacheHeight: 400,
-                    placeholder: (context, url) => Container(
-                      color: AppColors.mutedBackground,
-                      child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2)),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: AppColors.mutedBackground,
-                      child: const Icon(Icons.error),
+                  child: Hero(
+                    tag: 'lounge_image_${lounge.id}',
+                    child: CachedNetworkImage(
+                      imageUrl: "${lounge.imageUrl}?width=400&quality=80",
+                      height: 130.h,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      memCacheHeight: 400,
+                      placeholder: (context, url) => Container(
+                        color: AppColors.mutedBackground,
+                        child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2)),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: AppColors.mutedBackground,
+                        child: const Icon(Icons.error),
+                      ),
                     ),
                   ),
                 ),
 
-                // Open/Closed Badge with Neon Glow
+                // Open/Closed Badge
                 Positioned(
                   top: 12.h,
                   right: 12.w,
-                  child: _buildStatusBadge(),
+                  child: LoungeStatusBadge(isOpen: lounge.isOpen),
                 ),
 
                 // Favorite Toggle
                 Positioned(
                   top: 12.h,
                   left: 12.w,
-                  child: _buildFavoriteButton(),
+                  child: LoungeFavoriteButton(loungeId: lounge.id),
                 ),
 
-                // Distance Badge (Floating over image)
+                // Distance Badge
                 if (lounge.distance > 0)
                   Positioned(
                     bottom: 8.h,
@@ -144,72 +147,6 @@ class LoungeCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatusBadge() {
-    final color = lounge.isOpen ? AppColors.success : AppColors.roomBooked;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withValues(alpha: 0.5), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.2),
-            blurRadius: 8,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6.w,
-            height: 6.w,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(color: color, blurRadius: 4, spreadRadius: 1),
-              ],
-            ),
-          ),
-          SizedBox(width: 6.w),
-          AppText(
-            text: lounge.isOpen ? "ACTIVE" : "CLOSED",
-            fontSize: 9.sp,
-            color: color,
-            fontWeight: FontWeight.w800,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFavoriteButton() {
-    return BlocBuilder<FavoritesCubit, FavoritesState>(
-      builder: (context, state) {
-        final isFavorite = context.read<FavoritesCubit>().isFavorite(lounge.id);
-        return GestureDetector(
-          onTap: () => context.read<FavoritesCubit>().toggleFavorite(lounge.id),
-          child: Container(
-            padding: EdgeInsets.all(6.w),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.4),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? AppColors.danger : AppColors.white,
-              size: 18.sp,
-            ),
-          ),
-        );
-      },
     );
   }
 

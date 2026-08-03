@@ -155,6 +155,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           availableRoomsCount: rooms.length - fullyBookedIds.length,
           selectedCategory: currentCategory,
           clearRoom: shouldClearRoom,
+          lounge: lounge,
         ));
       },
     );

@@ -28,6 +28,27 @@ extension StringTimeExtensions on String {
       return this;
     }
   }
+
+  /// Formats a time string (HH:mm) to "h AM/PM" (omitting minutes)
+  String to12HourFormat() {
+    if (!contains(':')) return this;
+    try {
+      final parts = split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final timeOfDay = TimeOfDay(hour: hour, minute: minute);
+
+      final period = timeOfDay.period == DayPeriod.am ? 'AM' : 'PM';
+      final hourOfPeriod =
+          timeOfDay.hourOfPeriod == 0 ? 12 : timeOfDay.hourOfPeriod;
+
+      return "$hourOfPeriod $period";
+    } catch (e) {
+      return this;
+    }
+  }
+
+  bool get isNotNullOrEmpty => this.isNotEmpty;
 }
 
 extension TimeOfDayExtensions on TimeOfDay {

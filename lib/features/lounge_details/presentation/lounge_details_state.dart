@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import '../data/models/extra_model.dart';
 import '../data/models/room_model.dart';
+import '../../home/data/models/lounge_model.dart';
 
 enum LoungeDetailsStatus { initial, loading, success, error }
 
@@ -17,6 +18,7 @@ class LoungeDetailsState extends Equatable {
   final List<String> categories;
   final int availableRoomsCount;
   final String selectedCategory;
+  final LoungeModel? lounge;
 
   const LoungeDetailsState({
     this.status = LoungeDetailsStatus.initial,
@@ -30,6 +32,7 @@ class LoungeDetailsState extends Equatable {
     this.categories = const [],
     this.availableRoomsCount = 0,
     this.selectedCategory = '',
+    this.lounge,
   });
 
   LoungeDetailsState copyWith({
@@ -45,6 +48,7 @@ class LoungeDetailsState extends Equatable {
     List<String>? categories,
     int? availableRoomsCount,
     String? selectedCategory,
+    LoungeModel? lounge,
   }) {
     return LoungeDetailsState(
       status: status ?? this.status,
@@ -58,6 +62,7 @@ class LoungeDetailsState extends Equatable {
       categories: categories ?? this.categories,
       availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
       selectedCategory: selectedCategory ?? this.selectedCategory,
+      lounge: lounge ?? this.lounge,
     );
   }
 
@@ -90,5 +95,6 @@ class LoungeDetailsState extends Equatable {
         categories,
         availableRoomsCount,
         selectedCategory,
+        lounge,
       ];
 }

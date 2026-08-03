@@ -15,6 +15,6 @@ void initHomeModule() {
   );
 
   sl.registerFactory<HomeCubit>(
-    () => HomeCubit(sl()),
+    () => HomeCubit(sl(), sl()),
   );
 }

@@ -7,9 +7,10 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
-import 'package:playspot/art_core/widgets/text_field/home_search_bar.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/widgets/home_header.dart';
+import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart';
+import 'package:playspot/features/home/presentation/widgets/activity_categories.dart';
 import 'package:playspot/art_core/widgets/shimmer/lounge_card_shimmer.dart';
 import '../../../art_core/widgets/cards/lounge_card.dart';
 import '../../../core/cache/preference_manager.dart';
@@ -42,11 +43,17 @@ class _HomeViewState extends State<_HomeView> {
     final pref = sl<PreferenceManager>();
     userName = pref.fullName() ?? "User";
     
-    // Get saved address or default
     final savedAddress = pref.getValue('CURRENT_ADDRESS');
     currentLocation = savedAddress.isNotEmpty 
         ? savedAddress 
         : "Searching location...";
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<HomeCubit>().init();
+        context.read<HomeCubit>().startLocationListening();
+      }
+    });
   }
 
   @override
@@ -59,7 +66,7 @@ class _HomeViewState extends State<_HomeView> {
             center: const Alignment(-0.8, -0.8),
             radius: 1.5,
             colors: [
-              AppColors.neonBlue.withOpacity(0.03),
+              AppColors.neonBlue.withValues(alpha: 0.03),
               AppColors.scaffoldBackground,
             ],
           ),
@@ -82,11 +89,12 @@ class _HomeViewState extends State<_HomeView> {
                       buildWhen: (previous, current) =>
                           previous.availableCities != current.availableCities ||
                           previous.selectedCity != current.selectedCity ||
+                          previous.currentAddress != current.currentAddress ||
                           previous.status != current.status,
                       builder: (context, state) {
                         return HomeHeader(
                           userName: userName,
-                          currentLocation: currentLocation,
+                          currentLocation: state.currentAddress ?? currentLocation,
                           cities: state.availableCities,
                           selectedCity: state.selectedCity,
                           onCitySelected: (city) =>
@@ -95,16 +103,18 @@ class _HomeViewState extends State<_HomeView> {
                       },
                     ),
                   ),
-                  /*bottom: PreferredSize(
-                    preferredSize: Size.fromHeight(16.h),
-                    child: HomeSearchBar(
-                      readOnly: true,
-                      onTap: () {
-                        context.pushNamed(RouterKeys.search);
-                      },
-                    ),
-                  ),*/
                 ),
+                const SliverToBoxAdapter(child: PromoCarousel()),
+                SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+                const SliverSectionHeader(title: "Browse by category"),
+                const SliverToBoxAdapter(child: ActivityCategories()),
+                SliverToBoxAdapter(child: SizedBox(height: 16.h)),
+                const SliverSectionHeader(
+                  title: "Nearest Lounges",
+                  seeAllText: AppStrings.seeAll,
+                  onSeeAllTap: null,
+                ),
+                const _LoungeList(isNearest: true),
                 SliverToBoxAdapter(child: SizedBox(height: 24.h)),
                 const SliverSectionHeader(
                   title: AppStrings.topRated,
@@ -143,7 +153,7 @@ class _LoungeList extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 8.w,
                 mainAxisSpacing: 8.h,
-                mainAxisExtent: 250.h,
+                mainAxisExtent: 260.h,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) => const LoungeCardShimmer(),
@@ -175,7 +185,7 @@ class _LoungeList extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 8.w,
               mainAxisSpacing: 8.h,
-              mainAxisExtent: 240.h,
+              mainAxisExtent: 260.h,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
               return LoungeCard(

@@ -39,34 +39,33 @@ class LoungeDetailsScreen extends StatelessWidget {
               },
               color: AppColors.neonBlue,
               backgroundColor: AppColors.cardBackground,
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  LoungeDetailsAppBar(lounge: lounge),
-                LoungeInfoSection(lounge: lounge),
-                const CategorySelector(),
-                const SliverSectionHeader(title: AppStrings.selectDate),
-                const DateSelectionSection(),
-                const SliverAppDivider(verticalPadding: 16),
-                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                  buildWhen: (prev, curr) =>
-                      prev.selectedCategory != curr.selectedCategory,
-                  builder: (context, state) {
-                    return SliverSectionHeader(
-                      title: state.selectedCategory,
-                    );
-                  },
-                ),
-                const RoomsGrid(),
-                const SliverSectionHeader(title: AppStrings.extras),
-                const ExtrasList(),
-                const SliverBottomSpacing(),
-              ],
+              child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                builder: (context, state) {
+                  final displayLounge = state.lounge ?? lounge;
+                  return CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      LoungeDetailsAppBar(lounge: displayLounge),
+                      LoungeInfoSection(lounge: displayLounge),
+                      const CategorySelector(),
+                      const SliverSectionHeader(title: AppStrings.selectDate),
+                      const DateSelectionSection(),
+                      const SliverAppDivider(verticalPadding: 8),
+                      SliverSectionHeader(
+                        title: state.selectedCategory
+                      ),
+                      const RoomsGrid(),
+                      const SliverSectionHeader(title: AppStrings.extras),
+                      const ExtrasList(),
+                      const SliverBottomSpacing(),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-          LoungeDetailsBottomBar(lounge: lounge),
-        ],
-      ),
+            LoungeDetailsBottomBar(lounge: lounge),
+          ],
+        ),
     ),
   );
 }
