@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_sizes.dart';
 import '../text/app_text.dart';
@@ -89,7 +90,7 @@ class AppStateView extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppSizes.r12),
                   ),
                 ),
-                child: const Text("Retry").tr(),
+                child: Text(AppStrings.retry.tr()),
               ),
             ],
           ],

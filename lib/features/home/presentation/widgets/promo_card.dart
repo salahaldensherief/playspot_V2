@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -11,6 +12,7 @@ class PromoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -47,7 +49,7 @@ class PromoCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: AppText(
-                      text: promo.tag.toUpperCase(),
+                      text: promo.getTag(isArabic).toUpperCase(),
                       fontSize: 10.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -55,7 +57,7 @@ class PromoCard extends StatelessWidget {
                   ),
                   SizedBox(height: 8.h),
                   AppText(
-                    text: promo.title,
+                    text: promo.getTitle(isArabic),
                     fontSize: 20.sp,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,

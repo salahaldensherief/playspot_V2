@@ -1,9 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/shimmer/redemption_option_shimmer.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
@@ -13,11 +16,12 @@ class RedeemPointsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
     return BlocListener<ProfileCubit, ProfileState>(
       listener: (context, state) {
         if (state.status == ProfileStatus.redeemSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Reward redeemed successfully!")),
+            SnackBar(content: Text(AppStrings.rewardRedeemed.tr())),
           );
         } else if (state.status == ProfileStatus.error && state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -34,9 +38,9 @@ class RedeemPointsScreen extends StatelessWidget {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => context.pop(),
           ),
-          title: const Text(
-            "Redeem Points",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          title: Text(
+            AppStrings.redeemPoints.tr(),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
         body: Column(
@@ -45,9 +49,17 @@ class RedeemPointsScreen extends StatelessWidget {
             Expanded(
               child: BlocBuilder<ProfileCubit, ProfileState>(
                 builder: (context, state) {
+                  if (state.status == ProfileStatus.loading) {
+                    return ListView.builder(
+                      padding: EdgeInsets.all(20.w),
+                      itemCount: 5,
+                      itemBuilder: (context, index) => const RedemptionOptionShimmer(),
+                    );
+                  }
+
                   if (state.redemptionOptions.isEmpty) {
-                    return const Center(
-                      child: AppText(text: "No rewards available", color: Colors.white),
+                    return Center(
+                      child: AppText(text: AppStrings.noRewardsAvailable.tr(), color: Colors.white),
                     );
                   }
 
@@ -70,14 +82,14 @@ class RedeemPointsScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     AppText(
-                                      text: option.title,
+                                      text: option.getTitle(isArabic),
                                       fontSize: 18.sp,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
                                     SizedBox(height: 4.h),
                                     AppText(
-                                      text: option.description,
+                                      text: option.getDescription(isArabic),
                                       fontSize: 12.sp,
                                       color: AppColors.textSecondary,
                                     ),
@@ -87,7 +99,7 @@ class RedeemPointsScreen extends StatelessWidget {
                                         Icon(Icons.stars, color: AppColors.warning, size: 16.sp),
                                         SizedBox(width: 4.w),
                                         AppText(
-                                          text: "${option.pointsCost} Points",
+                                          text: "${option.pointsCost} ${AppStrings.points.tr()}",
                                           fontSize: 14.sp,
                                           fontWeight: FontWeight.bold,
                                           color: AppColors.warning,
@@ -109,7 +121,7 @@ class RedeemPointsScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
-                                child: const Text("Redeem"),
+                                child: Text(AppStrings.redeem.tr()),
                               ),
                             ],
                           ),
@@ -139,8 +151,8 @@ class RedeemPointsScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-              const AppText(
-                text: "Your Balance",
+              AppText(
+                text: AppStrings.yourBalance.tr(),
                 color: Colors.white70,
                 fontSize: 16,
               ),

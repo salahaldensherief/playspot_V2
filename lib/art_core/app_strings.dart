@@ -107,9 +107,32 @@ class AppStrings {
   static const String aboutUs = "aboutUs";
   static const String version = "version";
   static const String cancel = "cancel";
+  static const String from = "from";
+  static const String today = "today";
+  static const String hour = "hour";
+  static const String duration = "duration";
+  static const String totalPrice = "totalPrice";
+  static const String selectTime = "selectTime";
+  static const String cardDetails = "cardDetails";
+  static const String startsIn = "startsIn";
+  static const String getDirections = "getDirections";
+  static const String confirmed = "confirmed";
+  static const String errorLoadingExtras = "errorLoadingExtras";
+  static const String noExtrasAvailable = "noExtrasAvailable";
   static const String ps5Rooms = "ps5Rooms";
   static const String simulator = "simulator";
   static const String billiard = "billiard";
+  static const String browseByCategory = "browseByCategory";
+  static const String nearestLounges = "nearestLounges";
+  static const String noLoungesFound = "noLoungesFound";
+  static const String redeemPoints = "redeemPoints";
+  static const String rewardRedeemed = "rewardRedeemed";
+  static const String noRewardsAvailable = "noRewardsAvailable";
+  static const String redeem = "redeem";
+  static const String yourBalance = "yourBalance";
+  static const String points = "points";
+  static const String referralCodeOptional = "referralCodeOptional";
+  static const String referralCodeHint = "referralCodeHint";
 
   // New Strings
   static const String cancelBookingTitle = "cancelBookingTitle";

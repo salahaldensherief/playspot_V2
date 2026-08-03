@@ -39,6 +39,7 @@ class BookingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
     return BlocProvider(
       create: (context) => BookingCubit(sl<BookingRepository>(), room!.id, lounge!.id, initialDate),
       child: Scaffold(
@@ -51,7 +52,7 @@ class BookingScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: AppText(
-          text: "Book ${room!.name}",
+          text: "Book ${room!.getName(isArabic)}",
           fontSize: 20.sp,
           fontWeight: FontWeight.bold,
           color: AppColors.white,
@@ -66,7 +67,7 @@ class BookingScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AppText(
-                    text: "Select Time",
+                    text: AppStrings.selectTime.tr(),
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.white,
@@ -75,7 +76,7 @@ class BookingScreen extends StatelessWidget {
                   const TimeSlotGrid(),
                   SizedBox(height: 24.h),
                   AppText(
-                    text: "Duration",
+                    text: AppStrings.duration.tr(),
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.white,
@@ -117,7 +118,7 @@ class BookingScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      text: "Total Price",
+                      text: AppStrings.totalPrice.tr(),
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,
                     ),

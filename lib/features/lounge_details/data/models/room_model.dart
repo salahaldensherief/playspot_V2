@@ -1,44 +1,53 @@
 class RoomModel {
   final String id;
   final String loungeId;
-  final String name;
+  final String nameAr;
+  final String nameEn;
   final List<String> activityNames;
   final String? spaceType;
   final int capacity;
   final double pricePerHour;
   final bool isAvailable;
   final List<String> images;
-  final List<String> features;
+  final List<String> featuresAr;
+  final List<String> featuresEn;
   final int controllersCount;
   final String screenSize;
 
   RoomModel({
     required this.id,
     required this.loungeId,
-    required this.name,
+    required this.nameAr,
+    required this.nameEn,
     required this.activityNames,
     this.spaceType,
     required this.capacity,
     required this.pricePerHour,
     required this.isAvailable,
     required this.images,
-    required this.features,
+    required this.featuresAr,
+    required this.featuresEn,
     this.controllersCount = 2,
     this.screenSize = '43"',
   });
+
+  String getName(bool isArabic) => isArabic ? nameAr : nameEn;
+  List<String> getFeatures(bool isArabic) => isArabic ? featuresAr : featuresEn;
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'lounge_id': loungeId,
-      'name': name,
+      'name_ar': nameAr,
+      'name_en': nameEn,
       'activity_names': activityNames,
       'space_type_name': spaceType,
       'capacity': capacity,
       'price_per_hour': pricePerHour,
       'is_available': isAvailable,
       'images': images,
-      'features': features,
+      'features_ar': featuresAr,
+      'features_en': featuresEn,
       'controllers_count': controllersCount,
       'screen_size': screenSize,
     };
@@ -49,7 +58,8 @@ class RoomModel {
       return RoomModel(
         id: json['id']?.toString() ?? '',
         loungeId: json['lounge_id']?.toString() ?? '',
-        name: json['name']?.toString() ?? '',
+        nameAr: json['name_ar']?.toString() ?? '',
+        nameEn: json['name_en']?.toString() ?? '',
         activityNames: json['activity_names'] != null
             ? List<String>.from(json['activity_names'])
             : [],
@@ -58,7 +68,8 @@ class RoomModel {
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
         images: json['images'] != null ? List<String>.from(json['images']) : [],
-        features: json['features'] != null ? List<String>.from(json['features']) : [],
+        featuresAr: json['features_ar'] != null ? List<String>.from(json['features_ar']) : [],
+        featuresEn: json['features_en'] != null ? List<String>.from(json['features_en']) : [],
         controllersCount: (json['controllers_count'] as num?)?.toInt() ?? 2,
         screenSize: json['screen_size']?.toString() ?? '43"',
       );

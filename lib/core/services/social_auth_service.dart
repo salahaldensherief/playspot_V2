@@ -16,14 +16,11 @@ class SocialAuthServiceImpl implements SocialAuthService {
       debugPrint('[SocialAuth] Initializing Google Sign-In...');
       
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        // We provide both because sometimes Android needs the explicit client ID 
-        // if the google-services.json isn't being read correctly by the plugin.
         clientId: '304793073372-7eipb31om1ge4pn0rtkioecv8a3g5rvo.apps.googleusercontent.com',
         serverClientId: '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
         scopes: ['email', 'profile'],
       );
 
-      // Trigger the authentication flow
       final googleUser = await googleSignIn.signIn();
       
       if (googleUser == null) {

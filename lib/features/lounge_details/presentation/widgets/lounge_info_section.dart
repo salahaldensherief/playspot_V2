@@ -15,6 +15,7 @@ class LoungeInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
     return SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
@@ -44,6 +45,18 @@ class LoungeInfoSection extends StatelessWidget {
                 ),
               ],
             ),
+            if (lounge.getDescription(isArabic) != null) ...[
+              SizedBox(height: AppSizes.s12),
+              AppText(
+                text: lounge.getDescription(isArabic)!,
+                fontSize: 14.sp,
+                color: AppColors.textSecondary,
+                height: 1.6,
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
+                showAllTextOnTap: true,
+              ),
+            ],
             SizedBox(height: AppSizes.s8),
             AppText(
               text: AppStrings.seeReviews.tr(),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/widgets/shimmer/promo_shimmer.dart';
 import '../home_cubit.dart';
 import '../home_state.dart';
 import 'promo_card.dart';
@@ -11,8 +12,12 @@ class PromoCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) => previous.promotions != current.promotions,
+      buildWhen: (previous, current) => previous.promotions != current.promotions || previous.status != current.status,
       builder: (context, state) {
+        if (state.status == HomeStatus.loading) {
+          return const PromoShimmer();
+        }
+
         if (state.promotions.isEmpty) {
           return const SizedBox.shrink();
         }

@@ -16,6 +16,7 @@ class RoomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       builder: (context, state) {
         final isSelected = state.selectedRoomId == room.id;
@@ -41,8 +42,8 @@ class RoomCard extends StatelessWidget {
                     color: isSelected
                         ? AppColors.neonBlue
                         : (isAvailable
-                            ? AppColors.success.withOpacity(0.3)
-                            : AppColors.danger.withOpacity(0.3)),
+                            ? AppColors.success.withValues(alpha: 0.3)
+                            : AppColors.danger.withValues(alpha: 0.3)),
                     width: 1.0,
                   ),
                   boxShadow: isSelected
@@ -59,7 +60,7 @@ class RoomCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      text: room.name,
+                      text: room.getName(isArabic),
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
@@ -104,7 +105,7 @@ class RoomCard extends StatelessWidget {
                   ],
                 ),
               ),
-              _buildStatusBadge(isAvailable),
+              _buildStatusBadge(context, isAvailable),
             ],
           ),
         );
@@ -132,10 +133,11 @@ class RoomCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(bool isAvailable) {
-    return Positioned(
+  Widget _buildStatusBadge(BuildContext context, bool isAvailable) {
+    return Positioned.directional(
+      textDirection: Directionality.of(context),
       top: -6.h,
-      left: 16.w,
+      start: 16.w,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
         decoration: BoxDecoration(
@@ -143,8 +145,8 @@ class RoomCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(8.r),
           border: Border.all(
             color: isAvailable
-                ? AppColors.success.withOpacity(0.2)
-                : AppColors.danger.withOpacity(0.2),
+                ? AppColors.success.withValues(alpha: 0.2)
+                : AppColors.danger.withValues(alpha: 0.2),
             width: 1,
           ),
         ),

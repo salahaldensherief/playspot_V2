@@ -13,10 +13,11 @@ class AuthAppBar extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned(
+          Positioned.directional(
+            textDirection: Directionality.of(context),
             top: -70.h,
-            left: 150.w,
-            right: 0,
+            start: 150.w,
+            end: 0,
             child: Center(
               child: Container(
                 width: 350.w,
@@ -24,12 +25,12 @@ class AuthAppBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: Color(0xFF00D9FF),
+                      color: const Color(0xFF00D9FF),
                       blurRadius: 100.r,
                       spreadRadius: 30.r,
                     ),
                     BoxShadow(
-                      color: Color(0xFFA855F7),
+                      color: const Color(0xFFA855F7),
                       blurRadius: 100.r,
                       spreadRadius: 30.r,
                     ),
@@ -39,10 +40,11 @@ class AuthAppBar extends StatelessWidget {
             ),
           ),
 
-          Positioned(
+          Positioned.directional(
+            textDirection: Directionality.of(context),
             bottom: -180.h,
-            left: 0,
-            right: 0,
+            start: 0,
+            end: 0,
             child: Column(
               children: [
                 Text(
@@ -60,7 +62,7 @@ class AuthAppBar extends StatelessWidget {
                     child: Text(
                       subTitle!,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white54, fontSize: 14.sp),
+                      style:  TextStyle(color: Colors.white54, fontSize: 14.sp),
                     ),
                   ),
                 ],

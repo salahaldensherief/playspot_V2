@@ -123,8 +123,7 @@ class _AppTextState extends State<AppText> {
                   style: textStyle,
                   maxLines: _showAll ? null : widget.maxLines,
                   overflow: _showAll ? TextOverflow.visible : (widget.overflow ?? TextOverflow.ellipsis),
-                  textAlign: widget.textAlign ?? (_getTextDirection() == TextDirection.rtl ? TextAlign.right : TextAlign.left),
-                  textDirection: _getTextDirection() ,
+                  textAlign: widget.textAlign ?? TextAlign.start,
                 ),
               ),
 
@@ -142,9 +141,7 @@ class _AppTextState extends State<AppText> {
                       decoration: TextDecoration.underline,
                       decorationThickness: 0.5,
                     ),
-                    textAlign: widget.textAlign ?? (_getTextDirection() == TextDirection.rtl ? TextAlign.right : TextAlign.left),
-
-                    textDirection: _getTextDirection() ,
+                    textAlign: widget.textAlign ?? TextAlign.start,
                   ),
                 ),
               ],
@@ -161,8 +158,7 @@ class _AppTextState extends State<AppText> {
         style: textStyle,
         maxLines: widget.maxLines,
         overflow: widget.overflow ?? TextOverflow.ellipsis,
-        textAlign: widget.textAlign ?? (_getTextDirection() == TextDirection.rtl ? TextAlign.right : TextAlign.left),
-        textDirection: _getTextDirection(),
+        textAlign: widget.textAlign ?? TextAlign.start,
       ),
     );
   }

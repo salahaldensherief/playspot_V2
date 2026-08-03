@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../booking_cubit.dart';
@@ -88,7 +90,7 @@ class TimeSlotGrid extends StatelessWidget {
                     ),
                     if (isBooked)
                       AppText(
-                        text: "Booked",
+                        text: AppStrings.booked.tr(),
                         fontSize: 8.sp,
                         color: AppColors.danger,
                         fontWeight: FontWeight.bold,

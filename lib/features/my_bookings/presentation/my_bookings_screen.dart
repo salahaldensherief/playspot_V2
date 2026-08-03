@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/widgets/shimmer/booking_shimmer.dart';
 import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
@@ -68,7 +69,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   state.upcomingBookings.isEmpty &&
                   state.pastBookings.isEmpty &&
                   state.cancelledBookings.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
+                return const BookingShimmer();
               }
 
               if (state.status == MyBookingsStatus.failure) {

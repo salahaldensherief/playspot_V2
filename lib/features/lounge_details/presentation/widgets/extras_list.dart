@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/widgets/shimmer/extra_shimmer.dart';
 import '../../../../art_core/widgets/layout/app_state_view.dart';
 import '../lounge_details_cubit.dart';
@@ -23,15 +24,15 @@ class ExtrasList extends StatelessWidget {
         }
 
         if (state.status == LoungeDetailsStatus.error) {
-          return SliverAppStateView(
+          return const SliverAppStateView(
             type: AppStateViewType.error,
-            title: "Error loading extras",
+            title: AppStrings.errorLoadingExtras,
           );
         }
 
         if (state.extras.isEmpty) {
           return const SliverAppStateView(
-            title: "No extras available",
+            title: AppStrings.noExtrasAvailable,
             icon: Icons.fastfood_outlined,
           );
         }

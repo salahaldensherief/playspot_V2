@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -98,6 +99,7 @@ class _HomeViewState extends State<_HomeView> {
                           cities: state.availableCities,
                           selectedCity: state.selectedCity,
                           pointsBalance: state.pointsBalance,
+                          isLoading: state.status == HomeStatus.loading,
                           onCitySelected: (city) =>
                               context.read<HomeCubit>().selectCity(city),
                         );
@@ -107,19 +109,19 @@ class _HomeViewState extends State<_HomeView> {
                 ),
                 const SliverToBoxAdapter(child: PromoCarousel()),
                 SliverToBoxAdapter(child: SizedBox(height: 24.h)),
-                const SliverSectionHeader(title: "Browse by category"),
+                const SliverSectionHeader(title: AppStrings.browseByCategory),
                 const SliverToBoxAdapter(child: ActivityCategories()),
                 SliverToBoxAdapter(child: SizedBox(height: 16.h)),
-                const SliverSectionHeader(
-                  title: "Nearest Lounges",
-                  seeAllText: AppStrings.seeAll,
+                 SliverSectionHeader(
+                  title: AppStrings.nearestLounges.tr(),
+                  seeAllText: AppStrings.seeAll.tr(),
                   onSeeAllTap: null,
                 ),
                 const _LoungeList(isNearest: true),
                 SliverToBoxAdapter(child: SizedBox(height: 24.h)),
-                const SliverSectionHeader(
-                  title: AppStrings.topRated,
-                  seeAllText: AppStrings.seeAll,
+                 SliverSectionHeader(
+                  title: AppStrings.topRated.tr(),
+                  seeAllText: AppStrings.seeAll.tr(),
                   onSeeAllTap: null,
                 ),
                 const _LoungeList(isNearest: false),
@@ -169,11 +171,11 @@ class _LoungeList extends StatelessWidget {
             : state.topRatedLounges;
 
         if (lounges.isEmpty) {
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: Center(
               child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: Text("No lounges found in this area", style: TextStyle(color: Colors.white)),
+                padding: const EdgeInsets.all(32.0),
+                child: Text(AppStrings.noLoungesFound.tr(), style: const TextStyle(color: Colors.white)),
               ),
             ),
           );

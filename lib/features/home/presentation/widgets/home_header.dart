@@ -6,12 +6,16 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 
+import 'package:playspot/art_core/widgets/shimmer/base_shimmer.dart';
+import 'package:playspot/art_core/widgets/shimmer/category_shimmer.dart';
+
 class HomeHeader extends StatelessWidget {
   final String userName;
   final String currentLocation;
   final List<Map<String, dynamic>> cities;
   final String? selectedCity;
   final int pointsBalance;
+  final bool isLoading;
   final Function(String?) onCitySelected;
 
   const HomeHeader({
@@ -21,6 +25,7 @@ class HomeHeader extends StatelessWidget {
     required this.cities,
     required this.selectedCity,
     required this.pointsBalance,
+    required this.isLoading,
     required this.onCitySelected,
   });
 
@@ -52,14 +57,16 @@ class HomeHeader extends StatelessWidget {
                         Icon(Icons.location_on, color: AppColors.neonBlue, size: 14.sp),
                         SizedBox(width: 4.w),
                         Expanded(
-                          child: AppText(
-                            text: currentLocation.toUpperCase(),
-                            fontSize: 10.sp,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.bold,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child: isLoading 
+                            ? BaseShimmer(width: 120.w, height: 10.h)
+                            : AppText(
+                                text: currentLocation.toUpperCase(),
+                                fontSize: 10.sp,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.bold,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                         ),
                       ],
                     ),
@@ -71,7 +78,9 @@ class HomeHeader extends StatelessWidget {
             ],
           ),
           SizedBox(height: 20.h),
-          if (cities.isNotEmpty)
+          if (isLoading)
+            const CategoryShimmer()
+          else if (cities.isNotEmpty)
             SizedBox(
               height: 38.h,
               child: ListView.separated(
@@ -93,6 +102,9 @@ class HomeHeader extends StatelessWidget {
   }
 
   Widget _buildPointsBadge() {
+    if (isLoading) {
+      return BaseShimmer(width: 80.w, height: 32.h, borderRadius: 12.r);
+    }
     return GlassContainer(
       borderRadius: 12,
       child: Padding(
@@ -102,7 +114,7 @@ class HomeHeader extends StatelessWidget {
             Icon(Icons.stars_rounded, color: AppColors.warning, size: 16.sp),
             SizedBox(width: 6.w),
             AppText(
-              text: "$pointsBalance PTS",
+              text: "$pointsBalance ${AppStrings.points.tr().toUpperCase()}",
               fontSize: 12.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,

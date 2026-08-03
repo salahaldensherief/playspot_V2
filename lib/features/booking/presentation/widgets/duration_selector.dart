@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../booking_cubit.dart';
@@ -31,15 +33,10 @@ class DurationSelector extends StatelessWidget {
               Column(
                 children: [
                   AppText(
-                    text: state.durationHours.toString(),
+                    text: AppStrings.hour.tr(args: [state.durationHours.toString()]),
                     fontSize: 24.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.neonBlue,
-                  ),
-                  AppText(
-                    text: "hour",
-                    fontSize: 12.sp,
-                    color: AppColors.textSecondary,
                   ),
                 ],
               ),

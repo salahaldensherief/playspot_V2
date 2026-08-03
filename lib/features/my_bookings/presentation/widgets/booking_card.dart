@@ -1,5 +1,7 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
@@ -105,7 +107,7 @@ class BookingCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: AppButton(
-                    content: const ButtonContent(label: "Get Directions"),
+                    content: ButtonContent(label: AppStrings.getDirections.tr()),
                     behavior: ButtonBehavior.tap(onTap: () {}),
                     buttonConfig: ButtonConfig(
                       height: 45.h,
@@ -116,9 +118,9 @@ class BookingCard extends StatelessWidget {
                 ),
                 SizedBox(width: 12.w),
                 AppButton(
-                  content: const ButtonContent(
-
-                      label: "Cancel",),
+                  content: ButtonContent(
+                    label: AppStrings.cancel.tr(),
+                  ),
                   behavior: ButtonBehavior.tap(onTap: onCancel),
                   buttonConfig: ButtonConfig(
                     height: 45.h,
@@ -139,19 +141,19 @@ class BookingCard extends StatelessWidget {
   Widget _buildStatusBadge() {
     Color color;
     String text;
-    
+
     switch (booking.status) {
       case 'upcoming':
         color = AppColors.success;
-        text = "Confirmed";
+        text = AppStrings.confirmed.tr();
         break;
       case 'cancelled':
         color = AppColors.danger;
-        text = "Cancelled";
+        text = AppStrings.cancelled.tr();
         break;
       default:
         color = AppColors.textSecondary;
-        text = "Past";
+        text = AppStrings.past.tr();
     }
 
     return Container(
@@ -183,7 +185,7 @@ class BookingCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           AppText(
-            text: "Starts in ",
+            text: "${AppStrings.startsIn.tr()} ",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
           ),

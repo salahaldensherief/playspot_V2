@@ -54,9 +54,10 @@ class LoungeDetailsAppBar extends StatelessWidget {
                 ),
               ),
               if (lounge.images != null && lounge.images!.length > 1)
-                Positioned(
+                Positioned.directional(
+                  textDirection: Directionality.of(context),
                   top: 55.h,
-                  right: 16.w,
+                  end: 16.w,
                   child: Container(
                     padding:
                         EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
@@ -95,10 +96,11 @@ class LoungeDetailsAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
+              Positioned.directional(
+                textDirection: Directionality.of(context),
                 bottom: 45.h,
-                left: 16.w,
-                right: 16.w,
+                start: 16.w,
+                end: 16.w,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

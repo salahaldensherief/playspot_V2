@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,24 +27,24 @@ class ProfileScreen extends StatelessWidget {
         }
       },
       child: Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(20.w),
-              child: Column(
-                children: [
-                  const ProfileHeader(),
-                  SizedBox(height: 24.h),
-                  const ProfileStatsRow(),
-                  SizedBox(height: 30.h),
-                  const ProfileMenuSection(),
-                  SizedBox(height: 30.h),
-                  const LogoutButton(),
-                  SizedBox(height: 100.h),
-                ],
-              ),
+        backgroundColor: AppColors.scaffoldBackground,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              children: [
+                const ProfileHeader(),
+                SizedBox(height: 24.h),
+                const ProfileStatsRow(),
+                SizedBox(height: 30.h),
+                const ProfileMenuSection(),
+                SizedBox(height: 30.h),
+                const LogoutButton(),
+                SizedBox(height: 100.h),
+              ],
             ),
           ),
+        ),
       ),
     );
   }

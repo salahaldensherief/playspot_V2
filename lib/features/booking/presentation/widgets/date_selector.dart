@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 
@@ -99,7 +101,7 @@ class _DateItem extends StatelessWidget {
             if (isToday) ...[
               SizedBox(height: 4.h),
               AppText(
-                text: "Today",
+                text: AppStrings.today.tr(),
                 fontSize: 10.sp,
                 color: AppColors.neonBlue,
                 fontWeight: FontWeight.w600,

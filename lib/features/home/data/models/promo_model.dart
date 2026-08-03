@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 class PromoModel {
   final String id;
-  final String title;
-  final String tag;
+  final String titleAr;
+  final String titleEn;
+  final String tagAr;
+  final String tagEn;
   final List<String> hexColors;
   final String iconKey;
   final String? imageUrl;
@@ -12,13 +14,18 @@ class PromoModel {
 
   PromoModel({
     required this.id,
-    required this.title,
-    required this.tag,
+    required this.titleAr,
+    required this.titleEn,
+    required this.tagAr,
+    required this.tagEn,
     required this.hexColors,
     required this.iconKey,
     this.imageUrl,
     this.deepLink,
   });
+
+  String getTitle(bool isArabic) => isArabic ? titleAr : titleEn;
+  String getTag(bool isArabic) => isArabic ? tagAr : tagEn;
 
   List<Color> get colors {
     if (hexColors.isEmpty) {
@@ -62,8 +69,10 @@ class PromoModel {
   factory PromoModel.fromJson(Map<String, dynamic> json) {
     return PromoModel(
       id: json['id']?.toString() ?? '',
-      title: json['title']?.toString() ?? '',
-      tag: json['tag']?.toString() ?? '',
+      titleAr: json['title_ar']?.toString() ?? '',
+      titleEn: json['title_en']?.toString() ?? '',
+      tagAr: json['tag_ar']?.toString() ?? '',
+      tagEn: json['tag_en']?.toString() ?? '',
       hexColors: List<String>.from(json['colors'] ?? []),
       iconKey: json['icon_key']?.toString() ?? '',
       imageUrl: json['image_url'],

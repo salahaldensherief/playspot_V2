@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 
 class CategoryModel {
   final String id;
-  final String name;
+  final String nameAr;
+  final String nameEn;
   final String iconKey;
 
   CategoryModel({
     required this.id,
-    required this.name,
+    required this.nameAr,
+    required this.nameEn,
     required this.iconKey,
   });
+
+  String getName(bool isArabic) => isArabic ? nameAr : nameEn;
 
   IconData get icon {
     switch (iconKey) {
@@ -33,7 +37,8 @@ class CategoryModel {
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
+      nameAr: json['name_ar']?.toString() ?? '',
+      nameEn: json['name_en']?.toString() ?? '',
       iconKey: json['icon_key']?.toString() ?? '',
     );
   }

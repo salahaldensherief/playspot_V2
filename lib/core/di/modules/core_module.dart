@@ -4,6 +4,7 @@ import '../../cache/preference_manager.dart';
 import '../../services/supabase_storage_service.dart';
 import '../../services/social_auth_service.dart';
 import '../../services/location_service.dart';
+import '../../../art_core/cubit/locale_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -11,6 +12,9 @@ Future<void> initCoreModule() async {
   // Cache
   await PreferenceManager.init();
   sl.registerLazySingleton(() => PreferenceManager());
+
+  // Locale Cubit
+  sl.registerLazySingleton(() => LocaleCubit());
 
   // Supabase
   sl.registerLazySingleton<SupabaseClient>(

@@ -58,8 +58,8 @@ class SignUpForm extends StatelessWidget {
           _space(),
           AppTextField(
             controller: cubit.referralCodeController,
-            label: "Referral Code (Optional)",
-            hint: "Enter code to get bonus points",
+            label: AppStrings.referralCodeOptional.tr(),
+            hint: AppStrings.referralCodeHint.tr(),
             textInputType: TextInputType.text,
           ),
           _space(),

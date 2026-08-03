@@ -30,7 +30,7 @@ class BookingModel {
       id: json['id'].toString(),
       loungeName: json['lounges']['name'],
       loungeLocation: json['lounges']['location'],
-      roomName: json['rooms']['name'],
+      roomName: json['rooms']['name_en'] ?? json['rooms']['name'] ?? '',
       controllersCount: json['rooms']['controllers_count'] ?? 0,
       screenSize: json['rooms']['screen_size'] ?? '',
       date: DateTime.parse(json['date']),

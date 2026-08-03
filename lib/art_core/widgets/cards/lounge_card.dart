@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../text/app_text.dart';
 import '../layout/glass_container.dart';
@@ -53,24 +55,27 @@ class LoungeCard extends StatelessWidget {
                 ),
 
                 // Open/Closed Badge
-                Positioned(
+                Positioned.directional(
+                  textDirection: Directionality.of(context),
                   top: 12.h,
-                  right: 12.w,
+                  end: 12.w,
                   child: LoungeStatusBadge(isOpen: lounge.isOpen),
                 ),
 
                 // Favorite Toggle
-                Positioned(
+                Positioned.directional(
+                  textDirection: Directionality.of(context),
                   top: 12.h,
-                  left: 12.w,
+                  start: 12.w,
                   child: LoungeFavoriteButton(loungeId: lounge.id),
                 ),
 
                 // Distance Badge
                 if (lounge.distance > 0)
-                  Positioned(
+                  Positioned.directional(
+                    textDirection: Directionality.of(context),
                     bottom: 8.h,
-                    right: 8.w,
+                    end: 8.w,
                     child: Container(
                       padding:
                           EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -164,13 +169,13 @@ class LoungeCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               AppText(
-                text: "FROM ",
+                text: "${AppStrings.from.tr()} ",
                 fontSize: 8.sp,
                 color: AppColors.textSecondary,
               ),
               Flexible(
                 child: AppText(
-                  text: "${lounge.pricePerHour.toInt()} EGP",
+                  text: "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
                   fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.neonBlue,

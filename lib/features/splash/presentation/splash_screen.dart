@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -100,43 +101,46 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ScaleTransition(
-              scale: _scaleAnim,
-              child: Center(
-                child: LogoWidget(
-                  animate: true,
-                  color: AppColors.primary,
-                  fontSize: 50.w,
-                  width: 40.w,
-                  height: 40.h,
+    return Directionality(
+      textDirection: ui.TextDirection.ltr,
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ScaleTransition(
+                scale: _scaleAnim,
+                child: Center(
+                  child: LogoWidget(
+                    animate: true,
+                    color: AppColors.primary,
+                    fontSize: 50.w,
+                    width: 40.w,
+                    height: 40.h,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 8.h),
-            FadeTransition(
-              opacity: _fadeAnim,
-              child: Text(
-                AppStrings.bookPlayWin.tr(),
-                style: TextStyle(
-                  shadows: [
-                    Shadow(
-                      color: AppColors.primary.withOpacity(0.6),
-                      blurRadius: 8.r,
-                      offset: Offset(0, 0.h),
-                    ),
-                  ],
-                  color: AppColors.primary,
-                  fontSize: 18.sp,
+              SizedBox(height: 8.h),
+              FadeTransition(
+                opacity: _fadeAnim,
+                child: Text(
+                  "Book, Play & Win",
+                  style: TextStyle(
+                    shadows: [
+                      Shadow(
+                        color: AppColors.primary.withValues(alpha: 0.6),
+                        blurRadius: 8.r,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
+                    color: AppColors.primary,
+                    fontSize: 18.sp,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

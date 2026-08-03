@@ -80,7 +80,7 @@ class CheckoutScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSummaryCard(),
+                _buildSummaryCard(context),
                 SizedBox(height: 24.h),
                 AppText(
                   text: AppStrings.paymentMethod.tr(),
@@ -104,7 +104,7 @@ class CheckoutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCard() {
+  Widget _buildSummaryCard(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -124,7 +124,7 @@ class CheckoutScreen extends StatelessWidget {
           SizedBox(height: 4.h),
           AppText(
             text:
-                "${room.name} · ${room.controllersCount} ${AppStrings.controllers.tr()} · ${room.screenSize} ${AppStrings.screen.tr()} · ${room.capacity} Persons",
+                "${room.getName(context.locale.languageCode == 'ar')} · ${room.controllersCount} ${AppStrings.controllers.tr()} · ${room.screenSize} ${AppStrings.screen.tr()} · ${room.capacity} Persons",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
           ),
@@ -134,8 +134,8 @@ class CheckoutScreen extends StatelessWidget {
           InfoRow(
               label: AppStrings.startTime.tr(), value: startTime.toAppTimeString()),
           InfoRow(
-              label: "Duration",
-              value: "$duration hour${duration > 1 ? 's' : ''}"),
+              label: AppStrings.duration.tr(),
+              value: AppStrings.hour.tr(args: [duration.toString()])),
           if (addOns.isNotEmpty) ...[
             SizedBox(height: 16.h),
             AppText(
@@ -290,7 +290,7 @@ class CheckoutScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AppText(
-              text: "Card Details",
+              text: AppStrings.cardDetails.tr(),
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.white,

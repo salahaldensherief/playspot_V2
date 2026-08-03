@@ -263,15 +263,14 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      await _supabase.auth.signInWithOtp(
-        email: email,
-        shouldCreateUser: false,
-        emailRedirectTo: null,
-      );
+      debugPrint(' [Auth] Sending reset email to: $email');
+      await _supabase.auth.resetPasswordForEmail(email);
     } on AuthException catch (e) {
+      debugPrint(' [Auth] AuthException sending reset email: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      throw AppException(e.toString());
+      debugPrint(' [Auth] Unexpected error sending reset email: $e');
+      throw AppException('An unexpected error occurred while sending the code.');
     }
   }
 
@@ -281,15 +280,18 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     required String otp,
   }) async {
     try {
+      debugPrint(' [Auth] Verifying recovery OTP for: $email');
       await _supabase.auth.verifyOTP(
         email: email,
         token: otp,
-        type: OtpType.email,
+        type: OtpType.recovery,
       );
     } on AuthException catch (e) {
+      debugPrint(' [Auth] AuthException verifying OTP: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      throw AppException(e.toString());
+      debugPrint(' [Auth] Unexpected error verifying OTP: $e');
+      throw AppException('Invalid or expired code.');
     }
   }
 

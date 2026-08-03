@@ -67,7 +67,7 @@ class LoungeDetailsScreen extends StatelessWidget {
             LoungeDetailsBottomBar(lounge: lounge),
           ],
         ),
-    ),
-  );
-}
+      ),
+    );
   }
+}

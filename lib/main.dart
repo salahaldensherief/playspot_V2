@@ -2,12 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/cubit/locale_cubit.dart';
 
 import 'art_core/router/AppRouter.dart';
 import 'core/di.dart';
-import 'core/di/modules/auth_module.dart';
 import 'features/favorites/presentation/favorites_cubit.dart';
 import 'features/profile/presentation/profile_cubit.dart';
 
@@ -17,15 +18,14 @@ void main() async {
   await init();
   await initSupabase();
 
-
   runApp(
     EasyLocalization(
       supportedLocales: const [
         Locale('en'),
+        Locale('ar'),
       ],
       path: 'assets/lang',
       fallbackLocale: const Locale('en'),
-      startLocale: const Locale('en'),
       child: const MyApp(),
     ),
   );
@@ -50,25 +50,31 @@ class _MyAppState extends State<MyApp> {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider(
-              create: (context) => sl<FavoritesCubit>()..getFavoriteIds(),
-            ),
-            BlocProvider(
-              create: (context) => sl<ProfileCubit>()..getUserData(),
-            ),
+            BlocProvider(create: (_) => sl<LocaleCubit>()),
+            BlocProvider(create: (_) => sl<FavoritesCubit>()..getFavoriteIds()),
+            BlocProvider(create: (_) => sl<ProfileCubit>()..getUserData()),
           ],
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: false,
-            title: 'PlaySpot',
-            locale: context.locale,
-            supportedLocales: context.supportedLocales,
-            localizationsDelegates: context.localizationDelegates,
-            theme: ThemeData(
-              useMaterial3: false,
-              scaffoldBackgroundColor: AppColors.scaffoldBackground,
-              fontFamily: 'Orbitron',
-            ),
-            routerConfig: _appRouter.router,
+          child: BlocBuilder<LocaleCubit, Locale>(
+            builder: (context, locale) {
+              return MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                title: 'PlaySpot',
+                locale: context.locale,
+                supportedLocales: context.supportedLocales,
+                localizationsDelegates: [
+                  ...context.localizationDelegates,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                theme: ThemeData(
+                  useMaterial3: false,
+                  scaffoldBackgroundColor: AppColors.scaffoldBackground,
+                  fontFamily: locale.languageCode == 'ar' ? 'Cairo' : 'Orbitron',
+                ),
+                routerConfig: _appRouter.router,
+              );
+            },
           ),
         );
       },
