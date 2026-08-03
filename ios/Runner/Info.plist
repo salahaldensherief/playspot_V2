@@ -61,7 +61,7 @@
 
     <!-- مهم جداً -->
     <key>GIDClientID</key>
-    <string>1070210806389-o8gnmeqe0bbritv4ckg14p5cdlqck165.apps.googleusercontent.com</string>
+    <string>304793073372-7eipb31om1ge4pn0rtkioecv8a3g5rvo.apps.googleusercontent.com</string>
 
     <!-- URL Schemes -->
     <key>CFBundleURLTypes</key>
@@ -85,7 +85,7 @@
 
             <key>CFBundleURLSchemes</key>
             <array>
-            <string>com.googleusercontent.apps.1070210806389-o8gnmeqe0bbritv4ckg14p5cdlqck165</string>
+            <string>com.googleusercontent.apps.304793073372-7eipb31om1ge4pn0rtkioecv8a3g5rvo</string>
             </array>
         </dict>
 
