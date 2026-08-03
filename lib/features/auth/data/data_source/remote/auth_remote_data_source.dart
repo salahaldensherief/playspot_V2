@@ -18,6 +18,7 @@ abstract class AuthRemoteSource {
     required String name,
     required String phone,
     File? avatarFile,
+    String? referralCode,
   });
   Future<UserModel> signInWithGoogle();
   Future<UserModel> signInWithFacebook();
@@ -77,6 +78,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     required String name,
     required String phone,
     File? avatarFile,
+    String? referralCode,
   }) async {
     try {
       final response = await _supabase.auth.signUp(
@@ -104,6 +106,25 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'avatar_url': avatarUrl,
         'is_banned': false,
       });
+
+      if (referralCode != null && referralCode.trim().isNotEmpty) {
+        try {
+          final referrer = await _supabase
+              .from('users')
+              .select('id')
+              .eq('referral_code', referralCode.trim())
+              .maybeSingle();
+
+          if (referrer != null) {
+            await _supabase.from('referrals').insert({
+              'referrer_id': referrer['id'],
+              'referred_id': userId,
+            });
+          }
+        } catch (e) {
+          debugPrint(' [Referral] Error processing referral: $e');
+        }
+      }
 
       return UserModel.fromSupabaseUser(
         response.user!.toJson(),

@@ -15,6 +15,7 @@ class SignupCubit extends Cubit<SignupState> {
   final TextEditingController emailController    = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController    = TextEditingController();
+  final TextEditingController referralCodeController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   File? avatarFile;
@@ -53,6 +54,7 @@ class SignupCubit extends Cubit<SignupState> {
       name: nameController.text.trim(),
       phone: phoneController.text.trim(),
       avatarFile: avatarFile,
+      referralCode: referralCodeController.text.trim(),
     );
 
     result.fold(
@@ -157,6 +159,7 @@ class SignupCubit extends Cubit<SignupState> {
     emailController.clear();
     passwordController.clear();
     phoneController.clear();
+    referralCodeController.clear();
     avatarFile = null;
     emit(SignupState.init());
   }
@@ -167,6 +170,7 @@ class SignupCubit extends Cubit<SignupState> {
     emailController.dispose();
     passwordController.dispose();
     phoneController.dispose();
+    referralCodeController.dispose();
     return super.close();
   }
 }

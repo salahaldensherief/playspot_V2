@@ -34,6 +34,12 @@ class ProfileMenuSection extends StatelessWidget {
             showBorder: true,
           ),
           _buildMenuItem(
+            icon: TablerIcons.stars,
+            title: "Redeem Points",
+            onTap: () => context.pushNamed(RouterKeys.redeemPoints),
+            showBorder: true,
+          ),
+          _buildMenuItem(
             icon: TablerIcons.credit_card,
             title: AppStrings.paymentMethods.tr(),
             onTap: () {},

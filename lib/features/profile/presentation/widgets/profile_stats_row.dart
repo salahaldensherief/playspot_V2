@@ -10,41 +10,47 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../../../../art_core/router/router_keys.dart';
 import '../../../favorites/presentation/favorites_cubit.dart';
 import '../../../favorites/presentation/favorites_state.dart';
+import '../profile_cubit.dart';
+import '../profile_state.dart';
 
 class ProfileStatsRow extends StatelessWidget {
   const ProfileStatsRow({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildStatCard(
-          TablerIcons.calendar,
-          "12",
-          AppStrings.totalBookings.tr(),
-          AppColors.neonBlue,
-        ),
-        _buildStatCard(
-          TablerIcons.clock,
-          "48",
-          AppStrings.hoursPlayed.tr(),
-          AppColors.neonPurple,
-        ),
-        BlocBuilder<FavoritesCubit, FavoritesState>(
-          builder: (context, state) {
-            return GestureDetector(
-              onTap: () => context.pushNamed(RouterKeys.favorites),
-              child: _buildStatCard(
-                TablerIcons.heart,
-                state.favoriteIds.length.toString(),
-                AppStrings.favorite.tr(),
-                AppColors.danger,
-              ),
-            );
-          },
-        ),
-      ],
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildStatCard(
+              TablerIcons.calendar,
+              "12",
+              AppStrings.totalBookings.tr(),
+              AppColors.neonBlue,
+            ),
+            _buildStatCard(
+              TablerIcons.stars,
+              state.pointsBalance.toString(),
+              "Points Balance",
+              AppColors.warning,
+            ),
+            BlocBuilder<FavoritesCubit, FavoritesState>(
+              builder: (context, favoritesState) {
+                return GestureDetector(
+                  onTap: () => context.pushNamed(RouterKeys.favorites),
+                  child: _buildStatCard(
+                    TablerIcons.heart,
+                    favoritesState.favoriteIds.length.toString(),
+                    AppStrings.favorite.tr(),
+                    AppColors.danger,
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 

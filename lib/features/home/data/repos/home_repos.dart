@@ -15,12 +15,18 @@ abstract class HomeRepository {
   Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities();
   Future<Either<Failure, List<PromoModel>>> getPromotions();
   Future<Either<Failure, List<CategoryModel>>> getCategories();
+  Future<Either<Failure, int>> getUserPoints(String userId);
 }
 
 class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   final HomeRemoteDataSource _remoteDataSource;
 
   HomeRepositoryImpl(this._remoteDataSource);
+
+  @override
+  Future<Either<Failure, int>> getUserPoints(String userId) async {
+    return await callRepository(() => _remoteDataSource.getUserPoints(userId));
+  }
 
   @override
   Future<Either<Failure, List<LoungeModel>>> getLounges({

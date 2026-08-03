@@ -12,8 +12,9 @@ import '../../../features/home/data/models/lounge_model.dart';
 class LoungeCard extends StatelessWidget {
   final LoungeModel lounge;
   final VoidCallback? onTap;
+  final String? heroTag;
 
-  const LoungeCard({super.key, required this.lounge, this.onTap});
+  const LoungeCard({super.key, required this.lounge, this.onTap, this.heroTag});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class LoungeCard extends StatelessWidget {
                   borderRadius:
                       BorderRadius.vertical(top: Radius.circular(24.r)),
                   child: Hero(
-                    tag: 'lounge_image_${lounge.id}',
+                    tag: heroTag ?? 'lounge_image_${lounge.id}',
                     child: CachedNetworkImage(
                       imageUrl: "${lounge.imageUrl}?width=400&quality=80",
                       height: 130.h,

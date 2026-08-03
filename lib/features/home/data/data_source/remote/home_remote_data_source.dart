@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/lounge_model.dart';
 import '../../models/promo_model.dart';
@@ -8,6 +9,7 @@ abstract class HomeRemoteDataSource {
   Future<List<Map<String, dynamic>>> getAvailableCities();
   Future<List<PromoModel>> getPromotions();
   Future<List<CategoryModel>> getCategories();
+  Future<int> getUserPoints(String userId);
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
@@ -15,8 +17,22 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   HomeRemoteDataSourceImpl(this._client);
 
   @override
+  Future<int> getUserPoints(String userId) async {
+    try {
+      final response = await _client.rpc('get_user_points_balance', params: {
+        'p_user_id': userId,
+      });
+      return response as int? ?? 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  @override
   Future<List<LoungeModel>> getLounges({double? lat, double? lng, String? city}) async {
     try {
+      dev.log("FETCHING_LOUNGES: city=$city, lat=$lat, lng=$lng");
+      
       final response = await _client.rpc('get_smart_filtered_lounges', params: {
         'user_lat': lat,
         'user_lng': lng,
@@ -24,14 +40,24 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       });
 
       List lounges = response as List;
+      dev.log("RPC_RESULTS_COUNT: ${lounges.length}");
       
-      if (lounges.isEmpty) {
-        final fallback = await _client.from('lounges').select();
+      // If a city is explicitly selected but RPC returned nothing (could be distance limit issue)
+      if (lounges.isEmpty && city != null && city.isNotEmpty) {
+        dev.log("FALLBACK: Fetching lounges directly for city: $city");
+        final fallback = await _client.from('lounges').select().eq('city', city);
         lounges = fallback as List;
+      }
+      
+      // General fallback if everything is empty
+      if (lounges.isEmpty && (city == null || city.isEmpty)) {
+        final all = await _client.from('lounges').select();
+        lounges = all as List;
       }
 
       return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
     } catch (e) {
+      dev.log("FETCH_LOUNGES_CRITICAL_ERROR: $e");
       final fallback = await _client.from('lounges').select();
       return (fallback as List).map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
     }

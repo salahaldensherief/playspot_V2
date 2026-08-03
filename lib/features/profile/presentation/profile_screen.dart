@@ -19,15 +19,13 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: sl<ProfileCubit>()..getUserData(),
-      child: BlocListener<ProfileCubit, ProfileState>(
-        listener: (context, state) {
-          if (state.status == ProfileStatus.logoutSuccess) {
-            context.goNamed(RouterKeys.signIn);
-          }
-        },
-        child: Scaffold(
+    return BlocListener<ProfileCubit, ProfileState>(
+      listener: (context, state) {
+        if (state.status == ProfileStatus.logoutSuccess) {
+          context.goNamed(RouterKeys.signIn);
+        }
+      },
+      child: Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
           body: SafeArea(
             child: SingleChildScrollView(
@@ -46,7 +44,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-        ),
       ),
     );
   }

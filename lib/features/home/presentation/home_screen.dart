@@ -97,6 +97,7 @@ class _HomeViewState extends State<_HomeView> {
                           currentLocation: state.currentAddress ?? currentLocation,
                           cities: state.availableCities,
                           selectedCity: state.selectedCity,
+                          pointsBalance: state.pointsBalance,
                           onCitySelected: (city) =>
                               context.read<HomeCubit>().selectCity(city),
                         );
@@ -188,12 +189,18 @@ class _LoungeList extends StatelessWidget {
               mainAxisExtent: 260.h,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
+              final lounge = lounges[index];
+              final heroTag = 'lounge_${lounge.id}_${isNearest ? "near" : "top"}';
               return LoungeCard(
-                lounge: lounges[index],
+                lounge: lounge,
+                heroTag: heroTag,
                 onTap: () {
                   context.pushNamed(
                     RouterKeys.loungeDetails,
-                    extra: lounges[index],
+                    extra: {
+                      'lounge': lounge,
+                      'heroTag': heroTag,
+                    },
                   );
                 },
               );

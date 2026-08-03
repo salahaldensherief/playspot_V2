@@ -4,6 +4,7 @@ import '../../../../core/cache/preference_manager.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../models/redemption_option_model.dart';
 import '../data_source/remote/profile_remote_data_source.dart';
 
 abstract class ProfileRepository {
@@ -14,6 +15,9 @@ abstract class ProfileRepository {
     File? avatarFile,
   });
   UserModel? getCurrentUser();
+  Future<Either<Failure, int>> getPointsBalance();
+  Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions();
+  Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId);
 }
 
 class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
@@ -21,6 +25,21 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   final PreferenceManager _preferenceManager;
 
   ProfileRepositoryImpl(this._remoteSource, this._preferenceManager);
+
+  @override
+  Future<Either<Failure, int>> getPointsBalance() async {
+    return await callRepository(() => _remoteSource.getPointsBalance());
+  }
+
+  @override
+  Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions() async {
+    return await callRepository(() => _remoteSource.getRedemptionOptions());
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId) async {
+    return await callRepository(() => _remoteSource.redeemPoints(optionId));
+  }
 
   void _saveUserData(UserModel user) {
     _preferenceManager.saveUserId(user.id);

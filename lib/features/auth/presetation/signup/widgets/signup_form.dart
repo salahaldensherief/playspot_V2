@@ -56,6 +56,13 @@ class SignUpForm extends StatelessWidget {
             validator: AppValidators.validatePassword,
           ),
           _space(),
+          AppTextField(
+            controller: cubit.referralCodeController,
+            label: "Referral Code (Optional)",
+            hint: "Enter code to get bonus points",
+            textInputType: TextInputType.text,
+          ),
+          _space(),
         ],
       ),
     );

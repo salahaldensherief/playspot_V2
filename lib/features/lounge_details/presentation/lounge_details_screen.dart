@@ -19,8 +19,9 @@ import 'widgets/lounge_details_bottom_bar.dart';
 
 class LoungeDetailsScreen extends StatelessWidget {
   final LoungeModel lounge;
+  final String? heroTag;
 
-  const LoungeDetailsScreen({super.key, required this.lounge});
+  const LoungeDetailsScreen({super.key, required this.lounge, this.heroTag});
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +46,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                   return CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
-                      LoungeDetailsAppBar(lounge: displayLounge),
+                      LoungeDetailsAppBar(lounge: displayLounge, heroTag: heroTag),
                       LoungeInfoSection(lounge: displayLounge),
                       const CategorySelector(),
                       const SliverSectionHeader(title: AppStrings.selectDate),

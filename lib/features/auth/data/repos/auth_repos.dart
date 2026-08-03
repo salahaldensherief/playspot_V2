@@ -19,6 +19,7 @@ abstract class AuthRepository {
     required String name,
     required String phone,
     File? avatarFile,
+    String? referralCode,
   });
   Future<Either<Failure, UserModel>> completeProfile({
     required String userId,
@@ -60,6 +61,7 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
     required String name,
     required String phone,
     File? avatarFile,
+    String? referralCode,
   }) async {
     return await callRepository(() async {
       final user = await _remoteSource.signUpWithEmail(
@@ -68,6 +70,7 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
         name: name,
         phone: phone,
         avatarFile: avatarFile,
+        referralCode: referralCode,
       );
       await _localDataSource.saveUserData(user);
       return user;

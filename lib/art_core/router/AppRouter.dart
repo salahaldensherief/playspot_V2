@@ -26,6 +26,7 @@ import '../../features/lounge_details/presentation/lounge_details_screen.dart';
 import '../../features/main/presentation/main_screen.dart';
 import '../../features/my_bookings/presentation/my_bookings_screen.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
+import '../../features/profile/presentation/redeem_points/redeem_points_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -191,11 +192,21 @@ class AppRouter {
         path: RouterKeys.loungeDetails,
         name: RouterKeys.loungeDetails,
         pageBuilder: (context, state) {
-          final lounge = state.extra as LoungeModel;
+          LoungeModel lounge;
+          String? heroTag;
+          
+          if (state.extra is LoungeModel) {
+            lounge = state.extra as LoungeModel;
+          } else {
+            final map = state.extra as Map<String, dynamic>;
+            lounge = map['lounge'] as LoungeModel;
+            heroTag = map['heroTag'] as String?;
+          }
+          
           return _buildPageWithTransition(
             context: context,
             state: state,
-            child: LoungeDetailsScreen(lounge: lounge),
+            child: LoungeDetailsScreen(lounge: lounge, heroTag: heroTag),
           );
         },
       ),
@@ -256,6 +267,15 @@ class AppRouter {
           context: context,
           state: state,
           child: const EditProfileScreen(),
+        ),
+      ),
+      GoRoute(
+        path: RouterKeys.redeemPoints,
+        name: RouterKeys.redeemPoints,
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          context: context,
+          state: state,
+          child: const RedeemPointsScreen(),
         ),
       ),
       GoRoute(

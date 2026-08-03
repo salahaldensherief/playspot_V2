@@ -12,8 +12,9 @@ import '../../../home/data/models/lounge_model.dart';
 
 class LoungeDetailsAppBar extends StatelessWidget {
   final LoungeModel lounge;
+  final String? heroTag;
 
-  const LoungeDetailsAppBar({super.key, required this.lounge});
+  const LoungeDetailsAppBar({super.key, required this.lounge, this.heroTag});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +47,7 @@ class LoungeDetailsAppBar extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               Hero(
-                tag: 'lounge_image_${lounge.id}',
+                tag: heroTag ?? 'lounge_image_${lounge.id}',
                 child: CachedNetworkImage(
                   imageUrl: lounge.imageUrl,
                   fit: BoxFit.cover,

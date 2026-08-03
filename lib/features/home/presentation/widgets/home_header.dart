@@ -11,6 +11,7 @@ class HomeHeader extends StatelessWidget {
   final String currentLocation;
   final List<Map<String, dynamic>> cities;
   final String? selectedCity;
+  final int pointsBalance;
   final Function(String?) onCitySelected;
 
   const HomeHeader({
@@ -19,6 +20,7 @@ class HomeHeader extends StatelessWidget {
     required this.currentLocation,
     required this.cities,
     required this.selectedCity,
+    required this.pointsBalance,
     required this.onCitySelected,
   });
 
@@ -100,7 +102,7 @@ class HomeHeader extends StatelessWidget {
             Icon(Icons.stars_rounded, color: AppColors.warning, size: 16.sp),
             SizedBox(width: 6.w),
             AppText(
-              text: "1,250 XP",
+              text: "$pointsBalance PTS",
               fontSize: 12.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,

@@ -9,6 +9,7 @@ import 'art_core/router/AppRouter.dart';
 import 'core/di.dart';
 import 'core/di/modules/auth_module.dart';
 import 'features/favorites/presentation/favorites_cubit.dart';
+import 'features/profile/presentation/profile_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +52,9 @@ class _MyAppState extends State<MyApp> {
           providers: [
             BlocProvider(
               create: (context) => sl<FavoritesCubit>()..getFavoriteIds(),
+            ),
+            BlocProvider(
+              create: (context) => sl<ProfileCubit>()..getUserData(),
             ),
           ],
           child: MaterialApp.router(

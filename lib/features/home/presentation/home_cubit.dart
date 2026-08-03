@@ -22,18 +22,24 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> init() async {
     emit(state.copyWith(status: HomeStatus.loading));
     
+    final pref = sl<PreferenceManager>();
+    final userId = pref.userId();
+
     final meta = await Future.wait([
       _homeRepository.getAvailableCities(),
       _homeRepository.getPromotions(),
       _homeRepository.getCategories(),
+      if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
     ]);
 
     final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>).fold((l) => [], (r) => r);
+    final points = meta.length > 3 ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r) : 0;
     
     emit(state.copyWith(
       availableCities: cities as List<Map<String, dynamic>>,
       promotions: (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => [], (r) => r),
       categories: (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => [], (r) => r),
+      pointsBalance: points,
     ));
 
     await _detectLocation(cities);
@@ -42,10 +48,17 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> getHomeData() async {
     final pref = sl<PreferenceManager>();
+    final userId = pref.userId();
     final lat = double.tryParse(pref.latitude());
     final lng = double.tryParse(pref.longitude());
 
-    final res = await _homeRepository.getLounges(lat: lat, lng: lng, city: state.selectedCity);
+    final results = await Future.wait([
+      _homeRepository.getLounges(lat: lat, lng: lng, city: state.selectedCity),
+      if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
+    ]);
+
+    final res = results[0] as Either<Failure, List<LoungeModel>>;
+    final points = results.length > 1 ? (results[1] as Either<Failure, int>).fold((l) => state.pointsBalance, (r) => r) : state.pointsBalance;
 
     res.fold(
       (f) => emit(state.copyWith(status: HomeStatus.failure)),
@@ -55,6 +68,7 @@ class HomeCubit extends Cubit<HomeState> {
           status: HomeStatus.success,
           nearestLounges: lounges,
           topRatedLounges: top.take(5).toList(),
+          pointsBalance: points,
         ));
       },
     );
@@ -71,11 +85,31 @@ class HomeCubit extends Cubit<HomeState> {
     final address = await _locationService.getAddressFromLatLng(pos.latitude, pos.longitude);
     if (address == null) return;
 
+    final lowerAddress = address.toLowerCase();
+    final isInEgypt = lowerAddress.contains("egypt") || lowerAddress.contains("مصر");
+    
     await pref.saveValue('CURRENT_ADDRESS', address);
-    final city = address.split(',').last.trim();
-    final supported = cities.any((c) => c['city'].toString().toLowerCase() == city.toLowerCase());
+    
+    String? matchedCity;
+    for (var c in cities) {
+      final cityName = c['city'].toString();
+      if (lowerAddress.contains(cityName.toLowerCase())) {
+        matchedCity = cityName;
+        break;
+      }
+    }
 
-    emit(state.copyWith(selectedCity: supported ? city : null, currentAddress: address));
+    String displayLocation = address;
+    if (isInEgypt) {
+      final parts = address.split(',');
+      final area = parts.first.trim();
+      displayLocation = "$area, Egypt";
+    }
+
+    emit(state.copyWith(
+      selectedCity: matchedCity, 
+      currentAddress: displayLocation
+    ));
   }
 
   void startLocationListening() {
@@ -92,7 +126,9 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> selectCity(String? city) async {
     if (city == state.selectedCity) return;
-    emit(city == null || city.isEmpty ? state.copyWith(clearCity: true) : state.copyWith(selectedCity: city));
+    emit(city == null || city.isEmpty 
+        ? state.copyWith(clearCity: true, status: HomeStatus.loading) 
+        : state.copyWith(selectedCity: city, status: HomeStatus.loading));
     await getHomeData();
   }
 

@@ -1,26 +1,36 @@
 import '../../auth/data/models/user_model.dart';
 
-enum ProfileStatus { initial, loading, success, error, logoutSuccess }
+import '../data/models/redemption_option_model.dart';
+
+enum ProfileStatus { initial, loading, success, error, logoutSuccess, redeemSuccess }
 
 class ProfileState {
   final ProfileStatus status;
   final UserModel? user;
+  final int pointsBalance;
+  final List<RedemptionOptionModel> redemptionOptions;
   final String? errorMessage;
 
   ProfileState({
     this.status = ProfileStatus.initial,
     this.user,
+    this.pointsBalance = 0,
+    this.redemptionOptions = const [],
     this.errorMessage,
   });
 
   ProfileState copyWith({
     ProfileStatus? status,
     UserModel? user,
+    int? pointsBalance,
+    List<RedemptionOptionModel>? redemptionOptions,
     String? errorMessage,
   }) {
     return ProfileState(
       status: status ?? this.status,
       user: user ?? this.user,
+      pointsBalance: pointsBalance ?? this.pointsBalance,
+      redemptionOptions: redemptionOptions ?? this.redemptionOptions,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }

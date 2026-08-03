@@ -88,12 +88,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final lounge = state.favoriteLounges[index];
+                        final heroTag = 'lounge_${lounge.id}_fav';
                         return LoungeCard(
                           lounge: lounge,
+                          heroTag: heroTag,
                           onTap: () {
                             context.pushNamed(
                               RouterKeys.loungeDetails,
-                              extra: lounge,
+                              extra: {
+                                'lounge': lounge,
+                                'heroTag': heroTag,
+                              },
                             );
                           },
                         );

@@ -12,6 +12,7 @@ class HomeState extends Equatable {
   final List<PromoModel> promotions;
   final List<CategoryModel> categories;
   final List<Map<String, dynamic>> availableCities;
+  final int pointsBalance;
   final String? selectedCity;
   final String? currentAddress;
   final String? errorMessage;
@@ -23,6 +24,7 @@ class HomeState extends Equatable {
     this.promotions = const [],
     this.categories = const [],
     this.availableCities = const [],
+    this.pointsBalance = 0,
     this.selectedCity,
     this.currentAddress,
     this.errorMessage,
@@ -35,6 +37,7 @@ class HomeState extends Equatable {
     List<PromoModel>? promotions,
     List<CategoryModel>? categories,
     List<Map<String, dynamic>>? availableCities,
+    int? pointsBalance,
     String? selectedCity,
     String? currentAddress,
     String? errorMessage,
@@ -47,6 +50,7 @@ class HomeState extends Equatable {
       promotions: promotions ?? this.promotions,
       categories: categories ?? this.categories,
       availableCities: availableCities ?? this.availableCities,
+      pointsBalance: pointsBalance ?? this.pointsBalance,
       selectedCity: clearCity ? null : (selectedCity ?? this.selectedCity),
       currentAddress: currentAddress ?? this.currentAddress,
       errorMessage: errorMessage ?? this.errorMessage,
@@ -61,6 +65,7 @@ class HomeState extends Equatable {
         promotions,
         categories,
         availableCities,
+        pointsBalance,
         selectedCity,
         currentAddress,
         errorMessage,

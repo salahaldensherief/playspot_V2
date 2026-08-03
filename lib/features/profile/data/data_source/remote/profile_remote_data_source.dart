@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../auth/data/models/user_model.dart';
+import '../../models/redemption_option_model.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> updateProfile({
@@ -13,6 +14,9 @@ abstract class ProfileRemoteDataSource {
     File? avatarFile,
   });
   UserModel? getCurrentUser();
+  Future<int> getPointsBalance();
+  Future<List<RedemptionOptionModel>> getRedemptionOptions();
+  Future<Map<String, dynamic>> redeemPoints(String optionId);
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -20,6 +24,50 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final StorageService _storageService;
 
   ProfileRemoteDataSourceImpl(this._supabase, this._storageService);
+
+  @override
+  Future<int> getPointsBalance() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return 0;
+      final response = await _supabase.rpc('get_user_points_balance', params: {
+        'p_user_id': user.id,
+      });
+      return response as int? ?? 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  @override
+  Future<List<RedemptionOptionModel>> getRedemptionOptions() async {
+    try {
+      final response = await _supabase
+          .from('redemption_options')
+          .select()
+          .eq('is_active', true);
+      return (response as List)
+          .map((e) => RedemptionOptionModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> redeemPoints(String optionId) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) throw const UserNotFoundException();
+      final response = await _supabase.rpc('redeem_points', params: {
+        'p_user_id': user.id,
+        'p_redemption_option_id': optionId,
+      });
+      return Map<String, dynamic>.from(response);
+    } catch (e) {
+      return {'success': false, 'error': e.toString()};
+    }
+  }
 
   @override
   Future<UserModel> updateProfile({

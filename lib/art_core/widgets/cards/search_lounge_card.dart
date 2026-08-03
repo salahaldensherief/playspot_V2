@@ -15,11 +15,15 @@ class SearchLoungeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final heroTag = 'lounge_${lounge.id}_search';
     return GestureDetector(
       onTap: () {
         context.pushNamed(
           RouterKeys.loungeDetails,
-          extra: lounge,
+          extra: {
+            'lounge': lounge,
+            'heroTag': heroTag,
+          },
         );
       },
       child: Container(
@@ -35,7 +39,7 @@ class SearchLoungeCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(15.r),
               child: Hero(
-                tag: 'lounge_image_${lounge.id}',
+                tag: heroTag,
                 child: CachedNetworkImage(
                   imageUrl: lounge.imageUrl,
                   width: 140.w,
