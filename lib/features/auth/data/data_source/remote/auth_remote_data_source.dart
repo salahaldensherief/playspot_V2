@@ -35,6 +35,7 @@ abstract class AuthRemoteSource {
     required String otp,
   });
   Future<void> resetPassword(String newPassword);
+  Future<void> deleteAccount();
 }
 
 class AuthRemoteSourceImpl implements AuthRemoteSource {
@@ -304,6 +305,23 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     } on AuthException catch (e) {
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
+      throw AppException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      debugPrint(' [Auth] Attempting to delete account via RPC...');
+      await _supabase.rpc('delete_user_account');
+      debugPrint(' [Auth] RPC delete_user_account executed successfully.');
+      await signOut();
+      debugPrint(' [Auth] Signed out after deletion.');
+    } on AuthException catch (e) {
+      debugPrint(' [Auth] AuthException during deletion: ${e.message}');
+      throw AppException(e.message, code: e.statusCode);
+    } catch (e) {
+      debugPrint(' [Auth] Unexpected error during deletion: $e');
       throw AppException(e.toString());
     }
   }

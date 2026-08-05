@@ -30,6 +30,8 @@ import '../../features/my_bookings/presentation/my_bookings_screen.dart';
 import '../../features/lounge_details/presentation/reviews/all_reviews_screen.dart';
 import '../../features/notifications/presentation/cubit/notifications_cubit.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/profile/presentation/notification_settings/notification_settings_screen.dart';
+import '../../features/profile/presentation/terms_and_conditions/terms_and_conditions_screen.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 import '../../features/profile/presentation/redeem_points/redeem_points_screen.dart';
 
@@ -313,6 +315,15 @@ class AppRouter {
             ),
           ),
           GoRoute(
+            path: RouterKeys.notificationSettings,
+            name: RouterKeys.notificationSettings,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const NotificationSettingsScreen(),
+            ),
+          ),
+          GoRoute(
             path: RouterKeys.allReviews,
             name: RouterKeys.allReviews,
             pageBuilder: (context, state) {
@@ -330,6 +341,15 @@ class AppRouter {
               );
             },
           ),
+          GoRoute(
+            path: RouterKeys.termsAndConditions,
+            name: RouterKeys.termsAndConditions,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const TermsAndConditionsScreen(),
+            ),
+          )
         ],
       ),
     ],

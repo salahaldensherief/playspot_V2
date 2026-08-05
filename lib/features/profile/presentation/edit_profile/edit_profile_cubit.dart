@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../data/repos/profile_repo.dart';
+import '../../../../core/di/modules/auth_module.dart';
+import '../../../auth/data/repos/auth_repos.dart';
 import 'edit_profile_state.dart';
 
 class EditProfileCubit extends Cubit<EditProfileState> {
   final ProfileRepository _profileRepository;
+  final AuthRepository _authRepository;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -15,7 +18,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
 
   File? avatarFile;
 
-  EditProfileCubit(this._profileRepository) : super(EditProfileState());
+  EditProfileCubit(this._profileRepository, this._authRepository) : super(EditProfileState());
 
   void init() {
     final user = _profileRepository.getCurrentUser();
@@ -54,6 +57,19 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         status: EditProfileStatus.success,
         user: user,
       )),
+    );
+  }
+
+  Future<void> deleteAccount() async {
+    emit(state.copyWith(status: EditProfileStatus.loading));
+    final result = await _authRepository.deleteAccount();
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        status: EditProfileStatus.error,
+        errorMessage: failure.message,
+      )),
+      (_) => emit(state.copyWith(status: EditProfileStatus.accountDeleted)),
     );
   }
 

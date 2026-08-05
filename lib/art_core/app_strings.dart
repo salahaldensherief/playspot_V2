@@ -169,6 +169,7 @@ class AppStrings {
   static const String searchingLocation = "searchingLocation";
   static const String retry = "retry";
   static const String somethingWentWrong = "somethingWentWrong";
+  static const String errorLoadingRooms = "errorLoadingRooms";
   static const String noNotificationsYet = "noNotificationsYet";
   static const String noNotificationsDesc = "noNotificationsDesc";
   static const String active = "active";

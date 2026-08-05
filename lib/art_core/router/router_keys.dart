@@ -19,5 +19,7 @@ class RouterKeys {
   static const String favorites = '/favorites';
   static const String redeemPoints = '/redeemPoints';
   static const String notifications = '/notifications';
+  static const String notificationSettings = '/notification-settings';
   static const String allReviews = '/allReviews';
+  static const String termsAndConditions = '/terms-and-conditions';
 }

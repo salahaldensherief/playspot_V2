@@ -32,6 +32,7 @@ abstract class AuthRepository {
     required String otp,
   });
   Future<Either<Failure, void>> resetPassword(String newPassword);
+  Future<Either<Failure, void>> deleteAccount();
   Future<Either<Failure, void>> signOut();
   UserModel? getCurrentUser();
 }
@@ -146,5 +147,10 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   @override
   Future<Either<Failure, void>> resetPassword(String newPassword) async {
     return await callRepository(() => _remoteSource.resetPassword(newPassword));
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    return await callRepository(() => _remoteSource.deleteAccount());
   }
 }

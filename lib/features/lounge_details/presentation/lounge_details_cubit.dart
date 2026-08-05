@@ -22,6 +22,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     this._bookingRepository,
   ) : super(const LoungeDetailsState());
 
+  void init(LoungeModel lounge) {
+    emit(state.copyWith(lounge: lounge));
+    getLoungeDetails(lounge.id);
+  }
+
   Future<void> getLoungeDetails(String loungeId) async {
     if (loungeId.isEmpty) {
       log("CUBIT ERROR: loungeId is empty");
@@ -33,38 +38,35 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       final results = await Future.wait([
         _loungeDetailsRepository.getRoomsByLoungeId(loungeId),
         _loungeDetailsRepository.getExtras(loungeId),
-        _homeRepository.getLounges(),
         _loungeDetailsRepository.getLoungeCategories(loungeId),
         _loungeDetailsRepository.getLoungeReviews(loungeId),
       ]);
 
       List<RoomModel>? rooms;
       List<ExtraModel>? extras;
-      LoungeModel? lounge;
       List<CategoryModel>? deviceCategories;
       List<ReviewModel>? reviews;
 
       results[0].fold((l) => throw Exception(l.message), (r) => rooms = r as List<RoomModel>);
       results[1].fold((l) => throw Exception(l.message), (r) => extras = r as List<ExtraModel>);
-      results[2].fold((l) => throw Exception(l.message), (r) {
-        final lounges = r as List<LoungeModel>;
-        lounge = lounges.firstWhere((l) => l.id == loungeId);
-      });
-      results[3].fold((l) => throw Exception(l.message), (r) => deviceCategories = r as List<CategoryModel>);
-      results[4].fold((l) => throw Exception(l.message), (r) => reviews = r as List<ReviewModel>);
+      results[2].fold((l) => throw Exception(l.message), (r) => deviceCategories = r as List<CategoryModel>);
+      results[3].fold((l) => throw Exception(l.message), (r) => reviews = r as List<ReviewModel>);
 
-      if (rooms == null || extras == null || lounge == null || deviceCategories == null || reviews == null) {
+      if (rooms == null || extras == null || deviceCategories == null || reviews == null) {
         throw Exception('Data loading failed');
       }
 
       final date = state.selectedDate ?? DateTime.now();
+      
+      // We don't fetch lounge here again because we use the one from state or constructor
+      // If we need the most fresh lounge data, we should have a getLoungeById repo method
       
       await _updateBookings(
         loungeId: loungeId,
         date: date,
         rooms: rooms!,
         extras: extras!,
-        lounge: lounge!,
+        lounge: state.lounge!, // Assume lounge is already in state from initial setup or passed in
         deviceCategories: deviceCategories!,
         reviews: reviews!,
       );

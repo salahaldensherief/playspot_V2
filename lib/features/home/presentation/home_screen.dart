@@ -117,15 +117,15 @@ class _HomeViewState extends State<_HomeView> {
                 const SliverToBoxAdapter(child: ActivityCategories()),
                 SliverToBoxAdapter(child: SizedBox(height: 16.h)),
                  SliverSectionHeader(
-                  title: AppStrings.nearestLounges.tr(),
-                  seeAllText: AppStrings.seeAll.tr(),
+                  title: AppStrings.nearestLounges,
+                  seeAllText: AppStrings.seeAll,
                   onSeeAllTap: null,
                 ),
                 const _LoungeList(isNearest: true),
                 SliverToBoxAdapter(child: SizedBox(height: 24.h)),
                  SliverSectionHeader(
-                  title: AppStrings.topRated.tr(),
-                  seeAllText: AppStrings.seeAll.tr(),
+                  title: AppStrings.topRated,
+                  seeAllText: AppStrings.seeAll,
                   onSeeAllTap: null,
                 ),
                 const _LoungeList(isNearest: false),
@@ -201,6 +201,7 @@ class _LoungeList extends StatelessWidget {
                 lounge: lounge,
                 heroTag: heroTag,
                 onTap: () {
+                  debugPrint("HOME: Tapping on Lounge: ${lounge.name} (id: ${lounge.id})");
                   context.pushNamed(
                     RouterKeys.loungeDetails,
                     extra: {

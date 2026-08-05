@@ -23,7 +23,7 @@ class LoungeCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: GlassContainer(
-        borderRadius: 24,
+        borderRadius: 24.r,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

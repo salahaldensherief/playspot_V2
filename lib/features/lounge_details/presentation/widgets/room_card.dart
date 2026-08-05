@@ -64,8 +64,8 @@ class RoomCard extends StatelessWidget {
               ),
               child: GlassContainer(
                 borderRadius: 24,
-                borderOpacity: isSelected ? 0.6 : 0.05,
-                borderColor: isSelected ? themeColor : (isAvailable ? Colors.white : AppColors.danger),
+                borderOpacity: isSelected ? 0.6 : 0.1,
+                borderColor: isSelected ? themeColor : (isAvailable ? AppColors.borderDefault : AppColors.danger.withOpacity(0.3)),
                 child: IntrinsicHeight(
                   child: Stack(
                     children: [

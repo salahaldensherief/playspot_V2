@@ -31,7 +31,7 @@ class LoungeDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-          sl<LoungeDetailsCubit>()..getLoungeDetails(lounge.id),
+          sl<LoungeDetailsCubit>()..init(lounge),
       child: Builder(builder: (context) {
         return Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
@@ -60,21 +60,21 @@ class LoungeDetailsScreen extends StatelessWidget {
                         const RoomsGrid(),
                         const SliverSectionHeader(title: AppStrings.extras),
                         const ExtrasList(),
-                        SliverSectionHeader(
-                          title: AppStrings.reviews.tr(),
-                          seeAllText: AppStrings.seeAll.tr(),
-                          onSeeAllTap: () {
-                            context.pushNamed(
-                              RouterKeys.allReviews,
-                              extra: {
-                                'cubit': context.read<LoungeDetailsCubit>(),
-                                'reviews': state.reviews,
-                                'loungeName': displayLounge.name,
-                              },
-                            );
-                          },
-                        ),
-                        const ReviewsSection(),
+                      SliverSectionHeader(
+                        title: AppStrings.reviews,
+                        seeAllText: AppStrings.seeAll,
+                        onSeeAllTap: () {
+                          context.pushNamed(
+                            RouterKeys.allReviews,
+                            extra: {
+                              'cubit': context.read<LoungeDetailsCubit>(),
+                              'reviews': state.reviews,
+                              'loungeName': displayLounge.name,
+                            },
+                          );
+                        },
+                      ),
+                      const ReviewsSection(),
                         const SliverBottomSpacing(),
                       ],
                     );

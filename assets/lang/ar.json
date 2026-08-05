@@ -179,6 +179,7 @@
   "searchingLocation": "جاري تحديد الموقع...",
   "retry": "إعادة المحاولة",
   "somethingWentWrong": "حدث خطأ ما",
+  "errorLoadingRooms": "خطأ في تحميل الغرف",
   "browseByCategory": "تصفح حسب الفئة",
   "nearestLounges": "الصالات الأقرب إليك",
   "noLoungesFound": "لم يتم العثور على صالات في هذه المنطقة",

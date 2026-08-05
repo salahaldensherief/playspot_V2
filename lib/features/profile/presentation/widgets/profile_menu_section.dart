@@ -51,7 +51,7 @@ class ProfileMenuSection extends StatelessWidget {
           _buildMenuItem(
             icon: TablerIcons.bell,
             title: AppStrings.notifications.tr(),
-            onTap: () => context.pushNamed(RouterKeys.notifications),
+            onTap: () => context.pushNamed(RouterKeys.notificationSettings),
             showBorder: true,
           ),
           _buildMenuItem(
@@ -65,6 +65,12 @@ class ProfileMenuSection extends StatelessWidget {
             icon: TablerIcons.help,
             title: AppStrings.helpSupport.tr(),
             onTap: () {},
+            showBorder: true,
+          ),
+          _buildMenuItem(
+            icon: TablerIcons.file_text,
+            title: AppStrings.termsOfService.tr(),
+            onTap: () => context.pushNamed(RouterKeys.termsAndConditions),
             showBorder: false,
           ),
         ],

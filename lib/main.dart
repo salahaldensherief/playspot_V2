@@ -6,15 +6,33 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/cubit/locale_cubit.dart';
+import 'dart:developer' as dev;
+import 'package:flutter/foundation.dart';
 
 import 'art_core/router/AppRouter.dart';
 import 'core/di.dart';
 import 'features/favorites/presentation/favorites_cubit.dart';
 import 'features/profile/presentation/profile_cubit.dart';
 import 'features/notifications/presentation/cubit/notifications_cubit.dart';
+import 'core/utils/app_bloc_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set up BlocObserver to track all actions and state changes
+  Bloc.observer = AppBlocObserver();
+
+  // Handle Flutter errors
+  FlutterError.onError = (details) {
+    dev.log("FLUTTER ERROR: ${details.exception}", stackTrace: details.stack);
+  };
+
+  // Handle Platform errors (asynchronous)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    dev.log("PLATFORM ERROR: $error", stackTrace: stack);
+    return true;
+  };
+
   await EasyLocalization.ensureInitialized();
   await init();
   await initSupabase();

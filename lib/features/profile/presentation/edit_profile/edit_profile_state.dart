@@ -1,6 +1,6 @@
 import '../../../auth/data/models/user_model.dart';
 
-enum EditProfileStatus { initial, loading, success, error }
+enum EditProfileStatus { initial, loading, success, error, accountDeleted }
 
 class EditProfileState {
   final EditProfileStatus status;

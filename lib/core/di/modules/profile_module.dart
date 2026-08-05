@@ -17,6 +17,6 @@ void initProfileModule() {
     () => ProfileCubit(sl(), sl()),
   );
   sl.registerFactory<EditProfileCubit>(
-    () => EditProfileCubit(sl()),
+    () => EditProfileCubit(sl(), sl()),
   );
 }

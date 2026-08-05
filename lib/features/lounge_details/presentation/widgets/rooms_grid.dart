@@ -40,10 +40,10 @@ class RoomsGrid extends StatelessWidget {
         if (state.status == LoungeDetailsStatus.error) {
           return SliverAppStateView(
             type: AppStateViewType.error,
-            title: "Error loading rooms",
+            title: AppStrings.errorLoadingRooms,
             onRetry: () => context
                 .read<LoungeDetailsCubit>()
-                .getLoungeDetails(state.selectedRoomId ?? ""),
+                .getLoungeDetails(state.lounge?.id ?? ""),
           );
         }
 

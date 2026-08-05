@@ -179,6 +179,7 @@
   "searchingLocation": "Searching location...",
   "retry": "Retry",
   "somethingWentWrong": "Something went wrong",
+  "errorLoadingRooms": "Error loading rooms",
   "browseByCategory": "Browse by category",
   "nearestLounges": "Nearest Lounges",
   "noLoungesFound": "No lounges found in this area",

@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
@@ -11,6 +13,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/core/di.dart';
 
+import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../core/di/modules/auth_module.dart';
 import 'edit_profile_cubit.dart';
 import 'edit_profile_state.dart';
@@ -63,6 +66,8 @@ class _EditProfileView extends StatelessWidget {
               _FormSection(),
               SizedBox(height: 40.h),
               const _SaveButton(),
+              SizedBox(height: 20.h),
+              const _DeleteAccountButton(),
             ],
           ),
         ),
@@ -76,6 +81,11 @@ class _EditProfileView extends StatelessWidget {
         const SnackBar(content: Text('Profile updated successfully')),
       );
       Navigator.pop(context, true);
+    } else if (state.status == EditProfileStatus.accountDeleted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Account deleted successfully')),
+      );
+      context.goNamed(RouterKeys.signIn);
     } else if (state.status == EditProfileStatus.error) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -142,6 +152,59 @@ class _SaveButton extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _DeleteAccountButton extends StatelessWidget {
+  const _DeleteAccountButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: () => _showDeleteConfirmation(context),
+      child: AppText(
+        text: AppStrings.deleteAccount.tr(),
+        color: AppColors.danger,
+        fontSize: 14.sp,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    final cubit = context.read<EditProfileCubit>();
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.cardBackground,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        title: AppText(
+          text: AppStrings.deleteAccount.tr(),
+          fontSize: 18.sp,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+        content: AppText(
+          text: AppStrings.deleteAccountConfirmation.tr(),
+          fontSize: 14.sp,
+          color: AppColors.textSecondary,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: AppText(text: AppStrings.cancel.tr(), color: Colors.white),
+          ),
+          TextButton(
+            onPressed: () {
+              cubit.deleteAccount();
+              Navigator.pop(dialogContext);
+            },
+            child: AppText(
+                text: AppStrings.deleteAccount.tr(), color: AppColors.danger),
+          ),
+        ],
+      ),
     );
   }
 }
