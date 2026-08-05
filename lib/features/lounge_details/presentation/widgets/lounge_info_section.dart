@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/theme/app_sizes.dart';
-import '../../../../art_core/widgets/layout/app_divider.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../home/data/models/lounge_model.dart';
 
@@ -29,42 +28,35 @@ class LoungeInfoSection extends StatelessWidget {
                     5,
                     (index) => Icon(
                       Icons.star,
-                      color: index < 4
+                      color: index < lounge.rating.floor()
                           ? AppColors.warning
                           : AppColors.textSecondary,
-                      size: 20.sp,
+                      size: 18.sp,
                     ),
                   ),
                 ),
-                SizedBox(width: AppSizes.w8),
+                SizedBox(width: 8.w),
                 AppText(
-                  text: "${lounge.rating} · 124 ${AppStrings.reviews.tr()}",
-                  fontSize: 14.sp,
+                  text: "${lounge.rating} · ${lounge.totalReviews ?? 0} ${AppStrings.reviews.tr()}",
+                  fontSize: 13.sp,
                   color: AppColors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ],
             ),
             if (lounge.getDescription(isArabic) != null) ...[
-              SizedBox(height: AppSizes.s12),
+              SizedBox(height: 8.h),
               AppText(
                 text: lounge.getDescription(isArabic)!,
-                fontSize: 14.sp,
+                fontSize: 13.sp,
                 color: AppColors.textSecondary,
-                height: 1.6,
-                maxLines: 4,
+                height: 1.5,
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 showAllTextOnTap: true,
               ),
             ],
-            SizedBox(height: AppSizes.s8),
-            AppText(
-              text: AppStrings.seeReviews.tr(),
-              fontSize: 14.sp,
-              color: AppColors.neonBlue,
-              fontWeight: FontWeight.bold,
-            ),
-            const AppDivider(),
+            SizedBox(height: 12.h),
           ],
         ),
       ),

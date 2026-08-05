@@ -1,17 +1,21 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-class CategoryModel {
+class CategoryModel extends Equatable {
   final String id;
   final String nameAr;
   final String nameEn;
   final String iconKey;
 
-  CategoryModel({
+  const CategoryModel({
     required this.id,
     required this.nameAr,
     required this.nameEn,
     required this.iconKey,
   });
+
+  @override
+  List<Object?> get props => [id, nameAr, nameEn, iconKey];
 
   String getName(bool isArabic) => isArabic ? nameAr : nameEn;
 

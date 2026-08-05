@@ -146,6 +146,7 @@ class AppStrings {
   static const String noPastBookings = "noPastBookings";
   static const String noCancelledBookings = "noCancelledBookings";
   static const String errorLoadingBookings = "errorLoadingBookings";
+  static const String bookingConfirmed = "bookingConfirmed";
   static const String bookingConfirmedTitle = "bookingConfirmedTitle";
   static const String bookingConfirmedSubtitle = "bookingConfirmedSubtitle";
   static const String viewMyBookings = "viewMyBookings";
@@ -168,4 +169,8 @@ class AppStrings {
   static const String searchingLocation = "searchingLocation";
   static const String retry = "retry";
   static const String somethingWentWrong = "somethingWentWrong";
+  static const String noNotificationsYet = "noNotificationsYet";
+  static const String noNotificationsDesc = "noNotificationsDesc";
+  static const String active = "active";
+  static const String closed = "closed";
 }

@@ -22,9 +22,14 @@ import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/home/presentation/home_cubit.dart';
+import '../../features/lounge_details/data/models/review_model.dart';
+import '../../features/lounge_details/presentation/lounge_details_cubit.dart';
 import '../../features/lounge_details/presentation/lounge_details_screen.dart';
 import '../../features/main/presentation/main_screen.dart';
 import '../../features/my_bookings/presentation/my_bookings_screen.dart';
+import '../../features/lounge_details/presentation/reviews/all_reviews_screen.dart';
+import '../../features/notifications/presentation/cubit/notifications_cubit.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 import '../../features/profile/presentation/redeem_points/redeem_points_screen.dart';
 
@@ -65,230 +70,269 @@ class AppRouter {
     debugLogDiagnostics: true,
     extraCodec: const _MyExtraCodec(),
     routes: [
-      GoRoute(
-        path: RouterKeys.splash,
-        name: RouterKeys.splash,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const SplashScreen(),
-        ),
-      ),
-      GoRoute(
-        path: RouterKeys.onboarding,
-        name: RouterKeys.onboarding,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const OnBoardingPage(),
-        ),
-      ),
-      GoRoute(
-        path: RouterKeys.signUp,
-        name: RouterKeys.signUp,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const SignUpScreen(),
-        ),
-      ),
-      GoRoute(
-        path: RouterKeys.signIn,
-        name: RouterKeys.signIn,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const SignInScreen(),
-        ),
-      ),
-      GoRoute(
-        name: RouterKeys.completeProfile,
-        path: RouterKeys.completeProfile,
-        pageBuilder: (context, state) {
-          final userId = state.extra as String? ?? '';
-          return _buildPageWithTransition(
-            context: context,
-            state: state,
-            child: userId.isEmpty ? const SignInScreen() : CompleteProfileScreen(userId: userId),
-          );
-        },
-      ),
-
-      // Routes that share HomeCubit
       ShellRoute(
         builder: (context, state, child) {
-          return BlocProvider(
-            create: (context) => sl<HomeCubit>()..getHomeData(),
+          return BlocProvider.value(
+            value: sl<NotificationsCubit>(),
             child: child,
           );
         },
         routes: [
           GoRoute(
-            path: RouterKeys.home,
-            name: RouterKeys.home,
+            path: RouterKeys.splash,
+            name: RouterKeys.splash,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const SplashScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.onboarding,
+            name: RouterKeys.onboarding,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const OnBoardingPage(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.signUp,
+            name: RouterKeys.signUp,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const SignUpScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.signIn,
+            name: RouterKeys.signIn,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const SignInScreen(),
+            ),
+          ),
+          GoRoute(
+            name: RouterKeys.completeProfile,
+            path: RouterKeys.completeProfile,
             pageBuilder: (context, state) {
-              final index = state.extra is int ? state.extra as int : 0;
+              final userId = state.extra as String? ?? '';
               return _buildPageWithTransition(
                 context: context,
                 state: state,
-                child: MainScreen(
-                  key: ValueKey(index),
-                  initialIndex: index,
+                child: userId.isEmpty
+                    ? const SignInScreen()
+                    : CompleteProfileScreen(userId: userId),
+              );
+            },
+          ),
+
+          // Routes that share HomeCubit
+          ShellRoute(
+            builder: (context, state, child) {
+              return BlocProvider(
+                create: (context) => sl<HomeCubit>()..getHomeData(),
+                child: child,
+              );
+            },
+            routes: [
+              GoRoute(
+                path: RouterKeys.home,
+                name: RouterKeys.home,
+                pageBuilder: (context, state) {
+                  final index = state.extra is int ? state.extra as int : 0;
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: MainScreen(
+                      key: ValueKey(index),
+                      initialIndex: index,
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                path: RouterKeys.search,
+                name: RouterKeys.search,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const SearchScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          ShellRoute(
+            builder: (context, state, child) {
+              return BlocProvider(
+                create: (context) => sl<ForgotPasswordCubit>(),
+                child: child,
+              );
+            },
+            routes: [
+              GoRoute(
+                path: RouterKeys.forgotPassword,
+                name: RouterKeys.forgotPassword,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const ForgotPasswordScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.verifyOTP,
+                name: RouterKeys.verifyOTP,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const OTPVerificationScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.resetPassword,
+                name: RouterKeys.resetPassword,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const ResetPasswordScreen(),
+                ),
+              ),
+            ],
+          ),
+
+          GoRoute(
+            path: RouterKeys.loungeDetails,
+            name: RouterKeys.loungeDetails,
+            pageBuilder: (context, state) {
+              LoungeModel lounge;
+              String? heroTag;
+
+              if (state.extra is LoungeModel) {
+                lounge = state.extra as LoungeModel;
+              } else {
+                final map = state.extra as Map<String, dynamic>;
+                lounge = map['lounge'] as LoungeModel;
+                heroTag = map['heroTag'] as String?;
+              }
+
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: LoungeDetailsScreen(lounge: lounge, heroTag: heroTag),
+              );
+            },
+          ),
+          GoRoute(
+            path: RouterKeys.booking,
+            name: RouterKeys.booking,
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              final lounge = extra['lounge'] as LoungeModel;
+              final room = extra['room'] as RoomModel;
+              final initialDate = extra['selectedDate'] as DateTime?;
+              final extras =
+                  extra['extras'] as List<Map<String, dynamic>>? ?? [];
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: BookingScreen(
+                  lounge: lounge,
+                  room: room,
+                  initialDate: initialDate,
+                  addOns: extras,
                 ),
               );
             },
           ),
           GoRoute(
-            path: RouterKeys.search,
-            name: RouterKeys.search,
+            path: RouterKeys.checkout,
+            name: RouterKeys.checkout,
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: CheckoutScreen(
+                  lounge: extra['lounge'] as LoungeModel,
+                  room: extra['room'] as RoomModel,
+                  date: extra['date'] as DateTime,
+                  startTime: extra['startTime'] as TimeOfDay,
+                  duration: extra['duration'] as int,
+                  totalPrice: extra['totalPrice'] as double,
+                  addOns: extra['addOns'] as List<Map<String, dynamic>>,
+                ),
+              );
+            },
+          ),
+          GoRoute(
+            path: RouterKeys.myBookings,
+            name: RouterKeys.myBookings,
             pageBuilder: (context, state) => _buildPageWithTransition(
               context: context,
               state: state,
-              child: const SearchScreen(),
+              child: const MyBookingsScreen(),
             ),
+          ),
+          GoRoute(
+            path: RouterKeys.editProfile,
+            name: RouterKeys.editProfile,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const EditProfileScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.redeemPoints,
+            name: RouterKeys.redeemPoints,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const RedeemPointsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.favorites,
+            name: RouterKeys.favorites,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const FavoritesScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.notifications,
+            name: RouterKeys.notifications,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const NotificationsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.allReviews,
+            name: RouterKeys.allReviews,
+            pageBuilder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: BlocProvider.value(
+                  value: extra['cubit'] as LoungeDetailsCubit,
+                  child: AllReviewsScreen(
+                    reviews: extra['reviews'] as List<ReviewModel>,
+                    loungeName: extra['loungeName'] as String,
+                  ),
+                ),
+              );
+            },
           ),
         ],
-      ),
-
-      ShellRoute(
-        builder: (context, state, child) {
-          return BlocProvider(
-            create: (context) => sl<ForgotPasswordCubit>(),
-            child: child,
-          );
-        },
-        routes: [
-          GoRoute(
-            path: RouterKeys.forgotPassword,
-            name: RouterKeys.forgotPassword,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const ForgotPasswordScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.verifyOTP,
-            name: RouterKeys.verifyOTP,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const OTPVerificationScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.resetPassword,
-            name: RouterKeys.resetPassword,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const ResetPasswordScreen(),
-            ),
-          ),
-        ],
-      ),
-
-      GoRoute(
-        path: RouterKeys.loungeDetails,
-        name: RouterKeys.loungeDetails,
-        pageBuilder: (context, state) {
-          LoungeModel lounge;
-          String? heroTag;
-          
-          if (state.extra is LoungeModel) {
-            lounge = state.extra as LoungeModel;
-          } else {
-            final map = state.extra as Map<String, dynamic>;
-            lounge = map['lounge'] as LoungeModel;
-            heroTag = map['heroTag'] as String?;
-          }
-          
-          return _buildPageWithTransition(
-            context: context,
-            state: state,
-            child: LoungeDetailsScreen(lounge: lounge, heroTag: heroTag),
-          );
-        },
-      ),
-      GoRoute(
-        path: RouterKeys.booking,
-        name: RouterKeys.booking,
-        pageBuilder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          final lounge = extra['lounge'] as LoungeModel;
-          final room = extra['room'] as RoomModel;
-          final initialDate = extra['selectedDate'] as DateTime?;
-          final extras = extra['extras'] as List<Map<String, dynamic>>? ?? [];
-          return _buildPageWithTransition(
-            context: context,
-            state: state,
-            child: BookingScreen(
-              lounge: lounge,
-              room: room,
-              initialDate: initialDate,
-              addOns: extras,
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: RouterKeys.checkout,
-        name: RouterKeys.checkout,
-        pageBuilder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
-          return _buildPageWithTransition(
-            context: context,
-            state: state,
-            child: CheckoutScreen(
-              lounge: extra['lounge'] as LoungeModel,
-              room: extra['room'] as RoomModel,
-              date: extra['date'] as DateTime,
-              startTime: extra['startTime'] as TimeOfDay,
-              duration: extra['duration'] as int,
-              totalPrice: extra['totalPrice'] as double,
-              addOns: extra['addOns'] as List<Map<String, dynamic>>,
-            ),
-          );
-        },
-      ),
-      GoRoute(
-        path: RouterKeys.myBookings,
-        name: RouterKeys.myBookings,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const MyBookingsScreen(),
-        ),
-      ),
-      GoRoute(
-        path: RouterKeys.editProfile,
-        name: RouterKeys.editProfile,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const EditProfileScreen(),
-        ),
-      ),
-      GoRoute(
-        path: RouterKeys.redeemPoints,
-        name: RouterKeys.redeemPoints,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const RedeemPointsScreen(),
-        ),
-      ),
-      GoRoute(
-        path: RouterKeys.favorites,
-        name: RouterKeys.favorites,
-        pageBuilder: (context, state) => _buildPageWithTransition(
-          context: context,
-          state: state,
-          child: const FavoritesScreen(),
-        ),
       ),
     ],
-
     errorBuilder: (context, state) => Scaffold(
       body: Center(child: Text('Page not found: ${state.uri.path}')),
     ),

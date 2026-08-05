@@ -11,6 +11,7 @@ import 'art_core/router/AppRouter.dart';
 import 'core/di.dart';
 import 'features/favorites/presentation/favorites_cubit.dart';
 import 'features/profile/presentation/profile_cubit.dart';
+import 'features/notifications/presentation/cubit/notifications_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

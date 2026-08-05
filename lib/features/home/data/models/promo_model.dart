@@ -1,7 +1,7 @@
-import '../../../../art_core/theme/app_colors.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-class PromoModel {
+class PromoModel extends Equatable {
   final String id;
   final String titleAr;
   final String titleEn;
@@ -12,7 +12,7 @@ class PromoModel {
   final String? imageUrl;
   final String? deepLink;
 
-  PromoModel({
+  const PromoModel({
     required this.id,
     required this.titleAr,
     required this.titleEn,
@@ -23,6 +23,9 @@ class PromoModel {
     this.imageUrl,
     this.deepLink,
   });
+
+  @override
+  List<Object?> get props => [id, titleAr, titleEn, tagAr, tagEn, hexColors, iconKey, imageUrl, deepLink];
 
   String getTitle(bool isArabic) => isArabic ? titleAr : titleEn;
   String getTag(bool isArabic) => isArabic ? tagAr : tagEn;

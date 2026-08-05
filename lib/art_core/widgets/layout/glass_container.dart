@@ -11,6 +11,7 @@ class GlassContainer extends StatelessWidget {
   final double blur;
   final double borderOpacity;
   final Color? color;
+  final Color? borderColor;
   final List<BoxShadow>? shadow;
   final EdgeInsetsGeometry? padding;
 
@@ -23,6 +24,7 @@ class GlassContainer extends StatelessWidget {
     this.blur = 12,
     this.borderOpacity = 0.08,
     this.color,
+    this.borderColor,
     this.shadow,
     this.padding,
   });
@@ -46,15 +48,15 @@ class GlassContainer extends StatelessWidget {
               color: color ?? Colors.white.withOpacity(0.03),
               borderRadius: BorderRadius.circular(borderRadius.r),
               border: Border.all(
-                color: Colors.white.withOpacity(borderOpacity),
+                color: borderColor ?? Colors.white.withOpacity(borderOpacity),
                 width: 1.0,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withOpacity(borderOpacity + 0.02),
-                  Colors.white.withOpacity(0.01),
+                  (borderColor ?? Colors.white).withOpacity(borderOpacity + 0.02),
+                  (borderColor ?? Colors.white).withOpacity(0.01),
                 ],
               ),
             ),

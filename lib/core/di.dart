@@ -8,6 +8,7 @@ import 'di/modules/lounge_module.dart';
 import 'di/modules/my_bookings_module.dart';
 import 'di/modules/profile_module.dart';
 import 'di/modules/favorites_module.dart';
+import 'di/modules/notifications_module.dart';
 
 final sl = GetIt.instance;
 
@@ -23,6 +24,7 @@ Future<void> init() async {
   initMyBookingsModule();
   initProfileModule();
   initFavoritesModule();
+  initNotificationsModule();
 }
 
 Future<void> initSupabase() async {

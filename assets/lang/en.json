@@ -189,5 +189,9 @@
   "yourBalance": "Your Balance",
   "points": "Points",
   "referralCodeOptional": "Referral Code (Optional)",
-  "referralCodeHint": "Enter code to get bonus points"
+  "referralCodeHint": "Enter code to get bonus points",
+  "noNotificationsYet": "No Notifications Yet",
+  "noNotificationsDesc": "We'll notify you when something important happens.",
+  "active": "Active",
+  "closed": "Closed"
 }

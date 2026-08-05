@@ -189,5 +189,9 @@
   "yourBalance": "رصيدك",
   "points": "نقاط",
   "referralCodeOptional": "كود الإحالة (اختياري)",
-  "referralCodeHint": "أدخل الكود للحصول على نقاط بونص"
+  "referralCodeHint": "أدخل الكود للحصول على نقاط بونص",
+  "noNotificationsYet": "لا توجد إشعارات بعد",
+  "noNotificationsDesc": "سنقوم بإخطارك عندما يحدث شيء مهم.",
+  "active": "نشط",
+  "closed": "مغلق"
 }

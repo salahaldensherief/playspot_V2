@@ -25,29 +25,29 @@ class CategorySelector extends StatelessWidget {
             if (state.status == LoungeDetailsStatus.loading) {
               return const CategoryShimmer();
             }
-            if (state.categories.isEmpty) return const SizedBox.shrink();
+            if (state.deviceCategories.isEmpty) return const SizedBox.shrink();
 
             return ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
               scrollDirection: Axis.horizontal,
-              itemCount: state.categories.length,
+              itemCount: state.deviceCategories.length,
               separatorBuilder: (context, index) => SizedBox(width: AppSizes.w12),
               itemBuilder: (context, index) {
-                final category = state.categories[index];
-                final isSelected = state.selectedCategory == category;
-                final svgPath = CategoryHelper.getSvgPath(category);
+                final category = state.deviceCategories[index];
+                final isArabic = context.locale.languageCode == 'ar';
+                final isSelected = state.selectedCategory == category.nameEn;
 
                 return GestureDetector(
                   onTap: () => context
                       .read<LoungeDetailsCubit>()
-                      .setCategory(category),
+                      .setCategory(category.id),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding:
                         EdgeInsets.symmetric(horizontal: AppSizes.w16, vertical: 8.h),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? AppColors.neonBlue.withOpacity(0.05)
+                          ? AppColors.neonBlue.withValues(alpha: 0.1)
                           : AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(AppSizes.r25),
                       border: Border.all(
@@ -59,26 +59,17 @@ class CategorySelector extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        if (svgPath != null)
-                          SvgIconWidget(
-                            path: svgPath,
-                            width: 25.w,
-                            color: isSelected
-                                ? AppColors.neonBlue
-                                : AppColors.textSecondary,
-                          )
-                        else
-                          Icon(
-                            CategoryHelper.getIcon(category),
-                            size: 18.sp,
-                            color: isSelected
-                                ? AppColors.neonBlue
-                                : AppColors.textSecondary,
-                          ),
+                        Icon(
+                          category.icon,
+                          size: 18.sp,
+                          color: isSelected
+                              ? AppColors.neonBlue
+                              : AppColors.textSecondary,
+                        ),
                         SizedBox(width: AppSizes.w8),
                         AppText(
-                          text: category.toUpperCase(),
-                          fontSize: 14.sp,
+                          text: category.getName(isArabic).toUpperCase(),
+                          fontSize: 13.sp,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected

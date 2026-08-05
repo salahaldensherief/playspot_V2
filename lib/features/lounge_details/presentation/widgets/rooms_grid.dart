@@ -54,33 +54,12 @@ class RoomsGrid extends StatelessWidget {
           );
         }
 
-        final filteredRooms = state.rooms.where((r) {
-          final category = state.selectedCategory;
-          if (category.isEmpty) return true;
-          return r.activityNames
-              .any((a) => a.toLowerCase() == category.toLowerCase());
-        }).toList();
-
-        if (filteredRooms.isEmpty) {
-          return SliverAppStateView(
-            title: "No units found for this category",
-            subtitle: "Try selecting another category",
-            icon: Icons.search_off_rounded,
-          );
-        }
-
         return SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: AppSizes.w12,
-              mainAxisSpacing: AppSizes.s12,
-              mainAxisExtent: 180.h,
-            ),
+          sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => RoomCard(room: filteredRooms[index]),
-              childCount: filteredRooms.length,
+              (context, index) => RoomCard(room: state.rooms[index]),
+              childCount: state.rooms.length,
             ),
           ),
         );

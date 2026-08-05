@@ -11,6 +11,7 @@ abstract class HomeRepository {
     double? lat,
     double? lng,
     String? city,
+    List<String>? categoryIds,
   });
   Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities();
   Future<Either<Failure, List<PromoModel>>> getPromotions();
@@ -33,11 +34,13 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
     double? lat,
     double? lng,
     String? city,
+    List<String>? categoryIds,
   }) async {
     return await callRepository(() => _remoteDataSource.getLounges(
           lat: lat,
           lng: lng,
           city: city,
+          categoryIds: categoryIds,
         ));
   }
 

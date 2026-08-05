@@ -53,7 +53,12 @@ class HomeCubit extends Cubit<HomeState> {
     final lng = double.tryParse(pref.longitude());
 
     final results = await Future.wait([
-      _homeRepository.getLounges(lat: lat, lng: lng, city: state.selectedCity),
+      _homeRepository.getLounges(
+        lat: lat,
+        lng: lng,
+        city: state.selectedCity,
+        categoryIds: state.selectedCategoryIds,
+      ),
       if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
     ]);
 
@@ -129,6 +134,22 @@ class HomeCubit extends Cubit<HomeState> {
     emit(city == null || city.isEmpty 
         ? state.copyWith(clearCity: true, status: HomeStatus.loading) 
         : state.copyWith(selectedCity: city, status: HomeStatus.loading));
+    await getHomeData();
+  }
+
+  void toggleCategory(String categoryId) async {
+    final currentSelected = List<String>.from(state.selectedCategoryIds);
+    if (currentSelected.contains(categoryId)) {
+      currentSelected.remove(categoryId);
+    } else {
+      currentSelected.add(categoryId);
+    }
+    
+    emit(state.copyWith(
+      selectedCategoryIds: currentSelected,
+      status: HomeStatus.loading,
+    ));
+
     await getHomeData();
   }
 

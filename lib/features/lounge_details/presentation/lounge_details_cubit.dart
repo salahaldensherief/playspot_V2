@@ -4,9 +4,11 @@ import 'package:playspot/art_core/models/time_range.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+import 'package:playspot/features/lounge_details/data/models/review_model.dart';
 import 'package:playspot/features/lounge_details/data/repos/lounge_details_repo.dart';
 import 'package:playspot/features/home/data/repos/home_repos.dart';
 import 'package:playspot/features/booking/data/repos/booking_repo.dart';
+import '../../home/data/models/category_model.dart';
 import 'lounge_details_state.dart';
 
 class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
@@ -21,18 +23,26 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   ) : super(const LoungeDetailsState());
 
   Future<void> getLoungeDetails(String loungeId) async {
+    if (loungeId.isEmpty) {
+      log("CUBIT ERROR: loungeId is empty");
+      return;
+    }
     emit(state.copyWith(status: LoungeDetailsStatus.loading));
 
     try {
       final results = await Future.wait([
         _loungeDetailsRepository.getRoomsByLoungeId(loungeId),
-        _loungeDetailsRepository.getExtras(),
+        _loungeDetailsRepository.getExtras(loungeId),
         _homeRepository.getLounges(),
+        _loungeDetailsRepository.getLoungeCategories(loungeId),
+        _loungeDetailsRepository.getLoungeReviews(loungeId),
       ]);
 
       List<RoomModel>? rooms;
       List<ExtraModel>? extras;
       LoungeModel? lounge;
+      List<CategoryModel>? deviceCategories;
+      List<ReviewModel>? reviews;
 
       results[0].fold((l) => throw Exception(l.message), (r) => rooms = r as List<RoomModel>);
       results[1].fold((l) => throw Exception(l.message), (r) => extras = r as List<ExtraModel>);
@@ -40,8 +50,10 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         final lounges = r as List<LoungeModel>;
         lounge = lounges.firstWhere((l) => l.id == loungeId);
       });
+      results[3].fold((l) => throw Exception(l.message), (r) => deviceCategories = r as List<CategoryModel>);
+      results[4].fold((l) => throw Exception(l.message), (r) => reviews = r as List<ReviewModel>);
 
-      if (rooms == null || extras == null || lounge == null) {
+      if (rooms == null || extras == null || lounge == null || deviceCategories == null || reviews == null) {
         throw Exception('Data loading failed');
       }
 
@@ -53,6 +65,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         rooms: rooms!,
         extras: extras!,
         lounge: lounge!,
+        deviceCategories: deviceCategories!,
+        reviews: reviews!,
       );
     } catch (e, stack) {
       log("CUBIT ERROR: $e", stackTrace: stack);
@@ -82,6 +96,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
             rooms: state.rooms,
             extras: state.extras,
             lounge: lounge,
+            deviceCategories: state.deviceCategories,
+            reviews: state.reviews,
           );
         },
       );
@@ -96,6 +112,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     required List<RoomModel> rooms,
     required List<ExtraModel> extras,
     required LoungeModel lounge,
+    List<CategoryModel>? deviceCategories,
+    List<ReviewModel>? reviews,
   }) async {
     final bookingsResult = await _bookingRepository.getRoomBookingsForDate(loungeId, date);
 
@@ -130,7 +148,9 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           }
         }
 
-        final allActivities = rooms.expand((r) => r.activityNames).toSet().toList();
+        final allActivities = deviceCategories?.map((c) => c.nameEn).toList() ?? 
+                             rooms.expand((r) => r.activityNames).toSet().toList();
+
         // ترتيب التصنيفات بحيث يظهر PS5 أولاً لو موجود
         allActivities.sort((a, b) {
           if (a.toLowerCase().contains('ps')) return -1;
@@ -148,9 +168,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           status: LoungeDetailsStatus.success,
           rooms: rooms,
           extras: extras,
+          reviews: reviews ?? state.reviews,
           bookedRoomIds: fullyBookedIds,
           bookedSlotsByRoom: bookedSlotsByRoom,
           categories: allActivities,
+          deviceCategories: deviceCategories ?? state.deviceCategories,
           selectedDate: date,
           availableRoomsCount: rooms.length - fullyBookedIds.length,
           selectedCategory: currentCategory,
@@ -182,8 +204,27 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     emit(state.selectedRoomId == roomId ? state.copyWith(clearRoom: true) : state.copyWith(selectedRoomId: roomId));
   }
 
-  void setCategory(String category) {
-    emit(state.copyWith(selectedCategory: category));
+  void setCategory(String categoryId) async {
+    if (state.selectedCategory == categoryId) return;
+    
+    emit(state.copyWith(selectedCategory: categoryId, status: LoungeDetailsStatus.loading));
+
+    final loungeId = state.lounge?.id ?? '';
+    if (loungeId.isEmpty) return;
+
+    final result = await _loungeDetailsRepository.getRoomsByLoungeId(
+      loungeId, 
+      categoryId: categoryId.toLowerCase() == 'all' ? null : categoryId
+    );
+
+    result.fold(
+      (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
+      (rooms) => emit(state.copyWith(
+        status: LoungeDetailsStatus.success,
+        rooms: rooms,
+        selectedCategory: categoryId,
+      )),
+    );
   }
 
   void updateExtraQuantity(String extraId, int delta) {

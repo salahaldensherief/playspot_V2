@@ -5,7 +5,7 @@ import '../../models/promo_model.dart';
 import '../../models/category_model.dart';
 
 abstract class HomeRemoteDataSource {
-  Future<List<LoungeModel>> getLounges({double? lat, double? lng, String? city});
+  Future<List<LoungeModel>> getLounges({double? lat, double? lng, String? city, List<String>? categoryIds});
   Future<List<Map<String, dynamic>>> getAvailableCities();
   Future<List<PromoModel>> getPromotions();
   Future<List<CategoryModel>> getCategories();
@@ -29,14 +29,15 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   }
 
   @override
-  Future<List<LoungeModel>> getLounges({double? lat, double? lng, String? city}) async {
+  Future<List<LoungeModel>> getLounges({double? lat, double? lng, String? city, List<String>? categoryIds}) async {
     try {
-      dev.log("FETCHING_LOUNGES: city=$city, lat=$lat, lng=$lng");
+      dev.log("FETCHING_LOUNGES: city=$city, lat=$lat, lng=$lng, categories=$categoryIds");
       
       final response = await _client.rpc('get_smart_filtered_lounges', params: {
         'user_lat': lat,
         'user_lng': lng,
         'city_name': (city != null && city.isNotEmpty) ? city : null,
+        'category_ids': (categoryIds != null && categoryIds.isNotEmpty) ? categoryIds : null,
       });
 
       List lounges = response as List;

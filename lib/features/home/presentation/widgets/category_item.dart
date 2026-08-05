@@ -6,12 +6,14 @@ import '../../../../art_core/widgets/text/app_text.dart';
 class CategoryItem extends StatelessWidget {
   final String name;
   final IconData icon;
+  final bool isSelected;
   final VoidCallback? onTap;
 
   const CategoryItem({
     super.key,
     required this.name,
     required this.icon,
+    this.isSelected = false,
     this.onTap,
   });
 
@@ -21,17 +23,28 @@ class CategoryItem extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: [
-          Container(
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
             width: 60.w,
             height: 60.w,
             decoration: BoxDecoration(
-              color: AppColors.cardBackground,
+              color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.1) : AppColors.cardBackground,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.borderDefault),
+              border: Border.all(
+                color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+                width: isSelected ? 2 : 1,
+              ),
+              boxShadow: isSelected ? [
+                BoxShadow(
+                  color: AppColors.neonBlue.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  spreadRadius: 1,
+                )
+              ] : [],
             ),
             child: Icon(
               icon,
-              color: AppColors.neonBlue,
+              color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
               size: 28.sp,
             ),
           ),
@@ -39,8 +52,8 @@ class CategoryItem extends StatelessWidget {
           AppText(
             text: name,
             fontSize: 10.sp,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
+            color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
           ),
         ],
       ),

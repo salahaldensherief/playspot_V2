@@ -12,9 +12,11 @@ class PromoCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) => previous.promotions != current.promotions || previous.status != current.status,
+      buildWhen: (previous, current) => 
+        previous.promotions != current.promotions || 
+        (current.status == HomeStatus.loading && current.promotions.isEmpty),
       builder: (context, state) {
-        if (state.status == HomeStatus.loading) {
+        if (state.status == HomeStatus.loading && state.promotions.isEmpty) {
           return const PromoShimmer();
         }
 

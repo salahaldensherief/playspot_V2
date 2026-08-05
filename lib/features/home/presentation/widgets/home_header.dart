@@ -8,6 +8,13 @@ import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 
 import 'package:playspot/art_core/widgets/shimmer/base_shimmer.dart';
 import 'package:playspot/art_core/widgets/shimmer/category_shimmer.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../notifications/presentation/cubit/notifications_cubit.dart';
+import '../../../notifications/presentation/cubit/notifications_state.dart';
 
 class HomeHeader extends StatelessWidget {
   final String userName;
@@ -74,6 +81,8 @@ class HomeHeader extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 10.w),
+              _buildNotificationBell(context),
+              SizedBox(width: 10.w),
               _buildPointsBadge(),
             ],
           ),
@@ -120,6 +129,54 @@ class HomeHeader extends StatelessWidget {
               color: Colors.white,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationBell(BuildContext context) {
+    if (isLoading) {
+      return BaseShimmer(width: 40.w, height: 40.h, borderRadius: 12.r);
+    }
+    return GestureDetector(
+      onTap: () => context.pushNamed(RouterKeys.notifications),
+      child: GlassContainer(
+        borderRadius: 12,
+        child: Padding(
+          padding: EdgeInsets.all(8.w),
+          child: BlocBuilder<NotificationsCubit, NotificationsState>(
+            builder: (context, state) {
+              return Stack(
+                children: [
+                  Icon(
+                    TablerIcons.bell,
+                    color: Colors.white,
+                    size: 20.sp,
+                  ),
+                  if (state.unreadCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 6.w,
+                        height: 6.h,
+                        decoration: const BoxDecoration(
+                          color: AppColors.neonBlue,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.neonBlue,
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

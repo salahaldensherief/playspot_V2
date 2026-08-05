@@ -14,9 +14,11 @@ class ActivityCategories extends StatelessWidget {
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
     return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) => previous.categories != current.categories || previous.status != current.status,
+      buildWhen: (previous, current) => 
+        previous.categories != current.categories || 
+        previous.selectedCategoryIds != current.selectedCategoryIds,
       builder: (context, state) {
-        if (state.status == HomeStatus.loading) {
+        if (state.categories.isEmpty && state.status == HomeStatus.loading) {
           return const CircleCategoryShimmer();
         }
 
@@ -24,7 +26,7 @@ class ActivityCategories extends StatelessWidget {
           return const SizedBox.shrink();
         }
         return SizedBox(
-          height: 90.h,
+          height: 95.h,
           child: ListView.separated(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             scrollDirection: Axis.horizontal,
@@ -32,10 +34,12 @@ class ActivityCategories extends StatelessWidget {
             separatorBuilder: (context, index) => SizedBox(width: 16.w),
             itemBuilder: (context, index) {
               final category = state.categories[index];
+              final isSelected = state.selectedCategoryIds.contains(category.id);
               return CategoryItem(
                 name: category.getName(isArabic),
                 icon: category.icon,
-                onTap: () {},
+                isSelected: isSelected,
+                onTap: () => context.read<HomeCubit>().toggleCategory(category.id),
               );
             },
           ),

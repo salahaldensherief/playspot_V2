@@ -15,6 +15,9 @@ class LoungeModel {
   final List<String>? images;
   final String opensAt;
   final String closesAt;
+  final String? mapsLink;
+  final double? lat;
+  final double? lng;
 
   LoungeModel({
     required this.id,
@@ -33,6 +36,9 @@ class LoungeModel {
     this.images,
     required this.opensAt,
     required this.closesAt,
+    this.mapsLink,
+    this.lat,
+    this.lng,
   });
 
   String? getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
@@ -52,7 +58,6 @@ class LoungeModel {
       imageUrl: json['image_url']?.toString() ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       distance: calculatedDistance,
-      // price_per_hour might be missing in RPC, defaulting to 0 or handling null
       pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
       isOpen: json['is_open'] ?? true,
       location: json['location']?.toString(),
@@ -64,6 +69,9 @@ class LoungeModel {
       images: json['images'] != null ? List<String>.from(json['images']) : null,
       opensAt: json['opens_at']?.toString() ?? '',
       closesAt: json['closes_at']?.toString() ?? '',
+      mapsLink: json['maps_link']?.toString(),
+      lat: (json['lat'] as num?)?.toDouble(),
+      lng: (json['lng'] as num?)?.toDouble(),
     );
   }
 
@@ -85,6 +93,9 @@ class LoungeModel {
       'images': images,
       'opens_at': opensAt,
       'closes_at': closesAt,
+      'maps_link': mapsLink,
+      'lat': lat,
+      'lng': lng,
     };
   }
 }

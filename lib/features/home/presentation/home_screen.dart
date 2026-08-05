@@ -13,6 +13,7 @@ import 'package:playspot/features/home/presentation/widgets/home_header.dart';
 import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart';
 import 'package:playspot/features/home/presentation/widgets/activity_categories.dart';
 import 'package:playspot/art_core/widgets/shimmer/lounge_card_shimmer.dart';
+import 'package:playspot/features/notifications/presentation/cubit/notifications_cubit.dart';
 import '../../../art_core/widgets/cards/lounge_card.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
@@ -53,6 +54,8 @@ class _HomeViewState extends State<_HomeView> {
       if (mounted) {
         context.read<HomeCubit>().init();
         context.read<HomeCubit>().startLocationListening();
+        final lang = context.locale.languageCode;
+        context.read<NotificationsCubit>().getNotifications(lang);
       }
     });
   }
@@ -91,7 +94,8 @@ class _HomeViewState extends State<_HomeView> {
                           previous.availableCities != current.availableCities ||
                           previous.selectedCity != current.selectedCity ||
                           previous.currentAddress != current.currentAddress ||
-                          previous.status != current.status,
+                          previous.pointsBalance != current.pointsBalance ||
+                          (previous.status == HomeStatus.initial && current.status == HomeStatus.loading),
                       builder: (context, state) {
                         return HomeHeader(
                           userName: userName,
@@ -99,7 +103,7 @@ class _HomeViewState extends State<_HomeView> {
                           cities: state.availableCities,
                           selectedCity: state.selectedCity,
                           pointsBalance: state.pointsBalance,
-                          isLoading: state.status == HomeStatus.loading,
+                          isLoading: state.status == HomeStatus.loading && state.availableCities.isEmpty,
                           onCitySelected: (city) =>
                               context.read<HomeCubit>().selectCity(city),
                         );

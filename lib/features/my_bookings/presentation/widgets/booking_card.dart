@@ -10,6 +10,7 @@ import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/utils/extensions/date_time_extensions.dart';
 import '../../data/models/booking_model.dart';
+import '../../../notifications/presentation/widgets/qr_location_dialog.dart';
 
 class BookingCard extends StatelessWidget {
   final BookingModel booking;
@@ -108,7 +109,19 @@ class BookingCard extends StatelessWidget {
                 Expanded(
                   child: AppButton(
                     content: ButtonContent(label: AppStrings.getDirections.tr()),
-                    behavior: ButtonBehavior.tap(onTap: () {}),
+                    behavior: ButtonBehavior.tap(
+                      onTap: () {
+                        if (booking.mapsLink != null) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => QrLocationDialog(
+                              mapsLink: booking.mapsLink!,
+                              loungeName: booking.loungeName,
+                            ),
+                          );
+                        }
+                      },
+                    ),
                     buttonConfig: ButtonConfig(
                       height: 45.h,
                       borderRadius: 12.r,
