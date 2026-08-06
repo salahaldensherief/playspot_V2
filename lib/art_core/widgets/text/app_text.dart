@@ -72,7 +72,7 @@ class _AppTextState extends State<AppText> {
 
   TextStyle _getTextStyle() {
     final defaultColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.primary;
-    final defaultFontFamily = Theme.of(context).textTheme.bodyMedium?.fontFamily;
+    final defaultFontFamily = FontsManager.getFontFamily(context);
 
     return widget.style ??
         TextStyle(
@@ -81,7 +81,7 @@ class _AppTextState extends State<AppText> {
           color: widget.color ?? defaultColor,
           fontWeight: widget.fontWeight ?? FontWeight.w400,
           height: widget.height ?? 1.4.h,
-          fontFamily: widget.fontFamily ?? defaultFontFamily ?? FontsManager.fontFamily,
+          fontFamily: widget.fontFamily ?? defaultFontFamily,
           decoration: widget.textDecoration,
           shadows: widget.shadows,
           letterSpacing: widget.letterSpacing,

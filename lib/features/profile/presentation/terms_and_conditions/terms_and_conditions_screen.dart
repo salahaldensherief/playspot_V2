@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 
@@ -20,7 +22,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
             center: const Alignment(0.8, -0.8),
             radius: 1.5,
             colors: [
-              AppColors.neonBlue.withOpacity(0.05),
+              AppColors.neonBlue10,
               AppColors.scaffoldBackground,
             ],
           ),
@@ -31,11 +33,11 @@ class TermsAndConditionsScreen extends StatelessWidget {
               _buildAppBar(context),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.all(20.w),
+                  padding: 20.allPadding,
                   child: GlassContainer(
-                    borderRadius: 24,
+                    borderRadius: AppSizes.r24,
                     child: Padding(
-                      padding: EdgeInsets.all(20.w),
+                      padding: 20.allPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -78,24 +80,23 @@ class TermsAndConditionsScreen extends StatelessWidget {
 
   Widget _buildAppBar(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+      padding: 16.horizontalPadding + 20.verticalPadding,
       child: Row(
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(TablerIcons.chevron_left, color: Colors.white),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.05),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              backgroundColor: AppColors.whiteOverlay,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.r12)),
             ),
           ),
-          SizedBox(width: 16.w),
+          16.horizontalSpace,
           AppText(
             text: AppStrings.termsOfService.tr(),
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
-            fontFamily: "Orbitron",
           ),
         ],
       ),
@@ -104,7 +105,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
 
   Widget _buildSection(String title, String content) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 24.h),
+      padding: 24.verticalPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -114,7 +115,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: AppColors.neonBlue,
           ),
-          SizedBox(height: 8.h),
+          8.verticalSpace,
           AppText(
             text: content,
             fontSize: 14.sp,

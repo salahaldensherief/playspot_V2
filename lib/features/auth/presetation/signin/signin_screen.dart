@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_cubit.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_state.dart';
 import 'package:playspot/features/auth/presetation/signin/widgets/signin_form.dart';
@@ -16,8 +18,6 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../core/di.dart';
-import '../../../../core/di/modules/auth_module.dart';
-import '../signup/widgets/signup_form.dart';
 import '../widgets/auth_app_bar.dart';
 import '../widgets/social_buttons.dart';
 
@@ -48,25 +48,25 @@ class _SignInView extends StatelessWidget {
                 title: AppStrings.signIn.tr(),
                 subTitle: AppStrings.signInSubtitle.tr(),
               ),
-              SizedBox(height: 180.h),
+              180.verticalSpace,
               _SocialSection(),
-              _space(),
+              20.verticalSpace,
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                padding: 16.horizontalPadding,
                 child: const SignInForm(),
               ),
-              _space(),
+              20.verticalSpace,
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                padding: 16.horizontalPadding,
                 child: const _SignInButton(),
               ),
-              _space(),
+              20.verticalSpace,
               AppText(
                 color: AppColors.white,
                 onTap: () => context.goNamed(RouterKeys.signUp),
                 text: AppStrings.dontHaveAccount.tr(),
               ),
-              _space(),
+              20.verticalSpace,
             ],
           ),
         ),
@@ -89,7 +89,7 @@ class _SignInView extends StatelessWidget {
     if (state.status.isFailure) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(state.errorMessage ?? 'Something went wrong'),
+          content: Text(state.errorMessage ?? AppStrings.somethingWentWrong.tr()),
           backgroundColor: AppColors.danger,
         ),
       );
@@ -124,14 +124,10 @@ class _SignInButton extends StatelessWidget {
         final cubit = context.read<SignInCubit>();
         return AppButton(
           buttonConfig: ButtonConfig.gradient(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            glowColor: const Color(0xFF00D4FF),
-            borderRadius: 15.r,
-            width: 340.w,
+            gradient: AppColors.primaryGradient,
+            glowColor: AppColors.neonBlue,
+            borderRadius: AppSizes.r15,
+            width: double.infinity,
             height: 50.h,
           ),
           content: ButtonContent(label: AppStrings.signIn.tr()),
@@ -152,5 +148,3 @@ class _SignInButton extends StatelessWidget {
     );
   }
 }
-
-Widget _space({double? height}) => SizedBox(height: height ?? 20.0);

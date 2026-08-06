@@ -72,7 +72,6 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
         color: Colors.white,
         fontSize: 15.5.sp,
         fontWeight: FontWeight.w600,
-        fontFamily: FontsManager.fontFamily,
       );
 
   ButtonConfig.secondary({
@@ -96,7 +95,6 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
               color: AppColors.primary,
               fontSize: 15.5.sp,
               fontWeight: FontWeight.w600,
-              fontFamily: FontsManager.fontFamily,
             );
 
   ButtonConfig.outlined({
@@ -119,7 +117,6 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
         color: AppColors.primary,
         fontSize: 15.5.sp,
         fontWeight: FontWeight.w600,
-        fontFamily: FontsManager.fontFamily,
       );
 
   ButtonConfig.gradient({
@@ -143,10 +140,8 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
 
         textStyle = textStyle ??
             TextStyle(
-
               color: Colors.black,
               fontSize: 15.5.sp,
               fontWeight: FontWeight.w400,
-              fontFamily: FontsManager.fontFamily,
             );
 }

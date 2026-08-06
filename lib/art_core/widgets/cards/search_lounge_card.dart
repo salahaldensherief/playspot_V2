@@ -3,6 +3,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../app_strings.dart';
 import '../../router/router_keys.dart';
 import '../../theme/app_colors.dart';
@@ -27,17 +29,17 @@ class SearchLoungeCard extends StatelessWidget {
         );
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+        padding: 8.allPadding,
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(20.r),
+          borderRadius: BorderRadius.circular(AppSizes.r20),
           border: Border.all(color: AppColors.borderDefault),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(15.r),
+              borderRadius: BorderRadius.circular(AppSizes.r15),
               child: Hero(
                 tag: heroTag,
                 child: CachedNetworkImage(
@@ -50,7 +52,7 @@ class SearchLoungeCard extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                padding: 16.horizontalPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -72,17 +74,17 @@ class SearchLoungeCard extends StatelessWidget {
                     Row(
                       children: [
                         Icon(Icons.star, color: AppColors.warning, size: 16.sp),
-                        SizedBox(width: 4.w),
+                        4.horizontalSpace,
                         AppText(
                           text: lounge.rating.toString(),
                           fontSize: 12.sp,
                           color: AppColors.white,
                           fontWeight: FontWeight.bold,
                         ),
-                        SizedBox(width: 12.w),
+                        12.horizontalSpace,
                         Icon(Icons.location_on_outlined,
                             color: AppColors.textSecondary, size: 16.sp),
-                        SizedBox(width: 4.w),
+                        4.horizontalSpace,
                         Expanded(
                           child: AppText(
                             text: "${lounge.distance} ${AppStrings.km.tr()}",
@@ -94,31 +96,9 @@ class SearchLoungeCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 12.h),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text:
-                                "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
-                            style: TextStyle(
-                              color: AppColors.neonBlue,
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Orbitron",
-                            ),
-                          ),
-                          TextSpan(
-                            text: AppStrings.perHour.tr(),
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12.sp,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
+                    12.verticalSpace,
+                    _buildPriceInfo(),
+                    4.verticalSpace,
                     AppText(
                       text:
                           "${lounge.availableRooms} ${AppStrings.ps5RoomsAvailable.tr()}",
@@ -132,6 +112,28 @@ class SearchLoungeCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPriceInfo() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        AppText(
+          text: "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
+          fontSize: 18.sp,
+          fontWeight: FontWeight.bold,
+          color: AppColors.neonBlue,
+        ),
+        4.horizontalSpace,
+        AppText(
+          text: AppStrings.perHour.tr(),
+          fontSize: 12.sp,
+          color: AppColors.textSecondary,
+        ),
+      ],
     );
   }
 }

@@ -1,17 +1,15 @@
 import 'dart:async';
 import 'dart:ui' as ui;
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/data/repos/auth_repos.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';
-import '../../../core/di/modules/auth_module.dart';
 import '../../../core/services/location_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -84,7 +82,6 @@ class _SplashScreenState extends State<SplashScreen>
           position.longitude,
         );
         if (address != null) {
-          // We can save address name too if needed
           await pref.saveValue('CURRENT_ADDRESS', address);
         }
       }
@@ -121,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-              SizedBox(height: 8.h),
+              8.verticalSpace,
               FadeTransition(
                 opacity: _fadeAnim,
                 child: Text(
@@ -129,13 +126,14 @@ class _SplashScreenState extends State<SplashScreen>
                   style: TextStyle(
                     shadows: [
                       Shadow(
-                        color: AppColors.primary.withValues(alpha: 0.6),
+                        color: AppColors.neonBlue50,
                         blurRadius: 8.r,
                         offset: const Offset(0, 0),
                       ),
                     ],
                     color: AppColors.primary,
                     fontSize: 18.sp,
+                    fontFamily: "Orbitron",
                   ),
                 ),
               ),

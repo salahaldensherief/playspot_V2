@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
-
 import 'package:playspot/art_core/widgets/shimmer/base_shimmer.dart';
 import 'package:playspot/art_core/widgets/shimmer/category_shimmer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../../notifications/presentation/cubit/notifications_cubit.dart';
 import '../../../notifications/presentation/cubit/notifications_state.dart';
 
@@ -39,7 +39,7 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+      padding: 16.horizontalPadding + 16.verticalPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -56,13 +56,12 @@ class HomeHeader extends StatelessWidget {
                       fontSize: 22.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
-                      fontFamily: "Orbitron",
                     ),
-                    SizedBox(height: 4.h),
+                    4.verticalSpace,
                     Row(
                       children: [
                         Icon(Icons.location_on, color: AppColors.neonBlue, size: 14.sp),
-                        SizedBox(width: 4.w),
+                        4.horizontalSpace,
                         Expanded(
                           child: isLoading 
                             ? BaseShimmer(width: 120.w, height: 10.h)
@@ -80,13 +79,13 @@ class HomeHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: 10.w),
+              10.horizontalSpace,
               _buildNotificationBell(context),
-              SizedBox(width: 10.w),
+              10.horizontalSpace,
               _buildPointsBadge(),
             ],
           ),
-          SizedBox(height: 20.h),
+          20.verticalSpace,
           if (isLoading)
             const CategoryShimmer()
           else if (cities.isNotEmpty)
@@ -95,7 +94,7 @@ class HomeHeader extends StatelessWidget {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: cities.length + 1,
-                separatorBuilder: (context, index) => SizedBox(width: 10.w),
+                separatorBuilder: (context, index) => 10.horizontalSpace,
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return _buildCityChip(null, AppStrings.all.tr());
@@ -112,16 +111,16 @@ class HomeHeader extends StatelessWidget {
 
   Widget _buildPointsBadge() {
     if (isLoading) {
-      return BaseShimmer(width: 80.w, height: 32.h, borderRadius: 12.r);
+      return BaseShimmer(width: 80.w, height: 32.h, borderRadius: AppSizes.r12);
     }
     return GlassContainer(
-      borderRadius: 12,
+      borderRadius: AppSizes.r12,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
+        padding: 8.horizontalPadding + 6.verticalPadding,
         child: Row(
           children: [
             Icon(Icons.stars_rounded, color: AppColors.warning, size: 16.sp),
-            SizedBox(width: 6.w),
+            6.horizontalSpace,
             AppText(
               text: "$pointsBalance ${AppStrings.points.tr().toUpperCase()}",
               fontSize: 12.sp,
@@ -136,14 +135,14 @@ class HomeHeader extends StatelessWidget {
 
   Widget _buildNotificationBell(BuildContext context) {
     if (isLoading) {
-      return BaseShimmer(width: 40.w, height: 40.h, borderRadius: 12.r);
+      return BaseShimmer(width: 40.w, height: 40.h, borderRadius: AppSizes.r12);
     }
     return GestureDetector(
       onTap: () => context.pushNamed(RouterKeys.notifications),
       child: GlassContainer(
-        borderRadius: 12,
+        borderRadius: AppSizes.r12,
         child: Padding(
-          padding: EdgeInsets.all(8.w),
+          padding: 8.allPadding,
           child: BlocBuilder<NotificationsCubit, NotificationsState>(
             builder: (context, state) {
               return Stack(
@@ -188,17 +187,17 @@ class HomeHeader extends StatelessWidget {
       onTap: () => onCitySelected(cityValue),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        padding: 16.horizontalPadding + 8.verticalPadding,
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.03),
+          color: isSelected ? AppColors.neonBlue10 : AppColors.whiteOverlay,
           borderRadius: BorderRadius.circular(30.r),
           border: Border.all(
-            color: isSelected ? AppColors.neonBlue : Colors.white.withValues(alpha: 0.05),
+            color: isSelected ? AppColors.neonBlue : AppColors.borderSubtle,
             width: 1.5,
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: AppColors.neonBlue.withValues(alpha: 0.3),
+              color: AppColors.neonBlue30,
               blurRadius: 10,
               spreadRadius: .8,
             )

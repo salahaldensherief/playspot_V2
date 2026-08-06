@@ -1,13 +1,12 @@
-
-import '../../../core/constants/app_config.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 
 class FontsManager {
-  static String get fontFamily => AppConfig.isArabic ? _arabicFontFamily : _englishFontFamily;
+  static String getFontFamily(BuildContext context) {
+    return context.locale.languageCode == 'ar' ? arabicFontFamily : englishFontFamily;
+  }
 
   // Fonts
-  static const String _arabicFontFamily = _familyMontserrat;
-  static const String _englishFontFamily = "Orbitron";
-  static const String _familyMontserrat = 'SourceSans3';
-
-
+  static const String arabicFontFamily = "Cairo";
+  static const String englishFontFamily = "Orbitron";
 }

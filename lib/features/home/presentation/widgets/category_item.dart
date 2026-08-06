@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/theme/app_sizes.dart';
+import '../../../../art_core/utils/extensions/spacing_extensions.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/layout/glass_container.dart';
 
 class CategoryItem extends StatelessWidget {
   final String name;
@@ -21,41 +24,59 @@ class CategoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 60.w,
-            height: 60.w,
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.1) : AppColors.cardBackground,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
-                width: isSelected ? 2 : 1,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        width: 80.w,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GlassContainer(
+              borderRadius: AppSizes.r20.r,
+              height: 75.h,
+              width: 80.w,
+              borderOpacity: isSelected ? 0.3 : 0.05,
+              borderColor: isSelected ? AppColors.neonBlue : Colors.white.withOpacity(0.1),
+              color: isSelected ? AppColors.neonBlue.withOpacity(0.08) : null,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                    size: 26.sp,
+                  ),
+                  6.verticalSpace,
+                  AppText(
+                    text: name.toUpperCase(),
+                    fontSize: 9.sp,
+                    color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                    letterSpacing: 0.5,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              boxShadow: isSelected ? [
-                BoxShadow(
-                  color: AppColors.neonBlue.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                )
-              ] : [],
             ),
-            child: Icon(
-              icon,
-              color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
-              size: 28.sp,
-            ),
-          ),
-          SizedBox(height: 8.h),
-          AppText(
-            text: name,
-            fontSize: 10.sp,
-            color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-          ),
-        ],
+            if (isSelected) ...[
+              4.verticalSpace,
+              Container(
+                width: 4.w,
+                height: 4.w,
+                decoration: const BoxDecoration(
+                  color: AppColors.neonBlue,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neonBlue,
+                      blurRadius: 6,
+                      spreadRadius: 1,
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

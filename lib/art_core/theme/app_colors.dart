@@ -108,6 +108,12 @@ class AppColors {
   static const Color borderSubtle  = Color(0x0DFFFFFF);
   static const Color divider       = Color(0x1AFFFFFF);
 
+  // ─── Glass & Overlays ─────────────────────────────────────────
+  static final Color glassBackground = Colors.white.withOpacity(0.03);
+  static final Color glassBorder = Colors.white.withOpacity(0.08);
+  static final Color blackOverlay = Colors.black.withOpacity(0.6);
+  static final Color whiteOverlay = Colors.white.withOpacity(0.05);
+
   // ─── Neon Blue Overlays ───────────────────────────────────────
   static const Color neonBlue10 = Color(0x1A00D4FF);
   static const Color neonBlue20 = Color(0x3300D4FF);

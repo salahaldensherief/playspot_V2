@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 
@@ -30,7 +32,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             center: const Alignment(0.8, -0.8),
             radius: 1.5,
             colors: [
-              AppColors.neonBlue.withOpacity(0.05),
+              AppColors.neonBlue10,
               AppColors.scaffoldBackground,
             ],
           ),
@@ -41,7 +43,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               _buildAppBar(context),
               Expanded(
                 child: ListView(
-                  padding: EdgeInsets.all(20.w),
+                  padding: 20.allPadding,
                   children: [
                     _buildSettingsGroup(
                       title: AppStrings.general.tr(),
@@ -67,7 +69,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                           physics: const NeverScrollableScrollPhysics(),
                           child: Column(
                             children: [
-                              SizedBox(height: 24.h),
+                              24.verticalSpace,
                               _buildSettingsGroup(
                                 title: AppStrings.categories.tr(),
                                 children: [
@@ -116,24 +118,23 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   Widget _buildAppBar(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+      padding: 16.horizontalPadding + 20.verticalPadding,
       child: Row(
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(TablerIcons.chevron_left, color: Colors.white),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.05),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              backgroundColor: AppColors.whiteOverlay,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.r12)),
             ),
           ),
-          SizedBox(width: 16.w),
+          16.horizontalSpace,
           AppText(
             text: AppStrings.notificationSettings.tr(),
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
-            fontFamily: "Orbitron",
           ),
         ],
       ),
@@ -145,7 +146,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 8.w, bottom: 12.h),
+          padding: 8.horizontalPadding + 12.verticalPadding,
           child: AppText(
             text: title.toUpperCase(),
             fontSize: 12.sp,
@@ -155,7 +156,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
         ),
         GlassContainer(
-          borderRadius: 24,
+          borderRadius: AppSizes.r24,
           child: Column(children: children),
         ),
       ],
@@ -178,20 +179,20 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         opacity: isEnabled ? 1.0 : 0.4,
         child: Container(
           decoration: BoxDecoration(
-            border: showBorder ? Border(top: BorderSide(color: AppColors.borderDefault)) : null,
+            border: showBorder ? const Border(top: BorderSide(color: AppColors.borderDefault)) : null,
           ),
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+          padding: 20.horizontalPadding + 16.verticalPadding,
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(10.w),
+                padding: 10.allPadding,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12.r),
+                  color: AppColors.whiteOverlay,
+                  borderRadius: BorderRadius.circular(AppSizes.r12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 20.sp),
               ),
-              SizedBox(width: 16.w),
+              16.horizontalSpace,
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +203,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
-                    SizedBox(height: 2.h),
+                    2.verticalSpace,
                     AppText(
                       text: subtitle,
                       fontSize: 12.sp,
@@ -215,7 +216,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 value: isEnabled ? value : false,
                 onChanged: isEnabled ? onChanged : null,
                 activeColor: AppColors.neonBlue,
-                activeTrackColor: AppColors.neonBlue.withOpacity(0.2),
+                activeTrackColor: AppColors.neonBlue20,
               ),
             ],
           ),

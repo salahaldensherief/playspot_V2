@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
@@ -15,11 +17,9 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../../art_core/router/router_keys.dart';
-import '../../../core/di/modules/auth_module.dart';
 import '../data/repos/booking_repo.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
-import 'widgets/date_selector.dart';
 import 'widgets/time_slot_grid.dart';
 import 'widgets/duration_selector.dart';
 
@@ -31,8 +31,8 @@ class BookingScreen extends StatelessWidget {
 
   const BookingScreen({
     super.key,
-     this.lounge,
-     this.room,
+    this.lounge,
+    this.room,
     this.initialDate,
     this.addOns = const [],
   });
@@ -41,71 +41,73 @@ class BookingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
     return BlocProvider(
-      create: (context) => BookingCubit(sl<BookingRepository>(), room!.id, lounge!.id, initialDate),
+      create: (context) =>
+          BookingCubit(sl<BookingRepository>(), room!.id, lounge!.id, initialDate),
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: AppText(
+            text: "${isArabic ? "حجز" : "Book"} ${room!.getName(isArabic)}",
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.white,
+          ),
         ),
-        title: AppText(
-          text: "Book ${room!.getName(isArabic)}",
-          fontSize: 20.sp,
-          fontWeight: FontWeight.bold,
-          color: AppColors.white,
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    text: AppStrings.selectTime.tr(),
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                  SizedBox(height: 16.h),
-                  const TimeSlotGrid(),
-                  SizedBox(height: 24.h),
-                  AppText(
-                    text: AppStrings.duration.tr(),
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                  SizedBox(height: 16.h),
-                  const DurationSelector(),
-                ],
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: 16.allPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      text: AppStrings.selectTime.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    16.verticalSpace,
+                    const TimeSlotGrid(),
+                    24.verticalSpace,
+                    AppText(
+                      text: AppStrings.duration.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    16.verticalSpace,
+                    const DurationSelector(),
+                  ],
+                ),
               ),
             ),
-          ),
-          _buildBottomBar(context),
-        ],
+            _buildBottomBar(context),
+          ],
+        ),
       ),
-            ),
-        );
+    );
   }
 
   Widget _buildBottomBar(BuildContext context) {
     return BlocBuilder<BookingCubit, BookingState>(
       builder: (context, state) {
         final isReady = state.startTime != null;
-        final extrasPrice = addOns.fold<double>(0, (sum, item) => sum + (item['price'] * item['quantity']));
+        final extrasPrice = addOns.fold<double>(
+            0, (sum, item) => sum + (item['price'] * item['quantity']));
         final total = (room!.pricePerHour * state.durationHours) + extrasPrice;
 
         return Container(
-          padding: EdgeInsets.all(20.w),
-          decoration: BoxDecoration(
+          padding: 20.allPadding,
+          decoration: const BoxDecoration(
             color: AppColors.scaffoldBackground,
-            border: const Border(
+            border: Border(
               top: BorderSide(color: AppColors.borderDefault),
             ),
           ),
@@ -154,9 +156,9 @@ class BookingScreen extends StatelessWidget {
                           : null,
                     ),
                     buttonConfig: ButtonConfig(
-                      backgroundColor: isReady
-                          ? AppColors.success
-                          : AppColors.cardBackground,
+                      backgroundColor:
+                          isReady ? AppColors.success : AppColors.cardBackground,
+                      borderRadius: AppSizes.r12,
                     ),
                   ),
                 ),

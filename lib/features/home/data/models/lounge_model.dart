@@ -18,6 +18,7 @@ class LoungeModel {
   final String? mapsLink;
   final double? lat;
   final double? lng;
+  final List<String> categoryIcons;
 
   LoungeModel({
     required this.id,
@@ -39,6 +40,7 @@ class LoungeModel {
     this.mapsLink,
     this.lat,
     this.lng,
+    this.categoryIcons = const [],
   });
 
   String? getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
@@ -72,6 +74,7 @@ class LoungeModel {
       mapsLink: json['maps_link']?.toString(),
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
+      categoryIcons: json['category_icons'] != null ? List<String>.from(json['category_icons']) : [],
     );
   }
 

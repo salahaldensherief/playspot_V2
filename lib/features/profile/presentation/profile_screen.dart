@@ -1,13 +1,11 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/core/di.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 
-import '../../../core/di/modules/auth_module.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
 import 'widgets/logout_button.dart';
@@ -30,17 +28,17 @@ class ProfileScreen extends StatelessWidget {
         backgroundColor: AppColors.scaffoldBackground,
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(20.w),
+            padding: 20.allPadding,
             child: Column(
               children: [
                 const ProfileHeader(),
-                SizedBox(height: 24.h),
+                24.verticalSpace,
                 const ProfileStatsRow(),
-                SizedBox(height: 30.h),
+                30.verticalSpace,
                 const ProfileMenuSection(),
-                SizedBox(height: 30.h),
+                30.verticalSpace,
                 const LogoutButton(),
-                SizedBox(height: 100.h),
+                100.verticalSpace,
               ],
             ),
           ),

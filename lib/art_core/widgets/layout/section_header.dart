@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../theme/app_colors.dart';
 import '../text/app_text.dart';
 
@@ -19,7 +20,7 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      padding: 16.horizontalPadding + 12.verticalPadding,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -39,7 +40,7 @@ class SectionHeader extends StatelessWidget {
                     fontSize: 14.sp,
                     color: AppColors.neonBlue,
                   ),
-                  SizedBox(width: 4.w),
+                  4.horizontalSpace,
                   Icon(Icons.arrow_forward_ios, size: 12.sp, color: AppColors.neonBlue),
                 ],
               ),

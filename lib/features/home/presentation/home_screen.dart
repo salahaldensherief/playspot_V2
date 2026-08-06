@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
@@ -112,17 +114,17 @@ class _HomeViewState extends State<_HomeView> {
                   ),
                 ),
                 const SliverToBoxAdapter(child: PromoCarousel()),
-                SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+                24.verticalSpace.toSliver,
                 const SliverSectionHeader(title: AppStrings.browseByCategory),
                 const SliverToBoxAdapter(child: ActivityCategories()),
-                SliverToBoxAdapter(child: SizedBox(height: 16.h)),
+                16.verticalSpace.toSliver,
                  SliverSectionHeader(
                   title: AppStrings.nearestLounges,
                   seeAllText: AppStrings.seeAll,
                   onSeeAllTap: null,
                 ),
                 const _LoungeList(isNearest: true),
-                SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+                24.verticalSpace.toSliver,
                  SliverSectionHeader(
                   title: AppStrings.topRated,
                   seeAllText: AppStrings.seeAll,
@@ -154,7 +156,7 @@ class _LoungeList extends StatelessWidget {
       builder: (context, state) {
         if (state.status == HomeStatus.loading) {
           return SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            padding: 16.horizontalPadding,
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -178,7 +180,7 @@ class _LoungeList extends StatelessWidget {
           return SliverToBoxAdapter(
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.all(32.0),
+                padding: 32.allPadding,
                 child: Text(AppStrings.noLoungesFound.tr(), style: const TextStyle(color: Colors.white)),
               ),
             ),
@@ -186,7 +188,7 @@ class _LoungeList extends StatelessWidget {
         }
 
         return SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          padding: 16.horizontalPadding,
           sliver: SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -217,4 +219,8 @@ class _LoungeList extends StatelessWidget {
       },
     );
   }
+}
+
+extension on Widget {
+  SliverToBoxAdapter get toSliver => SliverToBoxAdapter(child: this);
 }

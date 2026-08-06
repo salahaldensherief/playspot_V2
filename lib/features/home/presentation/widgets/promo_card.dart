@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../data/models/promo_model.dart';
 
@@ -16,9 +18,9 @@ class PromoCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 8.w),
+        margin: 2.horizontalPadding,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24.r),
+          borderRadius: BorderRadius.circular(AppSizes.r24),
           gradient: LinearGradient(
             colors: promo.colors,
             begin: Alignment.topLeft,
@@ -33,20 +35,20 @@ class PromoCard extends StatelessWidget {
               child: Icon(
                 promo.icon,
                 size: 150.sp,
-                color: Colors.white.withValues(alpha: 0.1),
+                color: Colors.white.withOpacity(0.1),
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(20.w),
+              padding: 20.allPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: 8.horizontalPadding + 4.verticalPadding,
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8.r),
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(AppSizes.r8),
                     ),
                     child: AppText(
                       text: promo.getTag(isArabic).toUpperCase(),
@@ -55,7 +57,7 @@ class PromoCard extends StatelessWidget {
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 8.h),
+                  8.verticalSpace,
                   AppText(
                     text: promo.getTitle(isArabic),
                     fontSize: 20.sp,
