@@ -174,4 +174,21 @@ class AppStrings {
   static const String noNotificationsDesc = "noNotificationsDesc";
   static const String active = "active";
   static const String closed = "closed";
+  static const String notificationSettings = "notificationSettings";
+  static const String general = "general";
+  static const String pushNotifications = "pushNotifications";
+  static const String pushNotificationsDesc = "pushNotificationsDesc";
+  static const String categories = "categories";
+  static const String bookingUpdates = "bookingUpdates";
+  static const String bookingUpdatesDesc = "bookingUpdatesDesc";
+  static const String offersPromotions = "offersPromotions";
+  static const String offersPromotionsDesc = "offersPromotionsDesc";
+  static const String systemNotifications = "systemNotifications";
+  static const String systemNotificationsDesc = "systemNotificationsDesc";
+  static const String technicalSetup = "technicalSetup";
+  static const String roomFeatures = "roomFeatures";
+  static const String roomPhotos = "roomPhotos";
+  static const String joinNow = "joinNow";
+  static const String showSkills = "showSkills";
+  static const String viewPhotos = "viewPhotos";
 }

@@ -194,5 +194,22 @@
   "noNotificationsYet": "No Notifications Yet",
   "noNotificationsDesc": "We'll notify you when something important happens.",
   "active": "Active",
-  "closed": "Closed"
+  "closed": "Closed",
+  "notificationSettings": "Notification Settings",
+  "general": "General",
+  "pushNotifications": "Push Notifications",
+  "pushNotificationsDesc": "Receive alerts on your device",
+  "categories": "Categories",
+  "bookingUpdates": "Booking Updates",
+  "bookingUpdatesDesc": "Status changes and reminders",
+  "offersPromotions": "Offers & Promotions",
+  "offersPromotionsDesc": "New discounts and rewards",
+  "systemNotifications": "System Notifications",
+  "systemNotificationsDesc": "Important app announcements",
+  "technicalSetup": "TECHNICAL SETUP",
+  "roomFeatures": "ROOM FEATURES",
+  "roomPhotos": "ROOM PHOTOS",
+  "joinNow": "JOIN NOW",
+  "showSkills": "Join now & show your skills!",
+  "viewPhotos": "VIEW PHOTOS"
 }

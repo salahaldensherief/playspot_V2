@@ -44,12 +44,12 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   padding: EdgeInsets.all(20.w),
                   children: [
                     _buildSettingsGroup(
-                      title: "General",
+                      title: AppStrings.general.tr(),
                       children: [
                         _buildSettingTile(
                           icon: TablerIcons.bell,
-                          title: "Push Notifications",
-                          subtitle: "Receive alerts on your device",
+                          title: AppStrings.pushNotifications.tr(),
+                          subtitle: AppStrings.pushNotificationsDesc.tr(),
                           value: _pushNotifications,
                           onChanged: (val) => setState(() => _pushNotifications = val),
                         ),
@@ -69,20 +69,20 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                             children: [
                               SizedBox(height: 24.h),
                               _buildSettingsGroup(
-                                title: "Categories",
+                                title: AppStrings.categories.tr(),
                                 children: [
                                   _buildSettingTile(
                                     icon: TablerIcons.calendar_check,
-                                    title: "Booking Updates",
-                                    subtitle: "Status changes and reminders",
+                                    title: AppStrings.bookingUpdates.tr(),
+                                    subtitle: AppStrings.bookingUpdatesDesc.tr(),
                                     value: _bookingUpdates,
                                     onChanged: (val) => setState(() => _bookingUpdates = val),
                                     isEnabled: _pushNotifications,
                                   ),
                                   _buildSettingTile(
                                     icon: TablerIcons.discount_2,
-                                    title: "Offers & Promotions",
-                                    subtitle: "New discounts and rewards",
+                                    title: AppStrings.offersPromotions.tr(),
+                                    subtitle: AppStrings.offersPromotionsDesc.tr(),
                                     value: _offersPromotions,
                                     onChanged: (val) => setState(() => _offersPromotions = val),
                                     showBorder: true,
@@ -90,8 +90,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                   ),
                                   _buildSettingTile(
                                     icon: TablerIcons.info_circle,
-                                    title: "System Notifications",
-                                    subtitle: "Important app announcements",
+                                    title: AppStrings.systemNotifications.tr(),
+                                    subtitle: AppStrings.systemNotificationsDesc.tr(),
                                     value: _systemStatus,
                                     onChanged: (val) => setState(() => _systemStatus = val),
                                     showBorder: true,
@@ -129,7 +129,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
           SizedBox(width: 16.w),
           AppText(
-            text: "Notification Settings",
+            text: AppStrings.notificationSettings.tr(),
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,

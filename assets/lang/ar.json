@@ -194,5 +194,22 @@
   "noNotificationsYet": "لا توجد إشعارات بعد",
   "noNotificationsDesc": "سنقوم بإخطارك عندما يحدث شيء مهم.",
   "active": "نشط",
-  "closed": "مغلق"
+  "closed": "مغلق",
+  "notificationSettings": "إعدادات الإشعارات",
+  "general": "عام",
+  "pushNotifications": "إشعارات الجهاز",
+  "pushNotificationsDesc": "استقبال التنبيهات على جهازك",
+  "categories": "الفئات",
+  "bookingUpdates": "تحديثات الحجز",
+  "bookingUpdatesDesc": "تغييرات الحالة والتذكيرات",
+  "offersPromotions": "العروض والخصومات",
+  "offersPromotionsDesc": "خصومات ومكافآت جديدة",
+  "systemNotifications": "إشعارات النظام",
+  "systemNotificationsDesc": "إعلانات التطبيق الهامة",
+  "technicalSetup": "تجهيزات الغرفة",
+  "roomFeatures": "مميزات الغرفة",
+  "roomPhotos": "صور الغرفة",
+  "joinNow": "سجل الآن",
+  "showSkills": "انضم الآن وأظهر مهارتك!",
+  "viewPhotos": "عرض الصور"
 }

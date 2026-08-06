@@ -377,7 +377,7 @@ class _RoomExpandedDetails extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _SectionHeader(title: "TECHNICAL SETUP", themeColor: themeColor),
+                _SectionHeader(title: AppStrings.technicalSetup.tr(), themeColor: themeColor),
                 if (room.images.isNotEmpty) _GalleryButton(room: room, themeColor: themeColor),
               ],
             ),
@@ -389,7 +389,7 @@ class _RoomExpandedDetails extends StatelessWidget {
             ),
             if (features.isNotEmpty) ...[
               SizedBox(height: 12.h),
-              _SectionHeader(title: "ROOM FEATURES", themeColor: themeColor),
+              _SectionHeader(title: AppStrings.roomFeatures.tr(), themeColor: themeColor),
               SizedBox(height: 6.h),
               Wrap(
                 spacing: 12.w,
@@ -449,7 +449,7 @@ class _GalleryButton extends StatelessWidget {
           children: [
             Icon(Icons.photo_library_outlined, size: 12.sp, color: themeColor),
             SizedBox(width: 4.w),
-            AppText(text: "VIEW PHOTOS", fontSize: 9.sp, fontWeight: FontWeight.bold, color: themeColor),
+            AppText(text: AppStrings.viewPhotos.tr(), fontSize: 9.sp, fontWeight: FontWeight.bold, color: themeColor),
           ],
         ),
       ),
