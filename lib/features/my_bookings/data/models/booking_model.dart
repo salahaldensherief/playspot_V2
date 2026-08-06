@@ -11,6 +11,8 @@ class BookingModel {
   final String status; // upcoming, past, cancelled
   final double totalPrice;
   final String? mapsLink;
+  final double? lat;
+  final double? lng;
 
   BookingModel({
     required this.id,
@@ -25,6 +27,8 @@ class BookingModel {
     required this.status,
     required this.totalPrice,
     this.mapsLink,
+    this.lat,
+    this.lng,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +48,8 @@ class BookingModel {
       status: json['status'] ?? 'past',
       totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
       mapsLink: loungeData?['maps_link'],
+      lat: (loungeData?['lat'] as num?)?.toDouble(),
+      lng: (loungeData?['lng'] as num?)?.toDouble(),
     );
   }
 }

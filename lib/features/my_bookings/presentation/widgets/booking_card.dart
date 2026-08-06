@@ -9,8 +9,10 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/utils/extensions/date_time_extensions.dart';
+import '../../../../core/cache/preference_manager.dart';
+import '../../../../core/di.dart';
 import '../../data/models/booking_model.dart';
-import '../../../notifications/presentation/widgets/qr_location_dialog.dart';
+import 'package:map_launcher/map_launcher.dart';
 
 class BookingCard extends StatelessWidget {
   final BookingModel booking;
@@ -110,15 +112,23 @@ class BookingCard extends StatelessWidget {
                   child: AppButton(
                     content: ButtonContent(label: AppStrings.getDirections.tr()),
                     behavior: ButtonBehavior.tap(
-                      onTap: () {
-                        if (booking.mapsLink != null) {
-                          showDialog(
-                            context: context,
-                            builder: (context) => QrLocationDialog(
-                              mapsLink: booking.mapsLink!,
-                              loungeName: booking.loungeName,
-                            ),
-                          );
+                      onTap: () async {
+                        if (booking.lat != null && booking.lng != null) {
+                          final availableMaps = await MapLauncher.installedMaps;
+                          final pref = sl<PreferenceManager>();
+                          final userLat = double.tryParse(pref.latitude());
+                          final userLng = double.tryParse(pref.longitude());
+
+                          if (availableMaps.isNotEmpty) {
+                            await availableMaps.first.showDirections(
+                              destination: Coords(booking.lat!, booking.lng!),
+                              destinationTitle: booking.loungeName,
+                              origin: (userLat != null && userLng != null)
+                                  ? Coords(userLat, userLng)
+                                  : null,
+                              originTitle: "My Location",
+                            );
+                          }
                         }
                       },
                     ),

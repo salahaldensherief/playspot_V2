@@ -192,7 +192,7 @@ class _LoungeList extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 8.w,
               mainAxisSpacing: 8.h,
-              mainAxisExtent: 260.h,
+              mainAxisExtent: 235.h,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
               final lounge = lounges[index];
