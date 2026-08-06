@@ -54,12 +54,41 @@ class RoomsGrid extends StatelessWidget {
           );
         }
 
+        final filteredRooms = state.rooms.where((r) {
+          final selectedCategoryId = state.selectedCategory;
+          if (selectedCategoryId.isEmpty) return true;
+          
+          // ابحث عن اسم التصنيف المقابل للـ ID المختار
+          final category = state.deviceCategories.firstWhere(
+            (c) => c.id == selectedCategoryId,
+            orElse: () => state.deviceCategories.first,
+          );
+          
+          return r.getName(false).toLowerCase().contains(category.nameEn.toLowerCase()) || 
+                 r.activityNames.any((a) => a.toLowerCase() == category.nameEn.toLowerCase());
+        }).toList();
+
+        if (filteredRooms.isEmpty) {
+          return SliverPadding(
+            padding: EdgeInsets.symmetric(vertical: 20.h),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: AppText(
+                  text: "No rooms available for this category",
+                  color: AppColors.textSecondary,
+                  fontSize: 14.sp,
+                ),
+              ),
+            ),
+          );
+        }
+
         return SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => RoomCard(room: state.rooms[index]),
-              childCount: state.rooms.length,
+              (context, index) => RoomCard(room: filteredRooms[index]),
+              childCount: filteredRooms.length,
             ),
           ),
         );

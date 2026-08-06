@@ -28,10 +28,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   }
 
   Future<void> getLoungeDetails(String loungeId) async {
-    if (loungeId.isEmpty) {
-      log("CUBIT ERROR: loungeId is empty");
-      return;
-    }
+    if (loungeId.isEmpty) return;
     emit(state.copyWith(status: LoungeDetailsStatus.loading));
 
     try {
@@ -58,9 +55,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
       final date = state.selectedDate ?? DateTime.now();
       
-      // We don't fetch lounge here again because we use the one from state or constructor
-      // If we need the most fresh lounge data, we should have a getLoungeById repo method
-      
+      await _updateBookings(
+        loungeId: loungeId,
+        date: date,
+        rooms: rooms!,
+        extras: extras!,
+        lounge: state.lounge!, 
+        deviceCategories: deviceCategories!,
+        reviews: reviews!,
+      );
       await _updateBookings(
         loungeId: loungeId,
         date: date,
@@ -160,10 +163,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           return a.compareTo(b);
         });
 
-        final currentCategory = state.selectedCategory.isEmpty 
-            ? (allActivities.isNotEmpty ? allActivities.first : '') 
-            : state.selectedCategory;
-
         bool shouldClearRoom = state.selectedRoomId != null && fullyBookedIds.contains(state.selectedRoomId);
 
         emit(state.copyWith(
@@ -177,7 +176,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           deviceCategories: deviceCategories ?? state.deviceCategories,
           selectedDate: date,
           availableRoomsCount: rooms.length - fullyBookedIds.length,
-          selectedCategory: currentCategory,
+          selectedCategory: state.selectedCategory, // Keep current selection or empty
           clearRoom: shouldClearRoom,
           lounge: lounge,
         ));

@@ -19,16 +19,17 @@ class LoungeDetailsRemoteDataSourceImpl implements LoungeDetailsRemoteDataSource
 
   @override
   Future<List<RoomModel>> getRoomsByLoungeId(String loungeId, {String? categoryId}) async {
+    final bool hasFilter = categoryId != null && categoryId.isNotEmpty && categoryId.toLowerCase() != 'all';
+    final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
+    
     var query = _client
         .from('rooms')
-        .select('*, space_types(name, label)')
+        .select('*, space_types(name, label), $joinType(category_id, categories(name_en))')
         .eq('lounge_id', loungeId)
         .eq('is_available', true);
     
-    if (categoryId != null && categoryId.isNotEmpty) {
-      // Assuming rooms has a category_id or similar. Adjust if backend uses activity names
-      // Based on your note "الباك مهندل حته الفلتر دي", I'll add the filter parameter.
-      query = query.eq('category_id', categoryId);
+    if (hasFilter) {
+      query = query.eq('room_categories.category_id', categoryId);
     }
     
     final response = await query;

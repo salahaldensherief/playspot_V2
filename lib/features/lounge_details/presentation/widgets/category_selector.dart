@@ -8,6 +8,7 @@ import 'package:playspot/art_core/utils/category_helper.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../home/data/models/category_model.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 
@@ -18,8 +19,8 @@ class CategorySelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Container(
-        height: 60.h,
-        padding: EdgeInsets.symmetric(vertical: 10.h),
+        height: 70.h,
+        padding: EdgeInsets.symmetric(vertical: 12.h),
         child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
           builder: (context, state) {
             if (state.status == LoungeDetailsStatus.loading) {
@@ -27,20 +28,29 @@ class CategorySelector extends StatelessWidget {
             }
             if (state.deviceCategories.isEmpty) return const SizedBox.shrink();
 
+            final List<dynamic> allOptions = [
+              {'id': '', 'nameEn': 'ALL', 'nameAr': 'الكل'},
+              ...state.deviceCategories,
+            ];
+
             return ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
               scrollDirection: Axis.horizontal,
-              itemCount: state.deviceCategories.length,
+              itemCount: allOptions.length,
               separatorBuilder: (context, index) => SizedBox(width: AppSizes.w12),
               itemBuilder: (context, index) {
-                final category = state.deviceCategories[index];
+                final option = allOptions[index];
+                final String id = option is CategoryModel ? option.id : option['id'];
+                final String nameEn = option is CategoryModel ? option.nameEn : option['nameEn'];
+                final String nameAr = option is CategoryModel ? option.nameAr : option['nameAr'];
+                
                 final isArabic = context.locale.languageCode == 'ar';
-                final isSelected = state.selectedCategory == category.nameEn;
+                final isSelected = state.selectedCategory == id;
 
                 return GestureDetector(
                   onTap: () => context
                       .read<LoungeDetailsCubit>()
-                      .setCategory(category.id),
+                      .setCategory(id),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     padding:
@@ -57,26 +67,16 @@ class CategorySelector extends StatelessWidget {
                         width: isSelected ? 1.5 : 1,
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          category.icon,
-                          size: 18.sp,
-                          color: isSelected
-                              ? AppColors.neonBlue
-                              : AppColors.textSecondary,
-                        ),
-                        SizedBox(width: AppSizes.w8),
-                        AppText(
-                          text: category.getName(isArabic).toUpperCase(),
-                          fontSize: 13.sp,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected
-                              ? AppColors.neonBlue
-                              : AppColors.textSecondary,
-                        ),
-                      ],
+                    child: Center(
+                      child: AppText(
+                        text: (isArabic ? nameAr : nameEn).toUpperCase(),
+                        fontSize: 13.sp,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.neonBlue
+                            : AppColors.textSecondary,
+                      ),
                     ),
                   ),
                 );

@@ -55,34 +55,54 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         ),
                       ],
                     ),
-                    SizedBox(height: 24.h),
-                    _buildSettingsGroup(
-                      title: "Categories",
-                      children: [
-                        _buildSettingTile(
-                          icon: TablerIcons.calendar_check,
-                          title: "Booking Updates",
-                          subtitle: "Status changes and reminders",
-                          value: _bookingUpdates,
-                          onChanged: (val) => setState(() => _bookingUpdates = val),
+                    
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 400),
+                      opacity: _pushNotifications ? 1.0 : 0.0,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 400),
+                        height: _pushNotifications ? null : 0,
+                        curve: Curves.easeInOut,
+                        child: SingleChildScrollView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          child: Column(
+                            children: [
+                              SizedBox(height: 24.h),
+                              _buildSettingsGroup(
+                                title: "Categories",
+                                children: [
+                                  _buildSettingTile(
+                                    icon: TablerIcons.calendar_check,
+                                    title: "Booking Updates",
+                                    subtitle: "Status changes and reminders",
+                                    value: _bookingUpdates,
+                                    onChanged: (val) => setState(() => _bookingUpdates = val),
+                                    isEnabled: _pushNotifications,
+                                  ),
+                                  _buildSettingTile(
+                                    icon: TablerIcons.discount_2,
+                                    title: "Offers & Promotions",
+                                    subtitle: "New discounts and rewards",
+                                    value: _offersPromotions,
+                                    onChanged: (val) => setState(() => _offersPromotions = val),
+                                    showBorder: true,
+                                    isEnabled: _pushNotifications,
+                                  ),
+                                  _buildSettingTile(
+                                    icon: TablerIcons.info_circle,
+                                    title: "System Notifications",
+                                    subtitle: "Important app announcements",
+                                    value: _systemStatus,
+                                    onChanged: (val) => setState(() => _systemStatus = val),
+                                    showBorder: true,
+                                    isEnabled: _pushNotifications,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                        _buildSettingTile(
-                          icon: TablerIcons.discount_2,
-                          title: "Offers & Promotions",
-                          subtitle: "New discounts and rewards",
-                          value: _offersPromotions,
-                          onChanged: (val) => setState(() => _offersPromotions = val),
-                          showBorder: true,
-                        ),
-                        _buildSettingTile(
-                          icon: TablerIcons.info_circle,
-                          title: "System Notifications",
-                          subtitle: "Important app announcements",
-                          value: _systemStatus,
-                          onChanged: (val) => setState(() => _systemStatus = val),
-                          showBorder: true,
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
@@ -149,49 +169,57 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     required bool value,
     required ValueChanged<bool> onChanged,
     bool showBorder = false,
+    bool isEnabled = true,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        border: showBorder ? Border(top: BorderSide(color: AppColors.borderDefault)) : null,
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10.w),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(icon, color: Colors.white, size: 20.sp),
+    return IgnorePointer(
+      ignoring: !isEnabled,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 300),
+        opacity: isEnabled ? 1.0 : 0.4,
+        child: Container(
+          decoration: BoxDecoration(
+            border: showBorder ? Border(top: BorderSide(color: AppColors.borderDefault)) : null,
           ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  text: title,
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
-                SizedBox(height: 2.h),
-                AppText(
-                  text: subtitle,
-                  fontSize: 12.sp,
-                  color: AppColors.textSecondary,
+                child: Icon(icon, color: Colors.white, size: 20.sp),
+              ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      text: title,
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 2.h),
+                    AppText(
+                      text: subtitle,
+                      fontSize: 12.sp,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Switch.adaptive(
+                value: isEnabled ? value : false,
+                onChanged: isEnabled ? onChanged : null,
+                activeColor: AppColors.neonBlue,
+                activeTrackColor: AppColors.neonBlue.withOpacity(0.2),
+              ),
+            ],
           ),
-          Switch.adaptive(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.neonBlue,
-            activeTrackColor: AppColors.neonBlue.withOpacity(0.2),
-          ),
-        ],
+        ),
       ),
     );
   }

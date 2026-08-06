@@ -26,21 +26,23 @@ class LoungeDetailsBottomBar extends StatelessWidget {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       builder: (context, state) {
         final isRoomSelected = state.selectedRoomId != null;
+        final isOpen = lounge.isOpen;
+
         return StickyBottomBar(
           child: AppButton(
             content: ButtonContent(
               body: AppText(
                 fontFamily: 'Orbitron',
                 textAlign: TextAlign.center,
-                text: AppStrings.bookARoom.tr(),
+                text: isOpen ? AppStrings.bookARoom.tr() : AppStrings.closed.tr().toUpperCase(),
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
-                color: isRoomSelected ? AppColors.black : AppColors.white,
+                color: (isRoomSelected && isOpen) ? AppColors.black : AppColors.white,
               ),
             ),
             behavior: ButtonBehavior.tap(
-              isEnabled: isRoomSelected,
-              onTap: isRoomSelected
+              isEnabled: isRoomSelected && isOpen,
+              onTap: (isRoomSelected && isOpen)
                   ? () {
                       final selectedRoom = state.rooms.firstWhere(
                         (r) => r.id == state.selectedRoomId,
@@ -70,19 +72,19 @@ class LoungeDetailsBottomBar extends StatelessWidget {
                   : null,
             ),
             buttonConfig: ButtonConfig(
-              gradient: const LinearGradient(
+              gradient: isOpen ? const LinearGradient(
                 colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
-              ),
-              glowColor: const Color(0xFF00D4FF),
+              ) : null,
+              glowColor: isOpen ? const Color(0xFF00D4FF) : Colors.transparent,
               borderRadius: 15.r,
               width: 340.w,
               height: 50.h,
-              backgroundColor: isRoomSelected
+              backgroundColor: (isRoomSelected && isOpen)
                   ? AppColors.neonBlue
                   : AppColors.cardBackground,
-              borderColor: isRoomSelected
+              borderColor: (isRoomSelected && isOpen)
                   ? AppColors.neonBlue
                   : AppColors.borderDefault,
             ),

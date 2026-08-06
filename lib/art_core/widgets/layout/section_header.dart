@@ -32,10 +32,16 @@ class SectionHeader extends StatelessWidget {
           if (onSeeAllTap != null)
             GestureDetector(
               onTap: onSeeAllTap,
-              child: AppText(
-                text: (seeAllText ?? "See all").tr(),
-                fontSize: 14.sp,
-                color: AppColors.neonBlue,
+              child: Row(
+                children: [
+                  AppText(
+                    text: (seeAllText ?? "See all").tr(),
+                    fontSize: 14.sp,
+                    color: AppColors.neonBlue,
+                  ),
+                  SizedBox(width: 4.w),
+                  Icon(Icons.arrow_forward_ios, size: 12.sp, color: AppColors.neonBlue),
+                ],
               ),
             ),
         ],

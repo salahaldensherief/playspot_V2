@@ -55,15 +55,26 @@ class RoomModel {
 
   factory RoomModel.fromJson(Map<String, dynamic> json) {
     try {
+      // Aggregate activity names from the new room_categories join
+      final List? roomCats = json['room_categories'] as List?;
+      final List<String> activities = [];
+      if (roomCats != null) {
+        for (var cat in roomCats) {
+          if (cat['categories'] != null && cat['categories']['name_en'] != null) {
+            activities.add(cat['categories']['name_en']);
+          }
+        }
+      }
+
       return RoomModel(
         id: json['id']?.toString() ?? '',
         loungeId: json['lounge_id']?.toString() ?? '',
         nameAr: json['name_ar']?.toString() ?? '',
         nameEn: json['name_en']?.toString() ?? '',
-        activityNames: json['activity_names'] != null
-            ? List<String>.from(json['activity_names'])
-            : [],
-        spaceType: json['space_type_name']?.toString(),
+        activityNames: activities.isNotEmpty 
+            ? activities 
+            : (json['activity_names'] != null ? List<String>.from(json['activity_names']) : []),
+        spaceType: json['space_types']?['label'] ?? json['space_type_name']?.toString(),
         capacity: (json['capacity'] as num?)?.toInt() ?? 4,
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
