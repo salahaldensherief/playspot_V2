@@ -6,6 +6,9 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../data/models/notification_model.dart';
 import 'cubit/notifications_cubit.dart';
 import 'cubit/notifications_state.dart';
@@ -64,9 +67,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     }
 
                     return ListView.builder(
-                      padding: EdgeInsets.all(16.w),
-                      itemCount: state.notifications.length,
+                      padding: 16.allPadding,
+                      itemCount: state.notifications.length + 1,
                       itemBuilder: (context, index) {
+                        if (index == state.notifications.length) {
+                          return const SafeBottomSpacer();
+                        }
                         final notification = state.notifications[index];
                         return NotificationItem(
                           notification: notification,

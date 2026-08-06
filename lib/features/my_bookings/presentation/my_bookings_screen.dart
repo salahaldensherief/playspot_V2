@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/shimmer/booking_shimmer.dart';
 import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
 import '../../../../art_core/app_strings.dart';
@@ -132,10 +134,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.all(AppSizes.screenPadding),
-              itemCount: bookings.length,
+              itemCount: bookings.length + 1,
               separatorBuilder: (context, index) =>
                   SizedBox(height: AppSizes.s16),
               itemBuilder: (context, index) {
+                if (index == bookings.length) {
+                  return const SafeBottomSpacer();
+                }
                 final booking = bookings[index];
                 return BookingCard(
                   booking: booking,

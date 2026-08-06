@@ -9,6 +9,7 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../art_core/router/router_keys.dart';
 import '../../home/data/models/lounge_model.dart';
 import 'lounge_details_cubit.dart';
@@ -80,6 +81,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                         ),
                         const ReviewsSection(),
                         const SliverBottomSpacing(),
+                        const SliverSafeBottomSpacer(),
                       ],
                     );
                   },

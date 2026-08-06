@@ -48,15 +48,16 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _handleInitialization() async {
-    // 1. Start fetching location without waiting
-    _fetchUserLocation();
+    // 1. Minimum display time for animation while starting location check
+    final locationFuture = _fetchUserLocation();
+    final delayFuture = Future.delayed(const Duration(seconds: 3));
 
-    // 2. Minimum display time for animation
-    await Future.delayed(const Duration(seconds: 3));
+    // Wait for both: the animation time AND the location permission attempt
+    await Future.wait([locationFuture, delayFuture]);
 
     if (!mounted) return;
 
-    // 3. Navigation logic
+    // 2. Navigation logic
     final authRepo = sl<AuthRepository>();
     final user = authRepo.getCurrentUser();
 

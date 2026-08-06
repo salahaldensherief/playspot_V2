@@ -14,23 +14,26 @@ class LocationServiceImpl implements LocationService {
   @override
   Future<Position?> getCurrentLocation() async {
     try {
-      bool serviceEnabled = await isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        log("LOCATION_SERVICE: Service is disabled");
-        return null;
-      }
-
-      LocationPermission permission = await checkPermission();
+       LocationPermission permission = await checkPermission();
+      
       if (permission == LocationPermission.denied) {
         permission = await requestPermission();
         if (permission == LocationPermission.denied) {
-          log("LOCATION_SERVICE: Permission denied");
+          log("LOCATION_SERVICE: Permission denied by user");
           return null;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
         log("LOCATION_SERVICE: Permission denied forever");
+        return null;
+      }
+
+      bool serviceEnabled = await isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        log("LOCATION_SERVICE: GPS is disabled, prompting user...");
+        // This might prompt the user to enable GPS on some devices
+        await Geolocator.openLocationSettings();
         return null;
       }
 

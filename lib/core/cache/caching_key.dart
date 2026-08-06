@@ -20,4 +20,10 @@ class CachingKey {
 
   static const String LATITUDE = 'LATITUDE';
   static const String LONGITUDE = 'LONGITUDE';
+
+  // Notification Settings
+  static const String PUSH_NOTIF_ENABLED = 'PUSH_NOTIF_ENABLED';
+  static const String BOOKING_UPDATES_ENABLED = 'BOOKING_UPDATES_ENABLED';
+  static const String OFFERS_ENABLED = 'OFFERS_ENABLED';
+  static const String SYSTEM_NOTIF_ENABLED = 'SYSTEM_NOTIF_ENABLED';
 }

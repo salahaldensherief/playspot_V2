@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -58,16 +61,17 @@ class _EditProfileView extends StatelessWidget {
           ),
         ),
         body: SingleChildScrollView(
-          padding: EdgeInsets.all(20.w),
+          padding: 20.allPadding,
           child: Column(
             children: [
               const _AvatarSection(),
-              SizedBox(height: 30.h),
+              30.verticalSpace,
               _FormSection(),
-              SizedBox(height: 40.h),
+              40.verticalSpace,
               const _SaveButton(),
-              SizedBox(height: 20.h),
+              20.verticalSpace,
               const _DeleteAccountButton(),
+              const SafeBottomSpacer(),
             ],
           ),
         ),

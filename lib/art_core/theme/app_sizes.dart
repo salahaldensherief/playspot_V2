@@ -33,4 +33,7 @@ class AppSizes {
   static double get r24 => 24.r;
   static double get r25 => 25.r;
   static double get r30 => 30.r;
+
+  // Bottom Navigation Spacing (for Android hover buttons / safe area)
+  static double get bottomSpacerHeight => 100.h;
 }

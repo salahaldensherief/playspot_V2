@@ -16,6 +16,7 @@ import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart'
 import 'package:playspot/features/home/presentation/widgets/activity_categories.dart';
 import 'package:playspot/art_core/widgets/shimmer/lounge_card_shimmer.dart';
 import 'package:playspot/features/notifications/presentation/cubit/notifications_cubit.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../art_core/widgets/cards/lounge_card.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
@@ -132,6 +133,7 @@ class _HomeViewState extends State<_HomeView> {
                 ),
                 const _LoungeList(isNearest: false),
                 SliverBottomSpacing(height: 120.h),
+                const SliverSafeBottomSpacer(),
               ],
             ),
           ),

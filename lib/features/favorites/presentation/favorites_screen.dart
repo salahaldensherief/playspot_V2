@@ -8,6 +8,7 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/cards/lounge_card.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'favorites_cubit.dart';
@@ -108,6 +109,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ),
                 ),
                 const SliverBottomSpacing(),
+                const SliverSafeBottomSpacer(),
               ],
             );
           },

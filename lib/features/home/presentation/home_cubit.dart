@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,14 +17,17 @@ class HomeCubit extends Cubit<HomeState> {
   final HomeRepository _homeRepository;
   final LocationService _locationService;
   StreamSubscription<Position>? _positionSubscription;
+  final _pref = sl<PreferenceManager>();
 
   HomeCubit(this._homeRepository, this._locationService) : super(const HomeState());
 
   Future<void> init() async {
+    // 📦 1. تحميل الداتا من الـ Cache فوراً عشان السرعة (Instant Load)
+    _loadCachedHomeData();
+
     emit(state.copyWith(status: HomeStatus.loading));
     
-    final pref = sl<PreferenceManager>();
-    final userId = pref.userId();
+    final userId = _pref.userId();
 
     final meta = await Future.wait([
       _homeRepository.getAvailableCities(),
@@ -35,22 +39,61 @@ class HomeCubit extends Cubit<HomeState> {
     final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>).fold((l) => [], (r) => r);
     final points = meta.length > 3 ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r) : 0;
     
+    final promotions = (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => [], (r) => r);
+    final categories = (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => [], (r) => r);
+
     emit(state.copyWith(
       availableCities: cities as List<Map<String, dynamic>>,
-      promotions: (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => [], (r) => r),
-      categories: (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => [], (r) => r),
+      promotions: promotions,
+      categories: categories,
       pointsBalance: points,
     ));
+
+    // 💾 حفظ الداتا الأساسية في الـ Cache
+    _cacheMetaData(promotions, categories);
 
     await _detectLocation(cities);
     await getHomeData();
   }
 
+  void _loadCachedHomeData() {
+    final cachedPromos = _pref.getValue('CACHED_PROMOS');
+    final cachedCats = _pref.getValue('CACHED_CATEGORIES');
+    final cachedLounges = _pref.getValue('CACHED_LOUNGES');
+
+    if (cachedPromos.isNotEmpty || cachedCats.isNotEmpty || cachedLounges.isNotEmpty) {
+      try {
+        final List<PromoModel> promos = cachedPromos.isNotEmpty 
+            ? (jsonDecode(cachedPromos) as List).map((e) => PromoModel.fromJson(e)).toList() 
+            : [];
+        final List<CategoryModel> cats = cachedCats.isNotEmpty 
+            ? (jsonDecode(cachedCats) as List).map((e) => CategoryModel.fromJson(e)).toList() 
+            : [];
+        final List<LoungeModel> lounges = cachedLounges.isNotEmpty 
+            ? (jsonDecode(cachedLounges) as List).map((e) => LoungeModel.fromJson(e)).toList() 
+            : [];
+
+        emit(state.copyWith(
+          promotions: promos,
+          categories: cats,
+          nearestLounges: lounges,
+          topRatedLounges: List<LoungeModel>.from(lounges)..sort((a, b) => b.rating.compareTo(a.rating)),
+        ));
+      } catch (e) {
+        debugPrint("CACHE_LOAD_ERROR: $e");
+      }
+    }
+  }
+
+  void _cacheMetaData(List<PromoModel> promos, List<CategoryModel> cats) {
+    _pref.saveValue('CACHED_PROMOS', jsonEncode(promos.map((e) => e.toJson()).toList()));
+    _pref.saveValue('CACHED_CATEGORIES', jsonEncode(cats.map((e) => e.toJson()).toList()));
+  }
+
   Future<void> getHomeData() async {
-    final pref = sl<PreferenceManager>();
-    final userId = pref.userId();
-    final lat = double.tryParse(pref.latitude());
-    final lng = double.tryParse(pref.longitude());
+    final userId = _pref.userId();
+    final lat = double.tryParse(_pref.latitude());
+    final lng = double.tryParse(_pref.longitude());
 
     final results = await Future.wait([
       _homeRepository.getLounges(
@@ -75,6 +118,8 @@ class HomeCubit extends Cubit<HomeState> {
           topRatedLounges: top.take(5).toList(),
           pointsBalance: points,
         ));
+        // 💾 تحديث كاش الصالات بآخر داتا حقيقية
+        _pref.saveValue('CACHED_LOUNGES', jsonEncode(lounges.map((e) => e.toJson()).toList()));
       },
     );
   }

@@ -117,6 +117,19 @@ class PreferenceManager {
 
   void setDarkMode(bool? isDarkMode) => _box.write(CachingKey.IS_DARK_MODE, isDarkMode);
 
+  // --- Notification Settings ---
+  Future<void> savePushEnabled(bool val) => _box.write(CachingKey.PUSH_NOTIF_ENABLED, val);
+  bool pushEnabled() => _box.read(CachingKey.PUSH_NOTIF_ENABLED) as bool? ?? true;
+
+  Future<void> saveBookingUpdatesEnabled(bool val) => _box.write(CachingKey.BOOKING_UPDATES_ENABLED, val);
+  bool bookingUpdatesEnabled() => _box.read(CachingKey.BOOKING_UPDATES_ENABLED) as bool? ?? true;
+
+  Future<void> saveOffersEnabled(bool val) => _box.write(CachingKey.OFFERS_ENABLED, val);
+  bool offersEnabled() => _box.read(CachingKey.OFFERS_ENABLED) as bool? ?? true;
+
+  Future<void> saveSystemNotifEnabled(bool val) => _box.write(CachingKey.SYSTEM_NOTIF_ENABLED, val);
+  bool systemNotifEnabled() => _box.read(CachingKey.SYSTEM_NOTIF_ENABLED) as bool? ?? true;
+
   bool? isGuestUser() => authToken().isEmpty;
 
   // void saveActiveCountry(ActiveCountryModel activeCountry) =>

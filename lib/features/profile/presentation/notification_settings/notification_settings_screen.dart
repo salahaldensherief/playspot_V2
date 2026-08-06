@@ -8,6 +8,8 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
+import 'package:playspot/core/di.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -17,10 +19,40 @@ class NotificationSettingsScreen extends StatefulWidget {
 }
 
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
-  bool _pushNotifications = true;
-  bool _bookingUpdates = true;
-  bool _offersPromotions = false;
-  bool _systemStatus = true;
+  final _pref = sl<PreferenceManager>();
+  late bool _pushNotifications;
+  late bool _bookingUpdates;
+  late bool _offersPromotions;
+  late bool _systemStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _pushNotifications = _pref.pushEnabled();
+    _bookingUpdates = _pref.bookingUpdatesEnabled();
+    _offersPromotions = _pref.offersEnabled();
+    _systemStatus = _pref.systemNotifEnabled();
+  }
+
+  void _updatePush(bool val) {
+    setState(() => _pushNotifications = val);
+    _pref.savePushEnabled(val);
+  }
+
+  void _updateBooking(bool val) {
+    setState(() => _bookingUpdates = val);
+    _pref.saveBookingUpdatesEnabled(val);
+  }
+
+  void _updateOffers(bool val) {
+    setState(() => _offersPromotions = val);
+    _pref.saveOffersEnabled(val);
+  }
+
+  void _updateSystem(bool val) {
+    setState(() => _systemStatus = val);
+    _pref.saveSystemNotifEnabled(val);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +85,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                           title: AppStrings.pushNotifications.tr(),
                           subtitle: AppStrings.pushNotificationsDesc.tr(),
                           value: _pushNotifications,
-                          onChanged: (val) => setState(() => _pushNotifications = val),
+                          onChanged: _updatePush,
                         ),
                       ],
                     ),
@@ -78,7 +110,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                     title: AppStrings.bookingUpdates.tr(),
                                     subtitle: AppStrings.bookingUpdatesDesc.tr(),
                                     value: _bookingUpdates,
-                                    onChanged: (val) => setState(() => _bookingUpdates = val),
+                                    onChanged: _updateBooking,
                                     isEnabled: _pushNotifications,
                                   ),
                                   _buildSettingTile(
@@ -86,7 +118,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                     title: AppStrings.offersPromotions.tr(),
                                     subtitle: AppStrings.offersPromotionsDesc.tr(),
                                     value: _offersPromotions,
-                                    onChanged: (val) => setState(() => _offersPromotions = val),
+                                    onChanged: _updateOffers,
                                     showBorder: true,
                                     isEnabled: _pushNotifications,
                                   ),
@@ -95,7 +127,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                     title: AppStrings.systemNotifications.tr(),
                                     subtitle: AppStrings.systemNotificationsDesc.tr(),
                                     value: _systemStatus,
-                                    onChanged: (val) => setState(() => _systemStatus = val),
+                                    onChanged: _updateSystem,
                                     showBorder: true,
                                     isEnabled: _pushNotifications,
                                   ),

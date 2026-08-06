@@ -15,6 +15,7 @@ import 'package:playspot/art_core/widgets/cards/search_lounge_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/home_state.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../home/data/models/lounge_model.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -57,9 +58,12 @@ class _SearchScreenState extends State<SearchScreen> {
                   
                   return ListView.separated(
                     padding: EdgeInsets.all(16.w),
-                    itemCount: lounges.length,
+                    itemCount: lounges.length + 1,
                     separatorBuilder: (context, index) => SizedBox(height: 16.h),
                     itemBuilder: (context, index) {
+                      if (index == lounges.length) {
+                        return const SafeBottomSpacer();
+                      }
                       return SearchLoungeCard(lounge: lounges[index]);
                     },
                   );
