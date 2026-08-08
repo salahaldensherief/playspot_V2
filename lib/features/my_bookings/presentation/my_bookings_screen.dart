@@ -101,6 +101,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     AppStrings.noCancelledBookings.tr(),
                     Icons.cancel_presentation_outlined,
                   ),
+
                 ],
               );
             },
@@ -139,7 +140,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   SizedBox(height: AppSizes.s16),
               itemBuilder: (context, index) {
                 if (index == bookings.length) {
-                  return const SafeBottomSpacer();
+                  return const SafeBottomSpacer(extraPadding: 100);
                 }
                 final booking = bookings[index];
                 return BookingCard(

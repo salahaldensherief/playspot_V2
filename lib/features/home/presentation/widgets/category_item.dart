@@ -57,24 +57,6 @@ class CategoryItem extends StatelessWidget {
                 ],
               ),
             ),
-            if (isSelected) ...[
-              4.verticalSpace,
-              Container(
-                width: 4.w,
-                height: 4.w,
-                decoration: const BoxDecoration(
-                  color: AppColors.neonBlue,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.neonBlue,
-                      blurRadius: 6,
-                      spreadRadius: 1,
-                    )
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),

@@ -20,6 +20,7 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 
+import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 
@@ -94,7 +95,7 @@ class CheckoutScreen extends StatelessWidget {
                 _buildCardDetailsSection(),
                 SizedBox(height: 32.h),
                 _buildSecuredPaymentNote(),
-                SizedBox(height: 100.h),
+                const SafeBottomSpacer(extraPadding: 120),
               ],
             ),
           ),
@@ -350,48 +351,54 @@ class CheckoutScreen extends StatelessWidget {
     return BlocBuilder<CheckoutCubit, CheckoutState>(
       builder: (context, state) {
         return Container(
-          padding: EdgeInsets.all(20.w),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
           color: AppColors.scaffoldBackground,
-          child: AppButton(
-            content: ButtonContent(
-              label: state.status == CheckoutStatus.loading
-                  ? AppStrings.processing.tr()
-                  : state.selectedMethod == PaymentMethod.cash
-                      ? AppStrings.confirmBookingWithPrice
-                          .tr(args: [totalPrice.toInt().toString()])
-                      : AppStrings.payNowWithPrice
-                          .tr(args: [totalPrice.toInt().toString()]),
-            ),
-            behavior: ButtonBehavior.tap(
-              isEnabled: state.status != CheckoutStatus.loading,
-              onTap: () {
-                final startDateTime = DateTime(
-                  date.year,
-                  date.month,
-                  date.day,
-                  startTime.hour,
-                  startTime.minute,
-                );
-                final endDateTime =
-                    startDateTime.add(Duration(hours: duration));
-
-                context.read<CheckoutCubit>().processPayment(
-                      roomId: room.id,
-                      loungeId: lounge.id,
-                      startTime: startDateTime,
-                      endTime: endDateTime,
-                      totalPrice: totalPrice,
-                      roomPrice: room.pricePerHour,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppButton(
+                content: ButtonContent(
+                  label: state.status == CheckoutStatus.loading
+                      ? AppStrings.processing.tr()
+                      : state.selectedMethod == PaymentMethod.cash
+                          ? AppStrings.confirmBookingWithPrice
+                              .tr(args: [totalPrice.toInt().toString()])
+                          : AppStrings.payNowWithPrice
+                              .tr(args: [totalPrice.toInt().toString()]),
+                ),
+                behavior: ButtonBehavior.tap(
+                  isEnabled: state.status != CheckoutStatus.loading,
+                  onTap: () {
+                    final startDateTime = DateTime(
+                      date.year,
+                      date.month,
+                      date.day,
+                      startTime.hour,
+                      startTime.minute,
                     );
-              },
-            ),
-            buttonConfig: ButtonConfig(
-              height: 55.h,
-              borderRadius: 15.r,
-              gradient: const LinearGradient(
-                colors: [AppColors.neonBlue, AppColors.neonPurple],
+                    final endDateTime =
+                        startDateTime.add(Duration(hours: duration));
+
+                    context.read<CheckoutCubit>().processPayment(
+                          roomId: room.id,
+                          loungeId: lounge.id,
+                          startTime: startDateTime,
+                          endTime: endDateTime,
+                          totalPrice: totalPrice,
+                          roomPrice: room.pricePerHour,
+                        );
+                  },
+                ),
+                buttonConfig: ButtonConfig(
+                  height: 55.h,
+                  borderRadius: 15.r,
+                  gradient: const LinearGradient(
+                    colors: [AppColors.neonBlue, AppColors.neonPurple],
+                  ),
+                ),
               ),
-            ),
+              const SafeBottomSpacer(extraPadding: 40),
+            ],
           ),
         );
       },

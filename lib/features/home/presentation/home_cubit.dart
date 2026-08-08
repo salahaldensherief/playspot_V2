@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../core/cache/preference_manager.dart';
@@ -36,14 +37,14 @@ class HomeCubit extends Cubit<HomeState> {
       if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
     ]);
 
-    final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>).fold((l) => [], (r) => r);
+    final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>).fold((l) => <Map<String, dynamic>>[], (r) => r);
     final points = meta.length > 3 ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r) : 0;
     
-    final promotions = (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => [], (r) => r);
-    final categories = (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => [], (r) => r);
+    final promotions = (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
+    final categories = (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
 
     emit(state.copyWith(
-      availableCities: cities as List<Map<String, dynamic>>,
+      availableCities: cities,
       promotions: promotions,
       categories: categories,
       pointsBalance: points,
@@ -65,13 +66,13 @@ class HomeCubit extends Cubit<HomeState> {
       try {
         final List<PromoModel> promos = cachedPromos.isNotEmpty 
             ? (jsonDecode(cachedPromos) as List).map((e) => PromoModel.fromJson(e)).toList() 
-            : [];
+            : <PromoModel>[];
         final List<CategoryModel> cats = cachedCats.isNotEmpty 
             ? (jsonDecode(cachedCats) as List).map((e) => CategoryModel.fromJson(e)).toList() 
-            : [];
+            : <CategoryModel>[];
         final List<LoungeModel> lounges = cachedLounges.isNotEmpty 
             ? (jsonDecode(cachedLounges) as List).map((e) => LoungeModel.fromJson(e)).toList() 
-            : [];
+            : <LoungeModel>[];
 
         emit(state.copyWith(
           promotions: promos,

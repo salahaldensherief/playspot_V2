@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../../data/models/review_model.dart';
 import '../widgets/reviews_section.dart';
@@ -30,7 +31,7 @@ class AllReviewsScreen extends StatelessWidget {
               child: CustomScrollView(
                 slivers: [
                   const ReviewsSection(),
-                  SliverToBoxAdapter(child: SizedBox(height: 30.h)),
+                  const SliverSafeBottomSpacer(),
                 ],
               ),
             ),

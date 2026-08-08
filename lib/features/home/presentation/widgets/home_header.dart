@@ -195,13 +195,6 @@ class HomeHeader extends StatelessWidget {
             color: isSelected ? AppColors.neonBlue : AppColors.borderSubtle,
             width: 1.5,
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: AppColors.neonBlue30,
-              blurRadius: 10,
-              spreadRadius: .8,
-            )
-          ] : [],
         ),
         child: Center(
           child: AppText(

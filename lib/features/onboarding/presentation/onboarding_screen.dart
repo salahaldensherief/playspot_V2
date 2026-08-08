@@ -5,6 +5,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/text/font_manager.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../../art_core/app_strings.dart';
@@ -179,7 +180,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                   : AppStrings.next.tr(),
             ),
           ),
-          SizedBox(height: 30.h),
+          SizedBox(height: 20.h),
+          const SafeBottomSpacer(),
         ],
       ),
     );

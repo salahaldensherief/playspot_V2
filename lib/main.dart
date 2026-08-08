@@ -91,6 +91,9 @@ class _MyAppState extends State<MyApp> {
                   scaffoldBackgroundColor: AppColors.scaffoldBackground,
                   fontFamily: locale.languageCode == 'ar' ? 'Cairo' : 'Orbitron',
                 ),
+                scrollBehavior: const MaterialScrollBehavior().copyWith(
+                  physics: const BouncingScrollPhysics(),
+                ),
                 routerConfig: _appRouter.router,
               );
             },

@@ -82,5 +82,19 @@ class PromoModel extends Equatable {
       deepLink: json['deep_link'],
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title_ar': titleAr,
+      'title_en': titleEn,
+      'tag_ar': tagAr,
+      'tag_en': tagEn,
+      'colors': hexColors,
+      'icon_key': iconKey,
+      'image_url': imageUrl,
+      'deep_link': deepLink,
+    };
+  }
 }
 

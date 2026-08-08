@@ -15,9 +15,9 @@ class SocialAuthServiceImpl implements SocialAuthService {
     try {
       debugPrint('[SocialAuth] Initializing Google Sign-In...');
       
+      // Matching the project in your screenshot: 1070210806389
       final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: '304793073372-7eipb31om1ge4pn0rtkioecv8a3g5rvo.apps.googleusercontent.com',
-        serverClientId: '304793073372-hct1k83vbefg4nthg942bbiuj38mjlha.apps.googleusercontent.com',
+        serverClientId: '1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com',
         scopes: ['email', 'profile'],
       );
 

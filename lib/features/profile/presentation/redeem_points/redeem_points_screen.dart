@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/shimmer/redemption_option_shimmer.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../profile_cubit.dart';
@@ -65,9 +66,12 @@ class RedeemPointsScreen extends StatelessWidget {
 
                   return ListView.separated(
                     padding: EdgeInsets.all(20.w),
-                    itemCount: state.redemptionOptions.length,
+                    itemCount: state.redemptionOptions.length + 1,
                     separatorBuilder: (context, index) => SizedBox(height: 16.h),
                     itemBuilder: (context, index) {
+                      if (index == state.redemptionOptions.length) {
+                        return const SafeBottomSpacer();
+                      }
                       final option = state.redemptionOptions[index];
                       final canAfford = state.pointsBalance >= option.pointsCost;
 

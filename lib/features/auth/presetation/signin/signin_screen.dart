@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_cubit.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_state.dart';
 import 'package:playspot/features/auth/presetation/signin/widgets/signin_form.dart';
@@ -66,7 +67,7 @@ class _SignInView extends StatelessWidget {
                 onTap: () => context.goNamed(RouterKeys.signUp),
                 text: AppStrings.dontHaveAccount.tr(),
               ),
-              20.verticalSpace,
+              const SafeBottomSpacer(),
             ],
           ),
         ),

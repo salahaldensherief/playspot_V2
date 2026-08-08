@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 
 import 'profile_cubit.dart';
 import 'profile_state.dart';
@@ -38,7 +39,7 @@ class ProfileScreen extends StatelessWidget {
                 const ProfileMenuSection(),
                 30.verticalSpace,
                 const LogoutButton(),
-                100.verticalSpace,
+                const SafeBottomSpacer(extraPadding: 80),
               ],
             ),
           ),

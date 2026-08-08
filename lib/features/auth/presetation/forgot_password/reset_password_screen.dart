@@ -12,6 +12,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/core/utils/app_validators.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/features/auth/presetation/widgets/auth_app_bar.dart';
 
 import 'forgot_password_cubit.dart';
@@ -104,6 +105,7 @@ class ResetPasswordScreen extends StatelessWidget {
                     },
                   ),
                 ),
+                const SafeBottomSpacer(),
               ],
             ),
           ),

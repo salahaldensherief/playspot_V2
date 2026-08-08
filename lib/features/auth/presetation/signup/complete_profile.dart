@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 
@@ -128,6 +129,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                           ),
                         ),
                       ),
+                      const SafeBottomSpacer(),
                     ],
                   ),
                 ),
