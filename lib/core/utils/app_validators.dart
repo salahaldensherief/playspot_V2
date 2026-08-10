@@ -34,11 +34,15 @@ class AppValidators {
   }
 
   static String? validateName(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return AppStrings.pleaseEnterUsername.tr();
     }
-    if (value.length < 3) {
+    if (value.trim().length < 3) {
       return AppStrings.pleaseEnterUsername.tr();
+    }
+    // Check if name contains numbers
+    if (RegExp(r'[0-9]').hasMatch(value)) {
+      return "nameCannotContainNumbers".tr();
     }
     return null;
   }

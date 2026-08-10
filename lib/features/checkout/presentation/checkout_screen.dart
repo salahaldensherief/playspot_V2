@@ -19,12 +19,13 @@ import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
+import 'package:playspot/core/utils/app_validators.dart';
 
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 
-class CheckoutScreen extends StatelessWidget {
+class CheckoutScreen extends StatefulWidget {
   final LoungeModel lounge;
   final RoomModel room;
   final DateTime date;
@@ -43,6 +44,13 @@ class CheckoutScreen extends StatelessWidget {
     required this.totalPrice,
     required this.addOns,
   });
+
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -76,27 +84,30 @@ class CheckoutScreen extends StatelessWidget {
               color: AppColors.white,
             ),
           ),
-          body: SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSummaryCard(context),
-                SizedBox(height: 24.h),
-                AppText(
-                  text: AppStrings.paymentMethod.tr(),
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.white,
-                ),
-                SizedBox(height: 16.h),
-                _buildPaymentMethods(),
-                SizedBox(height: 24.h),
-                _buildCardDetailsSection(),
-                SizedBox(height: 32.h),
-                _buildSecuredPaymentNote(),
-                const SafeBottomSpacer(extraPadding: 120),
-              ],
+          body: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSummaryCard(context),
+                  SizedBox(height: 24.h),
+                  AppText(
+                    text: AppStrings.paymentMethod.tr(),
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                  SizedBox(height: 16.h),
+                  _buildPaymentMethods(),
+                  SizedBox(height: 24.h),
+                  _buildCardDetailsSection(),
+                  SizedBox(height: 32.h),
+                  _buildSecuredPaymentNote(),
+                  const SafeBottomSpacer(extraPadding: 120),
+                ],
+              ),
             ),
           ),
           bottomSheet: _buildPayButton(),
@@ -117,7 +128,7 @@ class CheckoutScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
-            text: lounge.name,
+            text: widget.lounge.name,
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.white,
@@ -125,19 +136,19 @@ class CheckoutScreen extends StatelessWidget {
           SizedBox(height: 4.h),
           AppText(
             text:
-                "${room.getName(context.locale.languageCode == 'ar')} · ${room.controllersCount} ${AppStrings.controllers.tr()} · ${room.screenSize} ${AppStrings.screen.tr()} · ${room.capacity} Persons",
+                "${widget.room.getName(context.locale.languageCode == 'ar')} · ${widget.room.controllersCount} ${AppStrings.controllers.tr()} · ${widget.room.screenSize} ${AppStrings.screen.tr()} · ${widget.room.capacity} Persons",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
           ),
           SizedBox(height: 16.h),
           const AppDivider(),
-          InfoRow(label: AppStrings.selectDate.tr(), value: date.toAppDateString()),
+          InfoRow(label: AppStrings.selectDate.tr(), value: widget.date.toAppDateString()),
           InfoRow(
-              label: AppStrings.startTime.tr(), value: startTime.toAppTimeString()),
+              label: AppStrings.startTime.tr(), value: widget.startTime.toAppTimeString()),
           InfoRow(
               label: AppStrings.duration.tr(),
-              value: AppStrings.hour.tr(args: [duration.toString()])),
-          if (addOns.isNotEmpty) ...[
+              value: AppStrings.hour.tr(args: [widget.duration.toString()])),
+          if (widget.addOns.isNotEmpty) ...[
             SizedBox(height: 16.h),
             AppText(
               text: AppStrings.addOns.tr(),
@@ -146,7 +157,7 @@ class CheckoutScreen extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
             SizedBox(height: 8.h),
-            ...addOns.map((addOn) {
+            ...widget.addOns.map((addOn) {
               String icon = "🥤";
               final name = addOn['name'].toString().toLowerCase();
               if (name.contains('snack') ||
@@ -176,7 +187,7 @@ class CheckoutScreen extends StatelessWidget {
                 color: AppColors.white,
               ),
               AppText(
-                text: "${totalPrice.toInt()} ${AppStrings.egp.tr()}",
+                text: "${widget.totalPrice.toInt()} ${AppStrings.egp.tr()}",
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.neonBlue,
@@ -301,11 +312,13 @@ class CheckoutScreen extends StatelessWidget {
               label: AppStrings.cardNumber.tr(),
               hint: "1234 5678 9012 3456",
               textInputType: TextInputType.number,
+              validator: (v) => AppValidators.validateNotEmpty(v, AppStrings.cardNumber.tr()),
             ),
             SizedBox(height: 16.h),
             AppTextField(
               label: AppStrings.cardholderName.tr(),
               hint: "Ahmed Mohamed",
+              validator: (v) => AppValidators.validateNotEmpty(v, AppStrings.cardholderName.tr()),
             ),
             SizedBox(height: 16.h),
             Row(
@@ -314,6 +327,7 @@ class CheckoutScreen extends StatelessWidget {
                   child: AppTextField(
                     label: AppStrings.expiryDate.tr(),
                     hint: "MM/YY",
+                    validator: (v) => AppValidators.validateNotEmpty(v, AppStrings.expiryDate.tr()),
                   ),
                 ),
                 SizedBox(width: 16.w),
@@ -322,6 +336,7 @@ class CheckoutScreen extends StatelessWidget {
                     label: AppStrings.cvv.tr(),
                     hint: "123",
                     isPassword: true,
+                    validator: (v) => AppValidators.validateNotEmpty(v, AppStrings.cvv.tr()),
                   ),
                 ),
               ],
@@ -362,30 +377,34 @@ class CheckoutScreen extends StatelessWidget {
                       ? AppStrings.processing.tr()
                       : state.selectedMethod == PaymentMethod.cash
                           ? AppStrings.confirmBookingWithPrice
-                              .tr(args: [totalPrice.toInt().toString()])
+                              .tr(args: [widget.totalPrice.toInt().toString()])
                           : AppStrings.payNowWithPrice
-                              .tr(args: [totalPrice.toInt().toString()]),
+                              .tr(args: [widget.totalPrice.toInt().toString()]),
                 ),
                 behavior: ButtonBehavior.tap(
                   isEnabled: state.status != CheckoutStatus.loading,
                   onTap: () {
+                    if (state.selectedMethod == PaymentMethod.creditCard) {
+                      if (!(_formKey.currentState?.validate() ?? false)) return;
+                    }
+                    
                     final startDateTime = DateTime(
-                      date.year,
-                      date.month,
-                      date.day,
-                      startTime.hour,
-                      startTime.minute,
+                      widget.date.year,
+                      widget.date.month,
+                      widget.date.day,
+                      widget.startTime.hour,
+                      widget.startTime.minute,
                     );
                     final endDateTime =
-                        startDateTime.add(Duration(hours: duration));
+                        startDateTime.add(Duration(hours: widget.duration));
 
                     context.read<CheckoutCubit>().processPayment(
-                          roomId: room.id,
-                          loungeId: lounge.id,
+                          roomId: widget.room.id,
+                          loungeId: widget.lounge.id,
                           startTime: startDateTime,
                           endTime: endDateTime,
-                          totalPrice: totalPrice,
-                          roomPrice: room.pricePerHour,
+                          totalPrice: widget.totalPrice,
+                          roomPrice: widget.room.pricePerHour,
                         );
                   },
                 ),
@@ -410,9 +429,9 @@ class CheckoutScreen extends StatelessWidget {
       context,
       barrierDismissible: false,
       type: AppDialogType.success,
-      title: AppStrings.bookingConfirmedTitle,
-      description: AppStrings.bookingConfirmedSubtitle,
-      descriptionArgs: [lounge.name],
+      title: AppStrings.bookingRequestedTitle,
+      description: AppStrings.bookingRequestedSubtitle,
+      descriptionArgs: [widget.lounge.name],
       confirmText: AppStrings.viewMyBookings,
       onConfirm: () => context.goNamed(RouterKeys.home, extra: 1),
     );

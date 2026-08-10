@@ -15,8 +15,8 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     result.fold(
       (failure) => emit(state.copyWith(status: MyBookingsStatus.failure, errorMessage: failure.message)),
       (bookings) {
-        final upcoming = bookings.where((b) => b.status == 'upcoming').toList();
-        final past = bookings.where((b) => b.status == 'completed').toList();
+        final upcoming = bookings.where((b) => b.status == 'upcoming' || b.status == 'pending').toList();
+        final past = bookings.where((b) => b.status == 'completed' || b.status == 'past').toList();
         final cancelled = bookings.where((b) => b.status == 'cancelled').toList();
 
         emit(state.copyWith(

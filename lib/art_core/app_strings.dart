@@ -149,6 +149,8 @@ class AppStrings {
   static const String bookingConfirmed = "bookingConfirmed";
   static const String bookingConfirmedTitle = "bookingConfirmedTitle";
   static const String bookingConfirmedSubtitle = "bookingConfirmedSubtitle";
+  static const String bookingRequestedTitle = "bookingRequestedTitle";
+  static const String bookingRequestedSubtitle = "bookingRequestedSubtitle";
   static const String viewMyBookings = "viewMyBookings";
   static const String orderSummary = "orderSummary";
   static const String paymentMethod = "paymentMethod";

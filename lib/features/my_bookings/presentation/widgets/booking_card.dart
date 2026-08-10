@@ -22,7 +22,7 @@ class BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isUpcoming = booking.status == 'upcoming';
+    final isUpcoming = booking.status == 'upcoming' || booking.status == 'pending';
     
     return Container(
       padding: EdgeInsets.all(20.w),
@@ -169,6 +169,10 @@ class BookingCard extends StatelessWidget {
       case 'upcoming':
         color = AppColors.success;
         text = AppStrings.confirmed.tr();
+        break;
+      case 'pending':
+        color = AppColors.warning;
+        text = "pending".tr();
         break;
       case 'cancelled':
         color = AppColors.danger;
