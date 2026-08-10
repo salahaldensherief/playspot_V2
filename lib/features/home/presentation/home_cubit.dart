@@ -20,16 +20,27 @@ class HomeCubit extends Cubit<HomeState> {
   StreamSubscription<Position>? _positionSubscription;
   final _pref = sl<PreferenceManager>();
 
+  // آخر موقع استخدمناه فعلياً في نداء getHomeData، عشان نقارن بيه ونمنع
+  // نداءات مكررة لو الموقع اتغير شوية بسيطة مش مؤثرة.
+  double? _lastUsedLat;
+  double? _lastUsedLng;
+
   HomeCubit(this._homeRepository, this._locationService) : super(const HomeState());
 
   Future<void> init() async {
-    // 📦 1. تحميل الداتا من الـ Cache فوراً عشان السرعة (Instant Load)
     _loadCachedHomeData();
 
-    emit(state.copyWith(status: HomeStatus.loading));
-    
     final userId = _pref.userId();
+    final hasCachedData = state.nearestLounges.isNotEmpty;
 
+    // لو معندناش أي بيانات كاش خالص، دي أول مرة فعلاً يفتح فيها التطبيق،
+    // فمفيش مفر من شاشة تحميل حقيقية. لو عندنا كاش، بنستخدم حالة "تحديث
+    // في الخلفية" عشان البيانات القديمة تفضل ظاهرة للمستخدم مش تتغطى فجأة.
+    emit(state.copyWith(
+      status: hasCachedData ? HomeStatus.refreshing : HomeStatus.loading,
+    ));
+
+    // البيانات الوصفية (مدن، عروض، تصنيفات، نقاط) بتتجاب مرة واحدة بس هنا.
     final meta = await Future.wait([
       _homeRepository.getAvailableCities(),
       _homeRepository.getPromotions(),
@@ -37,11 +48,16 @@ class HomeCubit extends Cubit<HomeState> {
       if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
     ]);
 
-    final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>).fold((l) => <Map<String, dynamic>>[], (r) => r);
-    final points = meta.length > 3 ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r) : 0;
-    
-    final promotions = (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
-    final categories = (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
+    final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>)
+        .fold((l) => <Map<String, dynamic>>[], (r) => r);
+    final points = meta.length > 3
+        ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r)
+        : 0;
+
+    final promotions =
+    (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
+    final categories =
+    (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
 
     emit(state.copyWith(
       availableCities: cities,
@@ -50,11 +66,27 @@ class HomeCubit extends Cubit<HomeState> {
       pointsBalance: points,
     ));
 
-    // 💾 حفظ الداتا الأساسية في الـ Cache
     _cacheMetaData(promotions, categories);
 
-    await _detectLocation(cities);
-    await getHomeData();
+    // 🔑 التغيير الأساسي: مبقيناش بننتظر تحديد الموقع الكامل (GPS + تحويل
+    // لعنوان نصي) قبل ما نجيب الصالات. لو عندنا lat/lng محفوظين من قبل،
+    // نجيب الصالات بيهم فوراً، وفي نفس الوقت (بالتوازي) نطلب موقع أحدث.
+    final savedLat = double.tryParse(_pref.latitude());
+    final savedLng = double.tryParse(_pref.longitude());
+    final hasSavedLocation = savedLat != null && savedLng != null;
+
+    if (hasSavedLocation) {
+      // نجيب الصالات فوراً من غير أي انتظار للموقع الجديد أو للعنوان النصي.
+      unawaited(getHomeData());
+    }
+
+    // تحديد الموقع الفعلي (GPS الجديد + تحويله لعنوان نصي) بيشتغل بالتوازي،
+    // مش قبل جلب الصالات. الفنكشن نفسها هي اللي هتقرر تنادي getHomeData
+    // تاني لو لقيت إن الموقع اتغير فرق مؤثر عن اللي كان محفوظ.
+    await _detectLocation(cities, shouldRefreshLounges: !hasSavedLocation);
+
+    // fallback: لو معندناش موقع محفوظ خالص من الأساس (أول مرة حقيقية)،
+    // getHomeData هتتنادى من جوه _detectLocation نفسها بعد ما يوصلها موقع.
   }
 
   void _loadCachedHomeData() {
@@ -64,21 +96,22 @@ class HomeCubit extends Cubit<HomeState> {
 
     if (cachedPromos.isNotEmpty || cachedCats.isNotEmpty || cachedLounges.isNotEmpty) {
       try {
-        final List<PromoModel> promos = cachedPromos.isNotEmpty 
-            ? (jsonDecode(cachedPromos) as List).map((e) => PromoModel.fromJson(e)).toList() 
+        final List<PromoModel> promos = cachedPromos.isNotEmpty
+            ? (jsonDecode(cachedPromos) as List).map((e) => PromoModel.fromJson(e)).toList()
             : <PromoModel>[];
-        final List<CategoryModel> cats = cachedCats.isNotEmpty 
-            ? (jsonDecode(cachedCats) as List).map((e) => CategoryModel.fromJson(e)).toList() 
+        final List<CategoryModel> cats = cachedCats.isNotEmpty
+            ? (jsonDecode(cachedCats) as List).map((e) => CategoryModel.fromJson(e)).toList()
             : <CategoryModel>[];
-        final List<LoungeModel> lounges = cachedLounges.isNotEmpty 
-            ? (jsonDecode(cachedLounges) as List).map((e) => LoungeModel.fromJson(e)).toList() 
+        final List<LoungeModel> lounges = cachedLounges.isNotEmpty
+            ? (jsonDecode(cachedLounges) as List).map((e) => LoungeModel.fromJson(e)).toList()
             : <LoungeModel>[];
 
         emit(state.copyWith(
           promotions: promos,
           categories: cats,
           nearestLounges: lounges,
-          topRatedLounges: List<LoungeModel>.from(lounges)..sort((a, b) => b.rating.compareTo(a.rating)),
+          topRatedLounges: List<LoungeModel>.from(lounges)
+            ..sort((a, b) => b.rating.compareTo(a.rating)),
         ));
       } catch (e) {
         debugPrint("CACHE_LOAD_ERROR: $e");
@@ -91,41 +124,49 @@ class HomeCubit extends Cubit<HomeState> {
     _pref.saveValue('CACHED_CATEGORIES', jsonEncode(cats.map((e) => e.toJson()).toList()));
   }
 
+  /// جلب الصالات (وبس - النقاط بقت بتتجاب من init() مرة واحدة، مش هنا تاني).
   Future<void> getHomeData() async {
-    final userId = _pref.userId();
     final lat = double.tryParse(_pref.latitude());
     final lng = double.tryParse(_pref.longitude());
 
-    final results = await Future.wait([
-      _homeRepository.getLounges(
-        lat: lat,
-        lng: lng,
-        city: state.selectedCity,
-        categoryIds: state.selectedCategoryIds,
-      ),
-      if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
-    ]);
+    // لو مفيش موقع خالص لحد دلوقتي، مفيش داعي نعمل نداء فاشل للسيرفر.
+    if (lat == null || lng == null) return;
 
-    final res = results[0] as Either<Failure, List<LoungeModel>>;
-    final points = results.length > 1 ? (results[1] as Either<Failure, int>).fold((l) => state.pointsBalance, (r) => r) : state.pointsBalance;
+    _lastUsedLat = lat;
+    _lastUsedLng = lng;
 
-    res.fold(
-      (f) => emit(state.copyWith(status: HomeStatus.failure)),
-      (lounges) {
+    // لو عندنا بيانات ظاهرة أصلاً (من الكاش أو من نداء سابق)، دي حالة
+    // "تحديث في الخلفية" مش "تحميل من الصفر" - عشان الشاشة متتقفلش فجأة.
+    final isBackgroundRefresh = state.nearestLounges.isNotEmpty;
+    emit(state.copyWith(
+      status: isBackgroundRefresh ? HomeStatus.refreshing : HomeStatus.loading,
+    ));
+
+    final result = await _homeRepository.getLounges(
+      lat: lat,
+      lng: lng,
+      city: state.selectedCity,
+      categoryIds: state.selectedCategoryIds,
+    );
+
+    result.fold(
+          (f) => emit(state.copyWith(status: HomeStatus.failure)),
+          (lounges) {
         final top = List<LoungeModel>.from(lounges)..sort((a, b) => b.rating.compareTo(a.rating));
         emit(state.copyWith(
           status: HomeStatus.success,
           nearestLounges: lounges,
           topRatedLounges: top.take(5).toList(),
-          pointsBalance: points,
         ));
-        // 💾 تحديث كاش الصالات بآخر داتا حقيقية
         _pref.saveValue('CACHED_LOUNGES', jsonEncode(lounges.map((e) => e.toJson()).toList()));
       },
     );
   }
 
-  Future<void> _detectLocation(List<Map<String, dynamic>> cities) async {
+  Future<void> _detectLocation(
+      List<Map<String, dynamic>> cities, {
+        required bool shouldRefreshLounges,
+      }) async {
     final pos = await _locationService.getCurrentLocation();
     if (pos == null) return;
 
@@ -133,14 +174,23 @@ class HomeCubit extends Cubit<HomeState> {
     await pref.saveLatitude(pos.latitude);
     await pref.saveLongitude(pos.longitude);
 
+    // لو الموقع الجديد بعيد بشكل مؤثر عن اللي استخدمناه فعلياً في آخر نداء
+    // للصالات (أو معندناش موقع كان مستخدم من الأساس)، نحدّث الصالات.
+    final movedSignificantly = _hasMovedSignificantly(pos.latitude, pos.longitude);
+    if (shouldRefreshLounges || movedSignificantly) {
+      unawaited(getHomeData());
+    }
+
+    // تحويل الإحداثيات لعنوان نصي (لعرض "انت في: القاهرة" وتحديد الـ
+    // Dropdown) — ده مش لازم لجلب الصالات خالص، فمنفصل تماماً وبعدها.
     final address = await _locationService.getAddressFromLatLng(pos.latitude, pos.longitude);
     if (address == null) return;
 
     final lowerAddress = address.toLowerCase();
     final isInEgypt = lowerAddress.contains("egypt") || lowerAddress.contains("مصر");
-    
+
     await pref.saveValue('CURRENT_ADDRESS', address);
-    
+
     String? matchedCity;
     for (var c in cities) {
       final cityName = c['city'].toString();
@@ -158,9 +208,22 @@ class HomeCubit extends Cubit<HomeState> {
     }
 
     emit(state.copyWith(
-      selectedCity: matchedCity, 
-      currentAddress: displayLocation
+      selectedCity: matchedCity,
+      currentAddress: displayLocation,
     ));
+  }
+
+  /// بيرجع true لو الموقع الجديد اختلف عن آخر موقع استخدمناه فعلياً بمسافة
+  /// مؤثرة (~500 متر تقريباً)، مش أي فرق بسيط في آخر رقمين عشري.
+  bool _hasMovedSignificantly(double newLat, double newLng) {
+    if (_lastUsedLat == null || _lastUsedLng == null) return true;
+    final distanceInMeters = Geolocator.distanceBetween(
+      _lastUsedLat!,
+      _lastUsedLng!,
+      newLat,
+      newLng,
+    );
+    return distanceInMeters > 500;
   }
 
   void startLocationListening() {
@@ -171,14 +234,17 @@ class HomeCubit extends Cubit<HomeState> {
       final pref = sl<PreferenceManager>();
       await pref.saveLatitude(p.latitude);
       await pref.saveLongitude(p.longitude);
+
+      // بفضل distanceFilter: 500 فوق، الـ stream نفسه مش هيبعت event
+      // إلا لو المستخدم اتحرك 500 متر فعلاً، فمفيش داعي لفحص إضافي هنا.
       await getHomeData();
     });
   }
 
   Future<void> selectCity(String? city) async {
     if (city == state.selectedCity) return;
-    emit(city == null || city.isEmpty 
-        ? state.copyWith(clearCity: true, status: HomeStatus.loading) 
+    emit(city == null || city.isEmpty
+        ? state.copyWith(clearCity: true, status: HomeStatus.loading)
         : state.copyWith(selectedCity: city, status: HomeStatus.loading));
     await getHomeData();
   }
@@ -190,7 +256,7 @@ class HomeCubit extends Cubit<HomeState> {
     } else {
       currentSelected.add(categoryId);
     }
-    
+
     emit(state.copyWith(
       selectedCategoryIds: currentSelected,
       status: HomeStatus.loading,

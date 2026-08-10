@@ -106,7 +106,6 @@ class _HomeViewState extends State<_HomeView> {
                           cities: state.availableCities,
                           selectedCity: state.selectedCity,
                           pointsBalance: state.pointsBalance,
-                          isLoading: state.status == HomeStatus.loading && state.availableCities.isEmpty,
                           onCitySelected: (city) =>
                               context.read<HomeCubit>().selectCity(city),
                         );

@@ -3,7 +3,7 @@ import '../data/models/lounge_model.dart';
 import '../data/models/promo_model.dart';
 import '../data/models/category_model.dart';
 
-enum HomeStatus { initial, loading, success, failure }
+enum HomeStatus { initial, loading, refreshing, success, failure }
 
 class HomeState extends Equatable {
   final HomeStatus status;
@@ -63,16 +63,16 @@ class HomeState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        nearestLounges,
-        topRatedLounges,
-        promotions,
-        categories,
-        availableCities,
-        pointsBalance,
-        selectedCity,
-        selectedCategoryIds,
-        currentAddress,
-        errorMessage,
-      ];
+    status,
+    nearestLounges,
+    topRatedLounges,
+    promotions,
+    categories,
+    availableCities,
+    pointsBalance,
+    selectedCity,
+    selectedCategoryIds,
+    currentAddress,
+    errorMessage,
+  ];
 }

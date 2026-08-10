@@ -7,8 +7,6 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
-import 'package:playspot/art_core/widgets/shimmer/base_shimmer.dart';
-import 'package:playspot/art_core/widgets/shimmer/category_shimmer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -22,7 +20,6 @@ class HomeHeader extends StatelessWidget {
   final List<Map<String, dynamic>> cities;
   final String? selectedCity;
   final int pointsBalance;
-  final bool isLoading;
   final Function(String?) onCitySelected;
 
   const HomeHeader({
@@ -32,7 +29,6 @@ class HomeHeader extends StatelessWidget {
     required this.cities,
     required this.selectedCity,
     required this.pointsBalance,
-    required this.isLoading,
     required this.onCitySelected,
   });
 
@@ -63,9 +59,7 @@ class HomeHeader extends StatelessWidget {
                         Icon(Icons.location_on, color: AppColors.neonBlue, size: 14.sp),
                         4.horizontalSpace,
                         Expanded(
-                          child: isLoading 
-                            ? BaseShimmer(width: 120.w, height: 10.h)
-                            : AppText(
+                          child: AppText(
                                 text: currentLocation.toUpperCase(),
                                 fontSize: 10.sp,
                                 color: AppColors.textSecondary,
@@ -86,9 +80,7 @@ class HomeHeader extends StatelessWidget {
             ],
           ),
           20.verticalSpace,
-          if (isLoading)
-            const CategoryShimmer()
-          else if (cities.isNotEmpty)
+          if (cities.isNotEmpty)
             SizedBox(
               height: 38.h,
               child: ListView.separated(
@@ -110,9 +102,6 @@ class HomeHeader extends StatelessWidget {
   }
 
   Widget _buildPointsBadge() {
-    if (isLoading) {
-      return BaseShimmer(width: 80.w, height: 32.h, borderRadius: AppSizes.r12);
-    }
     return GlassContainer(
       borderRadius: AppSizes.r12,
       child: Padding(
@@ -134,9 +123,6 @@ class HomeHeader extends StatelessWidget {
   }
 
   Widget _buildNotificationBell(BuildContext context) {
-    if (isLoading) {
-      return BaseShimmer(width: 40.w, height: 40.h, borderRadius: AppSizes.r12);
-    }
     return GestureDetector(
       onTap: () => context.pushNamed(RouterKeys.notifications),
       child: GlassContainer(

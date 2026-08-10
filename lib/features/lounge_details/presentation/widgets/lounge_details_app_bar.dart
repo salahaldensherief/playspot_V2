@@ -9,6 +9,7 @@ import '../../../../art_core/utils/extensions/date_time_extensions.dart';
 import '../../../../art_core/widgets/layout/full_screen_gallery.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../home/data/models/lounge_model.dart';
+import 'photo_indicator.dart';
 
 class LoungeDetailsAppBar extends StatelessWidget {
   final LoungeModel lounge;
@@ -53,34 +54,12 @@ class LoungeDetailsAppBar extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-              if (lounge.images != null && lounge.images!.length > 1)
-                Positioned.directional(
-                  textDirection: Directionality.of(context),
-                  top: 55.h,
-                  end: 16.w,
-                  child: Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.photo_library,
-                            color: Colors.white, size: 14.sp),
-                        SizedBox(width: 6.w),
-                        AppText(
-                          text: "1/${lounge.images!.length}",
-                          fontSize: 10.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              Positioned.directional(
+                textDirection: Directionality.of(context),
+                top: 55.h,
+                end: 16.w,
+                child: PhotoIndicator(totalImages: lounge.images?.length),
+              ),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
