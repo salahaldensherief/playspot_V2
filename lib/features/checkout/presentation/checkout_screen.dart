@@ -22,6 +22,7 @@ import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
+import '../../../core/cache/preference_manager.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 
@@ -395,9 +396,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     final endDateTime =
                         startDateTime.add(Duration(hours: widget.duration));
 
+                    final pref = sl<PreferenceManager>();
+                    final userName = pref.fullName() ?? "";
+                    final userPhone = pref.phoneNumber() ?? "";
+
                     context.read<CheckoutCubit>().processPayment(
                           roomId: widget.room.id,
+                          roomName: widget.room.getName(context.locale.languageCode == 'ar'),
                           loungeId: widget.lounge.id,
+                          userName: userName,
+                          userPhone: userPhone,
                           startTime: startDateTime,
                           endTime: endDateTime,
                           totalPrice: widget.totalPrice,

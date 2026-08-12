@@ -51,9 +51,7 @@ class PreferenceManager {
 
   String? fullName() => _box.read(CachingKey.FullName) as String? ?? "";
 
-  // String? phoneNumber() => getUserData()?.mobileNumber ?? '';
-  //
-  // String? countryCode() => getUserData()?.countryCode ?? '';
+  String? phoneNumber() => getUserData()?.phone ?? "";
 
   Future<void> saveValue(String cachingKey, String value) => _box.write(cachingKey, value);
 

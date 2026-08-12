@@ -12,7 +12,7 @@ class LoungeModel {
   final int? availableRooms;
   final String? descriptionAr;
   final String? descriptionEn;
-  final List<String>? images;
+  final List<String> images;
   final String opensAt;
   final String closesAt;
   final String? mapsLink;
@@ -34,7 +34,7 @@ class LoungeModel {
     this.availableRooms,
     this.descriptionAr,
     this.descriptionEn,
-    this.images,
+    this.images = const [],
     required this.opensAt,
     required this.closesAt,
     this.mapsLink,
@@ -46,7 +46,6 @@ class LoungeModel {
   String? getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
 
   factory LoungeModel.fromJson(Map<String, dynamic> json) {
-    // Handling distance conversion from meters (RPC) or double (normal)
     double calculatedDistance = 0.0;
     if (json['dist_meters'] != null) {
       calculatedDistance = (json['dist_meters'] as num).toDouble() / 1000.0;
@@ -68,7 +67,7 @@ class LoungeModel {
       availableRooms: (json['available_rooms'] as num?)?.toInt(),
       descriptionAr: json['description_ar']?.toString(),
       descriptionEn: json['description_en']?.toString(),
-      images: json['images'] != null ? List<String>.from(json['images']) : null,
+      images: json['images'] != null ? List<String>.from(json['images']) : [],
       opensAt: json['opens_at']?.toString() ?? '',
       closesAt: json['closes_at']?.toString() ?? '',
       mapsLink: json['maps_link']?.toString(),

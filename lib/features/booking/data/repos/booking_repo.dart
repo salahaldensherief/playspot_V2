@@ -7,7 +7,10 @@ abstract class BookingRepository {
   Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date);
   Future<Either<Failure, void>> createBooking({
     required String roomId,
+    required String roomName,
     required String loungeId,
+    required String userName,
+    required String userPhone,
     required DateTime startTime,
     required DateTime endTime,
     required double totalPrice,
@@ -29,7 +32,10 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   @override
   Future<Either<Failure, void>> createBooking({
     required String roomId,
+    required String roomName,
     required String loungeId,
+    required String userName,
+    required String userPhone,
     required DateTime startTime,
     required DateTime endTime,
     required double totalPrice,
@@ -38,7 +44,10 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }) async {
     return await callRepository(() => _remoteDataSource.createBooking(
       roomId: roomId,
+      roomName: roomName,
       loungeId: loungeId,
+      userName: userName,
+      userPhone: userPhone,
       startTime: startTime,
       endTime: endTime,
       totalPrice: totalPrice,

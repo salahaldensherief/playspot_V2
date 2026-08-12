@@ -13,7 +13,10 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   Future<void> processPayment({
     required String roomId,
+    required String roomName,
     required String loungeId,
+    required String userName,
+    required String userPhone,
     required DateTime startTime,
     required DateTime endTime,
     required double totalPrice,
@@ -24,7 +27,10 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     
     final result = await _bookingRepository.createBooking(
       roomId: roomId,
+      roomName: roomName,
       loungeId: loungeId,
+      userName: userName,
+      userPhone: userPhone,
       startTime: startTime,
       endTime: endTime,
       totalPrice: totalPrice,
