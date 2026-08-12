@@ -18,8 +18,10 @@ import 'package:playspot/art_core/widgets/shimmer/lounge_card_shimmer.dart';
 import 'package:playspot/features/notifications/presentation/cubit/notifications_cubit.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../art_core/widgets/cards/lounge_card.dart';
+import '../../../art_core/widgets/text/app_text.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
+import '../data/models/lounge_model.dart';
 import 'home_state.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -41,6 +43,7 @@ class _HomeView extends StatefulWidget {
 class _HomeViewState extends State<_HomeView> {
   late final String userName;
   late final String currentLocation;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -53,6 +56,8 @@ class _HomeViewState extends State<_HomeView> {
         ? savedAddress 
         : "Searching location...";
 
+    _scrollController.addListener(_onScroll);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<HomeCubit>().init();
@@ -61,6 +66,20 @@ class _HomeViewState extends State<_HomeView> {
         context.read<NotificationsCubit>().getNotifications(lang);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      context.read<HomeCubit>().loadMore();
+    }
   }
 
   @override
@@ -84,6 +103,7 @@ class _HomeViewState extends State<_HomeView> {
             color: AppColors.neonBlue,
             backgroundColor: AppColors.cardBackground,
             child: CustomScrollView(
+              controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 SliverAppBar(
@@ -118,19 +138,24 @@ class _HomeViewState extends State<_HomeView> {
                 const SliverSectionHeader(title: AppStrings.browseByCategory),
                 const SliverToBoxAdapter(child: ActivityCategories()),
                 16.verticalSpace.toSliver,
-                 SliverSectionHeader(
-                  title: AppStrings.nearestLounges,
-                  seeAllText: AppStrings.seeAll,
-                  onSeeAllTap: null,
+                const _LoungeSectionHeader(),
+                const _LoungeList(),
+                BlocBuilder<HomeCubit, HomeState>(
+                  buildWhen: (previous, current) => previous.status != current.status,
+                  builder: (context, state) {
+                    if (state.status == HomeStatus.loadingMore) {
+                      return SliverToBoxAdapter(
+                        child: Padding(
+                          padding: 16.verticalPadding,
+                          child: const Center(
+                            child: CircularProgressIndicator(color: AppColors.neonBlue),
+                          ),
+                        ),
+                      );
+                    }
+                    return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  },
                 ),
-                const _LoungeList(isNearest: true),
-                24.verticalSpace.toSliver,
-                 SliverSectionHeader(
-                  title: AppStrings.topRated,
-                  seeAllText: AppStrings.seeAll,
-                  onSeeAllTap: null,
-                ),
-                const _LoungeList(isNearest: false),
                 SliverBottomSpacing(height: 120.h),
                 const SliverSafeBottomSpacer(),
               ],
@@ -142,20 +167,117 @@ class _HomeViewState extends State<_HomeView> {
   }
 }
 
+class _LoungeSectionHeader extends StatelessWidget {
+  const _LoungeSectionHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: 16.horizontalPadding + 12.verticalPadding,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: AppText(
+                text: AppStrings.ps5RoomsAvailable.tr(),
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.white,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            const _SortToggle(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SortToggle extends StatelessWidget {
+  const _SortToggle();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) => previous.sortType != current.sortType,
+      builder: (context, state) {
+        return Container(
+          padding: EdgeInsets.all(4.w),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: AppColors.borderDefault),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _SortItem(
+                label: AppStrings.nearest.tr(),
+                isSelected: state.sortType == LoungeSortType.nearest,
+                onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.nearest),
+              ),
+              _SortItem(
+                label: AppStrings.topRated.tr(),
+                isSelected: state.sortType == LoungeSortType.topRated,
+                onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.topRated),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SortItem extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _SortItem({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.neonBlue : Colors.transparent,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: AppText(
+          text: label,
+          fontSize: 10.sp,
+          fontWeight: FontWeight.bold,
+          color: isSelected ? AppColors.black : AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
 class _LoungeList extends StatelessWidget {
-  final bool isNearest;
-  const _LoungeList({required this.isNearest});
+  const _LoungeList();
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) =>
           previous.status != current.status ||
-          (isNearest
-              ? previous.nearestLounges != current.nearestLounges
-              : previous.topRatedLounges != current.topRatedLounges),
+          previous.nearestLounges != current.nearestLounges ||
+          previous.sortType != current.sortType,
       builder: (context, state) {
-        if (state.status == HomeStatus.loading) {
+        if (state.status == HomeStatus.loading && state.nearestLounges.isEmpty) {
           return SliverPadding(
             padding: 16.horizontalPadding,
             sliver: SliverGrid(
@@ -173,9 +295,10 @@ class _LoungeList extends StatelessWidget {
           );
         }
 
-        final lounges = isNearest
-            ? state.nearestLounges
-            : state.topRatedLounges;
+        List<LoungeModel> lounges = List.from(state.nearestLounges);
+        if (state.sortType == LoungeSortType.topRated) {
+          lounges.sort((a, b) => b.rating.compareTo(a.rating));
+        }
 
         if (lounges.isEmpty) {
           return SliverToBoxAdapter(
@@ -199,12 +322,11 @@ class _LoungeList extends StatelessWidget {
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
               final lounge = lounges[index];
-              final heroTag = 'lounge_${lounge.id}_${isNearest ? "near" : "top"}';
+              final heroTag = 'lounge_${lounge.id}_main';
               return LoungeCard(
                 lounge: lounge,
                 heroTag: heroTag,
                 onTap: () {
-                  debugPrint("HOME: Tapping on Lounge: ${lounge.name} (id: ${lounge.id})");
                   context.pushNamed(
                     RouterKeys.loungeDetails,
                     extra: {

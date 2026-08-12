@@ -124,22 +124,27 @@ class HomeCubit extends Cubit<HomeState> {
     _pref.saveValue('CACHED_CATEGORIES', jsonEncode(cats.map((e) => e.toJson()).toList()));
   }
 
-  /// جلب الصالات (وبس - النقاط بقت بتتجاب من init() مرة واحدة، مش هنا تاني).
-  Future<void> getHomeData() async {
+  Future<void> getHomeData({bool isLoadMore = false}) async {
     final lat = double.tryParse(_pref.latitude());
     final lng = double.tryParse(_pref.longitude());
 
-    // لو مفيش موقع خالص لحد دلوقتي، مفيش داعي نعمل نداء فاشل للسيرفر.
     if (lat == null || lng == null) return;
+    if (isLoadMore && state.hasReachedMax) return;
 
     _lastUsedLat = lat;
     _lastUsedLng = lng;
 
-    // لو عندنا بيانات ظاهرة أصلاً (من الكاش أو من نداء سابق)، دي حالة
-    // "تحديث في الخلفية" مش "تحميل من الصفر" - عشان الشاشة متتقفلش فجأة.
-    final isBackgroundRefresh = state.nearestLounges.isNotEmpty;
+    final nextPage = isLoadMore ? state.currentPage + 1 : 0;
+    const pageSize = 10;
+
+    final isBackgroundRefresh = state.nearestLounges.isNotEmpty && !isLoadMore;
+    
     emit(state.copyWith(
-      status: isBackgroundRefresh ? HomeStatus.refreshing : HomeStatus.loading,
+      status: isLoadMore 
+          ? HomeStatus.loadingMore
+          : (isBackgroundRefresh ? HomeStatus.refreshing : HomeStatus.loading),
+      currentPage: nextPage,
+      hasReachedMax: isLoadMore ? state.hasReachedMax : false,
     ));
 
     final result = await _homeRepository.getLounges(
@@ -147,21 +152,46 @@ class HomeCubit extends Cubit<HomeState> {
       lng: lng,
       city: state.selectedCity,
       categoryIds: state.selectedCategoryIds,
+      pLimit: pageSize,
+      pOffset: nextPage * pageSize,
     );
 
     result.fold(
-          (f) => emit(state.copyWith(status: HomeStatus.failure)),
-          (lounges) {
-        final top = List<LoungeModel>.from(lounges)..sort((a, b) => b.rating.compareTo(a.rating));
+      (f) => emit(state.copyWith(status: HomeStatus.failure)),
+      (newLounges) {
+        final List<LoungeModel> updatedLounges = isLoadMore 
+            ? [...state.nearestLounges, ...newLounges]
+            : newLounges;
+
+        // If Top Rated is selected, we sort the entire list by rating
+        // Note: For true server-side top-rated pagination, the RPC needs a sort parameter.
+        // For now, we'll sort what we have.
+        List<LoungeModel> displayLounges = List<LoungeModel>.from(updatedLounges);
+        if (state.sortType == LoungeSortType.topRated) {
+          displayLounges.sort((a, b) => b.rating.compareTo(a.rating));
+        }
+
         emit(state.copyWith(
           status: HomeStatus.success,
-          nearestLounges: lounges,
-          topRatedLounges: top.take(5).toList(),
+          nearestLounges: updatedLounges, // we keep the source list as is
+          topRatedLounges: List<LoungeModel>.from(updatedLounges)..sort((a, b) => b.rating.compareTo(a.rating)),
+          hasReachedMax: newLounges.length < pageSize,
         ));
-        _pref.saveValue('CACHED_LOUNGES', jsonEncode(lounges.map((e) => e.toJson()).toList()));
+
+        if (!isLoadMore) {
+          _pref.saveValue('CACHED_LOUNGES', jsonEncode(updatedLounges.map((e) => e.toJson()).toList()));
+        }
       },
     );
   }
+
+  void changeSortType(LoungeSortType type) {
+    if (state.sortType == type) return;
+    emit(state.copyWith(sortType: type));
+    getHomeData();
+  }
+
+  void loadMore() => getHomeData(isLoadMore: true);
 
   Future<void> _detectLocation(
       List<Map<String, dynamic>> cities, {

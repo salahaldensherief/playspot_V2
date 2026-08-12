@@ -26,10 +26,32 @@ class BookingCubit extends Cubit<BookingState> {
         
         final roomBookings = rawBookings
             .where((b) => b['room_id'].toString() == roomId)
-            .map((b) => TimeRange(
-                  start: DateTime.parse(b['start_at']),
-                  end: DateTime.parse(b['end_at']),
-                ))
+            .map((b) {
+              final startAt = b['start_at'] ?? b['start_time'];
+              final endAt = b['end_at'] ?? b['end_time'];
+              final date = b['date'];
+
+              if (startAt != null && endAt != null) {
+                // If it's just time (HH:mm:ss), we need to prefix with date
+                final startStr = startAt.toString().contains('-') ? startAt.toString() : "${date} $startAt";
+                final endStr = endAt.toString().contains('-') ? endAt.toString() : "${date} $endAt";
+                
+                try {
+                  final start = DateTime.parse(startStr.replaceFirst(' ', 'T'));
+                  var end = DateTime.parse(endStr.replaceFirst(' ', 'T'));
+                  
+                  if (end.isBefore(start)) {
+                    end = end.add(const Duration(days: 1));
+                  }
+                  
+                  return TimeRange(start: start, end: end);
+                } catch (e) {
+                  return null;
+                }
+              }
+              return null;
+            })
+            .whereType<TimeRange>()
             .toList();
 
         for (int h = 0; h < 24; h++) {
@@ -54,6 +76,34 @@ class BookingCubit extends Cubit<BookingState> {
 
   void selectStartTime(TimeOfDay time) {
     if (isSlotBooked(time)) return;
+
+    final now = DateTime.now();
+    final isToday = state.selectedDate.year == now.year &&
+        state.selectedDate.month == now.month &&
+        state.selectedDate.day == now.day;
+
+    if (isToday) {
+      // Create a DateTime for the slot to compare accurately
+      var slotDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        time.hour,
+        time.minute,
+      );
+
+      // If the slot is between 00:00 and 09:00, it's technically the next day's early morning
+      // in our booking cycle (10:00 AM - 02:00 AM)
+      if (time.hour < 10) {
+        slotDateTime = slotDateTime.add(const Duration(days: 1));
+      }
+
+      // Buffer of 5 minutes to prevent booking something that is literally starting right now
+      if (slotDateTime.isBefore(now.add(const Duration(minutes: 5)))) {
+        return;
+      }
+    }
+
     emit(state.copyWith(startTime: time));
   }
 

@@ -214,5 +214,7 @@
   "roomPhotos": "ROOM PHOTOS",
   "joinNow": "JOIN NOW",
   "showSkills": "Join now & show your skills!",
-  "viewPhotos": "VIEW PHOTOS"
+  "viewPhotos": "VIEW PHOTOS",
+  "overlappingBookingError": "This time slot is already booked. Please choose another time or room.",
+  "book": "Book"
 }

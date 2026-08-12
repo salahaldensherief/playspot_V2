@@ -32,66 +32,61 @@ class LoungeDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<LoungeDetailsCubit>()..init(lounge),
-      child: Builder(builder: (context) {
-        return Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          body: Stack(
-            children: [
-              RefreshIndicator(
-                onRefresh: () async {
-                  await context
-                      .read<LoungeDetailsCubit>()
-                      .getLoungeDetails(lounge.id);
-                },
-                color: AppColors.neonBlue,
-                backgroundColor: AppColors.cardBackground,
-                child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                  builder: (context, state) {
-                    final displayLounge = state.lounge ?? lounge;
-                    return CustomScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        LoungeDetailsAppBar(
-                            lounge: displayLounge, heroTag: heroTag),
-                        if (!displayLounge.isOpen) const LoungeClosedBanner(),
-                        LoungeInfoSection(lounge: displayLounge),
-                        const SliverSectionHeader(title: AppStrings.selectDate),
-                        const DateSelectionSection(),
-                        const CategorySelector(),
-                        const SliverSectionHeader(
-                            title: AppStrings.availableRooms),
-                        const RoomsGrid(),
-                        const SliverSectionHeader(title: AppStrings.extras),
-                        const ExtrasList(),
-                        SliverSectionHeader(
-                          title: AppStrings.reviews,
-                          seeAllText: AppStrings.seeAll,
-                          onSeeAllTap: () {
-                            context.pushNamed(
-                              RouterKeys.allReviews,
-                              extra: {
-                                'cubit': context.read<LoungeDetailsCubit>(),
-                                'reviews': state.reviews,
-                                'loungeName': displayLounge.name,
-                              },
-                            );
+    return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: () async {
+              await context
+                  .read<LoungeDetailsCubit>()
+                  .getLoungeDetails(lounge.id);
+            },
+            color: AppColors.neonBlue,
+            backgroundColor: AppColors.cardBackground,
+            child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+              builder: (context, state) {
+                final displayLounge = state.lounge ?? lounge;
+                return CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    LoungeDetailsAppBar(
+                        lounge: displayLounge, heroTag: heroTag),
+                    if (!displayLounge.isOpen) const LoungeClosedBanner(),
+                    LoungeInfoSection(lounge: displayLounge),
+                    const SliverSectionHeader(title: AppStrings.selectDate),
+                    const DateSelectionSection(),
+                    const CategorySelector(),
+                    const SliverSectionHeader(
+                        title: AppStrings.availableRooms),
+                    const RoomsGrid(),
+                    const SliverSectionHeader(title: AppStrings.extras),
+                    const ExtrasList(),
+                    SliverSectionHeader(
+                      title: AppStrings.reviews,
+                      seeAllText: AppStrings.seeAll,
+                      onSeeAllTap: () {
+                        context.pushNamed(
+                          RouterKeys.allReviews,
+                          extra: {
+                            'cubit': context.read<LoungeDetailsCubit>(),
+                            'reviews': state.reviews,
+                            'loungeName': displayLounge.name,
                           },
-                        ),
-                        const ReviewsSection(),
-                        const SliverBottomSpacing(),
-                        const SliverSafeBottomSpacer(),
-                      ],
-                    );
-                  },
-                ),
-              ),
-              LoungeDetailsBottomBar(lounge: lounge),
-            ],
+                        );
+                      },
+                    ),
+                    const ReviewsSection(),
+                    const SliverBottomSpacing(),
+                    const SliverSafeBottomSpacer(),
+                  ],
+                );
+              },
+            ),
           ),
-        );
-      }),
+          LoungeDetailsBottomBar(lounge: lounge),
+        ],
+      ),
     );
   }
 }

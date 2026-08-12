@@ -53,73 +53,68 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
-    return BlocProvider(
-      create: (context) =>
-          BookingCubit(sl<BookingRepository>(), widget.room!.id, widget.lounge!.id, widget.initialDate),
-      child: BlocListener<BookingCubit, BookingState>(
-        listenWhen: (previous, current) => previous.startTime != current.startTime && current.startTime != null,
-        listener: (context, state) {
-          // Scroll down when a time slot is selected
-          Future.delayed(const Duration(milliseconds: 100), () {
-            if (_scrollController.hasClients) {
-              _scrollController.animateTo(
-                _scrollController.position.maxScrollExtent,
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeOut,
-              );
-            }
-          });
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: AppText(
-              text: "${isArabic ? "حجز" : "Book"} ${widget.room!.getName(isArabic)}",
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.white,
-            ),
+    return BlocListener<BookingCubit, BookingState>(
+      listenWhen: (previous, current) => previous.startTime != current.startTime && current.startTime != null,
+      listener: (context, state) {
+        // Scroll down when a time slot is selected
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
           ),
-          body: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: 16.allPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        text: AppStrings.selectTime.tr(),
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.white,
-                      ),
-                      16.verticalSpace,
-                      const TimeSlotGrid(),
-                      24.verticalSpace,
-                      AppText(
-                        text: AppStrings.duration.tr(),
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.white,
-                      ),
-                      16.verticalSpace,
-                      const DurationSelector(),
-                    ],
-                  ),
+          title: AppText(
+            text: "${AppStrings.book.tr()} ${widget.room!.getName(context.locale.languageCode == 'ar')}",
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.white,
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                padding: 16.allPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      text: AppStrings.selectTime.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    16.verticalSpace,
+                    const TimeSlotGrid(),
+                    24.verticalSpace,
+                    AppText(
+                      text: AppStrings.duration.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    16.verticalSpace,
+                    const DurationSelector(),
+                  ],
                 ),
               ),
-              _buildBottomBar(context),
-            ],
-          ),
+            ),
+            _buildBottomBar(context),
+          ],
         ),
       ),
     );

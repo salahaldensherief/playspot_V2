@@ -37,13 +37,33 @@ class TimeSlotGrid extends StatelessWidget {
           itemCount: slots.length,
           itemBuilder: (context, index) {
             final slot = slots[index];
+            
+            // 🕒 Check if slot is in the past
+            final now = DateTime.now();
+            final today = DateTime(now.year, now.month, now.day);
+            final selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day);
+            
+            bool isPastDate = selectedDate.isBefore(today);
+            bool isToday = selectedDate.isAtSameMomentAs(today);
+            
+            bool isPast = isPastDate;
+            if (isToday) {
+              var slotDateTime = DateTime(now.year, now.month, now.day, slot.hour, slot.minute);
+              // Handle midnight crossover (slots 00:00 - 09:00 belong to the next calendar day morning)
+              if (slot.hour < 10) {
+                slotDateTime = slotDateTime.add(const Duration(days: 1));
+              }
+              isPast = slotDateTime.isBefore(now.add(const Duration(minutes: 5)));
+            }
+
             final isBooked = state.bookedTimeSlots.any((s) => s.hour == slot.hour);
+            final isDisabled = isBooked || isPast;
             final isSelected = state.startTime?.hour == slot.hour;
             
             // Checking if the CURRENT selection (startTime + duration) would overlap this slot
             // This is for visual feedback
             bool isPartOfCurrentSelection = false;
-            if (state.startTime != null) {
+            if (state.startTime != null && !isPast) {
               final startHour = state.startTime!.hour;
               final currentHour = slot.hour;
               // Handle next day overlap (e.g. 23:00 to 01:00)
@@ -58,7 +78,7 @@ class TimeSlotGrid extends StatelessWidget {
             }
 
             return GestureDetector(
-              onTap: isBooked ? null : () => context.read<BookingCubit>().selectStartTime(slot),
+              onTap: isDisabled ? null : () => context.read<BookingCubit>().selectStartTime(slot),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
@@ -66,12 +86,12 @@ class TimeSlotGrid extends StatelessWidget {
                       ? AppColors.neonBlue 
                       : (isPartOfCurrentSelection 
                           ? AppColors.neonBlue.withOpacity(0.2)
-                          : (isBooked ? AppColors.danger.withOpacity(0.05) : AppColors.cardBackground)),
+                          : (isDisabled ? Colors.white.withOpacity(0.02) : AppColors.cardBackground)),
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
                     color: isSelected 
                         ? AppColors.neonBlue 
-                        : (isBooked ? AppColors.danger.withOpacity(0.3) : AppColors.borderDefault),
+                        : (isDisabled ? Colors.white.withOpacity(0.05) : AppColors.borderDefault),
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -85,14 +105,21 @@ class TimeSlotGrid extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: isSelected 
                           ? AppColors.black 
-                          : (isBooked ? AppColors.danger : AppColors.white),
-                      textDecoration: isBooked ? TextDecoration.lineThrough : null,
+                          : (isDisabled ? AppColors.textSecondary.withOpacity(0.3) : AppColors.white),
+                      textDecoration: isDisabled ? TextDecoration.lineThrough : null,
                     ),
                     if (isBooked)
                       AppText(
                         text: AppStrings.booked.tr(),
                         fontSize: 8.sp,
                         color: AppColors.danger,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    if (isPast && !isBooked)
+                      AppText(
+                        text: "PAST",
+                        fontSize: 8.sp,
+                        color: AppColors.textSecondary.withOpacity(0.5),
                         fontWeight: FontWeight.bold,
                       ),
                   ],

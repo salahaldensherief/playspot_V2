@@ -132,12 +132,29 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         // Organize bookings by room
         for (final b in rawBookings) {
           final roomId = b['room_id'].toString();
-          final startAt = DateTime.parse(b['start_at']);
-          final endAt = DateTime.parse(b['end_at']);
-          
-          bookedSlotsByRoom.putIfAbsent(roomId, () => []).add(
-            TimeRange(start: startAt, end: endAt),
-          );
+          final startAtRaw = b['start_at'] ?? b['start_time'];
+          final endAtRaw = b['end_at'] ?? b['end_time'];
+          final dateStr = b['date'];
+
+          if (startAtRaw != null && endAtRaw != null) {
+            final startStr = startAtRaw.toString().contains('-') ? startAtRaw.toString() : "${dateStr} $startAtRaw";
+            final endStr = endAtRaw.toString().contains('-') ? endAtRaw.toString() : "${dateStr} $endAtRaw";
+
+            try {
+              final startAt = DateTime.parse(startStr.replaceFirst(' ', 'T'));
+              var endAt = DateTime.parse(endStr.replaceFirst(' ', 'T'));
+              
+              if (endAt.isBefore(startAt)) {
+                endAt = endAt.add(const Duration(days: 1));
+              }
+              
+              bookedSlotsByRoom.putIfAbsent(roomId, () => []).add(
+                TimeRange(start: startAt, end: endAt),
+              );
+            } catch (e) {
+              log("ERROR parsing booking date: $e");
+            }
+          }
         }
 
         // Calculate fully booked rooms

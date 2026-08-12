@@ -193,4 +193,6 @@ class AppStrings {
   static const String joinNow = "joinNow";
   static const String showSkills = "showSkills";
   static const String viewPhotos = "viewPhotos";
+  static const String overlappingBookingError = "overlappingBookingError";
+  static const String book = "book";
 }

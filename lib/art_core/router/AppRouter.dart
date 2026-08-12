@@ -19,6 +19,9 @@ import '../../features/auth/presetation/forgot_password/otp_verification_screen.
 import '../../features/auth/presetation/forgot_password/reset_password_screen.dart';
 import '../../features/auth/presetation/signup/complete_profile.dart';
 import '../../features/booking/presentation/booking_screen.dart';
+import '../../features/booking/presentation/booking_cubit.dart';
+import '../../features/booking/data/repos/booking_repo.dart';
+import '../../features/checkout/presentation/checkout_cubit.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/home/presentation/home_cubit.dart';
@@ -223,7 +226,10 @@ class AppRouter {
               return _buildPageWithTransition(
                 context: context,
                 state: state,
-                child: LoungeDetailsScreen(lounge: lounge, heroTag: heroTag),
+                child: BlocProvider(
+                  create: (context) => sl<LoungeDetailsCubit>()..init(lounge),
+                  child: LoungeDetailsScreen(lounge: lounge, heroTag: heroTag),
+                ),
               );
             },
           ),
@@ -240,11 +246,19 @@ class AppRouter {
               return _buildPageWithTransition(
                 context: context,
                 state: state,
-                child: BookingScreen(
-                  lounge: lounge,
-                  room: room,
-                  initialDate: initialDate,
-                  addOns: extras,
+                child: BlocProvider(
+                  create: (context) => BookingCubit(
+                    sl<BookingRepository>(),
+                    room.id,
+                    lounge.id,
+                    initialDate,
+                  ),
+                  child: BookingScreen(
+                    lounge: lounge,
+                    room: room,
+                    initialDate: initialDate,
+                    addOns: extras,
+                  ),
                 ),
               );
             },
@@ -257,14 +271,17 @@ class AppRouter {
               return _buildPageWithTransition(
                 context: context,
                 state: state,
-                child: CheckoutScreen(
-                  lounge: extra['lounge'] as LoungeModel,
-                  room: extra['room'] as RoomModel,
-                  date: extra['date'] as DateTime,
-                  startTime: extra['startTime'] as TimeOfDay,
-                  duration: extra['duration'] as int,
-                  totalPrice: extra['totalPrice'] as double,
-                  addOns: extra['addOns'] as List<Map<String, dynamic>>,
+                child: BlocProvider(
+                  create: (context) => sl<CheckoutCubit>(),
+                  child: CheckoutScreen(
+                    lounge: extra['lounge'] as LoungeModel,
+                    room: extra['room'] as RoomModel,
+                    date: extra['date'] as DateTime,
+                    startTime: extra['startTime'] as TimeOfDay,
+                    duration: extra['duration'] as int,
+                    totalPrice: extra['totalPrice'] as double,
+                    addOns: extra['addOns'] as List<Map<String, dynamic>>,
+                  ),
                 ),
               );
             },

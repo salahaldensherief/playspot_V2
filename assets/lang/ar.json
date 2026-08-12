@@ -214,5 +214,7 @@
   "roomPhotos": "صور الغرفة",
   "joinNow": "سجل الآن",
   "showSkills": "انضم الآن وأظهر مهارتك!",
-  "viewPhotos": "عرض الصور"
+  "viewPhotos": "عرض الصور",
+  "overlappingBookingError": "هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر أو غرفة أخرى.",
+  "book": "حجز"
 }

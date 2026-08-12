@@ -54,64 +54,61 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<CheckoutCubit>(),
-      child: BlocListener<CheckoutCubit, CheckoutState>(
-        listener: (context, state) {
-          if (state.status == CheckoutStatus.success) {
-            _showSuccessDialog(context);
-          } else if (state.status == CheckoutStatus.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(
-                      state.errorMessage ?? AppStrings.somethingWentWrong.tr())),
-            );
-          }
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: AppText(
-              text: AppStrings.orderSummary.tr(),
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.white,
-            ),
+    return BlocListener<CheckoutCubit, CheckoutState>(
+      listener: (context, state) {
+        if (state.status == CheckoutStatus.success) {
+          _showSuccessDialog(context);
+        } else if (state.status == CheckoutStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    state.errorMessage ?? AppStrings.somethingWentWrong.tr())),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
           ),
-          body: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSummaryCard(context),
-                  SizedBox(height: 24.h),
-                  AppText(
-                    text: AppStrings.paymentMethod.tr(),
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                  SizedBox(height: 16.h),
-                  _buildPaymentMethods(),
-                  SizedBox(height: 24.h),
-                  _buildCardDetailsSection(),
-                  SizedBox(height: 32.h),
-                  _buildSecuredPaymentNote(),
-                  const SafeBottomSpacer(extraPadding: 120),
-                ],
-              ),
-            ),
+          title: AppText(
+            text: AppStrings.orderSummary.tr(),
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.white,
           ),
-          bottomSheet: _buildPayButton(),
         ),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSummaryCard(context),
+                SizedBox(height: 24.h),
+                AppText(
+                  text: AppStrings.paymentMethod.tr(),
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.white,
+                ),
+                SizedBox(height: 16.h),
+                _buildPaymentMethods(),
+                SizedBox(height: 24.h),
+                _buildCardDetailsSection(),
+                SizedBox(height: 32.h),
+                _buildSecuredPaymentNote(),
+                const SafeBottomSpacer(extraPadding: 120),
+              ],
+            ),
+          ),
+        ),
+        bottomSheet: _buildPayButton(),
       ),
     );
   }
@@ -405,6 +402,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           endTime: endDateTime,
                           totalPrice: widget.totalPrice,
                           roomPrice: widget.room.pricePerHour,
+                          addOns: widget.addOns,
                         );
                   },
                 ),

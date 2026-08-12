@@ -42,7 +42,9 @@ class BookingModel {
       roomName: roomData?['name_en'] ?? roomData?['name'] ?? '',
       controllersCount: roomData?['controllers_count'] ?? 0,
       screenSize: roomData?['screen_size'] ?? '',
-      date: DateTime.parse(json['date'] ?? DateTime.now().toIso8601String()),
+      date: json['date'] != null 
+          ? DateTime.parse(json['date']) 
+          : (json['time_range'] != null ? _parseTsRangeStart(json['time_range'].toString()) : DateTime.now()),
       startTime: json['start_time'] ?? '',
       endTime: json['end_time'] ?? '',
       status: json['status'] ?? 'past',
@@ -51,5 +53,16 @@ class BookingModel {
       lat: (loungeData?['lat'] as num?)?.toDouble(),
       lng: (loungeData?['lng'] as num?)?.toDouble(),
     );
+  }
+
+  static DateTime _parseTsRangeStart(String rangeStr) {
+    try {
+      final cleanStr = rangeStr.replaceAll(RegExp(r'[\"\[\]\)]'), '');
+      final parts = cleanStr.split(',');
+      if (parts.isNotEmpty) {
+        return DateTime.parse(parts[0].trim());
+      }
+    } catch (_) {}
+    return DateTime.now();
   }
 }

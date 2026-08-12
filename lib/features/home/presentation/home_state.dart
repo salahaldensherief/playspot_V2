@@ -3,7 +3,9 @@ import '../data/models/lounge_model.dart';
 import '../data/models/promo_model.dart';
 import '../data/models/category_model.dart';
 
-enum HomeStatus { initial, loading, refreshing, success, failure }
+enum HomeStatus { initial, loading, refreshing, success, failure, loadingMore }
+
+enum LoungeSortType { nearest, topRated }
 
 class HomeState extends Equatable {
   final HomeStatus status;
@@ -17,6 +19,9 @@ class HomeState extends Equatable {
   final List<String> selectedCategoryIds;
   final String? currentAddress;
   final String? errorMessage;
+  final int currentPage;
+  final bool hasReachedMax;
+  final LoungeSortType sortType;
 
   const HomeState({
     this.status = HomeStatus.initial,
@@ -30,6 +35,9 @@ class HomeState extends Equatable {
     this.selectedCategoryIds = const [],
     this.currentAddress,
     this.errorMessage,
+    this.currentPage = 0,
+    this.hasReachedMax = false,
+    this.sortType = LoungeSortType.nearest,
   });
 
   HomeState copyWith({
@@ -44,6 +52,9 @@ class HomeState extends Equatable {
     List<String>? selectedCategoryIds,
     String? currentAddress,
     String? errorMessage,
+    int? currentPage,
+    bool? hasReachedMax,
+    LoungeSortType? sortType,
     bool clearCity = false,
   }) {
     return HomeState(
@@ -58,6 +69,9 @@ class HomeState extends Equatable {
       selectedCategoryIds: selectedCategoryIds ?? this.selectedCategoryIds,
       currentAddress: currentAddress ?? this.currentAddress,
       errorMessage: errorMessage ?? this.errorMessage,
+      currentPage: currentPage ?? this.currentPage,
+      hasReachedMax: hasReachedMax ?? this.hasReachedMax,
+      sortType: sortType ?? this.sortType,
     );
   }
 
@@ -74,5 +88,8 @@ class HomeState extends Equatable {
     selectedCategoryIds,
     currentAddress,
     errorMessage,
+    currentPage,
+    hasReachedMax,
+    sortType,
   ];
 }

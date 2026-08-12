@@ -9,6 +9,7 @@ abstract class BookingRemoteDataSource {
     required DateTime endTime,
     required double totalPrice,
     required double roomPrice,
+    List<Map<String, dynamic>> extras = const [],
   });
 }
 
@@ -40,6 +41,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required DateTime endTime,
     required double totalPrice,
     required double roomPrice,
+    List<Map<String, dynamic>> extras = const [],
   }) async {
     final user = _client.auth.currentUser;
     final duration = endTime.difference(startTime).inHours;
@@ -48,17 +50,19 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final startPart = "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}:00";
     final endPart = "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00";
 
-    await _client.from('bookings').insert({
-      'room_id': int.tryParse(roomId) ?? roomId,
-      'lounge_id': int.tryParse(loungeId) ?? loungeId,
-      'user_id': user?.id,
-      'date': datePart,
-      'start_time': startPart,
-      'end_time': endPart,
-      'duration_hours': duration,
-      'total_price': totalPrice,
-      'room_price': roomPrice,
-      'status': 'upcoming',
+    // استخدام RPC لضمان تنفيذ الحجز والإضافات كعملية واحدة (Atomic)
+    // ولضمان التوافق مع منطق الداشبورد
+    await _client.rpc('create_booking', params: {
+      'p_room_id': int.tryParse(roomId) ?? roomId,
+      'p_lounge_id': int.tryParse(loungeId) ?? loungeId,
+      'p_user_id': user?.id,
+      'p_date': datePart,
+      'p_start_time': startPart,
+      'p_end_time': endPart,
+      'p_duration_hours': duration,
+      'p_total_price': totalPrice,
+      'p_room_price': roomPrice,
+      'p_extras': extras, // سيتم إرسالها كـ JSONB وتفريغها في جدول الإضافات هناك
     });
   }
 }

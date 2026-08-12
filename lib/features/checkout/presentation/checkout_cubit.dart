@@ -18,6 +18,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     required DateTime endTime,
     required double totalPrice,
     required double roomPrice,
+    required List<Map<String, dynamic>> addOns,
   }) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
     
@@ -28,13 +29,16 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       endTime: endTime,
       totalPrice: totalPrice,
       roomPrice: roomPrice,
+      extras: addOns,
     );
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: CheckoutStatus.failure,
-        errorMessage: failure.message,
-      )),
+      (failure) {
+        emit(state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
       (_) => emit(state.copyWith(status: CheckoutStatus.success)),
     );
   }
