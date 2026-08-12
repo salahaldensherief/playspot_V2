@@ -27,19 +27,8 @@ class EditProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<EditProfileCubit>()..init(),
-      child: const _EditProfileView(),
-    );
-  }
-}
-
-class _EditProfileView extends StatelessWidget {
-  const _EditProfileView();
-
-  @override
-  Widget build(BuildContext context) {
     return BlocListener<EditProfileCubit, EditProfileState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: _handleStateChange,
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,

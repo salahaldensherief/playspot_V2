@@ -19,6 +19,7 @@ class RedeemPointsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
     return BlocListener<ProfileCubit, ProfileState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == ProfileStatus.redeemSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -49,6 +50,10 @@ class RedeemPointsScreen extends StatelessWidget {
             _buildBalanceHeader(),
             Expanded(
               child: BlocBuilder<ProfileCubit, ProfileState>(
+                buildWhen: (previous, current) =>
+                    previous.status != current.status ||
+                    previous.redemptionOptions != current.redemptionOptions ||
+                    previous.pointsBalance != current.pointsBalance,
                 builder: (context, state) {
                   if (state.status == ProfileStatus.loading) {
                     return ListView.builder(
@@ -144,6 +149,7 @@ class RedeemPointsScreen extends StatelessWidget {
 
   Widget _buildBalanceHeader() {
     return BlocBuilder<ProfileCubit, ProfileState>(
+      buildWhen: (previous, current) => previous.pointsBalance != current.pointsBalance,
       builder: (context, state) {
         return Container(
           width: double.infinity,

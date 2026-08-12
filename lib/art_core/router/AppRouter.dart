@@ -23,20 +23,25 @@ import '../../features/booking/presentation/booking_cubit.dart';
 import '../../features/booking/data/repos/booking_repo.dart';
 import '../../features/checkout/presentation/checkout_cubit.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
+import '../../features/favorites/presentation/favorites_cubit.dart';
 import '../../features/favorites/presentation/favorites_screen.dart';
 import '../../features/home/presentation/home_cubit.dart';
 import '../../features/lounge_details/data/models/review_model.dart';
 import '../../features/lounge_details/presentation/lounge_details_cubit.dart';
 import '../../features/lounge_details/presentation/lounge_details_screen.dart';
 import '../../features/main/presentation/main_screen.dart';
+import '../../features/my_bookings/presentation/my_bookings_cubit.dart';
 import '../../features/my_bookings/presentation/my_bookings_screen.dart';
 import '../../features/lounge_details/presentation/reviews/all_reviews_screen.dart';
 import '../../features/notifications/presentation/cubit/notifications_cubit.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/notification_settings/notification_settings_screen.dart';
+import '../../features/profile/presentation/profile_cubit.dart';
 import '../../features/profile/presentation/terms_and_conditions/terms_and_conditions_screen.dart';
+import '../../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 import '../../features/profile/presentation/redeem_points/redeem_points_screen.dart';
+import '../cubit/locale_cubit.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -77,9 +82,18 @@ class AppRouter {
     routes: [
       ShellRoute(
         builder: (context, state, child) {
-          return BlocProvider.value(
-            value: sl<NotificationsCubit>(),
-            child: child,
+          return BlocProvider(
+            create: (context) => sl<LocaleCubit>(),
+            child: BlocProvider(
+              create: (context) => sl<FavoritesCubit>()..getFavoriteIds(),
+              child: BlocProvider(
+                create: (context) => sl<ProfileCubit>()..getUserData(),
+                child: BlocProvider(
+                  create: (context) => sl<NotificationsCubit>(),
+                  child: child,
+                ),
+              ),
+            ),
           );
         },
         routes: [
@@ -134,12 +148,15 @@ class AppRouter {
             },
           ),
 
-          // Routes that share HomeCubit
+          // Routes that share Cubits in MainScreen
           ShellRoute(
             builder: (context, state, child) {
               return BlocProvider(
                 create: (context) => sl<HomeCubit>()..getHomeData(),
-                child: child,
+                child: BlocProvider(
+                  create: (context) => sl<MyBookingsCubit>()..getMyBookings(),
+                  child: child,
+                ),
               );
             },
             routes: [
@@ -165,6 +182,15 @@ class AppRouter {
                   context: context,
                   state: state,
                   child: const SearchScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.myBookings,
+                name: RouterKeys.myBookings,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const MyBookingsScreen(),
                 ),
               ),
             ],
@@ -287,21 +313,15 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: RouterKeys.myBookings,
-            name: RouterKeys.myBookings,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const MyBookingsScreen(),
-            ),
-          ),
-          GoRoute(
             path: RouterKeys.editProfile,
             name: RouterKeys.editProfile,
             pageBuilder: (context, state) => _buildPageWithTransition(
               context: context,
               state: state,
-              child: const EditProfileScreen(),
+              child: BlocProvider(
+                create: (context) => sl<EditProfileCubit>()..init(),
+                child: const EditProfileScreen(),
+              ),
             ),
           ),
           GoRoute(

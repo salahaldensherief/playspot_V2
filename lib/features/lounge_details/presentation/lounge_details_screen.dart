@@ -44,25 +44,44 @@ class LoungeDetailsScreen extends StatelessWidget {
             },
             color: AppColors.neonBlue,
             backgroundColor: AppColors.cardBackground,
-            child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-              builder: (context, state) {
-                final displayLounge = state.lounge ?? lounge;
-                return CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    LoungeDetailsAppBar(
-                        lounge: displayLounge, heroTag: heroTag),
-                    if (!displayLounge.isOpen) const LoungeClosedBanner(),
-                    LoungeInfoSection(lounge: displayLounge),
-                    const SliverSectionHeader(title: AppStrings.selectDate),
-                    const DateSelectionSection(),
-                    const CategorySelector(),
-                    const SliverSectionHeader(
-                        title: AppStrings.availableRooms),
-                    const RoomsGrid(),
-                    const SliverSectionHeader(title: AppStrings.extras),
-                    const ExtrasList(),
-                    SliverSectionHeader(
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (previous, current) => previous.lounge != current.lounge,
+                  builder: (context, state) {
+                    return LoungeDetailsAppBar(
+                        lounge: state.lounge ?? lounge, heroTag: heroTag);
+                  },
+                ),
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (previous, current) => previous.lounge?.isOpen != current.lounge?.isOpen,
+                  builder: (context, state) {
+                    final displayLounge = state.lounge ?? lounge;
+                    if (displayLounge.isOpen) return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    return const LoungeClosedBanner();
+                  },
+                ),
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (previous, current) => previous.lounge != current.lounge,
+                  builder: (context, state) {
+                    return LoungeInfoSection(lounge: state.lounge ?? lounge);
+                  },
+                ),
+                const SliverSectionHeader(title: AppStrings.selectDate),
+                const DateSelectionSection(),
+                const CategorySelector(),
+                const SliverSectionHeader(
+                    title: AppStrings.availableRooms),
+                const RoomsGrid(),
+                const SliverSectionHeader(title: AppStrings.extras),
+                const ExtrasList(),
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (previous, current) =>
+                      previous.lounge?.name != current.lounge?.name ||
+                      previous.reviews != current.reviews,
+                  builder: (context, state) {
+                    return SliverSectionHeader(
                       title: AppStrings.reviews,
                       seeAllText: AppStrings.seeAll,
                       onSeeAllTap: () {
@@ -71,17 +90,17 @@ class LoungeDetailsScreen extends StatelessWidget {
                           extra: {
                             'cubit': context.read<LoungeDetailsCubit>(),
                             'reviews': state.reviews,
-                            'loungeName': displayLounge.name,
+                            'loungeName': state.lounge?.name ?? lounge.name,
                           },
                         );
                       },
-                    ),
-                    const ReviewsSection(),
-                    const SliverBottomSpacing(),
-                    const SliverSafeBottomSpacer(),
-                  ],
-                );
-              },
+                    );
+                  },
+                ),
+                const ReviewsSection(),
+                const SliverBottomSpacing(),
+                const SliverSafeBottomSpacer(),
+              ],
             ),
           ),
           LoungeDetailsBottomBar(lounge: lounge),

@@ -199,6 +199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildPaymentMethods() {
     return BlocBuilder<CheckoutCubit, CheckoutState>(
+      buildWhen: (previous, current) => previous.selectedMethod != current.selectedMethod,
       builder: (context, state) {
         return Column(
           children: [
@@ -291,6 +292,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildCardDetailsSection() {
     return BlocBuilder<CheckoutCubit, CheckoutState>(
+      buildWhen: (previous, current) => previous.selectedMethod != current.selectedMethod,
       builder: (context, state) {
         if (state.selectedMethod != PaymentMethod.creditCard) {
           return const SizedBox.shrink();
@@ -362,6 +364,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildPayButton() {
     return BlocBuilder<CheckoutCubit, CheckoutState>(
+      buildWhen: (previous, current) => 
+        previous.status != current.status || 
+        previous.selectedMethod != current.selectedMethod,
       builder: (context, state) {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),

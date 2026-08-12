@@ -86,19 +86,14 @@ class _HomeViewState extends State<_HomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(-0.8, -0.8),
-            radius: 1.5,
-            colors: [
-              AppColors.neonBlue.withValues(alpha: 0.03),
-              AppColors.scaffoldBackground,
-            ],
+      body: Stack(
+        children: [
+          // Background decoration - wrapped in RepaintBoundary to avoid repainting on scroll
+          const RepaintBoundary(
+            child: _HomeBackground(),
           ),
-        ),
-        child: SafeArea(
-          child: RefreshIndicator(
+          SafeArea(
+            child: RefreshIndicator(
             onRefresh: () => context.read<HomeCubit>().getHomeData(),
             color: AppColors.neonBlue,
             backgroundColor: AppColors.cardBackground,
@@ -139,14 +134,14 @@ class _HomeViewState extends State<_HomeView> {
                 const SliverToBoxAdapter(child: ActivityCategories()),
                 16.verticalSpace.toSliver,
                 const _LoungeSectionHeader(),
-                const _LoungeList(),
+                _LoungeList(),
                 BlocBuilder<HomeCubit, HomeState>(
                   buildWhen: (previous, current) => previous.status != current.status,
                   builder: (context, state) {
                     if (state.status == HomeStatus.loadingMore) {
                       return SliverToBoxAdapter(
                         child: Padding(
-                          padding: 16.verticalPadding,
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
                           child: const Center(
                             child: CircularProgressIndicator(color: AppColors.neonBlue),
                           ),
@@ -162,7 +157,8 @@ class _HomeViewState extends State<_HomeView> {
             ),
           ),
         ),
-      ),
+    ]
+      )
     );
   }
 }
@@ -172,26 +168,10 @@ class _LoungeSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
+    return const SliverToBoxAdapter(
       child: Padding(
-        padding: 16.horizontalPadding + 12.verticalPadding,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: AppText(
-                text: AppStrings.ps5RoomsAvailable.tr(),
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            SizedBox(width: 8.w),
-            const _SortToggle(),
-          ],
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: _SortToggle(),
       ),
     );
   }
@@ -206,24 +186,31 @@ class _SortToggle extends StatelessWidget {
       buildWhen: (previous, current) => previous.sortType != current.sortType,
       builder: (context, state) {
         return Container(
+          width: double.infinity,
           padding: EdgeInsets.all(4.w),
           decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: AppColors.borderDefault),
+            color: AppColors.backgroundAlt.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              _SortItem(
-                label: AppStrings.nearest.tr(),
-                isSelected: state.sortType == LoungeSortType.nearest,
-                onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.nearest),
+              Expanded(
+                child: _SortItem(
+                  label: AppStrings.nearest.tr(),
+                  icon: Icons.location_on_outlined,
+                  isSelected: state.sortType == LoungeSortType.nearest,
+                  onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.nearest),
+                ),
               ),
-              _SortItem(
-                label: AppStrings.topRated.tr(),
-                isSelected: state.sortType == LoungeSortType.topRated,
-                onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.topRated),
+              SizedBox(width: 4.w),
+              Expanded(
+                child: _SortItem(
+                  label: AppStrings.topRated.tr(),
+                  icon: Icons.star_outline_rounded,
+                  isSelected: state.sortType == LoungeSortType.topRated,
+                  onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.topRated),
+                ),
               ),
             ],
           ),
@@ -235,11 +222,13 @@ class _SortToggle extends StatelessWidget {
 
 class _SortItem extends StatelessWidget {
   final String label;
+  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _SortItem({
     required this.label,
+    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
@@ -249,17 +238,37 @@ class _SortItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        padding: EdgeInsets.symmetric(vertical: 10.h),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.neonBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(10.r),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: AppColors.neonBlue.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ] : null,
         ),
-        child: AppText(
-          text: label,
-          fontSize: 10.sp,
-          fontWeight: FontWeight.bold,
-          color: isSelected ? AppColors.black : AppColors.textSecondary,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16.sp,
+              color: isSelected ? AppColors.black : AppColors.textSecondary.withOpacity(0.6),
+            ),
+            SizedBox(width: 8.w),
+            AppText(
+              text: label,
+              fontSize: 12.sp,
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+              color: isSelected ? AppColors.black : AppColors.textSecondary,
+            ),
+          ],
         ),
       ),
     );
@@ -295,10 +304,7 @@ class _LoungeList extends StatelessWidget {
           );
         }
 
-        List<LoungeModel> lounges = List.from(state.nearestLounges);
-        if (state.sortType == LoungeSortType.topRated) {
-          lounges.sort((a, b) => b.rating.compareTo(a.rating));
-        }
+        final lounges = state.sortedLounges;
 
         if (lounges.isEmpty) {
           return SliverToBoxAdapter(
@@ -346,4 +352,24 @@ class _LoungeList extends StatelessWidget {
 
 extension on Widget {
   SliverToBoxAdapter get toSliver => SliverToBoxAdapter(child: this);
+}
+
+class _HomeBackground extends StatelessWidget {
+  const _HomeBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: const Alignment(-0.8, -0.8),
+          radius: 1.5,
+          colors: [
+            AppColors.neonBlue.withValues(alpha: 0.03),
+            AppColors.scaffoldBackground,
+          ],
+        ),
+      ),
+    );
+  }
 }

@@ -24,6 +24,12 @@ class LoungeDetailsBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      buildWhen: (previous, current) =>
+          previous.selectedRoomId != current.selectedRoomId ||
+          previous.selectedExtras != current.selectedExtras ||
+          previous.rooms != current.rooms ||
+          previous.extras != current.extras ||
+          previous.lounge != current.lounge,
       builder: (context, state) {
         final isRoomSelected = state.selectedRoomId != null;
         final isOpen = lounge.isOpen;

@@ -22,6 +22,10 @@ class CategorySelector extends StatelessWidget {
         height: 70.h,
         padding: EdgeInsets.symmetric(vertical: 12.h),
         child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+          buildWhen: (previous, current) =>
+              previous.status != current.status ||
+              previous.deviceCategories != current.deviceCategories ||
+              previous.selectedCategory != current.selectedCategory,
           builder: (context, state) {
             if (state.status == LoungeDetailsStatus.loading) {
               return const CategoryShimmer();

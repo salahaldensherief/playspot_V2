@@ -18,6 +18,11 @@ class RoomsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      buildWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.rooms != current.rooms ||
+          previous.selectedCategory != current.selectedCategory ||
+          previous.deviceCategories != current.deviceCategories,
       builder: (context, state) {
         if (state.status == LoungeDetailsStatus.loading) {
           return SliverPadding(

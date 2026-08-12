@@ -24,55 +24,50 @@ class MyBookingsScreen extends StatefulWidget {
 }
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
-  late final MyBookingsCubit _cubit;
-
-  @override
-  void initState() {
-    super.initState();
-    _cubit = sl<MyBookingsCubit>()..getMyBookings();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _cubit,
-      child: DefaultTabController(
-        length: 3,
-        child: Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: AppText(
-              text: AppStrings.myBookings.tr(),
-              fontSize: 24.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.white,
-              fontFamily: 'Orbitron',
-            ),
-            bottom: TabBar(
-              indicatorColor: AppColors.neonBlue,
-              labelColor: AppColors.neonBlue,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: AppColors.borderDefault,
-              labelStyle:
-                  TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
-              tabs: [
-                Tab(text: AppStrings.upcoming.tr()),
-                Tab(text: AppStrings.past.tr()),
-                Tab(text: AppStrings.cancelled.tr()),
-              ],
-            ),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: AppText(
+            text: AppStrings.myBookings.tr(),
+            fontSize: 24.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.white,
+            fontFamily: 'Orbitron',
           ),
-          body: BlocBuilder<MyBookingsCubit, MyBookingsState>(
-            builder: (context, state) {
-              if (state.status == MyBookingsStatus.loading &&
-                  state.upcomingBookings.isEmpty &&
-                  state.pastBookings.isEmpty &&
-                  state.cancelledBookings.isEmpty) {
-                return const BookingShimmer();
-              }
+          bottom: TabBar(
+            indicatorColor: AppColors.neonBlue,
+            labelColor: AppColors.neonBlue,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicatorSize: TabBarIndicatorSize.tab,
+            dividerColor: AppColors.borderDefault,
+            labelStyle:
+                TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+            tabs: [
+              Tab(text: AppStrings.upcoming.tr()),
+              Tab(text: AppStrings.past.tr()),
+              Tab(text: AppStrings.cancelled.tr()),
+            ],
+          ),
+        ),
+        body: BlocBuilder<MyBookingsCubit, MyBookingsState>(
+          buildWhen: (previous, current) =>
+              previous.status != current.status ||
+              previous.upcomingBookings != current.upcomingBookings ||
+              previous.pastBookings != current.pastBookings ||
+              previous.cancelledBookings != current.cancelledBookings,
+          builder: (context, state) {
+            if (state.status == MyBookingsStatus.loading &&
+                state.upcomingBookings.isEmpty &&
+                state.pastBookings.isEmpty &&
+                state.cancelledBookings.isEmpty) {
+              return const BookingShimmer();
+            }
 
               if (state.status == MyBookingsStatus.failure) {
                 return AppStateView.error(
@@ -107,8 +102,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             },
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildBookingsList(

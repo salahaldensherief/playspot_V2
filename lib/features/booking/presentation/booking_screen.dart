@@ -122,6 +122,10 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _buildBottomBar(BuildContext context) {
     return BlocBuilder<BookingCubit, BookingState>(
+      buildWhen: (previous, current) => 
+        previous.startTime != current.startTime || 
+        previous.durationHours != current.durationHours ||
+        previous.selectedDate != current.selectedDate,
       builder: (context, state) {
         final isReady = state.startTime != null;
         final extrasPrice = widget.addOns.fold<double>(

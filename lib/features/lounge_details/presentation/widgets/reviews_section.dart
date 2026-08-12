@@ -16,6 +16,7 @@ class ReviewsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      buildWhen: (previous, current) => previous.reviews != current.reviews,
       builder: (context, state) {
         if (state.reviews.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
 

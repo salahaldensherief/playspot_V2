@@ -20,6 +20,12 @@ class TimeSlotGrid extends StatelessWidget {
     });
 
     return BlocBuilder<BookingCubit, BookingState>(
+      buildWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.bookedTimeSlots != current.bookedTimeSlots ||
+          previous.startTime != current.startTime ||
+          previous.durationHours != current.durationHours ||
+          previous.selectedDate != current.selectedDate,
       builder: (context, state) {
         if (state.status == BookingStatus.loading) {
           return const Center(child: CircularProgressIndicator());
@@ -117,7 +123,7 @@ class TimeSlotGrid extends StatelessWidget {
                       ),
                     if (isPast && !isBooked)
                       AppText(
-                        text: "PAST",
+                        text: AppStrings.past.tr().toUpperCase(),
                         fontSize: 8.sp,
                         color: AppColors.textSecondary.withOpacity(0.5),
                         fontWeight: FontWeight.bold,

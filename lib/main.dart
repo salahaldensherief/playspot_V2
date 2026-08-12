@@ -67,37 +67,26 @@ class _MyAppState extends State<MyApp> {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(create: (_) => sl<LocaleCubit>()),
-            BlocProvider(create: (_) => sl<FavoritesCubit>()..getFavoriteIds()),
-            BlocProvider(create: (_) => sl<ProfileCubit>()..getUserData()),
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'PlaySpot',
+          locale: context.locale,
+          supportedLocales: context.supportedLocales,
+          localizationsDelegates: [
+            ...context.localizationDelegates,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
           ],
-          child: BlocBuilder<LocaleCubit, Locale>(
-            builder: (context, locale) {
-              return MaterialApp.router(
-                debugShowCheckedModeBanner: false,
-                title: 'PlaySpot',
-                locale: context.locale,
-                supportedLocales: context.supportedLocales,
-                localizationsDelegates: [
-                  ...context.localizationDelegates,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
-                theme: ThemeData(
-                  useMaterial3: false,
-                  scaffoldBackgroundColor: AppColors.scaffoldBackground,
-                  fontFamily: locale.languageCode == 'ar' ? 'Cairo' : 'Orbitron',
-                ),
-                scrollBehavior: const MaterialScrollBehavior().copyWith(
-                  physics: const BouncingScrollPhysics(),
-                ),
-                routerConfig: _appRouter.router,
-              );
-            },
+          theme: ThemeData(
+            useMaterial3: false,
+            scaffoldBackgroundColor: AppColors.scaffoldBackground,
+            fontFamily: context.locale.languageCode == 'ar' ? 'Cairo' : 'Orbitron',
           ),
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            physics: const BouncingScrollPhysics(),
+          ),
+          routerConfig: _appRouter.router,
         );
       },
     );

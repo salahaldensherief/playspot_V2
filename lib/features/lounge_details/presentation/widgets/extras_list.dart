@@ -13,6 +13,8 @@ class ExtrasList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      buildWhen: (previous, current) =>
+          previous.status != current.status || previous.extras != current.extras,
       builder: (context, state) {
         if (state.status == LoungeDetailsStatus.loading) {
           return SliverList(

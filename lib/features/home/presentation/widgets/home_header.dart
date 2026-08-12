@@ -130,6 +130,7 @@ class HomeHeader extends StatelessWidget {
         child: Padding(
           padding: 8.allPadding,
           child: BlocBuilder<NotificationsCubit, NotificationsState>(
+            buildWhen: (previous, current) => previous.unreadCount != current.unreadCount,
             builder: (context, state) {
               return Stack(
                 children: [

@@ -44,6 +44,9 @@ class _SearchScreenState extends State<SearchScreen> {
             _buildCategories(),
             Expanded(
               child: BlocBuilder<HomeCubit, HomeState>(
+                buildWhen: (previous, current) => 
+                  previous.status != current.status || 
+                  previous.nearestLounges != current.nearestLounges,
                 builder: (context, state) {
                   if (state.status == HomeStatus.loading) {
                     return ListView.separated(

@@ -14,6 +14,7 @@ class DurationSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BookingCubit, BookingState>(
+      buildWhen: (previous, current) => previous.durationHours != current.durationHours,
       builder: (context, state) {
         return Container(
           padding: EdgeInsets.all(16.w),
