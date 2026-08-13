@@ -16,6 +16,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   Future<void> saveUserData(UserModel user) async {
     await _preferenceManager.saveUserId(user.id);
     await _preferenceManager.saveFullName(user.name);
+    await _preferenceManager.savePhoneNumber(user.phone);
     await _preferenceManager.saveIsLoggedIn(true);
     await _preferenceManager.saveUserData(user);
   }

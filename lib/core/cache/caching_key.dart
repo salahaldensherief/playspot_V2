@@ -3,6 +3,7 @@ class CachingKey {
   static const String FCM_TOKEN = 'FCM_TOKEN';
   static const String AUTH_TOKEN = 'AUTH_TOKEN';
   static const String FullName = 'fullName';
+  static const String PhoneNumber = 'phoneNumber';
   static const String UserId = 'UserId';
   static const String UserData = 'UserData';
 
