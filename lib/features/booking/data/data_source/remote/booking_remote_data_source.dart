@@ -58,7 +58,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final startPart = "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}:00";
     final endPart = "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00";
 
-    // إدخال مباشر في جدول bookings مع كافة التفاصيل لضمان ظهورها في الداشبورد
     final response = await _client.from('bookings').insert({
       'room_id': roomId,
       'room_name': roomName,
@@ -72,12 +71,11 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'duration_hours': duration,
       'total_price': totalPrice,
       'room_price': roomPrice,
-      'status': 'pending', // حالة معلقة بانتظار موافقة صاحب الصالة
-      'booking_extras': extras, // تفاصيل الأكل والمشروبات
+      'status': 'pending',
+      'booking_extras': extras,
+      'play_mode': playMode,
     }).select().single();
 
     return Map<String, dynamic>.from(response);
-      'play_mode': playMode,
-    });
   }
 }

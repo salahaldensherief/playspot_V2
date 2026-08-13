@@ -216,7 +216,6 @@
   "joinNow": "JOIN NOW",
   "showSkills": "Join now & show your skills!",
   "viewPhotos": "VIEW PHOTOS",
-  "overlappingBookingError": "This time slot is already booked, please choose another time.",
   "promoCode": "Promo Code",
   "remove": "Remove",
   "voucherApplied": "Voucher Applied",
@@ -226,7 +225,7 @@
   "subtotal": "Subtotal",
   "discount": "Discount",
   "myRewards": "My Rewards",
-  "availableVouchersLabel": "Available Vouchers"
+  "availableVouchersLabel": "Available Vouchers",
   "overlappingBookingError": "This time slot is already booked. Please choose another time or room.",
   "book": "Book",
   "playMode": "Play Mode",

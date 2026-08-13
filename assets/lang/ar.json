@@ -216,7 +216,6 @@
   "joinNow": "سجل الآن",
   "showSkills": "انضم الآن وأظهر مهارتك!",
   "viewPhotos": "عرض الصور",
-  "overlappingBookingError": "الوقت المحدد تم حجزه بالفعل، يرجى اختيار وقت آخر",
   "promoCode": "كود الخصم",
   "remove": "إزالة",
   "voucherApplied": "تم تطبيق الكوبون",
@@ -226,7 +225,7 @@
   "subtotal": "المجموع الفرعي",
   "discount": "الخصم",
   "myRewards": "مكافآتي",
-  "availableVouchersLabel": "الكوبونات المتاحة"
+  "availableVouchersLabel": "الكوبونات المتاحة",
   "overlappingBookingError": "هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر أو غرفة أخرى.",
   "book": "حجز",
   "playMode": "وضع اللعب",
