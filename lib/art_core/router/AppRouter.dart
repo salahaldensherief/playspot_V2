@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -41,6 +40,7 @@ import '../../features/profile/presentation/terms_and_conditions/terms_and_condi
 import '../../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 import '../../features/profile/presentation/redeem_points/redeem_points_screen.dart';
+import '../../features/profile/presentation/vouchers/my_vouchers_screen.dart';
 import '../cubit/locale_cubit.dart';
 
 class AppRouter {
@@ -333,6 +333,15 @@ class AppRouter {
               context: context,
               state: state,
               child: const RedeemPointsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.myVouchers,
+            name: RouterKeys.myVouchers,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const MyVouchersScreen(),
             ),
           ),
           GoRoute(

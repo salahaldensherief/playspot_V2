@@ -124,6 +124,7 @@ class AppStrings {
   static const String billiard = "billiard";
   static const String browseByCategory = "browseByCategory";
   static const String nearestLounges = "nearestLounges";
+  static const String allLounges = "allLounges";
   static const String noLoungesFound = "noLoungesFound";
   static const String redeemPoints = "redeemPoints";
   static const String rewardRedeemed = "rewardRedeemed";
@@ -194,6 +195,16 @@ class AppStrings {
   static const String showSkills = "showSkills";
   static const String viewPhotos = "viewPhotos";
   static const String overlappingBookingError = "overlappingBookingError";
+  static const String promoCode = "promoCode";
+  static const String remove = "remove";
+  static const String voucherApplied = "voucherApplied";
+  static const String noVouchersAvailable = "noVouchersAvailable";
+  static const String selectVoucher = "selectVoucher";
+  static const String availableVouchers = "availableVouchers";
+  static const String subtotal = "subtotal";
+  static const String discount = "discount";
+  static const String myRewards = "myRewards";
+  static const String availableVouchersLabel = "availableVouchersLabel";
   static const String book = "book";
   static const String playMode = "playMode";
   static const String singlePlay = "singlePlay";

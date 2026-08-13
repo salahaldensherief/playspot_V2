@@ -9,6 +9,7 @@ class ProfileState {
   final UserModel? user;
   final int pointsBalance;
   final List<RedemptionOptionModel> redemptionOptions;
+  final List<Map<String, dynamic>> myVouchers;
   final String? errorMessage;
 
   ProfileState({
@@ -16,6 +17,7 @@ class ProfileState {
     this.user,
     this.pointsBalance = 0,
     this.redemptionOptions = const [],
+    this.myVouchers = const [],
     this.errorMessage,
   });
 
@@ -24,6 +26,7 @@ class ProfileState {
     UserModel? user,
     int? pointsBalance,
     List<RedemptionOptionModel>? redemptionOptions,
+    List<Map<String, dynamic>>? myVouchers,
     String? errorMessage,
   }) {
     return ProfileState(
@@ -31,6 +34,7 @@ class ProfileState {
       user: user ?? this.user,
       pointsBalance: pointsBalance ?? this.pointsBalance,
       redemptionOptions: redemptionOptions ?? this.redemptionOptions,
+      myVouchers: myVouchers ?? this.myVouchers,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }

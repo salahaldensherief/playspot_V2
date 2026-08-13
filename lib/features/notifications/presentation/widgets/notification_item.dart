@@ -71,8 +71,7 @@ class NotificationItem extends StatelessWidget {
                         text: notification.body,
                         fontSize: 13.sp,
                         color: AppColors.textSecondary,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        height: 1.4,
                       ),
                       SizedBox(height: 10.h),
                       AppText(
@@ -98,7 +97,18 @@ class NotificationItem extends StatelessWidget {
     switch (notification.type) {
       case NotificationType.booking:
         iconData = TablerIcons.calendar_check;
-        iconColor = AppColors.neonBlue;
+        if (notification.status == 'pending') {
+          iconColor = AppColors.warning;
+          iconData = TablerIcons.calendar_time;
+        } else if (notification.status == 'upcoming') {
+          iconColor = AppColors.success;
+          iconData = TablerIcons.calendar_check;
+        } else if (notification.status == 'cancelled') {
+          iconColor = AppColors.danger;
+          iconData = TablerIcons.calendar_x;
+        } else {
+          iconColor = AppColors.neonBlue;
+        }
         break;
       case NotificationType.offer:
         iconData = TablerIcons.discount_2;

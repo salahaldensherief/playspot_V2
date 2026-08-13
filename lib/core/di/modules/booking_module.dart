@@ -15,6 +15,6 @@ void initBookingModule() {
   );
 
   sl.registerFactory<CheckoutCubit>(
-    () => CheckoutCubit(sl()),
+    () => CheckoutCubit(sl(), sl()),
   );
 }

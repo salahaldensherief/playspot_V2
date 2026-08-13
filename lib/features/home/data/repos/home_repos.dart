@@ -12,6 +12,7 @@ abstract class HomeRepository {
     double? lng,
     String? city,
     List<String>? categoryIds,
+    String sortType = 'nearest',
     int pLimit = 20,
     int pOffset = 0,
   });
@@ -37,6 +38,7 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
     double? lng,
     String? city,
     List<String>? categoryIds,
+    String sortType = 'nearest',
     int pLimit = 20,
     int pOffset = 0,
   }) async {
@@ -45,6 +47,7 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
           lng: lng,
           city: city,
           categoryIds: categoryIds,
+          sortType: sortType,
           pLimit: pLimit,
           pOffset: pOffset,
         ));

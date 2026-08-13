@@ -5,7 +5,7 @@ import '../data_source/remote/booking_remote_data_source.dart';
 
 abstract class BookingRepository {
   Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date);
-  Future<Either<Failure, void>> createBooking({
+  Future<Either<Failure, Map<String, dynamic>>> createBooking({
     required String roomId,
     required String roomName,
     required String loungeId,
@@ -31,7 +31,7 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }
 
   @override
-  Future<Either<Failure, void>> createBooking({
+  Future<Either<Failure, Map<String, dynamic>>> createBooking({
     required String roomId,
     required String roomName,
     required String loungeId,

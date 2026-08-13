@@ -51,7 +51,9 @@ class PreferenceManager {
 
   String? fullName() => _box.read(CachingKey.FullName) as String? ?? "";
 
-  String? phoneNumber() => getUserData()?.phone ?? "";
+  Future<void> savePhoneNumber(String? phone) => _box.write(CachingKey.PhoneNumber, phone ?? '');
+
+  String? phoneNumber() => _box.read(CachingKey.PhoneNumber) as String? ?? getUserData()?.phone ?? "";
 
   Future<void> saveValue(String cachingKey, String value) => _box.write(cachingKey, value);
 
@@ -82,6 +84,7 @@ class PreferenceManager {
     await _box.remove(CachingKey.UserData);
     await _box.remove(CachingKey.UserId);
     await _box.remove(CachingKey.FullName);
+    await _box.remove(CachingKey.PhoneNumber);
     await saveIsLoggedIn(false);
   }
 

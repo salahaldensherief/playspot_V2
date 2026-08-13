@@ -18,6 +18,7 @@ class RouterKeys {
   static const String editProfile = '/editProfile';
   static const String favorites = '/favorites';
   static const String redeemPoints = '/redeemPoints';
+  static const String myVouchers = '/myVouchers';
   static const String notifications = '/notifications';
   static const String notificationSettings = '/notification-settings';
   static const String allReviews = '/allReviews';

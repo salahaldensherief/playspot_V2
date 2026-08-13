@@ -23,7 +23,16 @@ class FavoritesRepositoryImpl with RepositoryHelper implements FavoritesReposito
 
   @override
   Future<Either<Failure, void>> addFavorite(String loungeId) async {
-    return await callRepository(() => _remoteDataSource.addFavorite(loungeId));
+    final result = await callRepository(() => _remoteDataSource.addFavorite(loungeId));
+    return result.fold(
+      (failure) {
+        if (failure.message.contains('23505') || failure.message.contains('unique_user_lounge_favorite')) {
+          return const Right(null); // Silent success if already favorited
+        }
+        return Left(failure);
+      },
+      (success) => Right(success),
+    );
   }
 
   @override

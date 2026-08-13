@@ -35,7 +35,7 @@ class HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: 16.horizontalPadding + 16.verticalPadding,
+      padding: 16.horizontalPadding + 8.verticalPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -49,19 +49,19 @@ class HomeHeader extends StatelessWidget {
                     AppText(
                       text: AppStrings.heyUser
                           .tr(args: [userName.split(' ').first]),
-                      fontSize: 22.sp,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
                     ),
-                    4.verticalSpace,
+                    2.verticalSpace,
                     Row(
                       children: [
-                        Icon(Icons.location_on, color: AppColors.neonBlue, size: 14.sp),
+                        Icon(Icons.location_on, color: AppColors.neonBlue, size: 12.sp),
                         4.horizontalSpace,
                         Expanded(
                           child: AppText(
                                 text: currentLocation.toUpperCase(),
-                                fontSize: 10.sp,
+                                fontSize: 9.sp,
                                 color: AppColors.textSecondary,
                                 fontWeight: FontWeight.bold,
                                 maxLines: 1,
@@ -73,20 +73,20 @@ class HomeHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              10.horizontalSpace,
-              _buildNotificationBell(context),
-              10.horizontalSpace,
+              12.horizontalSpace,
               _buildPointsBadge(),
+              8.horizontalSpace,
+              _buildNotificationBell(context),
             ],
           ),
-          20.verticalSpace,
+          16.verticalSpace,
           if (cities.isNotEmpty)
             SizedBox(
-              height: 38.h,
+              height: 34.h,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: cities.length + 1,
-                separatorBuilder: (context, index) => 10.horizontalSpace,
+                separatorBuilder: (context, index) => 8.horizontalSpace,
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return _buildCityChip(null, AppStrings.all.tr());
@@ -103,15 +103,16 @@ class HomeHeader extends StatelessWidget {
 
   Widget _buildPointsBadge() {
     return GlassContainer(
-      borderRadius: AppSizes.r12,
+      borderRadius: AppSizes.r10,
       child: Padding(
-        padding: 8.horizontalPadding + 6.verticalPadding,
+        padding: 6.horizontalPadding + 4.verticalPadding,
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.stars_rounded, color: AppColors.warning, size: 16.sp),
-            6.horizontalSpace,
+            Icon(Icons.stars_rounded, color: AppColors.warning, size: 14.sp),
+            4.horizontalSpace,
             AppText(
-              text: "$pointsBalance ${AppStrings.points.tr().toUpperCase()}",
+              text: pointsBalance.toString(),
               fontSize: 12.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -174,10 +175,10 @@ class HomeHeader extends StatelessWidget {
       onTap: () => onCitySelected(cityValue),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: 16.horizontalPadding + 8.verticalPadding,
+        padding: 12.horizontalPadding + 4.verticalPadding,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.neonBlue10 : AppColors.whiteOverlay,
-          borderRadius: BorderRadius.circular(30.r),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isSelected ? AppColors.neonBlue : AppColors.borderSubtle,
             width: 1.5,
@@ -186,7 +187,7 @@ class HomeHeader extends StatelessWidget {
         child: Center(
           child: AppText(
             text: label.toUpperCase(),
-            fontSize: 11.sp,
+            fontSize: 10.sp,
             fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
             color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
             letterSpacing: 0.5,
