@@ -75,17 +75,6 @@ class HomeState extends Equatable {
     );
   }
 
-  List<LoungeModel> get sortedLounges {
-    if (sortType == LoungeSortType.nearest) {
-      return nearestLounges;
-    } else {
-      // Create a sorted copy
-      final list = List<LoungeModel>.from(nearestLounges);
-      list.sort((a, b) => b.rating.compareTo(a.rating));
-      return list;
-    }
-  }
-
   @override
   List<Object?> get props => [
     status,

@@ -50,10 +50,10 @@ class _HomeViewState extends State<_HomeView> {
     super.initState();
     final pref = sl<PreferenceManager>();
     userName = pref.fullName() ?? "User";
-    
+
     final savedAddress = pref.getValue('CURRENT_ADDRESS');
-    currentLocation = savedAddress.isNotEmpty 
-        ? savedAddress 
+    currentLocation = savedAddress.isNotEmpty
+        ? savedAddress
         : "Searching location...";
 
     _scrollController.addListener(_onScroll);
@@ -89,76 +89,80 @@ class _HomeViewState extends State<_HomeView> {
       body: Stack(
         children: [
           // Background decoration - wrapped in RepaintBoundary to avoid repainting on scroll
-          const RepaintBoundary(
-            child: _HomeBackground(),
-          ),
+          const RepaintBoundary(child: _HomeBackground()),
           SafeArea(
             child: RefreshIndicator(
-            onRefresh: () => context.read<HomeCubit>().getHomeData(),
-            color: AppColors.neonBlue,
-            backgroundColor: AppColors.cardBackground,
-            child: CustomScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverAppBar(
-                  backgroundColor: Colors.transparent,
-                  expandedHeight: 150.h,
-                  pinned: true,
-                  elevation: 0,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: BlocBuilder<HomeCubit, HomeState>(
-                      buildWhen: (previous, current) =>
-                          previous.availableCities != current.availableCities ||
-                          previous.selectedCity != current.selectedCity ||
-                          previous.currentAddress != current.currentAddress ||
-                          previous.pointsBalance != current.pointsBalance ||
-                          (previous.status == HomeStatus.initial && current.status == HomeStatus.loading),
-                      builder: (context, state) {
-                        return HomeHeader(
-                          userName: userName,
-                          currentLocation: state.currentAddress ?? currentLocation,
-                          cities: state.availableCities,
-                          selectedCity: state.selectedCity,
-                          pointsBalance: state.pointsBalance,
-                          onCitySelected: (city) =>
-                              context.read<HomeCubit>().selectCity(city),
-                        );
-                      },
+              onRefresh: () => context.read<HomeCubit>().getHomeData(),
+              color: AppColors.neonBlue,
+              backgroundColor: AppColors.cardBackground,
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverAppBar(
+                    backgroundColor: Colors.transparent,
+                    expandedHeight: 150.h,
+                    pinned: true,
+                    elevation: 0,
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: BlocBuilder<HomeCubit, HomeState>(
+                        buildWhen: (previous, current) =>
+                            previous.availableCities !=
+                                current.availableCities ||
+                            previous.selectedCity != current.selectedCity ||
+                            previous.currentAddress != current.currentAddress ||
+                            previous.pointsBalance != current.pointsBalance ||
+                            (previous.status == HomeStatus.initial &&
+                                current.status == HomeStatus.loading),
+                        builder: (context, state) {
+                          return HomeHeader(
+                            userName: userName,
+                            currentLocation:
+                                state.currentAddress ?? currentLocation,
+                            cities: state.availableCities,
+                            selectedCity: state.selectedCity,
+                            pointsBalance: state.pointsBalance,
+                            onCitySelected: (city) =>
+                                context.read<HomeCubit>().selectCity(city),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-                const SliverToBoxAdapter(child: PromoCarousel()),
-                24.verticalSpace.toSliver,
-                const SliverSectionHeader(title: AppStrings.browseByCategory),
-                const SliverToBoxAdapter(child: ActivityCategories()),
-                16.verticalSpace.toSliver,
-                const _LoungeSectionHeader(),
-                _LoungeList(),
-                BlocBuilder<HomeCubit, HomeState>(
-                  buildWhen: (previous, current) => previous.status != current.status,
-                  builder: (context, state) {
-                    if (state.status == HomeStatus.loadingMore) {
-                      return SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16.h),
-                          child: const Center(
-                            child: CircularProgressIndicator(color: AppColors.neonBlue),
+                  const SliverToBoxAdapter(child: PromoCarousel()),
+                  24.verticalSpace.toSliver,
+                  const SliverSectionHeader(title: AppStrings.browseByCategory),
+                  const SliverToBoxAdapter(child: ActivityCategories()),
+                  16.verticalSpace.toSliver,
+                  const _LoungeSectionHeader(),
+                  _LoungeList(),
+                  BlocBuilder<HomeCubit, HomeState>(
+                    buildWhen: (previous, current) =>
+                        previous.status != current.status,
+                    builder: (context, state) {
+                      if (state.status == HomeStatus.loadingMore) {
+                        return SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.h),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.neonBlue,
+                              ),
+                            ),
                           ),
-                        ),
-                      );
-                    }
-                    return const SliverToBoxAdapter(child: SizedBox.shrink());
-                  },
-                ),
-                SliverBottomSpacing(height: 120.h),
-                const SliverSafeBottomSpacer(),
-              ],
+                        );
+                      }
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    },
+                  ),
+                  SliverBottomSpacing(height: 120.h),
+                  const SliverSafeBottomSpacer(),
+                ],
+              ),
             ),
           ),
-        ),
-    ]
-      )
+        ],
+      ),
     );
   }
 }
@@ -200,7 +204,9 @@ class _SortToggle extends StatelessWidget {
                   label: AppStrings.nearest.tr(),
                   icon: Icons.location_on_outlined,
                   isSelected: state.sortType == LoungeSortType.nearest,
-                  onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.nearest),
+                  onTap: () => context.read<HomeCubit>().changeSortType(
+                    LoungeSortType.nearest,
+                  ),
                 ),
               ),
               SizedBox(width: 4.w),
@@ -209,7 +215,9 @@ class _SortToggle extends StatelessWidget {
                   label: AppStrings.topRated.tr(),
                   icon: Icons.star_outline_rounded,
                   isSelected: state.sortType == LoungeSortType.topRated,
-                  onTap: () => context.read<HomeCubit>().changeSortType(LoungeSortType.topRated),
+                  onTap: () => context.read<HomeCubit>().changeSortType(
+                    LoungeSortType.topRated,
+                  ),
                 ),
               ),
             ],
@@ -245,13 +253,15 @@ class _SortItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.neonBlue : Colors.transparent,
           borderRadius: BorderRadius.circular(10.r),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: AppColors.neonBlue.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            )
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.neonBlue.withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -259,7 +269,9 @@ class _SortItem extends StatelessWidget {
             Icon(
               icon,
               size: 16.sp,
-              color: isSelected ? AppColors.black : AppColors.textSecondary.withOpacity(0.6),
+              color: isSelected
+                  ? AppColors.black
+                  : AppColors.textSecondary.withOpacity(0.6),
             ),
             SizedBox(width: 8.w),
             AppText(
@@ -286,7 +298,8 @@ class _LoungeList extends StatelessWidget {
           previous.nearestLounges != current.nearestLounges ||
           previous.sortType != current.sortType,
       builder: (context, state) {
-        if (state.status == HomeStatus.loading && state.nearestLounges.isEmpty) {
+        if (state.status == HomeStatus.loading &&
+            state.nearestLounges.isEmpty) {
           return SliverPadding(
             padding: 16.horizontalPadding,
             sliver: SliverGrid(
@@ -304,14 +317,17 @@ class _LoungeList extends StatelessWidget {
           );
         }
 
-        final lounges = state.sortedLounges;
+        final lounges = state.nearestLounges;
 
         if (lounges.isEmpty) {
           return SliverToBoxAdapter(
             child: Center(
               child: Padding(
                 padding: 32.allPadding,
-                child: Text(AppStrings.noLoungesFound.tr(), style: const TextStyle(color: Colors.white)),
+                child: Text(
+                  AppStrings.noLoungesFound.tr(),
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
             ),
           );
@@ -335,10 +351,7 @@ class _LoungeList extends StatelessWidget {
                 onTap: () {
                   context.pushNamed(
                     RouterKeys.loungeDetails,
-                    extra: {
-                      'lounge': lounge,
-                      'heroTag': heroTag,
-                    },
+                    extra: {'lounge': lounge, 'heroTag': heroTag},
                   );
                 },
               );

@@ -124,7 +124,7 @@ class HomeCubit extends Cubit<HomeState> {
     _pref.saveValue('CACHED_CATEGORIES', jsonEncode(cats.map((e) => e.toJson()).toList()));
   }
 
-  Future<void> getHomeData({bool isLoadMore = false}) async {
+  Future<void> getHomeData({bool isLoadMore = false, bool forceLoading = false}) async {
     final lat = double.tryParse(_pref.latitude());
     final lng = double.tryParse(_pref.longitude());
 
@@ -137,7 +137,7 @@ class HomeCubit extends Cubit<HomeState> {
     final nextPage = isLoadMore ? state.currentPage + 1 : 0;
     const pageSize = 10;
 
-    final isBackgroundRefresh = state.nearestLounges.isNotEmpty && !isLoadMore;
+    final isBackgroundRefresh = state.nearestLounges.isNotEmpty && !isLoadMore && !forceLoading;
     
     emit(state.copyWith(
       status: isLoadMore 
@@ -145,6 +145,7 @@ class HomeCubit extends Cubit<HomeState> {
           : (isBackgroundRefresh ? HomeStatus.refreshing : HomeStatus.loading),
       currentPage: nextPage,
       hasReachedMax: isLoadMore ? state.hasReachedMax : false,
+      nearestLounges: forceLoading ? [] : state.nearestLounges,
     ));
 
     final result = await _homeRepository.getLounges(
@@ -152,6 +153,7 @@ class HomeCubit extends Cubit<HomeState> {
       lng: lng,
       city: state.selectedCity,
       categoryIds: state.selectedCategoryIds,
+      sortType: state.sortType == LoungeSortType.topRated ? 'top_rated' : 'nearest',
       pLimit: pageSize,
       pOffset: nextPage * pageSize,
     );
@@ -163,18 +165,9 @@ class HomeCubit extends Cubit<HomeState> {
             ? [...state.nearestLounges, ...newLounges]
             : newLounges;
 
-        // If Top Rated is selected, we sort the entire list by rating
-        // Note: For true server-side top-rated pagination, the RPC needs a sort parameter.
-        // For now, we'll sort what we have.
-        List<LoungeModel> displayLounges = List<LoungeModel>.from(updatedLounges);
-        if (state.sortType == LoungeSortType.topRated) {
-          displayLounges.sort((a, b) => b.rating.compareTo(a.rating));
-        }
-
         emit(state.copyWith(
           status: HomeStatus.success,
-          nearestLounges: updatedLounges, // we keep the source list as is
-          topRatedLounges: List<LoungeModel>.from(updatedLounges)..sort((a, b) => b.rating.compareTo(a.rating)),
+          nearestLounges: updatedLounges,
           hasReachedMax: newLounges.length < pageSize,
         ));
 
@@ -289,10 +282,9 @@ class HomeCubit extends Cubit<HomeState> {
 
     emit(state.copyWith(
       selectedCategoryIds: currentSelected,
-      status: HomeStatus.loading,
     ));
 
-    await getHomeData();
+    await getHomeData(forceLoading: true);
   }
 
   @override

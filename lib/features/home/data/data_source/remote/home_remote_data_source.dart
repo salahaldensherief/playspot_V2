@@ -10,6 +10,7 @@ abstract class HomeRemoteDataSource {
     double? lng,
     String? city,
     List<String>? categoryIds,
+    String sortType = 'nearest',
     int pLimit = 20,
     int pOffset = 0,
   });
@@ -41,48 +42,38 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     double? lng,
     String? city,
     List<String>? categoryIds,
+    String sortType = 'nearest',
     int pLimit = 20,
     int pOffset = 0,
   }) async {
     try {
-      dev.log("FETCHING_LOUNGES: city=$city, lat=$lat, lng=$lng, categories=$categoryIds, limit=$pLimit, offset=$pOffset");
+      dev.log("FETCHING_LOUNGES: city=$city, categories=$categoryIds, sort=$sortType");
       
+      // We pass categoryIds as simple List<String> which matches text[] in SQL
       final response = await _client.rpc('get_smart_filtered_lounges', params: {
-        'user_lat': lat,
-        'user_lng': lng,
-        'city_name': (city != null && city.isNotEmpty) ? city : null,
-        'category_ids': (categoryIds != null && categoryIds.isNotEmpty) ? categoryIds : null,
+        'user_lat': lat ?? 30.0444,
+        'user_lng': lng ?? 31.2357,
+        'p_city_name': (city != null && city.isNotEmpty) ? city : null,
+        'p_category_ids': (categoryIds != null && categoryIds.isNotEmpty) ? categoryIds : null,
+        'p_sort_type': sortType,
         'p_limit': pLimit,
         'p_offset': pOffset,
       });
 
-      List lounges = response as List;
+      final List lounges = response as List;
       dev.log("RPC_RESULTS_COUNT: ${lounges.length}");
       
-      // Fallback behavior handles only the first page load without location/filters
-      if (lounges.isEmpty && pOffset == 0) {
-        if (city != null && city.isNotEmpty) {
-          dev.log("FALLBACK: Fetching lounges directly for city: $city");
-          final fallback = await _client.from('lounges')
-              .select()
-              .eq('city', city)
-              .range(pOffset, pOffset + pLimit - 1);
-          lounges = fallback as List;
-        } else if (categoryIds == null || categoryIds.isEmpty) {
-          final all = await _client.from('lounges')
-              .select()
-              .range(pOffset, pOffset + pLimit - 1);
-          lounges = all as List;
-        }
-      }
-
       return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
     } catch (e) {
       dev.log("FETCH_LOUNGES_CRITICAL_ERROR: $e");
-      final fallback = await _client.from('lounges')
-          .select()
-          .range(pOffset, pOffset + pLimit - 1);
-      return (fallback as List).map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      // Prevent infinite loops or misleading UI by only falling back on empty initial loads
+      if ((categoryIds == null || categoryIds.isEmpty) && pOffset == 0) {
+        final fallback = await _client.from('lounges')
+            .select()
+            .range(pOffset, pOffset + pLimit - 1);
+        return (fallback as List).map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      }
+      return [];
     }
   }
 
