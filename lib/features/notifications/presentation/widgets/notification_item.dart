@@ -98,7 +98,18 @@ class NotificationItem extends StatelessWidget {
     switch (notification.type) {
       case NotificationType.booking:
         iconData = TablerIcons.calendar_check;
-        iconColor = AppColors.neonBlue;
+        if (notification.status == 'pending') {
+          iconColor = AppColors.warning;
+          iconData = TablerIcons.calendar_time;
+        } else if (notification.status == 'upcoming') {
+          iconColor = AppColors.success;
+          iconData = TablerIcons.calendar_check;
+        } else if (notification.status == 'cancelled') {
+          iconColor = AppColors.danger;
+          iconData = TablerIcons.calendar_x;
+        } else {
+          iconColor = AppColors.neonBlue;
+        }
         break;
       case NotificationType.offer:
         iconData = TablerIcons.discount_2;

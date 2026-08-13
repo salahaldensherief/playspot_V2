@@ -7,6 +7,7 @@ class NotificationModel {
   final DateTime createdAt;
   final bool isRead;
   final NotificationType type;
+  final String? status; // pending, upcoming, cancelled
 
   NotificationModel({
     required this.id,
@@ -15,16 +16,34 @@ class NotificationModel {
     required this.createdAt,
     this.isRead = false,
     required this.type,
+    this.status,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
+    final title = json['title'] as String? ?? '';
+    final body = json['body'] as String? ?? '';
+    String? status = json['data']?['status'] as String?;
+
+    // Fallback logic to infer status from text if not provided in payload
+    if (status == null) {
+      final text = (title + body).toLowerCase();
+      if (text.contains('declined') || text.contains('cancelled') || text.contains('refused') || text.contains('مرفوض') || text.contains('إلغاء')) {
+        status = 'cancelled';
+      } else if (text.contains('approved') || text.contains('confirmed') || text.contains('مقبول') || text.contains('تأكيد')) {
+        status = 'upcoming';
+      } else if (text.contains('request') || text.contains('received') || text.contains('pending') || text.contains('طلب') || text.contains('انتظار')) {
+        status = 'pending';
+      }
+    }
+
     return NotificationModel(
       id: json['id'] as String,
-      title: json['title'] as String,
-      body: json['body'] as String,
+      title: title,
+      body: body,
       createdAt: DateTime.parse(json['created_at'] as String),
-      isRead: json['is_read'] as bool,
-      type: _parseType(json['type'] as String),
+      isRead: json['is_read'] as bool? ?? false,
+      type: _parseType(json['type'] as String? ?? ''),
+      status: status,
     );
   }
 
@@ -49,6 +68,7 @@ class NotificationModel {
     DateTime? createdAt,
     bool? isRead,
     NotificationType? type,
+    String? status,
   }) {
     return NotificationModel(
       id: id ?? this.id,
@@ -57,6 +77,7 @@ class NotificationModel {
       createdAt: createdAt ?? this.createdAt,
       isRead: isRead ?? this.isRead,
       type: type ?? this.type,
+      status: status ?? this.status,
     );
   }
 }
