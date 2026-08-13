@@ -194,5 +194,15 @@ class AppStrings {
   static const String showSkills = "showSkills";
   static const String viewPhotos = "viewPhotos";
   static const String overlappingBookingError = "overlappingBookingError";
+  static const String promoCode = "promoCode";
+  static const String remove = "remove";
+  static const String voucherApplied = "voucherApplied";
+  static const String noVouchersAvailable = "noVouchersAvailable";
+  static const String selectVoucher = "selectVoucher";
+  static const String availableVouchers = "availableVouchers";
+  static const String subtotal = "subtotal";
+  static const String discount = "discount";
+  static const String myRewards = "myRewards";
+  static const String availableVouchersLabel = "availableVouchersLabel";
   static const String book = "book";
 }

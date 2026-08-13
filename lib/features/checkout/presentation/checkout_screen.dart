@@ -21,8 +21,11 @@ import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 
+import '../../../art_core/widgets/layout/glass_container.dart';
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../core/cache/preference_manager.dart';
+import '../../profile/presentation/profile_cubit.dart';
+import '../../profile/presentation/profile_state.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 
@@ -55,63 +58,278 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CheckoutCubit, CheckoutState>(
-      listener: (context, state) {
-        if (state.status == CheckoutStatus.success) {
-          _showSuccessDialog(context);
-        } else if (state.status == CheckoutStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    state.errorMessage ?? AppStrings.somethingWentWrong.tr())),
-          );
-        }
+    return BlocBuilder<CheckoutCubit, CheckoutState>(
+      buildWhen: (previous, current) => previous.status != current.status,
+      builder: (context, state) {
+        return BlocListener<CheckoutCubit, CheckoutState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == CheckoutStatus.success) {
+              _showSuccessDialog(context);
+            } else if (state.status == CheckoutStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content: Text(
+                        state.errorMessage ?? AppStrings.somethingWentWrong.tr())),
+              );
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.scaffoldBackground,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: AppText(
+                text: AppStrings.orderSummary.tr(),
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.white,
+              ),
+            ),
+            body: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSummaryCard(context),
+                    SizedBox(height: 24.h),
+                    _buildVoucherSection(),
+                    SizedBox(height: 24.h),
+                    AppText(
+                      text: AppStrings.paymentMethod.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    SizedBox(height: 16.h),
+                    _buildPaymentMethods(),
+                    SizedBox(height: 24.h),
+                    _buildCardDetailsSection(),
+                    SizedBox(height: 32.h),
+                    _buildSecuredPaymentNote(),
+                    const SafeBottomSpacer(extraPadding: 120),
+                  ],
+                ),
+              ),
+            ),
+            bottomSheet: _buildPayButton(),
+          ),
+        );
       },
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: AppText(
-            text: AppStrings.orderSummary.tr(),
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.white,
-          ),
-        ),
-        body: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
+    );
+  }
+
+  Widget _buildVoucherSection() {
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      buildWhen: (previous, current) => previous.myVouchers != current.myVouchers,
+      builder: (context, profileState) {
+        final availableVouchers = profileState.myVouchers
+            .where((v) => v['status'] == 'active')
+            .toList();
+
+        return BlocBuilder<CheckoutCubit, CheckoutState>(
+          buildWhen: (previous, current) => previous.selectedVoucher != current.selectedVoucher,
+          builder: (context, checkoutState) {
+            final isVoucherApplied = checkoutState.selectedVoucher != null;
+
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSummaryCard(context),
-                SizedBox(height: 24.h),
-                AppText(
-                  text: AppStrings.paymentMethod.tr(),
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.white,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    AppText(
+                      text: AppStrings.promoCode.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    if (isVoucherApplied)
+                      TextButton(
+                        onPressed: () => context.read<CheckoutCubit>().removeVoucher(),
+                        child: AppText(
+                          text: AppStrings.remove.tr(),
+                          color: AppColors.danger,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                  ],
                 ),
-                SizedBox(height: 16.h),
-                _buildPaymentMethods(),
-                SizedBox(height: 24.h),
-                _buildCardDetailsSection(),
-                SizedBox(height: 32.h),
-                _buildSecuredPaymentNote(),
-                const SafeBottomSpacer(extraPadding: 120),
+                SizedBox(height: 12.h),
+                if (isVoucherApplied)
+                  _buildAppliedVoucherCard(checkoutState.selectedVoucher!)
+                else if (availableVouchers.isEmpty)
+                  _buildEmptyVoucherPlaceholder()
+                else
+                  _buildVoucherPicker(context, availableVouchers),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAppliedVoucherCard(Map<String, dynamic> voucher) {
+    return GlassContainer(
+      borderRadius: 15,
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Row(
+          children: [
+            Icon(Icons.confirmation_number_outlined, color: AppColors.neonBlue),
+            SizedBox(width: 12.w),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: voucher['code'],
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                AppText(
+                  text: AppStrings.voucherApplied.tr(),
+                  fontSize: 12.sp,
+                  color: AppColors.success,
+                ),
               ],
             ),
-          ),
+            const Spacer(),
+            const Icon(Icons.check_circle, color: AppColors.success),
+          ],
         ),
-        bottomSheet: _buildPayButton(),
       ),
     );
+  }
+
+  Widget _buildEmptyVoucherPlaceholder() {
+    return GlassContainer(
+      borderRadius: 15,
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Row(
+          children: [
+            Icon(Icons.confirmation_number_outlined, color: AppColors.textSecondary),
+            SizedBox(width: 12.w),
+            AppText(
+              text: AppStrings.noVouchersAvailable.tr(),
+              fontSize: 14.sp,
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVoucherPicker(BuildContext context, List<Map<String, dynamic>> vouchers) {
+    return GestureDetector(
+      onTap: () => _showVoucherPickerSheet(context, vouchers),
+      child: GlassContainer(
+        borderRadius: 15,
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Row(
+            children: [
+              Icon(Icons.local_offer_outlined, color: AppColors.neonBlue),
+              SizedBox(width: 12.w),
+              AppText(
+                text: AppStrings.selectVoucher.tr(),
+                fontSize: 14.sp,
+                color: Colors.white,
+              ),
+              const Spacer(),
+              Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showVoucherPickerSheet(BuildContext context, List<Map<String, dynamic>> vouchers) {
+    final checkoutCubit = context.read<CheckoutCubit>();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.scaffoldBackground,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.r))),
+      builder: (sheetContext) => BlocProvider.value(
+        value: checkoutCubit,
+        child: Container(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText(
+                text: AppStrings.availableVouchers.tr(),
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              SizedBox(height: 20.h),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: vouchers.length,
+                  separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                  itemBuilder: (context, index) {
+                    final voucher = vouchers[index];
+                    return GestureDetector(
+                      onTap: () {
+                        checkoutCubit.applyVoucher(voucher);
+                        Navigator.pop(sheetContext);
+                      },
+                      child: GlassContainer(
+                        borderRadius: 15,
+                        child: Padding(
+                          padding: EdgeInsets.all(16.w),
+                          child: Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppText(
+                                    text: voucher['code'],
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.neonBlue,
+                                  ),
+                                  AppText(
+                                    text: _getRewardDescription(voucher),
+                                    fontSize: 12.sp,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              Icon(Icons.arrow_forward_ios, size: 14.sp, color: AppColors.textSecondary),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 32.h),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getRewardDescription(Map<String, dynamic> voucher) {
+    if (voucher['reward_type'] == 'free_hour') return "1 Free Hour";
+    return "${voucher['reward_value']} EGP Discount";
   }
 
   Widget _buildSummaryCard(BuildContext context) {
@@ -175,22 +393,67 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
           const AppDivider(),
           SizedBox(height: 16.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppText(
-                text: AppStrings.total.tr(),
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
-              ),
-              AppText(
-                text: "${widget.totalPrice.toInt()} ${AppStrings.egp.tr()}",
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.neonBlue,
-              ),
-            ],
+          BlocBuilder<CheckoutCubit, CheckoutState>(
+            buildWhen: (previous, current) => previous.discountAmount != current.discountAmount,
+            builder: (context, state) {
+              final finalPrice = widget.totalPrice - state.discountAmount;
+              return Column(
+                children: [
+                  if (state.discountAmount > 0) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText(
+                          text: AppStrings.subtotal.tr(),
+                          fontSize: 14.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                        AppText(
+                          text: "${widget.totalPrice.toInt()} ${AppStrings.egp.tr()}",
+                          fontSize: 14.sp,
+                          color: AppColors.textSecondary,
+                          textDecoration: TextDecoration.lineThrough,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText(
+                          text: AppStrings.discount.tr(),
+                          fontSize: 14.sp,
+                          color: AppColors.success,
+                        ),
+                        AppText(
+                          text: "-${state.discountAmount.toInt()} ${AppStrings.egp.tr()}",
+                          fontSize: 14.sp,
+                          color: AppColors.success,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12.h),
+                  ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      AppText(
+                        text: AppStrings.total.tr(),
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
+                      AppText(
+                        text: "${finalPrice.toInt()} ${AppStrings.egp.tr()}",
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.neonBlue,
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -366,8 +629,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return BlocBuilder<CheckoutCubit, CheckoutState>(
       buildWhen: (previous, current) => 
         previous.status != current.status || 
-        previous.selectedMethod != current.selectedMethod,
+        previous.selectedMethod != current.selectedMethod ||
+        previous.discountAmount != current.discountAmount,
       builder: (context, state) {
+        final finalPrice = widget.totalPrice - state.discountAmount;
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
           color: AppColors.scaffoldBackground,
@@ -380,9 +645,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ? AppStrings.processing.tr()
                       : state.selectedMethod == PaymentMethod.cash
                           ? AppStrings.confirmBookingWithPrice
-                              .tr(args: [widget.totalPrice.toInt().toString()])
+                              .tr(args: [finalPrice.toInt().toString()])
                           : AppStrings.payNowWithPrice
-                              .tr(args: [widget.totalPrice.toInt().toString()]),
+                              .tr(args: [finalPrice.toInt().toString()]),
                 ),
                 behavior: ButtonBehavior.tap(
                   isEnabled: state.status != CheckoutStatus.loading,

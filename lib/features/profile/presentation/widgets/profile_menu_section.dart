@@ -43,6 +43,12 @@ class ProfileMenuSection extends StatelessWidget {
             showBorder: true,
           ),
           _buildMenuItem(
+            icon: TablerIcons.ticket,
+            title: "my_rewards".tr(),
+            onTap: () => context.pushNamed(RouterKeys.myVouchers),
+            showBorder: true,
+          ),
+          _buildMenuItem(
             icon: TablerIcons.credit_card,
             title: AppStrings.paymentMethods.tr(),
             onTap: () {},

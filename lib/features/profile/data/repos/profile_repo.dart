@@ -18,6 +18,9 @@ abstract class ProfileRepository {
   Future<Either<Failure, int>> getPointsBalance();
   Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions();
   Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId);
+  Future<Either<Failure, List<Map<String, dynamic>>>> getMyVouchers();
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucher(String voucherId);
+  Future<Either<Failure, void>> consumeVoucher({required String voucherId, required String bookingId});
 }
 
 class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
@@ -25,6 +28,11 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   final PreferenceManager _preferenceManager;
 
   ProfileRepositoryImpl(this._remoteSource, this._preferenceManager);
+
+  @override
+  Future<Either<Failure, void>> consumeVoucher({required String voucherId, required String bookingId}) async {
+    return await callRepository(() => _remoteSource.consumeVoucher(voucherId: voucherId, bookingId: bookingId));
+  }
 
   @override
   Future<Either<Failure, int>> getPointsBalance() async {
@@ -39,6 +47,16 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   @override
   Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId) async {
     return await callRepository(() => _remoteSource.redeemPoints(optionId));
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getMyVouchers() async {
+    return await callRepository(() => _remoteSource.getMyVouchers());
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucher(String voucherId) async {
+    return await callRepository(() => _remoteSource.validateVoucher(voucherId));
   }
 
   void _saveUserData(UserModel user) {

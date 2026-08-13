@@ -2,7 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date);
-  Future<void> createBooking({
+  Future<Map<String, dynamic>> createBooking({
     required String roomId,
     required String roomName,
     required String loungeId,
@@ -37,7 +37,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   }
 
   @override
-  Future<void> createBooking({
+  Future<Map<String, dynamic>> createBooking({
     required String roomId,
     required String roomName,
     required String loungeId,
@@ -57,7 +57,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final endPart = "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00";
 
     // إدخال مباشر في جدول bookings مع كافة التفاصيل لضمان ظهورها في الداشبورد
-    await _client.from('bookings').insert({
+    final response = await _client.from('bookings').insert({
       'room_id': roomId,
       'room_name': roomName,
       'lounge_id': loungeId,
@@ -72,6 +72,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'room_price': roomPrice,
       'status': 'pending', // حالة معلقة بانتظار موافقة صاحب الصالة
       'booking_extras': extras, // تفاصيل الأكل والمشروبات
-    });
+    }).select().single();
+
+    return Map<String, dynamic>.from(response);
   }
 }

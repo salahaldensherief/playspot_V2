@@ -17,6 +17,9 @@ abstract class ProfileRemoteDataSource {
   Future<int> getPointsBalance();
   Future<List<RedemptionOptionModel>> getRedemptionOptions();
   Future<Map<String, dynamic>> redeemPoints(String optionId);
+  Future<List<Map<String, dynamic>>> getMyVouchers();
+  Future<Map<String, dynamic>> validateVoucher(String voucherId);
+  Future<void> consumeVoucher({required String voucherId, required String bookingId});
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -24,6 +27,36 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   final StorageService _storageService;
 
   ProfileRemoteDataSourceImpl(this._supabase, this._storageService);
+
+  @override
+  Future<void> consumeVoucher({required String voucherId, required String bookingId}) async {
+    await _supabase.rpc('consume_voucher', params: {
+      'p_voucher_id': voucherId,
+      'p_booking_id': bookingId,
+    });
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getMyVouchers() async {
+    try {
+      final response = await _supabase.rpc('get_my_vouchers');
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> validateVoucher(String voucherId) async {
+    try {
+      final response = await _supabase.rpc('validate_voucher', params: {
+        'p_voucher_id': voucherId,
+      });
+      return Map<String, dynamic>.from(response);
+    } catch (e) {
+      return {'valid': false, 'error': e.toString()};
+    }
+  }
 
   @override
   Future<int> getPointsBalance() async {

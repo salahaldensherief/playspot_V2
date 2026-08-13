@@ -20,16 +20,19 @@ class ProfileCubit extends Cubit<ProfileState> {
       final results = await Future.wait([
         _profileRepository.getPointsBalance(),
         _profileRepository.getRedemptionOptions(),
+        _profileRepository.getMyVouchers(),
       ]);
 
       final pointsRes = results[0] as Either<Failure, int>;
       final optionsRes = results[1] as Either<Failure, List<RedemptionOptionModel>>;
+      final vouchersRes = results[2] as Either<Failure, List<Map<String, dynamic>>>;
 
       emit(state.copyWith(
         status: ProfileStatus.success,
         user: user,
         pointsBalance: pointsRes.fold((l) => 0, (r) => r),
         redemptionOptions: optionsRes.fold((l) => [], (r) => r),
+        myVouchers: vouchersRes.fold((l) => [], (r) => r),
       ));
     } else {
       emit(state.copyWith(status: ProfileStatus.error, errorMessage: "User not found"));

@@ -4,11 +4,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/shimmer/redemption_option_shimmer.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
+import '../../data/models/redemption_option_model.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
 
@@ -22,8 +28,16 @@ class RedeemPointsScreen extends StatelessWidget {
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == ProfileStatus.redeemSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppStrings.rewardRedeemed.tr())),
+          // Success Dialog with Voucher Code
+          final lastVoucher = state.myVouchers.isNotEmpty ? state.myVouchers.last : null;
+          final code = lastVoucher?['code'] ?? "";
+          
+          AppDialog.show(
+            context,
+            type: AppDialogType.success,
+            title: AppStrings.rewardRedeemed.tr(),
+            description: "🎉 تم! عندك كوبون جديد بكود $code، صالح لمدة 30 يوم",
+            confirmText: AppStrings.continueText.tr(),
           );
         } else if (state.status == ProfileStatus.error && state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -78,64 +92,7 @@ class RedeemPointsScreen extends StatelessWidget {
                         return const SafeBottomSpacer();
                       }
                       final option = state.redemptionOptions[index];
-                      final canAfford = state.pointsBalance >= option.pointsCost;
-
-                      return GlassContainer(
-                        borderRadius: 20,
-                        child: Padding(
-                          padding: EdgeInsets.all(16.w),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    AppText(
-                                      text: option.getTitle(isArabic),
-                                      fontSize: 18.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    AppText(
-                                      text: option.getDescription(isArabic),
-                                      fontSize: 12.sp,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                    SizedBox(height: 8.h),
-                                    Row(
-                                      children: [
-                                        Icon(Icons.stars, color: AppColors.warning, size: 16.sp),
-                                        SizedBox(width: 4.w),
-                                        AppText(
-                                          text: "${option.pointsCost} ${AppStrings.points.tr()}",
-                                          fontSize: 14.sp,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.warning,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: canAfford
-                                    ? () => context.read<ProfileCubit>().redeemPoints(option.id)
-                                    : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.neonBlue,
-                                  foregroundColor: Colors.white,
-                                  disabledBackgroundColor: Colors.white.withValues(alpha: 0.1),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12.r),
-                                  ),
-                                ),
-                                child: Text(AppStrings.redeem.tr()),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
+                      return _buildRedemptionCard(context, option, state.pointsBalance, isArabic);
                     },
                   );
                 },
@@ -143,6 +100,123 @@ class RedeemPointsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRedemptionCard(
+    BuildContext context,
+    RedemptionOptionModel option,
+    int currentBalance,
+    bool isArabic,
+  ) {
+    final canAfford = currentBalance >= option.pointsCost;
+    final rewardIcon = option.rewardType == 'free_hour' 
+        ? Icons.timer_outlined 
+        : Icons.confirmation_number_outlined;
+
+    return GlassContainer(
+      borderRadius: 24.r,
+      child: Stack(
+        children: [
+          // Background Gradient Overlay for Points
+          Positioned(
+            top: 0,
+            right: isArabic ? null : 0,
+            left: isArabic ? 0 : null,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(isArabic ? 0 : 20.r),
+                  bottomRight: Radius.circular(isArabic ? 20.r : 0),
+                  topRight: Radius.circular(isArabic ? 0 : 24.r),
+                  topLeft: Radius.circular(isArabic ? 24.r : 0),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.stars_rounded, color: AppColors.warning, size: 14.sp),
+                  SizedBox(width: 4.w),
+                  AppText(
+                    text: "${option.pointsCost}",
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.warning,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.neonBlue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16.r),
+                        border: Border.all(color: AppColors.neonBlue.withOpacity(0.2)),
+                      ),
+                      child: Icon(rewardIcon, color: AppColors.neonBlue, size: 24.sp),
+                    ),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppText(
+                            text: option.getTitle(isArabic),
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          SizedBox(height: 2.h),
+                          AppText(
+                            text: option.rewardType == 'free_hour' 
+                                ? "1 Hour Session" 
+                                : "${option.rewardValue.toInt()} EGP Discount",
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.neonBlue,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                AppText(
+                  text: option.getDescription(isArabic),
+                  fontSize: 13.sp,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+                SizedBox(height: 20.h),
+                AppButton(
+                  buttonConfig: ButtonConfig(
+                    height: 48.h,
+                    gradient: canAfford ? AppColors.primaryGradient : null,
+                  ),
+                  content: ButtonContent(
+                    label: AppStrings.redeem.tr(),
+                  ),
+                  behavior: ButtonBehavior.tap(
+                    isEnabled: canAfford,
+                    onTap: () => context.read<ProfileCubit>().redeemPoints(option.id),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
