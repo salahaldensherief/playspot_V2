@@ -101,7 +101,7 @@ class _HomeViewState extends State<_HomeView> {
                 slivers: [
                   SliverAppBar(
                     backgroundColor: Colors.transparent,
-                    expandedHeight: 150.h,
+                    expandedHeight: 125.h,
                     pinned: true,
                     elevation: 0,
                     flexibleSpace: FlexibleSpaceBar(
@@ -130,10 +130,10 @@ class _HomeViewState extends State<_HomeView> {
                     ),
                   ),
                   const SliverToBoxAdapter(child: PromoCarousel()),
-                  24.verticalSpace.toSliver,
+                  16.verticalSpace.toSliver,
                   const SliverSectionHeader(title: AppStrings.browseByCategory),
                   const SliverToBoxAdapter(child: ActivityCategories()),
-                  16.verticalSpace.toSliver,
+                  8.verticalSpace.toSliver,
                   const _LoungeSectionHeader(),
                   _LoungeList(),
                   BlocBuilder<HomeCubit, HomeState>(
@@ -172,10 +172,21 @@ class _LoungeSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SliverToBoxAdapter(
+    return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: _SortToggle(),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            AppText(
+              text: AppStrings.allLounges.tr(),
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            const _SortToggle(),
+          ],
+        ),
       ),
     );
   }
@@ -190,34 +201,27 @@ class _SortToggle extends StatelessWidget {
       buildWhen: (previous, current) => previous.sortType != current.sortType,
       builder: (context, state) {
         return Container(
-          width: double.infinity,
-          padding: EdgeInsets.all(4.w),
+          padding: EdgeInsets.all(2.w),
           decoration: BoxDecoration(
             color: AppColors.backgroundAlt.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(14.r),
+            borderRadius: BorderRadius.circular(10.r),
             border: Border.all(color: Colors.white.withOpacity(0.05)),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: _SortItem(
-                  label: AppStrings.nearest.tr(),
-                  icon: Icons.location_on_outlined,
-                  isSelected: state.sortType == LoungeSortType.nearest,
-                  onTap: () => context.read<HomeCubit>().changeSortType(
-                    LoungeSortType.nearest,
-                  ),
+              _SortItem(
+                label: AppStrings.nearest.tr(),
+                isSelected: state.sortType == LoungeSortType.nearest,
+                onTap: () => context.read<HomeCubit>().changeSortType(
+                  LoungeSortType.nearest,
                 ),
               ),
-              SizedBox(width: 4.w),
-              Expanded(
-                child: _SortItem(
-                  label: AppStrings.topRated.tr(),
-                  icon: Icons.star_outline_rounded,
-                  isSelected: state.sortType == LoungeSortType.topRated,
-                  onTap: () => context.read<HomeCubit>().changeSortType(
-                    LoungeSortType.topRated,
-                  ),
+              _SortItem(
+                label: AppStrings.topRated.tr(),
+                isSelected: state.sortType == LoungeSortType.topRated,
+                onTap: () => context.read<HomeCubit>().changeSortType(
+                  LoungeSortType.topRated,
                 ),
               ),
             ],
@@ -230,13 +234,11 @@ class _SortToggle extends StatelessWidget {
 
 class _SortItem extends StatelessWidget {
   final String label;
-  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _SortItem({
     required this.label,
-    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
@@ -247,40 +249,16 @@ class _SortItem extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.symmetric(vertical: 10.h),
-        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 12.w),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.neonBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(10.r),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AppColors.neonBlue.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
+          borderRadius: BorderRadius.circular(8.r),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 16.sp,
-              color: isSelected
-                  ? AppColors.black
-                  : AppColors.textSecondary.withOpacity(0.6),
-            ),
-            SizedBox(width: 8.w),
-            AppText(
-              text: label,
-              fontSize: 12.sp,
-              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-              color: isSelected ? AppColors.black : AppColors.textSecondary,
-            ),
-          ],
+        child: AppText(
+          text: label,
+          fontSize: 10.sp,
+          fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+          color: isSelected ? AppColors.black : AppColors.textSecondary,
         ),
       ),
     );
@@ -321,14 +299,31 @@ class _LoungeList extends StatelessWidget {
 
         if (lounges.isEmpty) {
           return SliverToBoxAdapter(
-            child: Center(
-              child: Padding(
-                padding: 32.allPadding,
-                child: Text(
-                  AppStrings.noLoungesFound.tr(),
-                  style: const TextStyle(color: Colors.white),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                60.verticalSpace,
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 80.sp,
+                  color: Colors.white10,
                 ),
-              ),
+                20.verticalSpace,
+                AppText(
+                  text: AppStrings.noLoungesFound.tr(),
+                  color: AppColors.textSecondary,
+                  fontSize: 16.sp,
+                ),
+                16.verticalSpace,
+                TextButton(
+                  onPressed: () => context.read<HomeCubit>().getHomeData(),
+                  child: AppText(
+                    text: AppStrings.retry.tr(),
+                    color: AppColors.neonBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           );
         }

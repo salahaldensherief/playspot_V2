@@ -129,31 +129,46 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: EdgeInsets.all(24.w),
-            decoration: BoxDecoration(
-              color: AppColors.neonBlue.withOpacity(0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              TablerIcons.bell_off,
-              size: 64.sp,
-              color: AppColors.neonBlue.withOpacity(0.2),
-            ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 120.w,
+                height: 120.h,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.neonBlue.withOpacity(0.1),
+                      AppColors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+              Icon(
+                TablerIcons.bell_off,
+                size: 60.sp,
+                color: Colors.white.withOpacity(0.1),
+              ),
+            ],
           ),
-          SizedBox(height: 24.h),
+          20.verticalSpace,
           AppText(
             text: AppStrings.noNotificationsYet.tr(),
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
-          SizedBox(height: 8.h),
-          AppText(
-            text: AppStrings.noNotificationsDesc.tr(),
-            fontSize: 14.sp,
-            color: AppColors.textSecondary,
-            textAlign: TextAlign.center,
+          12.verticalSpace,
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 40.w),
+            child: AppText(
+              text: AppStrings.noNotificationsDesc.tr(),
+              fontSize: 13.sp,
+              color: AppColors.textSecondary,
+              textAlign: TextAlign.center,
+              height: 1.5,
+            ),
           ),
         ],
       ),

@@ -124,6 +124,7 @@ class AppStrings {
   static const String billiard = "billiard";
   static const String browseByCategory = "browseByCategory";
   static const String nearestLounges = "nearestLounges";
+  static const String allLounges = "allLounges";
   static const String noLoungesFound = "noLoungesFound";
   static const String redeemPoints = "redeemPoints";
   static const String rewardRedeemed = "rewardRedeemed";

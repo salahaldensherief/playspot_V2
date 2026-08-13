@@ -71,8 +71,7 @@ class NotificationItem extends StatelessWidget {
                         text: notification.body,
                         fontSize: 13.sp,
                         color: AppColors.textSecondary,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        height: 1.4,
                       ),
                       SizedBox(height: 10.h),
                       AppText(

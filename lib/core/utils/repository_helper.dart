@@ -11,10 +11,14 @@ mixin RepositoryHelper {
       final result = await call();
       return Right(result);
     } on PostgrestException catch (e) {
-      if (e.code == '23P01' || (e.message.contains('exclusion constraint') && e.message.contains('no_overlapping_bookings'))) {
+      if (e.code == '23P01' ||
+          e.message.contains('exclusion constraint') ||
+          e.message.contains('no_overlapping_room_bookings')) {
         return Left(ServerFailure(AppStrings.overlappingBookingError.tr()));
       }
-      return Left(ServerFailure(e.message));
+      
+      // Return error code in message for easier filtering in repositories if needed
+      return Left(ServerFailure("${e.code}: ${e.message}"));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(e.message));
     } on AuthException catch (e) {
