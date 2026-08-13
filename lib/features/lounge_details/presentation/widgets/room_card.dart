@@ -288,7 +288,7 @@ class _RoomActionArea extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          PriceWidget(price: room.pricePerHour, fontSize: 16.sp, color: themeColor),
+          PriceWidget(price: room.pricePerHourSingle, fontSize: 16.sp, color: themeColor),
           AppText(
             text: AppStrings.perHour.tr().toUpperCase(),
             fontSize: 7.sp,

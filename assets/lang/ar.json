@@ -216,5 +216,8 @@
   "showSkills": "انضم الآن وأظهر مهارتك!",
   "viewPhotos": "عرض الصور",
   "overlappingBookingError": "هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر أو غرفة أخرى.",
-  "book": "حجز"
+  "book": "حجز",
+  "playMode": "وضع اللعب",
+  "singlePlay": "فردي",
+  "multiPlay": "زوجي / ملاي"
 }

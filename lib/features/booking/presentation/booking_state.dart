@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 enum BookingStatus { initial, loading, success, error }
+enum PlayMode { single, multi }
 
 class BookingState extends Equatable {
   final BookingStatus status;
@@ -9,6 +10,7 @@ class BookingState extends Equatable {
   final TimeOfDay? startTime;
   final int durationHours;
   final List<TimeOfDay> bookedTimeSlots;
+  final PlayMode playMode;
 
   const BookingState({
     this.status = BookingStatus.initial,
@@ -16,6 +18,7 @@ class BookingState extends Equatable {
     this.startTime,
     this.durationHours = 1,
     this.bookedTimeSlots = const [],
+    this.playMode = PlayMode.single,
   });
 
   BookingState copyWith({
@@ -24,6 +27,7 @@ class BookingState extends Equatable {
     TimeOfDay? startTime,
     int? durationHours,
     List<TimeOfDay>? bookedTimeSlots,
+    PlayMode? playMode,
   }) {
     return BookingState(
       status: status ?? this.status,
@@ -31,9 +35,10 @@ class BookingState extends Equatable {
       startTime: startTime ?? this.startTime,
       durationHours: durationHours ?? this.durationHours,
       bookedTimeSlots: bookedTimeSlots ?? this.bookedTimeSlots,
+      playMode: playMode ?? this.playMode,
     );
   }
 
   @override
-  List<Object?> get props => [status, selectedDate, startTime, durationHours, bookedTimeSlots];
+  List<Object?> get props => [status, selectedDate, startTime, durationHours, bookedTimeSlots, playMode];
 }

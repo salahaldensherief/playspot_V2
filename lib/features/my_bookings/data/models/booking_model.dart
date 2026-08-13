@@ -10,6 +10,7 @@ class BookingModel {
   final String endTime;
   final String status; // upcoming, past, cancelled
   final double totalPrice;
+  final String? playMode;
   final String? mapsLink;
   final double? lat;
   final double? lng;
@@ -26,6 +27,7 @@ class BookingModel {
     required this.endTime,
     required this.status,
     required this.totalPrice,
+    this.playMode,
     this.mapsLink,
     this.lat,
     this.lng,
@@ -49,6 +51,7 @@ class BookingModel {
       endTime: json['end_time'] ?? '',
       status: json['status'] ?? 'past',
       totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
+      playMode: json['play_mode'],
       mapsLink: loungeData?['maps_link'],
       lat: (loungeData?['lat'] as num?)?.toDouble(),
       lng: (loungeData?['lng'] as num?)?.toDouble(),

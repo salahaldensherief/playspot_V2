@@ -13,6 +13,7 @@ abstract class BookingRemoteDataSource {
     required double totalPrice,
     required double roomPrice,
     List<Map<String, dynamic>> extras = const [],
+    String? playMode,
   });
 }
 
@@ -48,6 +49,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required double totalPrice,
     required double roomPrice,
     List<Map<String, dynamic>> extras = const [],
+    String? playMode,
   }) async {
     final user = _client.auth.currentUser;
     final duration = endTime.difference(startTime).inHours;
@@ -72,6 +74,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'room_price': roomPrice,
       'status': 'pending', // حالة معلقة بانتظار موافقة صاحب الصالة
       'booking_extras': extras, // تفاصيل الأكل والمشروبات
+      'play_mode': playMode,
     });
   }
 }

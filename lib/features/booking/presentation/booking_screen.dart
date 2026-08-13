@@ -23,6 +23,7 @@ import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/time_slot_grid.dart';
 import 'widgets/duration_selector.dart';
+import 'widgets/play_mode_selector.dart';
 
 class BookingScreen extends StatefulWidget {
   final LoungeModel? lounge;
@@ -102,6 +103,15 @@ class _BookingScreenState extends State<BookingScreen> {
                     const TimeSlotGrid(),
                     24.verticalSpace,
                     AppText(
+                      text: AppStrings.playMode.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.white,
+                    ),
+                    16.verticalSpace,
+                    const PlayModeSelector(),
+                    24.verticalSpace,
+                    AppText(
                       text: AppStrings.duration.tr(),
                       fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
@@ -125,12 +135,18 @@ class _BookingScreenState extends State<BookingScreen> {
       buildWhen: (previous, current) => 
         previous.startTime != current.startTime || 
         previous.durationHours != current.durationHours ||
-        previous.selectedDate != current.selectedDate,
+        previous.selectedDate != current.selectedDate ||
+        previous.playMode != current.playMode,
       builder: (context, state) {
         final isReady = state.startTime != null;
         final extrasPrice = widget.addOns.fold<double>(
             0, (sum, item) => sum + (item['price'] * item['quantity']));
-        final total = (widget.room!.pricePerHour * state.durationHours) + extrasPrice;
+        
+        final appliedRate = state.playMode == PlayMode.single 
+            ? widget.room!.pricePerHourSingle 
+            : widget.room!.pricePerHourMulti;
+            
+        final total = (appliedRate * state.durationHours) + extrasPrice;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -171,6 +187,10 @@ class _BookingScreenState extends State<BookingScreen> {
                         isEnabled: isReady,
                         onTap: isReady
                             ? () {
+                                final appliedRate = state.playMode == PlayMode.single 
+                                    ? widget.room!.pricePerHourSingle 
+                                    : widget.room!.pricePerHourMulti;
+                                    
                                 context.pushNamed(
                                   RouterKeys.checkout,
                                   extra: {
@@ -181,6 +201,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                     'duration': state.durationHours,
                                     'totalPrice': total,
                                     'addOns': widget.addOns,
+                                    'playMode': state.playMode.name,
+                                    'appliedHourlyRate': appliedRate,
                                   },
                                 );
                               }

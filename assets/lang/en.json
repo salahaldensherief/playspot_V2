@@ -216,5 +216,8 @@
   "showSkills": "Join now & show your skills!",
   "viewPhotos": "VIEW PHOTOS",
   "overlappingBookingError": "This time slot is already booked. Please choose another time or room.",
-  "book": "Book"
+  "book": "Book",
+  "playMode": "Play Mode",
+  "singlePlay": "Single",
+  "multiPlay": "Multi"
 }

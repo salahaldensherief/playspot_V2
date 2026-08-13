@@ -7,6 +7,8 @@ class RoomModel {
   final String? spaceType;
   final int capacity;
   final double pricePerHour;
+  final double pricePerHourSingle;
+  final double pricePerHourMulti;
   final bool isAvailable;
   final List<String> images;
   final List<String> featuresAr;
@@ -23,6 +25,8 @@ class RoomModel {
     this.spaceType,
     required this.capacity,
     required this.pricePerHour,
+    required this.pricePerHourSingle,
+    required this.pricePerHourMulti,
     required this.isAvailable,
     required this.images,
     required this.featuresAr,
@@ -44,6 +48,8 @@ class RoomModel {
       'space_type_name': spaceType,
       'capacity': capacity,
       'price_per_hour': pricePerHour,
+      'price_per_hour_single': pricePerHourSingle,
+      'price_per_hour_multi': pricePerHourMulti,
       'is_available': isAvailable,
       'images': images,
       'features_ar': featuresAr,
@@ -77,6 +83,8 @@ class RoomModel {
         spaceType: json['space_types']?['label'] ?? json['space_type_name']?.toString(),
         capacity: (json['capacity'] as num?)?.toInt() ?? 4,
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
+        pricePerHourSingle: (json['price_per_hour_single'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
+        pricePerHourMulti: (json['price_per_hour_multi'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
         images: json['images'] != null ? List<String>.from(json['images']) : [],
         featuresAr: json['features_ar'] != null ? List<String>.from(json['features_ar']) : [],

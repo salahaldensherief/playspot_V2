@@ -34,6 +34,8 @@ class CheckoutScreen extends StatefulWidget {
   final int duration;
   final double totalPrice;
   final List<Map<String, dynamic>> addOns;
+  final String? playMode;
+  final double? appliedHourlyRate;
 
   const CheckoutScreen({
     super.key,
@@ -44,6 +46,8 @@ class CheckoutScreen extends StatefulWidget {
     required this.duration,
     required this.totalPrice,
     required this.addOns,
+    this.playMode,
+    this.appliedHourlyRate,
   });
 
   @override
@@ -146,6 +150,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           InfoRow(
               label: AppStrings.duration.tr(),
               value: AppStrings.hour.tr(args: [widget.duration.toString()])),
+          if (widget.playMode != null)
+            InfoRow(
+              label: AppStrings.playMode.tr(),
+              value: widget.playMode == 'single' 
+                  ? AppStrings.singlePlay.tr() 
+                  : AppStrings.multiPlay.tr(),
+              valueColor: AppColors.neonBlue,
+            ),
           if (widget.addOns.isNotEmpty) ...[
             SizedBox(height: 16.h),
             AppText(
@@ -414,8 +426,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           startTime: startDateTime,
                           endTime: endDateTime,
                           totalPrice: widget.totalPrice,
-                          roomPrice: widget.room.pricePerHour,
+                          roomPrice: widget.appliedHourlyRate ?? widget.room.pricePerHour,
                           addOns: widget.addOns,
+                          playMode: widget.playMode,
                         );
                   },
                 ),

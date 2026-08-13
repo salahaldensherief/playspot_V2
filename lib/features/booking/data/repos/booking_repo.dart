@@ -16,6 +16,7 @@ abstract class BookingRepository {
     required double totalPrice,
     required double roomPrice,
     List<Map<String, dynamic>> extras = const [],
+    String? playMode,
   });
 }
 
@@ -41,6 +42,7 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
     required double totalPrice,
     required double roomPrice,
     List<Map<String, dynamic>> extras = const [],
+    String? playMode,
   }) async {
     return await callRepository(() => _remoteDataSource.createBooking(
       roomId: roomId,
@@ -53,6 +55,7 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
       totalPrice: totalPrice,
       roomPrice: roomPrice,
       extras: extras,
+      playMode: playMode,
     ));
   }
 }

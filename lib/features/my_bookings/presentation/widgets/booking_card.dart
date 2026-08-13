@@ -70,7 +70,7 @@ class BookingCard extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           AppText(
-            text: "${booking.roomName} · ${booking.controllersCount} Controllers · ${booking.screenSize}",
+            text: "${booking.roomName}${booking.playMode != null ? ' (${booking.playMode == 'single' ? AppStrings.singlePlay.tr() : AppStrings.multiPlay.tr()})' : ''} · ${booking.controllersCount} Controllers · ${booking.screenSize}",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
             maxLines: 1,

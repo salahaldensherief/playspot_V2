@@ -113,6 +113,10 @@ class BookingCubit extends Cubit<BookingState> {
     emit(state.copyWith(durationHours: newDuration));
   }
 
+  void selectPlayMode(PlayMode mode) {
+    emit(state.copyWith(playMode: mode));
+  }
+
   bool isSlotBooked(TimeOfDay time) {
     return state.bookedTimeSlots.any((slot) => slot.hour == time.hour);
   }

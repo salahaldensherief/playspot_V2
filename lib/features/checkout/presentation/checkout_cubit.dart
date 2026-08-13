@@ -22,6 +22,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     required double totalPrice,
     required double roomPrice,
     required List<Map<String, dynamic>> addOns,
+    String? playMode,
   }) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
     
@@ -36,6 +37,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       totalPrice: totalPrice,
       roomPrice: roomPrice,
       extras: addOns,
+      playMode: playMode,
     );
 
     result.fold(

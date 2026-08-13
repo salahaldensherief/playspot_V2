@@ -307,6 +307,8 @@ class AppRouter {
                     duration: extra['duration'] as int,
                     totalPrice: extra['totalPrice'] as double,
                     addOns: extra['addOns'] as List<Map<String, dynamic>>,
+                    playMode: extra['playMode'] as String?,
+                    appliedHourlyRate: extra['appliedHourlyRate'] as double?,
                   ),
                 ),
               );

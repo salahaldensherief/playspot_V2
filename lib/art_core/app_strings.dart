@@ -195,4 +195,7 @@ class AppStrings {
   static const String viewPhotos = "viewPhotos";
   static const String overlappingBookingError = "overlappingBookingError";
   static const String book = "book";
+  static const String playMode = "playMode";
+  static const String singlePlay = "singlePlay";
+  static const String multiPlay = "multiPlay";
 }
