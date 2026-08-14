@@ -14,6 +14,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/text/price_widget.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../../art_core/router/router_keys.dart';
@@ -26,17 +27,11 @@ import 'widgets/duration_selector.dart';
 import 'widgets/play_mode_selector.dart';
 
 class BookingScreen extends StatefulWidget {
-  final LoungeModel? lounge;
-  final RoomModel? room;
-  final DateTime? initialDate;
-  final List<Map<String, dynamic>> addOns;
+  final BookingDetailsParams params;
 
   const BookingScreen({
     super.key,
-    this.lounge,
-    this.room,
-    this.initialDate,
-    this.addOns = const [],
+    required this.params,
   });
 
   @override
@@ -78,7 +73,7 @@ class _BookingScreenState extends State<BookingScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           title: AppText(
-            text: "${AppStrings.book.tr()} ${widget.room!.getDisplayTitle(context.locale.languageCode == 'ar')}",
+            text: "${AppStrings.book.tr()} ${widget.params.room.getDisplayTitle(context.locale.languageCode == 'ar')}",
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.white,
@@ -136,17 +131,20 @@ class _BookingScreenState extends State<BookingScreen> {
         previous.startTime != current.startTime || 
         previous.durationHours != current.durationHours ||
         previous.selectedDate != current.selectedDate ||
-        previous.playMode != current.playMode,
+        previous.playMode != current.playMode ||
+        previous.extraControllersCount != current.extraControllersCount,
       builder: (context, state) {
         final isReady = state.startTime != null;
-        final extrasPrice = widget.addOns.fold<double>(
+        final extrasPrice = widget.params.extras.fold<double>(
             0, (sum, item) => sum + (item['price'] * item['quantity']));
         
         final appliedRate = state.playMode == PlayMode.single 
-            ? widget.room!.pricePerHourSingle 
-            : widget.room!.pricePerHourMulti;
+            ? widget.params.room.pricePerHourSingle 
+            : widget.params.room.pricePerHourMulti;
             
-        final total = (appliedRate * state.durationHours) + extrasPrice;
+        final extraControllersCharge = state.extraControllersCount * widget.params.room.extraControllerPrice;
+        
+        final total = ((appliedRate + extraControllersCharge) * state.durationHours) + extrasPrice;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -188,21 +186,23 @@ class _BookingScreenState extends State<BookingScreen> {
                         onTap: isReady
                             ? () {
                                 final appliedRate = state.playMode == PlayMode.single 
-                                    ? widget.room!.pricePerHourSingle 
-                                    : widget.room!.pricePerHourMulti;
+                                    ? widget.params.room.pricePerHourSingle 
+                                    : widget.params.room.pricePerHourMulti;
                                     
                                 context.pushNamed(
                                   RouterKeys.checkout,
                                   extra: {
-                                    'lounge': widget.lounge,
-                                    'room': widget.room,
+                                    'lounge': widget.params.lounge,
+                                    'room': widget.params.room,
                                     'date': state.selectedDate,
                                     'startTime': state.startTime!,
                                     'duration': state.durationHours,
                                     'totalPrice': total,
-                                    'addOns': widget.addOns,
+                                    'addOns': widget.params.extras,
                                     'playMode': state.playMode.name,
                                     'appliedHourlyRate': appliedRate,
+                                    'extraControllers': state.extraControllersCount,
+                                    'extraControllerPrice': widget.params.room.extraControllerPrice,
                                   },
                                 );
                               }

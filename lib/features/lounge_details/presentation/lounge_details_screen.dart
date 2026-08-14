@@ -71,10 +71,9 @@ class LoungeDetailsScreen extends StatelessWidget {
                 ),
                 const SliverSectionHeader(title: AppStrings.selectDate),
                 const DateSelectionSection(),
-                const CategorySelector(),
+                const SliverToBoxAdapter(child: SpaceTypeSelector()),
                 const SliverSectionHeader(
                     title: AppStrings.availableRooms),
-                const SliverToBoxAdapter(child: SpaceTypeSelector()),
                 const RoomsGrid(),
                 const SliverSectionHeader(title: AppStrings.extras),
                 const ExtrasList(),

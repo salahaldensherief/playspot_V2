@@ -12,6 +12,7 @@ class GlassContainer extends StatelessWidget {
   final double borderOpacity;
   final Color? color;
   final Color? borderColor;
+  final bool useBorderColorForGradient;
   final List<BoxShadow>? shadow;
   final EdgeInsetsGeometry? padding;
 
@@ -25,12 +26,15 @@ class GlassContainer extends StatelessWidget {
     this.borderOpacity = 0.08,
     this.color,
     this.borderColor,
+    this.useBorderColorForGradient = true,
     this.shadow,
     this.padding,
   });
 
   @override
   Widget build(BuildContext context) {
+    final gradientBaseColor = useBorderColorForGradient ? (borderColor ?? Colors.white) : Colors.white;
+    
     return Container(
       width: width,
       height: height,
@@ -55,8 +59,8 @@ class GlassContainer extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  (borderColor ?? Colors.white).withOpacity(borderOpacity + 0.02),
-                  (borderColor ?? Colors.white).withOpacity(0.01),
+                  gradientBaseColor.withOpacity(borderOpacity + 0.02),
+                  gradientBaseColor.withOpacity(0.01),
                 ],
               ),
             ),

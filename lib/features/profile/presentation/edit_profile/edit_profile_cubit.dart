@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:playspot/features/profile/data/models/profile_params.dart';
 import '../../data/repos/profile_repo.dart';
 import '../../../../core/di/modules/auth_module.dart';
 import '../../../auth/data/repos/auth_repos.dart';
@@ -42,10 +43,12 @@ class EditProfileCubit extends Cubit<EditProfileState> {
 
     emit(state.copyWith(status: EditProfileStatus.loading));
     final result = await _profileRepository.updateProfile(
-      name: nameController.text.trim(),
-      phone: phoneController.text.trim(),
-      email: emailController.text.trim(),
-      avatarFile: avatarFile,
+      UpdateProfileParams(
+        name: nameController.text.trim(),
+        phone: phoneController.text.trim(),
+        email: emailController.text.trim(),
+        avatarFile: avatarFile,
+      ),
     );
 
     result.fold(

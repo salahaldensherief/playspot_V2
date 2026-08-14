@@ -2,22 +2,11 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../data_source/remote/booking_remote_data_source.dart';
+import '../models/booking_params.dart';
 
 abstract class BookingRepository {
   Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date);
-  Future<Either<Failure, Map<String, dynamic>>> createBooking({
-    required String roomId,
-    required String roomName,
-    required String loungeId,
-    required String userName,
-    required String userPhone,
-    required DateTime startTime,
-    required DateTime endTime,
-    required double totalPrice,
-    required double roomPrice,
-    List<Map<String, dynamic>> extras = const [],
-    String? playMode,
-  });
+  Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params);
 }
 
 class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
@@ -31,31 +20,7 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> createBooking({
-    required String roomId,
-    required String roomName,
-    required String loungeId,
-    required String userName,
-    required String userPhone,
-    required DateTime startTime,
-    required DateTime endTime,
-    required double totalPrice,
-    required double roomPrice,
-    List<Map<String, dynamic>> extras = const [],
-    String? playMode,
-  }) async {
-    return await callRepository(() => _remoteDataSource.createBooking(
-      roomId: roomId,
-      roomName: roomName,
-      loungeId: loungeId,
-      userName: userName,
-      userPhone: userPhone,
-      startTime: startTime,
-      endTime: endTime,
-      totalPrice: totalPrice,
-      roomPrice: roomPrice,
-      extras: extras,
-      playMode: playMode,
-    ));
+  Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params) async {
+    return await callRepository(() => _remoteDataSource.createBooking(params));
   }
 }

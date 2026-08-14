@@ -5,14 +5,10 @@ import '../../../../../art_core/exceptions/app_exceptions.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../models/redemption_option_model.dart';
+import '../../models/profile_params.dart';
 
 abstract class ProfileRemoteDataSource {
-  Future<UserModel> updateProfile({
-    required String name,
-    required String phone,
-    String? email,
-    File? avatarFile,
-  });
+  Future<UserModel> updateProfile(UpdateProfileParams params);
   UserModel? getCurrentUser();
   Future<int> getPointsBalance();
   Future<List<RedemptionOptionModel>> getRedemptionOptions();
@@ -103,31 +99,26 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<UserModel> updateProfile({
-    required String name,
-    required String phone,
-    String? email,
-    File? avatarFile,
-  }) async {
+  Future<UserModel> updateProfile(UpdateProfileParams params) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) throw const UserNotFoundException();
       final userId = user.id;
 
       String? avatarUrl;
-      if (avatarFile != null) {
-        final fileExt = avatarFile.path.split('.').last;
+      if (params.avatarFile != null) {
+        final fileExt = params.avatarFile!.path.split('.').last;
         avatarUrl = await _storageService.uploadFile(
           bucket: 'avatars',
           path: 'avatars/$userId.$fileExt',
-          file: avatarFile,
+          file: params.avatarFile!,
         );
       }
 
       final updateData = {
-        'name': name,
-        'phone': phone,
-        if (email != null) 'email': email,
+        'name': params.name,
+        'phone': params.phone,
+        if (params.email != null) 'email': params.email,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       };
 
@@ -135,9 +126,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       await _supabase.auth.updateUser(
         UserAttributes(
-          email: email,
+          email: params.email,
           data: {
-            'full_name': name,
+            'full_name': params.name,
             if (avatarUrl != null) 'avatar_url': avatarUrl,
           },
         ),
@@ -147,8 +138,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
       return UserModel.fromSupabaseUser(_supabase.auth.currentUser!.toJson())
           .copyWith(
-        name: name,
-        phone: phone,
+        name: params.name,
+        phone: params.phone,
         avatarUrl: avatarUrl,
       );
     } on AppException {

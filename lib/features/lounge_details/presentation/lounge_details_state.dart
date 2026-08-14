@@ -25,6 +25,8 @@ class LoungeDetailsState extends Equatable {
   final int availableRoomsCount;
   final String selectedCategory;
   final String selectedSpaceType;
+  final Map<String, String> roomPlayModes; // {roomId: 'single' | 'multi'}
+  final Map<String, int> roomExtraControllers; // {roomId: count}
   final LoungeModel? lounge;
 
   const LoungeDetailsState({
@@ -42,6 +44,8 @@ class LoungeDetailsState extends Equatable {
     this.availableRoomsCount = 0,
     this.selectedCategory = '',
     this.selectedSpaceType = 'all',
+    this.roomPlayModes = const {},
+    this.roomExtraControllers = const {},
     this.lounge,
   });
 
@@ -61,6 +65,8 @@ class LoungeDetailsState extends Equatable {
     int? availableRoomsCount,
     String? selectedCategory,
     String? selectedSpaceType,
+    Map<String, String>? roomPlayModes,
+    Map<String, int>? roomExtraControllers,
     LoungeModel? lounge,
   }) {
     return LoungeDetailsState(
@@ -78,8 +84,20 @@ class LoungeDetailsState extends Equatable {
       availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       selectedSpaceType: selectedSpaceType ?? this.selectedSpaceType,
+      roomPlayModes: roomPlayModes ?? this.roomPlayModes,
+      roomExtraControllers: roomExtraControllers ?? this.roomExtraControllers,
       lounge: lounge ?? this.lounge,
     );
+  }
+
+  List<RoomModel> get filteredRooms {
+    if (selectedSpaceType == 'all') return rooms;
+    
+    return rooms.where((r) {
+      if (selectedSpaceType == 'simulator') return r.isSimulator;
+      if (selectedSpaceType == 'vr') return r.isVR;
+      return r.spaceTypeName == selectedSpaceType;
+    }).toList();
   }
 
   double get totalPrice {
@@ -103,14 +121,19 @@ class LoungeDetailsState extends Equatable {
         status,
         rooms,
         extras,
+        reviews,
         selectedExtras,
         selectedRoomId,
         selectedDate,
         bookedRoomIds,
         bookedSlotsByRoom,
         categories,
+        deviceCategories,
         availableRoomsCount,
         selectedCategory,
+        selectedSpaceType,
+        roomPlayModes,
+        roomExtraControllers,
         lounge,
       ];
 }

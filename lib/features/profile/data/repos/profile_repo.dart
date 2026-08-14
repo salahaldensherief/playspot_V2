@@ -5,15 +5,11 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../models/redemption_option_model.dart';
+import '../models/profile_params.dart';
 import '../data_source/remote/profile_remote_data_source.dart';
 
 abstract class ProfileRepository {
-  Future<Either<Failure, UserModel>> updateProfile({
-    required String name,
-    required String phone,
-    String? email,
-    File? avatarFile,
-  });
+  Future<Either<Failure, UserModel>> updateProfile(UpdateProfileParams params);
   UserModel? getCurrentUser();
   Future<Either<Failure, int>> getPointsBalance();
   Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions();
@@ -66,19 +62,9 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, UserModel>> updateProfile({
-    required String name,
-    required String phone,
-    String? email,
-    File? avatarFile,
-  }) async {
+  Future<Either<Failure, UserModel>> updateProfile(UpdateProfileParams params) async {
     return await callRepository(() async {
-      final user = await _remoteSource.updateProfile(
-        name: name,
-        phone: phone,
-        email: email,
-        avatarFile: avatarFile,
-      );
+      final user = await _remoteSource.updateProfile(params);
       _saveUserData(user);
       return user;
     });

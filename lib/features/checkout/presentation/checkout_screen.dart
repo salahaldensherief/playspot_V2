@@ -14,6 +14,7 @@ import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/art_core/widgets/layout/app_divider.dart';
 import 'package:playspot/art_core/widgets/layout/info_row.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
@@ -30,27 +31,11 @@ import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  final LoungeModel lounge;
-  final RoomModel room;
-  final DateTime date;
-  final TimeOfDay startTime;
-  final int duration;
-  final double totalPrice;
-  final List<Map<String, dynamic>> addOns;
-  final String? playMode;
-  final double? appliedHourlyRate;
+  final CheckoutParams params;
 
   const CheckoutScreen({
     super.key,
-    required this.lounge,
-    required this.room,
-    required this.date,
-    required this.startTime,
-    required this.duration,
-    required this.totalPrice,
-    required this.addOns,
-    this.playMode,
-    this.appliedHourlyRate,
+    required this.params,
   });
 
   @override
@@ -348,7 +333,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
-            text: widget.lounge.name,
+            text: widget.params.lounge.name,
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.white,
@@ -356,27 +341,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(height: 4.h),
           AppText(
             text:
-                "${widget.room.spaceTypeLabel(context.locale.languageCode == 'ar')} - ${widget.room.getName(context.locale.languageCode == 'ar')} · ${widget.room.controllersCount} ${AppStrings.controllers.tr()} · ${widget.room.screenSize} ${AppStrings.screen.tr()}",
+                "${widget.params.room.spaceTypeLabel(context.locale.languageCode == 'ar')} - ${widget.params.room.getName(context.locale.languageCode == 'ar')} · ${widget.params.room.controllersCount} ${AppStrings.controllers.tr()} · ${widget.params.room.screenSize} ${AppStrings.screen.tr()}",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
           ),
+          if (widget.params.room.isSimulator || widget.params.room.isVR) ...[
+            SizedBox(height: 4.h),
+            AppText(
+              text: widget.params.room.isSimulator ? "Setup: Fanatec Base + Triple 4K" : "Gear: Meta Quest 3 + Pro Straps",
+              fontSize: 11.sp,
+              color: AppColors.neonBlue,
+              fontWeight: FontWeight.w500,
+            ),
+          ],
           SizedBox(height: 16.h),
           const AppDivider(),
-          InfoRow(label: AppStrings.selectDate.tr(), value: widget.date.toAppDateString()),
+          InfoRow(label: AppStrings.selectDate.tr(), value: widget.params.date.toAppDateString()),
           InfoRow(
-              label: AppStrings.startTime.tr(), value: widget.startTime.toAppTimeString()),
+              label: AppStrings.startTime.tr(), value: widget.params.startTime.toAppTimeString()),
           InfoRow(
               label: AppStrings.duration.tr(),
-              value: AppStrings.hour.tr(args: [widget.duration.toString()])),
-          if (widget.playMode != null)
+              value: AppStrings.hour.tr(args: [widget.params.duration.toString()])),
+          if (widget.params.playMode != null)
             InfoRow(
               label: AppStrings.playMode.tr(),
-              value: widget.playMode == 'single' 
+              value: widget.params.playMode == 'single' 
                   ? AppStrings.singlePlay.tr() 
                   : AppStrings.multiPlay.tr(),
               valueColor: AppColors.neonBlue,
             ),
-          if (widget.addOns.isNotEmpty) ...[
+          if (widget.params.extraControllers != null && widget.params.extraControllers! > 0)
+            InfoRow(
+              label: context.locale.languageCode == 'ar' ? "دراعات إضافية" : "Extra Controllers",
+              value: "${widget.params.extraControllers}x (+${(widget.params.extraControllers! * (widget.params.extraControllerPrice ?? 0)).toInt()} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
+              valueColor: AppColors.warning,
+              prefixIcon: Icons.videogame_asset_outlined,
+            ),
+          if (widget.params.addOns.isNotEmpty) ...[
             SizedBox(height: 16.h),
             AppText(
               text: AppStrings.addOns.tr(),
@@ -385,7 +386,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               color: AppColors.textSecondary,
             ),
             SizedBox(height: 8.h),
-            ...widget.addOns.map((addOn) {
+            ...widget.params.addOns.map((addOn) {
               IconData icon = Icons.local_drink_outlined;
               final name = addOn['name'].toString().toLowerCase();
               if (name.contains('snack') ||
@@ -409,7 +410,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           BlocBuilder<CheckoutCubit, CheckoutState>(
             buildWhen: (previous, current) => previous.discountAmount != current.discountAmount,
             builder: (context, state) {
-              final finalPrice = widget.totalPrice - state.discountAmount;
+              final finalPrice = widget.params.totalPrice - state.discountAmount;
               return Column(
                 children: [
                   if (state.discountAmount > 0) ...[
@@ -422,7 +423,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           color: AppColors.textSecondary,
                         ),
                         AppText(
-                          text: "${widget.totalPrice.toInt()} ${AppStrings.egp.tr()}",
+                          text: "${widget.params.totalPrice.toInt()} ${AppStrings.egp.tr()}",
                           fontSize: 14.sp,
                           color: AppColors.textSecondary,
                           textDecoration: TextDecoration.lineThrough,
@@ -645,7 +646,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         previous.selectedMethod != current.selectedMethod ||
         previous.discountAmount != current.discountAmount,
       builder: (context, state) {
-        final finalPrice = widget.totalPrice - state.discountAmount;
+        final finalPrice = widget.params.totalPrice - state.discountAmount;
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
           color: AppColors.scaffoldBackground,
@@ -670,32 +671,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     }
                     
                     final startDateTime = DateTime(
-                      widget.date.year,
-                      widget.date.month,
-                      widget.date.day,
-                      widget.startTime.hour,
-                      widget.startTime.minute,
+                      widget.params.date.year,
+                      widget.params.date.month,
+                      widget.params.date.day,
+                      widget.params.startTime.hour,
+                      widget.params.startTime.minute,
                     );
                     final endDateTime =
-                        startDateTime.add(Duration(hours: widget.duration));
+                        startDateTime.add(Duration(hours: widget.params.duration));
 
                     final pref = sl<PreferenceManager>();
                     final userName = pref.fullName() ?? "";
                     final userPhone = pref.phoneNumber() ?? "";
 
                     context.read<CheckoutCubit>().processPayment(
-                          roomId: widget.room.id,
-                          roomName: widget.room.getName(context.locale.languageCode == 'ar'),
-                          loungeId: widget.lounge.id,
-                          userName: userName,
-                          userPhone: userPhone,
-                          startTime: startDateTime,
-                          endTime: endDateTime,
-                          totalPrice: widget.totalPrice,
-                          roomPrice: widget.appliedHourlyRate ?? widget.room.pricePerHour,
-                          addOns: widget.addOns,
-                          playMode: widget.playMode,
-                        );
+                      CreateBookingParams(
+                        roomId: widget.params.room.id,
+                        roomName: widget.params.room.getName(context.locale.languageCode == 'ar'),
+                        loungeId: widget.params.lounge.id,
+                        userName: userName,
+                        userPhone: userPhone,
+                        startTime: startDateTime,
+                        endTime: endDateTime,
+                        totalPrice: widget.params.totalPrice,
+                        roomPrice: widget.params.appliedHourlyRate ?? widget.params.room.pricePerHour,
+                        addOns: widget.params.addOns,
+                        playMode: widget.params.playMode,
+                        extraControllers: widget.params.extraControllers,
+                      ),
+                    );
                   },
                 ),
                 buttonConfig: ButtonConfig(
@@ -721,7 +725,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       type: AppDialogType.success,
       title: AppStrings.bookingRequestedTitle,
       description: AppStrings.bookingRequestedSubtitle,
-      descriptionArgs: [widget.lounge.name],
+      descriptionArgs: [widget.params.lounge.name],
       confirmText: AppStrings.viewMyBookings,
       onConfirm: () => context.goNamed(RouterKeys.home, extra: 1),
     );

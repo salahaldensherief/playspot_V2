@@ -10,6 +10,7 @@ class RoomModel {
   final double pricePerHour;
   final double pricePerHourSingle;
   final double pricePerHourMulti;
+  final double extraControllerPrice;
   final bool isAvailable;
   final List<String> images;
   final List<String> featuresAr;
@@ -29,6 +30,7 @@ class RoomModel {
     required this.pricePerHour,
     required this.pricePerHourSingle,
     required this.pricePerHourMulti,
+    this.extraControllerPrice = 0.0,
     required this.isAvailable,
     required this.images,
     required this.featuresAr,
@@ -39,6 +41,12 @@ class RoomModel {
 
   String getName(bool isArabic) => isArabic ? nameAr : nameEn;
   List<String> getFeatures(bool isArabic) => isArabic ? featuresAr : featuresEn;
+
+  bool get isVR => activityNames.any((a) => a.toLowerCase().contains('vr'));
+  bool get isSimulator => activityNames.any((a) => a.toLowerCase().contains('simulator'));
+  bool get isOpenArea => spaceTypeName == 'open_area';
+  bool get isVIP => spaceTypeName == 'vip_room';
+  bool get isStandard => spaceTypeName == 'standard_room';
 
   String getDisplayTitle(bool isArabic) {
     if (spaceTypeName == 'open_area') {
@@ -66,6 +74,7 @@ class RoomModel {
       'price_per_hour': pricePerHour,
       'price_per_hour_single': pricePerHourSingle,
       'price_per_hour_multi': pricePerHourMulti,
+      'extra_controller_price': extraControllerPrice,
       'is_available': isAvailable,
       'images': images,
       'features_ar': featuresAr,
@@ -96,12 +105,21 @@ class RoomModel {
         activityNames: activities.isNotEmpty 
             ? activities 
             : (json['activity_names'] != null ? List<String>.from(json['activity_names']) : []),
-        spaceType: json['space_types']?['label'] ?? json['space_type_name']?.toString(),
-        spaceTypeName: json['space_types']?['name'] ?? json['space_type_slug']?.toString(),
+        spaceType: json['space_type_label'] ?? 
+                  (json['space_types'] is List 
+                      ? (json['space_types'] as List).isNotEmpty ? (json['space_types'] as List).first['label'] : null
+                      : json['space_types']?['label']) ?? 
+                  json['space_type_name']?.toString(),
+        spaceTypeName: json['space_type_name'] ??
+                     (json['space_types'] is List 
+                        ? (json['space_types'] as List).isNotEmpty ? (json['space_types'] as List).first['name'] : null
+                        : json['space_types']?['name']) ?? 
+                     json['space_type_slug']?.toString() ?? 'open_area',
         capacity: (json['capacity'] as num?)?.toInt() ?? 4,
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         pricePerHourSingle: (json['price_per_hour_single'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         pricePerHourMulti: (json['price_per_hour_multi'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
+        extraControllerPrice: (json['extra_controller_price'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
         images: json['images'] != null ? List<String>.from(json['images']) : [],
         featuresAr: json['features_ar'] != null ? List<String>.from(json['features_ar']) : [],

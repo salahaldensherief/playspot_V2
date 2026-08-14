@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:playspot/features/auth/data/models/auth_params.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_state.dart';
-
 import '../../data/repos/auth_repos.dart';
 
 
@@ -49,12 +49,14 @@ class SignupCubit extends Cubit<SignupState> {
     emit(state.copyWith(status: SignupStatus.loading));
 
     final result = await _authRepository.signUpWithEmail(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-      name: nameController.text.trim(),
-      phone: phoneController.text.trim(),
-      avatarFile: avatarFile,
-      referralCode: referralCodeController.text.trim(),
+      SignUpParams(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        name: nameController.text.trim(),
+        phone: phoneController.text.trim(),
+        avatarFile: avatarFile,
+        referralCode: referralCodeController.text.trim(),
+      ),
     );
 
     result.fold(
@@ -131,9 +133,11 @@ class SignupCubit extends Cubit<SignupState> {
     log("SIGNUP_CUBIT: Completing profile for user: ${state.params.id}");
     emit(state.copyWith(status: SignupStatus.loading));
     final result = await _authRepository.completeProfile(
-      userId: state.params.id,
-      phone: phoneController.text.trim(),
-      avatarFile: avatarFile,
+      CompleteProfileParams(
+        userId: state.params.id,
+        phone: phoneController.text.trim(),
+        avatarFile: avatarFile,
+      ),
     );
 
     result.fold(

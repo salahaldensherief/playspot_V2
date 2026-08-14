@@ -19,17 +19,16 @@ class RoomConstants {
 }
 
 extension RoomThemeX on RoomModel {
-  bool get isOpenArea => spaceTypeName == 'open_area';
-  bool get isVIP => spaceTypeName == 'vip_room';
-  bool get isStandard => spaceTypeName == 'standard_room';
-
   Color get themeColor {
     if (isVIP) return AppColors.warning;
-    if (isOpenArea) return AppColors.neonBlue;
-    return AppColors.neonPurple;
+    if (isVR) return AppColors.neonPurple;
+    if (isSimulator) return AppColors.cyan;
+    return AppColors.neonBlue;
   }
 
   IconData get icon {
+    if (isSimulator) return Icons.speed;
+    if (isVR) return Icons.view_in_ar;
     if (isOpenArea) return Icons.monitor;
     if (isVIP) return Icons.stars;
     return Icons.meeting_room;
@@ -66,7 +65,9 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
             margin: EdgeInsets.only(bottom: 10.h),
             child: GlassContainer(
               borderRadius: RoomConstants.borderRadius,
-              borderOpacity: (isSelected || _isExpanded) ? 0.4 : 0.05,
+              borderOpacity: (isSelected || _isExpanded) ? 0.3 : 0.05,
+              useBorderColorForGradient: false,
+              color: Colors.white.withOpacity(0.02),
               borderColor: isSelected
                   ? themeColor
                   : (isAvailable ? AppColors.borderDefault : AppColors.danger.withOpacity(0.15)),
@@ -85,6 +86,7 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
                     room: widget.room,
                     isArabic: isArabic,
                     isExpanded: _isExpanded,
+                    isSelected: isSelected,
                     themeColor: themeColor,
                   ),
                 ],
@@ -230,9 +232,15 @@ class _QuickSpecs extends StatelessWidget {
     return Wrap(
       spacing: 12.w,
       children: [
-        _Spec(icon: Icons.videogame_asset, value: room.controllersCount.toString()),
+        if (room.isSimulator) 
+          _Spec(icon: Icons.settings_input_component, value: room.activityNames.firstWhere((a) => a.toLowerCase().contains('fanatec'), orElse: () => "Pro Racing Setup"))
+        else if (room.isVR)
+          _Spec(icon: Icons.headset, value: room.activityNames.firstWhere((a) => a.toLowerCase().contains('quest'), orElse: () => "VR Experience"))
+        else
+          _Spec(icon: Icons.videogame_asset_outlined, value: "${room.controllersCount} ${AppStrings.controllers.tr()}"),
+
         _Spec(icon: Icons.tv, value: room.screenSize),
-        _Spec(icon: Icons.people, value: room.capacity.toString()),
+        if (!room.isOpenArea) _Spec(icon: Icons.people_outline, value: room.capacity.toString()),
       ],
     );
   }
@@ -245,13 +253,13 @@ class _Spec extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (value == '0' || value == 'N/A') return const SizedBox.shrink();
+    if (value.contains('0') && !value.contains('10')) return const SizedBox.shrink();
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 13.sp, color: AppColors.textSecondary.withOpacity(0.4)),
+        Icon(icon, size: 12.sp, color: AppColors.textSecondary.withOpacity(0.4)),
         SizedBox(width: 4.w),
-        AppText(text: value, fontSize: 10.sp, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+        AppText(text: value, fontSize: 10.sp, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
       ],
     );
   }
@@ -273,40 +281,56 @@ class _RoomActionArea extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!isAvailable) return const SizedBox.shrink();
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w),
-      decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: Colors.white.withOpacity(0.03))),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          PriceWidget(price: room.pricePerHourSingle, fontSize: 16.sp, color: themeColor),
-          AppText(
-            text: AppStrings.perHour.tr().toUpperCase(),
-            fontSize: 7.sp,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.bold,
+    return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      builder: (context, state) {
+        final playMode = state.roomPlayModes[room.id] ?? 'single';
+        final extraControllers = state.roomExtraControllers[room.id] ?? 0;
+        
+        double currentPrice = room.pricePerHour;
+        if (room.isOpenArea) {
+          currentPrice = playMode == 'single' ? room.pricePerHourSingle : room.pricePerHourMulti;
+        }
+        currentPrice += (extraControllers * room.extraControllerPrice);
+
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 14.w),
+          decoration: BoxDecoration(
+            border: Border(left: BorderSide(color: Colors.white.withOpacity(0.03))),
           ),
-          SizedBox(height: 8.h),
-          GestureDetector(
-            onTap: () => context.read<LoungeDetailsCubit>().toggleRoomSelection(room.id),
-            child: AnimatedContainer(
-              duration: RoomConstants.toggleDuration,
-              padding: EdgeInsets.all(7.w),
-              decoration: BoxDecoration(
-                color: isSelected ? themeColor : Colors.white.withOpacity(0.05),
-                shape: BoxShape.circle,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PriceWidget(price: currentPrice, fontSize: 16.sp, color: themeColor),
+              AppText(
+                text: AppStrings.perHour.tr().toUpperCase(),
+                fontSize: 7.sp,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
               ),
-              child: Icon(
-                isSelected ? Icons.check : Icons.add,
-                color: isSelected ? AppColors.black : Colors.white,
-                size: 14.sp,
+              SizedBox(height: 8.h),
+              GestureDetector(
+                onTap: () => context.read<LoungeDetailsCubit>().toggleRoomSelection(room.id),
+                child: AnimatedContainer(
+                  duration: RoomConstants.toggleDuration,
+                  padding: EdgeInsets.all(7.w),
+                  decoration: BoxDecoration(
+                    color: isSelected ? themeColor : Colors.white.withOpacity(0.05),
+                    shape: BoxShape.circle,
+                    boxShadow: isSelected ? [
+                      BoxShadow(color: themeColor.withOpacity(0.3), blurRadius: 8, spreadRadius: 1)
+                    ] : null,
+                  ),
+                  child: Icon(
+                    isSelected ? Icons.check : Icons.add,
+                    color: isSelected ? AppColors.black : Colors.white,
+                    size: 14.sp,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -318,7 +342,7 @@ class _BookedOverlay extends StatelessWidget {
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.black.withOpacity(0.6),
+          color: AppColors.black.withOpacity(0.7),
           borderRadius: BorderRadius.circular(RoomConstants.borderRadius.r),
         ),
         child: Center(
@@ -346,12 +370,14 @@ class _RoomExpandedDetails extends StatelessWidget {
   final RoomModel room;
   final bool isArabic;
   final bool isExpanded;
+  final bool isSelected;
   final Color themeColor;
 
   const _RoomExpandedDetails({
     required this.room,
     required this.isArabic,
     required this.isExpanded,
+    required this.isSelected,
     required this.themeColor,
   });
 
@@ -366,35 +392,161 @@ class _RoomExpandedDetails extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Divider(color: Colors.white.withOpacity(0.05), height: 10.h),
+            Divider(color: Colors.white.withOpacity(0.05), height: 1.h),
+            12.verticalSpace,
+            if (isSelected) ...[
+               _buildSelectionConfig(context),
+               16.verticalSpace,
+               Divider(color: Colors.white.withOpacity(0.05), height: 1.h),
+               12.verticalSpace,
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _SectionHeader(title: AppStrings.technicalSetup.tr(), themeColor: themeColor),
+                _SectionHeader(title: AppStrings.roomFeatures.tr(), themeColor: themeColor),
                 if (room.images.isNotEmpty) _GalleryButton(room: room, themeColor: themeColor),
               ],
             ),
-            SizedBox(height: 6.h),
+            8.verticalSpace,
+            if (features.isNotEmpty)
+              Wrap(
+                spacing: 8.w,
+                runSpacing: 8.h,
+                children: features.map((f) => _FeatureItem(feature: f)).toList(),
+              )
+            else
+              AppText(
+                text: isArabic ? "لا توجد تفاصيل إضافية" : "No additional features",
+                fontSize: 10.sp,
+                color: AppColors.textSecondary.withOpacity(0.5),
+              ),
+            12.verticalSpace,
+            _SectionHeader(title: AppStrings.technicalSetup.tr(), themeColor: themeColor),
+            8.verticalSpace,
+            if (room.isSimulator) ...[
+              _Spec(icon: Icons.monitor, value: "Triple 32\" 4K Setup"),
+              SizedBox(height: 4.h),
+              _Spec(icon: Icons.settings_input_component, value: "Fanatec DD2 + V3 Pedals"),
+            ] else if (room.isVR) ...[
+              _Spec(icon: Icons.cable, value: "Link Cable / Wireless"),
+              SizedBox(height: 4.h),
+              _Spec(icon: Icons.games, value: "Half-Life: Alyx, Beat Saber"),
+            ],
             Wrap(
               spacing: 6.w,
               runSpacing: 6.h,
               children: room.activityNames.map((activity) => _DetailChip(label: activity, themeColor: themeColor)).toList(),
             ),
-            if (features.isNotEmpty) ...[
-              SizedBox(height: 12.h),
-              _SectionHeader(title: AppStrings.roomFeatures.tr(), themeColor: themeColor),
-              SizedBox(height: 6.h),
-              Wrap(
-                spacing: 12.w,
-                runSpacing: 6.h,
-                children: features.map((f) => _FeatureItem(feature: f)).toList(),
-              ),
-            ],
           ],
         ),
       ),
       crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
       duration: RoomConstants.animationDuration,
+    );
+  }
+
+  Widget _buildSelectionConfig(BuildContext context) {
+    return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      builder: (context, state) {
+        final playMode = state.roomPlayModes[room.id] ?? 'single';
+        final extraControllers = state.roomExtraControllers[room.id] ?? 0;
+
+        return Column(
+          children: [
+            if (room.isOpenArea) ...[
+              _buildPlayModeToggle(context, playMode),
+              12.verticalSpace,
+            ],
+            if (room.extraControllerPrice > 0)
+              _buildExtraControllerStepper(context, extraControllers),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPlayModeToggle(BuildContext context, String currentMode) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        AppText(text: AppStrings.playMode.tr(), fontSize: 12.sp, color: Colors.white70, fontWeight: FontWeight.bold),
+        Container(
+          padding: EdgeInsets.all(3.w),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Row(
+            children: [
+              _buildToggleOption(context, 'single', isArabic ? "👤 فردي" : "👤 Single", currentMode == 'single'),
+              _buildToggleOption(context, 'multi', isArabic ? "👥 زوجي" : "👥 Multi", currentMode == 'multi'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildToggleOption(BuildContext context, String mode, String label, bool isSelected) {
+    return GestureDetector(
+      onTap: () => context.read<LoungeDetailsCubit>().setRoomPlayMode(room.id, mode),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: isSelected ? themeColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: AppText(
+          text: label,
+          fontSize: 11.sp,
+          fontWeight: FontWeight.bold,
+          color: isSelected ? AppColors.black : AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExtraControllerStepper(BuildContext context, int count) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppText(text: isArabic ? "دراعات إضافية" : "Extra Controllers", fontSize: 12.sp, color: Colors.white70, fontWeight: FontWeight.bold),
+            AppText(
+              text: "+${room.extraControllerPrice.toInt()} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()}", 
+              fontSize: 9.sp, 
+              color: AppColors.warning.withOpacity(0.8)
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            _buildStepButton(Icons.remove, () => context.read<LoungeDetailsCubit>().updateRoomExtraControllers(room.id, -1)),
+            14.horizontalSpace,
+            AppText(text: count.toString(), fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white),
+            14.horizontalSpace,
+            _buildStepButton(Icons.add, () => context.read<LoungeDetailsCubit>().updateRoomExtraControllers(room.id, 1)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStepButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(5.w),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white10),
+          borderRadius: BorderRadius.circular(6.r),
+          color: Colors.white.withOpacity(0.03),
+        ),
+        child: Icon(icon, size: 14.sp, color: Colors.white),
+      ),
     );
   }
 }
@@ -407,11 +559,11 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppText(
-      text: title,
+      text: title.toUpperCase(),
       fontSize: 8.sp,
-      fontWeight: FontWeight.bold,
-      color: themeColor.withOpacity(0.6),
-      letterSpacing: 0.5,
+      fontWeight: FontWeight.w900,
+      color: themeColor.withOpacity(0.7),
+      letterSpacing: 0.8,
     );
   }
 }
@@ -432,16 +584,16 @@ class _GalleryButton extends StatelessWidget {
         )));
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
         decoration: BoxDecoration(
           color: themeColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(10.r),
           border: Border.all(color: themeColor.withOpacity(0.2)),
         ),
         child: Row(
           children: [
             Icon(Icons.photo_library_outlined, size: 12.sp, color: themeColor),
-            SizedBox(width: 4.w),
+            6.horizontalSpace,
             AppText(text: AppStrings.viewPhotos.tr(), fontSize: 9.sp, fontWeight: FontWeight.bold, color: themeColor),
           ],
         ),
@@ -458,18 +610,18 @@ class _DetailChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.02),
+        color: Colors.white.withOpacity(0.03),
         borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(color: themeColor.withOpacity(0.08)),
+        border: Border.all(color: themeColor.withOpacity(0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle_outline, size: 10.sp, color: themeColor),
-          SizedBox(width: 4.w),
-          AppText(text: label, fontSize: 10.sp, color: Colors.white60),
+          Icon(Icons.check_circle, size: 10.sp, color: themeColor.withOpacity(0.5)),
+          6.horizontalSpace,
+          AppText(text: label, fontSize: 10.sp, color: Colors.white70),
         ],
       ),
     );
@@ -482,14 +634,20 @@ class _FeatureItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(Icons.star_border, size: 10.sp, color: AppColors.textSecondary.withOpacity(0.7)),
-        SizedBox(width: 4.w),
-        AppText(text: feature, fontSize: 10.sp, color: AppColors.textSecondary),
-      ],
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: AppColors.success.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(6.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.star, size: 10.sp, color: AppColors.success.withOpacity(0.6)),
+          6.horizontalSpace,
+          AppText(text: feature, fontSize: 10.sp, color: Colors.white70, fontWeight: FontWeight.w500),
+        ],
+      ),
     );
   }
 }

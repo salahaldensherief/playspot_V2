@@ -6,27 +6,17 @@ import '../../../../../art_core/exceptions/app_exceptions.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../../core/services/social_auth_service.dart';
 import '../../models/user_model.dart';
+import '../../models/auth_params.dart';
 
 abstract class AuthRemoteSource {
   Future<UserModel> signInWithEmail({
     required String email,
     required String password,
   });
-  Future<UserModel> signUpWithEmail({
-    required String email,
-    required String password,
-    required String name,
-    required String phone,
-    File? avatarFile,
-    String? referralCode,
-  });
+  Future<UserModel> signUpWithEmail(SignUpParams params);
   Future<UserModel> signInWithGoogle();
   Future<UserModel> signInWithFacebook();
-  Future<UserModel> completeProfile({
-    required String userId,
-    required String phone,
-    File? avatarFile,
-  });
+  Future<UserModel> completeProfile(CompleteProfileParams params);
   Future<void> signOut();
   UserModel? getCurrentUser();
   Future<void> sendPasswordResetEmail(String email);
@@ -73,47 +63,40 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   }
 
   @override
-  Future<UserModel> signUpWithEmail({
-    required String email,
-    required String password,
-    required String name,
-    required String phone,
-    File? avatarFile,
-    String? referralCode,
-  }) async {
+  Future<UserModel> signUpWithEmail(SignUpParams params) async {
     try {
       final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
+        email: params.email,
+        password: params.password,
       );
       if (response.user == null) throw const ServerException('Sign up failed');
 
       final userId = response.user!.id;
       String? avatarUrl;
-      if (avatarFile != null) {
-        final fileExt = avatarFile.path.split('.').last;
+      if (params.avatarFile != null) {
+        final fileExt = params.avatarFile!.path.split('.').last;
         avatarUrl = await _storageService.uploadFile(
           bucket: 'avatars',
           path: 'avatars/$userId.$fileExt',
-          file: avatarFile,
+          file: params.avatarFile!,
         );
       }
 
       await _supabase.from('users').upsert({
         'id': userId,
-        'name': name,
-        'email': email,
-        'phone': phone,
+        'name': params.name,
+        'email': params.email,
+        'phone': params.phone,
         'avatar_url': avatarUrl,
         'is_banned': false,
       });
 
-      if (referralCode != null && referralCode.trim().isNotEmpty) {
+      if (params.referralCode != null && params.referralCode!.trim().isNotEmpty) {
         try {
           final referrer = await _supabase
               .from('users')
               .select('id')
-              .eq('referral_code', referralCode.trim())
+              .eq('referral_code', params.referralCode!.trim())
               .maybeSingle();
 
           if (referrer != null) {
@@ -130,7 +113,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       return UserModel.fromSupabaseUser(
         response.user!.toJson(),
         isNewUser: false,
-      ).copyWith(name: name, phone: phone, avatarUrl: avatarUrl);
+      ).copyWith(name: params.name, phone: params.phone, avatarUrl: avatarUrl);
     } on AuthException catch (e) {
       if (e.message.contains('already registered')) {
         throw const EmailAlreadyInUseException();
@@ -208,32 +191,28 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   }
 
   @override
-  Future<UserModel> completeProfile({
-    required String userId,
-    required String phone,
-    File? avatarFile,
-  }) async {
+  Future<UserModel> completeProfile(CompleteProfileParams params) async {
     try {
       String? avatarUrl;
-      if (avatarFile != null) {
-        final fileExt = avatarFile.path.split('.').last;
+      if (params.avatarFile != null) {
+        final fileExt = params.avatarFile!.path.split('.').last;
         avatarUrl = await _storageService.uploadFile(
           bucket: 'avatars',
-          path: 'avatars/$userId.$fileExt',
-          file: avatarFile,
+          path: 'avatars/${params.userId}.$fileExt',
+          file: params.avatarFile!,
         );
       }
 
       await _supabase.from('users').update({
-        'phone': phone,
+        'phone': params.phone,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
-      }).eq('id', userId);
+      }).eq('id', params.userId);
 
       final user = _supabase.auth.currentUser;
       if (user == null) throw const UserNotFoundException();
 
       return UserModel.fromSupabaseUser(user.toJson()).copyWith(
-        phone: phone,
+        phone: params.phone,
         avatarUrl: avatarUrl,
       );
     } on AppException {

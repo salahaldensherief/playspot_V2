@@ -2,6 +2,8 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'package:playspot/features/home/data/models/home_params.dart';
+import 'package:playspot/features/lounge_details/data/models/lounge_details_params.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
@@ -56,22 +58,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       final date = state.selectedDate ?? DateTime.now();
       
       await _updateBookings(
-        loungeId: loungeId,
-        date: date,
-        rooms: rooms!,
-        extras: extras!,
-        lounge: state.lounge!, 
-        deviceCategories: deviceCategories!,
-        reviews: reviews!,
-      );
-      await _updateBookings(
-        loungeId: loungeId,
-        date: date,
-        rooms: rooms!,
-        extras: extras!,
-        lounge: state.lounge!, // Assume lounge is already in state from initial setup or passed in
-        deviceCategories: deviceCategories!,
-        reviews: reviews!,
+        UpdateBookingsParams(
+          loungeId: loungeId,
+          date: date,
+          rooms: rooms!,
+          extras: extras!,
+          lounge: state.lounge!, 
+          deviceCategories: deviceCategories!,
+          reviews: reviews!,
+        ),
       );
     } catch (e, stack) {
       log("CUBIT ERROR: $e", stackTrace: stack);
@@ -80,7 +75,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   }
 
   Future<void> selectDate(DateTime date) async {
-    if (state.rooms.isEmpty) {
+    if (state.rooms.isEmpty || state.lounge == null) {
       emit(state.copyWith(selectedDate: date));
       return;
     }
@@ -88,46 +83,31 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     emit(state.copyWith(selectedDate: date, status: LoungeDetailsStatus.loading));
 
     try {
-      final loungeId = state.rooms.first.loungeId;
-      final loungesResult = await _homeRepository.getLounges();
-      
-      await loungesResult.fold(
-        (failure) async => emit(state.copyWith(status: LoungeDetailsStatus.error)),
-        (lounges) async {
-          final lounge = lounges.firstWhere((l) => l.id == loungeId);
-          await _updateBookings(
-            loungeId: loungeId,
-            date: date,
-            rooms: state.rooms,
-            extras: state.extras,
-            lounge: lounge,
-            deviceCategories: state.deviceCategories,
-            reviews: state.reviews,
-          );
-        },
+      await _updateBookings(
+        UpdateBookingsParams(
+          loungeId: state.lounge!.id,
+          date: date,
+          rooms: state.rooms,
+          extras: state.extras,
+          lounge: state.lounge!,
+          deviceCategories: state.deviceCategories,
+          reviews: state.reviews,
+        ),
       );
     } catch (e) {
       emit(state.copyWith(status: LoungeDetailsStatus.error));
     }
   }
 
-  Future<void> _updateBookings({
-    required String loungeId,
-    required DateTime date,
-    required List<RoomModel> rooms,
-    required List<ExtraModel> extras,
-    required LoungeModel lounge,
-    List<CategoryModel>? deviceCategories,
-    List<ReviewModel>? reviews,
-  }) async {
-    final bookingsResult = await _bookingRepository.getRoomBookingsForDate(loungeId, date);
+  Future<void> _updateBookings(UpdateBookingsParams params) async {
+    final bookingsResult = await _bookingRepository.getRoomBookingsForDate(params.loungeId, params.date);
 
     bookingsResult.fold(
       (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
       (rawBookings) {
         final Map<String, List<TimeRange>> bookedSlotsByRoom = {};
         final List<String> fullyBookedIds = [];
-        final opHours = _calculateOperationalHours(lounge.opensAt, lounge.closesAt);
+        final opHours = _calculateOperationalHours(params.lounge.opensAt, params.lounge.closesAt);
 
         // Organize bookings by room
         for (final b in rawBookings) {
@@ -158,7 +138,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         }
 
         // Calculate fully booked rooms
-        for (final room in rooms) {
+        for (final room in params.rooms) {
           final slots = bookedSlotsByRoom[room.id] ?? [];
           double totalBookedHours = 0;
           for (final slot in slots) {
@@ -170,8 +150,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           }
         }
 
-        final allActivities = deviceCategories?.map((c) => c.nameEn).toList() ?? 
-                             rooms.expand((r) => r.activityNames).toSet().toList();
+        final allActivities = params.deviceCategories?.map((c) => c.nameEn).toList() ?? 
+                             params.rooms.expand((r) => r.activityNames).toSet().toList();
 
         // ترتيب التصنيفات بحيث يظهر PS5 أولاً لو موجود
         allActivities.sort((a, b) {
@@ -184,18 +164,18 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
         emit(state.copyWith(
           status: LoungeDetailsStatus.success,
-          rooms: rooms,
-          extras: extras,
-          reviews: reviews ?? state.reviews,
+          rooms: params.rooms,
+          extras: params.extras,
+          reviews: params.reviews ?? state.reviews,
           bookedRoomIds: fullyBookedIds,
           bookedSlotsByRoom: bookedSlotsByRoom,
           categories: allActivities,
-          deviceCategories: deviceCategories ?? state.deviceCategories,
-          selectedDate: date,
-          availableRoomsCount: rooms.length - fullyBookedIds.length,
+          deviceCategories: params.deviceCategories ?? state.deviceCategories,
+          selectedDate: params.date,
+          availableRoomsCount: params.rooms.length - fullyBookedIds.length,
           selectedCategory: state.selectedCategory, // Keep current selection or empty
           clearRoom: shouldClearRoom,
-          lounge: lounge,
+          lounge: params.lounge,
         ));
       },
     );
@@ -225,6 +205,19 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   void setSpaceType(String spaceType) {
     if (state.selectedSpaceType == spaceType) return;
     emit(state.copyWith(selectedSpaceType: spaceType));
+  }
+
+  void setRoomPlayMode(String roomId, String mode) {
+    final updated = Map<String, String>.from(state.roomPlayModes);
+    updated[roomId] = mode;
+    emit(state.copyWith(roomPlayModes: updated));
+  }
+
+  void updateRoomExtraControllers(String roomId, int delta) {
+    final current = state.roomExtraControllers[roomId] ?? 0;
+    final updated = Map<String, int>.from(state.roomExtraControllers);
+    updated[roomId] = (current + delta).clamp(0, 4);
+    emit(state.copyWith(roomExtraControllers: updated));
   }
 
   void setCategory(String categoryId) async {

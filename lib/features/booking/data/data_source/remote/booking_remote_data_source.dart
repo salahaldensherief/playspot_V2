@@ -1,20 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../models/booking_params.dart';
 
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date);
-  Future<Map<String, dynamic>> createBooking({
-    required String roomId,
-    required String roomName,
-    required String loungeId,
-    required String userName,
-    required String userPhone,
-    required DateTime startTime,
-    required DateTime endTime,
-    required double totalPrice,
-    required double roomPrice,
-    List<Map<String, dynamic>> extras = const [],
-    String? playMode,
-  });
+  Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
 }
 
 class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
@@ -38,42 +27,29 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> createBooking({
-    required String roomId,
-    required String roomName,
-    required String loungeId,
-    required String userName,
-    required String userPhone,
-    required DateTime startTime,
-    required DateTime endTime,
-    required double totalPrice,
-    required double roomPrice,
-    List<Map<String, dynamic>> extras = const [],
-    String? playMode,
-  }) async {
+  Future<Map<String, dynamic>> createBooking(CreateBookingParams params) async {
     final user = _client.auth.currentUser;
-    final duration = endTime.difference(startTime).inHours;
     
-    final datePart = "${startTime.year}-${startTime.month.toString().padLeft(2, '0')}-${startTime.day.toString().padLeft(2, '0')}";
-    final startPart = "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}:00";
-    final endPart = "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00";
+    final datePart = "${params.startTime.year}-${params.startTime.month.toString().padLeft(2, '0')}-${params.startTime.day.toString().padLeft(2, '0')}";
+    final startPart = "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:00";
+    final endPart = "${params.endTime.hour.toString().padLeft(2, '0')}:${params.endTime.minute.toString().padLeft(2, '0')}:00";
 
     final response = await _client.from('bookings').insert({
-      'room_id': roomId,
-      'room_name': roomName,
-      'lounge_id': loungeId,
+      'room_id': params.roomId,
+      'room_name': params.roomName,
+      'lounge_id': params.loungeId,
       'user_id': user?.id,
-      'user_name': userName,
-      'user_phone': userPhone,
+      'user_name': params.userName,
+      'user_phone': params.userPhone,
       'date': datePart,
       'start_time': startPart,
       'end_time': endPart,
-      // 'duration_hours': duration, // Removed as it is a generated column in Supabase
-      'total_price': totalPrice,
-      'room_price': roomPrice,
+      'total_price': params.totalPrice,
+      'room_price': params.roomPrice,
       'status': 'pending',
-      'booking_extras': extras,
-      'play_mode': playMode,
+      'booking_extras': params.addOns,
+      'play_mode': params.playMode,
+      'extra_controllers': params.extraControllers,
     }).select().single();
 
     return Map<String, dynamic>.from(response);
