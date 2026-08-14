@@ -29,7 +29,8 @@ class PlayModeSelector extends StatelessWidget {
               Expanded(
                 child: _buildModeOption(
                   context,
-                  label: "🎮 ${AppStrings.singlePlay.tr()}",
+                  label: AppStrings.singlePlay.tr(),
+                  icon: Icons.person_outline,
                   isSelected: state.playMode == PlayMode.single,
                   onTap: () => context.read<BookingCubit>().selectPlayMode(PlayMode.single),
                 ),
@@ -38,7 +39,8 @@ class PlayModeSelector extends StatelessWidget {
               Expanded(
                 child: _buildModeOption(
                   context,
-                  label: "🎮 ${AppStrings.multiPlay.tr()}",
+                  label: AppStrings.multiPlay.tr(),
+                  icon: Icons.people_outline,
                   isSelected: state.playMode == PlayMode.multi,
                   onTap: () => context.read<BookingCubit>().selectPlayMode(PlayMode.multi),
                 ),
@@ -53,6 +55,7 @@ class PlayModeSelector extends StatelessWidget {
   Widget _buildModeOption(
     BuildContext context, {
     required String label,
+    required IconData icon,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
@@ -64,17 +67,26 @@ class PlayModeSelector extends StatelessWidget {
           color: isSelected ? AppColors.neonBlue.withOpacity(0.2) : Colors.transparent,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: isSelected ? AppColors.neonBlue : Colors.transparent,
+            color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
             width: 1.5,
           ),
         ),
-        child: Center(
-          child: AppText(
-            text: label,
-            fontSize: 14.sp,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18.sp,
+              color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+            ),
+            8.horizontalSpace,
+            AppText(
+              text: label,
+              fontSize: 14.sp,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+            ),
+          ],
         ),
       ),
     );

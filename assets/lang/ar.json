@@ -76,7 +76,7 @@
   "pricePerHourLabel": "سعر الساعة",
   "egp": "ج.م",
   "bookARoom": "احجز غرفة",
-  "heyUser": "مرحباً، {} 👋",
+  "heyUser": "مرحباً، {}",
   "km": "كم",
   "perHour": "/ساعة",
   "ps5RoomsAvailable": "غرف PS5 متاحة",
@@ -230,5 +230,9 @@
   "book": "حجز",
   "playMode": "وضع اللعب",
   "singlePlay": "فردي",
-  "multiPlay": "زوجي / ملاي"
+  "multiPlay": "زوجي / ملاي",
+  "openArea": "الصالة المفتوحة",
+  "standardRoom": "غرف عادية",
+  "vipRoom": "غرف VIP",
+  "spaceType": "نوع المساحة"
 }

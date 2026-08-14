@@ -3,6 +3,8 @@ class BookingModel {
   final String loungeName;
   final String loungeLocation;
   final String roomName;
+  final String? spaceType;
+  final String? spaceTypeName;
   final int controllersCount;
   final String screenSize;
   final DateTime date;
@@ -20,6 +22,8 @@ class BookingModel {
     required this.loungeName,
     required this.loungeLocation,
     required this.roomName,
+    this.spaceType,
+    this.spaceTypeName,
     required this.controllersCount,
     required this.screenSize,
     required this.date,
@@ -42,6 +46,8 @@ class BookingModel {
       loungeName: loungeData?['name'] ?? '',
       loungeLocation: loungeData?['location'] ?? '',
       roomName: roomData?['name_en'] ?? roomData?['name'] ?? '',
+      spaceType: roomData?['space_types']?['label'],
+      spaceTypeName: roomData?['space_types']?['name'],
       controllersCount: roomData?['controllers_count'] ?? 0,
       screenSize: roomData?['screen_size'] ?? '',
       date: json['date'] != null 

@@ -5,6 +5,7 @@ class RoomModel {
   final String nameEn;
   final List<String> activityNames;
   final String? spaceType;
+  final String? spaceTypeName;
   final int capacity;
   final double pricePerHour;
   final double pricePerHourSingle;
@@ -23,6 +24,7 @@ class RoomModel {
     required this.nameEn,
     required this.activityNames,
     this.spaceType,
+    this.spaceTypeName,
     required this.capacity,
     required this.pricePerHour,
     required this.pricePerHourSingle,
@@ -38,6 +40,19 @@ class RoomModel {
   String getName(bool isArabic) => isArabic ? nameAr : nameEn;
   List<String> getFeatures(bool isArabic) => isArabic ? featuresAr : featuresEn;
 
+  String getDisplayTitle(bool isArabic) {
+    if (spaceTypeName == 'open_area') {
+      return isArabic ? "شاشة / جهاز ${nameAr}" : "Station / Device ${nameEn}";
+    }
+    return isArabic ? "غرفة ${nameAr}" : "Room ${nameEn}";
+  }
+
+  String spaceTypeLabel(bool isArabic) {
+    if (spaceTypeName == 'open_area') return isArabic ? 'صالة مفتوحة' : 'OPEN AREA';
+    if (spaceTypeName == 'vip_room') return isArabic ? 'غرفة VIP' : 'VIP ROOM';
+    return isArabic ? 'غرفة عادية' : 'STANDARD ROOM';
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -46,6 +61,7 @@ class RoomModel {
       'name_en': nameEn,
       'activity_names': activityNames,
       'space_type_name': spaceType,
+      'space_type_slug': spaceTypeName,
       'capacity': capacity,
       'price_per_hour': pricePerHour,
       'price_per_hour_single': pricePerHourSingle,
@@ -81,6 +97,7 @@ class RoomModel {
             ? activities 
             : (json['activity_names'] != null ? List<String>.from(json['activity_names']) : []),
         spaceType: json['space_types']?['label'] ?? json['space_type_name']?.toString(),
+        spaceTypeName: json['space_types']?['name'] ?? json['space_type_slug']?.toString(),
         capacity: (json['capacity'] as num?)?.toInt() ?? 4,
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         pricePerHourSingle: (json['price_per_hour_single'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,

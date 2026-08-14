@@ -19,29 +19,20 @@ class RoomConstants {
 }
 
 extension RoomThemeX on RoomModel {
-  Color get themeColor {
-    final isVR = activityNames.any((a) => a.toLowerCase().contains('vr'));
-    final isSimulator = activityNames.any((a) => a.toLowerCase().contains('simulator'));
-    final isVIP = spaceType?.toLowerCase().contains('vip') ?? false;
+  bool get isOpenArea => spaceTypeName == 'open_area';
+  bool get isVIP => spaceTypeName == 'vip_room';
+  bool get isStandard => spaceTypeName == 'standard_room';
 
+  Color get themeColor {
     if (isVIP) return AppColors.warning;
-    if (isVR) return AppColors.neonPurple;
-    if (isSimulator) return AppColors.cyan;
-    return AppColors.neonBlue;
+    if (isOpenArea) return AppColors.neonBlue;
+    return AppColors.neonPurple;
   }
 
-  String spaceTypeLabel(bool isArabic) {
-    final type = spaceType ?? "OPEN";
-    switch (type.toLowerCase()) {
-      case 'vip':
-        return isArabic ? 'غرفة VIP' : 'VIP ROOM';
-      case 'private':
-        return isArabic ? 'غرفة خاصة' : 'PRIVATE ROOM';
-      case 'open':
-        return isArabic ? 'مساحة مفتوحة' : 'OPEN AREA';
-      default:
-        return type.toUpperCase();
-    }
+  IconData get icon {
+    if (isOpenArea) return Icons.monitor;
+    if (isVIP) return Icons.stars;
+    return Icons.meeting_room;
   }
 }
 
@@ -181,9 +172,11 @@ class _RoomHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Icon(room.icon, color: themeColor, size: 20.sp),
+        10.horizontalSpace,
         Expanded(
           child: AppText(
-            text: room.getName(isArabic),
+            text: room.getDisplayTitle(isArabic),
             fontSize: 14.sp,
             fontWeight: FontWeight.w900,
             color: isAvailable ? Colors.white : AppColors.textSecondary,

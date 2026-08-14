@@ -23,6 +23,7 @@ import 'widgets/rooms_grid.dart';
 import 'widgets/extras_list.dart';
 import 'widgets/reviews_section.dart';
 import 'widgets/lounge_details_bottom_bar.dart';
+import 'widgets/space_type_selector.dart';
 
 class LoungeDetailsScreen extends StatelessWidget {
   final LoungeModel lounge;
@@ -73,6 +74,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                 const CategorySelector(),
                 const SliverSectionHeader(
                     title: AppStrings.availableRooms),
+                const SliverToBoxAdapter(child: SpaceTypeSelector()),
                 const RoomsGrid(),
                 const SliverSectionHeader(title: AppStrings.extras),
                 const ExtrasList(),

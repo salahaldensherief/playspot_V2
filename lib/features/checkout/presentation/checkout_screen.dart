@@ -356,7 +356,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(height: 4.h),
           AppText(
             text:
-                "${widget.room.getName(context.locale.languageCode == 'ar')} · ${widget.room.controllersCount} ${AppStrings.controllers.tr()} · ${widget.room.screenSize} ${AppStrings.screen.tr()} · ${widget.room.capacity} Persons",
+                "${widget.room.spaceTypeLabel(context.locale.languageCode == 'ar')} - ${widget.room.getName(context.locale.languageCode == 'ar')} · ${widget.room.controllersCount} ${AppStrings.controllers.tr()} · ${widget.room.screenSize} ${AppStrings.screen.tr()}",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
           ),
@@ -386,20 +386,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             SizedBox(height: 8.h),
             ...widget.addOns.map((addOn) {
-              String icon = "🥤";
+              IconData icon = Icons.local_drink_outlined;
               final name = addOn['name'].toString().toLowerCase();
               if (name.contains('snack') ||
                   name.contains('food') ||
                   name.contains('popcorn') ||
                   name.contains('pizza')) {
-                icon = "🍿";
+                icon = Icons.fastfood_outlined;
               }
               return InfoRow(
-                label: "$icon ${addOn['quantity']}x ${addOn['name']}",
+                label: "${addOn['quantity']}x ${addOn['name']}",
                 value:
                     "${(addOn['price'] * addOn['quantity']).toInt()} ${AppStrings.egp.tr()}",
                 labelColor: AppColors.white,
                 fontSize: 14.sp,
+                prefixIcon: icon,
               );
             }),
           ],

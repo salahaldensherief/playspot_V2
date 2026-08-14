@@ -68,7 +68,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'date': datePart,
       'start_time': startPart,
       'end_time': endPart,
-      'duration_hours': duration,
+      // 'duration_hours': duration, // Removed as it is a generated column in Supabase
       'total_price': totalPrice,
       'room_price': roomPrice,
       'status': 'pending',

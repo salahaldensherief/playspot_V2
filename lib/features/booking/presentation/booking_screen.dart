@@ -78,8 +78,8 @@ class _BookingScreenState extends State<BookingScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           title: AppText(
-            text: "${AppStrings.book.tr()} ${widget.room!.getName(context.locale.languageCode == 'ar')}",
-            fontSize: 20.sp,
+            text: "${AppStrings.book.tr()} ${widget.room!.getDisplayTitle(context.locale.languageCode == 'ar')}",
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.white,
           ),

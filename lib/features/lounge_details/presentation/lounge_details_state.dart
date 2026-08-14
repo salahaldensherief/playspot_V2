@@ -24,6 +24,7 @@ class LoungeDetailsState extends Equatable {
   final List<CategoryModel> deviceCategories;
   final int availableRoomsCount;
   final String selectedCategory;
+  final String selectedSpaceType;
   final LoungeModel? lounge;
 
   const LoungeDetailsState({
@@ -40,6 +41,7 @@ class LoungeDetailsState extends Equatable {
     this.deviceCategories = const [],
     this.availableRoomsCount = 0,
     this.selectedCategory = '',
+    this.selectedSpaceType = 'all',
     this.lounge,
   });
 
@@ -58,6 +60,7 @@ class LoungeDetailsState extends Equatable {
     List<CategoryModel>? deviceCategories,
     int? availableRoomsCount,
     String? selectedCategory,
+    String? selectedSpaceType,
     LoungeModel? lounge,
   }) {
     return LoungeDetailsState(
@@ -74,6 +77,7 @@ class LoungeDetailsState extends Equatable {
       deviceCategories: deviceCategories ?? this.deviceCategories,
       availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
       selectedCategory: selectedCategory ?? this.selectedCategory,
+      selectedSpaceType: selectedSpaceType ?? this.selectedSpaceType,
       lounge: lounge ?? this.lounge,
     );
   }

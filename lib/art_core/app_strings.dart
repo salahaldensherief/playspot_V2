@@ -209,4 +209,8 @@ class AppStrings {
   static const String playMode = "playMode";
   static const String singlePlay = "singlePlay";
   static const String multiPlay = "multiPlay";
+  static const String openArea = "openArea";
+  static const String standardRoom = "standardRoom";
+  static const String vipRoom = "vipRoom";
+  static const String spaceType = "spaceType";
 }

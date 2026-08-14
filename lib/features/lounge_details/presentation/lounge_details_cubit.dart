@@ -222,6 +222,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     emit(state.selectedRoomId == roomId ? state.copyWith(clearRoom: true) : state.copyWith(selectedRoomId: roomId));
   }
 
+  void setSpaceType(String spaceType) {
+    if (state.selectedSpaceType == spaceType) return;
+    emit(state.copyWith(selectedSpaceType: spaceType));
+  }
+
   void setCategory(String categoryId) async {
     if (state.selectedCategory == categoryId) return;
     

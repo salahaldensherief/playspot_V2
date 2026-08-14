@@ -9,6 +9,7 @@ class InfoRow extends StatelessWidget {
   final Color? labelColor;
   final Color? valueColor;
   final double? fontSize;
+  final IconData? prefixIcon;
 
   const InfoRow({
     super.key,
@@ -17,6 +18,7 @@ class InfoRow extends StatelessWidget {
     this.labelColor,
     this.valueColor,
     this.fontSize,
+    this.prefixIcon,
   });
 
   @override
@@ -26,11 +28,24 @@ class InfoRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          AppText(
-            text: label,
-            fontSize: fontSize ?? 14.sp,
-            color: labelColor ?? AppColors.textSecondary,
+          Expanded(
+            child: Row(
+              children: [
+                if (prefixIcon != null) ...[
+                  Icon(prefixIcon, size: 16.sp, color: labelColor ?? AppColors.textSecondary),
+                  SizedBox(width: 8.w),
+                ],
+                Flexible(
+                  child: AppText(
+                    text: label,
+                    fontSize: fontSize ?? 14.sp,
+                    color: labelColor ?? AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
           ),
+          SizedBox(width: 16.w),
           AppText(
             text: value,
             fontSize: fontSize ?? 14.sp,

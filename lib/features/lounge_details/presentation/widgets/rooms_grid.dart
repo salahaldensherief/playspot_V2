@@ -22,6 +22,7 @@ class RoomsGrid extends StatelessWidget {
           previous.status != current.status ||
           previous.rooms != current.rooms ||
           previous.selectedCategory != current.selectedCategory ||
+          previous.selectedSpaceType != current.selectedSpaceType ||
           previous.deviceCategories != current.deviceCategories,
       builder: (context, state) {
         if (state.status == LoungeDetailsStatus.loading) {
@@ -60,17 +61,25 @@ class RoomsGrid extends StatelessWidget {
         }
 
         final filteredRooms = state.rooms.where((r) {
+          // Filter by Category (PS5, PS4, etc.)
           final selectedCategoryId = state.selectedCategory;
-          if (selectedCategoryId.isEmpty) return true;
-          
-          // ابحث عن اسم التصنيف المقابل للـ ID المختار
-          final category = state.deviceCategories.firstWhere(
-            (c) => c.id == selectedCategoryId,
-            orElse: () => state.deviceCategories.first,
-          );
-          
-          return r.getName(false).toLowerCase().contains(category.nameEn.toLowerCase()) || 
-                 r.activityNames.any((a) => a.toLowerCase() == category.nameEn.toLowerCase());
+          bool categoryMatch = true;
+          if (selectedCategoryId.isNotEmpty && selectedCategoryId.toLowerCase() != 'all') {
+            final category = state.deviceCategories.firstWhere(
+              (c) => c.id == selectedCategoryId,
+              orElse: () => state.deviceCategories.first,
+            );
+            categoryMatch = r.getName(false).toLowerCase().contains(category.nameEn.toLowerCase()) || 
+                   r.activityNames.any((a) => a.toLowerCase() == category.nameEn.toLowerCase());
+          }
+
+          // Filter by Space Type (Open Area, Standard, VIP)
+          bool spaceTypeMatch = true;
+          if (state.selectedSpaceType != 'all') {
+            spaceTypeMatch = r.spaceTypeName == state.selectedSpaceType;
+          }
+
+          return categoryMatch && spaceTypeMatch;
         }).toList();
 
         if (filteredRooms.isEmpty) {

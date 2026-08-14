@@ -76,7 +76,7 @@
   "pricePerHourLabel": "Price per hour",
   "egp": "EGP",
   "bookARoom": "Book a Room",
-  "heyUser": "Hey, {} 👋",
+  "heyUser": "Hey, {}",
   "km": "km",
   "perHour": "/hour",
   "ps5RoomsAvailable": "PS5 rooms available",
@@ -230,5 +230,9 @@
   "book": "Book",
   "playMode": "Play Mode",
   "singlePlay": "Single",
-  "multiPlay": "Multi"
+  "multiPlay": "Multi",
+  "openArea": "Open Area",
+  "standardRoom": "Standard Room",
+  "vipRoom": "VIP Room",
+  "spaceType": "Space Type"
 }
