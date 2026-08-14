@@ -13,6 +13,7 @@ import 'home_state.dart';
 import '../data/models/lounge_model.dart';
 import '../data/models/category_model.dart';
 import '../data/models/promo_model.dart';
+import '../data/models/home_params.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final HomeRepository _homeRepository;
@@ -149,13 +150,15 @@ class HomeCubit extends Cubit<HomeState> {
     ));
 
     final result = await _homeRepository.getLounges(
-      lat: lat,
-      lng: lng,
-      city: state.selectedCity,
-      categoryIds: state.selectedCategoryIds,
-      sortType: state.sortType == LoungeSortType.topRated ? 'top_rated' : 'nearest',
-      pLimit: pageSize,
-      pOffset: nextPage * pageSize,
+      GetLoungesParams(
+        lat: lat,
+        lng: lng,
+        city: state.selectedCity,
+        categoryIds: state.selectedCategoryIds,
+        sortType: state.sortType == LoungeSortType.topRated ? 'top_rated' : 'nearest',
+        limit: pageSize,
+        offset: nextPage * pageSize,
+      )
     );
 
     result.fold(

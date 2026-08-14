@@ -20,20 +20,37 @@ class LoungeDetailsRemoteDataSourceImpl implements LoungeDetailsRemoteDataSource
   @override
   Future<List<RoomModel>> getRoomsByLoungeId(String loungeId, {String? categoryId}) async {
     final bool hasFilter = categoryId != null && categoryId.isNotEmpty && categoryId.toLowerCase() != 'all';
-    final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
     
+    // We try to use rooms_detailed_view for better space type filtering
     var query = _client
-        .from('rooms')
-        .select('*, space_types(name, label), $joinType(category_id, categories(name_en))')
+        .from('rooms_detailed_view')
+        .select('*')
         .eq('lounge_id', loungeId)
         .eq('is_available', true);
     
     if (hasFilter) {
-      query = query.eq('room_categories.category_id', categoryId);
+      query = query.contains('category_ids', [categoryId]);
     }
     
-    final response = await query;
-    return (response as List).map((e) => RoomModel.fromJson(e)).toList();
+    try {
+      final response = await query;
+      return (response as List).map((e) => RoomModel.fromJson(e)).toList();
+    } catch (e) {
+      // Fallback to rooms table if view doesn't exist or fails
+      final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
+      var fallbackQuery = _client
+          .from('rooms')
+          .select('*, space_types(name, label), $joinType(category_id, categories(name_en))')
+          .eq('lounge_id', loungeId)
+          .eq('is_available', true);
+      
+      if (hasFilter) {
+        fallbackQuery = fallbackQuery.eq('room_categories.category_id', categoryId);
+      }
+      
+      final response = await fallbackQuery;
+      return (response as List).map((e) => RoomModel.fromJson(e)).toList();
+    }
   }
 
   @override

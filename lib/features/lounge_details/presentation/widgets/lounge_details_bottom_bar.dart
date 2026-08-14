@@ -12,6 +12,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/layout/sticky_bottom_bar.dart';
+import '../../../booking/data/models/booking_params.dart';
 import '../../../home/data/models/lounge_model.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
@@ -53,6 +54,10 @@ class LoungeDetailsBottomBar extends StatelessWidget {
                       final selectedRoom = state.rooms.firstWhere(
                         (r) => r.id == state.selectedRoomId,
                       );
+                      
+                      final playMode = state.roomPlayModes[selectedRoom.id] ?? (selectedRoom.isOpenArea ? 'single' : 'multi');
+                      final extraControllers = state.roomExtraControllers[selectedRoom.id] ?? 0;
+
                       final selectedExtras =
                           state.selectedExtras.entries.map((entry) {
                         final extra =
@@ -67,12 +72,14 @@ class LoungeDetailsBottomBar extends StatelessWidget {
 
                       context.pushNamed(
                         RouterKeys.booking,
-                        extra: {
-                          'lounge': lounge,
-                          'room': selectedRoom,
-                          'selectedDate': state.selectedDate ?? DateTime.now(),
-                          'extras': selectedExtras,
-                        },
+                        extra: BookingDetailsParams(
+                          lounge: lounge,
+                          room: selectedRoom,
+                          selectedDate: state.selectedDate ?? DateTime.now(),
+                          extras: selectedExtras,
+                          playMode: playMode,
+                          extraControllers: extraControllers,
+                        ),
                       );
                     }
                   : null,

@@ -16,7 +16,10 @@ import '../../features/auth/presetation/forgot_password/forgot_password_cubit.da
 import '../../features/auth/presetation/forgot_password/forgot_password_screen.dart';
 import '../../features/auth/presetation/forgot_password/otp_verification_screen.dart';
 import '../../features/auth/presetation/forgot_password/reset_password_screen.dart';
+import '../../features/auth/presetation/signin/signin_cubit.dart';
 import '../../features/auth/presetation/signup/complete_profile.dart';
+import '../../features/auth/presetation/signup/signup_cubit.dart';
+import '../../features/booking/data/models/booking_params.dart';
 import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/booking/presentation/booking_cubit.dart';
 import '../../features/booking/data/repos/booking_repo.dart';
@@ -121,7 +124,10 @@ class AppRouter {
             pageBuilder: (context, state) => _buildPageWithTransition(
               context: context,
               state: state,
-              child: const SignUpScreen(),
+              child: BlocProvider(
+                create: (context) => sl<SignupCubit>(),
+                child: const SignUpScreen(),
+              ),
             ),
           ),
           GoRoute(
@@ -130,7 +136,10 @@ class AppRouter {
             pageBuilder: (context, state) => _buildPageWithTransition(
               context: context,
               state: state,
-              child: const SignInScreen(),
+              child: BlocProvider(
+                create: (context) => sl<SignInCubit>(),
+                child: const SignInScreen(),
+              ),
             ),
           ),
           GoRoute(
@@ -143,7 +152,10 @@ class AppRouter {
                 state: state,
                 child: userId.isEmpty
                     ? const SignInScreen()
-                    : CompleteProfileScreen(userId: userId),
+                    : BlocProvider(
+                        create: (context) => sl<SignupCubit>()..setUserId(userId),
+                        child: CompleteProfileScreen(userId: userId),
+                      ),
               );
             },
           ),
@@ -263,28 +275,19 @@ class AppRouter {
             path: RouterKeys.booking,
             name: RouterKeys.booking,
             pageBuilder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>;
-              final lounge = extra['lounge'] as LoungeModel;
-              final room = extra['room'] as RoomModel;
-              final initialDate = extra['selectedDate'] as DateTime?;
-              final extras =
-                  extra['extras'] as List<Map<String, dynamic>>? ?? [];
+              final params = state.extra is BookingDetailsParams 
+                  ? state.extra as BookingDetailsParams
+                  : BookingDetailsParams.fromMap(state.extra as Map<String, dynamic>);
+              
               return _buildPageWithTransition(
                 context: context,
                 state: state,
                 child: BlocProvider(
                   create: (context) => BookingCubit(
                     sl<BookingRepository>(),
-                    room.id,
-                    lounge.id,
-                    initialDate,
+                    params,
                   ),
-                  child: BookingScreen(
-                    lounge: lounge,
-                    room: room,
-                    initialDate: initialDate,
-                    addOns: extras,
-                  ),
+                  child: BookingScreen(params: params),
                 ),
               );
             },
@@ -293,23 +296,16 @@ class AppRouter {
             path: RouterKeys.checkout,
             name: RouterKeys.checkout,
             pageBuilder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>;
+              final params = state.extra is CheckoutParams 
+                  ? state.extra as CheckoutParams
+                  : CheckoutParams.fromMap(state.extra as Map<String, dynamic>);
+              
               return _buildPageWithTransition(
                 context: context,
                 state: state,
                 child: BlocProvider(
                   create: (context) => sl<CheckoutCubit>(),
-                  child: CheckoutScreen(
-                    lounge: extra['lounge'] as LoungeModel,
-                    room: extra['room'] as RoomModel,
-                    date: extra['date'] as DateTime,
-                    startTime: extra['startTime'] as TimeOfDay,
-                    duration: extra['duration'] as int,
-                    totalPrice: extra['totalPrice'] as double,
-                    addOns: extra['addOns'] as List<Map<String, dynamic>>,
-                    playMode: extra['playMode'] as String?,
-                    appliedHourlyRate: extra['appliedHourlyRate'] as double?,
-                  ),
+                  child: CheckoutScreen(params: params),
                 ),
               );
             },
@@ -379,12 +375,9 @@ class AppRouter {
               return _buildPageWithTransition(
                 context: context,
                 state: state,
-                child: BlocProvider.value(
-                  value: extra['cubit'] as LoungeDetailsCubit,
-                  child: AllReviewsScreen(
-                    reviews: extra['reviews'] as List<ReviewModel>,
-                    loungeName: extra['loungeName'] as String,
-                  ),
+                child: AllReviewsScreen(
+                  reviews: extra['reviews'] as List<ReviewModel>,
+                  loungeName: extra['loungeName'] as String,
                 ),
               );
             },

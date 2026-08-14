@@ -30,7 +30,7 @@ class AllReviewsScreen extends StatelessWidget {
             Expanded(
               child: CustomScrollView(
                 slivers: [
-                  const ReviewsSection(),
+                  ReviewsSection(reviews: reviews),
                   const SliverSafeBottomSpacer(),
                 ],
               ),

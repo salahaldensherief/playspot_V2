@@ -1,41 +1,11 @@
-import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
-import '../../data/models/user_model.dart';
-import '../data_source/remote/auth_remote_data_source.dart';
 import '../data_source/local/auth_local_data_source.dart';
-
-abstract class AuthRepository {
-  Future<Either<Failure, UserModel>> signInWithEmail({
-    required String email,
-    required String password,
-  });
-  Future<Either<Failure, UserModel>> signInWithGoogle();
-  Future<Either<Failure, UserModel>> signInWithFacebook();
-  Future<Either<Failure, UserModel>> signUpWithEmail({
-    required String email,
-    required String password,
-    required String name,
-    required String phone,
-    File? avatarFile,
-    String? referralCode,
-  });
-  Future<Either<Failure, UserModel>> completeProfile({
-    required String userId,
-    required String phone,
-    File? avatarFile,
-  });
-  Future<Either<Failure, void>> sendPasswordResetEmail(String email);
-  Future<Either<Failure, void>> verifyPasswordResetOTP({
-    required String email,
-    required String otp,
-  });
-  Future<Either<Failure, void>> resetPassword(String newPassword);
-  Future<Either<Failure, void>> deleteAccount();
-  Future<Either<Failure, void>> signOut();
-  UserModel? getCurrentUser();
-}
+import '../data_source/remote/auth_remote_data_source.dart';
+import '../models/auth_params.dart';
+import '../models/user_model.dart';
+import 'auth_repo.dart';
 
 class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   final AuthRemoteSource _remoteSource;
@@ -56,23 +26,9 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserModel>> signUpWithEmail({
-    required String email,
-    required String password,
-    required String name,
-    required String phone,
-    File? avatarFile,
-    String? referralCode,
-  }) async {
+  Future<Either<Failure, UserModel>> signUpWithEmail(SignUpParams params) async {
     return await callRepository(() async {
-      final user = await _remoteSource.signUpWithEmail(
-        email: email,
-        password: password,
-        name: name,
-        phone: phone,
-        avatarFile: avatarFile,
-        referralCode: referralCode,
-      );
+      final user = await _remoteSource.signUpWithEmail(params);
       await _localDataSource.saveUserData(user);
       return user;
     });
@@ -97,17 +53,9 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserModel>> completeProfile({
-    required String userId,
-    required String phone,
-    File? avatarFile,
-  }) async {
+  Future<Either<Failure, UserModel>> completeProfile(CompleteProfileParams params) async {
     return await callRepository(() async {
-      final user = await _remoteSource.completeProfile(
-        userId: userId,
-        phone: phone,
-        avatarFile: avatarFile,
-      );
+      final user = await _remoteSource.completeProfile(params);
       await _localDataSource.saveUserData(user);
       return user;
     });

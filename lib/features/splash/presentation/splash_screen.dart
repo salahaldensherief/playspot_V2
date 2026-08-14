@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
-import 'package:playspot/features/auth/data/repos/auth_repos.dart';
+import 'package:playspot/features/auth/data/repos/auth_repo.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';

@@ -5,17 +5,10 @@ import '../data_source/remote/home_remote_data_source.dart';
 import '../models/lounge_model.dart';
 import '../models/promo_model.dart';
 import '../models/category_model.dart';
+import '../models/home_params.dart';
 
 abstract class HomeRepository {
-  Future<Either<Failure, List<LoungeModel>>> getLounges({
-    double? lat,
-    double? lng,
-    String? city,
-    List<String>? categoryIds,
-    String sortType = 'nearest',
-    int pLimit = 20,
-    int pOffset = 0,
-  });
+  Future<Either<Failure, List<LoungeModel>>> getLounges(GetLoungesParams params);
   Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities();
   Future<Either<Failure, List<PromoModel>>> getPromotions();
   Future<Either<Failure, List<CategoryModel>>> getCategories();
@@ -33,24 +26,8 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, List<LoungeModel>>> getLounges({
-    double? lat,
-    double? lng,
-    String? city,
-    List<String>? categoryIds,
-    String sortType = 'nearest',
-    int pLimit = 20,
-    int pOffset = 0,
-  }) async {
-    return await callRepository(() => _remoteDataSource.getLounges(
-          lat: lat,
-          lng: lng,
-          city: city,
-          categoryIds: categoryIds,
-          sortType: sortType,
-          pLimit: pLimit,
-          pOffset: pOffset,
-        ));
+  Future<Either<Failure, List<LoungeModel>>> getLounges(GetLoungesParams params) async {
+    return await callRepository(() => _remoteDataSource.getLounges(params));
   }
 
   @override

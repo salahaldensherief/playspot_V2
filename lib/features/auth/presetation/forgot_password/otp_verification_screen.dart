@@ -27,6 +27,7 @@ class OTPVerificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ForgotPasswordCubit>();
     return BlocListener<ForgotPasswordCubit, ForgotPasswordState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status.isOtpVerified) {
           context.goNamed(RouterKeys.resetPassword);
@@ -65,6 +66,7 @@ class OTPVerificationScreen extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: BlocBuilder<ForgotPasswordCubit, ForgotPasswordState>(
+                    buildWhen: (previous, current) => previous.status != current.status,
                     builder: (context, state) {
                       return AppButton(
                         buttonConfig: ButtonConfig.gradient(

@@ -134,7 +134,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   SizedBox(height: AppSizes.s16),
               itemBuilder: (context, index) {
                 if (index == bookings.length) {
-                  return const SafeBottomSpacer(extraPadding: 100);
+                  return const SafeBottomSpacer(extraPadding: 150, androidOnly: false);
                 }
                 final booking = bookings[index];
                 return BookingCard(

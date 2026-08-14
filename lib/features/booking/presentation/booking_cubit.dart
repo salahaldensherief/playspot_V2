@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/models/time_range.dart';
+import '../data/models/booking_params.dart';
 import '../data/repos/booking_repo.dart';
 import 'booking_state.dart';
 
@@ -9,8 +10,16 @@ class BookingCubit extends Cubit<BookingState> {
   final String roomId;
   final String loungeId;
 
-  BookingCubit(this._bookingRepository, this.roomId, this.loungeId, DateTime? initialDate)
-      : super(BookingState(selectedDate: initialDate ?? DateTime.now())) {
+  BookingCubit(
+    this._bookingRepository,
+    BookingDetailsParams params,
+  )   : roomId = params.room.id,
+        loungeId = params.lounge.id,
+        super(BookingState(
+          selectedDate: params.selectedDate,
+          playMode: params.playMode == 'multi' ? PlayMode.multi : PlayMode.single,
+          extraControllersCount: params.extraControllers,
+        )) {
     fetchBookedSlots(state.selectedDate);
   }
 

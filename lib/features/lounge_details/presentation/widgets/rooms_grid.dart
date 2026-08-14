@@ -60,27 +60,7 @@ class RoomsGrid extends StatelessWidget {
           );
         }
 
-        final filteredRooms = state.rooms.where((r) {
-          // Filter by Category (PS5, PS4, etc.)
-          final selectedCategoryId = state.selectedCategory;
-          bool categoryMatch = true;
-          if (selectedCategoryId.isNotEmpty && selectedCategoryId.toLowerCase() != 'all') {
-            final category = state.deviceCategories.firstWhere(
-              (c) => c.id == selectedCategoryId,
-              orElse: () => state.deviceCategories.first,
-            );
-            categoryMatch = r.getName(false).toLowerCase().contains(category.nameEn.toLowerCase()) || 
-                   r.activityNames.any((a) => a.toLowerCase() == category.nameEn.toLowerCase());
-          }
-
-          // Filter by Space Type (Open Area, Standard, VIP)
-          bool spaceTypeMatch = true;
-          if (state.selectedSpaceType != 'all') {
-            spaceTypeMatch = r.spaceTypeName == state.selectedSpaceType;
-          }
-
-          return categoryMatch && spaceTypeMatch;
-        }).toList();
+        final filteredRooms = state.filteredRooms;
 
         if (filteredRooms.isEmpty) {
           return SliverPadding(

@@ -20,6 +20,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<ProfileCubit, ProfileState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == ProfileStatus.logoutSuccess) {
           context.goNamed(RouterKeys.signIn);
@@ -39,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
                 const ProfileMenuSection(),
                 30.verticalSpace,
                 const LogoutButton(),
-                const SafeBottomSpacer(extraPadding: 80),
+                const SafeBottomSpacer(extraPadding: 150, androidOnly: false),
               ],
             ),
           ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/features/auth/presetation/signin/signin_state.dart';
 
-import '../../data/repos/auth_repos.dart';
+import '../../data/repos/auth_repo.dart';
 
 
 class SignInCubit extends Cubit<LoginState> {

@@ -4,43 +4,27 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
-import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_cubit.dart';
 import 'package:playspot/features/auth/presetation/signup/signup_state.dart';
 import 'package:playspot/features/auth/presetation/signup/widgets/signup_form.dart';
+import 'package:playspot/features/auth/presetation/signup/widgets/signup_social_section.dart';
+import 'package:playspot/features/auth/presetation/signup/widgets/signup_button.dart';
 
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
-import '../../../../art_core/widgets/buttons/app_button.dart';
-import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
-import '../../../../art_core/widgets/buttons/res/button_content.dart';
-import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
-import '../../../../core/di.dart';
 import '../widgets/auth_app_bar.dart';
-import '../widgets/social_buttons.dart';
 
 class SignUpScreen extends StatelessWidget {
   const SignUpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<SignupCubit>(),
-      child: const _SignUpView(),
-    );
-  }
-}
-
-class _SignUpView extends StatelessWidget {
-  const _SignUpView();
-
-  @override
-  Widget build(BuildContext context) {
     return BlocListener<SignupCubit, SignupState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: _handleStateChange,
       child: Scaffold(
         body: SingleChildScrollView(
@@ -51,7 +35,7 @@ class _SignUpView extends StatelessWidget {
                 subTitle: AppStrings.signUpSubtitle.tr(),
               ),
               180.verticalSpace,
-              _SocialSection(),
+              const SignupSocialSection(),
               20.verticalSpace,
               BlocSelector<SignupCubit, SignupState, String?>(
                 selector: (state) => state.params.avatarUrl,
@@ -71,7 +55,7 @@ class _SignUpView extends StatelessWidget {
               20.verticalSpace,
               Padding(
                 padding: 16.horizontalPadding,
-                child: const _SignUpButton(),
+                child: const SignupButton(),
               ),
               20.verticalSpace,
               AppText(
@@ -107,51 +91,5 @@ class _SignUpView extends StatelessWidget {
         ),
       );
     }
-  }
-}
-
-class _SocialSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<SignupCubit>();
-    return SocialButtons(
-      googleOnTap: cubit.signUpWithGoogle,
-      facebookOnTap: cubit.signUpWithFacebook,
-    );
-  }
-}
-
-class _SignUpButton extends StatelessWidget {
-  const _SignUpButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocSelector<SignupCubit, SignupState, bool>(
-      selector: (state) => state.status == SignupStatus.loading,
-      builder: (context, isLoading) {
-        final cubit = context.read<SignupCubit>();
-        return AppButton(
-          buttonConfig: ButtonConfig.gradient(
-            gradient: AppColors.primaryGradient,
-            glowColor: AppColors.neonBlue,
-            borderRadius: AppSizes.r15,
-            width: double.infinity,
-            height: 50.h,
-          ),
-          content: ButtonContent(
-            label: AppStrings.createAcc.tr(),
-          ),
-          behavior: TapBehavior(
-            isEnabled: !isLoading,
-            isLoading: isLoading,
-            onTap: () {
-              if (cubit.formKey.currentState?.validate() ?? false) {
-                cubit.signUpWithEmail();
-              }
-            },
-          ),
-        );
-      },
-    );
   }
 }

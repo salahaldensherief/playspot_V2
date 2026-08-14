@@ -155,8 +155,8 @@ class _HomeViewState extends State<_HomeView> {
                       return const SliverToBoxAdapter(child: SizedBox.shrink());
                     },
                   ),
-                  SliverBottomSpacing(height: 120.h),
-                  const SliverSafeBottomSpacer(),
+                  SliverBottomSpacing(height: 150.h),
+                  const SliverSafeBottomSpacer(androidOnly: false),
                 ],
               ),
             ),

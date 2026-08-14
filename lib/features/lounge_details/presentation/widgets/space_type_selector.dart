@@ -14,11 +14,14 @@ class SpaceTypeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
     final List<Map<String, dynamic>> spaceTypes = [
       {'id': 'all', 'label': AppStrings.all.tr(), 'icon': Icons.grid_view, 'color': AppColors.neonBlue},
       {'id': 'open_area', 'label': AppStrings.openArea.tr(), 'icon': Icons.monitor, 'color': AppColors.neonBlue},
       {'id': 'standard_room', 'label': AppStrings.standardRoom.tr(), 'icon': Icons.meeting_room, 'color': AppColors.neonPurple},
       {'id': 'vip_room', 'label': AppStrings.vipRoom.tr(), 'icon': Icons.stars, 'color': AppColors.warning},
+      {'id': 'simulator', 'label': isArabic ? "سيموليتر" : "Simulator", 'icon': Icons.speed, 'color': AppColors.cyan},
+      {'id': 'vr', 'label': "VR", 'icon': Icons.view_in_ar, 'color': AppColors.neonPurple},
     ];
 
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(

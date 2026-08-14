@@ -11,6 +11,7 @@ class BookingState extends Equatable {
   final int durationHours;
   final List<TimeOfDay> bookedTimeSlots;
   final PlayMode playMode;
+  final int extraControllersCount;
 
   const BookingState({
     this.status = BookingStatus.initial,
@@ -19,6 +20,7 @@ class BookingState extends Equatable {
     this.durationHours = 1,
     this.bookedTimeSlots = const [],
     this.playMode = PlayMode.single,
+    this.extraControllersCount = 0,
   });
 
   BookingState copyWith({
@@ -28,6 +30,7 @@ class BookingState extends Equatable {
     int? durationHours,
     List<TimeOfDay>? bookedTimeSlots,
     PlayMode? playMode,
+    int? extraControllersCount,
   }) {
     return BookingState(
       status: status ?? this.status,
@@ -36,9 +39,10 @@ class BookingState extends Equatable {
       durationHours: durationHours ?? this.durationHours,
       bookedTimeSlots: bookedTimeSlots ?? this.bookedTimeSlots,
       playMode: playMode ?? this.playMode,
+      extraControllersCount: extraControllersCount ?? this.extraControllersCount,
     );
   }
 
   @override
-  List<Object?> get props => [status, selectedDate, startTime, durationHours, bookedTimeSlots, playMode];
+  List<Object?> get props => [status, selectedDate, startTime, durationHours, bookedTimeSlots, playMode, extraControllersCount];
 }
