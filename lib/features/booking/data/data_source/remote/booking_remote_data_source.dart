@@ -49,7 +49,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'end_time': endPart,
       'total_price': params.totalPrice,
       'room_price': params.roomPrice,
-      'status': 'pending', // Explicit clean lowercase string
+      'status': params.status,
+      'payment_status': params.paymentStatus,
       'booking_extras': params.addOns,
       'play_mode': params.playMode,
     }).select('id').single();

@@ -11,6 +11,7 @@ class BookingModel {
   final String startTime;
   final String endTime;
   final String status; // upcoming, past, cancelled
+  final String paymentStatus; // unpaid, paid, refunded, partially_paid
   final double totalPrice;
   final String? playMode;
   final String? mapsLink;
@@ -30,6 +31,7 @@ class BookingModel {
     required this.startTime,
     required this.endTime,
     required this.status,
+    required this.paymentStatus,
     required this.totalPrice,
     this.playMode,
     this.mapsLink,
@@ -56,6 +58,7 @@ class BookingModel {
       startTime: json['start_time'] ?? '',
       endTime: json['end_time'] ?? '',
       status: json['status'] ?? 'past',
+      paymentStatus: json['payment_status'] ?? 'unpaid',
       totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
       playMode: json['play_mode'],
       mapsLink: loungeData?['maps_link'],

@@ -67,6 +67,8 @@ class CreateBookingParams {
   final double roomPrice;
   final List<Map<String, dynamic>> addOns;
   final String? playMode;
+  final String status;
+  final String paymentStatus;
 
   CreateBookingParams({
     required this.roomId,
@@ -80,6 +82,8 @@ class CreateBookingParams {
     required this.roomPrice,
     this.addOns = const [],
     this.playMode,
+    this.status = 'pending',
+    this.paymentStatus = 'unpaid',
   }) : startTime = startTime.toUtc(),
        endTime = endTime.toUtc();
 
@@ -95,6 +99,8 @@ class CreateBookingParams {
       'room_price': roomPrice,
       'extras': addOns,
       'play_mode': playMode,
+      'status': status,
+      'payment_status': paymentStatus,
     };
   }
 }
