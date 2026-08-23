@@ -13,6 +13,8 @@ import 'package:playspot/features/profile/presentation/profile_cubit.dart';
 import 'package:playspot/features/profile/presentation/profile_screen.dart';
 import 'package:playspot/features/my_bookings/presentation/my_bookings_screen.dart';
 
+import '../../my_bookings/presentation/my_bookings_cubit.dart';
+
 class MainScreen extends StatefulWidget {
   final int initialIndex;
   const MainScreen({super.key, this.initialIndex = 0});
@@ -38,16 +40,20 @@ class _MainScreenState extends State<MainScreen> {
       const MyBookingsScreen(),
       const ProfileScreen(),
     ];
-    // تسجيل وقت البداية كأول تحديث
-    _lastRefreshTime[_selectedIndex] = DateTime.now();
+    
+    // 🚀 تنفيذ التحديث الأول عند دخول الشاشة
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshModuleData(_selectedIndex);
+      _lastRefreshTime[_selectedIndex] = DateTime.now();
+    });
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index, {bool force = false}) {
     final now = DateTime.now();
     final lastRefresh = _lastRefreshTime[index];
 
-    // 🔄 تحقق هل التاب محتاج تحديث (أول مرة يدخله أو فات دقيقة)
-    if (lastRefresh == null || now.difference(lastRefresh) > _refreshThreshold) {
+    // 🔄 تحقق هل التاب محتاج تحديث (أول مرة يدخله أو فات دقيقة) أو تحديث إجباري
+    if (force || lastRefresh == null || now.difference(lastRefresh) > _refreshThreshold) {
       _refreshModuleData(index);
       _lastRefreshTime[index] = now;
     }
@@ -65,9 +71,7 @@ class _MainScreenState extends State<MainScreen> {
           context.read<HomeCubit>().getHomeData();
           break;
         case 1:
-          // MyBookingsScreen handles its own Cubit internal refresh via sl<> inside initState,
-          // but we can trigger a global refresh event if needed or use a global MyBookingsCubit.
-          // For now, HomeScreen and Profile are the main ones.
+          context.read<MyBookingsCubit>().getMyBookings();
           break;
         case 2:
           context.read<ProfileCubit>().getUserData();
@@ -88,7 +92,8 @@ class _MainScreenState extends State<MainScreen> {
   void didUpdateWidget(covariant MainScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.initialIndex != oldWidget.initialIndex) {
-      _onItemTapped(widget.initialIndex);
+      // 🚀 تحديث إجباري لو جاي من نافيجيشن خارجي (زي بعد الحجز)
+      _onItemTapped(widget.initialIndex, force: true);
     }
   }
 

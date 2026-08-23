@@ -694,7 +694,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         roomPrice: widget.params.appliedHourlyRate ?? widget.params.room.pricePerHour,
                         addOns: widget.params.addOns,
                         playMode: widget.params.playMode,
-                        extraControllers: widget.params.extraControllers,
                       ),
                     );
                   },

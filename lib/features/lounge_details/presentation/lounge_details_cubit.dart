@@ -34,31 +34,42 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     emit(state.copyWith(status: LoungeDetailsStatus.loading));
 
     try {
-      final results = await Future.wait([
-        _loungeDetailsRepository.getRoomsByLoungeId(loungeId),
-        _loungeDetailsRepository.getExtras(loungeId),
-        _loungeDetailsRepository.getLoungeCategories(loungeId),
-        _loungeDetailsRepository.getLoungeReviews(loungeId),
-      ]);
+      log("FETCHING ROOMS...");
+      final roomsRes = await _loungeDetailsRepository.getRoomsByLoungeId(loungeId);
+      roomsRes.fold((l) => log("ROOMS ERROR: ${l.message}"), (r) => log("ROOMS SUCCESS"));
 
+      log("FETCHING EXTRAS...");
+      final extrasRes = await _loungeDetailsRepository.getExtras(loungeId);
+      extrasRes.fold((l) => log("EXTRAS ERROR: ${l.message}"), (r) => log("EXTRAS SUCCESS"));
+
+      log("FETCHING CATEGORIES...");
+      final categoriesRes = await _loungeDetailsRepository.getLoungeCategories(loungeId);
+      categoriesRes.fold((l) => log("CATEGORIES ERROR: ${l.message}"), (r) => log("CATEGORIES SUCCESS"));
+
+      log("FETCHING REVIEWS...");
+      final reviewsRes = await _loungeDetailsRepository.getLoungeReviews(loungeId);
+      reviewsRes.fold((l) => log("REVIEWS ERROR: ${l.message}"), (r) => log("REVIEWS SUCCESS"));
+
+      log("FOLDING DATA...");
       List<RoomModel>? rooms;
       List<ExtraModel>? extras;
       List<CategoryModel>? deviceCategories;
       List<ReviewModel>? reviews;
 
-      results[0].fold((l) => throw Exception(l.message), (r) => rooms = r as List<RoomModel>);
-      results[1].fold((l) => throw Exception(l.message), (r) => extras = r as List<ExtraModel>);
-      results[2].fold((l) => throw Exception(l.message), (r) => deviceCategories = r as List<CategoryModel>);
-      results[3].fold((l) => throw Exception(l.message), (r) => reviews = r as List<ReviewModel>);
+      roomsRes.fold((l) { log("Rooms Fold Failure"); throw Exception("Rooms: ${l.message}"); }, (r) { rooms = r; log("Rooms Fold Success: ${r.length}"); });
+      extrasRes.fold((l) { log("Extras Fold Failure"); throw Exception("Extras: ${l.message}"); }, (r) { extras = r; log("Extras Fold Success: ${r.length}"); });
+      categoriesRes.fold((l) { log("Categories Fold Failure"); throw Exception("Categories: ${l.message}"); }, (r) { deviceCategories = r; log("Categories Fold Success: ${r.length}"); });
+      reviewsRes.fold((l) { log("Reviews Fold Failure"); throw Exception("Reviews: ${l.message}"); }, (r) { reviews = r; log("Reviews Fold Success: ${r.length}"); });
 
       if (rooms == null || extras == null || deviceCategories == null || reviews == null) {
+        log("NULL DATA DETECTED: rooms=$rooms, extras=$extras, categories=$deviceCategories, reviews=$reviews");
         throw Exception('Data loading failed');
       }
 
       final date = state.selectedDate ?? DateTime.now();
+      log("PREPARING UpdateBookingsParams...");
       
-      await _updateBookings(
-        UpdateBookingsParams(
+      final updateParams = UpdateBookingsParams(
           loungeId: loungeId,
           date: date,
           rooms: rooms!,
@@ -66,8 +77,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           lounge: state.lounge!, 
           deviceCategories: deviceCategories!,
           reviews: reviews!,
-        ),
-      );
+        );
+      
+      log("CALLING _updateBookings...");
+      await _updateBookings(updateParams);
+      log("getLoungeDetails COMPLETED");
     } catch (e, stack) {
       log("CUBIT ERROR: $e", stackTrace: stack);
       emit(state.copyWith(status: LoungeDetailsStatus.error));
@@ -100,11 +114,16 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   }
 
   Future<void> _updateBookings(UpdateBookingsParams params) async {
+    log("FETCHING BOOKINGS FOR DATE: ${params.date}");
     final bookingsResult = await _bookingRepository.getRoomBookingsForDate(params.loungeId, params.date);
 
     bookingsResult.fold(
-      (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
+      (failure) {
+        log("CRITICAL BOOKINGS ERROR: ${failure.message}");
+        emit(state.copyWith(status: LoungeDetailsStatus.error));
+      },
       (rawBookings) {
+        log("BOOKINGS FETCHED SUCCESSFULLY: ${rawBookings.length} found");
         final Map<String, List<TimeRange>> bookedSlotsByRoom = {};
         final List<String> fullyBookedIds = [];
         final opHours = _calculateOperationalHours(params.lounge.opensAt, params.lounge.closesAt);

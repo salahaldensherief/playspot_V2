@@ -16,6 +16,7 @@ class ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
+      buildWhen: (previous, current) => previous.user != current.user,
       builder: (context, state) {
         final user = state.user;
         final profileImageUrl = user?.avatarUrl;

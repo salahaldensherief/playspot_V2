@@ -415,6 +415,12 @@ class _MyExtraEncoder extends Converter<Object?, Object?> {
 
   @override
   Object? convert(Object? input) {
+    if (input is BookingDetailsParams) {
+      return {'__type': 'BookingDetailsParams', ...input.toJson()};
+    }
+    if (input is CheckoutParams) {
+      return {'__type': 'CheckoutParams', ...input.toJson()};
+    }
     if (input is LoungeModel) {
       return {'__type': 'LoungeModel', ...input.toJson()};
     }
@@ -446,6 +452,10 @@ class _MyExtraDecoder extends Converter<Object?, Object?> {
       final map = input.cast<String, dynamic>();
       if (map.containsKey('__type')) {
         switch (map['__type']) {
+          case 'BookingDetailsParams':
+            return BookingDetailsParams.fromJson(map);
+          case 'CheckoutParams':
+            return CheckoutParams.fromJson(map);
           case 'LoungeModel':
             return LoungeModel.fromJson(map);
           case 'RoomModel':

@@ -19,6 +19,7 @@ class ProfileStatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
+      buildWhen: (previous, current) => previous.pointsBalance != current.pointsBalance,
       builder: (context, state) {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -36,6 +37,7 @@ class ProfileStatsRow extends StatelessWidget {
               AppColors.warning,
             ),
             BlocBuilder<FavoritesCubit, FavoritesState>(
+              buildWhen: (previous, current) => previous.favoriteIds.length != current.favoriteIds.length,
               builder: (context, favoritesState) {
                 return GestureDetector(
                   onTap: () => context.pushNamed(RouterKeys.favorites),

@@ -24,7 +24,6 @@ import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/time_slot_grid.dart';
 import 'widgets/duration_selector.dart';
-import 'widgets/play_mode_selector.dart';
 
 class BookingScreen extends StatefulWidget {
   final BookingDetailsParams params;
@@ -96,15 +95,6 @@ class _BookingScreenState extends State<BookingScreen> {
                     ),
                     16.verticalSpace,
                     const TimeSlotGrid(),
-                    24.verticalSpace,
-                    AppText(
-                      text: AppStrings.playMode.tr(),
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                    ),
-                    16.verticalSpace,
-                    const PlayModeSelector(),
                     24.verticalSpace,
                     AppText(
                       text: AppStrings.duration.tr(),

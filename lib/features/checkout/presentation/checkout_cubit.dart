@@ -62,7 +62,6 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         roomPrice: params.roomPrice,
         addOns: params.addOns,
         playMode: params.playMode,
-        extraControllers: params.extraControllers,
       )
     );
 

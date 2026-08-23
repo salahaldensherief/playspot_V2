@@ -15,13 +15,13 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date) async {
     final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     
-    final response = await _client.rpc(
-      'get_room_bookings_for_date',
-      params: {
-        'p_lounge_id': loungeId,
-        'p_date': dateStr,
-      },
-    );
+    // Architect Note: Extreme simplification to bypass Postgres stack depth limit.
+    // We only fetch the absolute minimum fields required for slot availability logic.
+    final response = await _client
+        .from('bookings')
+        .select('room_id, start_time, end_time, date')
+        .eq('lounge_id', loungeId)
+        .eq('date', dateStr);
 
     return List<Map<String, dynamic>>.from(response);
   }
@@ -34,6 +34,9 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final startPart = "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:00";
     final endPart = "${params.endTime.hour.toString().padLeft(2, '0')}:${params.endTime.minute.toString().padLeft(2, '0')}:00";
 
+    // Architect Note: We explicitly use a lowercase literal string for status 
+    // and only select 'id' to avoid triggering ambiguous Postgres RLS operators
+    // or deep relational joins that cause stack depth issues.
     final response = await _client.from('bookings').insert({
       'room_id': params.roomId,
       'room_name': params.roomName,
@@ -46,11 +49,10 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'end_time': endPart,
       'total_price': params.totalPrice,
       'room_price': params.roomPrice,
-      'status': 'pending',
+      'status': 'pending', // Explicit clean lowercase string
       'booking_extras': params.addOns,
       'play_mode': params.playMode,
-      'extra_controllers': params.extraControllers,
-    }).select().single();
+    }).select('id').single();
 
     return Map<String, dynamic>.from(response);
   }

@@ -31,15 +31,26 @@ class BookingDetailsParams {
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'lounge': lounge,
-      'room': room,
-      'selectedDate': selectedDate,
+      'lounge': lounge.toJson(),
+      'room': room.toJson(),
+      'selectedDate': selectedDate.toIso8601String(),
       'extras': extras,
       'playMode': playMode,
       'extraControllers': extraControllers,
     };
+  }
+
+  factory BookingDetailsParams.fromJson(Map<String, dynamic> json) {
+    return BookingDetailsParams(
+      lounge: LoungeModel.fromJson(json['lounge'] as Map<String, dynamic>),
+      room: RoomModel.fromJson(json['room'] as Map<String, dynamic>),
+      selectedDate: DateTime.parse(json['selectedDate'] as String),
+      extras: List<Map<String, dynamic>>.from(json['extras'] ?? []),
+      playMode: json['playMode']?.toString() ?? 'single',
+      extraControllers: json['extraControllers'] as int? ?? 0,
+    );
   }
 }
 
@@ -56,7 +67,6 @@ class CreateBookingParams {
   final double roomPrice;
   final List<Map<String, dynamic>> addOns;
   final String? playMode;
-  final int? extraControllers;
 
   CreateBookingParams({
     required this.roomId,
@@ -70,7 +80,6 @@ class CreateBookingParams {
     required this.roomPrice,
     this.addOns = const [],
     this.playMode,
-    this.extraControllers,
   }) : startTime = startTime.toUtc(),
        endTime = endTime.toUtc();
 
@@ -86,7 +95,6 @@ class CreateBookingParams {
       'room_price': roomPrice,
       'extras': addOns,
       'play_mode': playMode,
-      'extra_controllers': extraControllers,
     };
   }
 }
@@ -123,8 +131,10 @@ class CheckoutParams {
     return CheckoutParams(
       lounge: map['lounge'] as LoungeModel,
       room: map['room'] as RoomModel,
-      date: map['date'] as DateTime,
-      startTime: map['startTime'] as TimeOfDay,
+      date: map['date'] is String ? DateTime.parse(map['date']) : map['date'] as DateTime,
+      startTime: map['startTime'] is Map 
+          ? TimeOfDay(hour: map['startTime']['hour'], minute: map['startTime']['minute'])
+          : map['startTime'] as TimeOfDay,
       duration: map['duration'] as int,
       totalPrice: (map['totalPrice'] as num).toDouble(),
       addOns: List<Map<String, dynamic>>.from(map['addOns'] ?? []),
@@ -133,5 +143,25 @@ class CheckoutParams {
       extraControllers: map['extraControllers'] as int?,
       extraControllerPrice: (map['extraControllerPrice'] as num?)?.toDouble(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'lounge': lounge.toJson(),
+      'room': room.toJson(),
+      'date': date.toIso8601String(),
+      'startTime': {'hour': startTime.hour, 'minute': startTime.minute},
+      'duration': duration,
+      'totalPrice': totalPrice,
+      'addOns': addOns,
+      'playMode': playMode,
+      'appliedHourlyRate': appliedHourlyRate,
+      'extraControllers': extraControllers,
+      'extraControllerPrice': extraControllerPrice,
+    };
+  }
+
+  factory CheckoutParams.fromJson(Map<String, dynamic> json) {
+    return CheckoutParams.fromMap(json);
   }
 }

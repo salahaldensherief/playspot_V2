@@ -15,6 +15,7 @@ class LogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
+      buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) {
         return GestureDetector(
           onTap: state.status == ProfileStatus.loading
