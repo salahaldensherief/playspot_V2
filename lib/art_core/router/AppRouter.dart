@@ -275,10 +275,10 @@ class AppRouter {
             path: RouterKeys.booking,
             name: RouterKeys.booking,
             pageBuilder: (context, state) {
-              final params = state.extra is BookingDetailsParams 
+              final params = state.extra is BookingDetailsParams
                   ? state.extra as BookingDetailsParams
                   : BookingDetailsParams.fromMap(state.extra as Map<String, dynamic>);
-              
+
               return _buildPageWithTransition(
                 context: context,
                 state: state,
@@ -296,10 +296,10 @@ class AppRouter {
             path: RouterKeys.checkout,
             name: RouterKeys.checkout,
             pageBuilder: (context, state) {
-              final params = state.extra is CheckoutParams 
+              final params = state.extra is CheckoutParams
                   ? state.extra as CheckoutParams
                   : CheckoutParams.fromMap(state.extra as Map<String, dynamic>);
-              
+
               return _buildPageWithTransition(
                 context: context,
                 state: state,
