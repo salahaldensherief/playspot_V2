@@ -49,9 +49,11 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<BookingCubit, BookingState>(
-      listenWhen: (previous, current) => previous.startTime != current.startTime && current.startTime != null,
+      listenWhen: (previous, current) => 
+          (previous.startTime != current.startTime && current.startTime != null) ||
+          (previous.durationMinutes != current.durationMinutes),
       listener: (context, state) {
-        // Scroll down when a time slot is selected
+        // Scroll down when a time slot is selected or duration is changed
         Future.delayed(const Duration(milliseconds: 100), () {
           if (_scrollController.hasClients) {
             _scrollController.animateTo(
@@ -104,6 +106,9 @@ class _BookingScreenState extends State<BookingScreen> {
                     ),
                     16.verticalSpace,
                     const DurationSelector(),
+                    32.verticalSpace,
+                    _buildSummary(),
+                    32.verticalSpace,
                   ],
                 ),
               ),
@@ -115,18 +120,104 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  Widget _buildSummary() {
+    return BlocBuilder<BookingCubit, BookingState>(
+      buildWhen: (previous, current) => 
+        previous.startTime != current.startTime || 
+        previous.durationMinutes != current.durationMinutes,
+      builder: (context, state) {
+        if (state.startTime == null) return const SizedBox.shrink();
+
+        final start = DateTime(2000, 1, 1, state.startTime!.hour, state.startTime!.minute);
+        final end = start.add(Duration(minutes: state.durationMinutes));
+        final endTime = TimeOfDay.fromDateTime(end);
+
+        return Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: AppColors.neonBlue.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: AppColors.neonBlue.withOpacity(0.2)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText(
+                text: "sessionDetails".tr(),
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.neonBlue,
+              ),
+              12.verticalSpace,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildSummaryItem(
+                    "startTime".tr(),
+                    state.startTime!.format(context),
+                  ),
+                  Icon(Icons.arrow_forward, color: AppColors.textSecondary, size: 16.sp),
+                  _buildSummaryItem(
+                    "endTime".tr(),
+                    endTime.format(context),
+                  ),
+                ],
+              ),
+              Divider(height: 24.h, color: AppColors.divider),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppText(
+                    text: AppStrings.duration.tr(),
+                    color: AppColors.textSecondary,
+                    fontSize: 14.sp,
+                  ),
+                  AppText(
+                    text: "${state.durationMinutes / 60.0} ${"hour_plural".tr(args: [''])}",
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(
+          text: label,
+          fontSize: 12.sp,
+          color: AppColors.textSecondary,
+        ),
+        4.verticalSpace,
+        AppText(
+          text: value,
+          fontSize: 16.sp,
+          fontWeight: FontWeight.bold,
+          color: AppColors.white,
+        ),
+      ],
+    );
+  }
+
   Widget _buildBottomBar(BuildContext context) {
     return BlocBuilder<BookingCubit, BookingState>(
       buildWhen: (previous, current) => 
         previous.startTime != current.startTime || 
-        previous.durationHours != current.durationHours ||
+        previous.durationMinutes != current.durationMinutes ||
         previous.selectedDate != current.selectedDate ||
         previous.playMode != current.playMode ||
         previous.extraControllersCount != current.extraControllersCount,
       builder: (context, state) {
         final isReady = state.startTime != null;
         final extrasPrice = widget.params.extras.fold<double>(
-            0, (sum, item) => sum + (item['price'] * item['quantity']));
+            0, (sum, item) => sum + ((item['price'] as num).toDouble() * (item['quantity'] as num).toDouble()));
         
         final appliedRate = state.playMode == PlayMode.single 
             ? widget.params.room.pricePerHourSingle 
@@ -134,7 +225,8 @@ class _BookingScreenState extends State<BookingScreen> {
             
         final extraControllersCharge = state.extraControllersCount * widget.params.room.extraControllerPrice;
         
-        final total = ((appliedRate + extraControllersCharge) * state.durationHours) + extrasPrice;
+        final durationInHours = state.durationMinutes / 60.0;
+        final total = ((appliedRate + extraControllersCharge) * durationInHours) + extrasPrice;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -186,7 +278,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                     'room': widget.params.room,
                                     'date': state.selectedDate,
                                     'startTime': state.startTime!,
-                                    'duration': state.durationHours,
+                                    'duration': state.durationMinutes,
                                     'totalPrice': total,
                                     'addOns': widget.params.extras,
                                     'playMode': state.playMode.name,

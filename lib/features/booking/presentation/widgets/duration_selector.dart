@@ -14,8 +14,13 @@ class DurationSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BookingCubit, BookingState>(
-      buildWhen: (previous, current) => previous.durationHours != current.durationHours,
+      buildWhen: (previous, current) => previous.durationMinutes != current.durationMinutes,
       builder: (context, state) {
+        final hours = state.durationMinutes / 60.0;
+        final durationText = hours >= 1 
+            ? AppStrings.hour_plural.tr(args: [hours.toStringAsFixed(hours == hours.toInt() ? 0 : 1)])
+            : "30 ${"min30".tr().replaceAll('+ ', '')}";
+
         return Container(
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
@@ -28,14 +33,14 @@ class DurationSelector extends StatelessWidget {
             children: [
               IconButton(
                 icon: Icon(Icons.remove_circle_outline, color: AppColors.textSecondary, size: 28.sp),
-                onPressed: () => context.read<BookingCubit>().updateDuration(-1),
+                onPressed: () => context.read<BookingCubit>().updateDuration(-30),
               ),
               SizedBox(width: 24.w),
               Column(
                 children: [
                   AppText(
-                    text: AppStrings.hour.tr(args: [state.durationHours.toString()]),
-                    fontSize: 24.sp,
+                    text: durationText,
+                    fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.neonBlue,
                   ),
@@ -44,7 +49,7 @@ class DurationSelector extends StatelessWidget {
               SizedBox(width: 24.w),
               IconButton(
                 icon: Icon(Icons.add_circle_outline, color: AppColors.neonBlue, size: 28.sp),
-                onPressed: () => context.read<BookingCubit>().updateDuration(1),
+                onPressed: () => context.read<BookingCubit>().updateDuration(30),
               ),
             ],
           ),

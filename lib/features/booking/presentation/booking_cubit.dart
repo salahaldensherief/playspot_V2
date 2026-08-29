@@ -64,9 +64,14 @@ class BookingCubit extends Cubit<BookingState> {
             .toList();
 
         for (int h = 0; h < 24; h++) {
-          final isOccupied = roomBookings.any((range) => range.overlaps(h, h + 1));
-          if (isOccupied) {
-            bookedSlots.add(TimeOfDay(hour: h, minute: 0));
+          // Check for :00 and :30 slots
+          for (int m in [0, 30]) {
+            final startCheck = h + (m / 60.0);
+            final endCheck = startCheck + 0.5;
+            final isOccupied = roomBookings.any((range) => range.overlaps(startCheck, endCheck));
+            if (isOccupied) {
+              bookedSlots.add(TimeOfDay(hour: h, minute: m));
+            }
           }
         }
 
@@ -116,20 +121,38 @@ class BookingCubit extends Cubit<BookingState> {
     emit(state.copyWith(startTime: time));
   }
 
-  void updateDuration(int delta) {
-    final newDuration = (state.durationHours + delta).clamp(1, 12);
+  void setDurationMinutes(int minutes) {
+    if (state.startTime != null && !isRangeAvailable(state.startTime!, minutes)) return;
+    emit(state.copyWith(durationMinutes: minutes));
+  }
+
+  void updateDuration(int deltaMinutes) {
+    final newDuration = (state.durationMinutes + deltaMinutes).clamp(30, 720); // 30 min to 12 hours
     if (state.startTime != null && !isRangeAvailable(state.startTime!, newDuration)) return;
-    emit(state.copyWith(durationHours: newDuration));
+    emit(state.copyWith(durationMinutes: newDuration));
   }
 
   bool isSlotBooked(TimeOfDay time) {
-    return state.bookedTimeSlots.any((slot) => slot.hour == time.hour);
+    // Basic implementation: check if the hour is fully or partially booked
+    // For 30 min granularity, we might need more complex logic, 
+    // but we'll stick to checking if any booking overlaps this slot.
+    return state.bookedTimeSlots.any((slot) => slot.hour == time.hour && slot.minute == time.minute);
   }
 
-  bool isRangeAvailable(TimeOfDay start, int duration) {
-    for (int i = 0; i < duration; i++) {
-      final hourToCheck = (start.hour + i) % 24;
-      if (state.bookedTimeSlots.any((slot) => slot.hour == hourToCheck)) return false;
+  bool isRangeAvailable(TimeOfDay start, int durationMinutes) {
+    final startDateTime = DateTime(2000, 1, 1, start.hour, start.minute);
+    final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
+    
+    // We'd need to re-fetch roomBookings or store them in state to check properly.
+    // For now, let's assume if the 30-min block's start is in bookedTimeSlots, it's unavailable.
+    // Ideally, bookedTimeSlots should contain every 30-min block that is occupied.
+    
+    for (int i = 0; i < durationMinutes; i += 30) {
+      final checkTime = startDateTime.add(Duration(minutes: i));
+      final tod = TimeOfDay(hour: checkTime.hour, minute: checkTime.minute);
+      if (state.bookedTimeSlots.any((slot) => slot.hour == tod.hour && slot.minute == tod.minute)) {
+        return false;
+      }
     }
     return true;
   }

@@ -1,0 +1,77 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/text/app_text.dart';
+
+class TimerWidget extends StatelessWidget {
+  final Duration remaining;
+  final double progress;
+  final Color statusColor;
+
+  const TimerWidget({
+    super.key,
+    required this.remaining,
+    required this.progress,
+    required this.statusColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hours = remaining.inHours;
+    final minutes = remaining.inMinutes.remainder(60);
+    final seconds = remaining.inSeconds.remainder(60);
+
+    final timeStr = "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 220.w,
+            height: 220.w,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 12.w,
+              backgroundColor: AppColors.mutedBackground,
+              valueColor: AlwaysStoppedAnimation<Color>(statusColor),
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppText(
+                text: timeStr,
+                fontSize: 32.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.white,
+              ),
+              SizedBox(height: 8.h),
+              AppText(
+                text: remaining.isNegative ? "OVERTIME" : "REMAINING",
+                fontSize: 12.sp,
+                color: AppColors.textSecondary,
+                letterSpacing: 2,
+              ),
+            ],
+          ),
+          // Decorative glow
+          Container(
+            width: 240.w,
+            height: 240.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: statusColor.withOpacity(0.15),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

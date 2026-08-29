@@ -9,6 +9,7 @@ import 'di/modules/my_bookings_module.dart';
 import 'di/modules/profile_module.dart';
 import 'di/modules/favorites_module.dart';
 import 'di/modules/notifications_module.dart';
+import 'di/modules/active_session_module.dart';
 
 final sl = GetIt.instance;
 
@@ -25,7 +26,9 @@ Future<void> init() async {
   initProfileModule();
   initFavoritesModule();
   initNotificationsModule();
+  initActiveSessionModule();
 }
+
 
 Future<void> initSupabase() async {
   await Supabase.initialize(

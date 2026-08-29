@@ -110,6 +110,7 @@ class AppStrings {
   static const String from = "from";
   static const String today = "today";
   static const String hour = "hour";
+  static const String hour_plural = "hour_plural";
   static const String duration = "duration";
   static const String totalPrice = "totalPrice";
   static const String selectTime = "selectTime";
@@ -213,4 +214,5 @@ class AppStrings {
   static const String standardRoom = "standardRoom";
   static const String vipRoom = "vipRoom";
   static const String spaceType = "spaceType";
+  static const String sessionDetails = "sessionDetails";
 }

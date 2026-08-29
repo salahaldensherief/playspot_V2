@@ -23,4 +23,5 @@ class RouterKeys {
   static const String notificationSettings = '/notification-settings';
   static const String allReviews = '/allReviews';
   static const String termsAndConditions = '/terms-and-conditions';
+  static const String activeSession = '/activeSession';
 }

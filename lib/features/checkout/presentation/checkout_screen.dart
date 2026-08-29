@@ -358,7 +358,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               label: AppStrings.startTime.tr(), value: widget.params.startTime.toAppTimeString()),
           InfoRow(
               label: AppStrings.duration.tr(),
-              value: AppStrings.hour.tr(args: [widget.params.duration.toString()])),
+              value: widget.params.duration >= 60 
+                  ? "${widget.params.duration / 60.0} ${AppStrings.hour_plural.tr(args: [''])}"
+                  : "${widget.params.duration} ${"min30".tr()}"),
           if (widget.params.playMode != null)
             InfoRow(
               label: AppStrings.playMode.tr(),
@@ -675,7 +677,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       widget.params.startTime.minute,
                     );
                     final endDateTime =
-                        startDateTime.add(Duration(hours: widget.params.duration));
+                        startDateTime.add(Duration(minutes: widget.params.duration));
 
                     final pref = sl<PreferenceManager>();
                     final userName = pref.fullName() ?? "";

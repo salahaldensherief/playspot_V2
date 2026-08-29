@@ -4,11 +4,15 @@ class TimeRange {
 
   TimeRange({required this.start, required this.end});
 
-  bool overlaps(int hourStart, int hourEnd) {
-
+  bool overlaps(double hourStart, double hourEnd) {
+    final startHour = hourStart.toInt();
+    final startMinute = ((hourStart - startHour) * 60).round();
     
-    final checkStart = DateTime(start.year, start.month, start.day, hourStart);
-    var checkEnd = DateTime(start.year, start.month, start.day, hourEnd);
+    final endHour = hourEnd.toInt();
+    final endMinute = ((hourEnd - endHour) * 60).round();
+
+    final checkStart = DateTime(start.year, start.month, start.day, startHour, startMinute);
+    var checkEnd = DateTime(start.year, start.month, start.day, endHour, endMinute);
     
     if (hourEnd <= hourStart) {
       checkEnd = checkEnd.add(const Duration(days: 1));

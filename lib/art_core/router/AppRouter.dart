@@ -44,6 +44,8 @@ import '../../features/profile/presentation/edit_profile/edit_profile_cubit.dart
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 import '../../features/profile/presentation/redeem_points/redeem_points_screen.dart';
 import '../../features/profile/presentation/vouchers/my_vouchers_screen.dart';
+import '../../features/active_session/presentation/active_session_screen.dart';
+import '../../features/active_session/presentation/active_session_cubit.dart';
 import '../cubit/locale_cubit.dart';
 
 class AppRouter {
@@ -389,6 +391,15 @@ class AppRouter {
               context: context,
               state: state,
               child: const TermsAndConditionsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.activeSession,
+            name: RouterKeys.activeSession,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const ActiveSessionScreen(),
             ),
           )
         ],
