@@ -7,9 +7,9 @@ import 'package:playspot/features/lounge_details/data/models/lounge_details_para
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
-import 'package:playspot/features/lounge_details/data/repos/lounge_details_repo.dart';
-import 'package:playspot/features/home/data/repos/home_repos.dart';
-import 'package:playspot/features/booking/data/repos/booking_repo.dart';
+import 'package:playspot/features/lounge_details/domain/repositories/lounge_details_repository.dart';
+import 'package:playspot/features/home/domain/repositories/home_repository.dart';
+import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import '../../home/data/models/category_model.dart';
 import 'lounge_details_state.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import '../data/models/booking_params.dart';
-import '../data/repos/booking_repo.dart';
+import '../domain/repositories/booking_repository.dart';
 import 'booking_state.dart';
 
 class BookingCubit extends Cubit<BookingState> {

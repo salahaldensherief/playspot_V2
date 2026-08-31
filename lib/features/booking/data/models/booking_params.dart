@@ -1,9 +1,10 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import '../../../home/data/models/lounge_model.dart';
 import '../../../lounge_details/data/models/room_model.dart';
 
 /// Parameters for navigating to the Booking Screen from Lounge Details
-class BookingDetailsParams {
+class BookingDetailsParams extends Equatable {
   final LoungeModel lounge;
   final RoomModel room;
   final DateTime selectedDate;
@@ -11,7 +12,7 @@ class BookingDetailsParams {
   final String playMode;
   final int extraControllers;
 
-  BookingDetailsParams({
+  const BookingDetailsParams({
     required this.lounge,
     required this.room,
     required this.selectedDate,
@@ -19,6 +20,9 @@ class BookingDetailsParams {
     required this.playMode,
     required this.extraControllers,
   });
+
+  @override
+  List<Object?> get props => [lounge, room, selectedDate, extras, playMode, extraControllers];
 
   factory BookingDetailsParams.fromMap(Map<String, dynamic> map) {
     return BookingDetailsParams(
@@ -55,7 +59,7 @@ class BookingDetailsParams {
 }
 
 /// Parameters for creating a booking in the repository/data source
-class CreateBookingParams {
+class CreateBookingParams extends Equatable {
   final String roomId;
   final String roomName;
   final String loungeId;
@@ -70,22 +74,38 @@ class CreateBookingParams {
   final String status;
   final String paymentStatus;
 
-  CreateBookingParams({
+  const CreateBookingParams({
     required this.roomId,
     required this.roomName,
     required this.loungeId,
     required this.userName,
     required this.userPhone,
-    required DateTime startTime,
-    required DateTime endTime,
+    required this.startTime,
+    required this.endTime,
     required this.totalPrice,
     required this.roomPrice,
     this.addOns = const [],
     this.playMode,
     this.status = 'pending',
     this.paymentStatus = 'unpaid',
-  }) : startTime = startTime.toUtc(),
-       endTime = endTime.toUtc();
+  });
+
+  @override
+  List<Object?> get props => [
+        roomId,
+        roomName,
+        loungeId,
+        userName,
+        userPhone,
+        startTime,
+        endTime,
+        totalPrice,
+        roomPrice,
+        addOns,
+        playMode,
+        status,
+        paymentStatus,
+      ];
 
   Map<String, dynamic> toJson() {
     return {
@@ -106,7 +126,7 @@ class CreateBookingParams {
 }
 
 /// Parameters for navigating to and initializing the Checkout Screen
-class CheckoutParams {
+class CheckoutParams extends Equatable {
   final LoungeModel lounge;
   final RoomModel room;
   final DateTime date;
@@ -119,7 +139,7 @@ class CheckoutParams {
   final int? extraControllers;
   final double? extraControllerPrice;
 
-  CheckoutParams({
+  const CheckoutParams({
     required this.lounge,
     required this.room,
     required this.date,
@@ -132,6 +152,21 @@ class CheckoutParams {
     this.extraControllers,
     this.extraControllerPrice,
   });
+
+  @override
+  List<Object?> get props => [
+        lounge,
+        room,
+        date,
+        startTime,
+        duration,
+        totalPrice,
+        addOns,
+        playMode,
+        appliedHourlyRate,
+        extraControllers,
+        extraControllerPrice,
+      ];
 
   factory CheckoutParams.fromMap(Map<String, dynamic> map) {
     return CheckoutParams(

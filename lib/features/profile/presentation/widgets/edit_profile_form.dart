@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
-import '../edit_profile/edit_profile_cubit.dart';
+import '../edit_profile_cubit.dart';
 
 class EditProfileForm extends StatelessWidget {
   final EditProfileCubit cubit;

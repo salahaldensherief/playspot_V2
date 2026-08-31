@@ -10,8 +10,8 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../data/models/notification_model.dart';
-import 'cubit/notifications_cubit.dart';
-import 'cubit/notifications_state.dart';
+import 'notifications_cubit.dart';
+import 'notifications_state.dart';
 import 'widgets/notification_item.dart';
 import 'widgets/qr_location_dialog.dart';
 

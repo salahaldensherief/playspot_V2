@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
-import 'package:playspot/features/booking/data/repos/booking_repo.dart';
-import 'package:playspot/features/profile/data/repos/profile_repo.dart';
+import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import 'checkout_state.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {

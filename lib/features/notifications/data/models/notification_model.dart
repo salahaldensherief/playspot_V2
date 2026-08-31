@@ -1,6 +1,8 @@
+import 'package:equatable/equatable.dart';
+
 enum NotificationType { booking, offer, loyalty, system }
 
-class NotificationModel {
+class NotificationModel extends Equatable {
   final String id;
   final String title;
   final String body;
@@ -9,7 +11,7 @@ class NotificationModel {
   final NotificationType type;
   final String? status; // pending, upcoming, cancelled
 
-  NotificationModel({
+  const NotificationModel({
     required this.id,
     required this.title,
     required this.body,
@@ -18,6 +20,9 @@ class NotificationModel {
     required this.type,
     this.status,
   });
+
+  @override
+  List<Object?> get props => [id, title, body, createdAt, isRead, type, status];
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     final title = json['title'] as String? ?? '';

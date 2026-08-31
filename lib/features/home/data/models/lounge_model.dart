@@ -1,4 +1,6 @@
-class LoungeModel {
+import 'package:equatable/equatable.dart';
+
+class LoungeModel extends Equatable {
   final String id;
   final String name;
   final String imageUrl;
@@ -20,7 +22,7 @@ class LoungeModel {
   final double? lng;
   final List<String> categoryIcons;
 
-  LoungeModel({
+  const LoungeModel({
     required this.id,
     required this.name,
     required this.imageUrl,
@@ -42,6 +44,30 @@ class LoungeModel {
     this.lng,
     this.categoryIcons = const [],
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        imageUrl,
+        rating,
+        distance,
+        pricePerHour,
+        isOpen,
+        location,
+        city,
+        totalReviews,
+        availableRooms,
+        descriptionAr,
+        descriptionEn,
+        images,
+        opensAt,
+        closesAt,
+        mapsLink,
+        lat,
+        lng,
+        categoryIcons,
+      ];
 
   String? getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
 

@@ -1,17 +1,22 @@
-class ExtraModel {
+import 'package:equatable/equatable.dart';
+
+class ExtraModel extends Equatable {
   final String id;
   final String name;
   final double price;
   final String category; // Drinks, Food, Snacks
   final String? icon;
 
-  ExtraModel({
+  const ExtraModel({
     required this.id,
     required this.name,
     required this.price,
     required this.category,
     this.icon,
   });
+
+  @override
+  List<Object?> get props => [id, name, price, category, icon];
 
   factory ExtraModel.fromJson(Map<String, dynamic> json) {
     try {

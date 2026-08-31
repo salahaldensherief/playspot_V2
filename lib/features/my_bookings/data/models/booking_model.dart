@@ -1,4 +1,6 @@
-class BookingModel {
+import 'package:equatable/equatable.dart';
+
+class BookingModel extends Equatable {
   final String id;
   final String loungeName;
   final String loungeLocation;
@@ -18,7 +20,7 @@ class BookingModel {
   final double? lat;
   final double? lng;
 
-  BookingModel({
+  const BookingModel({
     required this.id,
     required this.loungeName,
     required this.loungeLocation,
@@ -38,6 +40,28 @@ class BookingModel {
     this.lat,
     this.lng,
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        loungeName,
+        loungeLocation,
+        roomName,
+        spaceType,
+        spaceTypeName,
+        controllersCount,
+        screenSize,
+        date,
+        startTime,
+        endTime,
+        status,
+        paymentStatus,
+        totalPrice,
+        playMode,
+        mapsLink,
+        lat,
+        lng,
+      ];
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     final loungeData = json['lounges'] as Map<String, dynamic>?;

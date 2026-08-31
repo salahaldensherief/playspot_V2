@@ -1,6 +1,7 @@
+import 'package:equatable/equatable.dart';
 import 'order_item_model.dart';
 
-class ActiveSessionModel {
+class ActiveSessionModel extends Equatable {
   final String bookingId;
   final String loungeId;
   final String loungeName;
@@ -13,7 +14,7 @@ class ActiveSessionModel {
   final List<OrderItemModel> orders;
   final String status;
 
-  ActiveSessionModel({
+  const ActiveSessionModel({
     required this.bookingId,
     required this.loungeId,
     required this.loungeName,
@@ -26,6 +27,21 @@ class ActiveSessionModel {
     this.orders = const [],
     required this.status,
   });
+
+  @override
+  List<Object?> get props => [
+        bookingId,
+        loungeId,
+        loungeName,
+        roomName,
+        deviceName,
+        startTime,
+        endTime,
+        basePrice,
+        extensionsPrice,
+        orders,
+        status,
+      ];
 
   factory ActiveSessionModel.fromJson(Map<String, dynamic> json) {
     final loungeData = json['lounges'] as Map<String, dynamic>?;

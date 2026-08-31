@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../data/repos/my_bookings_repo.dart';
+import '../domain/repositories/my_bookings_repository.dart';
 import 'my_bookings_state.dart';
 
 class MyBookingsCubit extends Cubit<MyBookingsState> {

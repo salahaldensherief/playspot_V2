@@ -1,4 +1,6 @@
-class ReviewModel {
+import 'package:equatable/equatable.dart';
+
+class ReviewModel extends Equatable {
   final String id;
   final String userId;
   final String userName;
@@ -7,7 +9,7 @@ class ReviewModel {
   final String? comment;
   final DateTime createdAt;
 
-  ReviewModel({
+  const ReviewModel({
     required this.id,
     required this.userId,
     required this.userName,
@@ -16,6 +18,9 @@ class ReviewModel {
     this.comment,
     required this.createdAt,
   });
+
+  @override
+  List<Object?> get props => [id, userId, userName, userAvatar, rating, comment, createdAt];
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
     final userData = json['users'] as Map<String, dynamic>?;

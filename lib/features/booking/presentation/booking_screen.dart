@@ -19,7 +19,7 @@ import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../../art_core/router/router_keys.dart';
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
-import '../data/repos/booking_repo.dart';
+import '../domain/repositories/booking_repository.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/time_slot_grid.dart';

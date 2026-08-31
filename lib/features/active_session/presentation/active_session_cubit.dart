@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/booking_status.dart';
-import '../data/repos/active_session_repo.dart';
+import '../domain/repositories/active_session_repository.dart';
 import '../data/models/active_session_model.dart';
 import '../data/models/order_item_model.dart';
 import 'active_session_state.dart';

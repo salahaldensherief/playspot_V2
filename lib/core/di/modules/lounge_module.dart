@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
-import '../../../features/lounge_details/data/data_source/remote/lounge_details_remote_data_source.dart';
-import '../../../features/lounge_details/data/repos/lounge_details_repo.dart';
+import '../../../features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart';
+import '../../../features/lounge_details/domain/repositories/lounge_details_repository.dart';
+import '../../../features/lounge_details/data/repositories/lounge_details_repository_impl.dart';
 import '../../../features/lounge_details/presentation/lounge_details_cubit.dart';
 
 final sl = GetIt.instance;

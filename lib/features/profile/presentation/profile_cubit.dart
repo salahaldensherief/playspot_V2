@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/error/failures.dart';
-import '../../auth/data/repos/auth_repo.dart';
+import '../../auth/domain/repositories/auth_repo.dart';
 import '../data/models/redemption_option_model.dart';
-import '../data/repos/profile_repo.dart';
+import '../domain/repositories/profile_repository.dart';
 import 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {

@@ -1,4 +1,6 @@
-class RoomModel {
+import 'package:equatable/equatable.dart';
+
+class RoomModel extends Equatable {
   final String id;
   final String loungeId;
   final String nameAr;
@@ -18,7 +20,7 @@ class RoomModel {
   final int controllersCount;
   final String screenSize;
 
-  RoomModel({
+  const RoomModel({
     required this.id,
     required this.loungeId,
     required this.nameAr,
@@ -38,6 +40,28 @@ class RoomModel {
     this.controllersCount = 2,
     this.screenSize = '43"',
   });
+
+  @override
+  List<Object?> get props => [
+        id,
+        loungeId,
+        nameAr,
+        nameEn,
+        activityNames,
+        spaceType,
+        spaceTypeName,
+        capacity,
+        pricePerHour,
+        pricePerHourSingle,
+        pricePerHourMulti,
+        extraControllerPrice,
+        isAvailable,
+        images,
+        featuresAr,
+        featuresEn,
+        controllersCount,
+        screenSize,
+      ];
 
   String getName(bool isArabic) => isArabic ? nameAr : nameEn;
   List<String> getFeatures(bool isArabic) => isArabic ? featuresAr : featuresEn;

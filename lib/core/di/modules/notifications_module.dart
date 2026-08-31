@@ -1,6 +1,7 @@
-import 'package:playspot/features/notifications/data/data_source/remote/notifications_remote_data_source.dart';
-import 'package:playspot/features/notifications/data/repos/notifications_repository.dart';
-import 'package:playspot/features/notifications/presentation/cubit/notifications_cubit.dart';
+import 'package:playspot/features/notifications/data/datasources/remote/notifications_remote_data_source.dart';
+import 'package:playspot/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:playspot/features/notifications/data/repositories/notifications_repository_impl.dart';
+import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../di.dart';
 

@@ -11,8 +11,8 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../notifications/presentation/cubit/notifications_cubit.dart';
-import '../../../notifications/presentation/cubit/notifications_state.dart';
+import '../../../notifications/presentation/notifications_cubit.dart';
+import '../../../notifications/presentation/notifications_state.dart';
 
 class HomeHeader extends StatelessWidget {
   final String userName;

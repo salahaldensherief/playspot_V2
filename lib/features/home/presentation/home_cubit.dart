@@ -8,7 +8,7 @@ import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
 import '../../../core/error/failures.dart';
 import '../../../core/services/location_service.dart';
-import '../data/repos/home_repos.dart';
+import '../domain/repositories/home_repository.dart';
 import 'home_state.dart';
 import '../data/models/lounge_model.dart';
 import '../data/models/category_model.dart';

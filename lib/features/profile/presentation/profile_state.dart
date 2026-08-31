@@ -1,10 +1,10 @@
+import 'package:equatable/equatable.dart';
 import '../../auth/data/models/user_model.dart';
-
 import '../data/models/redemption_option_model.dart';
 
 enum ProfileStatus { initial, loading, success, error, logoutSuccess, redeemSuccess }
 
-class ProfileState {
+class ProfileState extends Equatable {
   final ProfileStatus status;
   final UserModel? user;
   final int pointsBalance;
@@ -12,7 +12,7 @@ class ProfileState {
   final List<Map<String, dynamic>> myVouchers;
   final String? errorMessage;
 
-  ProfileState({
+  const ProfileState({
     this.status = ProfileStatus.initial,
     this.user,
     this.pointsBalance = 0,
@@ -38,4 +38,7 @@ class ProfileState {
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
+
+  @override
+  List<Object?> get props => [status, user, pointsBalance, redemptionOptions, myVouchers, errorMessage];
 }

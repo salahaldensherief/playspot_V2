@@ -1,4 +1,4 @@
-import '../entities/user_entity.dart';
+import '../../domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   final bool isNewUser;
@@ -48,6 +48,9 @@ class UserModel extends UserEntity {
           : null,
     );
   }
+
+  @override
+  List<Object?> get props => super.props..add(isNewUser);
 
   Map<String, dynamic> toJson() {
     return {

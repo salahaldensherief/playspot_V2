@@ -1,17 +1,22 @@
-class OrderItemModel {
+import 'package:equatable/equatable.dart';
+
+class OrderItemModel extends Equatable {
   final String id;
   final String name;
   final double price;
   final int quantity;
   final String? note;
 
-  OrderItemModel({
+  const OrderItemModel({
     required this.id,
     required this.name,
     required this.price,
     required this.quantity,
     this.note,
   });
+
+  @override
+  List<Object?> get props => [id, name, price, quantity, note];
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     return OrderItemModel(
