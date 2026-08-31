@@ -11,9 +11,6 @@ import 'package:flutter/foundation.dart';
 
 import 'art_core/router/AppRouter.dart';
 import 'core/di.dart';
-import 'features/favorites/presentation/favorites_cubit.dart';
-import 'features/profile/presentation/profile_cubit.dart';
-import 'features/notifications/presentation/notifications_cubit.dart';
 import 'core/utils/app_bloc_observer.dart';
 
 void main() async {
