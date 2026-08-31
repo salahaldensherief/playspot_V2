@@ -130,7 +130,7 @@ class HomeCubit extends Cubit<HomeState> {
     final lng = double.tryParse(_pref.longitude());
 
     if (lat == null || lng == null) return;
-    if (isLoadMore && state.hasReachedMax) return;
+    if (isLoadMore && (state.hasReachedMax || state.status == HomeStatus.loadingMore)) return;
 
     _lastUsedLat = lat;
     _lastUsedLng = lng;

@@ -1,13 +1,26 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/constants/booking_status.dart';
 import '../models/active_session_model.dart';
+import '../models/order_item_model.dart';
 import '../../../lounge_details/data/models/extra_model.dart';
 
 abstract class ActiveSessionRemoteDataSource {
   Future<ActiveSessionModel?> getActiveSession();
   Stream<ActiveSessionModel> streamActiveSession(String bookingId);
-  Future<void> extendTime(String bookingId, DateTime newEndTime, double additionalCost);
+  Future<void> extendTime(String bookingId, int additionalMinutes, double additionalCost);
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items);
   Future<List<ExtraModel>> getLoungeMenu(String loungeId);
+  Future<void> requestStaffAssistance({
+    required String bookingId,
+    required String callType,
+    String? notes,
+  });
+  Future<void> submitLoungeReview({
+    required String loungeId,
+    required String bookingId,
+    required double rating,
+    String? comment,
+  });
 }
 
 class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource {
@@ -24,7 +37,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         .from('bookings')
         .select('*, lounges(name), rooms(name, name_en), booking_orders(*)')
         .eq('user_id', userId)
-        .eq('status', 'active')
+        .eq('status', BookingStatus.inProgress)
         .maybeSingle();
 
     if (response == null) return null;
@@ -39,20 +52,17 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         .eq('id', bookingId)
         .map((data) {
           if (data.isEmpty) throw Exception("Booking not found");
-          // Note: stream doesn't support complex joins easily in the same way select does for nested objects if not configured
-          // But we can do a fresh fetch or assume the UI will use this to trigger a refresh.
-          // For now, let's assume we can map it if we get the full object or we might need a workaround.
           return ActiveSessionModel.fromJson(data.first);
         });
   }
 
   @override
-  Future<void> extendTime(String bookingId, DateTime newEndTime, double additionalCost) async {
-    // In a real app, you might have a RPC or multiple updates
-    await _client.from('bookings').update({
-      'end_time': newEndTime.toIso8601String(),
-      'extensions_price': additionalCost, // Simplified: usually you add to existing
-    }).eq('id', bookingId);
+  Future<void> extendTime(String bookingId, int additionalMinutes, double additionalCost) async {
+    await _client.rpc('extend_booking_session', params: {
+      'p_booking_id': bookingId,
+      'p_additional_minutes': additionalMinutes,
+      'p_added_cost': additionalCost,
+    });
   }
 
   @override
@@ -76,5 +86,37 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         .eq('lounge_id', loungeId);
 
     return (response as List).map((e) => ExtraModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<void> requestStaffAssistance({
+    required String bookingId,
+    required String callType,
+    String? notes,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    await _client.rpc('request_staff_assistance', params: {
+      'p_booking_id': bookingId,
+      'p_user_id': userId,
+      'p_call_type': callType,
+      'p_notes': notes,
+    });
+  }
+
+  @override
+  Future<void> submitLoungeReview({
+    required String loungeId,
+    required String bookingId,
+    required double rating,
+    String? comment,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    await _client.rpc('submit_lounge_review', params: {
+      'p_lounge_id': loungeId,
+      'p_booking_id': bookingId,
+      'p_user_id': userId,
+      'p_rating': rating,
+      'p_comment': comment,
+    });
   }
 }

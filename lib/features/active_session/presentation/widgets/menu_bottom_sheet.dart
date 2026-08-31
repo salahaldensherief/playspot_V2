@@ -2,19 +2,21 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../art_core/theme/app_colors.dart';
-import '../../../../art_core/widgets/buttons/app_button.dart';
-import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
-import '../../../../art_core/widgets/buttons/res/button_content.dart';
-import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
-import '../../../../art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
-import '../../data/models/active_session_model.dart';
+import '../../data/models/order_item_model.dart';
 import '../../../lounge_details/data/models/extra_model.dart';
 
 class MenuBottomSheet extends StatefulWidget {
-  const MenuBottomSheet({super.key});
+  final ActiveSessionCubit cubit;
+  const MenuBottomSheet({super.key, required this.cubit});
 
   @override
   State<MenuBottomSheet> createState() => _MenuBottomSheetState();
@@ -34,9 +36,10 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
       ),
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
       child: BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
+        bloc: widget.cubit,
         builder: (context, state) {
           if (state.menu.isEmpty) {
-            return Center(child: AppText(text: "noExtrasAvailable".tr()));
+            return Center(child: AppText(text: AppStrings.noExtrasAvailable.tr()));
           }
 
           return Column(
@@ -54,7 +57,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
               ),
               SizedBox(height: 20.h),
               AppText(
-                text: "orderExtras".tr(),
+                text: AppStrings.orderExtras.tr(),
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
               ),
@@ -75,7 +78,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 onChanged: (v) => _note = v,
                 style: const TextStyle(color: AppColors.white),
                 decoration: InputDecoration(
-                  hintText: "addNote".tr(),
+                  hintText: AppStrings.addNote.tr(),
                   hintStyle: const TextStyle(color: AppColors.textSecondary),
                   filled: true,
                   fillColor: AppColors.cardBackground,
@@ -88,7 +91,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
               SizedBox(height: 20.h),
               AppButton(
                 content: ButtonContent(
-                  label: "placeOrder".tr(),
+                  label: AppStrings.placeOrder.tr(),
                 ),
                 buttonConfig: ButtonConfig(
                   width: double.infinity,
@@ -118,7 +121,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
               children: [
                 AppText(text: item.name, fontWeight: FontWeight.bold),
                 AppText(
-                  text: "${item.price} ${"egp".tr()}",
+                  text: "${item.price} ${AppStrings.egpSymbol.tr()}",
                   fontSize: 12.sp,
                   color: AppColors.textSecondary,
                 ),
@@ -175,8 +178,8 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
     });
 
     if (items.isNotEmpty) {
-      context.read<ActiveSessionCubit>().placeOrder(items).then((_) {
-        Navigator.pop(context);
+      widget.cubit.placeOrder(items).then((_) {
+        if (context.mounted) Navigator.pop(context);
       });
     }
   }

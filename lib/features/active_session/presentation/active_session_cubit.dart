@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants/booking_status.dart';
 import '../data/repos/active_session_repo.dart';
 import '../data/models/active_session_model.dart';
+import '../data/models/order_item_model.dart';
 import 'active_session_state.dart';
 
 class ActiveSessionCubit extends Cubit<ActiveSessionState> {
@@ -41,8 +43,18 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (state.session != null) {
-        final remaining = state.session!.endTime.difference(DateTime.now());
-        emit(state.copyWith(remainingTime: remaining));
+        final now = DateTime.now();
+        final remaining = state.session!.endTime.difference(now);
+        
+        if (remaining.inSeconds <= 0 && state.status == ActiveSessionStatus.loaded) {
+          _timer?.cancel();
+          emit(state.copyWith(
+            remainingTime: Duration.zero,
+            status: ActiveSessionStatus.empty, // Signal UI to close/show review
+          ));
+        } else {
+          emit(state.copyWith(remainingTime: remaining));
+        }
       }
     });
   }
@@ -50,9 +62,12 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
   void _subscribeToRealtime(String bookingId) {
     _realtimeSubscription?.cancel();
     _realtimeSubscription = _repo.streamActiveSession(bookingId).listen((updatedSession) {
-      // Re-fetch to get nested data if needed, or update directly
-      // Since stream might not have full joined data, it's safer to re-fetch
-      loadActiveSession();
+      if (updatedSession.status == BookingStatus.completed) {
+        _timer?.cancel();
+        emit(state.copyWith(status: ActiveSessionStatus.empty));
+      } else {
+        loadActiveSession();
+      }
     });
   }
 
@@ -69,8 +84,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
 
     emit(state.copyWith(extendStatus: ActionStatus.loading));
 
-    final newEndTime = state.session!.endTime.add(Duration(minutes: additionalMinutes));
-    final result = await _repo.extendTime(state.session!.bookingId, newEndTime, cost);
+    final result = await _repo.extendTime(state.session!.bookingId, additionalMinutes, cost);
 
     result.fold(
       (failure) => emit(state.copyWith(
@@ -81,6 +95,45 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
         emit(state.copyWith(extendStatus: ActionStatus.success));
         loadActiveSession();
       },
+    );
+  }
+
+  Future<void> requestStaffAssistance(String type, String? notes) async {
+    if (state.session == null) return;
+
+    emit(state.copyWith(staffRequestStatus: ActionStatus.loading));
+
+    final result = await _repo.requestStaffAssistance(
+      bookingId: state.session!.bookingId,
+      callType: type,
+      notes: notes,
+    );
+
+    result.fold(
+      (failure) => emit(state.copyWith(
+        staffRequestStatus: ActionStatus.error,
+        errorMessage: failure.message,
+      )),
+      (_) => emit(state.copyWith(staffRequestStatus: ActionStatus.success)),
+    );
+  }
+
+  Future<void> submitReview({
+    required double rating,
+    String? comment,
+  }) async {
+    if (state.session == null) return;
+
+    final result = await _repo.submitLoungeReview(
+      loungeId: state.session!.loungeId,
+      bookingId: state.session!.bookingId,
+      rating: rating,
+      comment: comment,
+    );
+
+    result.fold(
+      (failure) => emit(state.copyWith(errorMessage: failure.message)),
+      (_) => null,
     );
   }
 

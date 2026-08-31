@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 
+import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/app_strings.dart';
+
 class TimerWidget extends StatelessWidget {
   final Duration remaining;
   final double progress;
@@ -48,7 +51,9 @@ class TimerWidget extends StatelessWidget {
               ),
               SizedBox(height: 8.h),
               AppText(
-                text: remaining.isNegative ? "OVERTIME" : "REMAINING",
+                text: remaining.isNegative 
+                    ? AppStrings.overtime.tr().toUpperCase() 
+                    : AppStrings.remaining.tr().toUpperCase(),
                 fontSize: 12.sp,
                 color: AppColors.textSecondary,
                 letterSpacing: 2,

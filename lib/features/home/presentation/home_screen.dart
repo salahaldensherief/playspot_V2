@@ -78,7 +78,10 @@ class _HomeViewState extends State<_HomeView> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      context.read<HomeCubit>().loadMore();
+      final state = context.read<HomeCubit>().state;
+      if (state.status != HomeStatus.loadingMore && !state.hasReachedMax) {
+        context.read<HomeCubit>().loadMore();
+      }
     }
   }
 

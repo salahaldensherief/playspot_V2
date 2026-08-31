@@ -11,6 +11,7 @@ class ActiveSessionState extends Equatable {
   final List<ExtraModel> menu;
   final ActionStatus extendStatus;
   final ActionStatus orderStatus;
+  final ActionStatus staffRequestStatus;
   final String? errorMessage;
   final Duration remainingTime;
 
@@ -20,6 +21,7 @@ class ActiveSessionState extends Equatable {
     this.menu = const [],
     this.extendStatus = ActionStatus.initial,
     this.orderStatus = ActionStatus.initial,
+    this.staffRequestStatus = ActionStatus.initial,
     this.errorMessage,
     this.remainingTime = Duration.zero,
   });
@@ -30,6 +32,7 @@ class ActiveSessionState extends Equatable {
     List<ExtraModel>? menu,
     ActionStatus? extendStatus,
     ActionStatus? orderStatus,
+    ActionStatus? staffRequestStatus,
     String? errorMessage,
     Duration? remainingTime,
   }) {
@@ -39,6 +42,7 @@ class ActiveSessionState extends Equatable {
       menu: menu ?? this.menu,
       extendStatus: extendStatus ?? this.extendStatus,
       orderStatus: orderStatus ?? this.orderStatus,
+      staffRequestStatus: staffRequestStatus ?? this.staffRequestStatus,
       errorMessage: errorMessage ?? this.errorMessage,
       remainingTime: remainingTime ?? this.remainingTime,
     );
@@ -51,6 +55,7 @@ class ActiveSessionState extends Equatable {
         menu,
         extendStatus,
         orderStatus,
+        staffRequestStatus,
         errorMessage,
         remainingTime,
       ];

@@ -215,4 +215,27 @@ class AppStrings {
   static const String vipRoom = "vipRoom";
   static const String spaceType = "spaceType";
   static const String sessionDetails = "sessionDetails";
+  static const String station = "station";
+  static const String callStaff = "callStaff";
+  static const String assistance = "assistance";
+  static const String cleaning = "cleaning";
+  static const String controllerIssue = "controllerIssue";
+  static const String rateExperience = "rateExperience";
+  static const String submitReview = "submitReview";
+  static const String howWasYourSession = "howWasYourSession";
+  static const String feedbackHint = "feedbackHint";
+  static const String sessionExtendedSuccess = "sessionExtendedSuccess";
+  static const String orderPlacedSuccess = "orderPlacedSuccess";
+  static const String staffNotifiedSuccess = "staffNotifiedSuccess";
+  static const String overtime = "overtime";
+  static const String remaining = "remaining";
+  static const String addNote = "addNote";
+  static const String placeOrder = "placeOrder";
+  static const String egpSymbol = "egp";
+  static const String min30 = "min30";
+  static const String hr1 = "hr1";
+  static const String hr2 = "hr2";
+  static const String extendTime = "extendTime";
+  static const String activeSession = "activeSession";
+  static const String orderExtras = "orderExtras";
 }

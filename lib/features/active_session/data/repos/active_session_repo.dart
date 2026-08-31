@@ -3,14 +3,26 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../data_source/active_session_remote_data_source.dart';
 import '../models/active_session_model.dart';
+import '../models/order_item_model.dart';
 import '../../../lounge_details/data/models/extra_model.dart';
 
 abstract class ActiveSessionRepository {
   Future<Either<Failure, ActiveSessionModel?>> getActiveSession();
   Stream<ActiveSessionModel> streamActiveSession(String bookingId);
-  Future<Either<Failure, void>> extendTime(String bookingId, DateTime newEndTime, double additionalCost);
+  Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost);
   Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItemModel> items);
   Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(String loungeId);
+  Future<Either<Failure, void>> requestStaffAssistance({
+    required String bookingId,
+    required String callType,
+    String? notes,
+  });
+  Future<Either<Failure, void>> submitLoungeReview({
+    required String loungeId,
+    required String bookingId,
+    required double rating,
+    String? comment,
+  });
 }
 
 class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSessionRepository {
@@ -29,8 +41,8 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
   }
 
   @override
-  Future<Either<Failure, void>> extendTime(String bookingId, DateTime newEndTime, double additionalCost) async {
-    return await callRepository(() => _remoteDataSource.extendTime(bookingId, newEndTime, additionalCost));
+  Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost) async {
+    return await callRepository(() => _remoteDataSource.extendTime(bookingId, additionalMinutes, additionalCost));
   }
 
   @override
@@ -41,5 +53,33 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
   @override
   Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(String loungeId) async {
     return await callRepository(() => _remoteDataSource.getLoungeMenu(loungeId));
+  }
+
+  @override
+  Future<Either<Failure, void>> requestStaffAssistance({
+    required String bookingId,
+    required String callType,
+    String? notes,
+  }) async {
+    return await callRepository(() => _remoteDataSource.requestStaffAssistance(
+      bookingId: bookingId,
+      callType: callType,
+      notes: notes,
+    ));
+  }
+
+  @override
+  Future<Either<Failure, void>> submitLoungeReview({
+    required String loungeId,
+    required String bookingId,
+    required double rating,
+    String? comment,
+  }) async {
+    return await callRepository(() => _remoteDataSource.submitLoungeReview(
+      loungeId: loungeId,
+      bookingId: bookingId,
+      rating: rating,
+      comment: comment,
+    ));
   }
 }

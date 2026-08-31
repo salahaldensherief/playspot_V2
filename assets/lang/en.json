@@ -226,6 +226,7 @@
   "discount": "Discount",
   "myRewards": "My Rewards",
   "availableVouchersLabel": "Available Vouchers",
+  "my_rewards": "My Rewards",
   "overlappingBookingError": "This time slot is already booked. Please choose another time or room.",
   "book": "Book",
   "playMode": "Play Mode",
@@ -252,5 +253,17 @@
   "warning": "Expiring soon",
   "overtime": "Overtime",
   "sessionDetails": "Session Details",
-  "station": "Station"
+  "station": "Station",
+  "callStaff": "Call Staff",
+  "assistance": "Assistance",
+  "cleaning": "Cleaning",
+  "controllerIssue": "Controller Issue",
+  "rateExperience": "Rate your experience",
+  "submitReview": "Submit Review",
+  "howWasYourSession": "How was your session at {}?",
+  "feedbackHint": "Write your feedback here (optional)...",
+  "sessionExtendedSuccess": "Session extended successfully",
+  "orderPlacedSuccess": "Order placed successfully",
+  "staffNotifiedSuccess": "Staff notified, they will assist you shortly",
+  "remaining": "REMAINING"
 }

@@ -52,10 +52,17 @@ class _MainScreenState extends State<MainScreen> {
     final now = DateTime.now();
     final lastRefresh = _lastRefreshTime[index];
 
-    // 🔄 تحقق هل التاب محتاج تحديث (أول مرة يدخله أو فات دقيقة) أو تحديث إجباري
-    if (force || lastRefresh == null || now.difference(lastRefresh) > _refreshThreshold) {
-      _refreshModuleData(index);
+    // 🔄 تحقق هل التاب محتاج تحديث (أول مرة يدخله أو فات دقيقة) أو تحديث إجباري مع احترام وقت الحد الأدنى (5 ثواني)
+    final bool shouldRefresh = force || 
+                               lastRefresh == null || 
+                               now.difference(lastRefresh) > _refreshThreshold;
+
+    // حماية إضافية: منع التحديث المتتالي في أقل من 5 ثواني حتى لو force: true
+    final bool recentlyRefreshed = lastRefresh != null && now.difference(lastRefresh) < const Duration(seconds: 5);
+
+    if (shouldRefresh && !recentlyRefreshed) {
       _lastRefreshTime[index] = now;
+      _refreshModuleData(index);
     }
 
     if (_selectedIndex != index) {
