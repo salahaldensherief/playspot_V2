@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
@@ -13,6 +14,9 @@ import 'package:playspot/features/profile/presentation/profile/profile_cubit.dar
 import 'package:playspot/features/profile/presentation/profile/profile_screen.dart';
 import 'package:playspot/features/my_bookings/presentation/my_bookings_screen.dart';
 
+import '../../../art_core/router/router_keys.dart';
+import '../../active_session/presentation/active_session_cubit.dart';
+import '../../active_session/presentation/active_session_state.dart';
 import '../../my_bookings/presentation/my_bookings_cubit.dart';
 
 class MainScreen extends StatefulWidget {
@@ -84,6 +88,8 @@ class _MainScreenState extends State<MainScreen> {
           context.read<ProfileCubit>().getUserData();
           break;
       }
+      // Always refresh active session check
+      context.read<ActiveSessionCubit>().loadActiveSession();
     } catch (e) {
       debugPrint("AUTO_REFRESH_ERROR: $e");
     }
@@ -113,6 +119,30 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      floatingActionButton: BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
+        buildWhen: (prev, curr) => prev.status != curr.status,
+        builder: (context, state) {
+          if (state.status != ActiveSessionStatus.loaded) return const SizedBox.shrink();
+          
+          return Container(
+            margin: EdgeInsets.only(bottom: 70.h),
+            child: FloatingActionButton.extended(
+              onPressed: () => context.pushNamed(RouterKeys.activeSession),
+              backgroundColor: AppColors.neonBlue,
+              icon: const Icon(TablerIcons.device_gamepad_2, color: Colors.black),
+              label: Text(
+                "Active Session",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Orbitron",
+                ),
+              ),
+            ),
+          );
+        },
+      ),
       body: Stack(
         children: [
           Positioned.fill(

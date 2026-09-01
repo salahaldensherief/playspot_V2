@@ -131,7 +131,10 @@ class AppRouter {
                 create: (context) => sl<ProfileCubit>()..getUserData(),
                 child: BlocProvider(
                   create: (context) => sl<NotificationsCubit>(),
-                  child: child,
+                  child: BlocProvider(
+                    create: (context) => sl<ActiveSessionCubit>()..loadActiveSession(),
+                    child: child,
+                  ),
                 ),
               ),
             ),
@@ -438,10 +441,7 @@ class AppRouter {
             pageBuilder: (context, state) => _buildPageWithTransition(
               context: context,
               state: state,
-              child: BlocProvider(
-                create: (context) => sl<ActiveSessionCubit>()..loadActiveSession(),
-                child: const ActiveSessionScreen(),
-              ),
+              child: const ActiveSessionScreen(),
             ),
           ),
           GoRoute(
