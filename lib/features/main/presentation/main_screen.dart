@@ -9,8 +9,8 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/home_screen.dart';
-import 'package:playspot/features/profile/presentation/profile_cubit.dart';
-import 'package:playspot/features/profile/presentation/profile_screen.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_screen.dart';
 import 'package:playspot/features/my_bookings/presentation/my_bookings_screen.dart';
 
 import '../../my_bookings/presentation/my_bookings_cubit.dart';

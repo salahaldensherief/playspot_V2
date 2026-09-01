@@ -1,5 +1,3 @@
-import '../../core/constants/app_config.dart';
-
 class AssetsManager {
   static const String _iconPath = "assets/icons";
   static const String _imagePath = "assets/images";

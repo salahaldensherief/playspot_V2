@@ -21,12 +21,12 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/core/utils/app_validators.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_state.dart';
 
 import '../../../art_core/widgets/layout/glass_container.dart';
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../core/cache/preference_manager.dart';
-import '../../profile/presentation/profile_cubit.dart';
-import '../../profile/presentation/profile_state.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 

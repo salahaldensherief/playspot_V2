@@ -5,11 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/cubit/locale_cubit.dart';
 import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
 
-import 'art_core/router/AppRouter.dart';
+import 'art_core/router/app_router.dart';
 import 'core/di.dart';
 import 'core/utils/app_bloc_observer.dart';
 
