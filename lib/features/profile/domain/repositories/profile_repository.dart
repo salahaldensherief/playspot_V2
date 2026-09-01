@@ -12,5 +12,8 @@ abstract class ProfileRepository {
   Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId);
   Future<Either<Failure, List<Map<String, dynamic>>>> getMyVouchers();
   Future<Either<Failure, Map<String, dynamic>>> validateVoucher(String voucherId);
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(String code);
   Future<Either<Failure, void>> consumeVoucher({required String voucherId, required String bookingId});
+  Future<void> updateFcmToken(String token);
+  Future<Either<Failure, void>> updateNotificationPreferences(Map<String, bool> preferences);
 }

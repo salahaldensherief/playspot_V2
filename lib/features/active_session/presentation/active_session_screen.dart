@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../data/models/active_session_model.dart';
 import 'active_session_cubit.dart';
 import 'active_session_state.dart';
@@ -24,26 +25,34 @@ class ActiveSessionScreen extends StatelessWidget {
           (prev.status != curr.status && curr.status == ActiveSessionStatus.empty),
       listener: (context, state) {
         if (state.extendStatus == ActionStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppStrings.sessionExtendedSuccess.tr()), backgroundColor: AppColors.success),
+          GameHudToast.show(
+            context,
+            AppStrings.sessionExtendedSuccess.tr(),
+            type: ToastType.success,
           );
         }
         if (state.orderStatus == ActionStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppStrings.orderPlacedSuccess.tr()), backgroundColor: AppColors.success),
+          GameHudToast.show(
+            context,
+            AppStrings.orderPlacedSuccess.tr(),
+            type: ToastType.success,
           );
         }
         if (state.staffRequestStatus == ActionStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppStrings.staffNotifiedSuccess.tr()), backgroundColor: AppColors.success),
+          GameHudToast.show(
+            context,
+            AppStrings.staffNotifiedSuccess.tr(),
+            type: ToastType.success,
           );
         }
         if (state.errorMessage != null &&
             (state.extendStatus == ActionStatus.error ||
                 state.orderStatus == ActionStatus.error ||
                 state.staffRequestStatus == ActionStatus.error)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage!), backgroundColor: AppColors.danger),
+          GameHudToast.show(
+            context,
+            state.errorMessage!,
+            type: ToastType.error,
           );
         }
 

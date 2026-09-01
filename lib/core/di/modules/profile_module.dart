@@ -4,6 +4,7 @@ import '../../../features/profile/domain/repositories/profile_repository.dart';
 import '../../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 import '../../../features/profile/presentation/profile/profile_cubit.dart';
+import '../../../features/profile/presentation/settings/notification_settings_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -19,5 +20,8 @@ void initProfileModule() {
   );
   sl.registerFactory<EditProfileCubit>(
     () => EditProfileCubit(sl(), sl()),
+  );
+  sl.registerFactory<NotificationSettingsCubit>(
+    () => NotificationSettingsCubit(sl(), sl()),
   );
 }

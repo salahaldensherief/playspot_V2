@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 
 import '../../../../art_core/app_strings.dart';
@@ -33,11 +34,10 @@ class CompleteProfileScreen extends StatelessWidget {
           context.goNamed(RouterKeys.home);
         }
         if (state.status == SignupStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage ?? AppStrings.somethingWentWrong.tr()),
-              backgroundColor: AppColors.danger,
-            ),
+          GameHudToast.show(
+            context,
+            state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+            type: ToastType.error,
           );
         }
       },

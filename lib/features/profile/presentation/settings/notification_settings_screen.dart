@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
@@ -8,51 +9,11 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
-import 'package:playspot/core/cache/preference_manager.dart';
-import 'package:playspot/core/di.dart';
+import 'notification_settings_cubit.dart';
+import 'notification_settings_state.dart';
 
-class NotificationSettingsScreen extends StatefulWidget {
+class NotificationSettingsScreen extends StatelessWidget {
   const NotificationSettingsScreen({super.key});
-
-  @override
-  State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
-}
-
-class _NotificationSettingsScreenState extends State<NotificationSettingsScreen> {
-  final _pref = sl<PreferenceManager>();
-  late bool _pushNotifications;
-  late bool _bookingUpdates;
-  late bool _offersPromotions;
-  late bool _systemStatus;
-
-  @override
-  void initState() {
-    super.initState();
-    _pushNotifications = _pref.pushEnabled();
-    _bookingUpdates = _pref.bookingUpdatesEnabled();
-    _offersPromotions = _pref.offersEnabled();
-    _systemStatus = _pref.systemNotifEnabled();
-  }
-
-  void _updatePush(bool val) {
-    setState(() => _pushNotifications = val);
-    _pref.savePushEnabled(val);
-  }
-
-  void _updateBooking(bool val) {
-    setState(() => _bookingUpdates = val);
-    _pref.saveBookingUpdatesEnabled(val);
-  }
-
-  void _updateOffers(bool val) {
-    setState(() => _offersPromotions = val);
-    _pref.saveOffersEnabled(val);
-  }
-
-  void _updateSystem(bool val) {
-    setState(() => _systemStatus = val);
-    _pref.saveSystemNotifEnabled(val);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,71 +35,96 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             children: [
               _buildAppBar(context),
               Expanded(
-                child: ListView(
-                  padding: 20.allPadding,
-                  children: [
-                    _buildSettingsGroup(
-                      title: AppStrings.general.tr(),
+                child: BlocBuilder<NotificationSettingsCubit, NotificationSettingsState>(
+                  builder: (context, state) {
+                    return ListView(
+                      padding: 20.allPadding,
                       children: [
-                        _buildSettingTile(
-                          icon: TablerIcons.bell,
-                          title: AppStrings.pushNotifications.tr(),
-                          subtitle: AppStrings.pushNotificationsDesc.tr(),
-                          value: _pushNotifications,
-                          onChanged: _updatePush,
+                        _buildSettingsGroup(
+                          context: context,
+                          title: AppStrings.general.tr(),
+                          children: [
+                            _buildSettingTile(
+                              icon: TablerIcons.bell,
+                              title: AppStrings.pushNotifications.tr(),
+                              subtitle: AppStrings.pushNotificationsDesc.tr(),
+                              value: state.pushNotificationsEnabled,
+                              onChanged: (val) => context
+                                  .read<NotificationSettingsCubit>()
+                                  .togglePreference('push', val),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    
-                    AnimatedOpacity(
-                      duration: const Duration(milliseconds: 400),
-                      opacity: _pushNotifications ? 1.0 : 0.0,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 400),
-                        height: _pushNotifications ? null : 0,
-                        curve: Curves.easeInOut,
-                        child: SingleChildScrollView(
-                          physics: const NeverScrollableScrollPhysics(),
-                          child: Column(
-                            children: [
-                              24.verticalSpace,
-                              _buildSettingsGroup(
-                                title: AppStrings.categories.tr(),
+                        
+                        AnimatedOpacity(
+                          duration: const Duration(milliseconds: 400),
+                          opacity: state.pushNotificationsEnabled ? 1.0 : 0.0,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 400),
+                            height: state.pushNotificationsEnabled ? null : 0,
+                            curve: Curves.easeInOut,
+                            child: SingleChildScrollView(
+                              physics: const NeverScrollableScrollPhysics(),
+                              child: Column(
                                 children: [
-                                  _buildSettingTile(
-                                    icon: TablerIcons.calendar_check,
-                                    title: AppStrings.bookingUpdates.tr(),
-                                    subtitle: AppStrings.bookingUpdatesDesc.tr(),
-                                    value: _bookingUpdates,
-                                    onChanged: _updateBooking,
-                                    isEnabled: _pushNotifications,
-                                  ),
-                                  _buildSettingTile(
-                                    icon: TablerIcons.discount_2,
-                                    title: AppStrings.offersPromotions.tr(),
-                                    subtitle: AppStrings.offersPromotionsDesc.tr(),
-                                    value: _offersPromotions,
-                                    onChanged: _updateOffers,
-                                    showBorder: true,
-                                    isEnabled: _pushNotifications,
-                                  ),
-                                  _buildSettingTile(
-                                    icon: TablerIcons.info_circle,
-                                    title: AppStrings.systemNotifications.tr(),
-                                    subtitle: AppStrings.systemNotificationsDesc.tr(),
-                                    value: _systemStatus,
-                                    onChanged: _updateSystem,
-                                    showBorder: true,
-                                    isEnabled: _pushNotifications,
+                                  24.verticalSpace,
+                                  _buildSettingsGroup(
+                                    context: context,
+                                    title: AppStrings.categories.tr(),
+                                    children: [
+                                      _buildSettingTile(
+                                        icon: TablerIcons.calendar_check,
+                                        title: AppStrings.bookingUpdates.tr(),
+                                        subtitle: AppStrings.bookingUpdatesDesc.tr(),
+                                        value: state.bookingUpdates,
+                                        onChanged: (val) => context
+                                            .read<NotificationSettingsCubit>()
+                                            .togglePreference('booking', val),
+                                        isEnabled: state.pushNotificationsEnabled,
+                                      ),
+                                      _buildSettingTile(
+                                        icon: TablerIcons.discount_2,
+                                        title: AppStrings.offersPromotions.tr(),
+                                        subtitle: AppStrings.offersPromotionsDesc.tr(),
+                                        value: state.offersPromotions,
+                                        onChanged: (val) => context
+                                            .read<NotificationSettingsCubit>()
+                                            .togglePreference('offers', val),
+                                        showBorder: true,
+                                        isEnabled: state.pushNotificationsEnabled,
+                                      ),
+                                      _buildSettingTile(
+                                        icon: TablerIcons.trophy,
+                                        title: AppStrings.tournamentsAndEvents.tr(),
+                                        subtitle: AppStrings.tournamentsAndEventsDesc.tr(),
+                                        value: state.tournamentsAndEvents,
+                                        onChanged: (val) => context
+                                            .read<NotificationSettingsCubit>()
+                                            .togglePreference('tournaments', val),
+                                        showBorder: true,
+                                        isEnabled: state.pushNotificationsEnabled,
+                                      ),
+                                      _buildSettingTile(
+                                        icon: TablerIcons.info_circle,
+                                        title: AppStrings.systemNotifications.tr(),
+                                        subtitle: AppStrings.systemNotificationsDesc.tr(),
+                                        value: state.systemStatus,
+                                        onChanged: (val) => context
+                                            .read<NotificationSettingsCubit>()
+                                            .togglePreference('system', val),
+                                        showBorder: true,
+                                        isEnabled: state.pushNotificationsEnabled,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -173,7 +159,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
   }
 
-  Widget _buildSettingsGroup({required String title, required List<Widget> children}) {
+  Widget _buildSettingsGroup({required BuildContext context, required String title, required List<Widget> children}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -189,6 +189,8 @@ class AppStrings {
   static const String offersPromotionsDesc = "offersPromotionsDesc";
   static const String systemNotifications = "systemNotifications";
   static const String systemNotificationsDesc = "systemNotificationsDesc";
+  static const String tournamentsAndEvents = "tournamentsAndEvents";
+  static const String tournamentsAndEventsDesc = "tournamentsAndEventsDesc";
   static const String technicalSetup = "technicalSetup";
   static const String roomFeatures = "roomFeatures";
   static const String roomPhotos = "roomPhotos";
@@ -238,4 +240,7 @@ class AppStrings {
   static const String extendTime = "extendTime";
   static const String activeSession = "activeSession";
   static const String orderExtras = "orderExtras";
+  static const String comingSoon = "comingSoon";
+  static const String pointsHistory = "pointsHistory";
+  static const String settings = "settings";
 }

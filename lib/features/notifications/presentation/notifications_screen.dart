@@ -9,6 +9,10 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:flutter/services.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../data/models/notification_model.dart';
 import 'notifications_cubit.dart';
 import 'notifications_state.dart';
@@ -32,6 +36,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         context.read<NotificationsCubit>().getNotifications(lang);
       }
     });
+  }
+
+  void _handleNotificationTap(NotificationModel notification) {
+    context.read<NotificationsCubit>().markAsRead(notification.id);
+
+    final type = notification.type;
+    final data = notification.data ?? {};
+
+    if (type == NotificationType.booking) {
+      final bookingId = data['booking_id'] ?? data['id'] ?? '';
+      if (bookingId.isNotEmpty) {
+        context.pushNamed(RouterKeys.bookingDetails, pathParameters: {'id': bookingId.toString()});
+      } else {
+        context.goNamed(RouterKeys.home, extra: 1);
+      }
+    } else if (type == NotificationType.offer) {
+      context.goNamed(RouterKeys.home, extra: 2); // Go to Profile then Vouchers? Or just Vouchers
+      context.pushNamed(RouterKeys.myVouchers);
+      
+      final promoCode = data['promo_code'] ?? data['code'];
+      if (promoCode != null) {
+        Clipboard.setData(ClipboardData(text: promoCode.toString()));
+        GameHudToast.show(
+          context,
+          "Promo code copied: $promoCode",
+          type: ToastType.success,
+        );
+      } else {
+        // Fallback: search in body
+        final codeMatch = RegExp(r'[A-Z0-9]{5,10}').firstMatch(notification.body);
+        if (codeMatch != null) {
+          final matchedCode = codeMatch.group(0) ?? "";
+          Clipboard.setData(ClipboardData(text: matchedCode));
+          GameHudToast.show(
+            context,
+            "Promo code copied: $matchedCode",
+            type: ToastType.success,
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -76,7 +121,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         final notification = state.notifications[index];
                         return NotificationItem(
                           notification: notification,
-                          onTap: () => context.read<NotificationsCubit>().markAsRead(notification.id),
+                          onTap: () => _handleNotificationTap(notification),
                         );
                       },
                     );

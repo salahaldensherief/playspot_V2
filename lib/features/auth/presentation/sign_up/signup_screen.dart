@@ -13,6 +13,7 @@ import 'widgets/signup_form.dart';
 import 'widgets/signup_social_section.dart';
 import 'widgets/signup_button.dart';
 
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -84,11 +85,10 @@ class SignUpScreen extends StatelessWidget {
     }
 
     if (state.status == SignupStatus.failure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.errorMessage ?? AppStrings.somethingWentWrong.tr()),
-          backgroundColor: AppColors.danger,
-        ),
+      GameHudToast.show(
+        context,
+        state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+        type: ToastType.error,
       );
     }
   }

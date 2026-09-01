@@ -74,7 +74,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
   Future<void> loadMenu(String loungeId) async {
     final result = await _repo.getLoungeMenu(loungeId);
     result.fold(
-      (failure) => null, // Silently fail menu for now
+      (failure) => emit(state.copyWith(
+        errorMessage: "Could not load menu: ${failure.message}",
+      )),
       (menu) => emit(state.copyWith(menu: menu)),
     );
   }

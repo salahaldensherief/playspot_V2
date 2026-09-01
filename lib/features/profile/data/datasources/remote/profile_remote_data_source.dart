@@ -15,7 +15,10 @@ abstract class ProfileRemoteDataSource {
   Future<Map<String, dynamic>> redeemPoints(String optionId);
   Future<List<Map<String, dynamic>>> getMyVouchers();
   Future<Map<String, dynamic>> validateVoucher(String voucherId);
+  Future<Map<String, dynamic>> validateVoucherByCode(String code);
   Future<void> consumeVoucher({required String voucherId, required String bookingId});
+  Future<void> updateFcmToken(String token);
+  Future<void> updateNotificationPreferences(Map<String, bool> preferences);
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -47,6 +50,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final response = await _supabase.rpc('validate_voucher', params: {
         'p_voucher_id': voucherId,
+      });
+      return Map<String, dynamic>.from(response);
+    } catch (e) {
+      return {'valid': false, 'error': e.toString()};
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> validateVoucherByCode(String code) async {
+    try {
+      final response = await _supabase.rpc('validate_voucher_by_code', params: {
+        'p_code': code,
       });
       return Map<String, dynamic>.from(response);
     } catch (e) {
@@ -155,5 +170,25 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     final user = _supabase.auth.currentUser;
     if (user == null) return null;
     return UserModel.fromSupabaseUser(user.toJson());
+  }
+
+  @override
+  Future<void> updateFcmToken(String token) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return;
+      await _supabase.from('users').update({'fcm_token': token}).eq('id', user.id);
+    } catch (e) {
+      debugPrint(' [Profile] Update FCM token error: $e');
+    }
+  }
+
+  @override
+  Future<void> updateNotificationPreferences(Map<String, bool> preferences) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+    await _supabase.from('users').update({
+      'notification_preferences': preferences,
+    }).eq('id', user.id);
   }
 }

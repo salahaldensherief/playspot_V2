@@ -44,6 +44,11 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
     return await callRepository(() => _remoteSource.validateVoucher(voucherId));
   }
 
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(String code) async {
+    return await callRepository(() => _remoteSource.validateVoucherByCode(code));
+  }
+
   void _saveUserData(UserModel user) {
     _preferenceManager.saveUserId(user.id);
     _preferenceManager.saveFullName(user.name);
@@ -71,5 +76,15 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
       _saveUserData(user);
     }
     return user;
+  }
+
+  @override
+  Future<void> updateFcmToken(String token) async {
+    await _remoteSource.updateFcmToken(token);
+  }
+
+  @override
+  Future<Either<Failure, void>> updateNotificationPreferences(Map<String, bool> preferences) async {
+    return await callRepository(() => _remoteSource.updateNotificationPreferences(preferences));
   }
 }

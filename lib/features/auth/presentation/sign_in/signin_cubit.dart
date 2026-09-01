@@ -3,16 +3,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'signin_state.dart';
 
 import '../../domain/repositories/auth_repository.dart';
-
+import '../../../profile/domain/repositories/profile_repository.dart';
+import '../../../../core/notifications/push_notification_service.dart';
 
 class SignInCubit extends Cubit<LoginState> {
   final AuthRepository _authRepository;
+  final ProfileRepository _profileRepository;
 
   final TextEditingController emailController    = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  SignInCubit(this._authRepository) : super(LoginState.init());
+  SignInCubit(this._authRepository, this._profileRepository) : super(LoginState.init());
+
+  Future<void> _onLoginSuccess() async {
+    final token = await PushNotificationService.instance.getToken();
+    if (token != null) {
+      await _profileRepository.updateFcmToken(token);
+    }
+  }
 
   Future<void> signInWithEmail({
     required String email,
@@ -30,10 +39,13 @@ class SignInCubit extends Cubit<LoginState> {
         status: LoginStatus.failure,
         errorMessage: failure.message,
       )),
-      (user) => emit(state.copyWith(
-        status: LoginStatus.success,
-        params: user,
-      )),
+      (user) async {
+        await _onLoginSuccess();
+        emit(state.copyWith(
+          status: LoginStatus.success,
+          params: user,
+        ));
+      },
     );
   }
 
@@ -47,12 +59,15 @@ class SignInCubit extends Cubit<LoginState> {
         status: LoginStatus.failure,
         errorMessage: failure.message,
       )),
-      (user) => emit(state.copyWith(
-        status: user.isNewUser
-            ? LoginStatus.successSocial
-            : LoginStatus.success,
-        params: user,
-      )),
+      (user) async {
+        if (!user.isNewUser) await _onLoginSuccess();
+        emit(state.copyWith(
+          status: user.isNewUser
+              ? LoginStatus.successSocial
+              : LoginStatus.success,
+          params: user,
+        ));
+      },
     );
   }
 
@@ -66,12 +81,15 @@ class SignInCubit extends Cubit<LoginState> {
         status: LoginStatus.failure,
         errorMessage: failure.message,
       )),
-      (user) => emit(state.copyWith(
-        status: user.isNewUser
-            ? LoginStatus.successSocial
-            : LoginStatus.success,
-        params: user,
-      )),
+      (user) async {
+        if (!user.isNewUser) await _onLoginSuccess();
+        emit(state.copyWith(
+          status: user.isNewUser
+              ? LoginStatus.successSocial
+              : LoginStatus.success,
+          params: user,
+        ));
+      },
     );
   }
 

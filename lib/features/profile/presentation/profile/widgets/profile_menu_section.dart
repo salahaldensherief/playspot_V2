@@ -8,6 +8,7 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 
 
@@ -27,31 +28,50 @@ class ProfileMenuSection extends StatelessWidget {
           _buildMenuItem(
             icon: TablerIcons.calendar,
             title: AppStrings.myBookings.tr(),
-            onTap: () => context.pushNamed(RouterKeys.myBookings),
+            onTap: () => context.goNamed(RouterKeys.home, extra: 1),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.heart,
             title: AppStrings.favorite.tr(),
-            onTap: () => context.pushNamed(RouterKeys.favorites),
+            onTap: () => context.goNamed(RouterKeys.favorites),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.stars,
             title: AppStrings.redeemPoints.tr(),
-            onTap: () => context.pushNamed(RouterKeys.redeemPoints),
+            onTap: () => context.goNamed(RouterKeys.redeemPoints),
+            showBorder: true,
+          ),
+          _buildMenuItem(
+            icon: TablerIcons.history,
+            title: AppStrings.pointsHistory.tr(),
+            onTap: () => _showComingSoon(context),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.ticket,
             title: "my_rewards".tr(),
-            onTap: () => context.pushNamed(RouterKeys.myVouchers),
+            onTap: () => context.goNamed(RouterKeys.myVouchers),
+            showBorder: true,
+          ),
+          _buildMenuItem(
+            icon: TablerIcons.device_gamepad_2,
+            title: AppStrings.activeSession.tr(),
+            subtitle: "Try the active gaming session screen",
+            onTap: () => context.pushNamed(RouterKeys.activeSession),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.credit_card,
             title: AppStrings.paymentMethods.tr(),
-            onTap: () {},
+            onTap: () => _showComingSoon(context),
+            showBorder: true,
+          ),
+          _buildMenuItem(
+            icon: TablerIcons.settings,
+            title: AppStrings.settings.tr(),
+            onTap: () => _showComingSoon(context),
             showBorder: true,
           ),
           _buildMenuItem(
@@ -70,7 +90,7 @@ class ProfileMenuSection extends StatelessWidget {
           _buildMenuItem(
             icon: TablerIcons.help,
             title: AppStrings.helpSupport.tr(),
-            onTap: () {},
+            onTap: () => _showComingSoon(context),
             showBorder: true,
           ),
           _buildMenuItem(
@@ -81,6 +101,14 @@ class ProfileMenuSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context) {
+    GameHudToast.show(
+      context,
+      AppStrings.comingSoon.tr(),
+      type: ToastType.info,
     );
   }
 

@@ -15,12 +15,11 @@ import 'package:playspot/art_core/widgets/layout/app_divider.dart';
 import 'package:playspot/art_core/widgets/layout/info_row.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
-import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/core/utils/app_validators.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_state.dart';
 
@@ -44,6 +43,13 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _voucherController = TextEditingController();
+
+  @override
+  void dispose() {
+    _voucherController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +62,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             if (state.status == CheckoutStatus.success) {
               _showSuccessDialog(context);
             } else if (state.status == CheckoutStatus.failure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text(
-                        state.errorMessage ?? AppStrings.somethingWentWrong.tr())),
+              GameHudToast.show(
+                context,
+                state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                type: ToastType.error,
               );
             }
           },
@@ -123,7 +129,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             .toList();
 
         return BlocBuilder<CheckoutCubit, CheckoutState>(
-          buildWhen: (previous, current) => previous.selectedVoucher != current.selectedVoucher,
+          buildWhen: (previous, current) => previous.selectedVoucher != current.selectedVoucher || previous.status != current.status,
           builder: (context, checkoutState) {
             final isVoucherApplied = checkoutState.selectedVoucher != null;
 
@@ -141,7 +147,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                     if (isVoucherApplied)
                       TextButton(
-                        onPressed: () => context.read<CheckoutCubit>().removeVoucher(),
+                        onPressed: () {
+                          context.read<CheckoutCubit>().removeVoucher();
+                          _voucherController.clear();
+                        },
                         child: AppText(
                           text: AppStrings.remove.tr(),
                           color: AppColors.danger,
@@ -153,10 +162,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 SizedBox(height: 12.h),
                 if (isVoucherApplied)
                   _buildAppliedVoucherCard(checkoutState.selectedVoucher!)
-                else if (availableVouchers.isEmpty)
-                  _buildEmptyVoucherPlaceholder()
-                else
-                  _buildVoucherPicker(context, availableVouchers),
+                else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppTextField(
+                          controller: _voucherController,
+                          hint: AppStrings.referralCodeHint.tr(),
+                          onChanged: (v) => setState(() {}),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      AppButton(
+                        content: ButtonContent(label: AppStrings.redeem.tr()),
+                        buttonConfig: ButtonConfig.gradient(
+                          gradient: AppColors.primaryGradient,
+                          width: 80.w,
+                          height: 48.h,
+                          borderRadius: 12.r,
+                        ),
+                        behavior: ButtonBehavior.tap(
+                          isEnabled: _voucherController.text.isNotEmpty && checkoutState.status != CheckoutStatus.loading,
+                          onTap: () => context.read<CheckoutCubit>().applyVoucher(_voucherController.text.trim()),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (availableVouchers.isNotEmpty) ...[
+                    SizedBox(height: 12.h),
+                    _buildVoucherPicker(context, availableVouchers),
+                  ],
+                ],
               ],
             );
           },
@@ -192,26 +228,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const Spacer(),
             const Icon(Icons.check_circle, color: AppColors.success),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyVoucherPlaceholder() {
-    return GlassContainer(
-      borderRadius: 15,
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Row(
-          children: [
-            Icon(Icons.confirmation_number_outlined, color: AppColors.textSecondary),
-            SizedBox(width: 12.w),
-            AppText(
-              text: AppStrings.noVouchersAvailable.tr(),
-              fontSize: 14.sp,
-              color: AppColors.textSecondary,
-            ),
           ],
         ),
       ),
@@ -266,12 +282,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: vouchers.length,
-                separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                separatorBuilder: (_, index) => SizedBox(height: 12.h),
                 itemBuilder: (context, index) {
                   final voucher = vouchers[index];
                   return GestureDetector(
                     onTap: () {
-                      checkoutCubit.applyVoucher(voucher);
+                      checkoutCubit.selectVoucher(voucher);
                       Navigator.pop(sheetContext);
                     },
                     child: GlassContainer(

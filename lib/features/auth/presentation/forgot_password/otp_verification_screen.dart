@@ -15,6 +15,7 @@ import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/otp/app_otp_field.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/core/utils/app_validators.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../widgets/auth_app_bar.dart';
 
 import 'forgot_password_cubit.dart';
@@ -33,11 +34,10 @@ class OTPVerificationScreen extends StatelessWidget {
           context.goNamed(RouterKeys.resetPassword);
         }
         if (state.status.isFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage ?? 'Error'),
-              backgroundColor: AppColors.danger,
-            ),
+          GameHudToast.show(
+            context,
+            state.errorMessage ?? 'Error',
+            type: ToastType.error,
           );
         }
       },

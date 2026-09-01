@@ -13,6 +13,7 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import 'edit_profile_cubit.dart';
 import 'edit_profile_state.dart';
@@ -66,21 +67,24 @@ class EditProfileScreen extends StatelessWidget {
 
   void _handleStateChange(BuildContext context, EditProfileState state) {
     if (state.status == EditProfileStatus.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+      GameHudToast.show(
+        context,
+        'Profile updated successfully',
+        type: ToastType.success,
       );
       Navigator.pop(context, true);
     } else if (state.status == EditProfileStatus.accountDeleted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account deleted successfully')),
+      GameHudToast.show(
+        context,
+        'Account deleted successfully',
+        type: ToastType.success,
       );
       context.goNamed(RouterKeys.signIn);
     } else if (state.status == EditProfileStatus.error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.errorMessage ?? 'Error updating profile'),
-          backgroundColor: AppColors.danger,
-        ),
+      GameHudToast.show(
+        context,
+        state.errorMessage ?? 'Error updating profile',
+        type: ToastType.error,
       );
     }
   }

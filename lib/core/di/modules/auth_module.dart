@@ -22,7 +22,7 @@ void initAuthModule() {
   );
 
   // Cubits
-  sl.registerFactory<SignInCubit>(() => SignInCubit(sl()));
-  sl.registerFactory<SignupCubit>(() => SignupCubit(sl()));
+  sl.registerFactory<SignInCubit>(() => SignInCubit(sl(), sl()));
+  sl.registerFactory<SignupCubit>(() => SignupCubit(sl(), sl()));
   sl.registerLazySingleton<ForgotPasswordCubit>(() => ForgotPasswordCubit(sl()));
 }

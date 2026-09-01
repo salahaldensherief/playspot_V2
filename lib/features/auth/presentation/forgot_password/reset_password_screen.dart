@@ -13,6 +13,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../widgets/auth_app_bar.dart';
 
 import 'forgot_password_cubit.dart';
@@ -28,20 +29,18 @@ class ResetPasswordScreen extends StatelessWidget {
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status.isSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Password reset successfully'),
-              backgroundColor: AppColors.primary,
-            ),
+          GameHudToast.show(
+            context,
+            'Password reset successfully',
+            type: ToastType.success,
           );
           context.goNamed(RouterKeys.signIn);
         }
         if (state.status.isFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage ?? 'Error'),
-              backgroundColor: AppColors.danger,
-            ),
+          GameHudToast.show(
+            context,
+            state.errorMessage ?? 'Error',
+            type: ToastType.error,
           );
         }
       },

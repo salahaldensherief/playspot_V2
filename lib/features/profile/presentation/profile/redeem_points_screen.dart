@@ -12,6 +12,7 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/features/profile/data/models/redemption_option_model.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
@@ -40,8 +41,10 @@ class RedeemPointsScreen extends StatelessWidget {
             confirmText: AppStrings.continueText.tr(),
           );
         } else if (state.status == ProfileStatus.error && state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage!)),
+          GameHudToast.show(
+            context,
+            state.errorMessage!,
+            type: ToastType.error,
           );
         }
       },

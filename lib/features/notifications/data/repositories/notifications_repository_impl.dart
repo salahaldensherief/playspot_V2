@@ -24,4 +24,9 @@ class NotificationsRepositoryImpl with RepositoryHelper implements Notifications
   Future<Either<Failure, void>> markAllAsRead() async {
     return await callRepository(() => _remoteDataSource.markAllAsRead());
   }
+
+  @override
+  Stream<Map<String, dynamic>> subscribeToNewNotifications() {
+    return _remoteDataSource.subscribeToNewNotifications();
+  }
 }

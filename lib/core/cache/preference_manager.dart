@@ -131,6 +131,9 @@ class PreferenceManager {
   Future<void> saveSystemNotifEnabled(bool val) => _box.write(CachingKey.SYSTEM_NOTIF_ENABLED, val);
   bool systemNotifEnabled() => _box.read(CachingKey.SYSTEM_NOTIF_ENABLED) as bool? ?? true;
 
+  Future<void> saveTournamentsEnabled(bool val) => _box.write(CachingKey.TOURNAMENTS_ENABLED, val);
+  bool tournamentsEnabled() => _box.read(CachingKey.TOURNAMENTS_ENABLED) as bool? ?? true;
+
   bool? isGuestUser() => authToken().isEmpty;
 
   // void saveActiveCountry(ActiveCountryModel activeCountry) =>

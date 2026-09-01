@@ -210,6 +210,8 @@
   "offersPromotionsDesc": "New discounts and rewards",
   "systemNotifications": "System Notifications",
   "systemNotificationsDesc": "Important app announcements",
+  "tournamentsAndEvents": "Tournaments & Events",
+  "tournamentsAndEventsDesc": "Local championships and community events",
   "technicalSetup": "TECHNICAL SETUP",
   "roomFeatures": "ROOM FEATURES",
   "roomPhotos": "ROOM PHOTOS",
@@ -265,5 +267,8 @@
   "sessionExtendedSuccess": "Session extended successfully",
   "orderPlacedSuccess": "Order placed successfully",
   "staffNotifiedSuccess": "Staff notified, they will assist you shortly",
-  "remaining": "REMAINING"
+  "remaining": "REMAINING",
+  "comingSoon": "Feature coming soon!",
+  "pointsHistory": "Points History",
+  "settings": "Settings"
 }

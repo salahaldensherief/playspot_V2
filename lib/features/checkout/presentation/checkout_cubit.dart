@@ -14,7 +14,36 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     emit(state.copyWith(selectedMethod: method));
   }
 
-  Future<void> applyVoucher(Map<String, dynamic> voucher) async {
+  Future<void> applyVoucher(String code) async {
+    if (code.isEmpty) return;
+    emit(state.copyWith(status: CheckoutStatus.loading));
+    final result = await _profileRepository.validateVoucherByCode(code);
+    
+    result.fold(
+      (failure) => emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: failure.message)),
+      (data) {
+        if (data['valid'] == true) {
+          double discount = 0;
+          if (data['reward_type'] == 'discount_fixed') {
+            discount = (data['reward_value'] as num).toDouble();
+          } else if (data['reward_type'] == 'free_hour') {
+             // In case of free hour, we might need more logic or just fixed value
+             discount = (data['reward_value'] as num?)?.toDouble() ?? 0;
+          }
+          
+          emit(state.copyWith(
+            status: CheckoutStatus.initial,
+            selectedVoucher: Map<String, dynamic>.from(data),
+            discountAmount: discount,
+          ));
+        } else {
+          emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: "Voucher invalid"));
+        }
+      },
+    );
+  }
+
+  Future<void> selectVoucher(Map<String, dynamic> voucher) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
     final result = await _profileRepository.validateVoucher(voucher['id']);
     
@@ -26,7 +55,6 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           if (data['reward_type'] == 'discount_fixed') {
             discount = (data['reward_value'] as num).toDouble();
           }
-          // Note: Backend handles the exact value, we just display it
           
           emit(state.copyWith(
             status: CheckoutStatus.initial,

@@ -6,4 +6,5 @@ abstract class NotificationsRepository {
   Future<Either<Failure, List<NotificationModel>>> getNotifications(String lang);
   Future<Either<Failure, void>> markAsRead(String notificationId);
   Future<Either<Failure, void>> markAllAsRead();
+  Stream<Map<String, dynamic>> subscribeToNewNotifications();
 }

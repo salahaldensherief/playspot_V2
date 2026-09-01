@@ -8,6 +8,7 @@ import 'package:playspot/features/auth/presentation/sign_up/signup_screen.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:playspot/features/profile/presentation/settings/notification_settings_cubit.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 import '../../core/di.dart';
@@ -45,11 +46,47 @@ import '../../features/profile/presentation/profile/redeem_points_screen.dart';
 import '../../features/profile/presentation/profile/my_vouchers_screen.dart';
 import '../../features/active_session/presentation/active_session_screen.dart';
 import '../../features/active_session/presentation/active_session_cubit.dart';
+import 'package:flutter/services.dart';
+import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
+
+  AppRouter() {
+    _setupNotificationHandler();
+  }
+
+  void _setupNotificationHandler() {
+    NotificationRouter.configure((data) {
+      final type = data['type']?.toString();
+      final id = data['id']?.toString() ?? data['booking_id']?.toString();
+      final code = data['code']?.toString() ?? data['promo_code']?.toString();
+
+      if (type == 'booking' && id != null) {
+        router.pushNamed(RouterKeys.bookingDetails, pathParameters: {'id': id});
+        return true;
+      }
+
+      if (type == 'offer' || type == 'promo') {
+        router.pushNamed(RouterKeys.myVouchers);
+        if (code != null) {
+          Clipboard.setData(ClipboardData(text: code));
+        }
+        return true;
+      }
+
+      if (type == 'loyalty') {
+        // Assuming loyalty points history screen exists or falls back
+        router.goNamed(RouterKeys.home, extra: 2); // Go to Profile
+        // If there's a specific route for points history, push it here
+        return true;
+      }
+
+      return false;
+    });
+  }
 
   static CustomTransitionPage _buildPageWithTransition<T>({
     required BuildContext context,
@@ -365,7 +402,10 @@ class AppRouter {
             pageBuilder: (context, state) => _buildPageWithTransition(
               context: context,
               state: state,
-              child: const NotificationSettingsScreen(),
+              child: BlocProvider(
+                create: (context) => sl<NotificationSettingsCubit>(),
+                child: const NotificationSettingsScreen(),
+              ),
             ),
           ),
           GoRoute(
@@ -402,6 +442,15 @@ class AppRouter {
                 create: (context) => sl<ActiveSessionCubit>()..loadActiveSession(),
                 child: const ActiveSessionScreen(),
               ),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.bookingDetails,
+            name: RouterKeys.bookingDetails,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const MyBookingsScreen(), // Fallback to MyBookings
             ),
           )
         ],

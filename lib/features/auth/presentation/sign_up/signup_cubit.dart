@@ -6,10 +6,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:playspot/features/auth/data/models/auth_params.dart';
 import 'signup_state.dart';
 import '../../domain/repositories/auth_repository.dart';
-
+import '../../../profile/domain/repositories/profile_repository.dart';
+import '../../../../core/notifications/push_notification_service.dart';
 
 class SignupCubit extends Cubit<SignupState> {
   final AuthRepository _authRepository;
+  final ProfileRepository _profileRepository;
 
   final TextEditingController nameController     = TextEditingController();
   final TextEditingController emailController    = TextEditingController();
@@ -20,7 +22,14 @@ class SignupCubit extends Cubit<SignupState> {
 
   File? avatarFile;
 
-  SignupCubit(this._authRepository) : super(SignupState.init());
+  SignupCubit(this._authRepository, this._profileRepository) : super(SignupState.init());
+
+  Future<void> _onSignupSuccess() async {
+    final token = await PushNotificationService.instance.getToken();
+    if (token != null) {
+      await _profileRepository.updateFcmToken(token);
+    }
+  }
 
   void setUserId(String id) {
     emit(state.copyWith(
@@ -67,8 +76,9 @@ class SignupCubit extends Cubit<SignupState> {
           errorMessage: failure.message,
         ));
       },
-      (user) {
+      (user) async {
         log("SIGNUP_CUBIT: Signup success for user: ${user.id}");
+        await _onSignupSuccess();
         emit(state.copyWith(
           status: SignupStatus.success,
           params: user,
@@ -91,8 +101,9 @@ class SignupCubit extends Cubit<SignupState> {
           errorMessage: failure.message,
         ));
       },
-      (user) {
+      (user) async {
         log("SIGNUP_CUBIT: Google sign-in success. isNewUser: ${user.isNewUser}");
+        if (!user.isNewUser) await _onSignupSuccess();
         emit(state.copyWith(
           status: user.isNewUser
               ? SignupStatus.successSocial
@@ -117,8 +128,9 @@ class SignupCubit extends Cubit<SignupState> {
           errorMessage: failure.message,
         ));
       },
-      (user) {
+      (user) async {
         log("SIGNUP_CUBIT: Facebook sign-in success. isNewUser: ${user.isNewUser}");
+        if (!user.isNewUser) await _onSignupSuccess();
         emit(state.copyWith(
           status: user.isNewUser
               ? SignupStatus.successSocial
@@ -148,8 +160,9 @@ class SignupCubit extends Cubit<SignupState> {
           errorMessage: failure.message,
         ));
       },
-      (user) {
+      (user) async {
         log("SIGNUP_CUBIT: Profile completed successfully");
+        await _onSignupSuccess();
         emit(state.copyWith(
           status: SignupStatus.success,
           params: user,
