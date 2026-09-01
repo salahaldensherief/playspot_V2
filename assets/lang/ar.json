@@ -270,5 +270,10 @@
   "remaining": "متبقي",
   "comingSoon": "هذه الميزة ستتوفر قريباً!",
   "pointsHistory": "سجل النقاط",
-  "settings": "الإعدادات"
+  "settings": "الإعدادات",
+  "directDiscountAvailable": "خصم مباشر متاح!",
+  "getDiscountNow": "احصل على خصم {}% على حجزك الآن",
+  "roomNotFound": "الغرفة غير موجودة",
+  "loungeNotFound": "الصالة غير موجودة",
+  "activeOffer": "عرض نشط"
 }

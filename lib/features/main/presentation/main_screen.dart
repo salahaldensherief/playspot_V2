@@ -79,7 +79,7 @@ class _MainScreenState extends State<MainScreen> {
     try {
       switch (index) {
         case 0:
-          context.read<HomeCubit>().getHomeData();
+          context.read<HomeCubit>().refreshHome();
           break;
         case 1:
           context.read<MyBookingsCubit>().getMyBookings();

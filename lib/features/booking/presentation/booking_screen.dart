@@ -220,8 +220,8 @@ class _BookingScreenState extends State<BookingScreen> {
             0, (sum, item) => sum + ((item['price'] as num).toDouble() * (item['quantity'] as num).toDouble()));
         
         final appliedRate = state.playMode == PlayMode.single 
-            ? widget.params.room.pricePerHourSingle 
-            : widget.params.room.pricePerHourMulti;
+            ? widget.params.room.effectivePriceSingle 
+            : widget.params.room.effectivePriceMulti;
             
         final extraControllersCharge = state.extraControllersCount * widget.params.room.extraControllerPrice;
         
@@ -251,9 +251,25 @@ class _BookingScreenState extends State<BookingScreen> {
                         fontSize: 12.sp,
                         color: AppColors.textSecondary,
                       ),
-                      PriceWidget(
-                        price: total,
-                        fontSize: 24.sp,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.params.room.hasActivePromo) ...[
+                             Text(
+                               "${(((state.playMode == PlayMode.single ? widget.params.room.pricePerHourSingle : widget.params.room.pricePerHourMulti) + extraControllersCharge) * durationInHours + extrasPrice).toInt()} ${AppStrings.egp.tr()}",
+                               style: TextStyle(
+                                 color: AppColors.textSecondary.withOpacity(0.5),
+                                 fontSize: 10.sp,
+                                 decoration: TextDecoration.lineThrough,
+                               ),
+                             ),
+                          ],
+                          PriceWidget(
+                            price: total,
+                            fontSize: 24.sp,
+                            color: widget.params.room.hasActivePromo ? AppColors.success : AppColors.neonBlue,
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -268,9 +284,15 @@ class _BookingScreenState extends State<BookingScreen> {
                         onTap: isReady
                             ? () {
                                 final appliedRate = state.playMode == PlayMode.single 
+                                    ? widget.params.room.effectivePriceSingle 
+                                    : widget.params.room.effectivePriceMulti;
+                                    
+                                final originalRate = state.playMode == PlayMode.single 
                                     ? widget.params.room.pricePerHourSingle 
                                     : widget.params.room.pricePerHourMulti;
                                     
+                                final originalTotal = ((originalRate + extraControllersCharge) * durationInHours) + extrasPrice;
+
                                 context.pushNamed(
                                   RouterKeys.checkout,
                                   extra: {
@@ -280,6 +302,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                     'startTime': state.startTime!,
                                     'duration': state.durationMinutes,
                                     'totalPrice': total,
+                                    'originalTotalPrice': originalTotal,
                                     'addOns': widget.params.extras,
                                     'playMode': state.playMode.name,
                                     'appliedHourlyRate': appliedRate,

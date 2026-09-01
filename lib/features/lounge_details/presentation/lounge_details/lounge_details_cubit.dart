@@ -29,6 +29,21 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     getLoungeDetails(lounge.id);
   }
 
+  Future<void> initById(String loungeId) async {
+    emit(state.copyWith(status: LoungeDetailsStatus.loading));
+    final result = await _homeRepository.getLoungeById(loungeId);
+    result.fold(
+      (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
+      (lounge) {
+        if (lounge != null) {
+          init(lounge);
+        } else {
+          emit(state.copyWith(status: LoungeDetailsStatus.error));
+        }
+      },
+    );
+  }
+
   Future<void> getLoungeDetails(String loungeId) async {
     if (loungeId.isEmpty) return;
     emit(state.copyWith(status: LoungeDetailsStatus.loading));

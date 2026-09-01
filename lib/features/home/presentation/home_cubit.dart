@@ -44,7 +44,7 @@ class HomeCubit extends Cubit<HomeState> {
     // البيانات الوصفية (مدن، عروض، تصنيفات، نقاط) بتتجاب مرة واحدة بس هنا.
     final meta = await Future.wait([
       _homeRepository.getAvailableCities(),
-      _homeRepository.getPromotions(),
+      _homeRepository.getPromotions(loungeId: null),
       _homeRepository.getCategories(),
       if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
     ]);
@@ -123,6 +123,43 @@ class HomeCubit extends Cubit<HomeState> {
   void _cacheMetaData(List<PromoModel> promos, List<CategoryModel> cats) {
     _pref.saveValue('CACHED_PROMOS', jsonEncode(promos.map((e) => e.toJson()).toList()));
     _pref.saveValue('CACHED_CATEGORIES', jsonEncode(cats.map((e) => e.toJson()).toList()));
+  }
+
+  Future<void> refreshHome() async {
+    final userId = _pref.userId();
+    
+    emit(state.copyWith(status: HomeStatus.refreshing));
+
+    // Refresh Meta data
+    final meta = await Future.wait([
+      _homeRepository.getAvailableCities(),
+      _homeRepository.getPromotions(loungeId: null),
+      _homeRepository.getCategories(),
+      if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
+    ]);
+
+    final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>)
+        .fold((l) => <Map<String, dynamic>>[], (r) => r);
+    final points = meta.length > 3
+        ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r)
+        : state.pointsBalance;
+
+    final promotions =
+    (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
+    final categories =
+    (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
+
+    emit(state.copyWith(
+      availableCities: cities,
+      promotions: promotions,
+      categories: categories,
+      pointsBalance: points,
+    ));
+
+    _cacheMetaData(promotions, categories);
+
+    // Refresh Lounges (Reset to first page)
+    await getHomeData(forceLoading: false);
   }
 
   Future<void> getHomeData({bool isLoadMore = false, bool forceLoading = false}) async {

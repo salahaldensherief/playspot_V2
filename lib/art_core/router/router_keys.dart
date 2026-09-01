@@ -24,5 +24,6 @@ class RouterKeys {
   static const String allReviews = '/allReviews';
   static const String termsAndConditions = '/terms-and-conditions';
   static const String activeSession = '/activeSession';
+  static const String roomDetails = '/roomDetails/:roomId';
   static const String bookingDetails = '/booking-details/:id';
 }

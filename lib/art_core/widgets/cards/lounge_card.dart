@@ -25,14 +25,31 @@ class LoungeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: GlassContainer(
-        borderRadius: AppSizes.r24,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageSection(context),
-            _buildDetailsSection(),
-          ],
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppSizes.r24),
+          border: lounge.isDiscountActive
+              ? Border.all(color: AppColors.warning.withOpacity(0.3), width: 1.5)
+              : null,
+          boxShadow: lounge.isDiscountActive
+              ? [
+                  BoxShadow(
+                    color: AppColors.warning.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  )
+                ]
+              : null,
+        ),
+        child: GlassContainer(
+          borderRadius: AppSizes.r24,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageSection(context),
+              _buildDetailsSection(),
+            ],
+          ),
         ),
       ),
     );
@@ -81,6 +98,15 @@ class LoungeCard extends StatelessWidget {
           child: LoungeFavoriteButton(loungeId: lounge.id),
         ),
 
+        // Discount Badge
+        if (lounge.isDiscountActive)
+          Positioned.directional(
+            textDirection: Directionality.of(context),
+            top: 45.h,
+            start: AppSizes.w12,
+            child: _buildDiscountBadge(context),
+          ),
+
         // Distance Badge
         if (lounge.distance > 0)
           Positioned.directional(
@@ -90,6 +116,42 @@ class LoungeCard extends StatelessWidget {
             child: _buildDistanceBadge(),
           ),
       ],
+    );
+  }
+
+  Widget _buildDiscountBadge(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+    return Container(
+      padding: 10.horizontalPadding + 4.verticalPadding,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.warning, Color(0xFFFF8C00)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppSizes.r10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppText(
+            text: lounge.getDiscountTitle(isArabic) ??
+                "${AppStrings.discount.tr()} ${lounge.discountPercentage}%",
+            fontSize: 10.sp,
+            fontWeight: FontWeight.w900,
+            color: Colors.black,
+          ),
+          4.horizontalSpace,
+          Text("🔥", style: TextStyle(fontSize: 10.sp)),
+        ],
+      ),
     );
   }
 

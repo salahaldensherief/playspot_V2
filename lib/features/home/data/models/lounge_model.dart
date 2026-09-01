@@ -21,6 +21,11 @@ class LoungeModel extends Equatable {
   final double? lat;
   final double? lng;
   final List<String> categoryIcons;
+  final bool hasDiscount;
+  final int discountPercentage;
+  final String? discountTitleAr;
+  final String? discountTitleEn;
+  final DateTime? discountExpiresAt;
 
   const LoungeModel({
     required this.id,
@@ -43,6 +48,11 @@ class LoungeModel extends Equatable {
     this.lat,
     this.lng,
     this.categoryIcons = const [],
+    this.hasDiscount = false,
+    this.discountPercentage = 0,
+    this.discountTitleAr,
+    this.discountTitleEn,
+    this.discountExpiresAt,
   });
 
   @override
@@ -67,9 +77,18 @@ class LoungeModel extends Equatable {
         lat,
         lng,
         categoryIcons,
+        hasDiscount,
+        discountPercentage,
+        discountTitleAr,
+        discountTitleEn,
+        discountExpiresAt,
       ];
 
   String? getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
+  String? getDiscountTitle(bool isArabic) => isArabic ? discountTitleAr : discountTitleEn;
+
+  bool get isDiscountActive =>
+      hasDiscount && (discountExpiresAt == null || discountExpiresAt!.isAfter(DateTime.now()));
 
   factory LoungeModel.fromJson(Map<String, dynamic> json) {
     double calculatedDistance = 0.0;
@@ -100,6 +119,11 @@ class LoungeModel extends Equatable {
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
       categoryIcons: json['category_icons'] != null ? List<String>.from(json['category_icons']) : [],
+      hasDiscount: json['has_discount'] ?? false,
+      discountPercentage: (json['discount_percentage'] as num?)?.toInt() ?? 0,
+      discountTitleAr: json['discount_title_ar']?.toString(),
+      discountTitleEn: json['discount_title_en']?.toString(),
+      discountExpiresAt: json['discount_expires_at'] != null ? DateTime.parse(json['discount_expires_at'].toString()) : null,
     );
   }
 
@@ -124,6 +148,11 @@ class LoungeModel extends Equatable {
       'maps_link': mapsLink,
       'lat': lat,
       'lng': lng,
+      'has_discount': hasDiscount,
+      'discount_percentage': discountPercentage,
+      'discount_title_ar': discountTitleAr,
+      'discount_title_en': discountTitleEn,
+      'discount_expires_at': discountExpiresAt?.toIso8601String(),
     };
   }
 }

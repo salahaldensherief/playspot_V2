@@ -10,6 +10,7 @@ abstract class LoungeDetailsRemoteDataSource {
   Future<List<ExtraModel>> getExtras(String loungeId);
   Future<List<CategoryModel>> getLoungeCategories(String loungeId);
   Future<List<ReviewModel>> getLoungeReviews(String loungeId);
+  Future<RoomModel?> getRoomById(String roomId);
 }
 
 class LoungeDetailsRemoteDataSourceImpl implements LoungeDetailsRemoteDataSource {
@@ -18,13 +19,38 @@ class LoungeDetailsRemoteDataSourceImpl implements LoungeDetailsRemoteDataSource
   LoungeDetailsRemoteDataSourceImpl(this._client);
 
   @override
+  Future<RoomModel?> getRoomById(String roomId) async {
+    try {
+      final response = await _client
+          .from('rooms_detailed_view')
+          .select('*, promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)')
+          .eq('id', roomId)
+          .maybeSingle();
+      
+      if (response != null) return RoomModel.fromJson(response);
+
+      // Fallback
+      final fallbackResponse = await _client
+          .from('rooms')
+          .select('*, space_types(name, label), room_categories(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)')
+          .eq('id', roomId)
+          .maybeSingle();
+      
+      if (fallbackResponse != null) return RoomModel.fromJson(fallbackResponse);
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  @override
   Future<List<RoomModel>> getRoomsByLoungeId(String loungeId, {String? categoryId}) async {
     final bool hasFilter = categoryId != null && categoryId.isNotEmpty && categoryId.toLowerCase() != 'all';
     
     // We try to use rooms_detailed_view for better space type filtering
     var query = _client
         .from('rooms_detailed_view')
-        .select('*')
+        .select('*, promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)')
         .eq('lounge_id', loungeId)
         .eq('is_available', true);
     
@@ -40,7 +66,7 @@ class LoungeDetailsRemoteDataSourceImpl implements LoungeDetailsRemoteDataSource
       final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
       var fallbackQuery = _client
           .from('rooms')
-          .select('*, space_types(name, label), $joinType(category_id, categories(name_en))')
+          .select('*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)')
           .eq('lounge_id', loungeId)
           .eq('is_available', true);
       

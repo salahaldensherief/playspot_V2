@@ -69,6 +69,7 @@ class CreateBookingParams extends Equatable {
   final DateTime endTime;
   final double totalPrice;
   final double roomPrice;
+  final double discountAmount;
   final List<Map<String, dynamic>> addOns;
   final String? playMode;
   final String status;
@@ -84,6 +85,7 @@ class CreateBookingParams extends Equatable {
     required this.endTime,
     required this.totalPrice,
     required this.roomPrice,
+    this.discountAmount = 0.0,
     this.addOns = const [],
     this.playMode,
     this.status = 'pending',
@@ -101,6 +103,7 @@ class CreateBookingParams extends Equatable {
         endTime,
         totalPrice,
         roomPrice,
+        discountAmount,
         addOns,
         playMode,
         status,
@@ -117,6 +120,7 @@ class CreateBookingParams extends Equatable {
       'end_at': endTime.toIso8601String(),
       'total_price': totalPrice,
       'room_price': roomPrice,
+      'discount_amount': discountAmount,
       'extras': addOns,
       'play_mode': playMode,
       'status': status,
@@ -133,6 +137,7 @@ class CheckoutParams extends Equatable {
   final TimeOfDay startTime;
   final int duration;
   final double totalPrice;
+  final double originalTotalPrice;
   final List<Map<String, dynamic>> addOns;
   final String? playMode;
   final double? appliedHourlyRate;
@@ -146,6 +151,7 @@ class CheckoutParams extends Equatable {
     required this.startTime,
     required this.duration,
     required this.totalPrice,
+    required this.originalTotalPrice,
     required this.addOns,
     this.playMode,
     this.appliedHourlyRate,
@@ -161,6 +167,7 @@ class CheckoutParams extends Equatable {
         startTime,
         duration,
         totalPrice,
+        originalTotalPrice,
         addOns,
         playMode,
         appliedHourlyRate,
@@ -178,6 +185,7 @@ class CheckoutParams extends Equatable {
           : map['startTime'] as TimeOfDay,
       duration: map['duration'] as int,
       totalPrice: (map['totalPrice'] as num).toDouble(),
+      originalTotalPrice: (map['originalTotalPrice'] as num?)?.toDouble() ?? (map['totalPrice'] as num).toDouble(),
       addOns: List<Map<String, dynamic>>.from(map['addOns'] ?? []),
       playMode: map['playMode']?.toString(),
       appliedHourlyRate: (map['appliedHourlyRate'] as num?)?.toDouble(),
@@ -194,8 +202,9 @@ class CheckoutParams extends Equatable {
       'startTime': {'hour': startTime.hour, 'minute': startTime.minute},
       'duration': duration,
       'totalPrice': totalPrice,
+      'originalTotalPrice': originalTotalPrice,
       'addOns': addOns,
-      'playMode': playMode,
+      'play_mode': playMode,
       'appliedHourlyRate': appliedHourlyRate,
       'extraControllers': extraControllers,
       'extraControllerPrice': extraControllerPrice,

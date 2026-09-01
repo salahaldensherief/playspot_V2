@@ -33,22 +33,37 @@ class SearchLoungeCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(AppSizes.r20),
-          border: Border.all(color: AppColors.borderDefault),
+          border: Border.all(
+            color: lounge.isDiscountActive
+                ? AppColors.warning.withOpacity(0.4)
+                : AppColors.borderDefault,
+            width: lounge.isDiscountActive ? 1.5 : 1,
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppSizes.r15),
-              child: Hero(
-                tag: heroTag,
-                child: CachedNetworkImage(
-                  imageUrl: lounge.imageUrl,
-                  width: 140.w,
-                  height: 140.h,
-                  fit: BoxFit.cover,
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSizes.r15),
+                  child: Hero(
+                    tag: heroTag,
+                    child: CachedNetworkImage(
+                      imageUrl: lounge.imageUrl,
+                      width: 140.w,
+                      height: 140.h,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
+                if (lounge.isDiscountActive)
+                  Positioned(
+                    top: 8.h,
+                    left: 8.w,
+                    child: _buildDiscountBadge(context),
+                  ),
+              ],
             ),
             Expanded(
               child: Padding(
@@ -111,6 +126,31 @@ class SearchLoungeCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDiscountBadge(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: AppColors.warning,
+        borderRadius: BorderRadius.circular(8.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: AppText(
+        text: lounge.getDiscountTitle(isArabic) ??
+            "${AppStrings.discount.tr()} ${lounge.discountPercentage}%",
+        fontSize: 8.sp,
+        fontWeight: FontWeight.w900,
+        color: Colors.black,
       ),
     );
   }

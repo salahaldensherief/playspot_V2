@@ -270,5 +270,10 @@
   "remaining": "REMAINING",
   "comingSoon": "Feature coming soon!",
   "pointsHistory": "Points History",
-  "settings": "Settings"
+  "settings": "Settings",
+  "directDiscountAvailable": "Direct Discount Available!",
+  "getDiscountNow": "Get {}% OFF on your booking now",
+  "roomNotFound": "Room not found",
+  "loungeNotFound": "Lounge not found",
+  "activeOffer": "ACTIVE OFFER"
 }

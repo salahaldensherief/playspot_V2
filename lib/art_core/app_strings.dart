@@ -243,4 +243,9 @@ class AppStrings {
   static const String comingSoon = "comingSoon";
   static const String pointsHistory = "pointsHistory";
   static const String settings = "settings";
+  static const String directDiscountAvailable = "directDiscountAvailable";
+  static const String getDiscountNow = "getDiscountNow";
+  static const String roomNotFound = "roomNotFound";
+  static const String loungeNotFound = "loungeNotFound";
+  static const String activeOffer = "activeOffer";
 }

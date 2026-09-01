@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/shimmer/promo_shimmer.dart';
 import '../home_cubit.dart';
 import '../home_state.dart';
@@ -29,7 +31,23 @@ class PromoCarousel extends StatelessWidget {
             itemCount: state.promotions.length,
             controller: PageController(viewportFraction: 0.9),
             itemBuilder: (context, index) {
-              return PromoCard(promo: state.promotions[index]);
+              final promo = state.promotions[index];
+              return PromoCard(
+                promo: promo,
+                onTap: () {
+                  if (promo.isRoomSpecific && promo.roomId != null) {
+                    context.pushNamed(
+                      RouterKeys.roomDetails,
+                      pathParameters: {'roomId': promo.roomId!},
+                    );
+                  } else if (promo.loungeId != null) {
+                    context.pushNamed(
+                      RouterKeys.loungeDetails,
+                      extra: {'loungeId': promo.loungeId},
+                    );
+                  }
+                },
+              );
             },
           ),
         );

@@ -11,6 +11,10 @@ class PromoModel extends Equatable {
   final String iconKey;
   final String? imageUrl;
   final String? deepLink;
+  final String? loungeId;
+  final String? roomId;
+  final bool isRoomSpecific;
+  final DateTime? expiresAt;
 
   const PromoModel({
     required this.id,
@@ -22,15 +26,36 @@ class PromoModel extends Equatable {
     required this.iconKey,
     this.imageUrl,
     this.deepLink,
+    this.loungeId,
+    this.roomId,
+    this.isRoomSpecific = false,
+    this.expiresAt,
   });
 
   @override
-  List<Object?> get props => [id, titleAr, titleEn, tagAr, tagEn, hexColors, iconKey, imageUrl, deepLink];
+  List<Object?> get props => [
+        id,
+        titleAr,
+        titleEn,
+        tagAr,
+        tagEn,
+        hexColors,
+        iconKey,
+        imageUrl,
+        deepLink,
+        loungeId,
+        roomId,
+        isRoomSpecific,
+        expiresAt,
+      ];
 
   String getTitle(bool isArabic) => isArabic ? titleAr : titleEn;
   String getTag(bool isArabic) => isArabic ? tagAr : tagEn;
 
+  bool get isExpired => expiresAt != null && expiresAt!.isBefore(DateTime.now());
+
   List<Color> get colors {
+// ... existing colors getter logic ...
     if (hexColors.isEmpty) {
       return [const Color(0xFF00F2FE), const Color(0xFF4FACFE)]; // Default gradient
     }
@@ -49,6 +74,7 @@ class PromoModel extends Equatable {
   }
 
   IconData get icon {
+// ... existing icon getter logic ...
     switch (iconKey) {
       case 'videogame_asset':
         return Icons.videogame_asset;
@@ -78,8 +104,12 @@ class PromoModel extends Equatable {
       tagEn: json['tag_en']?.toString() ?? '',
       hexColors: List<String>.from(json['colors'] ?? []),
       iconKey: json['icon_key']?.toString() ?? '',
-      imageUrl: json['image_url'],
-      deepLink: json['deep_link'],
+      imageUrl: json['image_url']?.toString(),
+      deepLink: json['deep_link']?.toString(),
+      loungeId: json['lounge_id']?.toString(),
+      roomId: json['room_id']?.toString(),
+      isRoomSpecific: json['is_room_specific'] as bool? ?? false,
+      expiresAt: json['expires_at'] != null ? DateTime.parse(json['expires_at'].toString()) : null,
     );
   }
 
@@ -94,6 +124,10 @@ class PromoModel extends Equatable {
       'icon_key': iconKey,
       'image_url': imageUrl,
       'deep_link': deepLink,
+      'lounge_id': loungeId,
+      'room_id': roomId,
+      'is_room_specific': isRoomSpecific,
+      'expires_at': expiresAt?.toIso8601String(),
     };
   }
 }

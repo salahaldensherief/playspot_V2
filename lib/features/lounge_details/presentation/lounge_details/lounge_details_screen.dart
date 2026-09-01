@@ -56,11 +56,21 @@ class LoungeDetailsScreen extends StatelessWidget {
                   },
                 ),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                  buildWhen: (previous, current) => previous.lounge?.isOpen != current.lounge?.isOpen,
+                  buildWhen: (previous, current) =>
+                      previous.lounge?.isOpen != current.lounge?.isOpen ||
+                      previous.lounge?.isDiscountActive != current.lounge?.isDiscountActive,
                   builder: (context, state) {
                     final displayLounge = state.lounge ?? lounge;
-                    if (displayLounge.isOpen) return const SliverToBoxAdapter(child: SizedBox.shrink());
-                    return const LoungeClosedBanner();
+                    
+                    return SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          if (!displayLounge.isOpen) const LoungeClosedBanner(),
+                          if (displayLounge.isDiscountActive)
+                            _LoungeDiscountBanner(lounge: displayLounge),
+                        ],
+                      ),
+                    );
                   },
                 ),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
@@ -105,6 +115,86 @@ class LoungeDetailsScreen extends StatelessWidget {
             ),
           ),
           LoungeDetailsBottomBar(lounge: lounge),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoungeDiscountBanner extends StatelessWidget {
+  final LoungeModel lounge;
+  const _LoungeDiscountBanner({required this.lounge});
+
+  @override
+  Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.warning.withOpacity(0.9),
+            const Color(0xFFFF8C00).withOpacity(0.9),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.warning.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.local_offer, color: Colors.black, size: 20.sp),
+          ),
+          16.horizontalSpace,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: lounge.getDiscountTitle(isArabic) ??
+                      AppStrings.directDiscountAvailable.tr(),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                ),
+                AppText(
+                  text: AppStrings.getDiscountNow.tr(args: [lounge.discountPercentage.toString()]),
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black.withOpacity(0.7),
+                ),
+              ],
+            ),
+          ),
+          if (lounge.discountPercentage > 0)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: AppText(
+                text: "-${lounge.discountPercentage}%",
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w900,
+                color: AppColors.warning,
+              ),
+            ),
         ],
       ),
     );

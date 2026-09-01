@@ -29,12 +29,17 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, List<PromoModel>>> getPromotions() async {
-    return await callRepository(() => _remoteDataSource.getPromotions());
+  Future<Either<Failure, List<PromoModel>>> getPromotions({String? loungeId}) async {
+    return await callRepository(() => _remoteDataSource.getPromotions(loungeId: loungeId));
   }
 
   @override
   Future<Either<Failure, List<CategoryModel>>> getCategories() async {
     return await callRepository(() => _remoteDataSource.getCategories());
+  }
+
+  @override
+  Future<Either<Failure, LoungeModel?>> getLoungeById(String id) async {
+    return await callRepository(() => _remoteDataSource.getLoungeById(id));
   }
 }

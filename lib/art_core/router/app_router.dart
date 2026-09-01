@@ -7,6 +7,7 @@ import 'package:playspot/features/auth/presentation/sign_in/signin_screen.dart';
 import 'package:playspot/features/auth/presentation/sign_up/signup_screen.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/profile/presentation/settings/notification_settings_cubit.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
@@ -46,9 +47,11 @@ import '../../features/profile/presentation/profile/redeem_points_screen.dart';
 import '../../features/profile/presentation/profile/my_vouchers_screen.dart';
 import '../../features/active_session/presentation/active_session_screen.dart';
 import '../../features/active_session/presentation/active_session_cubit.dart';
+import '../../features/lounge_details/presentation/lounge_details/room_details_screen.dart';
 import 'package:flutter/services.dart';
 import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
+import '../theme/app_colors.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
@@ -291,14 +294,16 @@ class AppRouter {
             path: RouterKeys.loungeDetails,
             name: RouterKeys.loungeDetails,
             pageBuilder: (context, state) {
-              LoungeModel lounge;
+              LoungeModel? lounge;
+              String? loungeId;
               String? heroTag;
 
               if (state.extra is LoungeModel) {
                 lounge = state.extra as LoungeModel;
-              } else {
+              } else if (state.extra is Map<String, dynamic>) {
                 final map = state.extra as Map<String, dynamic>;
-                lounge = map['lounge'] as LoungeModel;
+                lounge = map['lounge'] as LoungeModel?;
+                loungeId = map['loungeId'] as String?;
                 heroTag = map['heroTag'] as String?;
               }
 
@@ -306,9 +311,41 @@ class AppRouter {
                 context: context,
                 state: state,
                 child: BlocProvider(
-                  create: (context) => sl<LoungeDetailsCubit>()..init(lounge),
-                  child: LoungeDetailsScreen(lounge: lounge, heroTag: heroTag),
+                  create: (context) {
+                    final cubit = sl<LoungeDetailsCubit>();
+                    if (lounge != null) {
+                      cubit.init(lounge!);
+                    } else if (loungeId != null) {
+                      cubit.initById(loungeId!);
+                    }
+                    return cubit;
+                  },
+                  child: lounge != null 
+                    ? LoungeDetailsScreen(lounge: lounge!, heroTag: heroTag)
+                    : BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                        builder: (context, state) {
+                          if (state.lounge != null) {
+                            return LoungeDetailsScreen(lounge: state.lounge!, heroTag: heroTag);
+                          }
+                          return const Scaffold(
+                            backgroundColor: AppColors.scaffoldBackground,
+                            body: Center(child: CircularProgressIndicator(color: AppColors.neonBlue)),
+                          );
+                        },
+                      ),
                 ),
+              );
+            },
+          ),
+          GoRoute(
+            path: RouterKeys.roomDetails,
+            name: RouterKeys.roomDetails,
+            pageBuilder: (context, state) {
+              final roomId = state.pathParameters['roomId'] ?? '';
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: RoomDetailsScreen(roomId: roomId),
               );
             },
           ),

@@ -19,6 +19,11 @@ class RoomModel extends Equatable {
   final List<String> featuresEn;
   final int controllersCount;
   final String screenSize;
+  final bool hasActivePromo;
+  final String? promoTagAr;
+  final String? promoTagEn;
+  final double promoDiscountValue;
+  final String? promoDiscountType;
 
   const RoomModel({
     required this.id,
@@ -39,6 +44,11 @@ class RoomModel extends Equatable {
     required this.featuresEn,
     this.controllersCount = 2,
     this.screenSize = '43"',
+    this.hasActivePromo = false,
+    this.promoTagAr,
+    this.promoTagEn,
+    this.promoDiscountValue = 0.0,
+    this.promoDiscountType,
   });
 
   @override
@@ -61,10 +71,49 @@ class RoomModel extends Equatable {
         featuresEn,
         controllersCount,
         screenSize,
+        hasActivePromo,
+        promoTagAr,
+        promoTagEn,
+        promoDiscountValue,
+        promoDiscountType,
       ];
 
   String getName(bool isArabic) => isArabic ? nameAr : nameEn;
   List<String> getFeatures(bool isArabic) => isArabic ? featuresAr : featuresEn;
+  String? getPromoTag(bool isArabic) => isArabic ? promoTagAr : promoTagEn;
+
+  double get effectivePrice {
+    if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHour;
+    
+    if (promoDiscountType == 'percentage') {
+      return pricePerHour * (1 - (promoDiscountValue / 100));
+    } else if (promoDiscountType == 'fixed') {
+      return (pricePerHour - promoDiscountValue).clamp(0.0, double.infinity);
+    }
+    return pricePerHour;
+  }
+
+  double get effectivePriceSingle {
+    if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHourSingle;
+    
+    if (promoDiscountType == 'percentage') {
+      return pricePerHourSingle * (1 - (promoDiscountValue / 100));
+    } else if (promoDiscountType == 'fixed') {
+      return (pricePerHourSingle - promoDiscountValue).clamp(0.0, double.infinity);
+    }
+    return pricePerHourSingle;
+  }
+
+  double get effectivePriceMulti {
+    if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHourMulti;
+    
+    if (promoDiscountType == 'percentage') {
+      return pricePerHourMulti * (1 - (promoDiscountValue / 100));
+    } else if (promoDiscountType == 'fixed') {
+      return (pricePerHourMulti - promoDiscountValue).clamp(0.0, double.infinity);
+    }
+    return pricePerHourMulti;
+  }
 
   bool get isVR => activityNames.any((a) => a.toLowerCase().contains('vr'));
   bool get isSimulator => activityNames.any((a) => a.toLowerCase().contains('simulator'));
@@ -150,10 +199,48 @@ class RoomModel extends Equatable {
         featuresEn: json['features_en'] != null ? List<String>.from(json['features_en']) : [],
         controllersCount: (json['controllers_count'] as num?)?.toInt() ?? 2,
         screenSize: json['screen_size']?.toString() ?? '43"',
+        hasActivePromo: _parsePromoStatus(json['promotions'] as List?),
+        promoTagAr: _parsePromoTag(json['promotions'] as List?, true),
+        promoTagEn: _parsePromoTag(json['promotions'] as List?, false),
+        promoDiscountValue: _parsePromoDiscountValue(json['promotions'] as List?),
+        promoDiscountType: _parsePromoDiscountType(json['promotions'] as List?),
       );
     } catch (e) {
       print("Error parsing RoomModel: $e");
       rethrow;
     }
+  }
+
+  static double _parsePromoDiscountValue(List? promos) {
+    if (promos == null || promos.isEmpty) return 0.0;
+    final activePromo = _getActivePromo(promos);
+    return (activePromo?['discount_value'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  static String? _parsePromoDiscountType(List? promos) {
+    if (promos == null || promos.isEmpty) return null;
+    final activePromo = _getActivePromo(promos);
+    return activePromo?['discount_type']?.toString();
+  }
+
+  static Map<String, dynamic>? _getActivePromo(List promos) {
+    final now = DateTime.now();
+    for (var p in promos) {
+      final isActive = p['is_active'] as bool? ?? false;
+      final expiresAtStr = p['expires_at']?.toString();
+      bool isStillActive = expiresAtStr == null ? isActive : isActive && DateTime.parse(expiresAtStr).isAfter(now);
+      if (isStillActive) return Map<String, dynamic>.from(p);
+    }
+    return null;
+  }
+
+  static bool _parsePromoStatus(List? promos) {
+    return _getActivePromo(promos ?? []) != null;
+  }
+
+  static String? _parsePromoTag(List? promos, bool isAr) {
+    final activePromo = _getActivePromo(promos ?? []);
+    if (activePromo == null) return null;
+    return (isAr ? activePromo['tag_ar'] : activePromo['tag_en'])?.toString() ?? activePromo['tag']?.toString();
   }
 }

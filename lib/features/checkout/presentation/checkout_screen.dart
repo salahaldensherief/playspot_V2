@@ -425,10 +425,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           BlocBuilder<CheckoutCubit, CheckoutState>(
             buildWhen: (previous, current) => previous.discountAmount != current.discountAmount,
             builder: (context, state) {
+              final roomPromoDiscount = widget.params.originalTotalPrice - widget.params.totalPrice;
+              final totalDiscount = roomPromoDiscount + state.discountAmount;
               final finalPrice = widget.params.totalPrice - state.discountAmount;
+              
               return Column(
                 children: [
-                  if (state.discountAmount > 0) ...[
+                  if (totalDiscount > 0) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -438,7 +441,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           color: AppColors.textSecondary,
                         ),
                         AppText(
-                          text: "${widget.params.totalPrice.toInt()} ${AppStrings.egp.tr()}",
+                          text: "${widget.params.originalTotalPrice.toInt()} ${AppStrings.egp.tr()}",
                           fontSize: 14.sp,
                           color: AppColors.textSecondary,
                           textDecoration: TextDecoration.lineThrough,
@@ -455,12 +458,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           color: AppColors.success,
                         ),
                         AppText(
-                          text: "-${state.discountAmount.toInt()} ${AppStrings.egp.tr()}",
+                          text: "-${totalDiscount.toInt()} ${AppStrings.egp.tr()}",
                           fontSize: 14.sp,
                           color: AppColors.success,
                         ),
                       ],
                     ),
+                    if (roomPromoDiscount > 0 && state.discountAmount > 0)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4.h),
+                        child: AppText(
+                          text: "(Incl. Room Offer & Voucher)",
+                          fontSize: 10.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     SizedBox(height: 12.h),
                   ],
                   Row(
@@ -699,6 +711,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     final userName = pref.fullName() ?? "";
                     final userPhone = pref.phoneNumber() ?? "";
 
+                    final roomPromoDiscount = widget.params.originalTotalPrice - widget.params.totalPrice;
+                    final totalDiscount = roomPromoDiscount + state.discountAmount;
+                    final finalPrice = widget.params.totalPrice - state.discountAmount;
+
                     context.read<CheckoutCubit>().processPayment(
                       CreateBookingParams(
                         roomId: widget.params.room.id,
@@ -708,8 +724,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         userPhone: userPhone,
                         startTime: startDateTime,
                         endTime: endDateTime,
-                        totalPrice: widget.params.totalPrice,
-                        roomPrice: widget.params.appliedHourlyRate ?? widget.params.room.pricePerHour,
+                        totalPrice: finalPrice,
+                        discountAmount: totalDiscount,
+                        roomPrice: widget.params.appliedHourlyRate ?? widget.params.room.effectivePrice,
                         addOns: widget.params.addOns,
                         playMode: widget.params.playMode,
                       ),

@@ -8,14 +8,26 @@ import '../../models/home_params.dart';
 abstract class HomeRemoteDataSource {
   Future<List<LoungeModel>> getLounges(GetLoungesParams params);
   Future<List<Map<String, dynamic>>> getAvailableCities();
-  Future<List<PromoModel>> getPromotions();
+  Future<List<PromoModel>> getPromotions({String? loungeId});
   Future<List<CategoryModel>> getCategories();
   Future<int> getUserPoints(String userId);
+  Future<LoungeModel?> getLoungeById(String id);
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   final SupabaseClient _client;
   HomeRemoteDataSourceImpl(this._client);
+
+  @override
+  Future<LoungeModel?> getLoungeById(String id) async {
+    try {
+      final response = await _client.from('lounges').select().eq('id', id).maybeSingle();
+      if (response == null) return null;
+      return LoungeModel.fromJson(Map<String, dynamic>.from(response));
+    } catch (e) {
+      return null;
+    }
+  }
 
   @override
   Future<int> getUserPoints(String userId) async {
@@ -69,9 +81,41 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   }
 
   @override
-  Future<List<PromoModel>> getPromotions() async {
-    final res = await _client.from('promotions').select();
-    return (res as List).map((e) => PromoModel.fromJson(e)).toList();
+  Future<List<PromoModel>> getPromotions({String? loungeId}) async {
+    try {
+      final now = DateTime.now().toIso8601String();
+      dev.log("FETCHING_PROMOTIONS: now=$now, loungeId=$loungeId");
+
+      var query = _client
+          .from('promotions')
+          .select()
+          .eq('is_active', true)
+          .or('expires_at.is.null,expires_at.gt.$now');
+
+      if (loungeId != null) {
+        query = query.or('lounge_id.eq.$loungeId,lounge_id.is.null');
+      }
+
+      final res = await query.order('created_at', ascending: false);
+
+      final List data = res as List;
+      dev.log("PROMOTIONS_RAW_DATA_COUNT: ${data.length}");
+
+      final promos = data.map((e) {
+        try {
+          return PromoModel.fromJson(Map<String, dynamic>.from(e));
+        } catch (e) {
+          dev.log("PROMO_PARSING_ERROR: $e for record: $e");
+          return null;
+        }
+      }).whereType<PromoModel>().toList();
+
+      dev.log("PROMOTIONS_PARSED_SUCCESSFULLY: ${promos.length}");
+      return promos;
+    } catch (e) {
+      dev.log("GET_PROMOTIONS_CRITICAL_ERROR: $e");
+      return [];
+    }
   }
 
   @override

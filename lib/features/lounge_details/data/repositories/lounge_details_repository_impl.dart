@@ -32,4 +32,9 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
   Future<Either<Failure, List<ReviewModel>>> getLoungeReviews(String loungeId) async {
     return await callRepository(() => _remoteDataSource.getLoungeReviews(loungeId));
   }
+
+  @override
+  Future<Either<Failure, RoomModel?>> getRoomById(String roomId) async {
+    return await callRepository(() => _remoteDataSource.getRoomById(roomId));
+  }
 }

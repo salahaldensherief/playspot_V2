@@ -10,7 +10,7 @@ import 'package:playspot/art_core/widgets/shimmer/room_card_shimmer.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
-import 'room_card.dart';
+import 'room_card/room_card.dart';
 
 class RoomsGrid extends StatelessWidget {
   const RoomsGrid({super.key});

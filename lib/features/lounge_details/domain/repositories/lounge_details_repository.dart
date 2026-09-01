@@ -10,4 +10,5 @@ abstract class LoungeDetailsRepository {
   Future<Either<Failure, List<ExtraModel>>> getExtras(String loungeId);
   Future<Either<Failure, List<CategoryModel>>> getLoungeCategories(String loungeId);
   Future<Either<Failure, List<ReviewModel>>> getLoungeReviews(String loungeId);
+  Future<Either<Failure, RoomModel?>> getRoomById(String roomId);
 }

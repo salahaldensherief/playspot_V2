@@ -95,7 +95,7 @@ class _HomeViewState extends State<_HomeView> {
           const RepaintBoundary(child: _HomeBackground()),
           SafeArea(
             child: RefreshIndicator(
-              onRefresh: () => context.read<HomeCubit>().getHomeData(),
+              onRefresh: () => context.read<HomeCubit>().refreshHome(),
               color: AppColors.neonBlue,
               backgroundColor: AppColors.cardBackground,
               child: CustomScrollView(

@@ -75,23 +75,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   Future<void> processPayment(CreateBookingParams params) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
     
-    final finalPrice = params.totalPrice - state.discountAmount;
-
-    final result = await _bookingRepository.createBooking(
-      CreateBookingParams(
-        roomId: params.roomId,
-        roomName: params.roomName,
-        loungeId: params.loungeId,
-        userName: params.userName,
-        userPhone: params.userPhone,
-        startTime: params.startTime,
-        endTime: params.endTime,
-        totalPrice: finalPrice,
-        roomPrice: params.roomPrice,
-        addOns: params.addOns,
-        playMode: params.playMode,
-      )
-    );
+    final result = await _bookingRepository.createBooking(params);
 
     result.fold(
       (failure) => emit(state.copyWith(
