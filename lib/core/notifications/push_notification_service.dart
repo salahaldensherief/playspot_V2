@@ -39,9 +39,9 @@ class PushNotificationService {
       await _messaging.setAutoInitEnabled(true);
       await _messaging.requestPermission(alert: true, badge: true, sound: true);
       await _messaging.setForegroundNotificationPresentationOptions(
-        alert: false,
-        badge: false,
-        sound: false,
+        alert: true,
+        badge: true,
+        sound: true,
       );
 
       FirebaseMessaging.onMessage.listen(
@@ -101,8 +101,15 @@ class PushNotificationService {
         final apnsToken = await _waitForApnsToken();
         if (apnsToken == null) return null;
       }
-      return await _messaging.getToken();
-    } catch (_) {
+      final token = await _messaging.getToken();
+      if (token != null) {
+        debugPrint('========================================');
+        debugPrint('🔥 FCM TOKEN: $token');
+        debugPrint('========================================');
+      }
+      return token;
+    } catch (e) {
+      debugPrint('❌ [FCM Token Error]: $e');
       return null;
     }
   }

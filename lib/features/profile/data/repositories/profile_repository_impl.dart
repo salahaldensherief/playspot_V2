@@ -80,6 +80,7 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
 
   @override
   Future<void> updateFcmToken(String token) async {
+    await _preferenceManager.saveFCMToken(token);
     await _remoteSource.updateFcmToken(token);
   }
 
