@@ -114,23 +114,21 @@ class BookingCard extends StatelessWidget {
                     behavior: ButtonBehavior.tap(
                       onTap: () async {
                         if (booking.lat != null && booking.lng != null) {
-                          final availableMaps = await MapLauncher.installedMaps;
                           final pref = sl<PreferenceManager>();
                           final userLat = double.tryParse(pref.latitude());
                           final userLng = double.tryParse(pref.longitude());
 
-                          if (availableMaps.isNotEmpty) {
-                            await availableMaps.first.showDirections(
-                              destination: Coords(booking.lat!, booking.lng!),
-                              destinationTitle: booking.loungeName,
-                              origin: (userLat != null && userLng != null)
-                                  ? Coords(userLat, userLng)
-                                  : null,
-                              originTitle: "My Location",
-                            );
-                          }
-                        }
-                      },
+                          await MapLauncher.directions(
+                            Location.coords(
+                              booking.lat!,
+                              booking.lng!,
+                              title: booking.loungeName,
+                            ),
+                            from: (userLat != null && userLng != null)
+                                ? Location.coords(userLat, userLng, title: "My Location")
+                                : null,
+                          ).show();
+                        }                        },
                     ),
                     buttonConfig: ButtonConfig(
                       height: 45.h,

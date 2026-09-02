@@ -1,6 +1,8 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/active_session_model.dart';
 import '../../models/order_item_model.dart';
 
@@ -35,7 +37,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
 
     final response = await _client
         .from('bookings')
-        .select('*, lounges(name), rooms(name, name_en), booking_orders(*)')
+        .select('*, lounges(name), rooms(name, name_en), booking_items(*)') // تم التعديل هنا
         .eq('user_id', userId)
         .eq('status', BookingStatus.inProgress)
         .maybeSingle();
@@ -51,9 +53,9 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         .stream(primaryKey: ['id'])
         .eq('id', bookingId)
         .map((data) {
-          if (data.isEmpty) throw Exception("Booking not found");
-          return ActiveSessionModel.fromJson(data.first);
-        });
+      if (data.isEmpty) throw Exception("Booking not found");
+      return ActiveSessionModel.fromJson(data.first);
+    });
   }
 
   @override
@@ -75,7 +77,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       'note': item.note,
     }).toList();
 
-    await _client.from('booking_orders').insert(orders);
+    await _client.from('booking_items').insert(orders); // تم التعديل هنا
   }
 
   @override

@@ -89,14 +89,16 @@ class _MyAppState extends State<MyApp> {
   void _setupNotificationListener() {
     PushNotificationService.instance.notificationEvents.listen((content) {
       if (content.hasVisibleContent) {
-        final context = AppRouter.navigatorKey.currentContext;
-        if (context != null) {
-          GameHudToast.show(
-            context,
-            content.body ?? content.title ?? "",
-            type: ToastType.info,
-          );
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final context = AppRouter.navigatorKey.currentContext;
+          if (context != null) {
+            GameHudToast.show(
+              context,
+              content.body ?? content.title ?? "",
+              type: ToastType.info,
+            );
+          }
+        });
       }
     });
   }

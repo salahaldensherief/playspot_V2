@@ -10,30 +10,35 @@ abstract class SocialAuthService {
 }
 
 class SocialAuthServiceImpl implements SocialAuthService {
+  bool _isInitialized = false;
+
+  Future<void> _ensureInitialized() async {
+    if (!_isInitialized) {
+      await GoogleSignIn.instance.initialize(
+        serverClientId:
+        '1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com',
+      );
+      _isInitialized = true;
+    }
+  }
+
   @override
   Future<String?> getGoogleIdToken() async {
     try {
       debugPrint('[SocialAuth] Initializing Google Sign-In...');
-      
-      // Matching the project in your screenshot: 1070210806389
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: '1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com',
-        scopes: ['email', 'profile'],
-      );
 
-      final googleUser = await googleSignIn.signIn();
-      
-      if (googleUser == null) {
-        debugPrint('[SocialAuth] User cancelled sign-in');
-        return null;
-      }
+      await _ensureInitialized();
+
+      final GoogleSignInAccount googleUser =
+      await GoogleSignIn.instance.authenticate();
 
       debugPrint('[SocialAuth] User signed in: ${googleUser.email}');
-      
-      final googleAuth = await googleUser.authentication;
-      
+
+      final googleAuth = googleUser.authentication;
+
       if (googleAuth.idToken == null) {
-        debugPrint('[SocialAuth] FAILED: ID Token is null. Check your SHA-1 and Package Name.');
+        debugPrint(
+            '[SocialAuth] FAILED: ID Token is null. Check your SHA-1 and Package Name.');
         throw Exception('Could not get ID Token from Google');
       }
 
@@ -41,7 +46,8 @@ class SocialAuthServiceImpl implements SocialAuthService {
     } catch (e) {
       debugPrint('[SocialAuth] Google Sign-in CRITICAL ERROR: $e');
       if (e.toString().contains('10')) {
-        debugPrint('[SocialAuth] Tip: Ensure the Support Email is set in Google Cloud Console OAuth Consent Screen.');
+        debugPrint(
+            '[SocialAuth] Tip: Ensure the Support Email is set in Google Cloud Console OAuth Consent Screen.');
       }
       rethrow;
     }
@@ -50,7 +56,7 @@ class SocialAuthServiceImpl implements SocialAuthService {
   @override
   Future<void> googleSignOut() async {
     try {
-      await GoogleSignIn().signOut();
+      await GoogleSignIn.instance.signOut();
     } catch (_) {}
   }
 

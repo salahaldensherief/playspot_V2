@@ -30,8 +30,8 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
 
     return BlocListener<LoungeDetailsCubit, LoungeDetailsState>(
       listenWhen: (prev, curr) =>
-          (prev.selectedRoomId != widget.room.id &&
-              curr.selectedRoomId == widget.room.id),
+      (prev.selectedRoomId != widget.room.id &&
+          curr.selectedRoomId == widget.room.id),
       listener: (context, state) {
         if (!_isExpanded) {
           setState(() => _isExpanded = true);
@@ -39,7 +39,7 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
       },
       child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
         buildWhen: (prev, curr) =>
-            prev.selectedRoomId != curr.selectedRoomId ||
+        prev.selectedRoomId != curr.selectedRoomId ||
             prev.bookedRoomIds.contains(widget.room.id) !=
                 curr.bookedRoomIds.contains(widget.room.id) ||
             prev.lounge?.isOpen != curr.lounge?.isOpen,
@@ -47,11 +47,13 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
           final isSelected = state.selectedRoomId == widget.room.id;
           final isBooked = state.bookedRoomIds.contains(widget.room.id);
           final isLoungeOpen = state.lounge?.isOpen ?? true;
-          final isAvailable =
-              widget.room.isAvailable && !isBooked && isLoungeOpen;
+          final isAvailable = widget.room.isAvailable &&
+              !widget.room.isOccupied &&
+              !isBooked &&
+              isLoungeOpen;
 
           return GestureDetector(
-            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            onTap: isAvailable ? () => setState(() => _isExpanded = !_isExpanded) : null,
             child: AnimatedContainer(
               duration: RoomConstants.animationDuration,
               margin: EdgeInsets.only(bottom: 12.h),
@@ -63,10 +65,10 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
                 borderColor: isSelected
                     ? themeColor
                     : (widget.room.hasActivePromo
-                        ? AppColors.warning.withOpacity(0.4)
-                        : (isAvailable
-                            ? AppColors.borderDefault
-                            : AppColors.danger.withOpacity(0.15))),
+                    ? AppColors.warning.withOpacity(0.4)
+                    : (isAvailable
+                    ? AppColors.borderDefault
+                    : AppColors.danger.withOpacity(0.15))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

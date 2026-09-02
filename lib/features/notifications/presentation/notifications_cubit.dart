@@ -54,15 +54,12 @@ class NotificationsCubit extends Cubit<NotificationsState> {
         final updatedList = [newNotification, ...state.notifications];
         emit(state.copyWith(notifications: updatedList));
 
-        // Show Toast if context is available
-        final context = AppRouter.navigatorKey.currentContext;
-        if (context != null) {
-          GameHudToast.show(
-            context,
-            newNotification.body,
-            type: ToastType.info,
-          );
-        }
+        // Show Toast safely
+        GameHudToast.show(
+          null,
+          newNotification.body,
+          type: ToastType.info,
+        );
       }
     });
   }

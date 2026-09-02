@@ -14,6 +14,7 @@ class RoomModel extends Equatable {
   final double pricePerHourMulti;
   final double extraControllerPrice;
   final bool isAvailable;
+  final String status;
   final List<String> images;
   final List<String> featuresAr;
   final List<String> featuresEn;
@@ -39,6 +40,7 @@ class RoomModel extends Equatable {
     required this.pricePerHourMulti,
     this.extraControllerPrice = 0.0,
     required this.isAvailable,
+    this.status = 'available',
     required this.images,
     required this.featuresAr,
     required this.featuresEn,
@@ -53,30 +55,31 @@ class RoomModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        loungeId,
-        nameAr,
-        nameEn,
-        activityNames,
-        spaceType,
-        spaceTypeName,
-        capacity,
-        pricePerHour,
-        pricePerHourSingle,
-        pricePerHourMulti,
-        extraControllerPrice,
-        isAvailable,
-        images,
-        featuresAr,
-        featuresEn,
-        controllersCount,
-        screenSize,
-        hasActivePromo,
-        promoTagAr,
-        promoTagEn,
-        promoDiscountValue,
-        promoDiscountType,
-      ];
+    id,
+    loungeId,
+    nameAr,
+    nameEn,
+    activityNames,
+    spaceType,
+    spaceTypeName,
+    capacity,
+    pricePerHour,
+    pricePerHourSingle,
+    pricePerHourMulti,
+    extraControllerPrice,
+    isAvailable,
+    status,
+    images,
+    featuresAr,
+    featuresEn,
+    controllersCount,
+    screenSize,
+    hasActivePromo,
+    promoTagAr,
+    promoTagEn,
+    promoDiscountValue,
+    promoDiscountType,
+  ];
 
   String getName(bool isArabic) => isArabic ? nameAr : nameEn;
   List<String> getFeatures(bool isArabic) => isArabic ? featuresAr : featuresEn;
@@ -84,7 +87,7 @@ class RoomModel extends Equatable {
 
   double get effectivePrice {
     if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHour;
-    
+
     if (promoDiscountType == 'percentage') {
       return pricePerHour * (1 - (promoDiscountValue / 100));
     } else if (promoDiscountType == 'fixed') {
@@ -95,7 +98,7 @@ class RoomModel extends Equatable {
 
   double get effectivePriceSingle {
     if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHourSingle;
-    
+
     if (promoDiscountType == 'percentage') {
       return pricePerHourSingle * (1 - (promoDiscountValue / 100));
     } else if (promoDiscountType == 'fixed') {
@@ -106,7 +109,7 @@ class RoomModel extends Equatable {
 
   double get effectivePriceMulti {
     if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHourMulti;
-    
+
     if (promoDiscountType == 'percentage') {
       return pricePerHourMulti * (1 - (promoDiscountValue / 100));
     } else if (promoDiscountType == 'fixed') {
@@ -120,12 +123,13 @@ class RoomModel extends Equatable {
   bool get isOpenArea => spaceTypeName == 'open_area';
   bool get isVIP => spaceTypeName == 'vip_room';
   bool get isStandard => spaceTypeName == 'standard_room';
+  bool get isOccupied => status.trim().toLowerCase() == 'occupied';
 
   String getDisplayTitle(bool isArabic) {
     if (spaceTypeName == 'open_area') {
-      return isArabic ? "شاشة / جهاز ${nameAr}" : "Station / Device ${nameEn}";
+      return isArabic ? "شاشة / جهاز $nameAr" : "Station / Device $nameEn";
     }
-    return isArabic ? "غرفة ${nameAr}" : "Room ${nameEn}";
+    return isArabic ? "غرفة $nameAr" : "Room $nameEn";
   }
 
   String spaceTypeLabel(bool isArabic) {
@@ -149,6 +153,7 @@ class RoomModel extends Equatable {
       'price_per_hour_multi': pricePerHourMulti,
       'extra_controller_price': extraControllerPrice,
       'is_available': isAvailable,
+      'status': status,
       'images': images,
       'features_ar': featuresAr,
       'features_en': featuresEn,
@@ -159,7 +164,6 @@ class RoomModel extends Equatable {
 
   factory RoomModel.fromJson(Map<String, dynamic> json) {
     try {
-      // Aggregate activity names from the new room_categories join
       final List? roomCats = json['room_categories'] as List?;
       final List<String> activities = [];
       if (roomCats != null) {
@@ -175,25 +179,28 @@ class RoomModel extends Equatable {
         loungeId: json['lounge_id']?.toString() ?? '',
         nameAr: json['name_ar']?.toString() ?? '',
         nameEn: json['name_en']?.toString() ?? '',
-        activityNames: activities.isNotEmpty 
-            ? activities 
+        activityNames: activities.isNotEmpty
+            ? activities
             : (json['activity_names'] != null ? List<String>.from(json['activity_names']) : []),
-        spaceType: json['space_type_label'] ?? 
-                  (json['space_types'] is List 
-                      ? (json['space_types'] as List).isNotEmpty ? (json['space_types'] as List).first['label'] : null
-                      : json['space_types']?['label']) ?? 
-                  json['space_type_name']?.toString(),
-        spaceTypeName: json['space_type_name'] ??
-                     (json['space_types'] is List 
-                        ? (json['space_types'] as List).isNotEmpty ? (json['space_types'] as List).first['name'] : null
-                        : json['space_types']?['name']) ?? 
-                     json['space_type_slug']?.toString() ?? 'open_area',
+        spaceType: json['space_type_label'] ??
+            (json['space_types'] is List
+                ? (json['space_types'] as List).isNotEmpty ? (json['space_types'] as List).first['label'] : null
+                : json['space_types']?['label']) ??
+            json['space_type']?.toString() ??
+            json['space_type_name']?.toString(),
+        spaceTypeName: (json['space_types'] is List
+            ? (json['space_types'] as List).isNotEmpty ? (json['space_types'] as List).first['name'] : null
+            : json['space_types']?['name']) ??
+            json['space_type_slug']?.toString() ??
+            json['space_type']?.toString() ??
+            json['space_type_name']?.toString(),
         capacity: (json['capacity'] as num?)?.toInt() ?? 4,
         pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         pricePerHourSingle: (json['price_per_hour_single'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         pricePerHourMulti: (json['price_per_hour_multi'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
         extraControllerPrice: (json['extra_controller_price'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
+        status: json['status']?.toString() ?? 'available',
         images: json['images'] != null ? List<String>.from(json['images']) : [],
         featuresAr: json['features_ar'] != null ? List<String>.from(json['features_ar']) : [],
         featuresEn: json['features_en'] != null ? List<String>.from(json['features_en']) : [],
@@ -235,7 +242,10 @@ class RoomModel extends Equatable {
   }
 
   static bool _parsePromoStatus(List? promos) {
-    return _getActivePromo(promos ?? []) != null;
+    final active = _getActivePromo(promos ?? []);
+    if (active == null) return false;
+    final discount = (active['discount_value'] as num?)?.toDouble() ?? 0.0;
+    return discount > 0;
   }
 
   static String? _parsePromoTag(List? promos, bool isAr) {

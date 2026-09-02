@@ -53,9 +53,10 @@ class LocationServiceImpl implements LocationService {
   Future<String?> getAddressFromLatLng(double lat, double lng) async {
     try {
       // Timeout to prevent long waiting on bad networks
-      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng)
+      final Geocoding geocoding = Geocoding();
+      List<Placemark> placemarks = await geocoding
+          .placemarkFromCoordinates(lat, lng)
           .timeout(const Duration(seconds: 3));
-      
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
         // Smart formatting: Priority to neighborhood then city

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/router/app_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 
@@ -21,31 +22,42 @@ class GameHudToast extends StatefulWidget {
   });
 
   static void show(
-    BuildContext context,
+    BuildContext? context,
     String message, {
     ToastType type = ToastType.info,
     Duration duration = const Duration(seconds: 3),
   }) {
-    final overlayState = Overlay.of(context);
-    late OverlayEntry overlayEntry;
+    if (message.trim().isEmpty) return;
 
-    overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 10.h,
-        left: 20.w,
-        right: 20.w,
-        child: GameHudToast(
-          message: message,
-          type: type,
-          duration: duration,
-          onDismiss: () {
-            overlayEntry.remove();
-          },
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final targetContext = context ?? AppRouter.navigatorKey.currentContext;
+      final overlayState = AppRouter.navigatorKey.currentState?.overlay ??
+          (targetContext != null && targetContext.mounted ? Overlay.maybeOf(targetContext) : null);
+
+      if (overlayState == null) return;
+
+      late OverlayEntry overlayEntry;
+
+      overlayEntry = OverlayEntry(
+        builder: (ctx) => Positioned(
+          top: MediaQuery.of(ctx).padding.top + 10.h,
+          left: 20.w,
+          right: 20.w,
+          child: GameHudToast(
+            message: message,
+            type: type,
+            duration: duration,
+            onDismiss: () {
+              if (overlayEntry.mounted) {
+                overlayEntry.remove();
+              }
+            },
+          ),
         ),
-      ),
-    );
+      );
 
-    overlayState.insert(overlayEntry);
+      overlayState.insert(overlayEntry);
+    });
   }
 
   @override

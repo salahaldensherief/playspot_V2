@@ -57,10 +57,11 @@ class NotificationModel extends Equatable {
   }
 
   factory NotificationModel.fromRawRecord(Map<String, dynamic> json, String lang) {
-    final title = json['title_$lang'] ?? json['title_en'] ?? json['title'] ?? '';
-    final body = json['body_$lang'] ?? json['body_en'] ?? json['body'] ?? '';
+    // محاولة جلب العنوان باللغة المطلوبة، وإذا لم يوجد يتم الرجوع للحقل الأساسي title
+    final title = json['title_$lang'] ?? json['title'] ?? json['title_en'] ?? '';
+    final body = json['body_$lang'] ?? json['body'] ?? json['body_en'] ?? '';
     final rawData = json['data'] as Map<String, dynamic>?;
-    
+
     return NotificationModel(
       id: json['id'] as String,
       title: title.toString(),
@@ -70,9 +71,7 @@ class NotificationModel extends Equatable {
       type: _parseType(json['type'] as String? ?? ''),
       data: rawData,
     );
-  }
-
-  static NotificationType _parseType(String type) {
+  }  static NotificationType _parseType(String type) {
     switch (type) {
       case 'booking':
         return NotificationType.booking;
