@@ -13,8 +13,8 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
   ActiveSessionRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, ActiveSessionModel?>> getActiveSession() async {
-    return await callRepository(() => _remoteDataSource.getActiveSession());
+  Future<Either<Failure, ActiveSessionModel?>> getActiveSession({String? bookingId}) async {
+    return await callRepository(() => _remoteDataSource.getActiveSession(bookingId: bookingId));
   }
 
   @override

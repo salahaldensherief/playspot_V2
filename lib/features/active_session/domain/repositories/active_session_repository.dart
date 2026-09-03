@@ -5,7 +5,7 @@ import 'package:playspot/features/active_session/data/models/order_item_model.da
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 
 abstract class ActiveSessionRepository {
-  Future<Either<Failure, ActiveSessionModel?>> getActiveSession();
+  Future<Either<Failure, ActiveSessionModel?>> getActiveSession({String? bookingId});
   Stream<ActiveSessionModel> streamActiveSession(String bookingId);
   Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost);
   Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItemModel> items);

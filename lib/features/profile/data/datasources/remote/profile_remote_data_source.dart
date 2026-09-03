@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
@@ -137,7 +136,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       };
 
-      await _supabase.from('users').update(updateData).eq('id', userId);
+      await _supabase.from('profiles').update(updateData).eq('id', userId);
 
       await _supabase.auth.updateUser(
         UserAttributes(
@@ -177,7 +176,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return;
-      await _supabase.from('users').update({'fcm_token': token}).eq('id', user.id);
+      await _supabase.from('profiles').update({'fcm_token': token}).eq('id', user.id);
     } catch (e) {
       debugPrint(' [Profile] Update FCM token error: $e');
     }
@@ -187,7 +186,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   Future<void> updateNotificationPreferences(Map<String, bool> preferences) async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
-    await _supabase.from('users').update({
+    await _supabase.from('profiles').update({
       'notification_preferences': preferences,
     }).eq('id', user.id);
   }

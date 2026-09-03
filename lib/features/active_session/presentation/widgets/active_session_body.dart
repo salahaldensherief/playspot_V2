@@ -19,23 +19,75 @@ class ActiveSessionBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
-      buildWhen: (prev, curr) => 
-          prev.status != curr.status || 
-          prev.session != curr.session || 
+      buildWhen: (prev, curr) =>
+          prev.status != curr.status ||
+          prev.session != curr.session ||
           prev.errorMessage != curr.errorMessage,
       builder: (context, state) {
-        if (state.status == ActiveSessionStatus.loading && state.session == null) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.neonBlue));
-        }
-        if (state.status == ActiveSessionStatus.empty && state.session == null) {
-          return Center(child: AppText(text: AppStrings.noUpcomingBookings.tr()));
-        }
-        if (state.status == ActiveSessionStatus.error && state.session == null) {
-          return Center(child: AppText(text: state.errorMessage ?? AppStrings.somethingWentWrong.tr()));
+        if (state.status == ActiveSessionStatus.loading ||
+            state.status == ActiveSessionStatus.initial) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.neonBlue),
+          );
         }
 
+        if (state.status == ActiveSessionStatus.error) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline_rounded,
+                      color: AppColors.danger, size: 48.sp),
+                  SizedBox(height: 16.h),
+                  AppText(
+                    text: state.errorMessage ??
+                        AppStrings.somethingWentWrong.tr(),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 16.h),
+                  ElevatedButton(
+                    onPressed: () => context
+                        .read<ActiveSessionCubit>()
+                        .loadActiveSession(),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.neonBlue),
+                    child: Text(AppStrings.retry.tr()),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (state.status == ActiveSessionStatus.empty || state.session == null) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.w),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.sports_esports_outlined,
+                      color: AppColors.textSecondary, size: 64.sp),
+                  SizedBox(height: 16.h),
+                  AppText(
+                    text: AppStrings.noUpcomingBookings.tr(),
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final session = state.session!;
+
         return RefreshIndicator(
-          onRefresh: () => context.read<ActiveSessionCubit>().loadActiveSession(),
+          onRefresh: () =>
+              context.read<ActiveSessionCubit>().loadActiveSession(),
+          color: AppColors.neonBlue,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.all(20.w),
@@ -43,13 +95,13 @@ class ActiveSessionBody extends StatelessWidget {
               children: [
                 const TimerSection(),
                 SizedBox(height: 32.h),
-                StationInfo(session: state.session!),
+                StationInfo(session: session),
                 SizedBox(height: 24.h),
                 const QuickActions(),
                 SizedBox(height: 24.h),
                 const ActiveSessionActionBar(),
                 SizedBox(height: 24.h),
-                BillingBreakdownWidget(session: state.session!),
+                BillingBreakdownWidget(session: session),
                 SizedBox(height: 32.h),
               ],
             ),

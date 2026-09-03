@@ -35,7 +35,7 @@ class SearchLoungeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSizes.r20),
           border: Border.all(
             color: lounge.isDiscountActive
-                ? AppColors.warning.withOpacity(0.4)
+                ? AppColors.withOpacity(AppColors.warning, 0.4)
                 : AppColors.borderDefault,
             width: lounge.isDiscountActive ? 1.5 : 1,
           ),
@@ -102,7 +102,7 @@ class SearchLoungeCard extends StatelessWidget {
                         4.horizontalSpace,
                         Expanded(
                           child: AppText(
-                            text: "${lounge.distance} ${AppStrings.km.tr()}",
+                            text: "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
                             fontSize: 12.sp,
                             color: AppColors.textSecondary,
                             maxLines: 1,
@@ -139,7 +139,7 @@ class SearchLoungeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: AppColors.withOpacity(AppColors.black, 0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

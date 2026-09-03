@@ -93,6 +93,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildSummaryCard(context),
+                    SizedBox(height: 16.h),
+                    _buildLateArrivalPolicyBanner(),
                     SizedBox(height: 24.h),
                     _buildVoucherSection(),
                     SizedBox(height: 24.h),
@@ -106,7 +108,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     _buildPaymentMethods(),
                     SizedBox(height: 24.h),
                     _buildCardDetailsSection(),
-                    SizedBox(height: 32.h),
+                    SizedBox(height: 24.h),
                     _buildSecuredPaymentNote(),
                     const SafeBottomSpacer(extraPadding: 120),
                   ],
@@ -468,7 +470,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       Padding(
                         padding: EdgeInsets.only(top: 4.h),
                         child: AppText(
-                          text: "(Incl. Room Offer & Voucher)",
+                          text: AppStrings.inclRoomOfferAndVoucher.tr(),
                           fontSize: 10.sp,
                           color: AppColors.textSecondary,
                         ),
@@ -648,6 +650,63 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildLateArrivalPolicyBanner() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: AppColors.warning.withValues(alpha: 0.35),
+          width: 1.0,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.timer_outlined,
+              color: AppColors.warning,
+              size: 20.sp,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: AppStrings.lateArrivalPolicyTitle.tr(),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.warning,
+                  maxLines: 2,
+                  overflow: TextOverflow.visible,
+                ),
+                SizedBox(height: 6.h),
+                AppText(
+                  text: AppStrings.lateArrivalPolicyDesc.tr(),
+                  fontSize: 12.sp,
+                  color: Colors.white.withValues(alpha: 0.85),
+                  height: 1.4,
+                  maxLines: 5,
+                  overflow: TextOverflow.visible,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

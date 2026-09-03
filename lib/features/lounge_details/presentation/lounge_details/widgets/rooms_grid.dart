@@ -68,7 +68,7 @@ class RoomsGrid extends StatelessWidget {
             sliver: SliverToBoxAdapter(
               child: Center(
                 child: AppText(
-                  text: "No rooms available for this category",
+                  text: AppStrings.noRoomsForCategory.tr(),
                   color: AppColors.textSecondary,
                   fontSize: 14.sp,
                 ),

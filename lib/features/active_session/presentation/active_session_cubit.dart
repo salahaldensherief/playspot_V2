@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../domain/repositories/active_session_repository.dart';
-import '../data/models/active_session_model.dart';
 import '../data/models/order_item_model.dart';
 import 'active_session_state.dart';
 
@@ -10,13 +9,16 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
   final ActiveSessionRepository _repo;
   Timer? _timer;
   StreamSubscription? _realtimeSubscription;
+  String? _subscribedBookingId;
 
   ActiveSessionCubit(this._repo) : super(const ActiveSessionState());
 
-  Future<void> loadActiveSession() async {
-    emit(state.copyWith(status: ActiveSessionStatus.loading));
+  Future<void> loadActiveSession({String? bookingId}) async {
+    if (state.status != ActiveSessionStatus.loaded) {
+      emit(state.copyWith(status: ActiveSessionStatus.loading));
+    }
 
-    final result = await _repo.getActiveSession();
+    final result = await _repo.getActiveSession(bookingId: bookingId);
 
     result.fold(
       (failure) => emit(state.copyWith(
@@ -25,7 +27,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
       )),
       (session) {
         if (session == null) {
-          emit(state.copyWith(status: ActiveSessionStatus.empty));
+          _subscribedBookingId = null;
+          _realtimeSubscription?.cancel();
+          _realtimeSubscription = null;
+          _timer?.cancel();
+          emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
         } else {
           emit(state.copyWith(
             status: ActiveSessionStatus.loaded,
@@ -60,23 +66,43 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
   }
 
   void _subscribeToRealtime(String bookingId) {
+    if (_subscribedBookingId == bookingId && _realtimeSubscription != null) {
+      return;
+    }
+
+    _subscribedBookingId = bookingId;
     _realtimeSubscription?.cancel();
     _realtimeSubscription = _repo.streamActiveSession(bookingId).listen((updatedSession) {
-      if (updatedSession.status == BookingStatus.completed) {
+      final status = BookingStatus.fromString(updatedSession.status);
+      if (status == BookingStatus.completed || status == BookingStatus.cancelled) {
         _timer?.cancel();
-        emit(state.copyWith(status: ActiveSessionStatus.empty));
+        _subscribedBookingId = null;
+        _realtimeSubscription?.cancel();
+        _realtimeSubscription = null;
+        emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
       } else {
-        loadActiveSession();
+        if (state.session != null) {
+          final currentSession = state.session!;
+          final mergedSession = currentSession.copyWith(
+            status: updatedSession.status,
+            endTime: updatedSession.endTime,
+            startTime: updatedSession.startTime,
+            basePrice: updatedSession.basePrice,
+            extensionsPrice: updatedSession.extensionsPrice,
+            loungeName: updatedSession.loungeName.isNotEmpty ? updatedSession.loungeName : currentSession.loungeName,
+            roomName: updatedSession.roomName.isNotEmpty ? updatedSession.roomName : currentSession.roomName,
+          );
+          emit(state.copyWith(session: mergedSession));
+        }
       }
-    });
+    }, onError: (_) {});
   }
 
   Future<void> loadMenu(String loungeId) async {
+    if (loungeId.isEmpty) return;
     final result = await _repo.getLoungeMenu(loungeId);
     result.fold(
-      (failure) => emit(state.copyWith(
-        errorMessage: "Could not load menu: ${failure.message}",
-      )),
+      (_) => null,
       (menu) => emit(state.copyWith(menu: menu)),
     );
   }

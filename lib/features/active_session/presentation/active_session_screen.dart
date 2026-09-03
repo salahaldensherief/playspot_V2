@@ -12,8 +12,22 @@ import 'active_session_state.dart';
 import 'widgets/active_session_body.dart';
 import 'widgets/lounge_review_bottom_sheet.dart';
 
-class ActiveSessionScreen extends StatelessWidget {
-  const ActiveSessionScreen({super.key});
+class ActiveSessionScreen extends StatefulWidget {
+  final String? bookingId;
+  const ActiveSessionScreen({super.key, this.bookingId});
+
+  @override
+  State<ActiveSessionScreen> createState() => _ActiveSessionScreenState();
+}
+
+class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ActiveSessionCubit>().loadActiveSession(bookingId: widget.bookingId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

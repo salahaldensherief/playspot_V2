@@ -4,7 +4,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/notification_model.dart';
 
 abstract class NotificationsRemoteDataSource {
-  Future<List<NotificationModel>> getNotifications(String lang);
+  Future<List<NotificationModel>> getNotifications(
+    String lang, {
+    int limit = 15,
+    int offset = 0,
+  });
   Future<void> markAsRead(String notificationId);
   Future<void> markAllAsRead();
   Stream<Map<String, dynamic>> subscribeToNewNotifications();
@@ -17,13 +21,23 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
   NotificationsRemoteDataSourceImpl(this._client);
 
   @override
-  Future<List<NotificationModel>> getNotifications(String lang) async {
+  Future<List<NotificationModel>> getNotifications(
+    String lang, {
+    int limit = 15,
+    int offset = 0,
+  }) async {
     try {
-      dev.log("FETCHING_NOTIFICATIONS: lang=$lang");
-      final response = await _client.rpc('get_notifications', params: {'p_lang': lang});
+      dev.log("FETCHING_NOTIFICATIONS: lang=$lang, limit=$limit, offset=$offset");
+      final response = await _client.rpc('get_notifications', params: {
+        'p_lang': lang,
+        'p_limit': limit,
+        'p_offset': offset,
+      });
       final List list = response as List;
-      
-      return list.map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e))).toList();
+
+      return list
+          .map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
     } catch (e) {
       dev.log("FETCH_NOTIFICATIONS_ERROR: $e");
       rethrow;

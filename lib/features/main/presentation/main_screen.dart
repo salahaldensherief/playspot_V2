@@ -41,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
     _selectedIndex = widget.initialIndex;
     _screens = [
       const HomeScreen(),
-      const MyBookingsScreen(),
+      const MyBookingsScreen(isTab: true),
       const ProfileScreen(),
     ];
     

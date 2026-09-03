@@ -1,9 +1,29 @@
+import 'package:playspot/core/constants/booking_status.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/booking_params.dart';
 
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date);
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
+  Future<void> extendSession({
+    required String bookingId,
+    required int additionalMinutes,
+    required double additionalCost,
+  });
+  Future<void> callStaff({
+    required String loungeId,
+    required String bookingId,
+    required String reason,
+    required String note,
+  });
+  Future<void> placeCanteenOrder({
+    required String bookingId,
+    required String loungeId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required double totalPrice,
+    required String note,
+  });
 }
 
 class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
@@ -15,8 +35,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date) async {
     final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     
-    // Architect Note: Extreme simplification to bypass Postgres stack depth limit.
-    // We only fetch the absolute minimum fields required for slot availability logic.
     final response = await _client
         .from('bookings')
         .select('room_id, start_time, end_time, date')
@@ -34,9 +52,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final startPart = "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:00";
     final endPart = "${params.endTime.hour.toString().padLeft(2, '0')}:${params.endTime.minute.toString().padLeft(2, '0')}:00";
 
-    // Architect Note: We explicitly use a lowercase literal string for status 
-    // and only select 'id' to avoid triggering ambiguous Postgres RLS operators
-    // or deep relational joins that cause stack depth issues.
     final response = await _client.from('bookings').insert({
       'room_id': params.roomId,
       'room_name': params.roomName,
@@ -49,12 +64,59 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'end_time': endPart,
       'total_price': params.totalPrice,
       'room_price': params.roomPrice,
-      'status': params.status,
+      'status': BookingStatus.mapToDbStatus(params.status),
       'payment_status': params.paymentStatus,
       'booking_extras': params.addOns,
       'play_mode': params.playMode,
     }).select('id').single();
 
     return Map<String, dynamic>.from(response);
+  }
+
+  @override
+  Future<void> extendSession({
+    required String bookingId,
+    required int additionalMinutes,
+    required double additionalCost,
+  }) async {
+    await _client.rpc('extend_booking_session', params: {
+      'p_booking_id': bookingId,
+      'p_additional_minutes': additionalMinutes,
+      'p_added_cost': additionalCost,
+    });
+  }
+
+  @override
+  Future<void> callStaff({
+    required String loungeId,
+    required String bookingId,
+    required String reason,
+    required String note,
+  }) async {
+    await _client.rpc('call_staff_request', params: {
+      'p_lounge_id': loungeId,
+      'p_booking_id': bookingId,
+      'p_reason': reason,
+      'p_note': note,
+    });
+  }
+
+  @override
+  Future<void> placeCanteenOrder({
+    required String bookingId,
+    required String loungeId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required double totalPrice,
+    required String note,
+  }) async {
+    await _client.rpc('place_canteen_order', params: {
+      'p_booking_id': bookingId,
+      'p_lounge_id': loungeId,
+      'p_user_id': userId,
+      'p_items': items,
+      'p_total_price': totalPrice,
+      'p_note': note,
+    });
   }
 }

@@ -275,5 +275,15 @@
   "getDiscountNow": "احصل على خصم {}% على حجزك الآن",
   "roomNotFound": "الغرفة غير موجودة",
   "loungeNotFound": "الصالة غير موجودة",
-  "activeOffer": "عرض نشط"
+  "activeOffer": "عرض نشط",
+  "lateArrivalPolicyTitle": "سياسة التأخير والإلغاء",
+  "lateArrivalPolicyDesc": "يرجى الحضور خلال 20 دقيقة من موعد الحجز وإلا سيتم إلغاء الحجز تلقائياً وتحرير الغرفة.",
+  "bookingStatusPendingDesc": "طلبك مسجل بنجاح! ننتظر وصولك للصالة لتأكيد الحجز وبدء اللعب.",
+  "used": "المستخدمة",
+  "expired": "المنتهية",
+  "inclRoomOfferAndVoucher": "(شامل عرض الغرفة والكوبون)",
+  "noRoomsForCategory": "لا توجد غرف متاحة لهذه الفئة",
+  "loungeLocation": "موقع الصالة",
+  "scanDirections": "امسح الكود للحصول على الاتجاهات",
+  "close": "إغلاق"
 }

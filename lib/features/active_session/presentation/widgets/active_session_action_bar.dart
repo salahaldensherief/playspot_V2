@@ -19,7 +19,8 @@ class ActiveSessionActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
-      buildWhen: (prev, curr) => prev.staffRequestStatus != curr.staffRequestStatus,
+      buildWhen: (prev, curr) =>
+          prev.staffRequestStatus != curr.staffRequestStatus,
       builder: (context, state) {
         return Row(
           children: [
@@ -27,20 +28,27 @@ class ActiveSessionActionBar extends StatelessWidget {
               child: AppButton(
                 content: ButtonContent(
                   label: AppStrings.callStaff.tr(),
-                  icon: Icon(Icons.notifications_active_outlined, color: AppColors.white, size: 20.sp),
+                  icon: Icon(
+                    Icons.notifications_active_rounded,
+                    color: AppColors.warning,
+                    size: 18.sp,
+                  ),
                 ),
                 buttonConfig: ButtonConfig(
-                  height: 54.h,
-                  backgroundColor: AppColors.warning.withOpacity(0.1),
-                  borderColor: AppColors.warning.withOpacity(0.5),
+                  height: 52.h,
+                  padding: EdgeInsets.symmetric(horizontal: 6.w),
+                  borderRadius: 14.r,
+                  backgroundColor: AppColors.withOpacity(AppColors.warning, 0.12),
+                  borderColor: AppColors.withOpacity(AppColors.warning, 0.5),
                   textStyle: TextStyle(
                     color: AppColors.warning,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13.5.sp,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 behavior: TapBehavior(
-                  isEnabled: state.staffRequestStatus != ActionStatus.loading,
+                  isEnabled:
+                      state.staffRequestStatus != ActionStatus.loading,
                   onTap: () => _showStaffCallBottomSheet(context),
                 ),
               ),
@@ -50,12 +58,23 @@ class ActiveSessionActionBar extends StatelessWidget {
               child: AppButton(
                 content: ButtonContent(
                   label: AppStrings.orderExtras.tr(),
-                  icon: Icon(Icons.fastfood_rounded, color: AppColors.white, size: 20.sp),
+                  icon: Icon(
+                    Icons.fastfood_rounded,
+                    color: AppColors.white,
+                    size: 18.sp,
+                  ),
                 ),
                 buttonConfig: ButtonConfig(
-                  height: 54.h,
+                  height: 52.h,
+                  padding: EdgeInsets.symmetric(horizontal: 6.w),
+                  borderRadius: 14.r,
                   backgroundColor: AppColors.neonPurple,
                   glowColor: AppColors.neonPurple,
+                  textStyle: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 13.5.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 behavior: TapBehavior(
                   isEnabled: true,
@@ -76,7 +95,8 @@ class ActiveSessionActionBar extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => StaffCallBottomSheet(
-        onSubmit: (type, notes) => cubit.requestStaffAssistance(type, notes),
+        onSubmit: (type, notes) =>
+            cubit.requestStaffAssistance(type, notes),
       ),
     );
   }

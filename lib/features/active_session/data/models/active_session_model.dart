@@ -43,29 +43,116 @@ class ActiveSessionModel extends Equatable {
         status,
       ];
 
+  ActiveSessionModel copyWith({
+    String? bookingId,
+    String? loungeId,
+    String? loungeName,
+    String? roomName,
+    String? deviceName,
+    DateTime? startTime,
+    DateTime? endTime,
+    double? basePrice,
+    double? extensionsPrice,
+    List<OrderItemModel>? orders,
+    String? status,
+  }) {
+    return ActiveSessionModel(
+      bookingId: bookingId ?? this.bookingId,
+      loungeId: loungeId ?? this.loungeId,
+      loungeName: loungeName ?? this.loungeName,
+      roomName: roomName ?? this.roomName,
+      deviceName: deviceName ?? this.deviceName,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      basePrice: basePrice ?? this.basePrice,
+      extensionsPrice: extensionsPrice ?? this.extensionsPrice,
+      orders: orders ?? this.orders,
+      status: status ?? this.status,
+    );
+  }
+
   factory ActiveSessionModel.fromJson(Map<String, dynamic> json) {
     final loungeData = json['lounges'] as Map<String, dynamic>?;
     final roomData = json['rooms'] as Map<String, dynamic>?;
-    final ordersData = json['booking_orders'] as List? ?? [];
+    final ordersData = (json['booking_items'] ?? json['booking_orders']) as List? ?? [];
+
+    final loungeName = loungeData?['name']?.toString() ??
+        json['lounge_name']?.toString() ??
+        json['loungeName']?.toString() ??
+        '';
+
+    final roomName = roomData?['name_en'] ??
+        roomData?['name'] ??
+        json['room_name']?.toString() ??
+        json['roomName']?.toString() ??
+        '';
+
+    final dateRaw = json['date'] ?? json['booking_date'];
+    final startTime = _parseDateTime(dateRaw, json['start_time']);
+    final endTime = _parseDateTime(dateRaw, json['end_time']);
 
     return ActiveSessionModel(
       bookingId: json['id']?.toString() ?? '',
       loungeId: json['lounge_id']?.toString() ?? '',
-      loungeName: loungeData?['name'] ?? '',
-      roomName: roomData?['name_en'] ?? roomData?['name'] ?? '',
-      deviceName: json['device_name'] ?? 'Station', 
-      startTime: DateTime.parse(json['start_time']),
-      endTime: DateTime.parse(json['end_time']),
-      basePrice: (json['base_price'] as num?)?.toDouble() ?? 0.0,
+      loungeName: loungeName,
+      roomName: roomName,
+      deviceName: json['device_name']?.toString() ?? 'Station',
+      startTime: startTime,
+      endTime: endTime,
+      basePrice: (json['total_price'] as num?)?.toDouble() ??
+          (json['base_price'] as num?)?.toDouble() ??
+          0.0,
       extensionsPrice: (json['extensions_price'] as num?)?.toDouble() ?? 0.0,
-      orders: ordersData.map((e) => OrderItemModel.fromJson(e)).toList(),
-      status: json['status'] ?? 'active',
+      orders: ordersData
+          .map((e) {
+            try {
+              return OrderItemModel.fromJson(Map<String, dynamic>.from(e));
+            } catch (_) {
+              return null;
+            }
+          })
+          .whereType<OrderItemModel>()
+          .toList(),
+      status: json['status']?.toString() ?? 'in_progress',
     );
+  }
+
+  static DateTime _parseDateTime(dynamic dateRaw, dynamic timeRaw) {
+    if (timeRaw == null) return DateTime.now();
+    final timeStr = timeRaw.toString().trim();
+
+    if (timeStr.contains('T')) {
+      try {
+        return DateTime.parse(timeStr);
+      } catch (_) {}
+    }
+
+    final dateStr = dateRaw?.toString().trim();
+    if (dateStr != null && dateStr.isNotEmpty) {
+      try {
+        final cleanDate = dateStr.split('T')[0];
+        final fullIso = "${cleanDate}T$timeStr";
+        return DateTime.parse(fullIso);
+      } catch (_) {}
+    }
+
+    try {
+      final parts = timeStr.split(':');
+      final now = DateTime.now();
+      if (parts.length >= 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        final second = parts.length > 2 ? int.tryParse(parts[2].split('.')[0]) ?? 0 : 0;
+        return DateTime(now.year, now.month, now.day, hour, minute, second);
+      }
+    } catch (_) {}
+
+    return DateTime.now();
   }
 
   double get ordersTotal => orders.fold(0, (sum, item) => sum + item.total);
   double get grandTotal => basePrice + extensionsPrice + ordersTotal;
-  
+
   bool get isExpiringSoon {
     final remaining = endTime.difference(DateTime.now());
     return remaining.inMinutes > 0 && remaining.inMinutes <= 15;

@@ -2,14 +2,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
-import '../../../../art_core/app_strings.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
 
@@ -99,7 +96,7 @@ class MyVouchersScreen extends StatelessWidget {
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                         decoration: BoxDecoration(
-                          color: AppColors.neonBlue.withOpacity(0.1),
+                          color: AppColors.neonBlue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: AppText(

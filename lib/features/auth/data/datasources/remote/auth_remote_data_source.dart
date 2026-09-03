@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
@@ -82,7 +81,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         );
       }
 
-      await _supabase.from('users').upsert({
+      await _supabase.from('profiles').upsert({
         'id': userId,
         'name': params.name,
         'email': params.email,
@@ -94,7 +93,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       if (params.referralCode != null && params.referralCode!.trim().isNotEmpty) {
         try {
           final referrer = await _supabase
-              .from('users')
+              .from('profiles')
               .select('id')
               .eq('referral_code', params.referralCode!.trim())
               .maybeSingle();
@@ -138,7 +137,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       if (response.user == null) throw const ServerException('Sign in failed');
 
       final existingUser = await _supabase
-          .from('users')
+          .from('profiles')
           .select()
           .eq('id', response.user!.id)
           .maybeSingle();
@@ -203,7 +202,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         );
       }
 
-      await _supabase.from('users').update({
+      await _supabase.from('profiles').update({
         'phone': params.phone,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       }).eq('id', params.userId);
@@ -308,7 +307,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   Future<void> _upsertUser(User user) async {
     try {
       final metadata = user.userMetadata ?? {};
-      await _supabase.from('users').upsert({
+      await _supabase.from('profiles').upsert({
         'id': user.id,
         'name': metadata['full_name'] ?? metadata['name'],
         'email': user.email,

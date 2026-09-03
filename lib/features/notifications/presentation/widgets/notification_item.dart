@@ -77,7 +77,7 @@ class NotificationItem extends StatelessWidget {
                       AppText(
                         text: DateFormat('dd MMM, hh:mm a').format(notification.createdAt),
                         fontSize: 11.sp,
-                        color: AppColors.textSecondary.withOpacity(0.6),
+                        color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),
                     ],
                   ),
@@ -127,10 +127,10 @@ class NotificationItem extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: iconColor.withOpacity(0.1),
+        color: iconColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14.r),
         border: Border.all(
-          color: iconColor.withOpacity(0.2),
+          color: iconColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),

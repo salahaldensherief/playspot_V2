@@ -63,32 +63,69 @@ class AppRouter {
 
   void _setupNotificationHandler() {
     NotificationRouter.configure((data) {
-      final type = data['type']?.toString();
-      final id = data['id']?.toString() ?? data['booking_id']?.toString();
-      final code = data['code']?.toString() ?? data['promo_code']?.toString();
+      final typeStr =
+          (data['type'] ?? data['notification_type'] ?? '').toString().toLowerCase();
 
-      if (type == 'booking' && id != null) {
-        router.pushNamed(RouterKeys.bookingDetails, pathParameters: {'id': id});
+      final bookingId = _extractKey(data, [
+        'booking_id',
+        'bookingId',
+        'id',
+        'target_id',
+        'reference_id',
+        'entity_id',
+      ]);
+
+      final code = _extractKey(data, [
+        'code',
+        'promo_code',
+        'promoCode',
+        'coupon',
+      ]);
+
+      if (typeStr.contains('booking') || bookingId.isNotEmpty) {
+        if (bookingId.isNotEmpty) {
+          router.pushNamed(
+            RouterKeys.bookingDetails,
+            pathParameters: {'id': bookingId},
+          );
+        } else {
+          router.goNamed(RouterKeys.myBookings);
+        }
         return true;
       }
 
-      if (type == 'offer' || type == 'promo') {
+      if (typeStr.contains('offer') ||
+          typeStr.contains('promo') ||
+          code.isNotEmpty) {
         router.pushNamed(RouterKeys.myVouchers);
-        if (code != null) {
+        if (code.isNotEmpty) {
           Clipboard.setData(ClipboardData(text: code));
         }
         return true;
       }
 
-      if (type == 'loyalty') {
-        // Assuming loyalty points history screen exists or falls back
-        router.goNamed(RouterKeys.home, extra: 2); // Go to Profile
-        // If there's a specific route for points history, push it here
+      if (typeStr.contains('loyalty')) {
+        router.goNamed(RouterKeys.home, extra: 2);
+        return true;
+      }
+
+      if (typeStr.contains('active_session') || typeStr.contains('session')) {
+        router.pushNamed(RouterKeys.activeSession);
         return true;
       }
 
       return false;
     });
+  }
+
+  static String _extractKey(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final val = data[key]?.toString().trim();
+      if (val != null && val.isNotEmpty && val != 'null') {
+        return val;
+      }
+    }
+    return '';
   }
 
   static CustomTransitionPage _buildPageWithTransition<T>({
@@ -314,14 +351,14 @@ class AppRouter {
                   create: (context) {
                     final cubit = sl<LoungeDetailsCubit>();
                     if (lounge != null) {
-                      cubit.init(lounge!);
+                      cubit.init(lounge);
                     } else if (loungeId != null) {
-                      cubit.initById(loungeId!);
+                      cubit.initById(loungeId);
                     }
                     return cubit;
                   },
                   child: lounge != null 
-                    ? LoungeDetailsScreen(lounge: lounge!, heroTag: heroTag)
+                    ? LoungeDetailsScreen(lounge: lounge, heroTag: heroTag)
                     : BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                         builder: (context, state) {
                           if (state.lounge != null) {
@@ -475,11 +512,19 @@ class AppRouter {
           GoRoute(
             path: RouterKeys.activeSession,
             name: RouterKeys.activeSession,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const ActiveSessionScreen(),
-            ),
+            pageBuilder: (context, state) {
+              String? bookingId;
+              if (state.extra is String) {
+                bookingId = state.extra as String;
+              } else if (state.extra is Map<String, dynamic>) {
+                bookingId = (state.extra as Map<String, dynamic>)['booking_id']?.toString();
+              }
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: ActiveSessionScreen(bookingId: bookingId),
+              );
+            },
           ),
           GoRoute(
             path: RouterKeys.bookingDetails,

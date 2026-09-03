@@ -2,7 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/shimmer/booking_shimmer.dart';
 import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
@@ -12,12 +14,12 @@ import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/layout/app_state_view.dart';
 import '../../../../art_core/widgets/layout/app_dialog.dart';
-import '../../../../core/di.dart';
 import 'my_bookings_cubit.dart';
 import 'my_bookings_state.dart';
 
 class MyBookingsScreen extends StatefulWidget {
-  const MyBookingsScreen({super.key});
+  final bool isTab;
+  const MyBookingsScreen({super.key, this.isTab = false});
 
   @override
   State<MyBookingsScreen> createState() => _MyBookingsScreenState();
@@ -33,6 +35,25 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
+          automaticallyImplyLeading: false,
+          leading: (!widget.isTab || context.canPop() || Navigator.canPop(context))
+              ? IconButton(
+                  onPressed: () {
+                    if (context.canPop() || Navigator.canPop(context)) {
+                      context.pop();
+                    } else {
+                      context.goNamed(RouterKeys.home);
+                    }
+                  },
+                  icon: const Icon(TablerIcons.chevron_left, color: Colors.white),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                )
+              : null,
           title: AppText(
             text: AppStrings.myBookings.tr(),
             fontSize: 24.sp,

@@ -109,7 +109,9 @@ class PromoModel extends Equatable {
       loungeId: json['lounge_id']?.toString(),
       roomId: json['room_id']?.toString(),
       isRoomSpecific: json['is_room_specific'] as bool? ?? false,
-      expiresAt: json['expires_at'] != null ? DateTime.parse(json['expires_at'].toString()) : null,
+      expiresAt: (json['expires_at'] ?? json['end_date']) != null
+          ? DateTime.tryParse((json['expires_at'] ?? json['end_date']).toString())
+          : null,
     );
   }
 

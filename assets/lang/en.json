@@ -275,5 +275,15 @@
   "getDiscountNow": "Get {}% OFF on your booking now",
   "roomNotFound": "Room not found",
   "loungeNotFound": "Lounge not found",
-  "activeOffer": "ACTIVE OFFER"
+  "activeOffer": "ACTIVE OFFER",
+  "lateArrivalPolicyTitle": "Late Arrival Policy",
+  "lateArrivalPolicyDesc": "Please arrive within 20 minutes of your booking time, otherwise the booking will be automatically cancelled.",
+  "bookingStatusPendingDesc": "Your request is registered! We are waiting for your arrival at the lounge to confirm and start playing.",
+  "used": "Used",
+  "expired": "Expired",
+  "inclRoomOfferAndVoucher": "(Incl. Room Offer & Voucher)",
+  "noRoomsForCategory": "No rooms available for this category",
+  "loungeLocation": "Lounge Location",
+  "scanDirections": "Scan to get directions",
+  "close": "Close"
 }

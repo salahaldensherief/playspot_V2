@@ -19,33 +19,56 @@ class BillingBreakdownWidget extends StatelessWidget {
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: AppColors.borderDefault),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.withOpacity(AppColors.black, 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppText(
-            text: "billingBreakdown".tr(),
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              Icon(
+                Icons.receipt_long_rounded,
+                color: AppColors.neonBlue,
+                size: 18.sp,
+              ),
+              SizedBox(width: 8.w),
+              AppText(
+                text: "billingBreakdown".tr(),
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 14.h),
           InfoRow(
             label: "baseCost".tr(),
             value: "${session.basePrice.toStringAsFixed(2)} ${"egp".tr()}",
           ),
-          if (session.extensionsPrice > 0)
+          if (session.extensionsPrice > 0) ...[
+            SizedBox(height: 6.h),
             InfoRow(
               label: "extensions".tr(),
               value: "${session.extensionsPrice.toStringAsFixed(2)} ${"egp".tr()}",
             ),
+          ],
           if (session.orders.isNotEmpty) ...[
             SizedBox(height: 8.h),
             Divider(color: AppColors.divider),
             SizedBox(height: 8.h),
-            ...session.orders.map((order) => InfoRow(
-                  label: "${order.name} (x${order.quantity})",
-                  value: "${order.total.toStringAsFixed(2)} ${"egp".tr()}",
-                  fontSize: 13.sp,
+            ...session.orders.map((order) => Padding(
+                  padding: EdgeInsets.only(bottom: 6.h),
+                  child: InfoRow(
+                    label: "${order.name} (x${order.quantity})",
+                    value: "${order.total.toStringAsFixed(2)} ${"egp".tr()}",
+                    fontSize: 13.sp,
+                  ),
                 )),
           ],
           SizedBox(height: 12.h),

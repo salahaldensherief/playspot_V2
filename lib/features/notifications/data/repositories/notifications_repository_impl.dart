@@ -11,8 +11,14 @@ class NotificationsRepositoryImpl with RepositoryHelper implements Notifications
   NotificationsRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, List<NotificationModel>>> getNotifications(String lang) async {
-    return await callRepository(() => _remoteDataSource.getNotifications(lang));
+  Future<Either<Failure, List<NotificationModel>>> getNotifications(
+    String lang, {
+    int limit = 15,
+    int offset = 0,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getNotifications(lang, limit: limit, offset: offset),
+    );
   }
 
   @override

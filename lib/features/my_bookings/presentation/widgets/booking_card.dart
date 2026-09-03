@@ -105,6 +105,8 @@ class BookingCard extends StatelessWidget {
           if (isUpcoming) ...[
             SizedBox(height: 16.h),
             _buildCountdownBanner(),
+            SizedBox(height: 12.h),
+            _buildLatePolicyBanner(),
             SizedBox(height: 16.h),
             Row(
               children: [
@@ -197,7 +199,37 @@ class BookingCard extends StatelessWidget {
     );
   }
 
+  DateTime get _startDateTime {
+    if (booking.startTime.contains('T')) {
+      try {
+        return DateTime.parse(booking.startTime);
+      } catch (_) {}
+    }
+    final parts = booking.startTime.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0]) ?? 0;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      return DateTime(
+        booking.date.year,
+        booking.date.month,
+        booking.date.day,
+        hour,
+        minute,
+      );
+    }
+    return booking.date;
+  }
+
   Widget _buildCountdownBanner() {
+    final now = DateTime.now();
+    final start = _startDateTime;
+    final diff = start.difference(now);
+    final hours = diff.inHours;
+    final mins = diff.inMinutes % 60;
+    final timeFormatted = diff.isNegative
+        ? AppStrings.today.tr()
+        : "${hours > 0 ? '${hours}h ' : ''}${mins}m";
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -215,11 +247,78 @@ class BookingCard extends StatelessWidget {
             color: AppColors.textSecondary,
           ),
           AppText(
-            text: "2h 30m",
+            text: timeFormatted,
             fontSize: 12.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.neonBlue,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLatePolicyBanner() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 16.sp),
+              SizedBox(width: 6.w),
+              Expanded(
+                child: AppText(
+                  text: AppStrings.lateArrivalPolicyTitle.tr(),
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.warning,
+                  maxLines: 2,
+                  overflow: TextOverflow.visible,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4.h),
+          AppText(
+            text: AppStrings.lateArrivalPolicyDesc.tr(),
+            fontSize: 11.sp,
+            color: AppColors.textSecondary,
+            height: 1.3,
+            maxLines: 5,
+            overflow: TextOverflow.visible,
+          ),
+          if (booking.status == 'pending') ...[
+            SizedBox(height: 8.h),
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: AppColors.neonBlue.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.check_circle_outline_rounded, color: AppColors.neonBlue, size: 14.sp),
+                  SizedBox(width: 6.w),
+                  Expanded(
+                    child: AppText(
+                      text: AppStrings.bookingStatusPendingDesc.tr(),
+                      fontSize: 11.sp,
+                      color: AppColors.neonBlue,
+                      maxLines: 5,
+                      overflow: TextOverflow.visible,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

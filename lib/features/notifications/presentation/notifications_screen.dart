@@ -1,23 +1,22 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
-import 'package:go_router/go_router.dart';
-import 'package:playspot/art_core/router/router_keys.dart';
-import 'package:flutter/services.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
+
 import '../data/models/notification_model.dart';
 import 'notifications_cubit.dart';
 import 'notifications_state.dart';
 import 'widgets/notification_item.dart';
-import 'widgets/qr_location_dialog.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -27,56 +26,118 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final lang = context.locale.languageCode;
-        context.read<NotificationsCubit>().getNotifications(lang);
+        context.read<NotificationsCubit>().loadNotifications(lang);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients) {
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+      if (maxScroll - currentScroll <= 200) {
+        final lang = context.locale.languageCode;
+        context.read<NotificationsCubit>().loadMoreNotifications(lang);
+      }
+    }
   }
 
   void _handleNotificationTap(NotificationModel notification) {
     context.read<NotificationsCubit>().markAsRead(notification.id);
 
-    final type = notification.type;
     final data = notification.data ?? {};
+    final type = notification.type;
 
     if (type == NotificationType.booking) {
-      final bookingId = data['booking_id'] ?? data['id'] ?? '';
+      final bookingId = _extractBookingId(
+        data,
+        "${notification.body} ${notification.title}",
+      );
       if (bookingId.isNotEmpty) {
-        context.pushNamed(RouterKeys.bookingDetails, pathParameters: {'id': bookingId.toString()});
+        context.pushNamed(
+          RouterKeys.bookingDetails,
+          pathParameters: {'id': bookingId},
+        );
       } else {
-        context.goNamed(RouterKeys.home, extra: 1);
+        context.goNamed(RouterKeys.myBookings);
       }
     } else if (type == NotificationType.offer) {
-      context.goNamed(RouterKeys.home, extra: 2); // Go to Profile then Vouchers? Or just Vouchers
       context.pushNamed(RouterKeys.myVouchers);
-      
-      final promoCode = data['promo_code'] ?? data['code'];
-      if (promoCode != null) {
-        Clipboard.setData(ClipboardData(text: promoCode.toString()));
+
+      final promoCode = _extractPromoCode(data, notification.body);
+      if (promoCode.isNotEmpty) {
+        Clipboard.setData(ClipboardData(text: promoCode));
         GameHudToast.show(
           context,
           "Promo code copied: $promoCode",
           type: ToastType.success,
         );
-      } else {
-        // Fallback: search in body
-        final codeMatch = RegExp(r'[A-Z0-9]{5,10}').firstMatch(notification.body);
-        if (codeMatch != null) {
-          final matchedCode = codeMatch.group(0) ?? "";
-          Clipboard.setData(ClipboardData(text: matchedCode));
-          GameHudToast.show(
-            context,
-            "Promo code copied: $matchedCode",
-            type: ToastType.success,
-          );
-        }
+      }
+    } else if (type == NotificationType.loyalty) {
+      context.goNamed(RouterKeys.home, extra: 2);
+    } else {
+      context.goNamed(RouterKeys.home);
+    }
+  }
+
+  String _extractBookingId(Map<String, dynamic> data, String textFallback) {
+    final possibleKeys = [
+      'booking_id',
+      'bookingId',
+      'id',
+      'target_id',
+      'reference_id',
+      'entity_id',
+    ];
+    for (final key in possibleKeys) {
+      final val = data[key]?.toString().trim();
+      if (val != null && val.isNotEmpty && val != 'null') {
+        return val;
       }
     }
+    final uuidMatch = RegExp(
+      r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
+    ).firstMatch(textFallback);
+    if (uuidMatch != null) {
+      return uuidMatch.group(0) ?? '';
+    }
+    return '';
+  }
+
+  String _extractPromoCode(Map<String, dynamic> data, String textFallback) {
+    final possibleKeys = ['promo_code', 'code', 'promoCode', 'coupon'];
+    for (final key in possibleKeys) {
+      final val = data[key]?.toString().trim();
+      if (val != null && val.isNotEmpty && val != 'null') {
+        return val;
+      }
+    }
+    final codeMatch = RegExp(r'[A-Z0-9]{5,10}').firstMatch(textFallback);
+    if (codeMatch != null) {
+      return codeMatch.group(0) ?? '';
+    }
+    return '';
+  }
+
+  Future<void> _onRefresh() async {
+    final lang = context.locale.languageCode;
+    await context.read<NotificationsCubit>().refreshNotifications(lang);
   }
 
   @override
@@ -99,33 +160,87 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               _buildAppBar(context),
               Expanded(
-                child: BlocBuilder<NotificationsCubit, NotificationsState>(
-                  builder: (context, state) {
-                    if (state.status == NotificationsStatus.loading) {
-                      return const Center(
-                        child: CircularProgressIndicator(color: AppColors.neonBlue),
+                child: BlocListener<NotificationsCubit, NotificationsState>(
+                  listenWhen: (previous, current) =>
+                      previous.status != current.status &&
+                      current.status == NotificationsStatus.error,
+                  listener: (context, state) {
+                    if (state.errorMessage != null &&
+                        state.errorMessage!.isNotEmpty) {
+                      GameHudToast.show(
+                        context,
+                        state.errorMessage!,
+                        type: ToastType.error,
                       );
                     }
-
-                    if (state.notifications.isEmpty) {
-                      return _buildEmptyState();
-                    }
-
-                    return ListView.builder(
-                      padding: 16.allPadding,
-                      itemCount: state.notifications.length + 1,
-                      itemBuilder: (context, index) {
-                        if (index == state.notifications.length) {
-                          return const SafeBottomSpacer();
-                        }
-                        final notification = state.notifications[index];
-                        return NotificationItem(
-                          notification: notification,
-                          onTap: () => _handleNotificationTap(notification),
-                        );
-                      },
-                    );
                   },
+                  child: BlocBuilder<NotificationsCubit, NotificationsState>(
+                    buildWhen: (previous, current) =>
+                        previous.status != current.status ||
+                        previous.notifications != current.notifications ||
+                        previous.isLoadingMore != current.isLoadingMore ||
+                        previous.hasMore != current.hasMore,
+                    builder: (context, state) {
+                      if (state.status == NotificationsStatus.loading &&
+                          state.notifications.isEmpty) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.neonBlue,
+                          ),
+                        );
+                      }
+
+                      return RefreshIndicator(
+                        color: AppColors.neonBlue,
+                        backgroundColor: AppColors.cardBackground,
+                        onRefresh: _onRefresh,
+                        child: state.notifications.isEmpty
+                            ? SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: SizedBox(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.7,
+                                  child: _buildEmptyState(),
+                                ),
+                              )
+                            : ListView.builder(
+                                controller: _scrollController,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: 16.allPadding,
+                                itemCount: state.notifications.length +
+                                    (state.isLoadingMore ? 1 : 0) +
+                                    1,
+                                itemBuilder: (context, index) {
+                                  if (index < state.notifications.length) {
+                                    final notification =
+                                        state.notifications[index];
+                                    return NotificationItem(
+                                      notification: notification,
+                                      onTap: () =>
+                                          _handleNotificationTap(notification),
+                                    );
+                                  }
+
+                                  if (index == state.notifications.length &&
+                                      state.isLoadingMore) {
+                                    return Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 16.h),
+                                      child: const Center(
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.neonBlue,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  return const SafeBottomSpacer();
+                                },
+                              ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -145,8 +260,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onPressed: () => Navigator.pop(context),
             icon: const Icon(TablerIcons.chevron_left, color: Colors.white),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.05),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
             ),
           ),
           AppText(
@@ -156,13 +273,31 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             color: Colors.white,
             fontFamily: "Orbitron",
           ),
-          IconButton(
-            onPressed: () => context.read<NotificationsCubit>().markAllAsRead(),
-            icon: const Icon(TablerIcons.checks, color: AppColors.neonBlue),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.neonBlue.withOpacity(0.05),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            ),
+          Row(
+            children: [
+              IconButton(
+                onPressed: _onRefresh,
+                icon: const Icon(TablerIcons.refresh, color: AppColors.neonBlue),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.neonBlue.withValues(alpha: 0.05),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              IconButton(
+                onPressed: () =>
+                    context.read<NotificationsCubit>().markAllAsRead(),
+                icon: const Icon(TablerIcons.checks, color: AppColors.neonBlue),
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.neonBlue.withValues(alpha: 0.05),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -184,7 +319,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      AppColors.neonBlue.withOpacity(0.1),
+                      AppColors.neonBlue.withValues(alpha: 0.1),
                       AppColors.transparent,
                     ],
                   ),
@@ -193,7 +328,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Icon(
                 TablerIcons.bell_off,
                 size: 60.sp,
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ],
           ),

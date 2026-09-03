@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:playspot/core/constants/booking_status.dart';
 
 class BookingModel extends Equatable {
   final String id;
@@ -81,13 +82,13 @@ class BookingModel extends Equatable {
           : (json['time_range'] != null ? _parseTsRangeStart(json['time_range'].toString()) : DateTime.now()),
       startTime: json['start_time'] ?? '',
       endTime: json['end_time'] ?? '',
-      status: json['status'] ?? 'past',
+      status: BookingStatus.mapToDbStatus(json['status']?.toString()),
       paymentStatus: json['payment_status'] ?? 'unpaid',
       totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
       playMode: json['play_mode'],
       mapsLink: loungeData?['maps_link'],
-      lat: (loungeData?['lat'] as num?)?.toDouble(),
-      lng: (loungeData?['lng'] as num?)?.toDouble(),
+      lat: (loungeData?['latitude'] as num?)?.toDouble() ?? (loungeData?['lat'] as num?)?.toDouble(),
+      lng: (loungeData?['longitude'] as num?)?.toDouble() ?? (loungeData?['lng'] as num?)?.toDouble(),
     );
   }
 

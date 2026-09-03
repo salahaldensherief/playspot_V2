@@ -83,29 +83,21 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<List<PromoModel>> getPromotions({String? loungeId}) async {
     try {
-      final now = DateTime.now().toIso8601String();
-      dev.log("FETCHING_PROMOTIONS: now=$now, loungeId=$loungeId");
+      dev.log("FETCHING_PROMOTIONS: loungeId=$loungeId");
 
-      var query = _client
-          .from('promotions')
-          .select()
-          .eq('is_active', true)
-          .or('expires_at.is.null,expires_at.gt.$now');
+      final response = await _client.rpc(
+        'get_active_promos',
+        params: {'p_lounge_id': loungeId},
+      );
 
-      if (loungeId != null) {
-        query = query.or('lounge_id.eq.$loungeId,lounge_id.is.null');
-      }
-
-      final res = await query.order('created_at', ascending: false);
-
-      final List data = res as List;
+      final List data = response as List;
       dev.log("PROMOTIONS_RAW_DATA_COUNT: ${data.length}");
 
       final promos = data.map((e) {
         try {
           return PromoModel.fromJson(Map<String, dynamic>.from(e));
         } catch (e) {
-          dev.log("PROMO_PARSING_ERROR: $e for record: $e");
+          dev.log("PROMO_PARSING_ERROR: $e");
           return null;
         }
       }).whereType<PromoModel>().toList();
@@ -114,7 +106,24 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       return promos;
     } catch (e) {
       dev.log("GET_PROMOTIONS_CRITICAL_ERROR: $e");
-      return [];
+      try {
+        var query = _client.from('promotions').select();
+        if (loungeId != null && loungeId.isNotEmpty) {
+          query = query.eq('lounge_id', loungeId);
+        }
+        final fallbackRes = await query;
+        final List data = fallbackRes as List;
+        return data.map((e) {
+          try {
+            return PromoModel.fromJson(Map<String, dynamic>.from(e));
+          } catch (_) {
+            return null;
+          }
+        }).whereType<PromoModel>().toList();
+      } catch (fallbackError) {
+        dev.log("GET_PROMOTIONS_FALLBACK_ERROR: $fallbackError");
+        return [];
+      }
     }
   }
 

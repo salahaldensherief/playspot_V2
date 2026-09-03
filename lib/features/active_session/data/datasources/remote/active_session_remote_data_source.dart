@@ -1,13 +1,11 @@
 import 'dart:async';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/active_session_model.dart';
 import '../../models/order_item_model.dart';
 
 abstract class ActiveSessionRemoteDataSource {
-  Future<ActiveSessionModel?> getActiveSession();
+  Future<ActiveSessionModel?> getActiveSession({String? bookingId});
   Stream<ActiveSessionModel> streamActiveSession(String bookingId);
   Future<void> extendTime(String bookingId, int additionalMinutes, double additionalCost);
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items);
@@ -31,19 +29,65 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   ActiveSessionRemoteDataSourceImpl(this._client);
 
   @override
-  Future<ActiveSessionModel?> getActiveSession() async {
+  Future<ActiveSessionModel?> getActiveSession({String? bookingId}) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return null;
 
-    final response = await _client
+    const selectQuery = '*, lounges(name), rooms(name, name_en), booking_items(*)';
+
+    // 1. If specific booking ID requested
+    if (bookingId != null && bookingId.isNotEmpty) {
+      final response = await _client
+          .from('bookings')
+          .select(selectQuery)
+          .eq('id', bookingId)
+          .maybeSingle();
+
+      if (response == null) return null;
+      final model = ActiveSessionModel.fromJson(Map<String, dynamic>.from(response));
+      if (model.status == 'completed' || model.status == 'cancelled' || model.status == 'expired') {
+        return null;
+      }
+      return model;
+    }
+
+    // 2. Prioritize active in_progress sessions FIRST
+    final activeResponse = await _client
         .from('bookings')
-        .select('*, lounges(name), rooms(name, name_en), booking_items(*)') // تم التعديل هنا
+        .select(selectQuery)
         .eq('user_id', userId)
-        .eq('status', BookingStatus.inProgress)
+        .eq('status', 'in_progress')
+        .order('created_at', ascending: false)
+        .limit(1)
         .maybeSingle();
 
-    if (response == null) return null;
-    return ActiveSessionModel.fromJson(response);
+    if (activeResponse != null) {
+      final activeModel = ActiveSessionModel.fromJson(Map<String, dynamic>.from(activeResponse));
+      // Session Completion Fix: Filter out expired in_progress sessions (past end time + 5m threshold)
+      final isExpired = DateTime.now().isAfter(activeModel.endTime.add(const Duration(minutes: 5)));
+      if (!isExpired) {
+        return activeModel;
+      }
+    }
+
+    // 3. Fallback to upcoming / pending sessions that have NOT passed
+    final upcomingResponse = await _client
+        .from('bookings')
+        .select(selectQuery)
+        .eq('user_id', userId)
+        .or('status.eq.upcoming,status.eq.pending')
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    if (upcomingResponse != null) {
+      final upcomingModel = ActiveSessionModel.fromJson(Map<String, dynamic>.from(upcomingResponse));
+      if (DateTime.now().isBefore(upcomingModel.endTime)) {
+        return upcomingModel;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -77,17 +121,21 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       'note': item.note,
     }).toList();
 
-    await _client.from('booking_items').insert(orders); // تم التعديل هنا
+    await _client.from('booking_items').insert(orders);
   }
 
   @override
   Future<List<ExtraModel>> getLoungeMenu(String loungeId) async {
-    final response = await _client
-        .from('lounge_extras')
-        .select('*')
-        .eq('lounge_id', loungeId);
+    try {
+      final response = await _client
+          .from('extras')
+          .select()
+          .eq('lounge_id', loungeId);
 
-    return (response as List).map((e) => ExtraModel.fromJson(e)).toList();
+      return (response as List).map((e) => ExtraModel.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override

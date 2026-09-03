@@ -248,4 +248,14 @@ class AppStrings {
   static const String roomNotFound = "roomNotFound";
   static const String loungeNotFound = "loungeNotFound";
   static const String activeOffer = "activeOffer";
+  static const String lateArrivalPolicyTitle = "lateArrivalPolicyTitle";
+  static const String lateArrivalPolicyDesc = "lateArrivalPolicyDesc";
+  static const String bookingStatusPendingDesc = "bookingStatusPendingDesc";
+  static const String used = "used";
+  static const String expired = "expired";
+  static const String inclRoomOfferAndVoucher = "inclRoomOfferAndVoucher";
+  static const String noRoomsForCategory = "noRoomsForCategory";
+  static const String loungeLocation = "loungeLocation";
+  static const String scanDirections = "scanDirections";
+  static const String close = "close";
 }

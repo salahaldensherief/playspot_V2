@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/constants/booking_status.dart';
 import '../../../home/data/models/lounge_model.dart';
 import '../../../lounge_details/data/models/room_model.dart';
 
@@ -123,7 +124,7 @@ class CreateBookingParams extends Equatable {
       'discount_amount': discountAmount,
       'extras': addOns,
       'play_mode': playMode,
-      'status': status,
+      'status': BookingStatus.mapToDbStatus(status),
       'payment_status': paymentStatus,
     };
   }

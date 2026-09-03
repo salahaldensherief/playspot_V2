@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -31,13 +32,13 @@ class QrLocationDialog extends StatelessWidget {
                 width: 50.w,
                 height: 5.h,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
               SizedBox(height: 24.h),
               AppText(
-                text: "Lounge Location",
+                text: "loungeLocation".tr(),
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -66,7 +67,7 @@ class QrLocationDialog extends StatelessWidget {
               ),
               SizedBox(height: 30.h),
               AppText(
-                text: "Scan to get directions",
+                text: "scanDirections".tr(),
                 fontSize: 12.sp,
                 color: AppColors.textSecondary,
               ),
@@ -74,10 +75,10 @@ class QrLocationDialog extends StatelessWidget {
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: AppText(
-                  text: "CLOSE",
+                  text: "close".tr().toUpperCase(),
                   fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                 ),
               ),
             ],
