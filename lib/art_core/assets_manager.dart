@@ -99,6 +99,10 @@ class AssetsManager {
   static const String horse = '$_imagePath/horse.png';
   static const String horseRun = '$_imagePath/horse_run.jpg';
 
+  static const String onboarding1 = '$_imagePath/1.jpg';
+  static const String onboarding2 = '$_imagePath/2.jpg';
+  static const String onboarding3 = '$_imagePath/3.jpg';
+
   static const String boarding3 = '$_imagePath/boarding_3.PNG';
   static const String boarding5 = '$_imagePath/boarding_5.PNG';
   static const String boarding6 = '$_imagePath/boarding_6.PNG';
