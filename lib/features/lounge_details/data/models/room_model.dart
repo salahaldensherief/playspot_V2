@@ -177,8 +177,8 @@ class RoomModel extends Equatable {
       return RoomModel(
         id: json['id']?.toString() ?? '',
         loungeId: json['lounge_id']?.toString() ?? '',
-        nameAr: json['name_ar']?.toString() ?? '',
-        nameEn: json['name_en']?.toString() ?? '',
+        nameAr: json['name_ar']?.toString() ?? json['name']?.toString() ?? json['name_en']?.toString() ?? '',
+        nameEn: json['name_en']?.toString() ?? json['name']?.toString() ?? '',
         activityNames: activities.isNotEmpty
             ? activities
             : (json['activity_names'] != null ? List<String>.from(json['activity_names']) : []),

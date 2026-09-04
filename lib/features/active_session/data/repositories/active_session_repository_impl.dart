@@ -23,6 +23,11 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
   }
 
   @override
+  Stream<ActiveSessionModel?> watchUserActiveSession() {
+    return _remoteDataSource.watchUserActiveSession();
+  }
+
+  @override
   Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost) async {
     return await callRepository(() => _remoteDataSource.extendTime(bookingId, additionalMinutes, additionalCost));
   }

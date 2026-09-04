@@ -130,7 +130,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       }
 
       final updateData = {
-        'name': params.name,
+        'full_name': params.name,
         'phone': params.phone,
         if (params.email != null) 'email': params.email,
         if (avatarUrl != null) 'avatar_url': avatarUrl,

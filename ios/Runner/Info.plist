@@ -49,6 +49,15 @@
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
 
+    <!-- Background Modes for Push Notifications -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+        <string>remote-notification</string>
+    </array>
+    <key>FirebaseAppDelegateProxyEnabled</key>
+    <true/>
+
     <!-- Location Permissions -->
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>We need your location to show nearby gaming lounges.</string>

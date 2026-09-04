@@ -11,6 +11,7 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onChange(BlocBase bloc, Change change) {
     super.onChange(bloc, change);
+    if (bloc.runtimeType.toString().contains('ActiveSession')) return;
     log('CHANGE: ${bloc.runtimeType} | Current: ${change.currentState} | Next: ${change.nextState}');
   }
 
@@ -35,6 +36,7 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onTransition(Bloc bloc, Transition transition) {
     super.onTransition(bloc, transition);
+    if (bloc.runtimeType.toString().contains('ActiveSession')) return;
     log('TRANSITION: ${bloc.runtimeType} | Current: ${transition.currentState} | Event: ${transition.event} | Next: ${transition.nextState}');
   }
 }

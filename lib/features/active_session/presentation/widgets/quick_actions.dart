@@ -15,9 +15,24 @@ class QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
-      buildWhen: (prev, curr) => prev.extendStatus != curr.extendStatus,
+      buildWhen: (prev, curr) =>
+          prev.extendStatus != curr.extendStatus || prev.session != curr.session,
       builder: (context, state) {
         final isLoading = state.extendStatus == ActionStatus.loading;
+        final session = state.session;
+
+        double hourlyRate = 50.0;
+        if (session != null && session.basePrice > 0) {
+          final totalMinutes = session.endTime.difference(session.startTime).inMinutes;
+          if (totalMinutes > 0) {
+            hourlyRate = (session.basePrice / (totalMinutes / 60.0));
+          }
+        }
+
+        final cost30 = (hourlyRate * 0.5).roundToDouble();
+        final cost60 = hourlyRate.roundToDouble();
+        final cost120 = (hourlyRate * 2.0).roundToDouble();
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -43,21 +58,21 @@ class QuickActions extends StatelessWidget {
                 ActionCard(
                   label: AppStrings.min30.tr(),
                   mins: 30,
-                  cost: 25.0,
+                  cost: cost30 > 0 ? cost30 : 25.0,
                   isLoading: isLoading,
                 ),
                 SizedBox(width: 10.w),
                 ActionCard(
                   label: AppStrings.hr1.tr(),
                   mins: 60,
-                  cost: 45.0,
+                  cost: cost60 > 0 ? cost60 : 45.0,
                   isLoading: isLoading,
                 ),
                 SizedBox(width: 10.w),
                 ActionCard(
                   label: AppStrings.hr2.tr(),
                   mins: 120,
-                  cost: 80.0,
+                  cost: cost120 > 0 ? cost120 : 80.0,
                   isLoading: isLoading,
                 ),
               ],

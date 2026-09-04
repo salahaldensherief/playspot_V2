@@ -39,12 +39,12 @@ class ActionCard extends StatelessWidget {
               color: AppColors.cardBackground,
               borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: AppColors.neonBlue.withOpacity(0.15),
+                color: AppColors.withOpacity(AppColors.neonBlue, 0.15),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.black.withOpacity(0.15),
+                  color: AppColors.withOpacity(AppColors.black, 0.15),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),
@@ -63,7 +63,7 @@ class ActionCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                   decoration: BoxDecoration(
-                    color: AppColors.neonBlue.withOpacity(0.08),
+                    color: AppColors.withOpacity(AppColors.neonBlue, 0.08),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: AppText(

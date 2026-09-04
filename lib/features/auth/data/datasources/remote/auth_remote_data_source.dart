@@ -83,7 +83,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       await _supabase.from('profiles').upsert({
         'id': userId,
-        'name': params.name,
+        'full_name': params.name,
         'email': params.email,
         'phone': params.phone,
         'avatar_url': avatarUrl,
@@ -309,7 +309,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final metadata = user.userMetadata ?? {};
       await _supabase.from('profiles').upsert({
         'id': user.id,
-        'name': metadata['full_name'] ?? metadata['name'],
+        'full_name': metadata['full_name'] ?? metadata['name'],
         'email': user.email,
         'avatar_url': metadata['avatar_url'] ?? metadata['picture'],
         'is_banned': false,

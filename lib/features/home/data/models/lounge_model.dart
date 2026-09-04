@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 class LoungeModel extends Equatable {
   final String id;
   final String name;
+  final String? nameAr;
+  final String? nameEn;
   final String imageUrl;
   final double rating;
   final double distance;
@@ -30,6 +32,8 @@ class LoungeModel extends Equatable {
   const LoungeModel({
     required this.id,
     required this.name,
+    this.nameAr,
+    this.nameEn,
     required this.imageUrl,
     required this.rating,
     required this.distance,
@@ -59,6 +63,8 @@ class LoungeModel extends Equatable {
   List<Object?> get props => [
         id,
         name,
+        nameAr,
+        nameEn,
         imageUrl,
         rating,
         distance,
@@ -84,6 +90,14 @@ class LoungeModel extends Equatable {
         discountExpiresAt,
       ];
 
+  String getName(bool isArabic) {
+    if (isArabic) {
+      return (nameAr != null && nameAr!.isNotEmpty) ? nameAr! : name;
+    } else {
+      return (nameEn != null && nameEn!.isNotEmpty) ? nameEn! : name;
+    }
+  }
+
   String? getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
   String? getDiscountTitle(bool isArabic) => isArabic ? discountTitleAr : discountTitleEn;
 
@@ -91,16 +105,21 @@ class LoungeModel extends Equatable {
       hasDiscount && (discountExpiresAt == null || discountExpiresAt!.isAfter(DateTime.now()));
 
   factory LoungeModel.fromJson(Map<String, dynamic> json) {
-    double calculatedDistance = 0.0;
-    if (json['dist_meters'] != null) {
-      calculatedDistance = (json['dist_meters'] as num).toDouble() / 1000.0;
-    } else if (json['distance'] != null) {
-      calculatedDistance = (json['distance'] as num).toDouble();
-    }
+    final double calculatedDistance = (json['distance_km'] as num?)?.toDouble() ??
+        (json['distance'] as num?)?.toDouble() ??
+        0.0;
+
+    // Safely parse name from 'name', falling back to 'name_ar' or 'name_en'
+    final String parsedName = json['name']?.toString() ??
+        json['name_ar']?.toString() ??
+        json['name_en']?.toString() ??
+        '';
 
     return LoungeModel(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
+      name: parsedName,
+      nameAr: json['name_ar']?.toString() ?? json['name']?.toString(),
+      nameEn: json['name_en']?.toString() ?? json['name']?.toString(),
       imageUrl: json['image_url']?.toString() ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       distance: calculatedDistance,
@@ -110,8 +129,8 @@ class LoungeModel extends Equatable {
       city: json['city']?.toString(),
       totalReviews: (json['total_reviews'] as num?)?.toInt(),
       availableRooms: (json['available_rooms'] as num?)?.toInt(),
-      descriptionAr: json['description_ar']?.toString(),
-      descriptionEn: json['description_en']?.toString(),
+      descriptionAr: json['description_ar']?.toString() ?? json['description']?.toString(),
+      descriptionEn: json['description_en']?.toString() ?? json['description']?.toString(),
       images: json['images'] != null ? List<String>.from(json['images']) : [],
       opensAt: json['opening_time']?.toString() ?? json['opens_at']?.toString() ?? '',
       closesAt: json['closing_time']?.toString() ?? json['closes_at']?.toString() ?? '',
@@ -131,6 +150,8 @@ class LoungeModel extends Equatable {
     return {
       'id': id,
       'name': name,
+      'name_ar': nameAr ?? name,
+      'name_en': nameEn ?? name,
       'image_url': imageUrl,
       'rating': rating,
       'distance': distance,

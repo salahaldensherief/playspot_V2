@@ -43,34 +43,49 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<LoungeModel>> getLounges(GetLoungesParams params) async {
+    final lat = params.lat ?? 30.0444;
+    final lon = params.lng ?? 31.2357;
+
     try {
-      dev.log("FETCHING_LOUNGES: city=${params.city}, categories=${params.categoryIds}, sort=${params.sortType}");
-      
-      // We pass categoryIds as simple List<String> which matches text[] in SQL
-      final response = await _client.rpc('get_smart_filtered_lounges', params: {
-        'user_lat': params.lat ?? 30.0444,
-        'user_lng': params.lng ?? 31.2357,
-        'p_city_name': (params.city != null && params.city!.isNotEmpty) ? params.city : null,
-        'p_category_ids': (params.categoryIds != null && params.categoryIds!.isNotEmpty) ? params.categoryIds : null,
-        'p_sort_type': params.sortType,
-        'p_limit': params.limit,
-        'p_offset': params.offset,
+      dev.log("FETCHING_LOUNGES via get_nearby_lounges: lat=$lat, lon=$lon");
+
+      final response = await _client.rpc('get_nearby_lounges', params: {
+        'user_lat': lat,
+        'user_lon': lon,
       });
 
       final List lounges = response as List;
-      dev.log("RPC_RESULTS_COUNT: ${lounges.length}");
-      
+      dev.log("RPC_RESULTS_COUNT (get_nearby_lounges): ${lounges.length}");
+
       return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
     } catch (e) {
-      dev.log("FETCH_LOUNGES_CRITICAL_ERROR: $e");
-      // Prevent infinite loops or misleading UI by only falling back on empty initial loads
-      if ((params.categoryIds == null || params.categoryIds!.isEmpty) && params.offset == 0) {
-        final fallback = await _client.from('lounges')
-            .select()
-            .range(params.offset, params.offset + params.limit - 1);
-        return (fallback as List).map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      dev.log("FETCH_LOUNGES_NEARBY_ERROR: $e, falling back to get_smart_filtered_lounges");
+      try {
+        final response = await _client.rpc('get_smart_filtered_lounges', params: {
+          'user_lat': lat,
+          'user_lng': lon,
+          'p_city_name': (params.city != null && params.city!.isNotEmpty) ? params.city : null,
+          'p_category_ids': (params.categoryIds != null && params.categoryIds!.isNotEmpty) ? params.categoryIds : null,
+          'p_sort_type': params.sortType,
+          'p_limit': params.limit,
+          'p_offset': params.offset,
+        });
+
+        final List lounges = response as List;
+        return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      } catch (fallbackError) {
+        dev.log("FETCH_LOUNGES_CRITICAL_ERROR: $fallbackError");
+        try {
+          var query = _client.from('lounges').select();
+          if (params.city != null && params.city!.isNotEmpty) {
+            query = query.eq('city', params.city!);
+          }
+          final fallback = await query.range(params.offset, params.offset + params.limit - 1);
+          return (fallback as List).map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+        } catch (_) {
+          return [];
+        }
       }
-      return [];
     }
   }
 
@@ -107,7 +122,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     } catch (e) {
       dev.log("GET_PROMOTIONS_CRITICAL_ERROR: $e");
       try {
-        var query = _client.from('promotions').select();
+        var query = _client.from('promotions').select().eq('is_active', true).gt('expires_at', DateTime.now().toIso8601String());
         if (loungeId != null && loungeId.isNotEmpty) {
           query = query.eq('lounge_id', loungeId);
         }

@@ -13,6 +13,7 @@ class DurationSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bookingCubit = context.read<BookingCubit>();
     return BlocBuilder<BookingCubit, BookingState>(
       buildWhen: (previous, current) => previous.durationMinutes != current.durationMinutes,
       builder: (context, state) {
@@ -33,7 +34,7 @@ class DurationSelector extends StatelessWidget {
             children: [
               IconButton(
                 icon: Icon(Icons.remove_circle_outline, color: AppColors.textSecondary, size: 28.sp),
-                onPressed: () => context.read<BookingCubit>().updateDuration(-30),
+                onPressed: () => bookingCubit.updateDuration(-30),
               ),
               SizedBox(width: 24.w),
               Column(
@@ -49,7 +50,7 @@ class DurationSelector extends StatelessWidget {
               SizedBox(width: 24.w),
               IconButton(
                 icon: Icon(Icons.add_circle_outline, color: AppColors.neonBlue, size: 28.sp),
-                onPressed: () => context.read<BookingCubit>().updateDuration(30),
+                onPressed: () => bookingCubit.updateDuration(30),
               ),
             ],
           ),

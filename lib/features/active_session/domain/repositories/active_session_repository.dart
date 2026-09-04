@@ -7,6 +7,7 @@ import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 abstract class ActiveSessionRepository {
   Future<Either<Failure, ActiveSessionModel?>> getActiveSession({String? bookingId});
   Stream<ActiveSessionModel> streamActiveSession(String bookingId);
+  Stream<ActiveSessionModel?> watchUserActiveSession();
   Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost);
   Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItemModel> items);
   Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(String loungeId);

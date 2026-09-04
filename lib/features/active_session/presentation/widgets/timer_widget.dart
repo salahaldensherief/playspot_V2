@@ -10,12 +10,14 @@ class TimerWidget extends StatelessWidget {
   final Duration remaining;
   final double progress;
   final Color statusColor;
+  final String? labelOverride;
 
   const TimerWidget({
     super.key,
     required this.remaining,
     required this.progress,
     required this.statusColor,
+    this.labelOverride,
   });
 
   @override
@@ -25,6 +27,10 @@ class TimerWidget extends StatelessWidget {
     final seconds = remaining.inSeconds.remainder(60);
 
     final timeStr = "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+
+    final label = labelOverride ?? (remaining.isNegative 
+        ? AppStrings.overtime.tr().toUpperCase() 
+        : AppStrings.remaining.tr().toUpperCase());
 
     return Center(
       child: Stack(
@@ -51,9 +57,7 @@ class TimerWidget extends StatelessWidget {
               ),
               SizedBox(height: 8.h),
               AppText(
-                text: remaining.isNegative 
-                    ? AppStrings.overtime.tr().toUpperCase() 
-                    : AppStrings.remaining.tr().toUpperCase(),
+                text: label,
                 fontSize: 12.sp,
                 color: AppColors.textSecondary,
                 letterSpacing: 2,
@@ -68,7 +72,7 @@ class TimerWidget extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: statusColor.withOpacity(0.15),
+                  color: AppColors.withOpacity(statusColor, 0.15),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),

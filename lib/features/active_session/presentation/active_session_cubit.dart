@@ -1,17 +1,31 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/booking_status.dart';
+import '../../../../core/notifications/local_notification_service.dart';
 import '../domain/repositories/active_session_repository.dart';
 import '../data/models/order_item_model.dart';
 import 'active_session_state.dart';
 
 class ActiveSessionCubit extends Cubit<ActiveSessionState> {
   final ActiveSessionRepository _repo;
-  Timer? _timer;
   StreamSubscription? _realtimeSubscription;
+  StreamSubscription? _userSessionsSubscription;
   String? _subscribedBookingId;
 
-  ActiveSessionCubit(this._repo) : super(const ActiveSessionState());
+  ActiveSessionCubit(this._repo) : super(const ActiveSessionState()) {
+    _watchUserSessions();
+  }
+
+  void _watchUserSessions() {
+    _userSessionsSubscription?.cancel();
+    _userSessionsSubscription = _repo.watchUserActiveSession().listen((activeSession) {
+      if (activeSession != null) {
+        if (state.session == null || state.session!.bookingId != activeSession.bookingId || state.status != ActiveSessionStatus.loaded) {
+          loadActiveSession(bookingId: activeSession.bookingId);
+        }
+      }
+    });
+  }
 
   Future<void> loadActiveSession({String? bookingId}) async {
     if (state.status != ActiveSessionStatus.loaded) {
@@ -30,39 +44,26 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
           _subscribedBookingId = null;
           _realtimeSubscription?.cancel();
           _realtimeSubscription = null;
-          _timer?.cancel();
           emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
         } else {
           emit(state.copyWith(
             status: ActiveSessionStatus.loaded,
             session: session,
           ));
-          _startTimer();
           _subscribeToRealtime(session.bookingId);
           loadMenu(session.loungeId);
+
+          try {
+            final notificationId = session.bookingId.hashCode.abs() & 0x7FFFFFFF;
+            LocalNotificationService.instance.scheduleSessionExpiryWarning(
+              id: notificationId,
+              loungeName: session.loungeName.isNotEmpty ? session.loungeName : 'Lounge',
+              expiryTime: session.endTime,
+            );
+          } catch (_) {}
         }
       },
     );
-  }
-
-  void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (state.session != null) {
-        final now = DateTime.now();
-        final remaining = state.session!.endTime.difference(now);
-        
-        if (remaining.inSeconds <= 0 && state.status == ActiveSessionStatus.loaded) {
-          _timer?.cancel();
-          emit(state.copyWith(
-            remainingTime: Duration.zero,
-            status: ActiveSessionStatus.empty, // Signal UI to close/show review
-          ));
-        } else {
-          emit(state.copyWith(remainingTime: remaining));
-        }
-      }
-    });
   }
 
   void _subscribeToRealtime(String bookingId) {
@@ -75,7 +76,6 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     _realtimeSubscription = _repo.streamActiveSession(bookingId).listen((updatedSession) {
       final status = BookingStatus.fromString(updatedSession.status);
       if (status == BookingStatus.completed || status == BookingStatus.cancelled) {
-        _timer?.cancel();
         _subscribedBookingId = null;
         _realtimeSubscription?.cancel();
         _realtimeSubscription = null;
@@ -186,8 +186,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
 
   @override
   Future<void> close() {
-    _timer?.cancel();
     _realtimeSubscription?.cancel();
+    _userSessionsSubscription?.cancel();
     return super.close();
   }
 }

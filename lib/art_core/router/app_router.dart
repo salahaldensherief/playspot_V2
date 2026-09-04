@@ -109,7 +109,7 @@ class AppRouter {
         return true;
       }
 
-      if (typeStr.contains('active_session') || typeStr.contains('session')) {
+      if (typeStr.contains('live_session') || typeStr.contains('active_session') || typeStr.contains('session')) {
         router.pushNamed(RouterKeys.activeSession);
         return true;
       }

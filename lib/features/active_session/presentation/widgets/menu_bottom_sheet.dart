@@ -65,7 +65,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
               Expanded(
                 child: ListView.separated(
                   itemCount: state.menu.length,
-                  separatorBuilder: (_, __) => Divider(color: AppColors.divider),
+                  separatorBuilder: (_, _) => Divider(color: AppColors.divider),
                   itemBuilder: (context, index) {
                     final item = state.menu[index];
                     final qty = _quantities[item.id] ?? 0;
@@ -179,7 +179,9 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
 
     if (items.isNotEmpty) {
       widget.cubit.placeOrder(items).then((_) {
-        if (context.mounted) Navigator.pop(context);
+        if (context.mounted && widget.cubit.state.orderStatus == ActionStatus.success) {
+          Navigator.pop(context);
+        }
       });
     }
   }

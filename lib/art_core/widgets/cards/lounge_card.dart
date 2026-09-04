@@ -108,7 +108,7 @@ class LoungeCard extends StatelessWidget {
           ),
 
         // Distance Badge
-        if (lounge.distance > 0)
+        if (lounge.distance > 0 && lounge.distance < 99999)
           Positioned.directional(
             textDirection: Directionality.of(context),
             bottom: AppSizes.s8,
@@ -167,7 +167,7 @@ class LoungeCard extends StatelessWidget {
           Icon(Icons.location_on, color: AppColors.neonBlue, size: 12.sp),
           4.horizontalSpace,
           AppText(
-            text: "${lounge.distance.toStringAsFixed(1)} km",
+            text: "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
             fontSize: 10.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,

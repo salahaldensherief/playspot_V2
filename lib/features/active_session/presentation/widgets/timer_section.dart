@@ -1,37 +1,117 @@
+import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
 import 'timer_widget.dart';
 
-class TimerSection extends StatelessWidget {
+class TimerSection extends StatefulWidget {
   const TimerSection({super.key});
 
   @override
+  State<TimerSection> createState() => _TimerSectionState();
+}
+
+class _TimerSectionState extends State<TimerSection> {
+  Timer? _ticker;
+  final ValueNotifier<Duration> _remainingNotifier = ValueNotifier(Duration.zero);
+  DateTime? _startTime;
+  DateTime? _endTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _initTimerData();
+  }
+
+  void _initTimerData() {
+    final state = context.read<ActiveSessionCubit>().state;
+    if (state.session != null) {
+      _startTime = state.session!.startTime;
+      _endTime = state.session!.endTime;
+      _updateRemaining();
+    }
+
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && _startTime != null && _endTime != null) {
+        _updateRemaining();
+      }
+    });
+  }
+
+  void _updateRemaining() {
+    final now = DateTime.now();
+    if (_startTime != null && _endTime != null) {
+      if (now.isBefore(_startTime!)) {
+        _remainingNotifier.value = _startTime!.difference(now);
+      } else {
+        _remainingNotifier.value = _endTime!.difference(now);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    _remainingNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
-      buildWhen: (prev, curr) => prev.remainingTime != curr.remainingTime || prev.session?.endTime != curr.session?.endTime,
+    return BlocConsumer<ActiveSessionCubit, ActiveSessionState>(
+      listenWhen: (prev, curr) => prev.session?.startTime != curr.session?.startTime || prev.session?.endTime != curr.session?.endTime,
+      listener: (context, state) {
+        if (state.session != null) {
+          _startTime = state.session!.startTime;
+          _endTime = state.session!.endTime;
+          _updateRemaining();
+        }
+      },
+      buildWhen: (prev, curr) => prev.session?.bookingId != curr.session?.bookingId,
       builder: (context, state) {
         if (state.session == null) return const SizedBox.shrink();
         
         final session = state.session!;
-        final totalDuration = session.endTime.difference(session.startTime);
-        final progress = totalDuration.inSeconds > 0 
-            ? state.remainingTime.inSeconds / totalDuration.inSeconds 
-            : 0.0;
-        
-        Color statusColor = AppColors.success;
-        if (session.isOvertime) {
-          statusColor = AppColors.danger;
-        } else if (session.isExpiringSoon) {
-          statusColor = AppColors.warning;
-        }
+        _startTime = session.startTime;
+        _endTime = session.endTime;
 
-        return TimerWidget(
-          remaining: state.remainingTime,
-          progress: progress.clamp(0.0, 1.0),
-          statusColor: statusColor,
+        return ValueListenableBuilder<Duration>(
+          valueListenable: _remainingNotifier,
+          builder: (context, remaining, child) {
+            final now = DateTime.now();
+            final hasStarted = !now.isBefore(session.startTime);
+
+            if (!hasStarted) {
+              return TimerWidget(
+                remaining: remaining,
+                progress: 1.0,
+                statusColor: AppColors.neonBlue,
+                labelOverride: AppStrings.startsIn.tr().toUpperCase(),
+              );
+            }
+
+            final totalDuration = session.endTime.difference(session.startTime);
+            final progress = totalDuration.inSeconds > 0 
+                ? remaining.inSeconds / totalDuration.inSeconds 
+                : 0.0;
+            
+            Color statusColor = AppColors.success;
+            if (session.isOvertime) {
+              statusColor = AppColors.danger;
+            } else if (session.isExpiringSoon) {
+              statusColor = AppColors.warning;
+            }
+
+            return TimerWidget(
+              remaining: remaining,
+              progress: progress.clamp(0.0, 1.0),
+              statusColor: statusColor,
+            );
+          },
         );
       },
     );

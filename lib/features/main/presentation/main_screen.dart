@@ -31,7 +31,6 @@ class _MainScreenState extends State<MainScreen> {
   late int _selectedIndex;
   late final List<Widget> _screens;
   
-  // ⏱️ تتبع وقت آخر تحديث لكل تاب (Home=0, Bookings=1, Profile=2)
   final Map<int, DateTime> _lastRefreshTime = {};
   static const Duration _refreshThreshold = Duration(minutes: 1);
 
@@ -117,12 +116,20 @@ class _MainScreenState extends State<MainScreen> {
         ? (bottomPadding > 0 ? bottomPadding + 10.h : 20.h)
         : 30.h;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      floatingActionButton: BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
-        buildWhen: (prev, curr) => prev.status != curr.status,
-        builder: (context, state) {
-          if (state.status != ActiveSessionStatus.loaded) return const SizedBox.shrink();
+    return BlocListener<ActiveSessionCubit, ActiveSessionState>(
+      listenWhen: (prev, curr) => 
+          prev.status != ActiveSessionStatus.loaded && curr.status == ActiveSessionStatus.loaded && curr.session != null,
+      listener: (context, state) {
+        try {
+          context.pushNamed(RouterKeys.activeSession);
+        } catch (_) {}
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        floatingActionButton: BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
+          buildWhen: (prev, curr) => prev.status != curr.status,
+          builder: (context, state) {
+            if (state.status != ActiveSessionStatus.loaded) return const SizedBox.shrink();
           
           return Container(
             margin: EdgeInsets.only(bottom: 70.h),
@@ -160,7 +167,8 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-    );
+    )
+        );
   }
 
   Widget _buildGlassNavBar() {

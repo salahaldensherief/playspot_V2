@@ -153,6 +153,10 @@ class ActiveSessionModel extends Equatable {
   double get ordersTotal => orders.fold(0, (sum, item) => sum + item.total);
   double get grandTotal => basePrice + extensionsPrice + ordersTotal;
 
+  bool get hasStarted => !DateTime.now().isBefore(startTime);
+  bool get isUpcoming => DateTime.now().isBefore(startTime);
+  Duration get timeUntilStart => startTime.difference(DateTime.now());
+
   bool get isExpiringSoon {
     final remaining = endTime.difference(DateTime.now());
     return remaining.inMinutes > 0 && remaining.inMinutes <= 15;

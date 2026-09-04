@@ -13,7 +13,6 @@ class ActiveSessionState extends Equatable {
   final ActionStatus orderStatus;
   final ActionStatus staffRequestStatus;
   final String? errorMessage;
-  final Duration remainingTime;
 
   const ActiveSessionState({
     this.status = ActiveSessionStatus.initial,
@@ -23,7 +22,6 @@ class ActiveSessionState extends Equatable {
     this.orderStatus = ActionStatus.initial,
     this.staffRequestStatus = ActionStatus.initial,
     this.errorMessage,
-    this.remainingTime = Duration.zero,
   });
 
   ActiveSessionState copyWith({
@@ -34,7 +32,6 @@ class ActiveSessionState extends Equatable {
     ActionStatus? orderStatus,
     ActionStatus? staffRequestStatus,
     String? errorMessage,
-    Duration? remainingTime,
   }) {
     return ActiveSessionState(
       status: status ?? this.status,
@@ -44,7 +41,6 @@ class ActiveSessionState extends Equatable {
       orderStatus: orderStatus ?? this.orderStatus,
       staffRequestStatus: staffRequestStatus ?? this.staffRequestStatus,
       errorMessage: errorMessage ?? this.errorMessage,
-      remainingTime: remainingTime ?? this.remainingTime,
     );
   }
 
@@ -57,6 +53,5 @@ class ActiveSessionState extends Equatable {
         orderStatus,
         staffRequestStatus,
         errorMessage,
-        remainingTime,
       ];
 }

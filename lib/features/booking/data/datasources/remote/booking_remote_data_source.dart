@@ -79,11 +79,29 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required int additionalMinutes,
     required double additionalCost,
   }) async {
-    await _client.rpc('extend_booking_session', params: {
-      'p_booking_id': bookingId,
-      'p_additional_minutes': additionalMinutes,
-      'p_added_cost': additionalCost,
-    });
+    try {
+      await _client.rpc('extend_booking_session', params: {
+        'p_booking_id': bookingId,
+        'p_additional_minutes': additionalMinutes,
+        'p_added_cost': additionalCost,
+      });
+    } catch (e) {
+      try {
+        final booking = await _client.from('bookings').select('end_time, extensions_price, total_price').eq('id', bookingId).single();
+        final currentEnd = DateTime.parse(booking['end_time']);
+        final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
+        final currentExtPrice = (booking['extensions_price'] as num?)?.toDouble() ?? 0.0;
+        final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
+
+        await _client.from('bookings').update({
+          'end_time': newEnd.toIso8601String(),
+          'extensions_price': currentExtPrice + additionalCost,
+          'total_price': currentTotal + additionalCost,
+        }).eq('id', bookingId);
+      } catch (fallbackError) {
+        rethrow;
+      }
+    }
   }
 
   @override
