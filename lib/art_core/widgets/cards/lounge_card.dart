@@ -14,7 +14,7 @@ import '../lounge/lounge_favorite_button.dart';
 import '../lounge/lounge_status_badge.dart';
 import '../../../features/home/data/models/lounge_model.dart';
 
-class LoungeCard extends StatelessWidget {
+class LoungeCard extends StatefulWidget {
   final LoungeModel lounge;
   final VoidCallback? onTap;
   final String? heroTag;
@@ -22,33 +22,49 @@ class LoungeCard extends StatelessWidget {
   const LoungeCard({super.key, required this.lounge, this.onTap, this.heroTag});
 
   @override
+  State<LoungeCard> createState() => _LoungeCardState();
+}
+
+class _LoungeCardState extends State<LoungeCard> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final lounge = widget.lounge;
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSizes.r24),
-          border: lounge.isDiscountActive
-              ? Border.all(color: AppColors.warning.withOpacity(0.3), width: 1.5)
-              : null,
-          boxShadow: lounge.isDiscountActive
-              ? [
-                  BoxShadow(
-                    color: AppColors.warning.withOpacity(0.1),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                  )
-                ]
-              : null,
-        ),
-        child: GlassContainer(
-          borderRadius: AppSizes.r24,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildImageSection(context),
-              _buildDetailsSection(),
-            ],
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOutCubic,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppSizes.r24),
+            border: lounge.isDiscountActive
+                ? Border.all(color: AppColors.withOpacity(AppColors.warning, 0.3), width: 1.5)
+                : null,
+            boxShadow: lounge.isDiscountActive
+                ? [
+                    BoxShadow(
+                      color: AppColors.withOpacity(AppColors.warning, 0.1),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    )
+                  ]
+                : null,
+          ),
+          child: GlassContainer(
+            borderRadius: AppSizes.r24,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildImageSection(context),
+                _buildDetailsSection(),
+              ],
+            ),
           ),
         ),
       ),
@@ -56,13 +72,14 @@ class LoungeCard extends StatelessWidget {
   }
 
   Widget _buildImageSection(BuildContext context) {
+    final lounge = widget.lounge;
     return Stack(
       children: [
         // Main Image
         ClipRRect(
           borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.r24)),
           child: Hero(
-            tag: heroTag ?? 'lounge_image_${lounge.id}',
+            tag: widget.heroTag ?? 'lounge_image_${lounge.id}',
             child: CachedNetworkImage(
               imageUrl: "${lounge.imageUrl}?width=400&quality=80",
               height: 130.h,
@@ -120,6 +137,7 @@ class LoungeCard extends StatelessWidget {
   }
 
   Widget _buildDiscountBadge(BuildContext context) {
+    final lounge = widget.lounge;
     final isArabic = context.locale.languageCode == 'ar';
     return Container(
       padding: 10.horizontalPadding + 4.verticalPadding,
@@ -132,7 +150,7 @@ class LoungeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.r10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: AppColors.withOpacity(Colors.black, 0.3),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -156,6 +174,7 @@ class LoungeCard extends StatelessWidget {
   }
 
   Widget _buildDistanceBadge() {
+    final lounge = widget.lounge;
     return Container(
       padding: 8.horizontalPadding + 4.verticalPadding,
       decoration: BoxDecoration(
@@ -178,6 +197,7 @@ class LoungeCard extends StatelessWidget {
   }
 
   Widget _buildDetailsSection() {
+    final lounge = widget.lounge;
     return Padding(
       padding: 12.allPadding,
       child: Column(
@@ -201,29 +221,44 @@ class LoungeCard extends StatelessWidget {
   }
 
   Widget _buildRatingAndCity() {
+    final lounge = widget.lounge;
     return Row(
       children: [
         Icon(Icons.star_rounded, color: AppColors.warning, size: 16.sp),
         4.horizontalSpace,
         AppText(
-          text: lounge.rating.toString(),
+          text: lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A",
           fontSize: 12.sp,
           fontWeight: FontWeight.bold,
           color: AppColors.white,
         ),
-        if (lounge.totalReviews != null)
-          AppText(
-            text: " (${lounge.totalReviews})",
-            fontSize: 10.sp,
-            color: AppColors.textSecondary,
+        if (lounge.totalReviews != null && lounge.totalReviews! > 0) ...[
+          4.horizontalSpace,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+            decoration: BoxDecoration(
+              color: AppColors.withOpacity(AppColors.warning, 0.12),
+              borderRadius: BorderRadius.circular(6.r),
+              border: Border.all(
+                color: AppColors.withOpacity(AppColors.warning, 0.3),
+                width: 0.8,
+              ),
+            ),
+            child: AppText(
+              text: "(${lounge.totalReviews})",
+              fontSize: 10.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.warning,
+            ),
           ),
+        ],
         const Spacer(),
         if (lounge.city != null)
           Flexible(
             child: AppText(
               text: lounge.city!,
               fontSize: 10.sp,
-              color: AppColors.neonBlue.withOpacity(0.7),
+              color: AppColors.withOpacity(AppColors.neonBlue, 0.7),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.end,
@@ -234,6 +269,7 @@ class LoungeCard extends StatelessWidget {
   }
 
   Widget _buildAmenitiesHud() {
+    final lounge = widget.lounge;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -257,6 +293,7 @@ class LoungeCard extends StatelessWidget {
   }
 
   Widget _buildPriceInfo() {
+    final lounge = widget.lounge;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

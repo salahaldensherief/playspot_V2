@@ -49,6 +49,14 @@ class AppStateView extends StatelessWidget {
         type: AppStateViewType.empty,
       );
 
+  String _safeTranslate(String text) {
+    if (text.isEmpty) return text;
+    if (text.contains(' ') || text.contains('\n')) {
+      return text;
+    }
+    return text.tr();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -64,7 +72,7 @@ class AppStateView extends StatelessWidget {
             ),
             SizedBox(height: AppSizes.s16),
             AppText(
-              text: title.tr(),
+              text: _safeTranslate(title),
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.white,
@@ -73,7 +81,7 @@ class AppStateView extends StatelessWidget {
             if (subtitle != null) ...[
               SizedBox(height: AppSizes.s8),
               AppText(
-                text: subtitle!.tr(),
+                text: _safeTranslate(subtitle!),
                 fontSize: 14.sp,
                 color: AppColors.textSecondary,
                 textAlign: TextAlign.center,

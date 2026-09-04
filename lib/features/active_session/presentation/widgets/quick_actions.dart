@@ -33,6 +33,131 @@ class QuickActions extends StatelessWidget {
         final cost60 = hourlyRate.roundToDouble();
         final cost120 = (hourlyRate * 2.0).roundToDouble();
 
+        final isPending = session?.isExtensionPending ?? false;
+        final isRejected = session?.isExtensionRejected ?? false;
+        final pendingMins = session?.requestedExtensionMinutes ?? 30;
+
+        if (isPending) {
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: AppColors.withOpacity(AppColors.warning, 0.1),
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(
+                color: AppColors.withOpacity(AppColors.warning, 0.4),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.withOpacity(AppColors.warning, 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.withOpacity(AppColors.warning, 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: AppColors.warning,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppText(
+                        text: AppStrings.extensionPendingTitle.tr(),
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.warning,
+                      ),
+                      SizedBox(height: 4.h),
+                      AppText(
+                        text: AppStrings.extensionPendingSubtitle.tr(args: [pendingMins.toString()]),
+                        fontSize: 12.5.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (isRejected) {
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: AppColors.withOpacity(AppColors.danger, 0.1),
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(
+                color: AppColors.withOpacity(AppColors.danger, 0.4),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.withOpacity(AppColors.danger, 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.withOpacity(AppColors.danger, 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.cancel_rounded,
+                    color: AppColors.danger,
+                    size: 22.sp,
+                  ),
+                ),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppText(
+                        text: AppStrings.extensionDeclinedTitle.tr(),
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.danger,
+                      ),
+                      SizedBox(height: 4.h),
+                      AppText(
+                        text: AppStrings.extensionDeclinedSubtitle.tr(),
+                        fontSize: 12.5.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -62,21 +62,50 @@ class ActiveSessionBody extends StatelessWidget {
         }
 
         if (state.status == ActiveSessionStatus.empty || state.session == null) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(20.w),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.sports_esports_outlined,
-                      color: AppColors.textSecondary, size: 64.sp),
-                  SizedBox(height: 16.h),
-                  AppText(
-                    text: AppStrings.noUpcomingBookings.tr(),
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ],
+          return RefreshIndicator(
+            onRefresh: () => context.read<ActiveSessionCubit>().loadActiveSession(),
+            color: AppColors.neonBlue,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Container(
+                constraints: BoxConstraints(minHeight: 0.7.sh),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(24.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.withOpacity(AppColors.neonBlue, 0.08),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.withOpacity(AppColors.neonBlue, 0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.sports_esports_outlined,
+                        color: AppColors.neonBlue,
+                        size: 64.sp,
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+                    AppText(
+                      text: AppStrings.noUpcomingBookings.tr(),
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      textAlign: TextAlign.center,
+                      color: AppColors.textPrimary,
+                    ),
+                    SizedBox(height: 8.h),
+                    AppText(
+                      text: AppStrings.noActiveSessionMsg.tr(),
+                      fontSize: 13.sp,
+                      color: AppColors.textSecondary,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
           );

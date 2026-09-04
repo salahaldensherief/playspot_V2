@@ -6,9 +6,25 @@ import '../../data/models/review_model.dart';
 import '../../../home/data/models/category_model.dart';
 
 abstract class LoungeDetailsRepository {
-  Future<Either<Failure, List<RoomModel>>> getRoomsByLoungeId(String loungeId, {String? categoryId});
-  Future<Either<Failure, List<ExtraModel>>> getExtras(String loungeId);
-  Future<Either<Failure, List<CategoryModel>>> getLoungeCategories(String loungeId);
-  Future<Either<Failure, List<ReviewModel>>> getLoungeReviews(String loungeId);
-  Future<Either<Failure, RoomModel?>> getRoomById(String roomId);
+  Future<Either<Failure, List<RoomModel>>> getRoomsByLoungeId(
+    String loungeId, {
+    String? categoryId,
+    bool forceRefresh = false,
+  });
+  Future<Either<Failure, List<ExtraModel>>> getExtras(
+    String loungeId, {
+    bool forceRefresh = false,
+  });
+  Future<Either<Failure, List<CategoryModel>>> getLoungeCategories(
+    String loungeId, {
+    bool forceRefresh = false,
+  });
+  Future<Either<Failure, List<ReviewModel>>> getLoungeReviews(
+    String loungeId, {
+    bool forceRefresh = false,
+  });
+  Future<Either<Failure, RoomModel?>> getRoomById(
+    String roomId, {
+    bool forceRefresh = false,
+  });
 }

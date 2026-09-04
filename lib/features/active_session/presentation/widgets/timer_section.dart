@@ -63,7 +63,9 @@ class _TimerSectionState extends State<TimerSection> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ActiveSessionCubit, ActiveSessionState>(
-      listenWhen: (prev, curr) => prev.session?.startTime != curr.session?.startTime || prev.session?.endTime != curr.session?.endTime,
+      listenWhen: (prev, curr) =>
+          prev.session?.startTime != curr.session?.startTime ||
+          prev.session?.endTime != curr.session?.endTime,
       listener: (context, state) {
         if (state.session != null) {
           _startTime = state.session!.startTime;
@@ -71,47 +73,55 @@ class _TimerSectionState extends State<TimerSection> {
           _updateRemaining();
         }
       },
-      buildWhen: (prev, curr) => prev.session?.bookingId != curr.session?.bookingId,
+      buildWhen: (prev, curr) =>
+          prev.session?.bookingId != curr.session?.bookingId ||
+          prev.session?.endTime != curr.session?.endTime ||
+          prev.session?.startTime != curr.session?.startTime ||
+          prev.session?.extensionStatus != curr.session?.extensionStatus,
       builder: (context, state) {
         if (state.session == null) return const SizedBox.shrink();
-        
+
         final session = state.session!;
         _startTime = session.startTime;
         _endTime = session.endTime;
 
-        return ValueListenableBuilder<Duration>(
-          valueListenable: _remainingNotifier,
-          builder: (context, remaining, child) {
-            final now = DateTime.now();
-            final hasStarted = !now.isBefore(session.startTime);
+        return RepaintBoundary(
+          child: ValueListenableBuilder<Duration>(
+            valueListenable: _remainingNotifier,
+            builder: (context, remaining, child) {
+              final now = DateTime.now();
+              final currentStart = _startTime ?? session.startTime;
+              final currentEnd = _endTime ?? session.endTime;
+              final hasStarted = !now.isBefore(currentStart);
 
-            if (!hasStarted) {
+              if (!hasStarted) {
+                return TimerWidget(
+                  remaining: remaining,
+                  progress: 1.0,
+                  statusColor: AppColors.neonBlue,
+                  labelOverride: AppStrings.startsIn.tr().toUpperCase(),
+                );
+              }
+
+              final totalDuration = currentEnd.difference(currentStart);
+              final progress = totalDuration.inSeconds > 0
+                  ? remaining.inSeconds / totalDuration.inSeconds
+                  : 0.0;
+
+              Color statusColor = AppColors.success;
+              if (now.isAfter(currentEnd)) {
+                statusColor = AppColors.danger;
+              } else if (currentEnd.difference(now).inMinutes <= 15) {
+                statusColor = AppColors.warning;
+              }
+
               return TimerWidget(
                 remaining: remaining,
-                progress: 1.0,
-                statusColor: AppColors.neonBlue,
-                labelOverride: AppStrings.startsIn.tr().toUpperCase(),
+                progress: progress.clamp(0.0, 1.0),
+                statusColor: statusColor,
               );
-            }
-
-            final totalDuration = session.endTime.difference(session.startTime);
-            final progress = totalDuration.inSeconds > 0 
-                ? remaining.inSeconds / totalDuration.inSeconds 
-                : 0.0;
-            
-            Color statusColor = AppColors.success;
-            if (session.isOvertime) {
-              statusColor = AppColors.danger;
-            } else if (session.isExpiringSoon) {
-              statusColor = AppColors.warning;
-            }
-
-            return TimerWidget(
-              remaining: remaining,
-              progress: progress.clamp(0.0, 1.0),
-              statusColor: statusColor,
-            );
-          },
+            },
+          ),
         );
       },
     );

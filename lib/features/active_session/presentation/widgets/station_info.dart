@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -67,31 +69,49 @@ class StationInfo extends StatelessWidget {
             ),
           ),
           SizedBox(width: 8.w),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-            decoration: BoxDecoration(
-              color: AppColors.withOpacity(AppColors.neonBlue, 0.08),
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: AppColors.withOpacity(AppColors.neonBlue, 0.3)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppText(
-                  text: AppStrings.station.tr(),
-                  fontSize: 10.sp,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-                SizedBox(height: 2.h),
-                AppText(
-                  text: "#$bookingCode",
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.neonBlue,
-                ),
-              ],
+          InkWell(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: session.bookingId));
+              GameHudToast.show(
+                context,
+                AppStrings.bookingIdCopied.tr(),
+                type: ToastType.info,
+              );
+            },
+            borderRadius: BorderRadius.circular(10.r),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+              decoration: BoxDecoration(
+                color: AppColors.withOpacity(AppColors.neonBlue, 0.08),
+                borderRadius: BorderRadius.circular(10.r),
+                border: Border.all(color: AppColors.withOpacity(AppColors.neonBlue, 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppText(
+                    text: AppStrings.station.tr(),
+                    fontSize: 10.sp,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  SizedBox(height: 2.h),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.copy_rounded, size: 12.sp, color: AppColors.neonBlue),
+                      SizedBox(width: 4.w),
+                      AppText(
+                        text: "#$bookingCode",
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.neonBlue,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],

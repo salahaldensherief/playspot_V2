@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/failures.dart';
-import '../../data/models/booking_params.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/features/booking/data/models/booking_params.dart';
 
 abstract class BookingRepository {
   Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date);
@@ -9,6 +9,10 @@ abstract class BookingRepository {
     required String bookingId,
     required int additionalMinutes,
     required double additionalCost,
+  });
+  Future<Either<Failure, void>> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
   });
   Future<Either<Failure, void>> callStaff({
     required String loungeId,

@@ -13,6 +13,8 @@ class ActiveSessionModel extends Equatable {
   final double extensionsPrice;
   final List<OrderItemModel> orders;
   final String status;
+  final String? extensionStatus;
+  final int? requestedExtensionMinutes;
 
   const ActiveSessionModel({
     required this.bookingId,
@@ -26,6 +28,8 @@ class ActiveSessionModel extends Equatable {
     this.extensionsPrice = 0.0,
     this.orders = const [],
     required this.status,
+    this.extensionStatus,
+    this.requestedExtensionMinutes,
   });
 
   @override
@@ -41,6 +45,8 @@ class ActiveSessionModel extends Equatable {
         extensionsPrice,
         orders,
         status,
+        extensionStatus,
+        requestedExtensionMinutes,
       ];
 
   ActiveSessionModel copyWith({
@@ -55,6 +61,8 @@ class ActiveSessionModel extends Equatable {
     double? extensionsPrice,
     List<OrderItemModel>? orders,
     String? status,
+    String? extensionStatus,
+    int? requestedExtensionMinutes,
   }) {
     return ActiveSessionModel(
       bookingId: bookingId ?? this.bookingId,
@@ -68,6 +76,8 @@ class ActiveSessionModel extends Equatable {
       extensionsPrice: extensionsPrice ?? this.extensionsPrice,
       orders: orders ?? this.orders,
       status: status ?? this.status,
+      extensionStatus: extensionStatus ?? this.extensionStatus,
+      requestedExtensionMinutes: requestedExtensionMinutes ?? this.requestedExtensionMinutes,
     );
   }
 
@@ -89,7 +99,45 @@ class ActiveSessionModel extends Equatable {
 
     final dateRaw = json['date'] ?? json['booking_date'];
     final startTime = _parseDateTime(dateRaw, json['start_time']);
-    final endTime = _parseDateTime(dateRaw, json['end_time']);
+    DateTime endTime = _parseDateTime(dateRaw, json['end_time']);
+
+    // Check for explicit duration in JSON
+    final rawDuration = json['duration_minutes'] ??
+        json['duration'] ??
+        json['booking_duration'] ??
+        json['play_duration'];
+
+    int? durationMins;
+    if (rawDuration != null) {
+      if (rawDuration is num) {
+        durationMins = rawDuration.toInt();
+      } else if (rawDuration is String) {
+        durationMins = int.tryParse(rawDuration);
+      }
+    }
+
+    if (durationMins == null && json['duration_hours'] != null) {
+      final hours = (json['duration_hours'] as num?)?.toDouble();
+      if (hours != null) {
+        durationMins = (hours * 60).round();
+      }
+    }
+
+    if (durationMins != null && durationMins > 0) {
+      final calculatedEnd = startTime.add(Duration(minutes: durationMins));
+      if (calculatedEnd.isAfter(endTime)) {
+        endTime = calculatedEnd;
+      }
+    }
+
+    // Check for extra added/extended minutes
+    final addedMins = (json['extended_minutes'] as num?)?.toInt() ??
+        (json['added_minutes'] as num?)?.toInt() ??
+        0;
+
+    if (addedMins > 0) {
+      endTime = endTime.add(Duration(minutes: addedMins));
+    }
 
     return ActiveSessionModel(
       bookingId: json['id']?.toString() ?? '',
@@ -103,6 +151,8 @@ class ActiveSessionModel extends Equatable {
           (json['base_price'] as num?)?.toDouble() ??
           0.0,
       extensionsPrice: (json['extensions_price'] as num?)?.toDouble() ?? 0.0,
+      extensionStatus: json['extension_status']?.toString(),
+      requestedExtensionMinutes: (json['requested_extension_minutes'] as num?)?.toInt(),
       orders: ordersData
           .map((e) {
             try {
@@ -123,7 +173,8 @@ class ActiveSessionModel extends Equatable {
 
     if (timeStr.contains('T')) {
       try {
-        return DateTime.parse(timeStr);
+        final parsed = DateTime.parse(timeStr);
+        return parsed.isUtc ? parsed.toLocal() : parsed;
       } catch (_) {}
     }
 
@@ -131,8 +182,20 @@ class ActiveSessionModel extends Equatable {
     if (dateStr != null && dateStr.isNotEmpty) {
       try {
         final cleanDate = dateStr.split('T')[0];
-        final fullIso = "${cleanDate}T$timeStr";
-        return DateTime.parse(fullIso);
+        String formattedTime = timeStr;
+        if (timeStr.contains(' ')) {
+          final parts = timeStr.split(' ');
+          final timeParts = parts[0].split(':');
+          int hour = int.parse(timeParts[0]);
+          final minute = int.parse(timeParts[1]);
+          final isPm = parts[1].toUpperCase() == 'PM';
+          if (isPm && hour < 12) hour += 12;
+          if (!isPm && hour == 12) hour = 0;
+          formattedTime = "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00";
+        }
+        final fullIso = "${cleanDate}T$formattedTime";
+        final parsed = DateTime.parse(fullIso);
+        return parsed.isUtc ? parsed.toLocal() : parsed;
       } catch (_) {}
     }
 
@@ -156,6 +219,9 @@ class ActiveSessionModel extends Equatable {
   bool get hasStarted => !DateTime.now().isBefore(startTime);
   bool get isUpcoming => DateTime.now().isBefore(startTime);
   Duration get timeUntilStart => startTime.difference(DateTime.now());
+
+  bool get isExtensionPending => extensionStatus == 'pending';
+  bool get isExtensionRejected => extensionStatus == 'rejected';
 
   bool get isExpiringSoon {
     final remaining = endTime.difference(DateTime.now());

@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/failures.dart';
-import '../../../../core/utils/repository_helper.dart';
-import '../../domain/repositories/booking_repository.dart';
-import '../datasources/remote/booking_remote_data_source.dart';
-import '../models/booking_params.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/utils/repository_helper.dart';
+import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
+import 'package:playspot/features/booking/data/datasources/remote/booking_remote_data_source.dart';
+import 'package:playspot/features/booking/data/models/booking_params.dart';
 
 class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   final BookingRemoteDataSource _remoteDataSource;
@@ -30,6 +30,17 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
           bookingId: bookingId,
           additionalMinutes: additionalMinutes,
           additionalCost: additionalCost,
+        ));
+  }
+
+  @override
+  Future<Either<Failure, void>> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
+  }) async {
+    return await callRepository<void>(() => _remoteDataSource.requestExtension(
+          bookingId: bookingId,
+          requestedMinutes: requestedMinutes,
         ));
   }
 

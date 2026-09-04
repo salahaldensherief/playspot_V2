@@ -5,13 +5,57 @@ import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../text/app_text.dart';
 
-class LoungeStatusBadge extends StatelessWidget {
+class LoungeStatusBadge extends StatefulWidget {
   final bool isOpen;
   const LoungeStatusBadge({super.key, required this.isOpen});
 
   @override
+  State<LoungeStatusBadge> createState() => _LoungeStatusBadgeState();
+}
+
+class _LoungeStatusBadgeState extends State<LoungeStatusBadge>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.25).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    if (widget.isOpen) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(LoungeStatusBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isOpen != oldWidget.isOpen) {
+      if (widget.isOpen) {
+        _controller.repeat(reverse: true);
+      } else {
+        _controller.stop();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final color = isOpen ? AppColors.success : AppColors.roomBooked;
+    final color = widget.isOpen ? AppColors.success : AppColors.roomBooked;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
@@ -29,20 +73,34 @@ class LoungeStatusBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 4.w,
-            height: 4.w,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(color: color, blurRadius: 4, spreadRadius: 1),
-              ],
-            ),
+          RepaintBoundary(
+            child: widget.isOpen
+                ? ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Container(
+                      width: 5.w,
+                      height: 5.w,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: color, blurRadius: 4, spreadRadius: 1),
+                        ],
+                      ),
+                    ),
+                  )
+                : Container(
+                    width: 5.w,
+                    height: 5.w,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
           ),
-          SizedBox(width: 4.w),
+          SizedBox(width: 5.w),
           AppText(
-            text: (isOpen ? AppStrings.active.tr() : AppStrings.closed.tr()).toUpperCase(),
+            text: (widget.isOpen ? AppStrings.active.tr() : AppStrings.closed.tr()).toUpperCase(),
             fontSize: 8.sp,
             color: color,
             fontWeight: FontWeight.w800,

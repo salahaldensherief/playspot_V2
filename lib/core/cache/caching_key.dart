@@ -17,7 +17,6 @@ class CachingKey {
   static const String IS_GUEST_USER = 'IS_GUEST_USER';
   static const String USER_MODEL = 'USER_MODEL';
   static const String IS_DARK_MODE = 'IS_DARK_MODE';
-  // static const String isUserSubscription = 'IS_USER_Subscription';
 
   static const String LATITUDE = 'LATITUDE';
   static const String LONGITUDE = 'LONGITUDE';
@@ -28,4 +27,11 @@ class CachingKey {
   static const String OFFERS_ENABLED = 'OFFERS_ENABLED';
   static const String SYSTEM_NOTIF_ENABLED = 'SYSTEM_NOTIF_ENABLED';
   static const String TOURNAMENTS_ENABLED = 'TOURNAMENTS_ENABLED';
+
+  // Cache-First Cache Keys
+  static const String LOUNGE_PROFILES_PREFIX = 'CACHED_LOUNGE_PROFILE_';
+  static const String LOUNGE_ROOMS_PREFIX = 'CACHED_LOUNGE_ROOMS_';
+  static const String LOUNGE_EXTRAS_PREFIX = 'CACHED_LOUNGE_EXTRAS_';
+  static const String CATEGORIES_CACHE = 'CACHED_CATEGORIES';
+  static const String PROMOTIONS_CACHE = 'CACHED_PROMOTIONS';
 }

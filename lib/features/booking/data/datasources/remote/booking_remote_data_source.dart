@@ -10,6 +10,10 @@ abstract class BookingRemoteDataSource {
     required int additionalMinutes,
     required double additionalCost,
   });
+  Future<void> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
+  });
   Future<void> callStaff({
     required String loungeId,
     required String bookingId,
@@ -102,6 +106,17 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         rethrow;
       }
     }
+  }
+
+  @override
+  Future<void> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
+  }) async {
+    await _client.from('bookings').update({
+      'extension_status': 'pending',
+      'requested_extension_minutes': requestedMinutes,
+    }).eq('id', bookingId);
   }
 
   @override

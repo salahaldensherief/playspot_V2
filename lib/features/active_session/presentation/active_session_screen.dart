@@ -36,12 +36,37 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
           prev.extendStatus != curr.extendStatus ||
           prev.orderStatus != curr.orderStatus ||
           prev.staffRequestStatus != curr.staffRequestStatus ||
+          prev.session?.extensionStatus != curr.session?.extensionStatus ||
+          prev.session?.endTime != curr.session?.endTime ||
           (prev.status != curr.status && curr.status == ActiveSessionStatus.empty),
       listener: (context, state) {
         if (state.extendStatus == ActionStatus.success) {
           GameHudToast.show(
             context,
-            AppStrings.sessionExtendedSuccess.tr(),
+            AppStrings.extensionSentMsg.tr(),
+            type: ToastType.info,
+          );
+        }
+        if (state.session != null) {
+          final session = state.session!;
+          if (session.extensionStatus == 'approved') {
+            GameHudToast.show(
+              context,
+              AppStrings.extensionApprovedMsg.tr(),
+              type: ToastType.success,
+            );
+          } else if (session.extensionStatus == 'rejected') {
+            GameHudToast.show(
+              context,
+              AppStrings.extensionDeclinedMsg.tr(),
+              type: ToastType.warning,
+            );
+          }
+        }
+        if (state.orderStatus == ActionStatus.success) {
+          GameHudToast.show(
+            context,
+            AppStrings.orderPlacedSuccess.tr(),
             type: ToastType.success,
           );
         }

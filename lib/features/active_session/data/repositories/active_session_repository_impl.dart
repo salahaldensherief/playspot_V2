@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import '../../../../core/datasources/local/app_cache_local_data_source.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../domain/repositories/active_session_repository.dart';
@@ -9,8 +10,12 @@ import '../../../lounge_details/data/models/extra_model.dart';
 
 class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSessionRepository {
   final ActiveSessionRemoteDataSource _remoteDataSource;
+  final AppCacheLocalDataSource _cacheLocalDataSource;
 
-  ActiveSessionRepositoryImpl(this._remoteDataSource);
+  ActiveSessionRepositoryImpl(
+    this._remoteDataSource,
+    this._cacheLocalDataSource,
+  );
 
   @override
   Future<Either<Failure, ActiveSessionModel?>> getActiveSession({String? bookingId}) async {
@@ -33,13 +38,57 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
   }
 
   @override
+  Future<Either<Failure, void>> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
+  }) async {
+    return await callRepository(() => _remoteDataSource.requestExtension(
+          bookingId: bookingId,
+          requestedMinutes: requestedMinutes,
+        ));
+  }
+
+  @override
   Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItemModel> items) async {
     return await callRepository(() => _remoteDataSource.placeOrder(bookingId, items));
   }
 
   @override
-  Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(String loungeId) async {
-    return await callRepository(() => _remoteDataSource.getLoungeMenu(loungeId));
+  Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(
+    String loungeId, {
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh) {
+      final cached = _cacheLocalDataSource.getCachedLoungeMenu(loungeId);
+      if (cached != null && cached.isNotEmpty) {
+        // Background fetch to update cache
+        _remoteDataSource.getLoungeMenu(loungeId).then((menu) {
+          if (menu.isNotEmpty) {
+            _cacheLocalDataSource.cacheLoungeMenu(loungeId, menu);
+          }
+        }).catchError((_) {});
+
+        return Right(cached);
+      }
+    }
+
+    final result = await callRepository(() => _remoteDataSource.getLoungeMenu(loungeId));
+
+    result.fold(
+      (_) {
+        final cached = _cacheLocalDataSource.getCachedLoungeMenu(loungeId);
+        if (cached != null && cached.isNotEmpty) {
+          return Right(cached);
+        }
+      },
+      (menu) {
+        if (menu.isNotEmpty) {
+          _cacheLocalDataSource.cacheLoungeMenu(loungeId, menu);
+        }
+      },
+    );
+
+    return result;
   }
 
   @override

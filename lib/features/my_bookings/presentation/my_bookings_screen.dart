@@ -27,6 +27,15 @@ class MyBookingsScreen extends StatefulWidget {
 
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<MyBookingsCubit>().refreshBookingsIfStale();
+      }
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
@@ -93,7 +102,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               if (state.status == MyBookingsStatus.failure) {
                 return AppStateView.error(
                   title: state.errorMessage ?? AppStrings.errorLoadingBookings.tr(),
-                  onRetry: () => context.read<MyBookingsCubit>().getMyBookings(),
+                  onRetry: () => context.read<MyBookingsCubit>().refreshBookingsIfStale(force: true),
                 );
               }
 
@@ -102,19 +111,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   _buildBookingsList(
                     context,
                     state.upcomingBookings,
-                    AppStrings.noUpcomingBookings.tr(),
+                    AppStrings.noUpcomingBookings,
                     Icons.calendar_today_outlined,
                   ),
                   _buildBookingsList(
                     context,
                     state.pastBookings,
-                    AppStrings.noPastBookings.tr(),
+                    AppStrings.noPastBookings,
                     Icons.history_rounded,
                   ),
                   _buildBookingsList(
                     context,
                     state.cancelledBookings,
-                    AppStrings.noCancelledBookings.tr(),
+                    AppStrings.noCancelledBookings,
                     Icons.cancel_presentation_outlined,
                   ),
 
@@ -133,7 +142,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     IconData emptyIcon,
   ) {
     return RefreshIndicator(
-      onRefresh: () => context.read<MyBookingsCubit>().getMyBookings(),
+      onRefresh: () => context.read<MyBookingsCubit>().refreshBookingsIfStale(force: true),
       color: AppColors.neonBlue,
       backgroundColor: AppColors.cardBackground,
       child: bookings.isEmpty

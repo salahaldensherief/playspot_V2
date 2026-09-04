@@ -32,7 +32,7 @@ class _MainScreenState extends State<MainScreen> {
   late final List<Widget> _screens;
   
   final Map<int, DateTime> _lastRefreshTime = {};
-  static const Duration _refreshThreshold = Duration(minutes: 1);
+  static const Duration _refreshThreshold = Duration(seconds: 10);
 
   @override
   void initState() {
@@ -55,17 +55,17 @@ class _MainScreenState extends State<MainScreen> {
     final now = DateTime.now();
     final lastRefresh = _lastRefreshTime[index];
 
-    // 🔄 تحقق هل التاب محتاج تحديث (أول مرة يدخله أو فات دقيقة) أو تحديث إجباري مع احترام وقت الحد الأدنى (5 ثواني)
+    // 🔄 تحقق هل التاب محتاج تحديث (أول مرة يدخله أو فات 10 ثواني) أو تحديث إجباري
     final bool shouldRefresh = force || 
                                lastRefresh == null || 
                                now.difference(lastRefresh) > _refreshThreshold;
 
-    // حماية إضافية: منع التحديث المتتالي في أقل من 5 ثواني حتى لو force: true
-    final bool recentlyRefreshed = lastRefresh != null && now.difference(lastRefresh) < const Duration(seconds: 5);
+    // حماية إضافية: منع التحديث المتتالي السريع في أقل من 3 ثواني إلا لو force: true
+    final bool recentlyRefreshed = !force && lastRefresh != null && now.difference(lastRefresh) < const Duration(seconds: 3);
 
     if (shouldRefresh && !recentlyRefreshed) {
       _lastRefreshTime[index] = now;
-      _refreshModuleData(index);
+      _refreshModuleData(index, force: force);
     }
 
     if (_selectedIndex != index) {
@@ -73,15 +73,15 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  void _refreshModuleData(int index) {
-    debugPrint("AUTO_REFRESH: Refreshing data for module index $index");
+  void _refreshModuleData(int index, {bool force = false}) {
+    debugPrint("AUTO_REFRESH: Refreshing data for module index $index (force=$force)");
     try {
       switch (index) {
         case 0:
           context.read<HomeCubit>().refreshHome();
           break;
         case 1:
-          context.read<MyBookingsCubit>().getMyBookings();
+          context.read<MyBookingsCubit>().refreshBookingsIfStale(force: force);
           break;
         case 2:
           context.read<ProfileCubit>().getUserData();
@@ -224,8 +224,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildNavItem(int index, IconData icon, String label) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     bool isSelected = _selectedIndex == index;
 
     return GestureDetector(

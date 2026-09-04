@@ -122,28 +122,23 @@ class LoungeDetailsRemoteDataSourceImpl
   @override
   Future<List<ReviewModel>> getLoungeReviews(String loungeId) async {
     try {
-      // Trying with 'profiles' as it's common in Supabase, if it fails, the catch block will handle it
       final response = await _client
-          .from('reviews')
-          .select('*, profiles:user_id(name, avatar_url)')
+          .from('lounge_reviews')
+          .select('*, profiles:user_id(name, avatar_url, full_name)')
           .eq('lounge_id', loungeId)
           .order('created_at', ascending: false);
-      return (response as List).map((e) {
-        // Map 'profiles' back to 'users' for the model compatibility
-        final data = Map<String, dynamic>.from(e);
-        if (data.containsKey('profiles')) {
-          data['users'] = data['profiles'];
-        }
-        return ReviewModel.fromJson(data);
-      }).toList();
-    } catch (e) {
-      // Fallback: fetch reviews without user details to avoid crashing the screen
-      final response = await _client
-          .from('reviews')
-          .select('*')
-          .eq('lounge_id', loungeId)
-          .order('created_at', ascending: false);
-      return (response as List).map((e) => ReviewModel.fromJson(e)).toList();
+      return (response as List).map((e) => ReviewModel.fromJson(Map<String, dynamic>.from(e))).toList();
+    } catch (_) {
+      try {
+        final response = await _client
+            .from('reviews')
+            .select('*, profiles:user_id(name, avatar_url, full_name)')
+            .eq('lounge_id', loungeId)
+            .order('created_at', ascending: false);
+        return (response as List).map((e) => ReviewModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      } catch (_) {
+        return [];
+      }
     }
   }
 }

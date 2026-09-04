@@ -9,8 +9,15 @@ abstract class ActiveSessionRepository {
   Stream<ActiveSessionModel> streamActiveSession(String bookingId);
   Stream<ActiveSessionModel?> watchUserActiveSession();
   Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost);
+  Future<Either<Failure, void>> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
+  });
   Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItemModel> items);
-  Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(String loungeId);
+  Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(
+    String loungeId, {
+    bool forceRefresh = false,
+  });
   Future<Either<Failure, void>> requestStaffAssistance({
     required String bookingId,
     required String callType,

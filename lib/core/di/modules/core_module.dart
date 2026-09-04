@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../cache/preference_manager.dart';
+import '../../datasources/local/app_cache_local_data_source.dart';
 import '../../services/supabase_storage_service.dart';
 import '../../services/social_auth_service.dart';
 import '../../services/location_service.dart';
@@ -12,6 +13,9 @@ Future<void> initCoreModule() async {
   // Cache
   await PreferenceManager.init();
   sl.registerLazySingleton(() => PreferenceManager());
+  sl.registerLazySingleton<AppCacheLocalDataSource>(
+    () => AppCacheLocalDataSourceImpl(),
+  );
 
   // Locale Cubit
   sl.registerLazySingleton(() => LocaleCubit());

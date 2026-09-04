@@ -36,6 +36,21 @@ class TimerWidget extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // Decorative glow behind indicator
+          Container(
+            width: 210.w,
+            height: 210.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.withOpacity(statusColor, 0.15),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+          ),
           SizedBox(
             width: 220.w,
             height: 220.w,
@@ -63,21 +78,6 @@ class TimerWidget extends StatelessWidget {
                 letterSpacing: 2,
               ),
             ],
-          ),
-          // Decorative glow
-          Container(
-            width: 240.w,
-            height: 240.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.withOpacity(statusColor, 0.15),
-                  blurRadius: 30,
-                  spreadRadius: 5,
-                ),
-              ],
-            ),
           ),
         ],
       ),

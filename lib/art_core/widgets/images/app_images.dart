@@ -193,14 +193,9 @@ class AppImage extends StatelessWidget {
       placeholder: (_, _) => placeholderWidget ?? _buildPlaceholder(),
       errorWidget: (_, _, _) => errorWidget ?? _buildError(),
       fadeInDuration: const Duration(milliseconds: 300),
-      // Faster, smoother fade
       fadeOutDuration: const Duration(milliseconds: 200),
-      // Enhanced caching configuration - only if valid dimensions
-      // memCacheWidth: (width != null && width!.isFinite) ? width!.toInt() : null,
-      // memCacheHeight: (height != null && height!.isFinite)
-      //     ? height!.toInt()
-      //     : null,
-
+      memCacheWidth: (width != null && width! > 0 && width!.isFinite) ? (width! * 2).toInt() : null,
+      memCacheHeight: (height != null && height! > 0 && height!.isFinite) ? (height! * 2).toInt() : null,
     );
   }
 

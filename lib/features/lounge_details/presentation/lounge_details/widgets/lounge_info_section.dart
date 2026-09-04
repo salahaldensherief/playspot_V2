@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/widgets/rating/rating_display_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 
@@ -23,21 +24,14 @@ class LoungeInfoSection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Row(
-                  children: List.generate(
-                    5,
-                    (index) => Icon(
-                      Icons.star,
-                      color: index < lounge.rating.floor()
-                          ? AppColors.warning
-                          : AppColors.textSecondary,
-                      size: 18.sp,
-                    ),
-                  ),
+                RatingDisplayWidget(
+                  rating: lounge.rating,
+                  starSize: 18.sp,
+                  spacing: 2.w,
                 ),
                 SizedBox(width: 8.w),
                 AppText(
-                  text: "${lounge.rating} · ${lounge.totalReviews ?? 0} ${AppStrings.reviews.tr()}",
+                  text: "${lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A"} · ${lounge.totalReviews ?? 0} ${AppStrings.reviews.tr()}",
                   fontSize: 13.sp,
                   color: AppColors.white,
                   fontWeight: FontWeight.w600,

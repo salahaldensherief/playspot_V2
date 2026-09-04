@@ -86,6 +86,19 @@ class PreferenceManager {
     await _box.remove(CachingKey.FullName);
     await _box.remove(CachingKey.PhoneNumber);
     await saveIsLoggedIn(false);
+
+    // Session & Auth Cleanup: Clear local entity caches on logout
+    final keys = _box.getKeys<Iterable<String>>();
+    final keysToRemove = keys.where((k) =>
+        k.startsWith(CachingKey.LOUNGE_PROFILES_PREFIX) ||
+        k.startsWith(CachingKey.LOUNGE_ROOMS_PREFIX) ||
+        k.startsWith(CachingKey.LOUNGE_EXTRAS_PREFIX) ||
+        k == CachingKey.CATEGORIES_CACHE ||
+        k == CachingKey.PROMOTIONS_CACHE).toList();
+
+    for (final key in keysToRemove) {
+      await _box.remove(key);
+    }
   }
 
 

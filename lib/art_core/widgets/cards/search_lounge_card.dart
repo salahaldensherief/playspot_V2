@@ -91,7 +91,7 @@ class SearchLoungeCard extends StatelessWidget {
                         Icon(Icons.star, color: AppColors.warning, size: 16.sp),
                         4.horizontalSpace,
                         AppText(
-                          text: lounge.rating.toString(),
+                          text: lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A",
                           fontSize: 12.sp,
                           color: AppColors.white,
                           fontWeight: FontWeight.bold,

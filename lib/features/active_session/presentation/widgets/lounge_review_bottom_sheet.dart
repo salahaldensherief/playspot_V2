@@ -7,6 +7,8 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
+import 'package:playspot/art_core/widgets/rating/interactive_rating_input.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 
@@ -25,7 +27,7 @@ class LoungeReviewBottomSheet extends StatefulWidget {
 }
 
 class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
-  double _rating = 5;
+  double _rating = 5.0;
   final _commentController = TextEditingController();
 
   @override
@@ -43,7 +45,7 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
             width: 40.w,
             height: 4.h,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: AppColors.withOpacity(Colors.white, 0.2),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
@@ -61,9 +63,16 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
             color: AppColors.textSecondary,
             textAlign: TextAlign.center,
           ),
-          32.verticalSpace,
+          24.verticalSpace,
           _buildRatingBar(),
-          32.verticalSpace,
+          12.verticalSpace,
+          AppText(
+            text: _rating.toStringAsFixed(1),
+            fontSize: 24.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.warning,
+          ),
+          24.verticalSpace,
           AppTextField(
             controller: _commentController,
             hint: AppStrings.feedbackHint.tr(),
@@ -76,7 +85,15 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
             behavior: TapBehavior(
               isEnabled: true,
               onTap: () {
-                widget.onSubmit(_rating, _commentController.text.trim().isEmpty ? null : _commentController.text.trim());
+                widget.onSubmit(
+                  _rating,
+                  _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
+                );
+                GameHudToast.show(
+                  context,
+                  AppStrings.reviewSubmittedSuccess.tr(),
+                  type: ToastType.success,
+                );
                 Navigator.pop(context);
               },
             ),
@@ -92,22 +109,17 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
   }
 
   Widget _buildRatingBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(5, (index) {
-        final starValue = index + 1.0;
-        return GestureDetector(
-          onTap: () => setState(() => _rating = starValue),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4.w),
-            child: Icon(
-              Icons.star_rounded,
-              size: 48.sp,
-              color: starValue <= _rating ? AppColors.warning : Colors.white.withOpacity(0.1),
-            ),
-          ),
-        );
-      }),
+    return Center(
+      child: InteractiveRatingInput(
+        initialRating: _rating,
+        starSize: 44.sp,
+        spacing: 8.w,
+        onRatingChanged: (newRating) {
+          setState(() {
+            _rating = newRating;
+          });
+        },
+      ),
     );
   }
 }

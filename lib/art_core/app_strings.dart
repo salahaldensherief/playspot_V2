@@ -224,6 +224,7 @@ class AppStrings {
   static const String controllerIssue = "controllerIssue";
   static const String rateExperience = "rateExperience";
   static const String submitReview = "submitReview";
+  static const String reviewSubmittedSuccess = "reviewSubmittedSuccess";
   static const String howWasYourSession = "howWasYourSession";
   static const String feedbackHint = "feedbackHint";
   static const String sessionExtendedSuccess = "sessionExtendedSuccess";
@@ -238,6 +239,19 @@ class AppStrings {
   static const String hr1 = "hr1";
   static const String hr2 = "hr2";
   static const String extendTime = "extendTime";
+  static const String confirmExtensionTitle = "confirmExtensionTitle";
+  static const String confirmExtensionSubtitle = "confirmExtensionSubtitle";
+  static const String extensionPendingTitle = "extensionPendingTitle";
+  static const String extensionPendingSubtitle = "extensionPendingSubtitle";
+  static const String extensionDeclinedTitle = "extensionDeclinedTitle";
+  static const String extensionDeclinedSubtitle = "extensionDeclinedSubtitle";
+  static const String noActiveSessionMsg = "noActiveSessionMsg";
+  static const String bookNewSession = "bookNewSession";
+  static const String bookingIdCopied = "bookingIdCopied";
+  static const String basedOnUserReviews = "basedOnUserReviews";
+  static const String extensionApprovedMsg = "extensionApprovedMsg";
+  static const String extensionDeclinedMsg = "extensionDeclinedMsg";
+  static const String extensionSentMsg = "extensionSentMsg";
   static const String activeSession = "activeSession";
   static const String orderExtras = "orderExtras";
   static const String comingSoon = "comingSoon";
