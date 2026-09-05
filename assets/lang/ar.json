@@ -230,6 +230,8 @@
   "availableVouchersLabel": "الكوبونات المتاحة",
   "my_rewards": "مكافآتي",
   "overlappingBookingError": "هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر أو غرفة أخرى.",
+  "slotAlreadyBooked": "تم حجز هذا الوقت من قبل مستخدم آخر. يرجى اختيار وقت آخر.",
+  "occupied": "محجوز",
   "book": "حجز",
   "playMode": "وضع اللعب",
   "singlePlay": "فردي",
@@ -299,5 +301,15 @@
   "noRoomsForCategory": "لا توجد غرف متاحة لهذه الفئة",
   "loungeLocation": "موقع الصالة",
   "scanDirections": "امسح الكود للحصول على الاتجاهات",
-  "close": "إغلاق"
+  "close": "إغلاق",
+  "inviteFriends": "دعوة الأصدقاء",
+  "yourReferralCode": "كود الإحالة الخاص بك",
+  "referralSubtitle": "شارك كود الإحالة الخاص بك مع أصدقائك. عند تسجيلهم وإكمال أول حجز، ستحصلان معاً على نقاط مكافأة!",
+  "copyCode": "نسخ الكود",
+  "shareLink": "مشاركة الرابط",
+  "codeCopied": "تم نسخ كود الإحالة إلى الحافظة!",
+  "shareMessage": "انضم إلي في PlaySpot واحصل على نقاط مكافأة! استخدم كود الإحالة الخاص بي: {}",
+  "rewardRedeemedDesc": "تم بنجاح! لديك كوبون جديد بكود {}، صالح لمدة 30 يوم.",
+  "loyaltyDashboard": "برنامج الولاء والنقاط",
+  "pointsEarnedToast": "🎉 مبروك! حصلت على +{} نقطة! إجمالي النقاط: {}"
 }

@@ -230,6 +230,8 @@
   "availableVouchersLabel": "Available Vouchers",
   "my_rewards": "My Rewards",
   "overlappingBookingError": "This time slot is already booked. Please choose another time or room.",
+  "slotAlreadyBooked": "This time slot was just booked by another user. Please select a different time.",
+  "occupied": "Occupied",
   "book": "Book",
   "playMode": "Play Mode",
   "singlePlay": "Single",
@@ -299,5 +301,15 @@
   "noRoomsForCategory": "No rooms available for this category",
   "loungeLocation": "Lounge Location",
   "scanDirections": "Scan to get directions",
-  "close": "Close"
+  "close": "Close",
+  "inviteFriends": "Invite Friends",
+  "yourReferralCode": "Your Referral Code",
+  "referralSubtitle": "Share your code with friends. When they sign up and complete their first booking, both of you earn bonus points!",
+  "copyCode": "Copy Code",
+  "shareLink": "Share Link",
+  "codeCopied": "Referral code copied to clipboard!",
+  "shareMessage": "Join me on PlaySpot and get bonus points! Use my referral code: {}",
+  "rewardRedeemedDesc": "Success! You have a new voucher with code {}, valid for 30 days.",
+  "loyaltyDashboard": "Loyalty & Points",
+  "pointsEarnedToast": "🎉 +{} Points Earned! Total Points: {}"
 }

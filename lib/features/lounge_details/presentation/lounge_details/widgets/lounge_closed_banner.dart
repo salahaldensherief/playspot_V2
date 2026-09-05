@@ -10,30 +10,28 @@ class LoungeClosedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Container(
-        width: double.infinity,
-        margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: AppColors.danger.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: AppColors.danger.withOpacity(0.3)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.info_outline, color: AppColors.danger, size: 20.sp),
-            SizedBox(width: 8.w),
-            AppText(
-              text: AppStrings.closed.tr().toUpperCase(),
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.danger,
-              letterSpacing: 1,
-            ),
-          ],
-        ),
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+      padding: EdgeInsets.symmetric(vertical: 12.h),
+      decoration: BoxDecoration(
+        color: AppColors.danger.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.info_outline, color: AppColors.danger, size: 20.sp),
+          SizedBox(width: 8.w),
+          AppText(
+            text: AppStrings.closed.tr().toUpperCase(),
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.danger,
+            letterSpacing: 1,
+          ),
+        ],
       ),
     );
   }

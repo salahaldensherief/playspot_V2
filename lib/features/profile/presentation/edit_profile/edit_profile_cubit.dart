@@ -51,14 +51,22 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     );
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: EditProfileStatus.error,
-        errorMessage: failure.message,
-      )),
-      (user) => emit(state.copyWith(
-        status: EditProfileStatus.success,
-        user: user,
-      )),
+      (failure) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: EditProfileStatus.error,
+            errorMessage: failure.message,
+          ));
+        }
+      },
+      (user) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: EditProfileStatus.success,
+            user: user,
+          ));
+        }
+      },
     );
   }
 
@@ -67,11 +75,19 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     final result = await _authRepository.deleteAccount();
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: EditProfileStatus.error,
-        errorMessage: failure.message,
-      )),
-      (_) => emit(state.copyWith(status: EditProfileStatus.accountDeleted)),
+      (failure) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: EditProfileStatus.error,
+            errorMessage: failure.message,
+          ));
+        }
+      },
+      (_) {
+        if (!isClosed) {
+          emit(state.copyWith(status: EditProfileStatus.accountDeleted));
+        }
+      },
     );
   }
 

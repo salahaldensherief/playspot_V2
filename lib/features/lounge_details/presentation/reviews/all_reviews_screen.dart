@@ -50,7 +50,7 @@ class AllReviewsScreen extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             icon: const Icon(TablerIcons.chevron_left, color: Colors.white),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.05),
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
             ),
           ),

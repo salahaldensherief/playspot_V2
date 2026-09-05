@@ -3,6 +3,7 @@ import '../../../features/active_session/data/datasources/remote/active_session_
 import '../../../features/active_session/domain/repositories/active_session_repository.dart';
 import '../../../features/active_session/data/repositories/active_session_repository_impl.dart';
 import '../../../features/active_session/presentation/active_session_cubit.dart';
+import '../../datasources/local/app_cache_local_data_source.dart';
 import '../../di.dart';
 
 void initActiveSessionModule() {
@@ -13,7 +14,10 @@ void initActiveSessionModule() {
 
   // Repository
   sl.registerLazySingleton<ActiveSessionRepository>(
-    () => ActiveSessionRepositoryImpl(sl<ActiveSessionRemoteDataSource>()),
+    () => ActiveSessionRepositoryImpl(
+      sl<ActiveSessionRemoteDataSource>(),
+      sl<AppCacheLocalDataSource>(),
+    ),
   );
 
   // Cubit

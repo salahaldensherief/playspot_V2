@@ -13,6 +13,7 @@ import 'widgets/logout_button.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/profile_menu_section.dart';
 import 'widgets/profile_stats_row.dart';
+import 'widgets/referral_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -36,7 +37,9 @@ class ProfileScreen extends StatelessWidget {
                 const ProfileHeader(),
                 24.verticalSpace,
                 const ProfileStatsRow(),
-                30.verticalSpace,
+                24.verticalSpace,
+                const ReferralCard(),
+                24.verticalSpace,
                 const ProfileMenuSection(),
                 30.verticalSpace,
                 const LogoutButton(),

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../booking_cubit.dart';
@@ -111,32 +112,36 @@ class TimeSlotGrid extends StatelessWidget {
       borderRadius: BorderRadius.circular(8.r),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        width: 78.w,
-        height: 42.h,
+        width: 82.w,
+        height: 44.h,
         decoration: BoxDecoration(
           color: isSelected 
-              ? AppColors.neonBlue.withOpacity(0.9) 
+              ? AppColors.neonBlue.withValues(alpha: 0.9) 
               : (isPartOfCurrentSelection 
-                  ? AppColors.neonBlue.withOpacity(0.2)
-                  : (isDisabled ? Colors.white.withOpacity(0.02) : AppColors.cardBackground)),
+                  ? AppColors.neonBlue.withValues(alpha: 0.2)
+                  : (isBooked
+                      ? AppColors.danger.withValues(alpha: 0.08)
+                      : (isPast ? Colors.white.withValues(alpha: 0.02) : AppColors.cardBackground))),
           borderRadius: BorderRadius.circular(8.r),
           border: Border.all(
             color: isSelected 
                 ? AppColors.white 
                 : (isPartOfCurrentSelection 
-                    ? AppColors.neonBlue.withOpacity(0.5) 
-                    : (isDisabled ? Colors.transparent : AppColors.borderDefault)),
+                    ? AppColors.neonBlue.withValues(alpha: 0.5) 
+                    : (isBooked
+                        ? AppColors.danger.withValues(alpha: 0.3)
+                        : (isPast ? Colors.transparent : AppColors.borderDefault))),
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: AppColors.neonBlue.withOpacity(0.4),
+              color: AppColors.neonBlue.withValues(alpha: 0.4),
               blurRadius: 12,
               spreadRadius: 1,
             )
           ] : (isPartOfCurrentSelection ? [
             BoxShadow(
-              color: AppColors.neonBlue.withOpacity(0.1),
+              color: AppColors.neonBlue.withValues(alpha: 0.1),
               blurRadius: 4,
             )
           ] : null),
@@ -148,15 +153,32 @@ class TimeSlotGrid extends StatelessWidget {
               Positioned(bottom: 4, right: 4, child: _hudCorner(2)),
             ],
             Center(
-              child: AppText(
-                text: _formatTime(slot),
-                fontSize: 13.sp,
-                fontWeight: FontWeight.bold,
-                color: isSelected 
-                    ? AppColors.black 
-                    : (isPartOfCurrentSelection 
-                        ? AppColors.neonBlue 
-                        : (isDisabled ? AppColors.textSecondary.withOpacity(0.2) : AppColors.white)),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AppText(
+                    text: _formatTime(slot),
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    textDecoration: isBooked ? TextDecoration.lineThrough : null,
+                    color: isSelected 
+                        ? AppColors.black 
+                        : (isPartOfCurrentSelection 
+                            ? AppColors.neonBlue 
+                            : (isBooked
+                                ? AppColors.danger.withValues(alpha: 0.7)
+                                : (isPast ? AppColors.textSecondary.withValues(alpha: 0.2) : AppColors.white))),
+                  ),
+                  if (isBooked) ...[
+                    SizedBox(height: 1.h),
+                    AppText(
+                      text: AppStrings.occupied.tr(),
+                      fontSize: 8.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.danger.withValues(alpha: 0.8),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],

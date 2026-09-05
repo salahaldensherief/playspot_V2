@@ -9,6 +9,7 @@ class UserModel extends UserEntity {
     super.email,
     super.phone,
     super.avatarUrl,
+    super.referralCode,
     super.isBanned,
     super.createdAt,
     this.isNewUser = false,
@@ -21,6 +22,7 @@ class UserModel extends UserEntity {
       email: json['email'] as String?,
       phone: json['phone'] as String?,
       avatarUrl: json['avatar_url'] as String?,
+      referralCode: json['referral_code'] as String?,
       isBanned: json['is_banned'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -41,6 +43,7 @@ class UserModel extends UserEntity {
       phone: supabaseUser['phone'] as String?,
       avatarUrl:
       metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
+      referralCode: metadata['referral_code'] as String?,
       isBanned: false,
       isNewUser: isNewUser,
       createdAt: supabaseUser['created_at'] != null
@@ -59,6 +62,7 @@ class UserModel extends UserEntity {
       'email': email,
       'phone': phone,
       'avatar_url': avatarUrl,
+      'referral_code': referralCode,
       'is_banned': isBanned,
       'created_at': createdAt?.toIso8601String(),
     };
@@ -70,6 +74,7 @@ class UserModel extends UserEntity {
     String? email,
     String? phone,
     String? avatarUrl,
+    String? referralCode,
     bool? isBanned,
     bool? isNewUser,
     DateTime? createdAt,
@@ -80,6 +85,7 @@ class UserModel extends UserEntity {
       email: email ?? this.email,
       phone: phone ?? this.phone,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      referralCode: referralCode ?? this.referralCode,
       isBanned: isBanned ?? this.isBanned,
       isNewUser: isNewUser ?? this.isNewUser,
       createdAt: createdAt ?? this.createdAt,

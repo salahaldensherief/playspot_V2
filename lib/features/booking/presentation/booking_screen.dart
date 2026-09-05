@@ -13,13 +13,9 @@ import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/text/price_widget.dart';
-import 'package:playspot/core/di.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
-import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../../art_core/router/router_keys.dart';
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
-import '../domain/repositories/booking_repository.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/time_slot_grid.dart';
@@ -51,18 +47,31 @@ class _BookingScreenState extends State<BookingScreen> {
     return BlocListener<BookingCubit, BookingState>(
       listenWhen: (previous, current) => 
           (previous.startTime != current.startTime && current.startTime != null) ||
-          (previous.durationMinutes != current.durationMinutes),
+          (previous.durationMinutes != current.durationMinutes) ||
+          (previous.status != current.status && current.status == BookingStatus.error),
       listener: (context, state) {
-        // Scroll down when a time slot is selected or duration is changed
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (_scrollController.hasClients) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeOut,
-            );
-          }
-        });
+        if (state.status == BookingStatus.error && state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                state.errorMessage!.tr(),
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: AppColors.danger,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else if (state.startTime != null) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeOut,
+              );
+            }
+          });
+        }
       },
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
@@ -135,9 +144,9 @@ class _BookingScreenState extends State<BookingScreen> {
         return Container(
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
-            color: AppColors.neonBlue.withOpacity(0.05),
+            color: AppColors.neonBlue.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: AppColors.neonBlue.withOpacity(0.2)),
+            border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.2)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +267,7 @@ class _BookingScreenState extends State<BookingScreen> {
                              Text(
                                "${(((state.playMode == PlayMode.single ? widget.params.room.pricePerHourSingle : widget.params.room.pricePerHourMulti) + extraControllersCharge) * durationInHours + extrasPrice).toInt()} ${AppStrings.egp.tr()}",
                                style: TextStyle(
-                                 color: AppColors.textSecondary.withOpacity(0.5),
+                                 color: AppColors.textSecondary.withValues(alpha: 0.5),
                                  fontSize: 10.sp,
                                  decoration: TextDecoration.lineThrough,
                                ),
@@ -282,7 +291,11 @@ class _BookingScreenState extends State<BookingScreen> {
                       behavior: ButtonBehavior.tap(
                         isEnabled: isReady,
                         onTap: isReady
-                            ? () {
+                            ? () async {
+                                final cubit = context.read<BookingCubit>();
+                                final isAvailable = await cubit.verifyAvailabilityBeforeProceed();
+                                if (!isAvailable || !context.mounted) return;
+
                                 final appliedRate = state.playMode == PlayMode.single 
                                     ? widget.params.room.effectivePriceSingle 
                                     : widget.params.room.effectivePriceMulti;

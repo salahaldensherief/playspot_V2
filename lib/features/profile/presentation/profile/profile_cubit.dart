@@ -15,8 +15,13 @@ class ProfileCubit extends Cubit<ProfileState> {
 
   void getUserData() async {
     emit(state.copyWith(status: ProfileStatus.loading));
-    final user = _profileRepository.getCurrentUser();
     
+    final userProfileRes = await _profileRepository.getUserProfile();
+    final user = userProfileRes.fold(
+      (_) => _profileRepository.getCurrentUser(),
+      (userModel) => userModel,
+    );
+
     if (user != null) {
       final results = await Future.wait([
         _profileRepository.getPointsBalance(),
@@ -48,13 +53,15 @@ class ProfileCubit extends Cubit<ProfileState> {
       (failure) => emit(state.copyWith(status: ProfileStatus.error, errorMessage: failure.message)),
       (data) {
         if (data['success'] == true) {
+          final newBalance = (data['new_balance'] as num?)?.toInt() ?? state.pointsBalance;
           emit(state.copyWith(
             status: ProfileStatus.redeemSuccess,
-            pointsBalance: data['new_balance'] ?? state.pointsBalance,
+            pointsBalance: newBalance,
           ));
           getUserData(); // Refresh all data
         } else {
-          emit(state.copyWith(status: ProfileStatus.error, errorMessage: data['error']));
+          final errorMsg = data['error']?.toString() ?? "Failed to redeem points";
+          emit(state.copyWith(status: ProfileStatus.error, errorMessage: errorMsg));
         }
       },
     );

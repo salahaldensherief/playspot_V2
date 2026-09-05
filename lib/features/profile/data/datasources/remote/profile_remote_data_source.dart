@@ -3,12 +3,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../auth/data/models/user_model.dart';
+import '../../models/notification_settings_model.dart';
 import '../../models/redemption_option_model.dart';
 import '../../models/profile_params.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> updateProfile(UpdateProfileParams params);
   UserModel? getCurrentUser();
+  Future<UserModel> getUserProfile();
   Future<int> getPointsBalance();
   Future<List<RedemptionOptionModel>> getRedemptionOptions();
   Future<Map<String, dynamic>> redeemPoints(String optionId);
@@ -18,6 +20,8 @@ abstract class ProfileRemoteDataSource {
   Future<void> consumeVoucher({required String voucherId, required String bookingId});
   Future<void> updateFcmToken(String token);
   Future<void> updateNotificationPreferences(Map<String, bool> preferences);
+  Future<NotificationSettingsModel> getNotificationSettings();
+  Future<void> updateNotificationSettings(NotificationSettingsModel settings);
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -172,6 +176,38 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
+  Future<UserModel> getUserProfile() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) throw const UserNotFoundException();
+
+    try {
+      final data = await _supabase
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .single();
+
+      var userModel = UserModel.fromJson(Map<String, dynamic>.from(data));
+      if (userModel.referralCode == null || userModel.referralCode!.trim().isEmpty) {
+        final fallbackCode = 'PLAY-${user.id.substring(0, 6).toUpperCase()}';
+        try {
+          await _supabase.from('profiles').update({'referral_code': fallbackCode}).eq('id', user.id);
+          userModel = userModel.copyWith(referralCode: fallbackCode);
+        } catch (_) {}
+      }
+      return userModel;
+    } catch (e) {
+      final userModel = UserModel.fromSupabaseUser(user.toJson());
+      if (userModel.referralCode == null || userModel.referralCode!.trim().isEmpty) {
+        return userModel.copyWith(
+          referralCode: 'PLAY-${user.id.substring(0, 6).toUpperCase()}',
+        );
+      }
+      return userModel;
+    }
+  }
+
+  @override
   Future<void> updateFcmToken(String token) async {
     try {
       final user = _supabase.auth.currentUser;
@@ -189,5 +225,43 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     await _supabase.from('profiles').update({
       'notification_preferences': preferences,
     }).eq('id', user.id);
+  }
+
+  @override
+  Future<NotificationSettingsModel> getNotificationSettings() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return const NotificationSettingsModel();
+
+    try {
+      final response = await _supabase
+          .from('notification_settings')
+          .select()
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (response != null) {
+        return NotificationSettingsModel.fromJson(Map<String, dynamic>.from(response));
+      }
+    } catch (e) {
+      debugPrint(' [Profile] Error getting notification settings: $e');
+    }
+    return const NotificationSettingsModel();
+  }
+
+  @override
+  Future<void> updateNotificationSettings(NotificationSettingsModel settings) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    final data = {
+      'user_id': user.id,
+      ...settings.toJson(),
+    };
+
+    try {
+      await _supabase.from('notification_settings').upsert(data, onConflict: 'user_id');
+    } catch (e) {
+      debugPrint(' [Profile] Error updating notification settings: $e');
+    }
   }
 }

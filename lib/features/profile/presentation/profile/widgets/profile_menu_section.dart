@@ -51,40 +51,14 @@ class ProfileMenuSection extends StatelessWidget {
           ),
           _buildMenuItem(
             icon: TablerIcons.ticket,
-            title: "my_rewards".tr(),
+            title: AppStrings.myRewards.tr(),
             onTap: () => context.goNamed(RouterKeys.myVouchers),
-            showBorder: true,
-          ),
-          _buildMenuItem(
-            icon: TablerIcons.device_gamepad_2,
-            title: AppStrings.activeSession.tr(),
-            subtitle: "Try the active gaming session screen",
-            onTap: () => context.pushNamed(RouterKeys.activeSession),
-            showBorder: true,
-          ),
-          _buildMenuItem(
-            icon: TablerIcons.credit_card,
-            title: AppStrings.paymentMethods.tr(),
-            onTap: () => _showComingSoon(context),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.settings,
             title: AppStrings.settings.tr(),
-            onTap: () => _showComingSoon(context),
-            showBorder: true,
-          ),
-          _buildMenuItem(
-            icon: TablerIcons.bell,
-            title: AppStrings.notifications.tr(),
             onTap: () => context.pushNamed(RouterKeys.notificationSettings),
-            showBorder: true,
-          ),
-          _buildMenuItem(
-            icon: TablerIcons.world,
-            title: AppStrings.language.tr(),
-            subtitle: context.locale.languageCode == 'ar' ? 'العربية' : 'English',
-            onTap: () => _showLanguagePicker(context),
             showBorder: true,
           ),
           _buildMenuItem(

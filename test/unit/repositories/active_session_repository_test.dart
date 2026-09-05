@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:playspot/core/datasources/local/app_cache_local_data_source.dart';
 import 'package:playspot/features/active_session/data/datasources/remote/active_session_remote_data_source.dart';
 import 'package:playspot/features/active_session/data/models/active_session_model.dart';
 import 'package:playspot/features/active_session/data/models/order_item_model.dart';
@@ -8,13 +9,18 @@ import 'package:playspot/features/active_session/data/repositories/active_sessio
 class MockActiveSessionRemoteDataSource extends Mock
     implements ActiveSessionRemoteDataSource {}
 
+class MockAppCacheLocalDataSource extends Mock
+    implements AppCacheLocalDataSource {}
+
 void main() {
   late MockActiveSessionRemoteDataSource mockRemoteDataSource;
+  late MockAppCacheLocalDataSource mockCacheLocalDataSource;
   late ActiveSessionRepositoryImpl repository;
 
   setUp(() {
     mockRemoteDataSource = MockActiveSessionRemoteDataSource();
-    repository = ActiveSessionRepositoryImpl(mockRemoteDataSource);
+    mockCacheLocalDataSource = MockAppCacheLocalDataSource();
+    repository = ActiveSessionRepositoryImpl(mockRemoteDataSource, mockCacheLocalDataSource);
   });
 
   final testSession = ActiveSessionModel(

@@ -22,33 +22,40 @@ class ProfileStatsRow extends StatelessWidget {
       buildWhen: (previous, current) => previous.pointsBalance != current.pointsBalance,
       builder: (context, state) {
         return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard(
-              TablerIcons.calendar,
-              "12",
-              AppStrings.totalBookings.tr(),
-              AppColors.neonBlue,
+            Expanded(
+              child: _buildStatCard(
+                TablerIcons.calendar,
+                "12",
+                AppStrings.totalBookings.tr(),
+                AppColors.neonBlue,
+              ),
             ),
-            _buildStatCard(
-              TablerIcons.stars,
-              state.pointsBalance.toString(),
-              "Points Balance",
-              AppColors.warning,
+            SizedBox(width: 10.w),
+            Expanded(
+              child: _buildStatCard(
+                TablerIcons.stars,
+                state.pointsBalance.toString(),
+                "Points Balance",
+                AppColors.warning,
+              ),
             ),
-            BlocBuilder<FavoritesCubit, FavoritesState>(
-              buildWhen: (previous, current) => previous.favoriteIds.length != current.favoriteIds.length,
-              builder: (context, favoritesState) {
-                return GestureDetector(
-                  onTap: () => context.pushNamed(RouterKeys.favorites),
-                  child: _buildStatCard(
-                    TablerIcons.heart,
-                    favoritesState.favoriteIds.length.toString(),
-                    AppStrings.favorite.tr(),
-                    AppColors.danger,
-                  ),
-                );
-              },
+            SizedBox(width: 10.w),
+            Expanded(
+              child: BlocBuilder<FavoritesCubit, FavoritesState>(
+                buildWhen: (previous, current) => previous.favoriteIds.length != current.favoriteIds.length,
+                builder: (context, favoritesState) {
+                  return GestureDetector(
+                    onTap: () => context.pushNamed(RouterKeys.favorites),
+                    child: _buildStatCard(
+                      TablerIcons.heart,
+                      favoritesState.favoriteIds.length.toString(),
+                      AppStrings.favorite.tr(),
+                      AppColors.danger,
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         );
@@ -63,8 +70,8 @@ class ProfileStatsRow extends StatelessWidget {
     Color color,
   ) {
     return Container(
-      width: 105.w,
-      padding: EdgeInsets.symmetric(vertical: 16.h),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 4.w),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20.r),

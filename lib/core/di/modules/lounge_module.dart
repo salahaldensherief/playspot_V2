@@ -12,7 +12,7 @@ void initLoungeModule() {
   );
 
   sl.registerLazySingleton<LoungeDetailsRepository>(
-    () => LoungeDetailsRepositoryImpl(sl()),
+    () => LoungeDetailsRepositoryImpl(sl(), sl()),
   );
 
   sl.registerFactory<LoungeDetailsCubit>(

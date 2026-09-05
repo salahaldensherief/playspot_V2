@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../features/auth/data/models/user_model.dart';
 

@@ -12,7 +12,7 @@ void initHomeModule() {
   );
 
   sl.registerLazySingleton<HomeRepository>(
-    () => HomeRepositoryImpl(sl()),
+    () => HomeRepositoryImpl(sl(), sl()),
   );
 
   sl.registerFactory<HomeCubit>(

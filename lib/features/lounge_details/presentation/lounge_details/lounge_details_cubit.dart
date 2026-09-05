@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'package:playspot/features/home/data/models/home_params.dart';
 import 'package:playspot/features/lounge_details/data/models/lounge_details_params.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
@@ -50,7 +49,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
     try {
       log("FETCHING ROOMS...");
-      final roomsRes = await _loungeDetailsRepository.getRoomsByLoungeId(loungeId);
+      final roomsRes = await _loungeDetailsRepository.getRoomsByLoungeId(loungeId, forceRefresh: true);
       roomsRes.fold((l) => log("ROOMS ERROR: ${l.message}"), (r) => log("ROOMS SUCCESS"));
 
       log("FETCHING EXTRAS...");
@@ -145,20 +144,28 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
         // Organize bookings by room
         for (final b in rawBookings) {
+          final status = b['status']?.toString().toLowerCase().trim();
+          if (status == 'cancelled' ||
+              status == 'rejected' ||
+              status == 'declined' ||
+              status == 'canceled') {
+            continue;
+          }
+
           final roomId = b['room_id'].toString();
           final startAtRaw = b['start_at'] ?? b['start_time'];
           final endAtRaw = b['end_at'] ?? b['end_time'];
-          final dateStr = b['date'];
+          final dateStr = b['date']?.toString();
 
           if (startAtRaw != null && endAtRaw != null) {
-            final startStr = startAtRaw.toString().contains('-') ? startAtRaw.toString() : "${dateStr} $startAtRaw";
-            final endStr = endAtRaw.toString().contains('-') ? endAtRaw.toString() : "${dateStr} $endAtRaw";
+            final startStr = startAtRaw.toString().contains('-') ? startAtRaw.toString() : "$dateStr $startAtRaw";
+            final endStr = endAtRaw.toString().contains('-') ? endAtRaw.toString() : "$dateStr $endAtRaw";
 
             try {
               final startAt = DateTime.parse(startStr.replaceFirst(' ', 'T'));
               var endAt = DateTime.parse(endStr.replaceFirst(' ', 'T'));
               
-              if (endAt.isBefore(startAt)) {
+              if (endAt.isBefore(startAt) || endAt.isAtSameMomentAs(startAt)) {
                 endAt = endAt.add(const Duration(days: 1));
               }
               

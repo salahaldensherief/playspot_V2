@@ -166,6 +166,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   _buildAppliedVoucherCard(checkoutState.selectedVoucher!)
                 else ...[
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
                         child: AppTextField(
@@ -174,18 +175,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           onChanged: (v) => setState(() {}),
                         ),
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: 10.w),
                       AppButton(
-                        content: ButtonContent(label: AppStrings.redeem.tr()),
-                        buttonConfig: ButtonConfig.gradient(
-                          gradient: AppColors.primaryGradient,
-                          width: 80.w,
-                          height: 48.h,
-                          borderRadius: 12.r,
+                        content: ButtonContent(
+                          label: AppStrings.redeem.tr(),
+                        ),
+                        buttonConfig: ButtonConfig(
+                          gradient: _voucherController.text.trim().isNotEmpty
+                              ? AppColors.primaryGradient
+                              : null,
+                          backgroundColor: AppColors.cardBackground,
+                          borderColor: _voucherController.text.trim().isNotEmpty
+                              ? AppColors.neonBlue
+                              : AppColors.borderDefault,
+                          borderRadius: 14.r,
+                          width: 110.w,
+                          height: 52.h,
+                          textStyle: TextStyle(
+                            color: _voucherController.text.trim().isNotEmpty
+                                ? Colors.black
+                                : AppColors.neonBlue,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         behavior: ButtonBehavior.tap(
-                          isEnabled: _voucherController.text.isNotEmpty && checkoutState.status != CheckoutStatus.loading,
-                          onTap: () => context.read<CheckoutCubit>().applyVoucher(_voucherController.text.trim()),
+                          isEnabled: _voucherController.text.trim().isNotEmpty &&
+                              checkoutState.status != CheckoutStatus.loading,
+                          onTap: () => context
+                              .read<CheckoutCubit>()
+                              .applyVoucher(_voucherController.text.trim()),
                         ),
                       ),
                     ],

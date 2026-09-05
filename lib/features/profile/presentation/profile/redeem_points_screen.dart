@@ -32,18 +32,18 @@ class RedeemPointsScreen extends StatelessWidget {
           // Success Dialog with Voucher Code
           final lastVoucher = state.myVouchers.isNotEmpty ? state.myVouchers.last : null;
           final code = lastVoucher?['code'] ?? "";
-          
+
           AppDialog.show(
             context,
             type: AppDialogType.success,
             title: AppStrings.rewardRedeemed.tr(),
-            description: "🎉 تم! عندك كوبون جديد بكود $code، صالح لمدة 30 يوم",
+            description: AppStrings.rewardRedeemedDesc.tr(args: [code]),
             confirmText: AppStrings.continueText.tr(),
           );
-        } else if (state.status == ProfileStatus.error && state.errorMessage != null) {
+        } else if (state.status == ProfileStatus.error && (state.errorMessage?.isNotEmpty ?? false)) {
           GameHudToast.show(
             context,
-            state.errorMessage!,
+            state.errorMessage ?? '',
             type: ToastType.error,
           );
         }
@@ -130,7 +130,7 @@ class RedeemPointsScreen extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: AppColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(isArabic ? 0 : 20.r),
                   bottomRight: Radius.circular(isArabic ? 20.r : 0),
@@ -164,9 +164,9 @@ class RedeemPointsScreen extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.all(12.w),
                       decoration: BoxDecoration(
-                        color: AppColors.neonBlue.withOpacity(0.1),
+                        color: AppColors.neonBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(color: AppColors.neonBlue.withOpacity(0.2)),
+                        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.2)),
                       ),
                       child: Icon(rewardIcon, color: AppColors.neonBlue, size: 24.sp),
                     ),

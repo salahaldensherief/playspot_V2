@@ -135,6 +135,16 @@ class AppStrings {
   static const String points = "points";
   static const String referralCodeOptional = "referralCodeOptional";
   static const String referralCodeHint = "referralCodeHint";
+  static const String inviteFriends = "inviteFriends";
+  static const String yourReferralCode = "yourReferralCode";
+  static const String referralSubtitle = "referralSubtitle";
+  static const String copyCode = "copyCode";
+  static const String shareLink = "shareLink";
+  static const String codeCopied = "codeCopied";
+  static const String shareMessage = "shareMessage";
+  static const String rewardRedeemedDesc = "rewardRedeemedDesc";
+  static const String loyaltyDashboard = "loyaltyDashboard";
+  static const String pointsEarnedToast = "pointsEarnedToast";
 
   // New Strings
   static const String cancelBookingTitle = "cancelBookingTitle";
@@ -198,6 +208,8 @@ class AppStrings {
   static const String showSkills = "showSkills";
   static const String viewPhotos = "viewPhotos";
   static const String overlappingBookingError = "overlappingBookingError";
+  static const String slotAlreadyBooked = "slotAlreadyBooked";
+  static const String occupied = "occupied";
   static const String promoCode = "promoCode";
   static const String remove = "remove";
   static const String voucherApplied = "voucherApplied";
@@ -225,6 +237,7 @@ class AppStrings {
   static const String rateExperience = "rateExperience";
   static const String submitReview = "submitReview";
   static const String reviewSubmittedSuccess = "reviewSubmittedSuccess";
+  static const String noReviewsYet = "noReviewsYet";
   static const String howWasYourSession = "howWasYourSession";
   static const String feedbackHint = "feedbackHint";
   static const String sessionExtendedSuccess = "sessionExtendedSuccess";

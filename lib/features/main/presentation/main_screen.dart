@@ -5,12 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/home_screen.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_state.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_screen.dart';
 import 'package:playspot/features/my_bookings/presentation/my_bookings_screen.dart';
 
@@ -116,14 +120,36 @@ class _MainScreenState extends State<MainScreen> {
         ? (bottomPadding > 0 ? bottomPadding + 10.h : 20.h)
         : 30.h;
 
-    return BlocListener<ActiveSessionCubit, ActiveSessionState>(
-      listenWhen: (prev, curr) => 
-          prev.status != ActiveSessionStatus.loaded && curr.status == ActiveSessionStatus.loaded && curr.session != null,
-      listener: (context, state) {
-        try {
-          context.pushNamed(RouterKeys.activeSession);
-        } catch (_) {}
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ActiveSessionCubit, ActiveSessionState>(
+          listenWhen: (prev, curr) => 
+              prev.status != ActiveSessionStatus.loaded && curr.status == ActiveSessionStatus.loaded && curr.session != null,
+          listener: (context, state) {
+            try {
+              context.pushNamed(RouterKeys.activeSession);
+            } catch (_) {}
+          },
+        ),
+        BlocListener<ProfileCubit, ProfileState>(
+          listenWhen: (prev, curr) {
+            if (prev.pointsBalance > 0 && curr.pointsBalance > prev.pointsBalance) {
+              final gainedPoints = curr.pointsBalance - prev.pointsBalance;
+              GameHudToast.show(
+                context,
+                AppStrings.pointsEarnedToast.tr(args: [
+                  gainedPoints.toString(),
+                  curr.pointsBalance.toString(),
+                ]),
+                type: ToastType.success,
+              );
+              return true;
+            }
+            return false;
+          },
+          listener: (context, state) {},
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Colors.transparent,
         floatingActionButton: BlocBuilder<ActiveSessionCubit, ActiveSessionState>(

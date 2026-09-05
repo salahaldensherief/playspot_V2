@@ -5,6 +5,7 @@ import '../../../../core/utils/repository_helper.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/remote/profile_remote_data_source.dart';
+import '../models/notification_settings_model.dart';
 import '../models/redemption_option_model.dart';
 import '../models/profile_params.dart';
 
@@ -79,6 +80,15 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
+  Future<Either<Failure, UserModel>> getUserProfile() async {
+    return await callRepository(() async {
+      final user = await _remoteSource.getUserProfile();
+      _saveUserData(user);
+      return user;
+    });
+  }
+
+  @override
   Future<void> updateFcmToken(String token) async {
     await _preferenceManager.saveFCMToken(token);
     await _remoteSource.updateFcmToken(token);
@@ -87,5 +97,15 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   @override
   Future<Either<Failure, void>> updateNotificationPreferences(Map<String, bool> preferences) async {
     return await callRepository(() => _remoteSource.updateNotificationPreferences(preferences));
+  }
+
+  @override
+  Future<Either<Failure, NotificationSettingsModel>> getNotificationSettings() async {
+    return await callRepository(() => _remoteSource.getNotificationSettings());
+  }
+
+  @override
+  Future<Either<Failure, void>> updateNotificationSettings(NotificationSettingsModel settings) async {
+    return await callRepository(() => _remoteSource.updateNotificationSettings(settings));
   }
 }

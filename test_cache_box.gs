@@ -1,0 +1,1 @@
+{"CACHED_CATEGORIES":[{"id":"cat_1","name_ar":"بلايستيشن","name_en":"PlayStation","icon_key":"videogame_asset"}]}

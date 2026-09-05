@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/core/di.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
@@ -17,7 +16,6 @@ import 'lounge_details_state.dart';
 import 'widgets/lounge_details_app_bar.dart';
 import 'widgets/lounge_info_section.dart';
 import 'widgets/lounge_closed_banner.dart';
-import 'widgets/category_selector.dart';
 import 'widgets/date_selection_section.dart';
 import 'widgets/rooms_grid.dart';
 import 'widgets/extras_list.dart';
@@ -135,8 +133,8 @@ class _LoungeDiscountBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppColors.warning.withOpacity(0.9),
-            const Color(0xFFFF8C00).withOpacity(0.9),
+            AppColors.warning.withValues(alpha: 0.9),
+            const Color(0xFFFF8C00).withValues(alpha: 0.9),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -144,7 +142,7 @@ class _LoungeDiscountBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.warning.withOpacity(0.2),
+            color: AppColors.warning.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -155,7 +153,7 @@ class _LoungeDiscountBanner extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.local_offer, color: Colors.black, size: 20.sp),
@@ -176,7 +174,7 @@ class _LoungeDiscountBanner extends StatelessWidget {
                   text: AppStrings.getDiscountNow.tr(args: [lounge.discountPercentage.toString()]),
                   fontSize: 11.sp,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black.withOpacity(0.7),
+                  color: Colors.black.withValues(alpha: 0.7),
                 ),
               ],
             ),

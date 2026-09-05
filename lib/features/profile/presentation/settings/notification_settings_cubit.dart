@@ -1,6 +1,8 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/cache/preference_manager.dart';
 import '../../../../core/notifications/push_notification_service.dart';
+import '../../data/models/notification_settings_model.dart';
 import '../../domain/repositories/profile_repository.dart';
 import 'notification_settings_state.dart';
 
@@ -8,11 +10,12 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
   final ProfileRepository _profileRepository;
   final PreferenceManager _pref;
 
-  NotificationSettingsCubit(this._profileRepository, this._pref) : super(const NotificationSettingsState()) {
+  NotificationSettingsCubit(this._profileRepository, this._pref)
+      : super(const NotificationSettingsState()) {
     _loadSettings();
   }
 
-  void _loadSettings() {
+  Future<void> _loadSettings() async {
     emit(state.copyWith(
       pushNotificationsEnabled: _pref.pushEnabled(),
       bookingUpdates: _pref.bookingUpdatesEnabled(),
@@ -20,6 +23,36 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
       systemStatus: _pref.systemNotifEnabled(),
       tournamentsAndEvents: _pref.tournamentsEnabled(),
     ));
+
+    final result = await _profileRepository.getNotificationSettings();
+    result.fold(
+      (_) {},
+      (model) {
+        if (!isClosed) {
+          _pref.savePushEnabled(model.pushEnabled);
+          _pref.saveBookingUpdatesEnabled(model.bookingUpdates);
+          _pref.saveOffersEnabled(model.offersEnabled);
+          _pref.saveTournamentsEnabled(model.eventsEnabled);
+          _pref.saveSystemNotifEnabled(model.systemNotifications);
+
+          final newState = state.copyWith(
+            pushNotificationsEnabled: model.pushEnabled,
+            bookingUpdates: model.bookingUpdates,
+            offersPromotions: model.offersEnabled,
+            tournamentsAndEvents: model.eventsEnabled,
+            systemStatus: model.systemNotifications,
+          );
+
+          emit(newState);
+
+          if (model.pushEnabled) {
+            _syncAllToFirebase(newState);
+          } else {
+            _unsubscribeFromAll();
+          }
+        }
+      },
+    );
   }
 
   Future<void> togglePreference(String key, bool value) async {
@@ -57,7 +90,9 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
         break;
     }
 
-    emit(newState);
+    if (!isClosed) {
+      emit(newState);
+    }
     _syncToSupabase(newState);
   }
 
@@ -77,7 +112,7 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
   }
 
   void _unsubscribeFromAll() {
-     PushNotificationService.instance.syncAllTopicsFromPreferences({
+    PushNotificationService.instance.syncAllTopicsFromPreferences({
       'user_bookings': false,
       'offers_and_promos': false,
       'system_announcements': false,
@@ -86,6 +121,14 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
   }
 
   Future<void> _syncToSupabase(NotificationSettingsState s) async {
+    final model = NotificationSettingsModel(
+      pushEnabled: s.pushNotificationsEnabled,
+      bookingUpdates: s.bookingUpdates,
+      offersEnabled: s.offersPromotions,
+      eventsEnabled: s.tournamentsAndEvents,
+      systemNotifications: s.systemStatus,
+    );
+    await _profileRepository.updateNotificationSettings(model);
     await _profileRepository.updateNotificationPreferences({
       'push_enabled': s.pushNotificationsEnabled,
       'booking_updates': s.bookingUpdates,
