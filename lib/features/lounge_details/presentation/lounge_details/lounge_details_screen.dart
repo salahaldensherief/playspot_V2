@@ -97,7 +97,6 @@ class LoungeDetailsScreen extends StatelessWidget {
                         context.pushNamed(
                           RouterKeys.allReviews,
                           extra: {
-                            'cubit': context.read<LoungeDetailsCubit>(),
                             'reviews': state.reviews,
                             'loungeName': state.lounge?.name ?? lounge.name,
                           },

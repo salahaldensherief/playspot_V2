@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
-import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/utils/lounge_helper.dart';
 import 'package:playspot/art_core/widgets/lounge/lounge_category_icon.dart';
 import '../../app_strings.dart';
@@ -42,27 +41,139 @@ class _LoungeCardState extends State<LoungeCard> {
         curve: Curves.easeOutCubic,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSizes.r24),
+            borderRadius: BorderRadius.circular(AppSizes.r16),
             border: lounge.isDiscountActive
-                ? Border.all(color: AppColors.withOpacity(AppColors.warning, 0.3), width: 1.5)
-                : null,
+                ? Border.all(
+                    color: AppColors.withOpacity(AppColors.warning, 0.5),
+                    width: 1.5,
+                  )
+                : Border.all(
+                    color: AppColors.withOpacity(AppColors.neonBlue, 0.2),
+                    width: 1,
+                  ),
             boxShadow: lounge.isDiscountActive
                 ? [
                     BoxShadow(
-                      color: AppColors.withOpacity(AppColors.warning, 0.1),
+                      color: AppColors.withOpacity(AppColors.warning, 0.2),
                       blurRadius: 10,
                       spreadRadius: 1,
                     )
                   ]
-                : null,
+                : [
+                    BoxShadow(
+                      color: AppColors.withOpacity(Colors.black, 0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    )
+                  ],
           ),
-          child: GlassContainer(
-            borderRadius: AppSizes.r24,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSizes.r16),
+            child: Stack(
               children: [
-                _buildImageSection(context),
-                _buildDetailsSection(),
+                // 1. Full-Cover Image
+                Positioned.fill(
+                  child: Hero(
+                    tag: widget.heroTag ?? 'lounge_image_${lounge.id}',
+                    child: CachedNetworkImage(
+                      imageUrl: "${lounge.imageUrl}?width=400&quality=80",
+                      fit: BoxFit.cover,
+                      memCacheHeight: 400,
+                      placeholder: (context, url) => Container(
+                        color: AppColors.mutedBackground,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: AppColors.mutedBackground,
+                        child: const Icon(Icons.error_outline),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 2. Gradient Overlay for readability
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.withOpacity(Colors.black, 0.25),
+                          Colors.transparent,
+                          AppColors.withOpacity(Colors.black, 0.55),
+                          AppColors.withOpacity(Colors.black, 0.92),
+                        ],
+                        stops: const [0.0, 0.25, 0.6, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 3. Top Badges
+                // Favorite Button (Top Start)
+                Positioned.directional(
+                  textDirection: Directionality.of(context),
+                  top: AppSizes.s8,
+                  start: AppSizes.w8,
+                  child: LoungeFavoriteButton(loungeId: lounge.id),
+                ),
+
+                // Status Badge (Top End)
+                Positioned.directional(
+                  textDirection: Directionality.of(context),
+                  top: AppSizes.s8,
+                  end: AppSizes.w8,
+                  child: LoungeStatusBadge(isOpen: lounge.isOpen),
+                ),
+
+                // Discount Badge (below Favorite)
+                if (lounge.isDiscountActive)
+                  Positioned.directional(
+                    textDirection: Directionality.of(context),
+                    top: 38.h,
+                    start: AppSizes.w8,
+                    child: _buildDiscountBadge(context),
+                  ),
+
+                // 4. Floating Glass Details Panel at Bottom
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: GlassContainer(
+                    borderRadius: AppSizes.r16,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 5.h,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Title
+                          AppText(
+                            text: lounge.name,
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          2.verticalSpace,
+                          // Rating & Combined Location/Distance Row
+                          _buildRatingAndLocation(),
+                          4.verticalSpace,
+                          // Amenities HUD & Price Pill
+                          _buildAmenitiesAndPrice(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -71,87 +182,22 @@ class _LoungeCardState extends State<LoungeCard> {
     );
   }
 
-  Widget _buildImageSection(BuildContext context) {
-    final lounge = widget.lounge;
-    return Stack(
-      children: [
-        // Main Image
-        ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppSizes.r24)),
-          child: Hero(
-            tag: widget.heroTag ?? 'lounge_image_${lounge.id}',
-            child: CachedNetworkImage(
-              imageUrl: "${lounge.imageUrl}?width=400&quality=80",
-              height: 130.h,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              memCacheHeight: 400,
-              placeholder: (context, url) => Container(
-                color: AppColors.mutedBackground,
-                child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: AppColors.mutedBackground,
-                child: const Icon(Icons.error),
-              ),
-            ),
-          ),
-        ),
-
-        // Open/Closed Badge
-        Positioned.directional(
-          textDirection: Directionality.of(context),
-          top: AppSizes.s12,
-          end: AppSizes.w12,
-          child: LoungeStatusBadge(isOpen: lounge.isOpen),
-        ),
-
-        // Favorite Toggle
-        Positioned.directional(
-          textDirection: Directionality.of(context),
-          top: AppSizes.s12,
-          start: AppSizes.w12,
-          child: LoungeFavoriteButton(loungeId: lounge.id),
-        ),
-
-        // Discount Badge
-        if (lounge.isDiscountActive)
-          Positioned.directional(
-            textDirection: Directionality.of(context),
-            top: 45.h,
-            start: AppSizes.w12,
-            child: _buildDiscountBadge(context),
-          ),
-
-        // Distance Badge
-        if (lounge.distance > 0 && lounge.distance < 99999)
-          Positioned.directional(
-            textDirection: Directionality.of(context),
-            bottom: AppSizes.s8,
-            end: AppSizes.w8,
-            child: _buildDistanceBadge(),
-          ),
-      ],
-    );
-  }
-
   Widget _buildDiscountBadge(BuildContext context) {
     final lounge = widget.lounge;
     final isArabic = context.locale.languageCode == 'ar';
     return Container(
-      padding: 10.horizontalPadding + 4.verticalPadding,
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [AppColors.warning, Color(0xFFFF8C00)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(AppSizes.r10),
+        borderRadius: BorderRadius.circular(AppSizes.r6),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(Colors.black, 0.3),
-            blurRadius: 5,
+            color: AppColors.withOpacity(Colors.black, 0.4),
+            blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
@@ -162,131 +208,117 @@ class _LoungeCardState extends State<LoungeCard> {
           AppText(
             text: lounge.getDiscountTitle(isArabic) ??
                 "${AppStrings.discount.tr()} ${lounge.discountPercentage}%",
-            fontSize: 10.sp,
+            fontSize: 8.sp,
             fontWeight: FontWeight.w900,
             color: Colors.black,
           ),
-          4.horizontalSpace,
-          Text("🔥", style: TextStyle(fontSize: 10.sp)),
+          2.horizontalSpace,
+          Text("🔥", style: TextStyle(fontSize: 8.sp)),
         ],
       ),
     );
   }
 
-  Widget _buildDistanceBadge() {
+  Widget _buildRatingAndLocation() {
     final lounge = widget.lounge;
-    return Container(
-      padding: 8.horizontalPadding + 4.verticalPadding,
-      decoration: BoxDecoration(
-        color: AppColors.blackOverlay,
-        borderRadius: BorderRadius.circular(AppSizes.r10),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.location_on, color: AppColors.neonBlue, size: 12.sp),
-          4.horizontalSpace,
-          AppText(
-            text: "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
-            fontSize: 10.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ],
-      ),
-    );
-  }
+    final isArabic = context.locale.languageCode == 'ar';
 
-  Widget _buildDetailsSection() {
-    final lounge = widget.lounge;
-    return Padding(
-      padding: 12.allPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppText(
-            text: lounge.name,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.white,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          4.verticalSpace,
-          _buildRatingAndCity(),
-          8.verticalSpace,
-          _buildAmenitiesHud(),
-        ],
-      ),
-    );
-  }
+    final String ratingDisplay = lounge.rating > 0
+        ? lounge.rating.toStringAsFixed(1)
+        : "--";
 
-  Widget _buildRatingAndCity() {
-    final lounge = widget.lounge;
+    final String locationText = (lounge.city != null && lounge.city!.isNotEmpty)
+        ? lounge.city!
+        : (lounge.location ?? '');
+
+    final String distanceText = lounge.getFormattedDistance(isArabic: isArabic);
+
     return Row(
       children: [
-        Icon(Icons.star_rounded, color: AppColors.warning, size: 16.sp),
-        4.horizontalSpace,
-        AppText(
-          text: lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A",
-          fontSize: 12.sp,
-          fontWeight: FontWeight.bold,
-          color: AppColors.white,
-        ),
-        if (lounge.totalReviews != null && lounge.totalReviews! > 0) ...[
-          4.horizontalSpace,
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-            decoration: BoxDecoration(
-              color: AppColors.withOpacity(AppColors.warning, 0.12),
-              borderRadius: BorderRadius.circular(6.r),
-              border: Border.all(
-                color: AppColors.withOpacity(AppColors.warning, 0.3),
-                width: 0.8,
-              ),
-            ),
-            child: AppText(
-              text: "(${lounge.totalReviews})",
-              fontSize: 10.sp,
+        // Star Rating
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.star_rounded, color: AppColors.warning, size: 12.sp),
+            2.horizontalSpace,
+            AppText(
+              text: ratingDisplay,
+              fontSize: 9.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.warning,
             ),
-          ),
-        ],
-        const Spacer(),
-        if (lounge.city != null)
-          Flexible(
-            child: AppText(
-              text: lounge.city!,
-              fontSize: 10.sp,
-              color: AppColors.withOpacity(AppColors.neonBlue, 0.7),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
+          ],
+        ),
+        4.horizontalSpace,
+        // Location (City/Address) + Distance in Expanded Row
+        if (locationText.isNotEmpty || distanceText.isNotEmpty)
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  color: AppColors.neonBlue,
+                  size: 11.sp,
+                ),
+                2.horizontalSpace,
+                if (locationText.isNotEmpty) ...[
+                  Flexible(
+                    child: AppText(
+                      text: locationText,
+                      fontSize: 9.sp,
+                      color: AppColors.withOpacity(AppColors.white, 0.8),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
+                    ),
+                  ),
+                  if (distanceText.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 2.w),
+                      child: AppText(
+                        text: "•",
+                        fontSize: 8.sp,
+                        color: AppColors.withOpacity(AppColors.white, 0.4),
+                      ),
+                    ),
+                ],
+                if (distanceText.isNotEmpty)
+                  AppText(
+                    text: distanceText,
+                    fontSize: 9.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.neonBlue,
+                    maxLines: 1,
+                  ),
+              ],
             ),
           ),
       ],
     );
   }
 
-  Widget _buildAmenitiesHud() {
+  Widget _buildAmenitiesAndPrice() {
     final lounge = widget.lounge;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Icons on the left
+        // Category Icons
         Row(
           children: [
             if (lounge.categoryIcons.isNotEmpty)
               ...lounge.categoryIcons
                   .take(3)
-                  .map((iconKey) => LoungeCategoryIcon(icon: LoungeHelper.getIconFromKey(iconKey)))
+                  .map((iconKey) => LoungeCategoryIcon(
+                        icon: LoungeHelper.getIconFromKey(iconKey),
+                      ))
             else ...[
               const LoungeCategoryIcon(icon: Icons.videogame_asset_outlined),
               const LoungeCategoryIcon(icon: Icons.computer_outlined),
             ],
           ],
         ),
-        // Price on the right
+        // Price Tag Pill
         _buildPriceInfo(),
       ],
     );
@@ -294,27 +326,38 @@ class _LoungeCardState extends State<LoungeCard> {
 
   Widget _buildPriceInfo() {
     final lounge = widget.lounge;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppText(
-          text: "${AppStrings.from.tr()} ",
-          fontSize: 7.sp,
-          color: AppColors.textSecondary,
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: AppColors.withOpacity(AppColors.neonBlue, 0.18),
+        borderRadius: BorderRadius.circular(AppSizes.r6),
+        border: Border.all(
+          color: AppColors.withOpacity(AppColors.neonBlue, 0.4),
+          width: 0.8,
         ),
-        AppText(
-          text: "${lounge.pricePerHour.toInt()}",
-          fontSize: 12.sp,
-          fontWeight: FontWeight.w900,
-          color: AppColors.neonBlue,
-        ),
-        AppText(
-          text: " ${AppStrings.egp.tr()}",
-          fontSize: 8.sp,
-          color: AppColors.neonBlue,
-          fontWeight: FontWeight.bold,
-        ),
-      ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppText(
+            text: "${AppStrings.from.tr()} ",
+            fontSize: 7.sp,
+            color: AppColors.withOpacity(AppColors.white, 0.7),
+          ),
+          AppText(
+            text: "${lounge.pricePerHour.toInt()}",
+            fontSize: 11.sp,
+            fontWeight: FontWeight.w900,
+            color: AppColors.neonBlue,
+          ),
+          AppText(
+            text: " ${AppStrings.egp.tr()}",
+            fontSize: 7.sp,
+            color: AppColors.neonBlue,
+            fontWeight: FontWeight.bold,
+          ),
+        ],
+      ),
     );
   }
 }

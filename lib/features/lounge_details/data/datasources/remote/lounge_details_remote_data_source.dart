@@ -137,8 +137,8 @@ class LoungeDetailsRemoteDataSourceImpl
       if (list.isEmpty) return list;
 
       final missingProfileUserIds = list
-          .where((r) => (r.userName == 'User' || r.userName.trim().isEmpty) && r.userId.isNotEmpty)
-          .map((r) => r.userId)
+          .where((r) => (r.userName == 'User' || r.userName.trim().isEmpty) && (r.userId != null && r.userId!.isNotEmpty))
+          .map((r) => r.userId!)
           .toSet()
           .toList();
 
@@ -156,12 +156,14 @@ class LoungeDetailsRemoteDataSourceImpl
           }
 
           return list.map((r) {
-            if ((r.userName == 'User' || r.userName.trim().isEmpty) && profilesMap.containsKey(r.userId)) {
-              final p = profilesMap[r.userId]!;
+            if ((r.userName == 'User' || r.userName.trim().isEmpty) && r.userId != null && profilesMap.containsKey(r.userId!)) {
+              final p = profilesMap[r.userId!]!;
               final name = p['full_name']?.toString() ?? p['name']?.toString() ?? 'User';
               final avatar = p['avatar_url']?.toString();
               return ReviewModel(
                 id: r.id,
+                loungeId: r.loungeId,
+                bookingId: r.bookingId,
                 userId: r.userId,
                 userName: name.isNotEmpty ? name : 'User',
                 userAvatar: avatar ?? r.userAvatar,
@@ -180,7 +182,9 @@ class LoungeDetailsRemoteDataSourceImpl
       return list;
     }
 
-    // Attempt 1: lounge_reviews table with profiles join
+    final List<ReviewModel> combinedReviews = [];
+
+    // Attempt 1: lounge_reviews table with profiles join or flat
     try {
       final res = await _client
           .from('lounge_reviews')
@@ -188,25 +192,23 @@ class LoungeDetailsRemoteDataSourceImpl
           .eq('lounge_id', loungeId)
           .order('created_at', ascending: false);
       final result = await processAndHydrate(res as List);
-      if (result.isNotEmpty) return result;
+      combinedReviews.addAll(result);
     } catch (e) {
       dev.log("[REVIEWS_DS] lounge_reviews with profiles join error: $e");
+      try {
+        final res = await _client
+            .from('lounge_reviews')
+            .select('*')
+            .eq('lounge_id', loungeId)
+            .order('created_at', ascending: false);
+        final result = await processAndHydrate(res as List);
+        combinedReviews.addAll(result);
+      } catch (e2) {
+        dev.log("[REVIEWS_DS] lounge_reviews flat select error: $e2");
+      }
     }
 
-    // Attempt 2: lounge_reviews table flat select
-    try {
-      final res = await _client
-          .from('lounge_reviews')
-          .select('*')
-          .eq('lounge_id', loungeId)
-          .order('created_at', ascending: false);
-      final result = await processAndHydrate(res as List);
-      if (result.isNotEmpty) return result;
-    } catch (e) {
-      dev.log("[REVIEWS_DS] lounge_reviews flat select error: $e");
-    }
-
-    // Attempt 3: reviews table with profiles join
+    // Attempt 2: reviews table with profiles join or flat
     try {
       final res = await _client
           .from('reviews')
@@ -214,25 +216,23 @@ class LoungeDetailsRemoteDataSourceImpl
           .eq('lounge_id', loungeId)
           .order('created_at', ascending: false);
       final result = await processAndHydrate(res as List);
-      if (result.isNotEmpty) return result;
+      combinedReviews.addAll(result);
     } catch (e) {
       dev.log("[REVIEWS_DS] reviews with profiles join error: $e");
+      try {
+        final res = await _client
+            .from('reviews')
+            .select('*')
+            .eq('lounge_id', loungeId)
+            .order('created_at', ascending: false);
+        final result = await processAndHydrate(res as List);
+        combinedReviews.addAll(result);
+      } catch (e2) {
+        dev.log("[REVIEWS_DS] reviews flat select error: $e2");
+      }
     }
 
-    // Attempt 4: reviews table flat select
-    try {
-      final res = await _client
-          .from('reviews')
-          .select('*')
-          .eq('lounge_id', loungeId)
-          .order('created_at', ascending: false);
-      final result = await processAndHydrate(res as List);
-      if (result.isNotEmpty) return result;
-    } catch (e) {
-      dev.log("[REVIEWS_DS] reviews flat select error: $e");
-    }
-
-    // Attempt 5: bookings table with ratings
+    // Attempt 3: bookings table with ratings
     try {
       final res = await _client
           .from('bookings')
@@ -242,11 +242,26 @@ class LoungeDetailsRemoteDataSourceImpl
           .gt('rating', 0)
           .order('created_at', ascending: false);
       final result = await processAndHydrate(res as List);
-      if (result.isNotEmpty) return result;
+      combinedReviews.addAll(result);
     } catch (e) {
       dev.log("[REVIEWS_DS] bookings table ratings fallback error: $e");
     }
 
-    return [];
+    // Deduplicate combined reviews
+    final seenKeys = <String>{};
+    final List<ReviewModel> uniqueReviews = [];
+
+    for (final review in combinedReviews) {
+      final key = review.id.isNotEmpty
+          ? review.id
+          : '${review.userId ?? "anon"}_${review.rating}_${review.comment ?? ""}';
+      if (!seenKeys.contains(key)) {
+        seenKeys.add(key);
+        uniqueReviews.add(review);
+      }
+    }
+
+    uniqueReviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return uniqueReviews;
   }
 }

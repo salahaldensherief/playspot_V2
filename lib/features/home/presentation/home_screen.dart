@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
@@ -21,7 +20,6 @@ import '../../../art_core/widgets/cards/lounge_card.dart';
 import '../../../art_core/widgets/text/app_text.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
-import '../data/models/lounge_model.dart';
 import 'home_state.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -206,9 +204,9 @@ class _SortToggle extends StatelessWidget {
         return Container(
           padding: EdgeInsets.all(2.w),
           decoration: BoxDecoration(
-            color: AppColors.backgroundAlt.withOpacity(0.5),
+            color: AppColors.withOpacity(AppColors.backgroundAlt, 0.5),
             borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: AppColors.withOpacity(Colors.white, 0.05)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -288,7 +286,7 @@ class _LoungeList extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 8.w,
                 mainAxisSpacing: 8.h,
-                mainAxisExtent: 260.h,
+                mainAxisExtent: 215.h,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) => const LoungeCardShimmer(),
@@ -338,7 +336,7 @@ class _LoungeList extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 8.w,
               mainAxisSpacing: 8.h,
-              mainAxisExtent: 235.h,
+              mainAxisExtent: 215.h,
             ),
             delegate: SliverChildBuilderDelegate((context, index) {
               final lounge = lounges[index];

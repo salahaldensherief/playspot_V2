@@ -216,7 +216,6 @@ class ReviewsSection extends StatelessWidget {
                         context.pushNamed(
                           RouterKeys.allReviews,
                           extra: {
-                            'cubit': cubit,
                             'reviews': cubit.state.reviews,
                             'loungeName': loungeName,
                           },

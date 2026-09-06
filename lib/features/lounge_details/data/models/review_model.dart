@@ -2,7 +2,9 @@ import 'package:equatable/equatable.dart';
 
 class ReviewModel extends Equatable {
   final String id;
-  final String userId;
+  final String? loungeId;
+  final String? bookingId;
+  final String? userId;
   final String userName;
   final String? userAvatar;
   final double rating;
@@ -11,8 +13,10 @@ class ReviewModel extends Equatable {
 
   const ReviewModel({
     required this.id,
-    required this.userId,
-    required this.userName,
+    this.loungeId,
+    this.bookingId,
+    this.userId,
+    this.userName = 'User',
     this.userAvatar,
     required this.rating,
     this.comment,
@@ -20,14 +24,30 @@ class ReviewModel extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, userId, userName, userAvatar, rating, comment, createdAt];
+  List<Object?> get props => [
+        id,
+        loungeId,
+        bookingId,
+        userId,
+        userName,
+        userAvatar,
+        rating,
+        comment,
+        createdAt,
+      ];
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
     final userData = (json['profiles'] ?? json['users'] ?? json['user'] ?? json['profile']) as Map<String, dynamic>?;
 
+    final rawUserId = json['user_id']?.toString() ?? json['userId']?.toString();
+    final rawBookingId = json['booking_id']?.toString() ?? json['bookingId']?.toString();
+    final rawLoungeId = json['lounge_id']?.toString() ?? json['loungeId']?.toString();
+
     return ReviewModel(
       id: json['id']?.toString() ?? '',
-      userId: json['user_id']?.toString() ?? json['userId']?.toString() ?? '',
+      loungeId: (rawLoungeId != null && rawLoungeId.isNotEmpty) ? rawLoungeId : null,
+      bookingId: (rawBookingId != null && rawBookingId.isNotEmpty) ? rawBookingId : null,
+      userId: (rawUserId != null && rawUserId.isNotEmpty) ? rawUserId : null,
       userName: userData?['name']?.toString() ??
           userData?['full_name']?.toString() ??
           userData?['username']?.toString() ??

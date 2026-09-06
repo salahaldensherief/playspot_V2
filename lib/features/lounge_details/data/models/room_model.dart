@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:equatable/equatable.dart';
 
 class RoomModel extends Equatable {
@@ -149,6 +150,8 @@ class RoomModel extends Equatable {
       'space_type_slug': spaceTypeName,
       'capacity': capacity,
       'price_per_hour': pricePerHour,
+      'hourly_rate_single': pricePerHourSingle,
+      'hourly_rate_multi': pricePerHourMulti,
       'price_per_hour_single': pricePerHourSingle,
       'price_per_hour_multi': pricePerHourMulti,
       'extra_controller_price': extraControllerPrice,
@@ -174,6 +177,22 @@ class RoomModel extends Equatable {
         }
       }
 
+      final singleRate = (json['hourly_rate_single'] as num?)?.toDouble() ??
+          (json['price_per_hour_single'] as num?)?.toDouble() ??
+          (json['price_single'] as num?)?.toDouble() ??
+          (json['price_per_hour'] as num?)?.toDouble() ??
+          0.0;
+
+      final multiRate = (json['hourly_rate_multi'] as num?)?.toDouble() ??
+          (json['price_per_hour_multi'] as num?)?.toDouble() ??
+          (json['price_multi'] as num?)?.toDouble() ??
+          (json['price_per_hour'] as num?)?.toDouble() ??
+          0.0;
+
+      final defaultRate = (json['price_per_hour'] as num?)?.toDouble() ??
+          (json['hourly_rate'] as num?)?.toDouble() ??
+          singleRate;
+
       return RoomModel(
         id: json['id']?.toString() ?? '',
         loungeId: json['lounge_id']?.toString() ?? '',
@@ -195,9 +214,9 @@ class RoomModel extends Equatable {
             json['space_type']?.toString() ??
             json['space_type_name']?.toString(),
         capacity: (json['capacity'] as num?)?.toInt() ?? 4,
-        pricePerHour: (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
-        pricePerHourSingle: (json['price_per_hour_single'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
-        pricePerHourMulti: (json['price_per_hour_multi'] as num?)?.toDouble() ?? (json['price_per_hour'] as num?)?.toDouble() ?? 0.0,
+        pricePerHour: defaultRate,
+        pricePerHourSingle: singleRate,
+        pricePerHourMulti: multiRate,
         extraControllerPrice: (json['extra_controller_price'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
         status: json['status']?.toString() ?? 'available',
@@ -213,7 +232,7 @@ class RoomModel extends Equatable {
         promoDiscountType: _parsePromoDiscountType(json['promotions'] as List?),
       );
     } catch (e) {
-      print("Error parsing RoomModel: $e");
+      dev.log("Error parsing RoomModel: $e");
       rethrow;
     }
   }

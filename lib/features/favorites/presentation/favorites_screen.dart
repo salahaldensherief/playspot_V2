@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
-import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/cards/lounge_card.dart';
@@ -84,7 +82,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: AppSizes.w12,
                       mainAxisSpacing: AppSizes.s12,
-                      mainAxisExtent: 260.h,
+                      mainAxisExtent: 215.h,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {

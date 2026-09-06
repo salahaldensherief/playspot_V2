@@ -60,6 +60,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 text: AppStrings.orderExtras.tr(),
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
+                color: AppColors.white,
               ),
               SizedBox(height: 16.h),
               Expanded(
@@ -111,19 +112,40 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
   }
 
   Widget _buildMenuItem(ExtraModel item, int qty) {
+    final displayName = item.name.isNotEmpty ? item.name : 'Item';
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(
         children: [
+          if (item.icon != null && item.icon!.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: Image.network(
+                item.icon!,
+                width: 40.w,
+                height: 40.h,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              ),
+            ),
+            SizedBox(width: 12.w),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText(text: item.name, fontWeight: FontWeight.bold),
+                AppText(
+                  text: displayName,
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.white,
+                ),
+                SizedBox(height: 4.h),
                 AppText(
                   text: "${item.price} ${AppStrings.egpSymbol.tr()}",
                   fontSize: 12.sp,
-                  color: AppColors.textSecondary,
+                  color: AppColors.neonPurple,
+                  fontWeight: FontWeight.w600,
                 ),
               ],
             ),
@@ -136,7 +158,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 }
               }),
               SizedBox(width: 12.w),
-              AppText(text: qty.toString(), fontWeight: FontWeight.bold),
+              AppText(
+                text: qty.toString(),
+                fontWeight: FontWeight.bold,
+                color: AppColors.white,
+              ),
               SizedBox(width: 12.w),
               _buildQtyBtn(Icons.add, () {
                 setState(() => _quantities[item.id] = qty + 1);

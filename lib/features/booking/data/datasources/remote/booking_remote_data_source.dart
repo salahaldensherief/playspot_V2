@@ -5,6 +5,7 @@ import '../../models/booking_params.dart';
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date);
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
+  Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
   Future<void> extendSession({
     required String bookingId,
     required int additionalMinutes,
@@ -56,13 +57,24 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final startPart = "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:00";
     final endPart = "${params.endTime.hour.toString().padLeft(2, '0')}:${params.endTime.minute.toString().padLeft(2, '0')}:00";
 
+    final fallbackName = user?.userMetadata?['full_name']?.toString() ??
+        user?.userMetadata?['name']?.toString() ??
+        '';
+    final fallbackPhone = user?.phone ??
+        user?.userMetadata?['phone']?.toString() ??
+        '';
+
+    final finalUserName = params.userName.isNotEmpty ? params.userName : fallbackName;
+    final finalUserPhone = params.userPhone.isNotEmpty ? params.userPhone : fallbackPhone;
+
+    // Insert core booking without booking_extras in the bookings table
     final response = await _client.from('bookings').insert({
       'room_id': params.roomId,
       'room_name': params.roomName,
       'lounge_id': params.loungeId,
       'user_id': user?.id,
-      'user_name': params.userName,
-      'user_phone': params.userPhone,
+      'user_name': finalUserName,
+      'user_phone': finalUserPhone,
       'date': datePart,
       'start_time': startPart,
       'end_time': endPart,
@@ -70,11 +82,38 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'room_price': params.roomPrice,
       'status': BookingStatus.mapToDbStatus(params.status),
       'payment_status': params.paymentStatus,
-      'booking_extras': params.addOns,
       'play_mode': params.playMode,
     }).select('id').single();
 
+    final bookingId = response['id']?.toString();
+
+    // Directly insert canteen/extras items into booking_items table
+    if (bookingId != null && params.addOns.isNotEmpty) {
+      final itemsToInsert = params.addOns.map((e) => {
+        'booking_id': bookingId,
+        'item_id': e['id']?.toString() ?? e['item_id']?.toString() ?? e['extra_id']?.toString(),
+        'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
+        'price': (e['price'] as num?)?.toDouble() ?? 0.0,
+        'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
+        'note': e['note']?.toString(),
+      }).toList();
+
+      try {
+        await _client.from('booking_items').insert(itemsToInsert);
+      } catch (_) {}
+    }
+
     return Map<String, dynamic>.from(response);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getBookingItems(String bookingId) async {
+    final response = await _client
+        .from('booking_items')
+        .select('*')
+        .eq('booking_id', bookingId);
+
+    return List<Map<String, dynamic>>.from(response as List);
   }
 
   @override

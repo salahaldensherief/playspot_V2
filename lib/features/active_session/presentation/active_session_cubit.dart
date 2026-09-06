@@ -26,6 +26,15 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
           loadActiveSession(bookingId: activeSession.bookingId);
         }
       }
+    }, onError: (err) {
+      dev.log("[LIVESESSION_CUBIT] WATCH USER SESSIONS STREAM ERROR: $err");
+      _userSessionsSubscription?.cancel();
+      _userSessionsSubscription = null;
+      Future.delayed(const Duration(seconds: 5), () {
+        if (!isClosed) {
+          _watchUserSessions();
+        }
+      });
     });
   }
 
@@ -97,7 +106,16 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
       }
     }, onError: (err) {
       dev.log("[LIVESESSION_CUBIT] REALTIME STREAM ERROR: $err");
-      loadActiveSession(bookingId: bookingId);
+      _subscribedBookingId = null;
+      _realtimeSubscription?.cancel();
+      _realtimeSubscription = null;
+      Future.delayed(const Duration(seconds: 3), () {
+        if (!isClosed && (_subscribedBookingId == null || _subscribedBookingId == bookingId)) {
+          if (state.session?.bookingId == bookingId || state.status == ActiveSessionStatus.loaded) {
+            _subscribeToRealtime(bookingId);
+          }
+        }
+      });
     });
   }
 

@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:equatable/equatable.dart';
 
 class ExtraModel extends Equatable {
@@ -20,15 +21,26 @@ class ExtraModel extends Equatable {
 
   factory ExtraModel.fromJson(Map<String, dynamic> json) {
     try {
+      final nameStr = json['name']?.toString() ??
+          json['name_ar']?.toString() ??
+          json['name_en']?.toString() ??
+          json['title']?.toString() ??
+          json['item_name']?.toString() ??
+          '';
+
+      final iconStr = json['icon']?.toString() ??
+          json['image']?.toString() ??
+          json['image_url']?.toString();
+
       return ExtraModel(
         id: json['id']?.toString() ?? '',
-        name: json['name']?.toString() ?? '',
+        name: nameStr,
         price: (json['price'] as num?)?.toDouble() ?? 0.0,
-        category: json['category']?.toString() ?? '',
-        icon: json['icon']?.toString(),
+        category: json['category']?.toString() ?? json['category_name']?.toString() ?? '',
+        icon: iconStr,
       );
     } catch (e) {
-      print("Error parsing ExtraModel: $e");
+      dev.log("Error parsing ExtraModel: $e");
       rethrow;
     }
   }
