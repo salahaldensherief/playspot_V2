@@ -35,8 +35,8 @@ void main() {
       distance: 2.5,
       pricePerHour: 150.0,
       isOpen: true,
-      opensAt: '10:00',
-      closesAt: '02:00',
+      openingTime: '10:00',
+      closingTime: '02:00',
     );
 
     const testExtra = ExtraModel(

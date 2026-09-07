@@ -116,7 +116,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
         // Show Toast safely
         GameHudToast.show(
           null,
-          newNotification.body,
+          newNotification.getBody(_lastLang!),
           type: ToastType.info,
         );
 

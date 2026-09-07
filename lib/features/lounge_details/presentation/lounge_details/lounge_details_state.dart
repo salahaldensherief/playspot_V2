@@ -102,7 +102,7 @@ class LoungeDetailsState extends Equatable {
     double basePrice = 0;
     if (selectedRoomId != null) {
       final room = rooms.firstWhere((r) => r.id == selectedRoomId);
-      basePrice = room.pricePerHour;
+      basePrice = room.hourlyRateSingle;
     }
     
     double extrasTotal = 0;

@@ -17,7 +17,6 @@ abstract class ProfileRepository {
   Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(String code);
   Future<Either<Failure, void>> consumeVoucher({required String voucherId, required String bookingId});
   Future<void> updateFcmToken(String token);
-  Future<Either<Failure, void>> updateNotificationPreferences(Map<String, bool> preferences);
   Future<Either<Failure, NotificationSettingsModel>> getNotificationSettings();
   Future<Either<Failure, void>> updateNotificationSettings(NotificationSettingsModel settings);
 }

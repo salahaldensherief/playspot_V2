@@ -14,11 +14,11 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
   @override
   Future<List<BookingModel>> getMyBookings() async {
     final userId = _client.auth.currentUser?.id;
-    if (userId == null) throw Exception("User not logged in");
+    if (userId == null) throw const AuthException("User not logged in");
 
     final response = await _client
         .from('bookings')
-        .select('*, lounges(name, location, maps_link, latitude, longitude), rooms(name, name_en, controllers_count, screen_size, space_types(label, name))')
+        .select('*, lounges(*), rooms(name, name_en, controllers_count, screen_size, space_types(label, name))')
         .eq('user_id', userId)
         .order('date', ascending: false);
 

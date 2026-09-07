@@ -5,7 +5,7 @@ class ExtraModel extends Equatable {
   final String id;
   final String name;
   final double price;
-  final String category; // Drinks, Food, Snacks
+  final String category; // drinks, food, snacks, desserts, other
   final String? icon;
 
   const ExtraModel({
@@ -32,11 +32,16 @@ class ExtraModel extends Equatable {
           json['image']?.toString() ??
           json['image_url']?.toString();
 
+      final rawCategory = json['category']?.toString() ??
+          json['category_name']?.toString() ??
+          json['category_slug']?.toString() ??
+          'other';
+
       return ExtraModel(
         id: json['id']?.toString() ?? '',
         name: nameStr,
         price: (json['price'] as num?)?.toDouble() ?? 0.0,
-        category: json['category']?.toString() ?? json['category_name']?.toString() ?? '',
+        category: rawCategory.trim().toLowerCase(),
         icon: iconStr,
       );
     } catch (e) {
@@ -50,7 +55,7 @@ class ExtraModel extends Equatable {
       'id': id,
       'name': name,
       'price': price,
-      'category': category,
+      'category': category.trim().toLowerCase(),
       'icon': icon,
     };
   }

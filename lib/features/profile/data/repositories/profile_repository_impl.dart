@@ -95,11 +95,6 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, void>> updateNotificationPreferences(Map<String, bool> preferences) async {
-    return await callRepository(() => _remoteSource.updateNotificationPreferences(preferences));
-  }
-
-  @override
   Future<Either<Failure, NotificationSettingsModel>> getNotificationSettings() async {
     return await callRepository(() => _remoteSource.getNotificationSettings());
   }

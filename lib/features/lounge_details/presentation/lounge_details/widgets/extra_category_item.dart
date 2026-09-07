@@ -33,6 +33,21 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
     }
   }
 
+  IconData get categoryIcon {
+    switch (widget.category.toLowerCase()) {
+      case "drinks":
+        return Icons.local_drink;
+      case "food":
+        return Icons.fastfood;
+      case "snacks":
+        return Icons.cookie_outlined;
+      case "desserts":
+        return Icons.icecream_outlined;
+      default:
+        return Icons.category_outlined;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -55,47 +70,44 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-
-              onTap: () => setState(() => isExpanded = !isExpanded),
-              leading: Icon(
-                widget.category.toLowerCase() == "drinks"
-                    ? Icons.local_drink
-                    : Icons.fastfood,
-                color: AppColors.white,
-              ),
-              title: AppText(
-                text: translatedCategory,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
-              ),
-              trailing: AnimatedRotation(
-                duration: const Duration(milliseconds: 300),
-                turns: isExpanded ? 0.5 : 0,
-                child: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.textSecondary,
+                onTap: () => setState(() => isExpanded = !isExpanded),
+                leading: Icon(
+                  categoryIcon,
+                  color: AppColors.white,
+                ),
+                title: AppText(
+                  text: translatedCategory,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.white,
+                ),
+                trailing: AnimatedRotation(
+                  duration: const Duration(milliseconds: 300),
+                  turns: isExpanded ? 0.5 : 0,
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
-            ),
-            AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: isExpanded
-                  ? Padding(
-                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                      child: Column(
-                        children: widget.items
-                            .map((extra) => ExtraRow(extra: extra))
-                            .toList(),
-                      ),
-                    )
-                  : const SizedBox(width: double.infinity, height: 0),
-            ),
-          ],
+              AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: isExpanded
+                    ? Padding(
+                        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                        child: Column(
+                          children: widget.items
+                              .map((extra) => ExtraRow(extra: extra))
+                              .toList(),
+                        ),
+                      )
+                    : const SizedBox(width: double.infinity, height: 0),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-        );
+    );
   }
 }

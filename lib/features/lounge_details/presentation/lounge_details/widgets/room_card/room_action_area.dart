@@ -37,10 +37,10 @@ class RoomActionArea extends StatelessWidget {
         final playMode = state.roomPlayModes[room.id] ?? 'single';
         final extraControllers = state.roomExtraControllers[room.id] ?? 0;
 
-        double originalBase = room.pricePerHour;
+        double originalBase = room.hourlyRateSingle;
         if (room.isOpenArea) {
           originalBase =
-              playMode == 'single' ? room.pricePerHourSingle : room.pricePerHourMulti;
+              playMode == 'single' ? room.hourlyRateSingle : room.hourlyRateMulti;
         }
 
         double effectiveBase = originalBase;

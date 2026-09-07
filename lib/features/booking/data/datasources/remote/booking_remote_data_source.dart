@@ -67,7 +67,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final finalUserName = params.userName.isNotEmpty ? params.userName : fallbackName;
     final finalUserPhone = params.userPhone.isNotEmpty ? params.userPhone : fallbackPhone;
 
-    // Insert core booking without booking_extras in the bookings table
+    // Insert core booking
     final response = await _client.from('bookings').insert({
       'room_id': params.roomId,
       'room_name': params.roomName,
@@ -80,6 +80,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'end_time': endPart,
       'total_price': params.totalPrice,
       'room_price': params.roomPrice,
+      if (params.discountAmount > 0) 'discount_amount': params.discountAmount,
       'status': BookingStatus.mapToDbStatus(params.status),
       'payment_status': params.paymentStatus,
       'play_mode': params.playMode,
@@ -98,9 +99,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         'note': e['note']?.toString(),
       }).toList();
 
-      try {
-        await _client.from('booking_items').insert(itemsToInsert);
-      } catch (_) {}
+      await _client.from('booking_items').insert(itemsToInsert);
     }
 
     return Map<String, dynamic>.from(response);
@@ -182,13 +181,27 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required double totalPrice,
     required String note,
   }) async {
-    await _client.rpc('place_canteen_order', params: {
-      'p_booking_id': bookingId,
-      'p_lounge_id': loungeId,
-      'p_user_id': userId,
-      'p_items': items,
-      'p_total_price': totalPrice,
-      'p_note': note,
-    });
+    final validUserId = _client.auth.currentUser?.id ?? userId;
+    final itemsToInsert = items.map((item) => {
+      'booking_id': bookingId,
+      'item_id': item['id']?.toString() ?? item['item_id']?.toString() ?? item['extra_id']?.toString(),
+      'name': item['name']?.toString() ?? item['title']?.toString() ?? 'Extra',
+      'price': (item['price'] as num?)?.toDouble() ?? 0.0,
+      'quantity': (item['quantity'] as num?)?.toInt() ?? 1,
+      'note': item['note']?.toString() ?? (note.isNotEmpty ? note : null),
+    }).toList();
+
+    try {
+      await _client.from('booking_items').insert(itemsToInsert);
+    } catch (_) {
+      await _client.rpc('place_canteen_order', params: {
+        'p_booking_id': bookingId,
+        'p_lounge_id': loungeId,
+        'p_user_id': validUserId,
+        'p_items': items,
+        'p_total_price': totalPrice,
+        'p_note': note,
+      });
+    }
   }
 }

@@ -9,10 +9,9 @@ class RoomModel extends Equatable {
   final List<String> activityNames;
   final String? spaceType;
   final String? spaceTypeName;
-  final int capacity;
-  final double pricePerHour;
-  final double pricePerHourSingle;
-  final double pricePerHourMulti;
+  final int maxCapacity;
+  final double hourlyRateSingle;
+  final double hourlyRateMulti;
   final double extraControllerPrice;
   final bool isAvailable;
   final String status;
@@ -35,10 +34,9 @@ class RoomModel extends Equatable {
     required this.activityNames,
     this.spaceType,
     this.spaceTypeName,
-    required this.capacity,
-    required this.pricePerHour,
-    required this.pricePerHourSingle,
-    required this.pricePerHourMulti,
+    required this.maxCapacity,
+    required this.hourlyRateSingle,
+    required this.hourlyRateMulti,
     this.extraControllerPrice = 0.0,
     required this.isAvailable,
     this.status = 'available',
@@ -63,10 +61,9 @@ class RoomModel extends Equatable {
     activityNames,
     spaceType,
     spaceTypeName,
-    capacity,
-    pricePerHour,
-    pricePerHourSingle,
-    pricePerHourMulti,
+    maxCapacity,
+    hourlyRateSingle,
+    hourlyRateMulti,
     extraControllerPrice,
     isAvailable,
     status,
@@ -86,37 +83,31 @@ class RoomModel extends Equatable {
   List<String> getFeatures(bool isArabic) => isArabic ? featuresAr : featuresEn;
   String? getPromoTag(bool isArabic) => isArabic ? promoTagAr : promoTagEn;
 
-  double get effectivePrice {
-    if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHour;
+  int get capacity => maxCapacity;
+  double get hourlyRate => hourlyRateSingle;
 
-    if (promoDiscountType == 'percentage') {
-      return pricePerHour * (1 - (promoDiscountValue / 100));
-    } else if (promoDiscountType == 'fixed') {
-      return (pricePerHour - promoDiscountValue).clamp(0.0, double.infinity);
-    }
-    return pricePerHour;
-  }
+  double get effectivePrice => effectivePriceSingle;
 
   double get effectivePriceSingle {
-    if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHourSingle;
+    if (!hasActivePromo || promoDiscountValue <= 0) return hourlyRateSingle;
 
     if (promoDiscountType == 'percentage') {
-      return pricePerHourSingle * (1 - (promoDiscountValue / 100));
+      return hourlyRateSingle * (1 - (promoDiscountValue / 100));
     } else if (promoDiscountType == 'fixed') {
-      return (pricePerHourSingle - promoDiscountValue).clamp(0.0, double.infinity);
+      return (hourlyRateSingle - promoDiscountValue).clamp(0.0, double.infinity);
     }
-    return pricePerHourSingle;
+    return hourlyRateSingle;
   }
 
   double get effectivePriceMulti {
-    if (!hasActivePromo || promoDiscountValue <= 0) return pricePerHourMulti;
+    if (!hasActivePromo || promoDiscountValue <= 0) return hourlyRateMulti;
 
     if (promoDiscountType == 'percentage') {
-      return pricePerHourMulti * (1 - (promoDiscountValue / 100));
+      return hourlyRateMulti * (1 - (promoDiscountValue / 100));
     } else if (promoDiscountType == 'fixed') {
-      return (pricePerHourMulti - promoDiscountValue).clamp(0.0, double.infinity);
+      return (hourlyRateMulti - promoDiscountValue).clamp(0.0, double.infinity);
     }
-    return pricePerHourMulti;
+    return hourlyRateMulti;
   }
 
   bool get isVR => activityNames.any((a) => a.toLowerCase().contains('vr'));
@@ -148,12 +139,9 @@ class RoomModel extends Equatable {
       'activity_names': activityNames,
       'space_type_name': spaceType,
       'space_type_slug': spaceTypeName,
-      'capacity': capacity,
-      'price_per_hour': pricePerHour,
-      'hourly_rate_single': pricePerHourSingle,
-      'hourly_rate_multi': pricePerHourMulti,
-      'price_per_hour_single': pricePerHourSingle,
-      'price_per_hour_multi': pricePerHourMulti,
+      'max_capacity': maxCapacity,
+      'hourly_rate_single': hourlyRateSingle,
+      'hourly_rate_multi': hourlyRateMulti,
       'extra_controller_price': extraControllerPrice,
       'is_available': isAvailable,
       'status': status,
@@ -177,21 +165,9 @@ class RoomModel extends Equatable {
         }
       }
 
-      final singleRate = (json['hourly_rate_single'] as num?)?.toDouble() ??
-          (json['price_per_hour_single'] as num?)?.toDouble() ??
-          (json['price_single'] as num?)?.toDouble() ??
-          (json['price_per_hour'] as num?)?.toDouble() ??
-          0.0;
-
-      final multiRate = (json['hourly_rate_multi'] as num?)?.toDouble() ??
-          (json['price_per_hour_multi'] as num?)?.toDouble() ??
-          (json['price_multi'] as num?)?.toDouble() ??
-          (json['price_per_hour'] as num?)?.toDouble() ??
-          0.0;
-
-      final defaultRate = (json['price_per_hour'] as num?)?.toDouble() ??
-          (json['hourly_rate'] as num?)?.toDouble() ??
-          singleRate;
+      final singleRate = (json['hourly_rate_single'] as num?)?.toDouble() ?? 0.0;
+      final multiRate = (json['hourly_rate_multi'] as num?)?.toDouble() ?? 0.0;
+      final maxCap = (json['max_capacity'] as num?)?.toInt() ?? 4;
 
       return RoomModel(
         id: json['id']?.toString() ?? '',
@@ -213,10 +189,9 @@ class RoomModel extends Equatable {
             json['space_type_slug']?.toString() ??
             json['space_type']?.toString() ??
             json['space_type_name']?.toString(),
-        capacity: (json['capacity'] as num?)?.toInt() ?? 4,
-        pricePerHour: defaultRate,
-        pricePerHourSingle: singleRate,
-        pricePerHourMulti: multiRate,
+        maxCapacity: maxCap,
+        hourlyRateSingle: singleRate,
+        hourlyRateMulti: multiRate,
         extraControllerPrice: (json['extra_controller_price'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
         status: json['status']?.toString() ?? 'available',

@@ -13,8 +13,32 @@ mixin RepositoryHelper {
     } on PostgrestException catch (e) {
       if (e.code == '23P01' ||
           e.message.contains('exclusion constraint') ||
-          e.message.contains('no_overlapping_room_bookings')) {
+          e.message.contains('no_overlapping_room_bookings') ||
+          e.message.contains('prevent_room_booking_overlap')) {
         return Left(ServerFailure(AppStrings.overlappingBookingError.tr()));
+      }
+
+      if (e.code == '23505' ||
+          e.message.toLowerCase().contains('unique constraint') ||
+          e.message.toLowerCase().contains('already exists') ||
+          e.message.toLowerCase().contains('duplicate key')) {
+        if (e.message.contains('favorites')) {
+          return Left(const ServerFailure("This lounge is already in your favorites."));
+        }
+        if (e.message.contains('review') || e.message.contains('booking')) {
+          return Left(const ServerFailure("A review for this session has already been submitted."));
+        }
+        return Left(const ServerFailure("This record already exists."));
+      }
+
+      if (e.code == '42501' ||
+          e.code == 'PGRST301' ||
+          e.message.toLowerCase().contains('permission denied') ||
+          e.message.toLowerCase().contains('invalid permission') ||
+          e.message.toLowerCase().contains('row-level security') ||
+          e.message.toLowerCase().contains('unauthorized') ||
+          e.message.toLowerCase().contains('rls')) {
+        return Left(const AuthFailure("Permission denied. Please verify your account access or role permissions."));
       }
       
       // Return error code in message for easier filtering in repositories if needed

@@ -275,68 +275,18 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items) async {
     dev.log("[LIVESESSION_DS] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}");
     try {
-      for (final item in items) {
-        final payload = {
-          'booking_id': bookingId,
-          'item_id': item.id,
-          'name': item.name,
-          'quantity': item.quantity,
-          'price': item.price,
-          'note': item.note,
-        };
-        dev.log("[LIVESESSION_DS] Placing order item payload: $payload");
+      if (items.isEmpty) return;
+      final itemsToInsert = items.map((item) => {
+        'booking_id': bookingId,
+        'item_id': item.id,
+        'name': item.name,
+        'quantity': item.quantity,
+        'price': item.price,
+        'note': item.note,
+      }).toList();
 
-        try {
-          // Attempt 1: Call 'add_session_extra' RPC with 'p_' prefixed params
-          await _client.rpc('add_session_extra', params: {
-            'p_booking_id': bookingId,
-            'p_extra_id': item.id,
-            'p_item_id': item.id,
-            'p_name': item.name,
-            'p_quantity': item.quantity,
-            'p_price': item.price,
-            'p_notes': item.note,
-            'p_note': item.note,
-          });
-          dev.log("[LIVESESSION_DS] ADD_SESSION_EXTRA RPC SUCCESS for ${item.name}");
-        } catch (e1, st1) {
-          dev.log("[LIVESESSION_DS] RPC add_session_extra (p_ params) failed: $e1", error: e1, stackTrace: st1);
-
-          try {
-            // Attempt 2: Call 'add_session_extra' RPC without 'p_' prefix
-            await _client.rpc('add_session_extra', params: {
-              'booking_id': bookingId,
-              'extra_id': item.id,
-              'item_id': item.id,
-              'name': item.name,
-              'quantity': item.quantity,
-              'price': item.price,
-              'note': item.note,
-              'notes': item.note,
-            });
-            dev.log("[LIVESESSION_DS] ADD_SESSION_EXTRA RPC 2 SUCCESS for ${item.name}");
-          } catch (e2, st2) {
-            dev.log("[LIVESESSION_DS] RPC add_session_extra (standard params) failed: $e2", error: e2, stackTrace: st2);
-
-            try {
-              // Attempt 3: Direct insert into 'booking_items' table
-              await _client.from('booking_items').insert(payload);
-              dev.log("[LIVESESSION_DS] Direct booking_items insert SUCCESS for ${item.name}");
-            } catch (e3, st3) {
-              dev.log("[LIVESESSION_DS] Direct booking_items insert failed: $e3", error: e3, stackTrace: st3);
-
-              try {
-                // Attempt 4: Direct insert into 'canteen_orders' table
-                await _client.from('canteen_orders').insert(payload);
-                dev.log("[LIVESESSION_DS] Direct canteen_orders insert SUCCESS for ${item.name}");
-              } catch (e4, st4) {
-                dev.log("[LIVESESSION_DS] All order placement methods failed for ${item.name}: $e4", error: e4, stackTrace: st4);
-                rethrow;
-              }
-            }
-          }
-        }
-      }
+      await _client.from('booking_items').insert(itemsToInsert);
+      dev.log("[LIVESESSION_DS] Direct booking_items insert SUCCESS for ${items.length} items");
     } catch (e, st) {
       dev.log("[LIVESESSION_DS] PLACE_ORDER FAILED: $e", error: e, stackTrace: st);
       rethrow;
@@ -430,21 +380,6 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       dev.log("[LIVESESSION_DS] Direct insert to lounge_reviews SUCCESS");
     } catch (e3) {
       dev.log("[LIVESESSION_DS] Direct insert to lounge_reviews failed: $e3");
-    }
-
-    // Insert/upsert to 'reviews'
-    try {
-      await _client.from('reviews').upsert({
-        'lounge_id': loungeId,
-        'booking_id': bookingId,
-        'user_id': userId,
-        'rating': rating,
-        'comment': comment,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      dev.log("[LIVESESSION_DS] Direct insert to reviews SUCCESS");
-    } catch (e4) {
-      dev.log("[LIVESESSION_DS] Direct insert to reviews failed: $e4");
     }
 
     // Update 'bookings' table directly as well

@@ -32,6 +32,7 @@ class SignupCubit extends Cubit<SignupState> {
   }
 
   void setUserId(String id) {
+    if (isClosed) return;
     emit(state.copyWith(
       params: state.params.copyWith(id: id),
     ));
@@ -45,7 +46,7 @@ class SignupCubit extends Cubit<SignupState> {
       maxWidth: 1024,
       maxHeight: 1024,
     );
-    if (picked != null) {
+    if (picked != null && !isClosed) {
       avatarFile = File(picked.path);
       emit(state.copyWith(
         params: state.params.copyWith(avatarUrl: picked.path),
@@ -55,6 +56,7 @@ class SignupCubit extends Cubit<SignupState> {
 
   Future<void> signUpWithEmail() async {
     log("SIGNUP_CUBIT: Signing up with email: ${emailController.text}");
+    if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
 
     final result = await _authRepository.signUpWithEmail(
@@ -68,60 +70,81 @@ class SignupCubit extends Cubit<SignupState> {
       ),
     );
 
+    if (isClosed) return;
+
     result.fold(
       (failure) {
         log("SIGNUP_CUBIT_ERROR: ${failure.message}");
-        emit(state.copyWith(
-          status: SignupStatus.failure,
-          errorMessage: failure.message,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: SignupStatus.failure,
+            errorMessage: failure.message,
+          ));
+        }
       },
       (user) async {
         log("SIGNUP_CUBIT: Signup success for user: ${user.id}");
         await _onSignupSuccess();
-        emit(state.copyWith(
-          status: SignupStatus.success,
-          params: user,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: SignupStatus.success,
+            params: user,
+          ));
+        }
       },
     );
   }
 
   Future<void> signUpWithGoogle() async {
     log("SIGNUP_CUBIT: Signing up with Google");
+    if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
 
     final result = await _authRepository.signInWithGoogle();
 
+    if (isClosed) return;
+
     result.fold(
       (failure) {
-        log("SIGNUP_CUBIT_ERROR (Google): ${failure.message}");
-        emit(state.copyWith(
-          status: SignupStatus.failure,
-          errorMessage: failure.message,
-        ));
+        if (isClosed) return;
+        if (failure.message.contains('cancelled') ||
+            failure.message.contains('GoogleSignInCancelledException')) {
+          emit(state.copyWith(status: SignupStatus.initial));
+        } else {
+          log("SIGNUP_CUBIT_ERROR (Google): ${failure.message}");
+          emit(state.copyWith(
+            status: SignupStatus.failure,
+            errorMessage: failure.message,
+          ));
+        }
       },
       (user) async {
         log("SIGNUP_CUBIT: Google sign-in success. isNewUser: ${user.isNewUser}");
         if (!user.isNewUser) await _onSignupSuccess();
-        emit(state.copyWith(
-          status: user.isNewUser
-              ? SignupStatus.successSocial
-              : SignupStatus.success,
-          params: user,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: user.isNewUser
+                ? SignupStatus.successSocial
+                : SignupStatus.success,
+            params: user,
+          ));
+        }
       },
     );
   }
 
   Future<void> signUpWithFacebook() async {
     log("SIGNUP_CUBIT: Signing up with Facebook");
+    if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
 
     final result = await _authRepository.signInWithFacebook();
 
+    if (isClosed) return;
+
     result.fold(
       (failure) {
+        if (isClosed) return;
         log("SIGNUP_CUBIT_ERROR (Facebook): ${failure.message}");
         emit(state.copyWith(
           status: SignupStatus.failure,
@@ -131,18 +154,21 @@ class SignupCubit extends Cubit<SignupState> {
       (user) async {
         log("SIGNUP_CUBIT: Facebook sign-in success. isNewUser: ${user.isNewUser}");
         if (!user.isNewUser) await _onSignupSuccess();
-        emit(state.copyWith(
-          status: user.isNewUser
-              ? SignupStatus.successSocial
-              : SignupStatus.success,
-          params: user,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: user.isNewUser
+                ? SignupStatus.successSocial
+                : SignupStatus.success,
+            params: user,
+          ));
+        }
       },
     );
   }
 
   Future<void> completeProfile() async {
     log("SIGNUP_CUBIT: Completing profile for user: ${state.params.id}");
+    if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
     final result = await _authRepository.completeProfile(
       CompleteProfileParams(
@@ -152,8 +178,11 @@ class SignupCubit extends Cubit<SignupState> {
       ),
     );
 
+    if (isClosed) return;
+
     result.fold(
       (failure) {
+        if (isClosed) return;
         log("SIGNUP_CUBIT_ERROR (Complete): ${failure.message}");
         emit(state.copyWith(
           status: SignupStatus.failure,
@@ -163,10 +192,12 @@ class SignupCubit extends Cubit<SignupState> {
       (user) async {
         log("SIGNUP_CUBIT: Profile completed successfully");
         await _onSignupSuccess();
-        emit(state.copyWith(
-          status: SignupStatus.success,
-          params: user,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: SignupStatus.success,
+            params: user,
+          ));
+        }
       },
     );
   }
@@ -178,7 +209,9 @@ class SignupCubit extends Cubit<SignupState> {
     phoneController.clear();
     referralCodeController.clear();
     avatarFile = null;
-    emit(SignupState.init());
+    if (!isClosed) {
+      emit(SignupState.init());
+    }
   }
 
   @override

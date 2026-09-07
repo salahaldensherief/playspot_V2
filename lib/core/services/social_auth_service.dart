@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import '../../art_core/exceptions/app_exceptions.dart';
 
 abstract class SocialAuthService {
   Future<String?> getGoogleIdToken();
@@ -10,27 +9,34 @@ abstract class SocialAuthService {
 }
 
 class SocialAuthServiceImpl implements SocialAuthService {
+  static const String _serverClientId =
+      '1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com';
+
   bool _isInitialized = false;
 
   Future<void> _ensureInitialized() async {
     if (!_isInitialized) {
-      await GoogleSignIn.instance.initialize(
-        serverClientId:
-        '1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com',
-      );
-      _isInitialized = true;
+      try {
+        debugPrint('[SocialAuth] Initializing GoogleSignIn.instance with serverClientId...');
+        await GoogleSignIn.instance.initialize(
+          serverClientId: _serverClientId,
+        );
+        _isInitialized = true;
+      } catch (e) {
+        debugPrint('[SocialAuth] GoogleSignIn initialize exception: $e');
+      }
     }
   }
 
   @override
   Future<String?> getGoogleIdToken() async {
     try {
-      debugPrint('[SocialAuth] Initializing Google Sign-In...');
+      debugPrint('[SocialAuth] Starting Google Sign-In...');
 
       await _ensureInitialized();
 
       final GoogleSignInAccount googleUser =
-      await GoogleSignIn.instance.authenticate();
+          await GoogleSignIn.instance.authenticate();
 
       debugPrint('[SocialAuth] User signed in: ${googleUser.email}');
 
@@ -38,16 +44,16 @@ class SocialAuthServiceImpl implements SocialAuthService {
 
       if (googleAuth.idToken == null) {
         debugPrint(
-            '[SocialAuth] FAILED: ID Token is null. Check your SHA-1 and Package Name.');
+            '[SocialAuth] FAILED: ID Token is null. Check Web Client ID (_serverClientId) and SHA-1 fingerprint in Google Cloud Console.');
         throw Exception('Could not get ID Token from Google');
       }
 
       return googleAuth.idToken;
     } catch (e) {
-      debugPrint('[SocialAuth] Google Sign-in CRITICAL ERROR: $e');
-      if (e.toString().contains('10')) {
-        debugPrint(
-            '[SocialAuth] Tip: Ensure the Support Email is set in Google Cloud Console OAuth Consent Screen.');
+      debugPrint('[SocialAuth] Google Sign-in Error: $e');
+      final errStr = e.toString().toLowerCase();
+      if (errStr.contains('cancel') || errStr.contains('user_canceled')) {
+        return null;
       }
       rethrow;
     }

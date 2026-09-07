@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -5,7 +6,6 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import '../../data/models/notification_model.dart';
-import 'package:intl/intl.dart';
 
 class NotificationItem extends StatelessWidget {
   final NotificationModel notification;
@@ -19,6 +19,10 @@ class NotificationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.locale.languageCode;
+    final displayTitle = notification.getTitle(lang);
+    final displayBody = notification.getBody(lang);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -42,7 +46,7 @@ class NotificationItem extends StatelessWidget {
                         children: [
                           Expanded(
                             child: AppText(
-                              text: notification.title,
+                              text: displayTitle,
                               fontSize: 15.sp,
                               fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
                               color: Colors.white,
@@ -68,7 +72,7 @@ class NotificationItem extends StatelessWidget {
                       ),
                       SizedBox(height: 6.h),
                       AppText(
-                        text: notification.body,
+                        text: displayBody,
                         fontSize: 13.sp,
                         color: AppColors.textSecondary,
                         height: 1.4,

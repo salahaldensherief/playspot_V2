@@ -6,8 +6,6 @@ void main() {
     final testJson = {
       'id': 'lounge_001',
       'name': 'Gamed Lounge',
-      'name_ar': 'جيمد لوانج',
-      'name_en': 'Gamed Lounge',
       'image_url': 'https://example.com/lounge.jpg',
       'rating': 4.8,
       'distance_km': 2.5,
@@ -32,7 +30,6 @@ void main() {
 
       expect(model.id, 'lounge_001');
       expect(model.name, 'Gamed Lounge');
-      expect(model.nameAr, 'جيمد لوانج');
       expect(model.rating, 4.8);
       expect(model.distance, 2.5);
       expect(model.pricePerHour, 60.0);
@@ -41,10 +38,10 @@ void main() {
       expect(model.discountPercentage, 20);
     });
 
-    test('getName should return localized name based on isArabic parameter', () {
+    test('getName should return name property', () {
       final model = LoungeModel.fromJson(testJson);
 
-      expect(model.getName(true), 'جيمد لوانج');
+      expect(model.getName(true), 'Gamed Lounge');
       expect(model.getName(false), 'Gamed Lounge');
     });
 

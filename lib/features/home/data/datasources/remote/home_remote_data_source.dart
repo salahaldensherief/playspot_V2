@@ -43,48 +43,38 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<LoungeModel>> getLounges(GetLoungesParams params) async {
-    final lat = params.lat ?? 30.0444;
-    final lon = params.lng ?? 31.2357;
-
     try {
-      dev.log("FETCHING_LOUNGES via get_nearby_lounges: lat=$lat, lon=$lon");
+      dev.log("FETCHING_LOUNGES directly from lounges table");
+      dynamic query = _client.from('lounges').select();
 
-      final response = await _client.rpc('get_nearby_lounges', params: {
-        'user_lat': lat,
-        'user_lon': lon,
-      });
+      if (params.city != null && params.city!.isNotEmpty) {
+        query = query.eq('city', params.city!);
+      }
 
+      if (params.sortType == 'top_rated') {
+        query = query.order('rating', ascending: false);
+      } else {
+        query = query.order('is_open', ascending: false).order('rating', ascending: false);
+      }
+
+      final response = await query.range(params.offset, params.offset + params.limit - 1);
       final List lounges = response as List;
-      dev.log("RPC_RESULTS_COUNT (get_nearby_lounges): ${lounges.length}");
+      dev.log("LOUNGES_DIRECT_SELECT_COUNT: ${lounges.length}");
 
       return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
     } catch (e) {
-      dev.log("FETCH_LOUNGES_NEARBY_ERROR: $e, falling back to get_smart_filtered_lounges");
+      dev.log("FETCH_LOUNGES_DIRECT_ERROR: $e, falling back to RPC get_nearby_lounges");
       try {
-        final response = await _client.rpc('get_smart_filtered_lounges', params: {
-          'user_lat': lat,
-          'user_lng': lon,
-          'p_city_name': (params.city != null && params.city!.isNotEmpty) ? params.city : null,
-          'p_category_ids': (params.categoryIds != null && params.categoryIds!.isNotEmpty) ? params.categoryIds : null,
-          'p_sort_type': params.sortType,
-          'p_limit': params.limit,
-          'p_offset': params.offset,
+        final response = await _client.rpc('get_nearby_lounges', params: {
+          'user_lat': params.lat ?? 30.0444,
+          'user_lon': params.lng ?? 31.2357,
         });
 
         final List lounges = response as List;
         return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
       } catch (fallbackError) {
         dev.log("FETCH_LOUNGES_CRITICAL_ERROR: $fallbackError");
-        try {
-          var query = _client.from('lounges').select();
-          if (params.city != null && params.city!.isNotEmpty) {
-            query = query.eq('city', params.city!);
-          }
-          final fallback = await query.range(params.offset, params.offset + params.limit - 1);
-          return (fallback as List).map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
-        } catch (_) {
-          return [];
-        }
+        return [];
       }
     }
   }

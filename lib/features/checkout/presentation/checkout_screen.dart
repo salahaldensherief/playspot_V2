@@ -409,7 +409,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           if (widget.params.extraControllers != null && widget.params.extraControllers! > 0)
             InfoRow(
               label: context.locale.languageCode == 'ar' ? "دراعات إضافية" : "Extra Controllers",
-              value: "${widget.params.extraControllers}x (+${(widget.params.extraControllers! * (widget.params.extraControllerPrice ?? 0)).toInt()} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
+              value: "${widget.params.extraControllers}x (+${(widget.params.extraControllers! * (widget.params.extraControllerPrice ?? 0)).toStringAsFixed(2)} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
               valueColor: AppColors.warning,
               prefixIcon: Icons.videogame_asset_outlined,
             ),
@@ -431,10 +431,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   name.contains('pizza')) {
                 icon = Icons.fastfood_outlined;
               }
+              final itemTotal = (addOn['price'] as num) * (addOn['quantity'] as num);
               return InfoRow(
                 label: "${addOn['quantity']}x ${addOn['name']}",
                 value:
-                    "${(addOn['price'] * addOn['quantity']).toInt()} ${AppStrings.egp.tr()}",
+                    "${itemTotal.toDouble().toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                 labelColor: AppColors.white,
                 fontSize: 14.sp,
                 prefixIcon: icon,
@@ -462,7 +463,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           color: AppColors.textSecondary,
                         ),
                         AppText(
-                          text: "${widget.params.originalTotalPrice.toInt()} ${AppStrings.egp.tr()}",
+                          text: "${widget.params.originalTotalPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                           fontSize: 14.sp,
                           color: AppColors.textSecondary,
                           textDecoration: TextDecoration.lineThrough,
@@ -479,7 +480,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           color: AppColors.success,
                         ),
                         AppText(
-                          text: "-${totalDiscount.toInt()} ${AppStrings.egp.tr()}",
+                          text: "-${totalDiscount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                           fontSize: 14.sp,
                           color: AppColors.success,
                         ),
@@ -506,7 +507,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         color: AppColors.white,
                       ),
                       AppText(
-                        text: "${finalPrice.toInt()} ${AppStrings.egp.tr()}",
+                        text: "${finalPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                         fontSize: 24.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.neonBlue,
@@ -764,9 +765,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ? AppStrings.processing.tr()
                       : state.selectedMethod == PaymentMethod.cash
                           ? AppStrings.confirmBookingWithPrice
-                              .tr(args: [finalPrice.toInt().toString()])
+                              .tr(args: [finalPrice.toStringAsFixed(2)])
                           : AppStrings.payNowWithPrice
-                              .tr(args: [finalPrice.toInt().toString()]),
+                              .tr(args: [finalPrice.toStringAsFixed(2)]),
                 ),
                 behavior: ButtonBehavior.tap(
                   isEnabled: state.status != CheckoutStatus.loading,

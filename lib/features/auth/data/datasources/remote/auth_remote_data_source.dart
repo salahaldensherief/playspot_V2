@@ -136,29 +136,52 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       if (response.user == null) throw const ServerException('Sign in failed');
 
-      final existingUser = await _supabase
-          .from('profiles')
-          .select()
-          .eq('id', response.user!.id)
-          .maybeSingle();
-
-      final phone = existingUser?['phone'];
-      final isNewUser = existingUser == null ||
-          phone == null ||
-          phone.toString().trim().isEmpty;
-
-      await _upsertUser(response.user!);
+      final user = response.user!;
+      final isNewUser = await _checkIsNewUser(user.id);
+      await _upsertUser(user);
 
       return UserModel.fromSupabaseUser(
-        response.user!.toJson(),
+        user.toJson(),
         isNewUser: isNewUser,
       );
-    } on AppException {
+    } on GoogleSignInCancelledException {
       rethrow;
-    } on AuthException catch (e) {
-      throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      throw AppException(e.toString());
+      debugPrint('[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...');
+      try {
+        await _supabase.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: 'com.playspot.app://login-callback',
+          authScreenLaunchMode: LaunchMode.externalApplication,
+        );
+
+        final completer = Completer<UserModel>();
+        late final StreamSubscription subscription;
+        subscription = _supabase.auth.onAuthStateChange.listen((data) async {
+          if (data.event == AuthChangeEvent.signedIn && data.session != null) {
+            final user = data.session!.user;
+            final isNewUser = await _checkIsNewUser(user.id);
+            await _upsertUser(user);
+            subscription.cancel();
+            if (!completer.isCompleted) {
+              completer.complete(UserModel.fromSupabaseUser(
+                user.toJson(),
+                isNewUser: isNewUser,
+              ));
+            }
+          }
+        });
+
+        return completer.future.timeout(
+          const Duration(minutes: 2),
+          onTimeout: () {
+            subscription.cancel();
+            throw const ServerException('Google sign in timeout');
+          },
+        );
+      } catch (oauthErr) {
+        throw AppException(e.toString());
+      }
     }
   }
 
@@ -172,17 +195,28 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       );
 
       final completer = Completer<UserModel>();
-      _supabase.auth.onAuthStateChange.listen((data) async {
+      late final StreamSubscription subscription;
+      subscription = _supabase.auth.onAuthStateChange.listen((data) async {
         if (data.event == AuthChangeEvent.signedIn && data.session != null) {
           final user = data.session!.user;
+          final isNewUser = await _checkIsNewUser(user.id);
           await _upsertUser(user);
-          completer.complete(UserModel.fromSupabaseUser(user.toJson()));
+          subscription.cancel();
+          if (!completer.isCompleted) {
+            completer.complete(UserModel.fromSupabaseUser(
+              user.toJson(),
+              isNewUser: isNewUser,
+            ));
+          }
         }
       });
 
       return completer.future.timeout(
         const Duration(minutes: 2),
-        onTimeout: () => throw const ServerException('Facebook sign in timeout'),
+        onTimeout: () {
+          subscription.cancel();
+          throw const ServerException('Facebook sign in timeout');
+        },
       );
     } catch (e) {
       throw AppException(e.toString());
@@ -202,10 +236,14 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         );
       }
 
-      await _supabase.from('profiles').update({
+      final updateData = <String, dynamic>{
         'phone': params.phone,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
-      }).eq('id', params.userId);
+      };
+      if (avatarUrl != null) {
+        updateData['avatar_url'] = avatarUrl;
+      }
+
+      await _supabase.from('profiles').update(updateData).eq('id', params.userId);
 
       final user = _supabase.auth.currentUser;
       if (user == null) throw const UserNotFoundException();
@@ -304,16 +342,46 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     }
   }
 
+  Future<bool> _checkIsNewUser(String userId) async {
+    try {
+      final profile = await _supabase
+          .from('profiles')
+          .select('phone')
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (profile == null) return true;
+
+      final phone = profile['phone'];
+      final isPhoneMissing = phone == null || phone.toString().trim().isEmpty;
+
+      return isPhoneMissing;
+    } catch (e) {
+      debugPrint('[Auth] Error checking isNewUser for $userId: $e');
+      return true;
+    }
+  }
+
   Future<void> _upsertUser(User user) async {
     try {
       final metadata = user.userMetadata ?? {};
-      await _supabase.from('profiles').upsert({
-        'id': user.id,
-        'full_name': metadata['full_name'] ?? metadata['name'],
-        'email': user.email,
-        'avatar_url': metadata['avatar_url'] ?? metadata['picture'],
-        'is_banned': false,
-      });
-    } catch (_) {}
+      final existing = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+      if (existing == null) {
+        await _supabase.from('profiles').insert({
+          'id': user.id,
+          'full_name': metadata['full_name'] ?? metadata['name'],
+          'email': user.email,
+          'avatar_url': metadata['avatar_url'] ?? metadata['picture'],
+          'is_banned': false,
+        });
+      }
+    } catch (e) {
+      debugPrint('[Auth] Error in _upsertUser: $e');
+    }
   }
 }

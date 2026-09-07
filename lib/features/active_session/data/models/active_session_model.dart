@@ -84,7 +84,7 @@ class ActiveSessionModel extends Equatable {
   factory ActiveSessionModel.fromJson(Map<String, dynamic> json) {
     final loungeData = json['lounges'] as Map<String, dynamic>?;
     final roomData = json['rooms'] as Map<String, dynamic>?;
-    final ordersData = (json['booking_items'] ?? json['booking_orders']) as List? ?? [];
+    final ordersData = json['booking_items'] as List? ?? [];
 
     final loungeName = loungeData?['name']?.toString() ??
         json['lounge_name']?.toString() ??

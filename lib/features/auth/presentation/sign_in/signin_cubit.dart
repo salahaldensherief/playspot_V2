@@ -27,6 +27,7 @@ class SignInCubit extends Cubit<LoginState> {
     required String email,
     required String password,
   }) async {
+    if (isClosed) return;
     emit(state.copyWith(status: LoginStatus.loading));
 
     final result = await _authRepository.signInWithEmail(
@@ -34,66 +35,97 @@ class SignInCubit extends Cubit<LoginState> {
       password: password,
     );
 
+    if (isClosed) return;
+
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: LoginStatus.failure,
-        errorMessage: failure.message,
-      )),
+      (failure) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: failure.message,
+          ));
+        }
+      },
       (user) async {
         await _onLoginSuccess();
-        emit(state.copyWith(
-          status: LoginStatus.success,
-          params: user,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: LoginStatus.success,
+            params: user,
+          ));
+        }
       },
     );
   }
 
   Future<void> signInWithGoogle() async {
+    if (isClosed) return;
     emit(state.copyWith(status: LoginStatus.loading));
 
     final result = await _authRepository.signInWithGoogle();
 
+    if (isClosed) return;
+
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: LoginStatus.failure,
-        errorMessage: failure.message,
-      )),
+      (failure) {
+        if (isClosed) return;
+        if (failure.message.contains('cancelled') ||
+            failure.message.contains('GoogleSignInCancelledException')) {
+          emit(state.copyWith(status: LoginStatus.initial));
+        } else {
+          emit(state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: failure.message,
+          ));
+        }
+      },
       (user) async {
         if (!user.isNewUser) await _onLoginSuccess();
-        emit(state.copyWith(
-          status: user.isNewUser
-              ? LoginStatus.successSocial
-              : LoginStatus.success,
-          params: user,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: user.isNewUser
+                ? LoginStatus.successSocial
+                : LoginStatus.success,
+            params: user,
+          ));
+        }
       },
     );
   }
 
   Future<void> signInWithFacebook() async {
+    if (isClosed) return;
     emit(state.copyWith(status: LoginStatus.loading));
 
     final result = await _authRepository.signInWithFacebook();
 
+    if (isClosed) return;
+
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: LoginStatus.failure,
-        errorMessage: failure.message,
-      )),
+      (failure) {
+        if (isClosed) return;
+        emit(state.copyWith(
+          status: LoginStatus.failure,
+          errorMessage: failure.message,
+        ));
+      },
       (user) async {
         if (!user.isNewUser) await _onLoginSuccess();
-        emit(state.copyWith(
-          status: user.isNewUser
-              ? LoginStatus.successSocial
-              : LoginStatus.success,
-          params: user,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: user.isNewUser
+                ? LoginStatus.successSocial
+                : LoginStatus.success,
+            params: user,
+          ));
+        }
       },
     );
   }
 
-  void reset() => emit(LoginState.init());
+  void reset() {
+    if (!isClosed) emit(LoginState.init());
+  }
 
   @override
   Future<void> close() {

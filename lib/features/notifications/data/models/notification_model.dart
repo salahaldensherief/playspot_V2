@@ -7,6 +7,10 @@ class NotificationModel extends Equatable {
   final String id;
   final String title;
   final String body;
+  final String? titleAr;
+  final String? titleEn;
+  final String? bodyAr;
+  final String? bodyEn;
   final DateTime createdAt;
   final bool isRead;
   final NotificationType type;
@@ -17,6 +21,10 @@ class NotificationModel extends Equatable {
     required this.id,
     required this.title,
     required this.body,
+    this.titleAr,
+    this.titleEn,
+    this.bodyAr,
+    this.bodyEn,
     required this.createdAt,
     this.isRead = false,
     required this.type,
@@ -24,13 +32,58 @@ class NotificationModel extends Equatable {
     this.data,
   });
 
+  String getTitle(String lang) {
+    final cleanLang = lang.toLowerCase().trim();
+    if (cleanLang == 'ar') {
+      if (titleAr != null && titleAr!.trim().isNotEmpty) return titleAr!;
+      if (title.trim().isNotEmpty) return title;
+      if (titleEn != null && titleEn!.trim().isNotEmpty) return titleEn!;
+    } else {
+      if (titleEn != null && titleEn!.trim().isNotEmpty) return titleEn!;
+      if (title.trim().isNotEmpty) return title;
+      if (titleAr != null && titleAr!.trim().isNotEmpty) return titleAr!;
+    }
+    return title;
+  }
+
+  String getBody(String lang) {
+    final cleanLang = lang.toLowerCase().trim();
+    if (cleanLang == 'ar') {
+      if (bodyAr != null && bodyAr!.trim().isNotEmpty) return bodyAr!;
+      if (body.trim().isNotEmpty) return body;
+      if (bodyEn != null && bodyEn!.trim().isNotEmpty) return bodyEn!;
+    } else {
+      if (bodyEn != null && bodyEn!.trim().isNotEmpty) return bodyEn!;
+      if (body.trim().isNotEmpty) return body;
+      if (bodyAr != null && bodyAr!.trim().isNotEmpty) return bodyAr!;
+    }
+    return body;
+  }
+
   @override
-  List<Object?> get props =>
-      [id, title, body, createdAt, isRead, type, status, data];
+  List<Object?> get props => [
+        id,
+        title,
+        body,
+        titleAr,
+        titleEn,
+        bodyAr,
+        bodyEn,
+        createdAt,
+        isRead,
+        type,
+        status,
+        data,
+      ];
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    final title = json['title'] as String? ?? '';
-    final body = json['body'] as String? ?? '';
+    final titleAr = json['title_ar']?.toString();
+    final titleEn = json['title_en']?.toString();
+    final bodyAr = json['body_ar']?.toString();
+    final bodyEn = json['body_en']?.toString();
+
+    final title = json['title']?.toString() ?? titleEn ?? titleAr ?? '';
+    final body = json['body']?.toString() ?? bodyEn ?? bodyAr ?? '';
     final parsedData = _parseData(json['data']);
     String? status = parsedData?['status'] as String?;
 
@@ -58,9 +111,13 @@ class NotificationModel extends Equatable {
     }
 
     return NotificationModel(
-      id: json['id'] as String,
+      id: json['id']?.toString() ?? '',
       title: title,
       body: body,
+      titleAr: titleAr,
+      titleEn: titleEn,
+      bodyAr: bodyAr,
+      bodyEn: bodyEn,
       createdAt: DateTime.parse(json['created_at'] as String),
       isRead: json['is_read'] as bool? ?? false,
       type: _parseType(json['type'] as String? ?? ''),
@@ -73,15 +130,43 @@ class NotificationModel extends Equatable {
     Map<String, dynamic> json,
     String lang,
   ) {
-    final title =
-        json['title_$lang'] ?? json['title'] ?? json['title_en'] ?? '';
-    final body = json['body_$lang'] ?? json['body'] ?? json['body_en'] ?? '';
+    final titleAr = json['title_ar']?.toString();
+    final titleEn = json['title_en']?.toString();
+    final bodyAr = json['body_ar']?.toString();
+    final bodyEn = json['body_en']?.toString();
+
+    String title;
+    if (lang.toLowerCase().trim() == 'ar') {
+      title = (titleAr != null && titleAr.isNotEmpty)
+          ? titleAr
+          : (json['title'] ?? titleEn ?? '').toString();
+    } else {
+      title = (titleEn != null && titleEn.isNotEmpty)
+          ? titleEn
+          : (json['title'] ?? titleAr ?? '').toString();
+    }
+
+    String body;
+    if (lang.toLowerCase().trim() == 'ar') {
+      body = (bodyAr != null && bodyAr.isNotEmpty)
+          ? bodyAr
+          : (json['body'] ?? bodyEn ?? '').toString();
+    } else {
+      body = (bodyEn != null && bodyEn.isNotEmpty)
+          ? bodyEn
+          : (json['body'] ?? bodyAr ?? '').toString();
+    }
+
     final parsedData = _parseData(json['data']);
 
     return NotificationModel(
-      id: json['id'] as String,
-      title: title.toString(),
-      body: body.toString(),
+      id: json['id']?.toString() ?? '',
+      title: title,
+      body: body,
+      titleAr: titleAr,
+      titleEn: titleEn,
+      bodyAr: bodyAr,
+      bodyEn: bodyEn,
       createdAt: DateTime.parse(json['created_at'] as String),
       isRead: json['is_read'] as bool? ?? false,
       type: _parseType(json['type'] as String? ?? ''),
@@ -122,6 +207,10 @@ class NotificationModel extends Equatable {
     String? id,
     String? title,
     String? body,
+    String? titleAr,
+    String? titleEn,
+    String? bodyAr,
+    String? bodyEn,
     DateTime? createdAt,
     bool? isRead,
     NotificationType? type,
@@ -132,6 +221,10 @@ class NotificationModel extends Equatable {
       id: id ?? this.id,
       title: title ?? this.title,
       body: body ?? this.body,
+      titleAr: titleAr ?? this.titleAr,
+      titleEn: titleEn ?? this.titleEn,
+      bodyAr: bodyAr ?? this.bodyAr,
+      bodyEn: bodyEn ?? this.bodyEn,
       createdAt: createdAt ?? this.createdAt,
       isRead: isRead ?? this.isRead,
       type: type ?? this.type,

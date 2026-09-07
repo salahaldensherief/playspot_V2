@@ -3,8 +3,6 @@ import 'package:equatable/equatable.dart';
 class LoungeModel extends Equatable {
   final String id;
   final String name;
-  final String? nameAr;
-  final String? nameEn;
   final String imageUrl;
   final double rating;
   final double distance; // Stored in kilometers
@@ -17,8 +15,8 @@ class LoungeModel extends Equatable {
   final String? descriptionAr;
   final String? descriptionEn;
   final List<String> images;
-  final String opensAt;
-  final String closesAt;
+  final String openingTime;
+  final String closingTime;
   final String? mapsLink;
   final double? lat;
   final double? lng;
@@ -32,8 +30,6 @@ class LoungeModel extends Equatable {
   const LoungeModel({
     required this.id,
     required this.name,
-    this.nameAr,
-    this.nameEn,
     required this.imageUrl,
     required this.rating,
     required this.distance,
@@ -46,8 +42,8 @@ class LoungeModel extends Equatable {
     this.descriptionAr,
     this.descriptionEn,
     this.images = const [],
-    required this.opensAt,
-    required this.closesAt,
+    required this.openingTime,
+    required this.closingTime,
     this.mapsLink,
     this.lat,
     this.lng,
@@ -59,12 +55,13 @@ class LoungeModel extends Equatable {
     this.discountExpiresAt,
   });
 
+  String get opensAt => openingTime;
+  String get closesAt => closingTime;
+
   @override
   List<Object?> get props => [
         id,
         name,
-        nameAr,
-        nameEn,
         imageUrl,
         rating,
         distance,
@@ -77,8 +74,8 @@ class LoungeModel extends Equatable {
         descriptionAr,
         descriptionEn,
         images,
-        opensAt,
-        closesAt,
+        openingTime,
+        closingTime,
         mapsLink,
         lat,
         lng,
@@ -90,15 +87,11 @@ class LoungeModel extends Equatable {
         discountExpiresAt,
       ];
 
-  String getName(bool isArabic) {
-    if (isArabic) {
-      return (nameAr != null && nameAr!.isNotEmpty) ? nameAr! : name;
-    } else {
-      return (nameEn != null && nameEn!.isNotEmpty) ? nameEn! : name;
-    }
-  }
+  String getName(bool isArabic) => name;
 
-  String? getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
+  String? getDescription(bool isArabic) =>
+      (isArabic ? descriptionAr : descriptionEn) ?? descriptionAr ?? descriptionEn;
+
   String? getDiscountTitle(bool isArabic) => isArabic ? discountTitleAr : discountTitleEn;
 
   bool get isDiscountActive =>
@@ -135,11 +128,8 @@ class LoungeModel extends Equatable {
       rawDistance = rawDistance / 1000.0;
     }
 
-    // 2. Name Fallback
-    final String parsedName = json['name']?.toString() ??
-        json['name_ar']?.toString() ??
-        json['name_en']?.toString() ??
-        '';
+    // 2. Name
+    final String parsedName = json['name']?.toString() ?? '';
 
     // 3. Price Per Hour Fallback
     final double parsedPricePerHour = (json['price_per_hour'] as num?)?.toDouble() ??
@@ -181,11 +171,21 @@ class LoungeModel extends Equatable {
       } catch (_) {}
     }
 
+    // 8. Spatial Location parsing from location_point (PostGIS) or flat RPC fields
+    double? parsedLat = (json['latitude'] as num?)?.toDouble() ?? (json['lat'] as num?)?.toDouble();
+    double? parsedLng = (json['longitude'] as num?)?.toDouble() ?? (json['lng'] as num?)?.toDouble();
+
+    if (parsedLat == null && json['location_point'] != null) {
+      final loc = json['location_point'];
+      if (loc is Map && loc['coordinates'] is List && (loc['coordinates'] as List).length >= 2) {
+        parsedLng = (loc['coordinates'][0] as num).toDouble();
+        parsedLat = (loc['coordinates'][1] as num).toDouble();
+      }
+    }
+
     return LoungeModel(
       id: json['id']?.toString() ?? '',
       name: parsedName,
-      nameAr: json['name_ar']?.toString() ?? json['name']?.toString(),
-      nameEn: json['name_en']?.toString() ?? json['name']?.toString(),
       imageUrl: json['image_url']?.toString() ?? '',
       rating: parsedRating,
       distance: rawDistance,
@@ -198,11 +198,11 @@ class LoungeModel extends Equatable {
       descriptionAr: json['description_ar']?.toString() ?? json['description']?.toString(),
       descriptionEn: json['description_en']?.toString() ?? json['description']?.toString(),
       images: parsedImages,
-      opensAt: json['opening_time']?.toString() ?? json['opens_at']?.toString() ?? '',
-      closesAt: json['closing_time']?.toString() ?? json['closes_at']?.toString() ?? '',
+      openingTime: json['opening_time']?.toString() ?? '',
+      closingTime: json['closing_time']?.toString() ?? '',
       mapsLink: json['maps_link']?.toString(),
-      lat: (json['latitude'] as num?)?.toDouble() ?? (json['lat'] as num?)?.toDouble(),
-      lng: (json['longitude'] as num?)?.toDouble() ?? (json['lng'] as num?)?.toDouble(),
+      lat: parsedLat,
+      lng: parsedLng,
       categoryIcons: parsedCategoryIcons,
       hasDiscount: json['has_discount'] as bool? ?? (json['discount_percentage'] != null && (json['discount_percentage'] as num) > 0),
       discountPercentage: (json['discount_percentage'] as num?)?.toInt() ?? 0,
@@ -216,8 +216,6 @@ class LoungeModel extends Equatable {
     return {
       'id': id,
       'name': name,
-      'name_ar': nameAr ?? name,
-      'name_en': nameEn ?? name,
       'image_url': imageUrl,
       'rating': rating,
       'distance': distance,
@@ -227,18 +225,16 @@ class LoungeModel extends Equatable {
       'city': city,
       'total_reviews': totalReviews,
       'available_rooms': availableRooms,
-      'description_ar': descriptionAr,
-      'description_en': descriptionEn,
+      if (descriptionAr != null) 'description_ar': descriptionAr,
+      if (descriptionEn != null) 'description_en': descriptionEn,
       'images': images,
-      'opening_time': opensAt,
-      'closing_time': closesAt,
+      'opening_time': openingTime,
+      'closing_time': closingTime,
       'maps_link': mapsLink,
-      'latitude': lat,
-      'longitude': lng,
       'has_discount': hasDiscount,
       'discount_percentage': discountPercentage,
-      'discount_title_ar': discountTitleAr,
-      'discount_title_en': discountTitleEn,
+      if (discountTitleAr != null) 'discount_title_ar': discountTitleAr,
+      if (discountTitleEn != null) 'discount_title_en': discountTitleEn,
       'discount_expires_at': discountExpiresAt?.toIso8601String(),
     };
   }

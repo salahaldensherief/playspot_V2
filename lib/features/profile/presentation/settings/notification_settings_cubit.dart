@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/cache/preference_manager.dart';
 import '../../../../core/notifications/push_notification_service.dart';
@@ -129,12 +128,5 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
       systemNotifications: s.systemStatus,
     );
     await _profileRepository.updateNotificationSettings(model);
-    await _profileRepository.updateNotificationPreferences({
-      'push_enabled': s.pushNotificationsEnabled,
-      'booking_updates': s.bookingUpdates,
-      'offers_promotions': s.offersPromotions,
-      'system_status': s.systemStatus,
-      'tournaments_events': s.tournamentsAndEvents,
-    });
   }
 }

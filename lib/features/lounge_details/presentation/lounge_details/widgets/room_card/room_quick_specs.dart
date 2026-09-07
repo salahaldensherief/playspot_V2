@@ -32,7 +32,7 @@ class RoomQuickSpecs extends StatelessWidget {
               value: "${room.controllersCount} ${AppStrings.controllers.tr()}"),
         RoomSpec(icon: Icons.tv, value: room.screenSize),
         if (!room.isOpenArea)
-          RoomSpec(icon: Icons.people_outline, value: room.capacity.toString()),
+          RoomSpec(icon: Icons.people_outline, value: room.maxCapacity.toString()),
       ],
     );
   }

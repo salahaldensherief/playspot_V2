@@ -19,7 +19,6 @@ abstract class ProfileRemoteDataSource {
   Future<Map<String, dynamic>> validateVoucherByCode(String code);
   Future<void> consumeVoucher({required String voucherId, required String bookingId});
   Future<void> updateFcmToken(String token);
-  Future<void> updateNotificationPreferences(Map<String, bool> preferences);
   Future<NotificationSettingsModel> getNotificationSettings();
   Future<void> updateNotificationSettings(NotificationSettingsModel settings);
 }
@@ -216,15 +215,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     } catch (e) {
       debugPrint(' [Profile] Update FCM token error: $e');
     }
-  }
-
-  @override
-  Future<void> updateNotificationPreferences(Map<String, bool> preferences) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-    await _supabase.from('profiles').update({
-      'notification_preferences': preferences,
-    }).eq('id', user.id);
   }
 
   @override

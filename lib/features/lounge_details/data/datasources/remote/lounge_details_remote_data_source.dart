@@ -27,17 +27,6 @@ class LoungeDetailsRemoteDataSourceImpl
   Future<RoomModel?> getRoomById(String roomId) async {
     try {
       final response = await _client
-          .from('rooms_detailed_view')
-          .select(
-            '*, promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
-          )
-          .eq('id', roomId)
-          .maybeSingle();
-
-      if (response != null) return RoomModel.fromJson(response);
-
-      // Fallback
-      final fallbackResponse = await _client
           .from('rooms')
           .select(
             '*, space_types(name, label), room_categories(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
@@ -45,7 +34,7 @@ class LoungeDetailsRemoteDataSourceImpl
           .eq('id', roomId)
           .maybeSingle();
 
-      if (fallbackResponse != null) return RoomModel.fromJson(fallbackResponse);
+      if (response != null) return RoomModel.fromJson(response);
       return null;
     } catch (e) {
       return null;
@@ -62,42 +51,28 @@ class LoungeDetailsRemoteDataSourceImpl
         categoryId.isNotEmpty &&
         categoryId.toLowerCase() != 'all';
 
-    // We try to use rooms_detailed_view for better space type filtering
+    final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
     var query = _client
-        .from('rooms_detailed_view')
+        .from('rooms')
         .select(
-          '*, space_types:space_type_id(name, label), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
+          '*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
         )
         .eq('lounge_id', loungeId)
-        .eq('is_available', true); // هذا هو عمود زر الـ Online Toggle الفعلي
+        .eq('is_available', true);
 
     if (hasFilter) {
-      query = query.contains('category_ids', [categoryId]);
+      query = query.eq(
+        'room_categories.category_id',
+        categoryId,
+      );
     }
 
     try {
       final response = await query;
       return (response as List).map((e) => RoomModel.fromJson(e)).toList();
     } catch (e) {
-      // Fallback to rooms table if view doesn't exist or fails
-      final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
-      var fallbackQuery = _client
-          .from('rooms')
-          .select(
-            '*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
-          )
-          .eq('lounge_id', loungeId)
-          .eq('is_available', true);
-
-      if (hasFilter) {
-        fallbackQuery = fallbackQuery.eq(
-          'room_categories.category_id',
-          categoryId,
-        );
-      }
-
-      final response = await fallbackQuery;
-      return (response as List).map((e) => RoomModel.fromJson(e)).toList();
+      dev.log("[ROOMS_DS] Error getting rooms by lounge id: $e");
+      return [];
     }
   }
 
@@ -208,31 +183,7 @@ class LoungeDetailsRemoteDataSourceImpl
       }
     }
 
-    // Attempt 2: reviews table with profiles join or flat
-    try {
-      final res = await _client
-          .from('reviews')
-          .select('*, profiles:user_id(name, avatar_url, full_name)')
-          .eq('lounge_id', loungeId)
-          .order('created_at', ascending: false);
-      final result = await processAndHydrate(res as List);
-      combinedReviews.addAll(result);
-    } catch (e) {
-      dev.log("[REVIEWS_DS] reviews with profiles join error: $e");
-      try {
-        final res = await _client
-            .from('reviews')
-            .select('*')
-            .eq('lounge_id', loungeId)
-            .order('created_at', ascending: false);
-        final result = await processAndHydrate(res as List);
-        combinedReviews.addAll(result);
-      } catch (e2) {
-        dev.log("[REVIEWS_DS] reviews flat select error: $e2");
-      }
-    }
-
-    // Attempt 3: bookings table with ratings
+    // Attempt 2: bookings table with ratings
     try {
       final res = await _client
           .from('bookings')
