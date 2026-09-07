@@ -15,8 +15,8 @@ class PromoCarousel extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) => 
-        previous.promotions != current.promotions || 
-        (current.status == HomeStatus.loading && current.promotions.isEmpty),
+        previous.status != current.status ||
+        previous.promotions != current.promotions,
       builder: (context, state) {
         if (state.status == HomeStatus.loading && state.promotions.isEmpty) {
           return const PromoShimmer();

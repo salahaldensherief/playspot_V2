@@ -62,15 +62,12 @@ class SignInScreen extends StatelessWidget {
   }
 
   void _handleStateChange(BuildContext context, LoginState state) {
+    if (state.status.isSuccessSocial || state.params.isNewUser) {
+      context.goNamed(RouterKeys.completeProfile, extra: state.params.id);
+      return;
+    }
     if (state.status.isSuccess) {
       context.goNamed(RouterKeys.home);
-    }
-    if (state.status.isSuccessSocial) {
-      if (state.params.isNewUser) {
-        context.goNamed(RouterKeys.completeProfile, extra: state.params.id);
-      } else {
-        context.goNamed(RouterKeys.home);
-      }
       return;
     }
     if (state.status.isFailure) {

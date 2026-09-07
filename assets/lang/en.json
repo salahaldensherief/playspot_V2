@@ -223,6 +223,7 @@
   "remove": "Remove",
   "voucherApplied": "Voucher Applied",
   "noVouchersAvailable": "No vouchers available",
+  "no_vouchers": "No vouchers available",
   "selectVoucher": "Select Voucher",
   "availableVouchers": "Available Vouchers",
   "subtotal": "Subtotal",

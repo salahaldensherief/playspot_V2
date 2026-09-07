@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 import 'package:playspot/features/auth/presentation/sign_in/signin_screen.dart';
 import 'package:playspot/features/auth/presentation/sign_up/signup_screen.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -160,6 +161,23 @@ class AppRouter {
     initialLocation: RouterKeys.splash,
     debugLogDiagnostics: true,
     extraCodec: const _MyExtraCodec(),
+    redirect: (context, state) {
+      final user = sl<AuthRepository>().getCurrentUser();
+      if (user != null) {
+        final isPhoneMissing = user.phone == null || user.phone!.trim().isEmpty;
+        final currentPath = state.uri.path;
+        final isAuthPath = currentPath == RouterKeys.splash ||
+            currentPath == RouterKeys.onboarding ||
+            currentPath == RouterKeys.signIn ||
+            currentPath == RouterKeys.signUp ||
+            currentPath == RouterKeys.completeProfile;
+
+        if (isPhoneMissing && !isAuthPath) {
+          return RouterKeys.completeProfile;
+        }
+      }
+      return null;
+    },
     routes: [
       ShellRoute(
         builder: (context, state, child) {
@@ -227,16 +245,17 @@ class AppRouter {
             name: RouterKeys.completeProfile,
             path: RouterKeys.completeProfile,
             pageBuilder: (context, state) {
-              final userId = state.extra as String? ?? '';
+              final extraId = state.extra as String? ?? '';
+              final currentUserId = sl<AuthRepository>().getCurrentUser()?.id ?? '';
+              final userId = extraId.isNotEmpty ? extraId : currentUserId;
+
               return _buildPageWithTransition(
                 context: context,
                 state: state,
-                child: userId.isEmpty
-                    ? const SignInScreen()
-                    : BlocProvider(
-                        create: (context) => sl<SignupCubit>()..setUserId(userId),
-                        child: CompleteProfileScreen(userId: userId),
-                      ),
+                child: BlocProvider(
+                  create: (context) => sl<SignupCubit>()..setUserId(userId),
+                  child: CompleteProfileScreen(userId: userId),
+                ),
               );
             },
           ),

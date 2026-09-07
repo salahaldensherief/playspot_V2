@@ -49,8 +49,15 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         password: password,
       );
       if (response.user == null) throw const ServerException('Sign in failed');
-      await _upsertUser(response.user!);
-      return UserModel.fromSupabaseUser(response.user!.toJson());
+
+      final user = response.user!;
+      final isNewUser = await _checkIsNewUser(user.id);
+      await _upsertUser(user);
+
+      return UserModel.fromSupabaseUser(
+        user.toJson(),
+        isNewUser: isNewUser,
+      );
     } on AuthException catch (e) {
       if (e.message.contains('Invalid login')) {
         throw const InvalidCredentialsException();
@@ -226,32 +233,53 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<UserModel> completeProfile(CompleteProfileParams params) async {
     try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) throw const UserNotFoundException();
+      final userId = params.userId.isNotEmpty ? params.userId : user.id;
+
       String? avatarUrl;
       if (params.avatarFile != null) {
         final fileExt = params.avatarFile!.path.split('.').last;
         avatarUrl = await _storageService.uploadFile(
           bucket: 'avatars',
-          path: 'avatars/${params.userId}.$fileExt',
+          path: 'avatars/$userId.$fileExt',
           file: params.avatarFile!,
         );
       }
 
-      final updateData = <String, dynamic>{
+      final metadata = user.userMetadata ?? {};
+      final fullName = metadata['full_name'] ?? metadata['name'] ?? user.email?.split('@').first ?? '';
+
+      await _supabase.from('profiles').upsert({
+        'id': userId,
+        'full_name': fullName,
+        'email': user.email,
         'phone': params.phone,
-      };
-      if (avatarUrl != null) {
-        updateData['avatar_url'] = avatarUrl;
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'is_banned': false,
+      });
+
+      try {
+        await _supabase.auth.updateUser(
+          UserAttributes(
+            data: {
+              'phone': params.phone,
+              if (avatarUrl != null) 'avatar_url': avatarUrl,
+            },
+          ),
+        );
+      } catch (e) {
+        debugPrint('[Auth] Error updating Auth user metadata: $e');
       }
 
-      await _supabase.from('profiles').update(updateData).eq('id', params.userId);
-
-      final user = _supabase.auth.currentUser;
-      if (user == null) throw const UserNotFoundException();
-
-      return UserModel.fromSupabaseUser(user.toJson()).copyWith(
+      final updatedUser = UserModel.fromSupabaseUser(user.toJson()).copyWith(
+        id: userId,
         phone: params.phone,
         avatarUrl: avatarUrl,
+        isNewUser: false,
       );
+
+      return updatedUser;
     } on AppException {
       rethrow;
     } catch (e) {

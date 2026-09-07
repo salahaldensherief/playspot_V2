@@ -7,6 +7,7 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';
@@ -48,21 +49,36 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _handleInitialization() async {
-    // 1. Minimum display time for animation while starting location check
     final locationFuture = _fetchUserLocation();
     final delayFuture = Future.delayed(const Duration(seconds: 3));
 
-    // Wait for both: the animation time AND the location permission attempt
     await Future.wait([locationFuture, delayFuture]);
 
     if (!mounted) return;
 
-    // 2. Navigation logic
     final authRepo = sl<AuthRepository>();
-    final user = authRepo.getCurrentUser();
+    final profileRepo = sl<ProfileRepository>();
+
+    var user = authRepo.getCurrentUser();
 
     if (user != null) {
-      context.goNamed(RouterKeys.home);
+      try {
+        final result = await profileRepo.getUserProfile();
+        result.fold((_) {}, (fetchedUser) {
+          user = fetchedUser;
+        });
+      } catch (_) {}
+
+      final isPhoneMissing = user?.phone == null || user!.phone!.trim().isEmpty;
+
+      if (isPhoneMissing) {
+        context.goNamed(
+          RouterKeys.completeProfile,
+          extra: user!.id,
+        );
+      } else {
+        context.goNamed(RouterKeys.home);
+      }
     } else {
       context.goNamed(RouterKeys.onboarding);
     }
@@ -77,7 +93,6 @@ class _SplashScreenState extends State<SplashScreen>
         await pref.saveLatitude(position.latitude);
         await pref.saveLongitude(position.longitude);
         
-        // Optional: Get Address name
         final address = await locationService.getAddressFromLatLng(
           position.latitude,
           position.longitude,

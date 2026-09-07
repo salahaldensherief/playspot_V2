@@ -47,10 +47,12 @@ class SignInCubit extends Cubit<LoginState> {
         }
       },
       (user) async {
-        await _onLoginSuccess();
+        if (!user.isNewUser) await _onLoginSuccess();
         if (!isClosed) {
           emit(state.copyWith(
-            status: LoginStatus.success,
+            status: user.isNewUser
+                ? LoginStatus.successSocial
+                : LoginStatus.success,
             params: user,
           ));
         }

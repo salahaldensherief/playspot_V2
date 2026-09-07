@@ -15,6 +15,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/features/profile/data/models/redemption_option_model.dart';
 import '../../../../art_core/app_strings.dart';
+import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
@@ -55,7 +56,13 @@ class RedeemPointsScreen extends StatelessWidget {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => context.pop(),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.goNamed(RouterKeys.home);
+              }
+            },
           ),
           title: Text(
             AppStrings.redeemPoints.tr(),
