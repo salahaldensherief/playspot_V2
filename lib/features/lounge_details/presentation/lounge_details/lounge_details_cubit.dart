@@ -23,6 +23,12 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     this._bookingRepository,
   ) : super(const LoungeDetailsState());
 
+  @override
+  void emit(LoungeDetailsState state) {
+    if (isClosed) return;
+    super.emit(state);
+  }
+
   void init(LoungeModel lounge) {
     emit(state.copyWith(lounge: lounge));
     getLoungeDetails(lounge.id);

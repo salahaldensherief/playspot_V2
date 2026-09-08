@@ -7,6 +7,10 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
@@ -100,41 +104,12 @@ class _HomeViewState extends State<_HomeView> {
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
-                  SliverAppBar(
-                    backgroundColor: Colors.transparent,
-                    expandedHeight: 125.h,
-                    pinned: true,
-                    elevation: 0,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: BlocBuilder<HomeCubit, HomeState>(
-                        buildWhen: (previous, current) =>
-                            previous.availableCities !=
-                                current.availableCities ||
-                            previous.selectedCity != current.selectedCity ||
-                            previous.currentAddress != current.currentAddress ||
-                            previous.pointsBalance != current.pointsBalance ||
-                            (previous.status == HomeStatus.initial &&
-                                current.status == HomeStatus.loading),
-                        builder: (context, state) {
-                          return HomeHeader(
-                            userName: userName,
-                            currentLocation:
-                                state.currentAddress ?? currentLocation,
-                            cities: state.availableCities,
-                            selectedCity: state.selectedCity,
-                            pointsBalance: state.pointsBalance,
-                            onCitySelected: (city) =>
-                                context.read<HomeCubit>().selectCity(city),
-                          );
-                        },
-                      ),
-                    ),
+                  _HomeSliverAppBar(
+                    userName: userName,
+                    currentLocation: currentLocation,
                   ),
                   const SliverToBoxAdapter(child: PromoCarousel()),
-                  16.verticalSpace.toSliver,
-                  const SliverSectionHeader(title: AppStrings.browseByCategory),
-                  const SliverToBoxAdapter(child: ActivityCategories()),
-                  8.verticalSpace.toSliver,
+                  const _BrowseByCategorySection(),
                   const _LoungeSectionHeader(),
                   _LoungeList(),
                   BlocBuilder<HomeCubit, HomeState>(
@@ -316,12 +291,16 @@ class _LoungeList extends StatelessWidget {
                   fontSize: 16.sp,
                 ),
                 16.verticalSpace,
-                TextButton(
-                  onPressed: () => context.read<HomeCubit>().getHomeData(),
-                  child: AppText(
-                    text: AppStrings.retry.tr(),
-                    color: AppColors.neonBlue,
-                    fontWeight: FontWeight.bold,
+                AppButton(
+                  content: ButtonContent(label: AppStrings.retry.tr()),
+                  behavior: ButtonBehavior.tap(
+                    onTap: () => context.read<HomeCubit>().getHomeData(),
+                  ),
+                  buttonConfig: ButtonConfig(
+                    height: 40.h,
+                    width: 120.w,
+                    backgroundColor: Colors.transparent,
+                    borderRadius: 12.r,
                   ),
                 ),
               ],
@@ -361,6 +340,75 @@ class _LoungeList extends StatelessWidget {
 
 extension on Widget {
   SliverToBoxAdapter get toSliver => SliverToBoxAdapter(child: this);
+}
+
+class _HomeSliverAppBar extends StatelessWidget {
+  final String userName;
+  final String currentLocation;
+
+  const _HomeSliverAppBar({
+    required this.userName,
+    required this.currentLocation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.availableCities != current.availableCities ||
+          previous.selectedCity != current.selectedCity ||
+          previous.currentAddress != current.currentAddress ||
+          previous.pointsBalance != current.pointsBalance ||
+          (previous.status == HomeStatus.initial &&
+              current.status == HomeStatus.loading),
+      builder: (context, state) {
+        final hasCities = state.availableCities.isNotEmpty;
+        return SliverAppBar(
+          backgroundColor: Colors.transparent,
+          expandedHeight: hasCities ? 125.h : 80.h,
+          pinned: true,
+          elevation: 0,
+          flexibleSpace: FlexibleSpaceBar(
+            background: HomeHeader(
+              userName: userName,
+              currentLocation: state.currentAddress ?? currentLocation,
+              cities: state.availableCities,
+              selectedCity: state.selectedCity,
+              pointsBalance: state.pointsBalance,
+              onCitySelected: (city) =>
+                  context.read<HomeCubit>().selectCity(city),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BrowseByCategorySection extends StatelessWidget {
+  const _BrowseByCategorySection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.categories != current.categories ||
+          previous.status != current.status,
+      builder: (context, state) {
+        if (state.categories.isEmpty && state.status != HomeStatus.loading) {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+        }
+
+        return SliverMainAxisGroup(
+          slivers: [
+            const SliverSectionHeader(title: AppStrings.browseByCategory),
+            const SliverToBoxAdapter(child: ActivityCategories()),
+            8.verticalSpace.toSliver,
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _HomeBackground extends StatelessWidget {

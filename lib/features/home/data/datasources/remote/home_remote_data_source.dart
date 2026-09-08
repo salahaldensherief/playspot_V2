@@ -1,4 +1,4 @@
-import 'dart:developer' as dev;
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/lounge_model.dart';
 import '../../models/promo_model.dart';
@@ -21,7 +21,13 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<LoungeModel?> getLoungeById(String id) async {
     try {
-      final response = await _client.from('lounges').select().eq('id', id).maybeSingle();
+      final response = await _client
+          .from('lounges')
+          .select()
+          .eq('id', id)
+          .eq('is_active', true)
+          .neq('status', 'deleted')
+          .maybeSingle();
       if (response == null) return null;
       return LoungeModel.fromJson(Map<String, dynamic>.from(response));
     } catch (e) {
@@ -44,8 +50,12 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<List<LoungeModel>> getLounges(GetLoungesParams params) async {
     try {
-      dev.log("FETCHING_LOUNGES directly from lounges table");
-      dynamic query = _client.from('lounges').select();
+      AppLogger.info("FETCHING_LOUNGES directly from lounges table");
+      dynamic query = _client
+          .from('lounges')
+          .select()
+          .eq('is_active', true)
+          .neq('status', 'deleted');
 
       if (params.city != null && params.city!.isNotEmpty) {
         query = query.eq('city', params.city!);
@@ -59,11 +69,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
       final response = await query.range(params.offset, params.offset + params.limit - 1);
       final List lounges = response as List;
-      dev.log("LOUNGES_DIRECT_SELECT_COUNT: ${lounges.length}");
+      AppLogger.info("LOUNGES_DIRECT_SELECT_COUNT: ${lounges.length}");
 
       return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
     } catch (e) {
-      dev.log("FETCH_LOUNGES_DIRECT_ERROR: $e, falling back to RPC get_nearby_lounges");
+      AppLogger.warning("FETCH_LOUNGES_DIRECT_ERROR: $e, falling back to RPC get_nearby_lounges");
       try {
         final response = await _client.rpc('get_nearby_lounges', params: {
           'user_lat': params.lat ?? 30.0444,
@@ -73,7 +83,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         final List lounges = response as List;
         return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
       } catch (fallbackError) {
-        dev.log("FETCH_LOUNGES_CRITICAL_ERROR: $fallbackError");
+        AppLogger.error("FETCH_LOUNGES_CRITICAL_ERROR: $fallbackError");
         return [];
       }
     }
@@ -88,7 +98,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<List<PromoModel>> getPromotions({String? loungeId}) async {
     try {
-      dev.log("FETCHING_PROMOTIONS: loungeId=$loungeId");
+      AppLogger.info("FETCHING_PROMOTIONS: loungeId=$loungeId");
 
       final response = await _client.rpc(
         'get_active_promos',
@@ -96,21 +106,21 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       );
 
       final List data = response as List;
-      dev.log("PROMOTIONS_RAW_DATA_COUNT: ${data.length}");
+      AppLogger.info("PROMOTIONS_RAW_DATA_COUNT: ${data.length}");
 
       final promos = data.map((e) {
         try {
           return PromoModel.fromJson(Map<String, dynamic>.from(e));
         } catch (e) {
-          dev.log("PROMO_PARSING_ERROR: $e");
+          AppLogger.warning("PROMO_PARSING_ERROR: $e");
           return null;
         }
       }).whereType<PromoModel>().toList();
 
-      dev.log("PROMOTIONS_PARSED_SUCCESSFULLY: ${promos.length}");
+      AppLogger.info("PROMOTIONS_PARSED_SUCCESSFULLY: ${promos.length}");
       return promos;
     } catch (e) {
-      dev.log("GET_PROMOTIONS_CRITICAL_ERROR: $e");
+      AppLogger.error("GET_PROMOTIONS_CRITICAL_ERROR: $e");
       try {
         var query = _client.from('promotions').select().eq('is_active', true).gt('expires_at', DateTime.now().toIso8601String());
         if (loungeId != null && loungeId.isNotEmpty) {
@@ -126,7 +136,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           }
         }).whereType<PromoModel>().toList();
       } catch (fallbackError) {
-        dev.log("GET_PROMOTIONS_FALLBACK_ERROR: $fallbackError");
+        AppLogger.error("GET_PROMOTIONS_FALLBACK_ERROR: $fallbackError");
         return [];
       }
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
 
 class AuthAppBar extends StatelessWidget {
   const AuthAppBar({super.key, this.title, this.subTitle});
@@ -25,12 +26,12 @@ class AuthAppBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00D9FF),
+                      color: AppColors.neonBlue,
                       blurRadius: 100.r,
                       spreadRadius: 30.r,
                     ),
                     BoxShadow(
-                      color: const Color(0xFFA855F7),
+                      color: AppColors.neonPurple,
                       blurRadius: 100.r,
                       spreadRadius: 30.r,
                     ),

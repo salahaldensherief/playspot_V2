@@ -148,15 +148,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       color: AppColors.white,
                     ),
                     if (isVoucherApplied)
-                      TextButton(
-                        onPressed: () {
-                          context.read<CheckoutCubit>().removeVoucher();
-                          _voucherController.clear();
-                        },
-                        child: AppText(
-                          text: AppStrings.remove.tr(),
-                          color: AppColors.danger,
-                          fontSize: 14.sp,
+                      AppButton(
+                        content: ButtonContent(label: AppStrings.remove.tr()),
+                        behavior: ButtonBehavior.tap(
+                          onTap: () {
+                            context.read<CheckoutCubit>().removeVoucher();
+                            _voucherController.clear();
+                          },
+                        ),
+                        buttonConfig: ButtonConfig(
+                          height: 32.h,
+                          backgroundColor: Colors.transparent,
+                          borderRadius: 8.r,
                         ),
                       ),
                   ],

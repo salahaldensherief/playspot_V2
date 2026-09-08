@@ -30,8 +30,9 @@ class ReviewsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (reviews != null) {
-      return reviews!.isEmpty ? _buildEmptyState() : _buildList(context, reviews!, limit: isLimitApplied);
+    final currentReviews = reviews;
+    if (currentReviews != null) {
+      return currentReviews.isEmpty ? _buildEmptyState() : _buildList(context, currentReviews, limit: isLimitApplied);
     }
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       buildWhen: (previous, current) => previous.reviews != current.reviews,

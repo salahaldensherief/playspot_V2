@@ -124,7 +124,7 @@ class ReferralCard extends StatelessWidget {
                             Expanded(
                               child: FittedBox(
                                 fit: BoxFit.scaleDown,
-                                alignment: Alignment.centerLeft,
+                                alignment: AlignmentDirectional.centerStart,
                                 child: AppText(
                                   text: referralCode,
                                   fontSize: 16.sp,

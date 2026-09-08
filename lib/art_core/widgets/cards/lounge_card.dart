@@ -75,21 +75,7 @@ class _LoungeCardState extends State<LoungeCard> {
                 Positioned.fill(
                   child: Hero(
                     tag: widget.heroTag ?? 'lounge_image_${lounge.id}',
-                    child: CachedNetworkImage(
-                      imageUrl: "${lounge.imageUrl}?width=400&quality=80",
-                      fit: BoxFit.cover,
-                      memCacheHeight: 400,
-                      placeholder: (context, url) => Container(
-                        color: AppColors.mutedBackground,
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.mutedBackground,
-                        child: const Icon(Icons.error_outline),
-                      ),
-                    ),
+                    child: _buildImageWidget(lounge.imageUrl),
                   ),
                 ),
 
@@ -357,6 +343,37 @@ class _LoungeCardState extends State<LoungeCard> {
             fontWeight: FontWeight.bold,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImageWidget(String? rawUrl) {
+    if (rawUrl == null || rawUrl.trim().isEmpty || !rawUrl.trim().startsWith('http')) {
+      return _buildImagePlaceholder();
+    }
+    return CachedNetworkImage(
+      imageUrl: "$rawUrl?width=400&quality=80",
+      fit: BoxFit.cover,
+      memCacheHeight: 400,
+      placeholder: (context, url) => Container(
+        color: AppColors.mutedBackground,
+        child: const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      errorWidget: (context, url, error) => _buildImagePlaceholder(),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      color: AppColors.cardBackground,
+      child: Center(
+        child: Icon(
+          Icons.sports_esports_outlined,
+          size: 38.sp,
+          color: AppColors.withOpacity(AppColors.neonBlue, 0.35),
+        ),
       ),
     );
   }

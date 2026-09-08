@@ -13,8 +13,6 @@ import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/otp/app_otp_field.dart';
-import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
-import 'package:playspot/core/utils/app_validators.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../widgets/auth_app_bar.dart';
 
@@ -70,12 +68,8 @@ class OTPVerificationScreen extends StatelessWidget {
                     builder: (context, state) {
                       return AppButton(
                         buttonConfig: ButtonConfig.gradient(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          glowColor: const Color(0xFF00D4FF),
+                          gradient: AppColors.primaryGradient,
+                          glowColor: AppColors.neonBlueAlt,
                           borderRadius: 15.r,
                           width: double.infinity,
                           height: 50.h,

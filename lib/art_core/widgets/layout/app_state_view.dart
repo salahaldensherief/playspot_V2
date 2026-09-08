@@ -4,6 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_sizes.dart';
+import '../buttons/app_button.dart';
+import '../buttons/res/button_behavior.dart';
+import '../buttons/res/button_content.dart';
+import '../buttons/res/button_style_config.dart';
 import '../text/app_text.dart';
 
 enum AppStateViewType { error, empty }
@@ -89,16 +93,15 @@ class AppStateView extends StatelessWidget {
             ],
             if (onRetry != null) ...[
               SizedBox(height: AppSizes.s24),
-              ElevatedButton(
-                onPressed: onRetry,
-                style: ElevatedButton.styleFrom(
+              AppButton(
+                content: ButtonContent(label: AppStrings.retry.tr()),
+                behavior: ButtonBehavior.tap(onTap: onRetry),
+                buttonConfig: ButtonConfig(
+                  height: 44.h,
+                  width: 120.w,
                   backgroundColor: AppColors.neonBlue,
-                  foregroundColor: AppColors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppSizes.r12),
-                  ),
+                  borderRadius: AppSizes.r12,
                 ),
-                child: Text(AppStrings.retry.tr()),
               ),
             ],
           ],

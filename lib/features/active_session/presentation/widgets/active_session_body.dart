@@ -4,6 +4,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/buttons/app_button.dart';
+import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
+import '../../../../art_core/widgets/buttons/res/button_content.dart';
+import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
@@ -47,13 +51,19 @@ class ActiveSessionBody extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 16.h),
-                  ElevatedButton(
-                    onPressed: () => context
-                        .read<ActiveSessionCubit>()
-                        .loadActiveSession(),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.neonBlue),
-                    child: Text(AppStrings.retry.tr()),
+                  AppButton(
+                    content: ButtonContent(label: AppStrings.retry.tr()),
+                    behavior: ButtonBehavior.tap(
+                      onTap: () => context
+                          .read<ActiveSessionCubit>()
+                          .loadActiveSession(),
+                    ),
+                    buttonConfig: ButtonConfig(
+                      height: 44.h,
+                      width: 120.w,
+                      backgroundColor: AppColors.neonBlue,
+                      borderRadius: 12.r,
+                    ),
                   ),
                 ],
               ),

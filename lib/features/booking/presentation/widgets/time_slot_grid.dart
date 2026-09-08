@@ -57,7 +57,7 @@ class TimeSlotGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 4.w, bottom: 12.h),
+          padding: EdgeInsetsDirectional.only(start: 4.w, bottom: 12.h),
           child: AppText(
             text: title.toUpperCase(),
             fontSize: 12.sp,

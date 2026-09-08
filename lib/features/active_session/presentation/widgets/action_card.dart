@@ -4,6 +4,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/buttons/app_button.dart';
+import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
+import '../../../../art_core/widgets/buttons/res/button_content.dart';
+import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
 
@@ -66,42 +70,34 @@ class ActionCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(dialogContext),
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                    child: AppButton(
+                      content: ButtonContent(label: AppStrings.cancel.tr()),
+                      behavior: ButtonBehavior.tap(
+                        onTap: () => Navigator.pop(dialogContext),
                       ),
-                      child: AppText(
-                        text: AppStrings.cancel.tr(),
-                        fontSize: 14.sp,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.bold,
+                      buttonConfig: ButtonConfig(
+                        height: 44.h,
+                        backgroundColor: Colors.transparent,
+                        borderRadius: 12.r,
                       ),
                     ),
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                        context
-                            .read<ActiveSessionCubit>()
-                            .extendTime(mins, cost);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.neonBlue,
-                        foregroundColor: AppColors.black,
-                        padding: EdgeInsets.symmetric(vertical: 12.h),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
+                    child: AppButton(
+                      content: ButtonContent(label: AppStrings.next.tr()),
+                      behavior: ButtonBehavior.tap(
+                        onTap: () {
+                          Navigator.pop(dialogContext);
+                          context
+                              .read<ActiveSessionCubit>()
+                              .extendTime(mins, cost);
+                        },
                       ),
-                      child: AppText(
-                        text: AppStrings.next.tr(),
-                        fontSize: 13.5.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
+                      buttonConfig: ButtonConfig(
+                        height: 44.h,
+                        backgroundColor: AppColors.neonBlue,
+                        borderRadius: 12.r,
                       ),
                     ),
                   ),

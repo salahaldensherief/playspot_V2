@@ -67,12 +67,8 @@ class ForgotPasswordScreen extends StatelessWidget {
                     builder: (context, state) {
                       return AppButton(
                         buttonConfig: ButtonConfig.gradient(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          glowColor: const Color(0xFF00D4FF),
+                          gradient: AppColors.primaryGradient,
+                          glowColor: AppColors.neonBlueAlt,
                           borderRadius: 15.r,
                           width: double.infinity,
                           height: 50.h,

@@ -54,7 +54,7 @@ class _BookingScreenState extends State<BookingScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                state.errorMessage!.tr(),
+                state.errorMessage?.tr() ?? '',
                 style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: AppColors.danger,
@@ -135,9 +135,10 @@ class _BookingScreenState extends State<BookingScreen> {
         previous.startTime != current.startTime || 
         previous.durationMinutes != current.durationMinutes,
       builder: (context, state) {
-        if (state.startTime == null) return const SizedBox.shrink();
+        final startTime = state.startTime;
+        if (startTime == null) return const SizedBox.shrink();
 
-        final start = DateTime(2000, 1, 1, state.startTime!.hour, state.startTime!.minute);
+        final start = DateTime(2000, 1, 1, startTime.hour, startTime.minute);
         final end = start.add(Duration(minutes: state.durationMinutes));
         final endTime = TimeOfDay.fromDateTime(end);
 
@@ -163,7 +164,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   _buildSummaryItem(
                     "startTime".tr(),
-                    state.startTime!.format(context),
+                    startTime.format(context),
                   ),
                   Icon(Icons.arrow_forward, color: AppColors.textSecondary, size: 16.sp),
                   _buildSummaryItem(

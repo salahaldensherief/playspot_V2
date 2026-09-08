@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 
@@ -72,13 +76,15 @@ class QrLocationDialog extends StatelessWidget {
                 color: AppColors.textSecondary,
               ),
               SizedBox(height: 20.h),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: AppText(
-                  text: "close".tr().toUpperCase(),
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white.withValues(alpha: 0.5),
+              AppButton(
+                content: ButtonContent(label: "close".tr().toUpperCase()),
+                behavior: ButtonBehavior.tap(
+                  onTap: () => Navigator.pop(context),
+                ),
+                buttonConfig: ButtonConfig(
+                  height: 44.h,
+                  backgroundColor: Colors.transparent,
+                  borderRadius: 12.r,
                 ),
               ),
             ],

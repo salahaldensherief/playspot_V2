@@ -79,8 +79,8 @@ class HomeHeader extends StatelessWidget {
               _buildNotificationBell(context),
             ],
           ),
-          16.verticalSpace,
-          if (cities.isNotEmpty)
+          if (cities.isNotEmpty) ...[
+            16.verticalSpace,
             SizedBox(
               height: 34.h,
               child: ListView.separated(
@@ -96,6 +96,7 @@ class HomeHeader extends StatelessWidget {
                 },
               ),
             ),
+          ],
         ],
       ),
     );

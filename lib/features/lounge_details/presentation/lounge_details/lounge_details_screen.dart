@@ -133,7 +133,7 @@ class _LoungeDiscountBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.warning.withValues(alpha: 0.9),
-            const Color(0xFFFF8C00).withValues(alpha: 0.9),
+            AppColors.warning.withValues(alpha: 0.7),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,

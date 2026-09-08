@@ -10,6 +10,8 @@ import '../buttons/res/button_behavior.dart';
 import '../buttons/res/button_content.dart';
 import '../buttons/res/button_style_config.dart';
 
+typedef AppConfirmDialog = AppDialog;
+
 enum AppDialogType { success, error, confirm }
 
 class AppDialog extends StatelessWidget {
@@ -138,15 +140,18 @@ class AppDialog extends StatelessWidget {
       return Row(
         children: [
           Expanded(
-            child: TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                onCancel?.call();
-              },
-              child: AppText(
-                text: (cancelText ?? AppStrings.cancel).tr(),
-                color: AppColors.white,
-                fontWeight: FontWeight.w600,
+            child: AppButton(
+              content: ButtonContent(label: (cancelText ?? AppStrings.cancel).tr()),
+              behavior: ButtonBehavior.tap(
+                onTap: () {
+                  Navigator.pop(context);
+                  onCancel?.call();
+                },
+              ),
+              buttonConfig: ButtonConfig(
+                height: 45.h,
+                backgroundColor: Colors.transparent,
+                borderRadius: AppSizes.r12,
               ),
             ),
           ),

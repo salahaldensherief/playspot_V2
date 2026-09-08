@@ -19,36 +19,43 @@ class PromoCarousel extends StatelessWidget {
         previous.promotions != current.promotions,
       builder: (context, state) {
         if (state.status == HomeStatus.loading && state.promotions.isEmpty) {
-          return const PromoShimmer();
+          return Padding(
+            padding: EdgeInsets.only(bottom: 16.h),
+            child: const PromoShimmer(),
+          );
         }
 
         if (state.promotions.isEmpty) {
           return const SizedBox.shrink();
         }
-        return SizedBox(
-          height: 160.h,
-          child: PageView.builder(
-            itemCount: state.promotions.length,
-            controller: PageController(viewportFraction: 0.9),
-            itemBuilder: (context, index) {
-              final promo = state.promotions[index];
-              return PromoCard(
-                promo: promo,
-                onTap: () {
-                  if (promo.isRoomSpecific && promo.roomId != null) {
-                    context.pushNamed(
-                      RouterKeys.roomDetails,
-                      pathParameters: {'roomId': promo.roomId!},
-                    );
-                  } else if (promo.loungeId != null) {
-                    context.pushNamed(
-                      RouterKeys.loungeDetails,
-                      extra: {'loungeId': promo.loungeId},
-                    );
-                  }
-                },
-              );
-            },
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: 16.h),
+          child: SizedBox(
+            height: 160.h,
+            child: PageView.builder(
+              itemCount: state.promotions.length,
+              controller: PageController(viewportFraction: 0.9),
+              itemBuilder: (context, index) {
+                final promo = state.promotions[index];
+                return PromoCard(
+                  promo: promo,
+                  onTap: () {
+                    if (promo.isRoomSpecific && promo.roomId != null) {
+                      context.pushNamed(
+                        RouterKeys.roomDetails,
+                        pathParameters: {'roomId': promo.roomId!},
+                      );
+                    } else if (promo.loungeId != null) {
+                      context.pushNamed(
+                        RouterKeys.loungeDetails,
+                        extra: {'loungeId': promo.loungeId},
+                      );
+                    }
+                  },
+                );
+              },
+            ),
           ),
         );
       },

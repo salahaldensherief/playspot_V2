@@ -29,9 +29,10 @@ class _TimerSectionState extends State<TimerSection> {
 
   void _initTimerData() {
     final state = context.read<ActiveSessionCubit>().state;
-    if (state.session != null) {
-      _startTime = state.session!.startTime;
-      _endTime = state.session!.endTime;
+    final session = state.session;
+    if (session != null) {
+      _startTime = session.startTime;
+      _endTime = session.endTime;
       _updateRemaining();
     }
 
@@ -44,11 +45,13 @@ class _TimerSectionState extends State<TimerSection> {
 
   void _updateRemaining() {
     final now = DateTime.now();
-    if (_startTime != null && _endTime != null) {
-      if (now.isBefore(_startTime!)) {
-        _remainingNotifier.value = _startTime!.difference(now);
+    final startTime = _startTime;
+    final endTime = _endTime;
+    if (startTime != null && endTime != null) {
+      if (now.isBefore(startTime)) {
+        _remainingNotifier.value = startTime.difference(now);
       } else {
-        _remainingNotifier.value = _endTime!.difference(now);
+        _remainingNotifier.value = endTime.difference(now);
       }
     }
   }

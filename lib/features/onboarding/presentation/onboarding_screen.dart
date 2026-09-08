@@ -64,7 +64,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
         image: AssetsManager.onboarding3,
         title: AppStrings.onboardingTitle3.tr(),
         desc: AppStrings.onboardingDesc3.tr(),
-        accentColor: const Color(0xFF00D4FF),
+        accentColor: AppColors.neonBlueAlt,
       ),
     ];
 
@@ -307,12 +307,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                 ),
                 buttonConfig: _currentIndex == boardingData.length - 1
                     ? ButtonConfig.gradient(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        glowColor: const Color(0xFF00D4FF),
+                        gradient: AppColors.primaryGradient,
+                        glowColor: AppColors.neonBlueAlt,
                         borderRadius: 20.r,
                         width: double.infinity,
                         height: 52.h,

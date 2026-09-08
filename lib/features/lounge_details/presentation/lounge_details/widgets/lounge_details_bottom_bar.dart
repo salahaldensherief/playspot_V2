@@ -85,12 +85,8 @@ class LoungeDetailsBottomBar extends StatelessWidget {
                   : null,
             ),
             buttonConfig: ButtonConfig(
-              gradient: isOpen ? const LinearGradient(
-                colors: [Color(0xFF00D4FF), Color(0xFF9B59B6)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ) : null,
-              glowColor: isOpen ? const Color(0xFF00D4FF) : Colors.transparent,
+              gradient: isOpen ? AppColors.primaryGradient : null,
+              glowColor: isOpen ? AppColors.neonBlueAlt : Colors.transparent,
               borderRadius: 15.r,
               width: 340.w,
               height: 50.h,

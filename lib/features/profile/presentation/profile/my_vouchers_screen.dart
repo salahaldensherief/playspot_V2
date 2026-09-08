@@ -52,6 +52,9 @@ class MyVouchersScreen extends StatelessWidget {
           ),
         ),
         body: BlocBuilder<ProfileCubit, ProfileState>(
+          buildWhen: (previous, current) =>
+              previous.myVouchers != current.myVouchers ||
+              previous.status != current.status,
           builder: (context, state) {
             if (state.status == ProfileStatus.loading) {
               return const Center(child: CircularProgressIndicator(color: AppColors.neonBlue));

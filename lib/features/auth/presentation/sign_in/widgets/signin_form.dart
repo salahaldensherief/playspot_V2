@@ -42,7 +42,7 @@ class SignInForm extends StatelessWidget {
           ),
         _space(height: 10.h),
         Align(
-          alignment: Alignment.centerRight,
+          alignment: AlignmentDirectional.centerEnd,
           child: AppText(
             text: AppStrings.forgotPassword.tr(),
             color: AppColors.white,

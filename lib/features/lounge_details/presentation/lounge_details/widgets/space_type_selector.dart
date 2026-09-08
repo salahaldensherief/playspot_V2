@@ -94,7 +94,7 @@ class SpaceTypeSelector extends StatelessWidget {
                     .setSpaceType(type['id']!),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
-                  margin: EdgeInsets.only(left: isArabic ? 10.w : 0, right: isArabic ? 0 : 10.w),
+                  margin: EdgeInsetsDirectional.only(end: 10.w),
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   decoration: BoxDecoration(
                     color: isSelected ? themeColor : AppColors.cardBackground,

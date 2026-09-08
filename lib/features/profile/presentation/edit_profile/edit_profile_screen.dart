@@ -13,6 +13,7 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import 'edit_profile_cubit.dart';
@@ -154,50 +155,33 @@ class _DeleteAccountButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton(
-      onPressed: () => _showDeleteConfirmation(context),
-      child: AppText(
-        text: AppStrings.deleteAccount.tr(),
-        color: AppColors.danger,
-        fontSize: 14.sp,
-        fontWeight: FontWeight.w600,
+    return AppButton(
+      content: ButtonContent(
+        label: AppStrings.deleteAccount.tr(),
+      ),
+      behavior: ButtonBehavior.tap(
+        onTap: () => _showDeleteConfirmation(context),
+      ),
+      buttonConfig: ButtonConfig(
+        height: 44.h,
+        backgroundColor: Colors.transparent,
+        borderRadius: 12.r,
       ),
     );
   }
 
   void _showDeleteConfirmation(BuildContext context) {
     final cubit = context.read<EditProfileCubit>();
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.cardBackground,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-        title: AppText(
-          text: AppStrings.deleteAccount.tr(),
-          fontSize: 18.sp,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-        content: AppText(
-          text: AppStrings.deleteAccountConfirmation.tr(),
-          fontSize: 14.sp,
-          color: AppColors.textSecondary,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: AppText(text: AppStrings.cancel.tr(), color: Colors.white),
-          ),
-          TextButton(
-            onPressed: () {
-              cubit.deleteAccount();
-              Navigator.pop(dialogContext);
-            },
-            child: AppText(
-                text: AppStrings.deleteAccount.tr(), color: AppColors.danger),
-          ),
-        ],
-      ),
+    AppDialog.show(
+      context,
+      type: AppDialogType.confirm,
+      title: AppStrings.deleteAccount,
+      description: AppStrings.deleteAccountConfirmation,
+      confirmText: AppStrings.deleteAccount,
+      cancelText: AppStrings.cancel,
+      onConfirm: () {
+        cubit.deleteAccount();
+      },
     );
   }
 }

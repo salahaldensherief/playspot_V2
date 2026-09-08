@@ -8,7 +8,6 @@ import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
-import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/services/location_service.dart';
@@ -69,12 +68,15 @@ class _SplashScreenState extends State<SplashScreen>
         });
       } catch (_) {}
 
-      final isPhoneMissing = user?.phone == null || user!.phone!.trim().isEmpty;
+      final phone = user?.phone;
+      final isPhoneMissing = phone == null || phone.trim().isEmpty;
+
+      if (!mounted) return;
 
       if (isPhoneMissing) {
         context.goNamed(
           RouterKeys.completeProfile,
-          extra: user!.id,
+          extra: user?.id ?? '',
         );
       } else {
         context.goNamed(RouterKeys.home);
