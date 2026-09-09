@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,6 +7,7 @@ import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../app_strings.dart';
 import '../../router/router_keys.dart';
 import '../../theme/app_colors.dart';
+import '../images/app_images.dart';
 import '../text/app_text.dart';
 import '../../../features/home/data/models/lounge_model.dart';
 
@@ -45,16 +45,14 @@ class SearchLoungeCard extends StatelessWidget {
           children: [
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSizes.r15),
-                  child: Hero(
-                    tag: heroTag,
-                    child: CachedNetworkImage(
-                      imageUrl: lounge.imageUrl,
-                      width: 140.w,
-                      height: 140.h,
-                      fit: BoxFit.cover,
-                    ),
+                Hero(
+                  tag: heroTag,
+                  child: AppImage(
+                    urlImg: lounge.imageUrl,
+                    width: 140.w,
+                    height: 140.h,
+                    fit: BoxFit.cover,
+                    borderRadius: AppSizes.r15,
                   ),
                 ),
                 if (lounge.isDiscountActive)

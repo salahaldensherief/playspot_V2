@@ -319,13 +319,58 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   }) async {
     dev.log("[LIVESESSION_DS] REQUEST_STAFF_ASSISTANCE: bookingId=$bookingId, callType=$callType, notes=$notes");
     final userId = _client.auth.currentUser?.id;
-    await _client.rpc('request_staff_assistance', params: {
-      'p_booking_id': bookingId,
-      'p_user_id': userId,
-      'p_call_type': callType,
-      'p_notes': notes,
-    });
-    dev.log("[LIVESESSION_DS] REQUEST_STAFF_ASSISTANCE SUCCESS");
+
+    try {
+      await _client.rpc('request_staff_assistance', params: {
+        'p_booking_id': bookingId,
+        'p_user_id': userId,
+        'p_call_type': callType,
+        'p_notes': notes,
+      });
+      dev.log("[LIVESESSION_DS] REQUEST_STAFF_ASSISTANCE via RPC success");
+      return;
+    } catch (rpc1Error) {
+      dev.log("[LIVESESSION_DS] RPC request_staff_assistance failed: $rpc1Error, trying call_staff_request");
+    }
+
+    try {
+      await _client.rpc('call_staff_request', params: {
+        'p_booking_id': bookingId,
+        'p_reason': callType,
+        'p_note': notes ?? '',
+      });
+      dev.log("[LIVESESSION_DS] CALL_STAFF_REQUEST via RPC success");
+      return;
+    } catch (rpc2Error) {
+      dev.log("[LIVESESSION_DS] RPC call_staff_request failed: $rpc2Error, inserting directly into service_calls");
+    }
+
+    try {
+      // Fetch booking details to populate lounge_id, room_id, and user_id securely from booking record
+      final bookingData = await _client
+          .from('bookings')
+          .select('lounge_id, room_id, user_id')
+          .eq('id', bookingId)
+          .maybeSingle();
+
+      final String? loungeId = bookingData?['lounge_id']?.toString();
+      final String? roomId = bookingData?['room_id']?.toString();
+      final String? bookingUserId = bookingData?['user_id']?.toString() ?? userId;
+
+      await _client.from('service_calls').insert({
+        'booking_id': bookingId,
+        if (loungeId != null && loungeId.isNotEmpty) 'lounge_id': loungeId,
+        if (roomId != null && roomId.isNotEmpty) 'room_id': roomId,
+        if (bookingUserId != null && bookingUserId.isNotEmpty) 'user_id': bookingUserId,
+        'call_type': callType,
+        'status': 'pending',
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      });
+      dev.log("[LIVESESSION_DS] Inserted directly into service_calls SUCCESS");
+    } catch (insertError) {
+      dev.log("[LIVESESSION_DS] Direct insert into service_calls failed: $insertError");
+      rethrow;
+    }
   }
 
   @override

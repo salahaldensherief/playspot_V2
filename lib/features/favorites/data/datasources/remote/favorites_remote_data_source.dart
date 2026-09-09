@@ -34,11 +34,14 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
       for (final e in (response as List)) {
         if (e['lounges'] != null) {
           final loungeData = e['lounges'];
+          LoungeModel? model;
           if (loungeData is List && loungeData.isNotEmpty) {
-            lounges.add(LoungeModel.fromJson(loungeData.first));
+            model = LoungeModel.fromJson(loungeData.first);
           } else if (loungeData is Map) {
-            lounges.add(
-                LoungeModel.fromJson(Map<String, dynamic>.from(loungeData)));
+            model = LoungeModel.fromJson(Map<String, dynamic>.from(loungeData));
+          }
+          if (model != null && model.status == 'active' && model.isActive) {
+            lounges.add(model);
           }
         }
       }

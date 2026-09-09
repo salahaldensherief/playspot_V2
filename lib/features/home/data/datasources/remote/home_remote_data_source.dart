@@ -25,8 +25,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           .from('lounges')
           .select()
           .eq('id', id)
+          .eq('status', 'active')
           .eq('is_active', true)
-          .neq('status', 'deleted')
           .maybeSingle();
       if (response == null) return null;
       return LoungeModel.fromJson(Map<String, dynamic>.from(response));
@@ -54,8 +54,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       dynamic query = _client
           .from('lounges')
           .select()
-          .eq('is_active', true)
-          .neq('status', 'deleted');
+          .eq('status', 'active')
+          .eq('is_active', true);
 
       if (params.city != null && params.city!.isNotEmpty) {
         query = query.eq('city', params.city!);

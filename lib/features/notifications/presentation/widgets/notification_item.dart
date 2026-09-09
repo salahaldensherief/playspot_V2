@@ -126,6 +126,10 @@ class NotificationItem extends StatelessWidget {
         iconData = TablerIcons.info_circle;
         iconColor = Colors.white;
         break;
+      case NotificationType.kyc:
+        iconData = TablerIcons.shield_check;
+        iconColor = AppColors.neonBlue;
+        break;
     }
 
     return Container(

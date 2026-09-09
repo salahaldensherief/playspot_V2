@@ -10,7 +10,7 @@ import '../domain/repositories/notifications_repository.dart';
 import 'notifications_state.dart';
 
 class NotificationsCubit extends Cubit<NotificationsState> {
-  static const int _pageSize = 15;
+  static const int _pageSize = 20;
   final NotificationsRepository _repository;
   StreamSubscription? _subscription;
   String? _lastLang;

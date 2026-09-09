@@ -119,10 +119,10 @@ class ReviewsSection extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 16.r,
-                    backgroundImage: review.userAvatar != null && review.userAvatar!.isNotEmpty
-                        ? CachedNetworkImageProvider(review.userAvatar!)
+                    backgroundImage: review.userAvatar != null && review.userAvatar!.trim().isNotEmpty
+                        ? CachedNetworkImageProvider(review.userAvatar!.trim())
                         : null,
-                    child: review.userAvatar == null || review.userAvatar!.isEmpty
+                    child: review.userAvatar == null || review.userAvatar!.trim().isEmpty
                         ? const Icon(Icons.person, size: 16, color: AppColors.white)
                         : null,
                   ),

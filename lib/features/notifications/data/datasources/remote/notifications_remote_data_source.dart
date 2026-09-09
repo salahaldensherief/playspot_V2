@@ -6,7 +6,7 @@ import '../../models/notification_model.dart';
 abstract class NotificationsRemoteDataSource {
   Future<List<NotificationModel>> getNotifications(
     String lang, {
-    int limit = 15,
+    int limit = 20,
     int offset = 0,
   });
   Future<void> markAsRead(String notificationId);
@@ -23,7 +23,7 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
   @override
   Future<List<NotificationModel>> getNotifications(
     String lang, {
-    int limit = 15,
+    int limit = 20,
     int offset = 0,
   }) async {
     try {

@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import '../images/app_images.dart';
 
 class AvatarPickerWidget extends StatelessWidget {
   final File? avatarFile;
@@ -30,15 +30,13 @@ class AvatarPickerWidget extends StatelessWidget {
             backgroundColor: AppColors.cardBackground,
             backgroundImage: avatarFile != null ? FileImage(avatarFile!) : null,
             child: avatarFile == null
-                ? imageUrl != null && imageUrl!.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(radius.r),
-                        child: CachedNetworkImage(
-                          imageUrl: imageUrl!,
-                          width: radius * 2.r,
-                          height: radius * 2.r,
-                          fit: BoxFit.cover,
-                        ),
+                ? imageUrl != null && imageUrl!.trim().isNotEmpty
+                    ? AppImage(
+                        urlImg: imageUrl!.trim(),
+                        width: radius * 2.r,
+                        height: radius * 2.r,
+                        fit: BoxFit.cover,
+                        boxShape: BoxShape.circle,
                       )
                     : Icon(Icons.person,
                         size: radius.sp, color: AppColors.white)

@@ -8,6 +8,7 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
@@ -117,16 +118,13 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(
         children: [
-          if (item.icon != null && item.icon!.isNotEmpty) ...[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8.r),
-              child: Image.network(
-                item.icon!,
-                width: 40.w,
-                height: 40.h,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
+          if (item.icon != null && item.icon!.trim().isNotEmpty) ...[
+            AppImage(
+              urlImg: item.icon!.trim(),
+              width: 40.w,
+              height: 40.h,
+              fit: BoxFit.cover,
+              borderRadius: 8.r,
             ),
             SizedBox(width: 12.w),
           ],

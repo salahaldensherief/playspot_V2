@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/booking_params.dart';
@@ -90,16 +91,43 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
     // Directly insert canteen/extras items into booking_items table
     if (bookingId != null && params.addOns.isNotEmpty) {
-      final itemsToInsert = params.addOns.map((e) => {
-        'booking_id': bookingId,
-        'item_id': e['id']?.toString() ?? e['item_id']?.toString() ?? e['extra_id']?.toString(),
-        'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
-        'price': (e['price'] as num?)?.toDouble() ?? 0.0,
-        'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
-        'note': e['note']?.toString(),
-      }).toList();
+      try {
+        final itemsToInsert = params.addOns.map((e) {
+          final id = e['id']?.toString() ?? e['extra_id']?.toString() ?? e['item_id']?.toString();
+          return {
+            'booking_id': bookingId,
+            if (id != null && id.isNotEmpty) 'extra_id': id,
+            'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
+            'price': (e['price'] as num?)?.toDouble() ?? 0.0,
+            'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
+            if (e['note'] != null && e['note'].toString().isNotEmpty) 'note': e['note'].toString(),
+          };
+        }).toList();
 
-      await _client.from('booking_items').insert(itemsToInsert);
+        await _client.from('booking_items').insert(itemsToInsert);
+      } catch (e) {
+        try {
+          final itemsToInsertWithItemId = params.addOns.map((e) {
+            final id = e['id']?.toString() ?? e['item_id']?.toString() ?? e['extra_id']?.toString();
+            return {
+              'booking_id': bookingId,
+              if (id != null && id.isNotEmpty) 'item_id': id,
+              'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
+              'price': (e['price'] as num?)?.toDouble() ?? 0.0,
+              'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
+            };
+          }).toList();
+          await _client.from('booking_items').insert(itemsToInsertWithItemId);
+        } catch (_) {
+          final basicItems = params.addOns.map((e) => {
+            'booking_id': bookingId,
+            'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
+            'price': (e['price'] as num?)?.toDouble() ?? 0.0,
+            'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
+          }).toList();
+          await _client.from('booking_items').insert(basicItems);
+        }
+      }
     }
 
     return Map<String, dynamic>.from(response);
@@ -164,12 +192,57 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String reason,
     required String note,
   }) async {
-    await _client.rpc('call_staff_request', params: {
-      'p_lounge_id': loungeId,
-      'p_booking_id': bookingId,
-      'p_reason': reason,
-      'p_note': note,
-    });
+    final userId = _client.auth.currentUser?.id;
+
+    try {
+      await _client.rpc('request_staff_assistance', params: {
+        'p_booking_id': bookingId,
+        'p_user_id': userId,
+        'p_call_type': reason,
+        'p_notes': note,
+      });
+      return;
+    } catch (rpc1Error) {
+      dev.log("RPC request_staff_assistance failed: $rpc1Error, trying call_staff_request");
+    }
+
+    try {
+      await _client.rpc('call_staff_request', params: {
+        'p_booking_id': bookingId,
+        'p_reason': reason,
+        'p_note': note,
+      });
+      return;
+    } catch (rpc2Error) {
+      dev.log("RPC call_staff_request failed: $rpc2Error, inserting directly into service_calls");
+    }
+
+    try {
+      // Fetch lounge_id and room_id directly from the booking record using bookingId
+      final bookingData = await _client
+          .from('bookings')
+          .select('lounge_id, room_id, user_id')
+          .eq('id', bookingId)
+          .maybeSingle();
+
+      final String? fetchedLoungeId = bookingData?['lounge_id']?.toString() ?? (loungeId.isNotEmpty ? loungeId : null);
+      final String? roomId = bookingData?['room_id']?.toString();
+      final String? bookingUserId = bookingData?['user_id']?.toString() ?? userId;
+
+      await _client.from('service_calls').insert({
+        'booking_id': bookingId,
+        if (fetchedLoungeId != null && fetchedLoungeId.isNotEmpty) 'lounge_id': fetchedLoungeId,
+        if (roomId != null && roomId.isNotEmpty) 'room_id': roomId,
+        if (bookingUserId != null && bookingUserId.isNotEmpty) 'user_id': bookingUserId,
+        'call_type': reason,
+        'status': 'pending',
+        if (note.isNotEmpty) 'notes': note,
+      });
+      dev.log("Inserted directly into service_calls SUCCESS");
+    } catch (e) {
+      dev.log("callStaff failed to insert into service_calls: $e");
+      rethrow;
+    }
   }
 
   @override
@@ -182,13 +255,16 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String note,
   }) async {
     final validUserId = _client.auth.currentUser?.id ?? userId;
-    final itemsToInsert = items.map((item) => {
-      'booking_id': bookingId,
-      'item_id': item['id']?.toString() ?? item['item_id']?.toString() ?? item['extra_id']?.toString(),
-      'name': item['name']?.toString() ?? item['title']?.toString() ?? 'Extra',
-      'price': (item['price'] as num?)?.toDouble() ?? 0.0,
-      'quantity': (item['quantity'] as num?)?.toInt() ?? 1,
-      'note': item['note']?.toString() ?? (note.isNotEmpty ? note : null),
+    final itemsToInsert = items.map((item) {
+      final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString();
+      return {
+        'booking_id': bookingId,
+        if (id != null && id.isNotEmpty) 'extra_id': id,
+        'name': item['name']?.toString() ?? item['title']?.toString() ?? 'Extra',
+        'price': (item['price'] as num?)?.toDouble() ?? 0.0,
+        'quantity': (item['quantity'] as num?)?.toInt() ?? 1,
+        if (note.isNotEmpty) 'note': note,
+      };
     }).toList();
 
     try {

@@ -49,10 +49,13 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _handleInitialization() async {
-    final locationFuture = _fetchUserLocation();
-    final delayFuture = Future.delayed(const Duration(seconds: 3));
+    final locationFuture = _fetchUserLocation().timeout(
+      const Duration(milliseconds: 1500),
+      onTimeout: () {},
+    );
+    final minDisplayFuture = Future.delayed(const Duration(milliseconds: 1500));
 
-    await Future.wait([locationFuture, delayFuture]);
+    await Future.wait([locationFuture, minDisplayFuture]);
 
     if (!mounted) return;
 

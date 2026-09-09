@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,6 +5,7 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
+import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -51,16 +51,17 @@ class LoungeDetailsAppBar extends StatelessWidget {
             children: [
               Hero(
                 tag: heroTag ?? 'lounge_image_${lounge.id}',
-                child: CachedNetworkImage(
-                  imageUrl: lounge.imageUrl,
+                child: AppImage(
+                  urlImg: lounge.imageUrl,
                   fit: BoxFit.cover,
+                  borderRadius: 0,
                 ),
               ),
               Positioned.directional(
                 textDirection: Directionality.of(context),
                 top: 55.h,
                 end: 16.w,
-                child: PhotoIndicator(totalImages: lounge.images?.length),
+                child: PhotoIndicator(totalImages: lounge.images.length),
               ),
               Container(
                 decoration: BoxDecoration(
@@ -117,11 +118,9 @@ class LoungeDetailsAppBar extends StatelessWidget {
 
   void _openImageGallery(BuildContext context) {
     final allImages = <String>[lounge.imageUrl];
-    if (lounge.images != null) {
-      for (var img in lounge.images!) {
-        if (img != lounge.imageUrl) {
-          allImages.add(img);
-        }
+    for (var img in lounge.images) {
+      if (img != lounge.imageUrl) {
+        allImages.add(img);
       }
     }
 

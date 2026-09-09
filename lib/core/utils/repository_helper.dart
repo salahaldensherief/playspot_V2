@@ -13,6 +13,7 @@ mixin RepositoryHelper {
     } on PostgrestException catch (e) {
       if (e.code == '23P01' ||
           e.message.contains('exclusion constraint') ||
+          e.message.contains('bookings_room_booking_period_excl') ||
           e.message.contains('no_overlapping_room_bookings') ||
           e.message.contains('prevent_room_booking_overlap')) {
         return Left(ServerFailure(AppStrings.overlappingBookingError.tr()));

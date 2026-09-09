@@ -46,11 +46,11 @@ class ProfileHeader extends StatelessWidget {
                 ),
               ),
               alignment: Alignment.center,
-              child: profileImageUrl != null
+              child: profileImageUrl != null && profileImageUrl.trim().isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(40.w),
                       child: CachedNetworkImage(
-                        imageUrl: profileImageUrl,
+                        imageUrl: profileImageUrl.trim(),
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,

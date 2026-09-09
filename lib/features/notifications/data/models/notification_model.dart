@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
-enum NotificationType { booking, offer, loyalty, system }
+enum NotificationType { booking, offer, loyalty, system, kyc }
 
 class NotificationModel extends Equatable {
   final String id;
@@ -84,7 +84,7 @@ class NotificationModel extends Equatable {
 
     final title = json['title']?.toString() ?? titleEn ?? titleAr ?? '';
     final body = json['body']?.toString() ?? bodyEn ?? bodyAr ?? '';
-    final parsedData = _parseData(json['data']);
+    final parsedData = _parseData(json['data'], json['metadata']);
     String? status = parsedData?['status'] as String?;
 
     // Fallback logic to infer status from text if not provided in payload
@@ -118,7 +118,7 @@ class NotificationModel extends Equatable {
       titleEn: titleEn,
       bodyAr: bodyAr,
       bodyEn: bodyEn,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
       isRead: json['is_read'] as bool? ?? false,
       type: _parseType(json['type'] as String? ?? ''),
       status: status,
@@ -157,7 +157,7 @@ class NotificationModel extends Equatable {
           : (json['body'] ?? bodyAr ?? '').toString();
     }
 
-    final parsedData = _parseData(json['data']);
+    final parsedData = _parseData(json['data'], json['metadata']);
 
     return NotificationModel(
       id: json['id']?.toString() ?? '',
@@ -167,14 +167,15 @@ class NotificationModel extends Equatable {
       titleEn: titleEn,
       bodyAr: bodyAr,
       bodyEn: bodyEn,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
       isRead: json['is_read'] as bool? ?? false,
       type: _parseType(json['type'] as String? ?? ''),
       data: parsedData,
     );
   }
 
-  static Map<String, dynamic>? _parseData(dynamic raw) {
+  static Map<String, dynamic>? _parseData(dynamic rawData, [dynamic rawMetadata]) {
+    final raw = rawData ?? rawMetadata;
     if (raw == null) return null;
     if (raw is Map) {
       return Map<String, dynamic>.from(raw);
@@ -198,6 +199,8 @@ class NotificationModel extends Equatable {
       return NotificationType.offer;
     } else if (t.contains('loyalty')) {
       return NotificationType.loyalty;
+    } else if (t.contains('kyc')) {
+      return NotificationType.kyc;
     } else {
       return NotificationType.system;
     }

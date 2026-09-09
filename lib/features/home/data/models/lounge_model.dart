@@ -26,6 +26,8 @@ class LoungeModel extends Equatable {
   final String? discountTitleAr;
   final String? discountTitleEn;
   final DateTime? discountExpiresAt;
+  final String status;
+  final bool isActive;
 
   const LoungeModel({
     required this.id,
@@ -53,6 +55,8 @@ class LoungeModel extends Equatable {
     this.discountTitleAr,
     this.discountTitleEn,
     this.discountExpiresAt,
+    this.status = 'active',
+    this.isActive = true,
   });
 
   String get opensAt => openingTime;
@@ -86,6 +90,8 @@ class LoungeModel extends Equatable {
         discountTitleAr,
         discountTitleEn,
         discountExpiresAt,
+        status,
+        isActive,
       ];
 
   String getName(bool isArabic) => name;
@@ -210,6 +216,8 @@ class LoungeModel extends Equatable {
       discountTitleAr: json['discount_title_ar']?.toString(),
       discountTitleEn: json['discount_title_en']?.toString(),
       discountExpiresAt: parsedDiscountExpiresAt,
+      status: json['status']?.toString() ?? 'active',
+      isActive: json['is_active'] as bool? ?? true,
     );
   }
 
@@ -237,6 +245,8 @@ class LoungeModel extends Equatable {
       if (discountTitleAr != null) 'discount_title_ar': discountTitleAr,
       if (discountTitleEn != null) 'discount_title_en': discountTitleEn,
       'discount_expires_at': discountExpiresAt?.toIso8601String(),
+      'status': status,
+      'is_active': isActive,
     };
   }
 }

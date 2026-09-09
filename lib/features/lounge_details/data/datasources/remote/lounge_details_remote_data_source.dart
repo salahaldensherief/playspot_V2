@@ -32,6 +32,7 @@ class LoungeDetailsRemoteDataSourceImpl
             '*, space_types(name, label), room_categories(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
           )
           .eq('id', roomId)
+          .neq('status', 'deleted')
           .maybeSingle();
 
       if (response != null) return RoomModel.fromJson(response);
@@ -58,7 +59,8 @@ class LoungeDetailsRemoteDataSourceImpl
           '*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
         )
         .eq('lounge_id', loungeId)
-        .eq('is_available', true);
+        .eq('is_available', true)
+        .neq('status', 'deleted');
 
     if (hasFilter) {
       query = query.eq(
