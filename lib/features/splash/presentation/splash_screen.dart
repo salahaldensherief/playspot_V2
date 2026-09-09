@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
-import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/services/location_service.dart';
@@ -56,31 +57,10 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     final authRepo = sl<AuthRepository>();
-    final profileRepo = sl<ProfileRepository>();
-
-    var user = authRepo.getCurrentUser();
+    final user = authRepo.getCurrentUser();
 
     if (user != null) {
-      try {
-        final result = await profileRepo.getUserProfile();
-        result.fold((_) {}, (fetchedUser) {
-          user = fetchedUser;
-        });
-      } catch (_) {}
-
-      final phone = user?.phone;
-      final isPhoneMissing = phone == null || phone.trim().isEmpty;
-
-      if (!mounted) return;
-
-      if (isPhoneMissing) {
-        context.goNamed(
-          RouterKeys.completeProfile,
-          extra: user?.id ?? '',
-        );
-      } else {
-        context.goNamed(RouterKeys.home);
-      }
+      context.goNamed(RouterKeys.home);
     } else {
       context.goNamed(RouterKeys.onboarding);
     }
@@ -94,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen>
         final pref = sl<PreferenceManager>();
         await pref.saveLatitude(position.latitude);
         await pref.saveLongitude(position.longitude);
-        
+
         final address = await locationService.getAddressFromLatLng(
           position.latitude,
           position.longitude,
@@ -103,9 +83,7 @@ class _SplashScreenState extends State<SplashScreen>
           await pref.saveValue('CURRENT_ADDRESS', address);
         }
       }
-    } catch (e) {
-      debugPrint("SPLASH: Location fetch failed: $e");
-    }
+    } catch (_) {}
   }
 
   @override
@@ -129,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Center(
                   child: LogoWidget(
                     animate: true,
-                    color: AppColors.primary,
+                    iconColor: AppColors.primary,
                     fontSize: 50.w,
                     width: 40.w,
                     height: 40.h,
@@ -140,7 +118,7 @@ class _SplashScreenState extends State<SplashScreen>
               FadeTransition(
                 opacity: _fadeAnim,
                 child: Text(
-                  "Book, Play & Win",
+                  AppStrings.bookPlayWin.tr(),
                   style: TextStyle(
                     shadows: [
                       Shadow(

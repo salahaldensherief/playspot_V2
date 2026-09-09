@@ -61,6 +61,10 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         query = query.eq('city', params.city!);
       }
 
+      if (params.searchQuery != null && params.searchQuery!.trim().isNotEmpty) {
+        query = query.ilike('name', '%${params.searchQuery!.trim()}%');
+      }
+
       if (params.sortType == 'top_rated') {
         query = query.order('rating', ascending: false);
       } else {

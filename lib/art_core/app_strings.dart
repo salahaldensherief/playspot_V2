@@ -35,6 +35,7 @@ class AppStrings {
   static const completeProfileSubtitle = 'completeProfileSubtitle';
   static const continueText = 'continueText';
   static const String resetPassword = "resetPassword";
+  static const String passwordResetSuccess = "passwordResetSuccess";
   static const String verifyOTP = "verifyOTP";
   static const String enterOTP = "enterOTP";
   static const String newPassword = "newPassword";
@@ -73,7 +74,7 @@ class AppStrings {
   static const String highestRated = "highestRated";
   static const String nearest = "nearest";
   static const String noRoomsAvailable = "noRoomsAvailable";
-  static const String bookNow = "Book Now";
+  static const String bookNow = "bookNow";
   static const String selectDate = "selectDate";
   static const String startTime = "startTime";
   static const String endTime = "endTime";

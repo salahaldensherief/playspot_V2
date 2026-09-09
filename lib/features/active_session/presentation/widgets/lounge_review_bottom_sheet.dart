@@ -83,11 +83,13 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
           AppButton(
             content: ButtonContent(label: AppStrings.submitReview.tr()),
             behavior: TapBehavior(
-              isEnabled: true,
+              isEnabled: _rating > 0,
               onTap: () {
+                if (_rating <= 0) return;
+                final comment = _commentController.text.trim();
                 widget.onSubmit(
                   _rating,
-                  _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
+                  comment.isEmpty ? null : comment,
                 );
                 GameHudToast.show(
                   context,
@@ -99,7 +101,8 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
             ),
             buttonConfig: ButtonConfig(
               width: double.infinity,
-              gradient: AppColors.primaryGradient,
+              gradient: _rating > 0 ? AppColors.primaryGradient : null,
+              backgroundColor: AppColors.backgroundAlt,
             ),
           ),
           MediaQuery.of(context).viewInsets.bottom.verticalSpace,

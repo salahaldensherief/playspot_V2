@@ -49,10 +49,9 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="com.playspot.app"
+                    android:scheme="com.playspot.client"
                     android:host="login-callback" />
             </intent-filter>
-
         </activity>
 
 

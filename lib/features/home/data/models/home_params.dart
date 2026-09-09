@@ -3,6 +3,7 @@ class GetLoungesParams {
   final double? lat;
   final double? lng;
   final String? city;
+  final String? searchQuery;
   final List<String>? categoryIds;
   final String sortType;
   final int limit;
@@ -12,6 +13,7 @@ class GetLoungesParams {
     this.lat,
     this.lng,
     this.city,
+    this.searchQuery,
     this.categoryIds,
     this.sortType = 'nearest',
     this.limit = 20,
@@ -23,6 +25,7 @@ class GetLoungesParams {
       'p_lat': lat,
       'p_lng': lng,
       'p_city': city,
+      'p_search_query': searchQuery,
       'p_category_ids': categoryIds,
       'p_sort_type': sortType,
       'p_limit': limit,

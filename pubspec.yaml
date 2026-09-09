@@ -72,6 +72,7 @@ dependencies:
   qr_flutter: ^4.1.0
   firebase_core: ^4.14.0
   timezone: ^0.11.0
+  font_awesome_flutter: ^11.0.0
 
 
 dev_dependencies:
@@ -86,6 +87,8 @@ flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
   image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#0A0A0F"
+  adaptive_icon_foreground: "assets/images/app_icon.png"
   min_sdk_android: 21
 
 flutter:

@@ -57,6 +57,7 @@ class LoungeModel extends Equatable {
 
   String get opensAt => openingTime;
   String get closesAt => closingTime;
+  String? get address => location;
 
   @override
   List<Object?> get props => [

@@ -136,7 +136,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         'full_name': params.name,
         'phone': params.phone,
         if (params.email != null) 'email': params.email,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'avatar_url': avatarUrl,
       };
 
       await _supabase.from('profiles').update(updateData).eq('id', userId);
@@ -146,7 +146,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           email: params.email,
           data: {
             'full_name': params.name,
-            if (avatarUrl != null) 'avatar_url': avatarUrl,
+            'avatar_url': avatarUrl,
           },
         ),
       );
@@ -255,3 +255,5 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     }
   }
 }
+
+

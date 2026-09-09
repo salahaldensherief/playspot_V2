@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:playspot/art_core/assets_manager.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../../theme/app_colors.dart';
 
 class LogoWidget extends StatefulWidget {
@@ -10,6 +9,8 @@ class LogoWidget extends StatefulWidget {
   final double? height;
   final double? fontSize;
   final Color? color;
+  final Color? textColor;
+  final Color? iconColor;
   final bool animate;
 
   const LogoWidget({
@@ -18,6 +19,8 @@ class LogoWidget extends StatefulWidget {
     this.height,
     this.fontSize,
     this.color,
+    this.textColor,
+    this.iconColor,
     this.animate = false,
   });
 
@@ -39,10 +42,10 @@ class _LogoWidgetState extends State<LogoWidget>
     );
 
     _wobble = TweenSequence([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.30), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: 0.30, end: -0.30), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: -0.30, end: 0.30), weight: 2),
-      TweenSequenceItem(tween: Tween(begin: 0.30, end: 0.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 0.25), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 0.25, end: -0.25), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -0.25, end: 0.25), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 0.25, end: 0.0), weight: 1),
     ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     if (widget.animate) _startLoop();
@@ -76,44 +79,63 @@ class _LogoWidgetState extends State<LogoWidget>
 
   @override
   Widget build(BuildContext context) {
+    final effectiveFontSize = widget.fontSize ?? 26.sp;
+    final textStyleColor = widget.textColor ?? widget.color ?? AppColors.white;
+    final joystickIconColor = widget.iconColor ?? AppColors.primary;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        AppText(
-          fontSize: widget.fontSize ?? 23.sp,
-          color: AppColors.white,
-          text: 'PlaySp',
+        Text(
+          'PlaySp',
+          style: TextStyle(
+            fontFamily: 'Orbitron',
+            fontSize: effectiveFontSize,
+            fontWeight: FontWeight.w700,
+            color: textStyleColor,
+            letterSpacing: 0.5,
+          ),
         ),
+        SizedBox(width: 3.w),
         widget.animate
             ? AnimatedBuilder(
-          animation: _wobble,
-          builder: (context, child) {
-            return Transform.rotate(
-              angle: _wobble.value,
-              child: child,
-            );
-          },
-          child: _icon(),
-        )
-            : _icon(),
-        AppText(
-          fontSize: widget.fontSize ?? 23.sp,
-          color: AppColors.white,
-          text: 't',
+                animation: _wobble,
+                builder: (context, child) {
+                  return Transform.rotate(
+                    angle: _wobble.value,
+                    child: child,
+                  );
+                },
+                child: _icon(effectiveFontSize, joystickIconColor),
+              )
+            : _icon(effectiveFontSize, joystickIconColor),
+        SizedBox(width: 3.w),
+        Text(
+          't',
+          style: TextStyle(
+            fontFamily: 'Orbitron',
+            fontSize: effectiveFontSize,
+            fontWeight: FontWeight.w700,
+            color: textStyleColor,
+            letterSpacing: 0.5,
+          ),
         ),
       ],
     );
   }
 
-  Widget _icon() {
+  Widget _icon(double fontSize, Color iconColor) {
+    final iconSize = widget.height ?? widget.width ?? (fontSize * 0.92);
+
     return SvgPicture.asset(
       AssetsManager.joystickIcon,
       colorFilter: ColorFilter.mode(
-        widget.color ?? AppColors.white,
+        iconColor,
         BlendMode.srcIn,
       ),
-      width: widget.width ?? 24,
-      height: widget.height ?? 24,
+      width: iconSize,
+      height: iconSize,
     );
   }
 }

@@ -31,7 +31,7 @@ class ResetPasswordScreen extends StatelessWidget {
         if (state.status.isSuccess) {
           GameHudToast.show(
             context,
-            'Password reset successfully',
+            AppStrings.passwordResetSuccess.tr(),
             type: ToastType.success,
           );
           context.goNamed(RouterKeys.signIn);
@@ -39,7 +39,7 @@ class ResetPasswordScreen extends StatelessWidget {
         if (state.status.isFailure) {
           GameHudToast.show(
             context,
-            state.errorMessage ?? 'Error',
+            state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
             type: ToastType.error,
           );
         }

@@ -140,6 +140,11 @@ feature_name/
 - **Usecase Naming:** Verb-first, feature-scoped (e.g., `GetUserProfile`, `UpdateCartItem`) — never generic names like `Handler` or `Manager`.
 - **No Ambiguous/Abbreviated Names:** Avoid unclear shorthand (`mgr`, `tmp`, `data2`). Names must describe intent, not implementation detail.
 
+## 16. Problem Diagnosis & Root Cause Verification Before Execution (MANDATORY)
+- **MANDATORY DIAGNOSIS FIRST:** Before attempting any bug fix, code modification, or refactoring, you MUST first perform a complete diagnostic analysis to confirm whether the root cause originates from the **Frontend** (Flutter UI, BLoC state, data models, router) or the **Backend** (Supabase DB schema, RLS policies, RPC functions, network/server responses).
+- **No Immediate Fixes Without Evidence:** NEVER jump directly into modifying code or writing fixes upon receiving an error report. Always trace the logs, check network/database responses, and verify the exact failure source first.
+- **Clear Root Cause Explanation:** Present your diagnostic findings clearly to the user, explaining whether the issue is Frontend or Backend, before applying or proposing any solution.
+
 ---
 
 **Priority Note:** If any rule above ever conflicts with the Directory Scaffolding in Section 6, Section 6 wins — the folder structure must never be altered to accommodate a new rule; new rules must fit inside the existing structure instead. This scaffolding must stay identical to the one used in the Web Dashboard repo — only the `presentation/` layer's widget implementations are allowed to differ between the two.

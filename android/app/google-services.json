@@ -7,12 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1070210806389:android:d7d5a3b1db6f74cecb3e3c",
+        "mobilesdk_app_id": "1:1070210806389:android:6bfab75d31cb811dcb3e3c",
         "android_client_info": {
-          "package_name": "com.playspot.app"
+          "package_name": "com.playspot.client"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "1070210806389-k76ikq87i2fpoc34nh20n8kgvdb0v9e6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.playspot.client",
+            "certificate_hash": "35a0e5ccf1de03966cbe389e5ff4787ff27ec64d"
+          }
+        },
         {
           "client_id": "1070210806389-2a4mcuu9f2hdrvj82oemg06ftd2fbacd.apps.googleusercontent.com",
           "client_type": 3
