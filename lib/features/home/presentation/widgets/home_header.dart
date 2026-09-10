@@ -76,6 +76,8 @@ class HomeHeader extends StatelessWidget {
               12.horizontalSpace,
               _buildPointsBadge(),
               8.horizontalSpace,
+              _buildSearchButton(context),
+              8.horizontalSpace,
               _buildNotificationBell(context),
             ],
           ),
@@ -119,6 +121,23 @@ class HomeHeader extends StatelessWidget {
               color: Colors.white,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.pushNamed(RouterKeys.search),
+      child: GlassContainer(
+        borderRadius: AppSizes.r12,
+        child: Padding(
+          padding: 8.allPadding,
+          child: Icon(
+            TablerIcons.search,
+            color: Colors.white,
+            size: 20.sp,
+          ),
         ),
       ),
     );
