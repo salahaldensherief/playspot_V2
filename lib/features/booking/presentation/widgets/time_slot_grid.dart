@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../booking_cubit.dart';
 import '../booking_state.dart';
@@ -21,12 +22,14 @@ class TimeSlotGrid extends StatelessWidget {
           previous.durationMinutes != current.durationMinutes ||
           previous.selectedDate != current.selectedDate,
       builder: (context, state) {
-        if (state.status == BookingStatus.loading) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.neonBlue));
+        if (state.status == BookingStatus.loading && state.bookedTimeSlots.isEmpty) {
+          return SizedBox(
+            height: 200.h,
+            child: const AppLoader(size: 40),
+          );
         }
 
-        // Divide slots into tactical shifts
-        final morningSlots = _generateSlots(10, 16); // 10 AM to 4 PM
+        final morningSlots = _generateSlots(10, 16);
         final eveningSlots = _generateSlots(16, 22); // 4 PM to 10 PM
         final nightSlots = _generateSlots(22, 26);   // 10 PM to 2 AM (next day)
 

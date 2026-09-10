@@ -92,7 +92,7 @@ class _LogoWidgetState extends State<LogoWidget>
           style: TextStyle(
             fontFamily: 'Orbitron',
             fontSize: effectiveFontSize,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w400,
             color: textStyleColor,
             letterSpacing: 0.5,
           ),
@@ -116,7 +116,7 @@ class _LogoWidgetState extends State<LogoWidget>
           style: TextStyle(
             fontFamily: 'Orbitron',
             fontSize: effectiveFontSize,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w400,
             color: textStyleColor,
             letterSpacing: 0.5,
           ),

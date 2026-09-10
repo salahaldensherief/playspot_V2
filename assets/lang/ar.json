@@ -313,5 +313,8 @@
   "shareMessage": "انضم إلي في PlaySpot واحصل على نقاط مكافأة! استخدم كود الإحالة الخاص بي: {}",
   "rewardRedeemedDesc": "تم بنجاح! لديك كوبون جديد بكود {}، صالح لمدة 30 يوم.",
   "loyaltyDashboard": "برنامج الولاء والنقاط",
-  "pointsEarnedToast": "🎉 مبروك! حصلت على +{} نقطة! إجمالي النقاط: {}"
+  "pointsEarnedToast": "🎉 مبروك! حصلت على +{} نقطة! إجمالي النقاط: {}",
+  "noOpenShiftError": "لا توجد وردية مفتوحة لهذه الصالة حالياً.",
+  "outsideWorkingHoursError": "الوقت المختار خارج مواعيد عمل الصالة.",
+  "unableToCompleteBooking": "تعذر إتمام الحجز."
 }

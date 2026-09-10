@@ -38,8 +38,9 @@ mixin RepositoryHelper {
           e.message.toLowerCase().contains('invalid permission') ||
           e.message.toLowerCase().contains('row-level security') ||
           e.message.toLowerCase().contains('unauthorized') ||
+          e.message.toLowerCase().contains('not authorized') ||
           e.message.toLowerCase().contains('rls')) {
-        return Left(const AuthFailure("Permission denied. Please verify your account access or role permissions."));
+        return Left(const AuthFailure("ليس لديك صلاحية لتنفيذ هذا الإجراء"));
       }
       
       // Return error code in message for easier filtering in repositories if needed

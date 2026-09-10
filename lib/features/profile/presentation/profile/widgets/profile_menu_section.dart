@@ -34,25 +34,25 @@ class ProfileMenuSection extends StatelessWidget {
           _buildMenuItem(
             icon: TablerIcons.heart,
             title: AppStrings.favorite.tr(),
-            onTap: () => context.goNamed(RouterKeys.favorites),
+            onTap: () => context.pushNamed(RouterKeys.favorites),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.stars,
             title: AppStrings.redeemPoints.tr(),
-            onTap: () => context.goNamed(RouterKeys.redeemPoints),
+            onTap: () => context.pushNamed(RouterKeys.redeemPoints),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.history,
             title: AppStrings.pointsHistory.tr(),
-            onTap: () => context.goNamed(RouterKeys.pointsHistory),
+            onTap: () => context.pushNamed(RouterKeys.pointsHistory),
             showBorder: true,
           ),
           _buildMenuItem(
             icon: TablerIcons.ticket,
             title: AppStrings.myRewards.tr(),
-            onTap: () => context.goNamed(RouterKeys.myVouchers),
+            onTap: () => context.pushNamed(RouterKeys.myVouchers),
             showBorder: true,
           ),
           _buildMenuItem(

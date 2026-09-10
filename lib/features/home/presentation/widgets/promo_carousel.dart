@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/shimmer/promo_shimmer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../home_cubit.dart';
 import '../home_state.dart';
 import 'promo_card.dart';
@@ -21,7 +22,10 @@ class PromoCarousel extends StatelessWidget {
         if (state.status == HomeStatus.loading && state.promotions.isEmpty) {
           return Padding(
             padding: EdgeInsets.only(bottom: 16.h),
-            child: const PromoShimmer(),
+            child: SizedBox(
+              height: 120.h,
+              child: const AppLoader(size: 32),
+            ),
           );
         }
 

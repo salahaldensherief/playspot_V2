@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 1000),
     );
 
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
@@ -50,10 +50,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _handleInitialization() async {
     final locationFuture = _fetchUserLocation().timeout(
-      const Duration(milliseconds: 1500),
+      const Duration(milliseconds: 2500),
       onTimeout: () {},
     );
-    final minDisplayFuture = Future.delayed(const Duration(milliseconds: 1500));
+    final minDisplayFuture = Future.delayed(const Duration(milliseconds: 2500));
 
     await Future.wait([locationFuture, minDisplayFuture]);
 

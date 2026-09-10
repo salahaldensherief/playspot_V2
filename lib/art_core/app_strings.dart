@@ -286,4 +286,7 @@ class AppStrings {
   static const String loungeLocation = "loungeLocation";
   static const String scanDirections = "scanDirections";
   static const String close = "close";
+  static const String noOpenShiftError = "noOpenShiftError";
+  static const String outsideWorkingHoursError = "outsideWorkingHoursError";
+  static const String unableToCompleteBooking = "unableToCompleteBooking";
 }

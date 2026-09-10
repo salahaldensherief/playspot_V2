@@ -313,5 +313,8 @@
   "shareMessage": "Join me on PlaySpot and get bonus points! Use my referral code: {}",
   "rewardRedeemedDesc": "Success! You have a new voucher with code {}, valid for 30 days.",
   "loyaltyDashboard": "Loyalty & Points",
-  "pointsEarnedToast": "🎉 +{} Points Earned! Total Points: {}"
+  "pointsEarnedToast": "🎉 +{} Points Earned! Total Points: {}",
+  "noOpenShiftError": "No open shift is available for this lounge.",
+  "outsideWorkingHoursError": "The selected time is outside the lounge working hours.",
+  "unableToCompleteBooking": "Unable to complete the booking."
 }

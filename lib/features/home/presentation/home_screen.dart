@@ -18,6 +18,7 @@ import 'package:playspot/features/home/presentation/widgets/home_header.dart';
 import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart';
 import 'package:playspot/features/home/presentation/widgets/activity_categories.dart';
 import 'package:playspot/art_core/widgets/shimmer/lounge_card_shimmer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../art_core/widgets/cards/lounge_card.dart';
@@ -254,19 +255,10 @@ class _LoungeList extends StatelessWidget {
       builder: (context, state) {
         if (state.status == HomeStatus.loading &&
             state.nearestLounges.isEmpty) {
-          return SliverPadding(
-            padding: 16.horizontalPadding,
-            sliver: SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 8.w,
-                mainAxisSpacing: 8.h,
-                mainAxisExtent: 215.h,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => const LoungeCardShimmer(),
-                childCount: 4,
-              ),
+          return const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: AppLoader(size: 40),
             ),
           );
         }

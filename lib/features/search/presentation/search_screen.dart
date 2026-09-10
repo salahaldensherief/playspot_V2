@@ -9,6 +9,7 @@ import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/art_core/widgets/shimmer/search_lounge_card_shimmer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/cards/search_lounge_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
@@ -99,12 +100,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     previous.nearestLounges != current.nearestLounges,
                 builder: (context, state) {
                   if (state.status == HomeStatus.loading) {
-                    return ListView.separated(
-                      padding: EdgeInsets.all(16.w),
-                      itemCount: 5,
-                      separatorBuilder: (context, index) => SizedBox(height: 16.h),
-                      itemBuilder: (context, index) => const SearchLoungeCardShimmer(),
-                    );
+                    return const AppLoader(size: 40);
                   }
 
                   final lounges = _filterAndSortLounges(state.nearestLounges);

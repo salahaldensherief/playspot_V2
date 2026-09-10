@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/widgets/shimmer/circle_category_shimmer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../home_cubit.dart';
 import '../home_state.dart';
 import 'category_item.dart';
@@ -19,7 +20,10 @@ class ActivityCategories extends StatelessWidget {
         previous.selectedCategoryIds != current.selectedCategoryIds,
       builder: (context, state) {
         if (state.categories.isEmpty && state.status == HomeStatus.loading) {
-          return const CircleCategoryShimmer();
+          return SizedBox(
+            height: 60.h,
+            child: const AppLoader(size: 28),
+          );
         }
 
         if (state.categories.isEmpty) {

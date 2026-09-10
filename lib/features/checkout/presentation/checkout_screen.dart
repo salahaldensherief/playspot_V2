@@ -26,6 +26,7 @@ import 'package:playspot/features/profile/presentation/profile/profile_state.dar
 import '../../../art_core/widgets/layout/glass_container.dart';
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
 import '../../../core/cache/preference_manager.dart';
+import '../../../core/utils/booking_error_formatter.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 
@@ -62,9 +63,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             if (state.status == CheckoutStatus.success) {
               _showSuccessDialog(context);
             } else if (state.status == CheckoutStatus.failure) {
+              final isEnglish = context.locale.languageCode == 'en';
+              final errorMsg = getBookingErrorMessage(
+                state.errorMessage ?? '',
+                isEnglish,
+              );
               GameHudToast.show(
                 context,
-                state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                errorMsg,
                 type: ToastType.error,
               );
             }
@@ -797,11 +803,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     final totalDiscount = roomPromoDiscount + state.discountAmount;
                     final finalPrice = widget.params.totalPrice - state.discountAmount;
 
+                    final targetLoungeId = widget.params.room.loungeId.isNotEmpty
+                        ? widget.params.room.loungeId
+                        : widget.params.lounge.id;
+
                     context.read<CheckoutCubit>().processPayment(
                       CreateBookingParams(
                         roomId: widget.params.room.id,
                         roomName: widget.params.room.getName(context.locale.languageCode == 'ar'),
-                        loungeId: widget.params.lounge.id,
+                        loungeId: targetLoungeId,
                         userName: userName,
                         userPhone: userPhone,
                         startTime: startDateTime,

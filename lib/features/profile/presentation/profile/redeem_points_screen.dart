@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/art_core/widgets/shimmer/redemption_option_shimmer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -80,11 +80,7 @@ class RedeemPointsScreen extends StatelessWidget {
                     previous.pointsBalance != current.pointsBalance,
                 builder: (context, state) {
                   if (state.status == ProfileStatus.loading) {
-                    return ListView.builder(
-                      padding: EdgeInsets.all(20.w),
-                      itemCount: 5,
-                      itemBuilder: (context, index) => const RedemptionOptionShimmer(),
-                    );
+                    return const AppLoader(size: 40);
                   }
 
                   if (state.redemptionOptions.isEmpty) {

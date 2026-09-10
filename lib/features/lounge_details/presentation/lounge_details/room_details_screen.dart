@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/lounge_details/domain/repositories/lounge_details_repository.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -68,7 +69,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
-        body: Center(child: CircularProgressIndicator(color: AppColors.neonBlue)),
+        body: AppLoader(size: 40),
       );
     }
 

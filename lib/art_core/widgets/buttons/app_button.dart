@@ -5,6 +5,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_animator.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../theme/app_colors.dart'; // ✅ المسار صح
 
 class AppButton extends StatefulWidget {
@@ -133,10 +134,11 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
         child: child,
       ),
       child: widget.behavior.isLoading
-          ? CupertinoActivityIndicator(
+          ? AppLoader(
               key: const ValueKey('loading'),
-              color: widget.buttonConfig.loadingColor,
-              radius: 15,
+              size: 22,
+              strokeWidth: 2.5,
+              color: widget.buttonConfig.loadingColor ?? (widget.buttonConfig.gradient != null ? Colors.black : Colors.white),
             )
           : ButtonContentWidget(
               key: const ValueKey('content'),

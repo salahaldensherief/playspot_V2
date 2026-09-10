@@ -257,6 +257,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final metadata = user.userMetadata ?? {};
       final fullName = metadata['full_name'] ?? metadata['name'] ?? user.email?.split('@').first ?? '';
 
+      // Save profile to profiles table - throw if saving fails
       await _supabase.from('profiles').upsert({
         'id': userId,
         'full_name': fullName,

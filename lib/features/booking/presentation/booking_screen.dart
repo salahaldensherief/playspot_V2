@@ -16,6 +16,7 @@ import 'package:playspot/art_core/widgets/text/price_widget.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import '../../../art_core/router/router_keys.dart';
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
+import '../../../core/utils/booking_error_formatter.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/time_slot_grid.dart';
@@ -35,6 +36,7 @@ class BookingScreen extends StatefulWidget {
 
 class _BookingScreenState extends State<BookingScreen> {
   final ScrollController _scrollController = ScrollController();
+  bool _isVerifying = false;
 
   @override
   void dispose() {
@@ -51,10 +53,15 @@ class _BookingScreenState extends State<BookingScreen> {
           (previous.status != current.status && current.status == BookingStatus.error),
       listener: (context, state) {
         if (state.status == BookingStatus.error && state.errorMessage != null) {
+          final isEnglish = context.locale.languageCode == 'en';
+          final errorMsg = getBookingErrorMessage(
+            state.errorMessage!,
+            isEnglish,
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                state.errorMessage?.tr() ?? '',
+                errorMsg,
                 style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: AppColors.danger,
@@ -287,14 +294,20 @@ class _BookingScreenState extends State<BookingScreen> {
                     width: 180.w,
                     child: AppButton(
                       content: ButtonContent(
-                        label: AppStrings.confirmAndPay.tr(),
+                        label: _isVerifying
+                            ? AppStrings.processing.tr()
+                            : AppStrings.confirmAndPay.tr(),
                       ),
                       behavior: ButtonBehavior.tap(
-                        isEnabled: isReady,
-                        onTap: isReady
+                        isEnabled: isReady && !_isVerifying,
+                        onTap: (isReady && !_isVerifying)
                             ? () async {
+                                setState(() => _isVerifying = true);
                                 final cubit = context.read<BookingCubit>();
                                 final isAvailable = await cubit.verifyAvailabilityBeforeProceed();
+                                if (mounted) {
+                                  setState(() => _isVerifying = false);
+                                }
                                 if (!isAvailable || !context.mounted) return;
 
                                 final appliedRate = state.playMode == PlayMode.single 
@@ -329,7 +342,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       ),
                       buttonConfig: ButtonConfig(
                         backgroundColor:
-                            isReady ? AppColors.success : AppColors.cardBackground,
+                            (isReady && !_isVerifying) ? AppColors.success : AppColors.cardBackground,
                         borderRadius: AppSizes.r12,
                       ),
                     ),

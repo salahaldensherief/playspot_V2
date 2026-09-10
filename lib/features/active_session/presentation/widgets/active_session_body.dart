@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
+import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
@@ -30,9 +31,7 @@ class ActiveSessionBody extends StatelessWidget {
       builder: (context, state) {
         if (state.status == ActiveSessionStatus.loading ||
             state.status == ActiveSessionStatus.initial) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.neonBlue),
-          );
+          return const AppLoader(size: 40);
         }
 
         if (state.status == ActiveSessionStatus.error) {

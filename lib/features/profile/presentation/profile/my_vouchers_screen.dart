@@ -9,6 +9,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
 
@@ -57,7 +58,7 @@ class MyVouchersScreen extends StatelessWidget {
               previous.status != current.status,
           builder: (context, state) {
             if (state.status == ProfileStatus.loading) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.neonBlue));
+              return const AppLoader(size: 40);
             }
 
             final vouchers = state.myVouchers;
