@@ -10,6 +10,7 @@ abstract class ProfileRepository {
   UserModel? getCurrentUser();
   Future<Either<Failure, UserModel>> getUserProfile();
   Future<Either<Failure, int>> getPointsBalance();
+  Future<Either<Failure, List<Map<String, dynamic>>>> getPointsHistory();
   Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions();
   Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId);
   Future<Either<Failure, List<Map<String, dynamic>>>> getMyVouchers();

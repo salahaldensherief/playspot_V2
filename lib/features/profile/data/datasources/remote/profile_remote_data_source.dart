@@ -12,6 +12,7 @@ abstract class ProfileRemoteDataSource {
   UserModel? getCurrentUser();
   Future<UserModel> getUserProfile();
   Future<int> getPointsBalance();
+  Future<List<Map<String, dynamic>>> getPointsHistory();
   Future<List<RedemptionOptionModel>> getRedemptionOptions();
   Future<Map<String, dynamic>> redeemPoints(String optionId);
   Future<List<Map<String, dynamic>>> getMyVouchers();
@@ -82,6 +83,27 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       return response as int? ?? 0;
     } catch (e) {
       return 0;
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getPointsHistory() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return [];
+      try {
+        final response = await _supabase.rpc('get_points_history');
+        return List<Map<String, dynamic>>.from(response);
+      } catch (_) {
+        final response = await _supabase
+            .from('points_transactions')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', ascending: false);
+        return List<Map<String, dynamic>>.from(response as List);
+      }
+    } catch (e) {
+      return [];
     }
   }
 

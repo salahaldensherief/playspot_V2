@@ -45,6 +45,7 @@ import '../../features/profile/presentation/legal/terms_and_conditions_screen.da
 import '../../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 import '../../features/profile/presentation/profile/redeem_points_screen.dart';
+import '../../features/profile/presentation/profile/points_history_screen.dart';
 import '../../features/profile/presentation/profile/my_vouchers_screen.dart';
 import '../../features/active_session/presentation/active_session_screen.dart';
 import '../../features/active_session/presentation/active_session_cubit.dart';
@@ -463,6 +464,15 @@ class AppRouter {
               context: context,
               state: state,
               child: const RedeemPointsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.pointsHistory,
+            name: RouterKeys.pointsHistory,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: const PointsHistoryScreen(),
             ),
           ),
           GoRoute(

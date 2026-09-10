@@ -99,20 +99,27 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       if (params.referralCode != null && params.referralCode!.trim().isNotEmpty) {
         try {
-          final referrer = await _supabase
-              .from('profiles')
-              .select('id')
-              .eq('referral_code', params.referralCode!.trim())
-              .maybeSingle();
+          await _supabase.rpc('process_referral', params: {
+            'p_referral_code': params.referralCode!.trim(),
+            'p_new_user_id': userId,
+          });
+        } catch (_) {
+          try {
+            final referrer = await _supabase
+                .from('profiles')
+                .select('id')
+                .eq('referral_code', params.referralCode!.trim())
+                .maybeSingle();
 
-          if (referrer != null) {
-            await _supabase.from('referrals').insert({
-              'referrer_id': referrer['id'],
-              'referred_id': userId,
-            });
+            if (referrer != null) {
+              await _supabase.from('referrals').insert({
+                'referrer_id': referrer['id'],
+                'referred_id': userId,
+              });
+            }
+          } catch (e) {
+            debugPrint(' [Referral] Error processing referral: $e');
           }
-        } catch (e) {
-          debugPrint(' [Referral] Error processing referral: $e');
         }
       }
 
@@ -356,9 +363,14 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> deleteAccount() async {
     try {
-      debugPrint(' [Auth] Attempting to delete account via RPC...');
-      await _supabase.rpc('delete_user_account');
-      debugPrint(' [Auth] RPC delete_user_account executed successfully.');
+      debugPrint(' [Auth] Calling delete-account Edge Function...');
+      try {
+        await _supabase.functions.invoke('delete-account');
+      } catch (e) {
+        debugPrint(' [Auth] Edge Function delete-account error ($e), falling back to RPC...');
+        await _supabase.rpc('delete_user_account');
+      }
+      debugPrint(' [Auth] Account deletion executed successfully.');
       await signOut();
       debugPrint(' [Auth] Signed out after deletion.');
     } on AuthException catch (e) {
@@ -371,6 +383,15 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   }
 
   Future<bool> _checkIsNewUser(String userId) async {
+    final user = _supabase.auth.currentUser;
+    final authPhone = user?.phone?.trim();
+    final metadataPhone = user?.userMetadata?['phone']?.toString().trim();
+    final hasAuthPhone = (authPhone?.isNotEmpty ?? false) || (metadataPhone?.isNotEmpty ?? false);
+
+    if (hasAuthPhone) {
+      return false;
+    }
+
     try {
       final profile = await _supabase
           .from('profiles')
@@ -380,13 +401,13 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       if (profile == null) return true;
 
-      final phone = profile['phone'];
-      final isPhoneMissing = phone == null || phone.toString().trim().isEmpty;
+      final phone = profile['phone']?.toString().trim();
+      final isPhoneMissing = phone == null || phone.isEmpty;
 
       return isPhoneMissing;
     } catch (e) {
       debugPrint('[Auth] Error checking isNewUser for $userId: $e');
-      return true;
+      return false;
     }
   }
 

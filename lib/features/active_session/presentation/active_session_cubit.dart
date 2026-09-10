@@ -30,11 +30,18 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
       dev.log("[LIVESESSION_CUBIT] WATCH USER SESSIONS STREAM ERROR: $err");
       _userSessionsSubscription?.cancel();
       _userSessionsSubscription = null;
-      Future.delayed(const Duration(seconds: 5), () {
-        if (!isClosed) {
-          _watchUserSessions();
-        }
-      });
+      final errStr = err.toString().toLowerCase();
+      final isAuthError = errStr.contains('permission denied') ||
+          errStr.contains('unauthorized') ||
+          errStr.contains('jwt expired') ||
+          errStr.contains('not authenticated');
+      if (!isAuthError) {
+        Future.delayed(const Duration(seconds: 5), () {
+          if (!isClosed) {
+            _watchUserSessions();
+          }
+        });
+      }
     });
   }
 

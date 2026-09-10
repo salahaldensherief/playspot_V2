@@ -46,7 +46,7 @@ class ProfileMenuSection extends StatelessWidget {
           _buildMenuItem(
             icon: TablerIcons.history,
             title: AppStrings.pointsHistory.tr(),
-            onTap: () => _showComingSoon(context),
+            onTap: () => context.goNamed(RouterKeys.pointsHistory),
             showBorder: true,
           ),
           _buildMenuItem(

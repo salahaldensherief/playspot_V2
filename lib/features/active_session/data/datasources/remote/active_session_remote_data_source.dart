@@ -153,21 +153,26 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   @override
   Stream<ActiveSessionModel?> watchUserActiveSession() async* {
     dev.log("[LIVESESSION_DS] WATCH_USER_ACTIVE_SESSION");
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) {
-      yield null;
-      return;
-    }
-
     int retryCount = 0;
     while (true) {
+      final currentUserId = _client.auth.currentUser?.id;
+      if (currentUserId == null) {
+        dev.log("[LIVESESSION_DS] No authenticated user, ending watchUserActiveSession");
+        yield null;
+        return;
+      }
+
       try {
         final stream = _client
             .from('bookings')
             .stream(primaryKey: ['id'])
-            .eq('user_id', userId);
+            .eq('user_id', currentUserId);
 
         await for (final list in stream) {
+          if (_client.auth.currentUser == null) {
+            yield null;
+            return;
+          }
           retryCount = 0;
           try {
             final now = DateTime.now();
@@ -193,6 +198,11 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         }
         break;
       } catch (e, st) {
+        if (_client.auth.currentUser == null || e.toString().contains('permission denied') || e.toString().contains('Unauthorized') || retryCount >= 3) {
+          dev.log("[LIVESESSION_DS] Unauthenticated or permission error on stream, stopping watchUserActiveSession: $e");
+          yield null;
+          return;
+        }
         retryCount++;
         dev.log(
           "[LIVESESSION_DS] WATCH_USER_ACTIVE_SESSION STREAM_ERROR (Attempt $retryCount, code 1002 / channelError): $e",
@@ -201,7 +211,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         );
 
         final backoffSeconds = (1 << (retryCount > 4 ? 4 : retryCount)).clamp(1, 10);
-        dev.log("[LIVESESSION_DS] Unsubscribed failed watch channel. Re-subscribing in ${backoffSeconds}s...");
+        dev.log("[LIVESESSION_DS] Unsubscribed failed channel. Re-subscribing in ${backoffSeconds}s...");
         await Future.delayed(Duration(seconds: backoffSeconds));
       }
     }

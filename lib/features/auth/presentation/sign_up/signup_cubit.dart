@@ -166,13 +166,16 @@ class SignupCubit extends Cubit<SignupState> {
     );
   }
 
-  Future<void> completeProfile() async {
-    log("SIGNUP_CUBIT: Completing profile for user: ${state.params.id}");
+  Future<void> completeProfile({String? userId}) async {
+    final targetUserId = (userId != null && userId.isNotEmpty)
+        ? userId
+        : state.params.id;
+    log("SIGNUP_CUBIT: Completing profile for user: $targetUserId");
     if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
     final result = await _authRepository.completeProfile(
       CompleteProfileParams(
-        userId: state.params.id,
+        userId: targetUserId,
         phone: phoneController.text.trim(),
         avatarFile: avatarFile,
       ),

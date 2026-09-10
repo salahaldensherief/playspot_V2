@@ -92,7 +92,7 @@ class CompleteProfileScreen extends StatelessWidget {
                           isLoading: isLoading,
                           onTap: () {
                             if (cubit.formKey.currentState?.validate() ?? false) {
-                              cubit.completeProfile();
+                              cubit.completeProfile(userId: userId);
                             }
                           },
                         ),

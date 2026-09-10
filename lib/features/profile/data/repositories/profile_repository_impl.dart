@@ -3,7 +3,7 @@ import '../../../../core/cache/preference_manager.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../../auth/data/models/user_model.dart';
-import '../../domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../datasources/remote/profile_remote_data_source.dart';
 import '../models/notification_settings_model.dart';
 import '../models/redemption_option_model.dart';
@@ -23,6 +23,11 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   @override
   Future<Either<Failure, int>> getPointsBalance() async {
     return await callRepository(() => _remoteSource.getPointsBalance());
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getPointsHistory() async {
+    return await callRepository<List<Map<String, dynamic>>>(() => _remoteSource.getPointsHistory());
   }
 
   @override
