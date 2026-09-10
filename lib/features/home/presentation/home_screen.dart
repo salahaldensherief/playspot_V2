@@ -17,7 +17,6 @@ import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/widgets/home_header.dart';
 import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart';
 import 'package:playspot/features/home/presentation/widgets/activity_categories.dart';
-import 'package:playspot/art_core/widgets/shimmer/lounge_card_shimmer.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
@@ -47,6 +46,7 @@ class _HomeViewState extends State<_HomeView> {
   late final String userName;
   late final String currentLocation;
   final ScrollController _scrollController = ScrollController();
+  bool _isLoadingMoreTriggered = false;
 
   @override
   void initState() {
@@ -82,7 +82,10 @@ class _HomeViewState extends State<_HomeView> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final state = context.read<HomeCubit>().state;
-      if (state.status != HomeStatus.loadingMore && !state.hasReachedMax) {
+      if (!_isLoadingMoreTriggered &&
+          state.status != HomeStatus.loadingMore &&
+          !state.hasReachedMax) {
+        _isLoadingMoreTriggered = true;
         context.read<HomeCubit>().loadMore();
       }
     }
@@ -90,55 +93,63 @@ class _HomeViewState extends State<_HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
-      body: Stack(
-        children: [
-          // Background decoration - wrapped in RepaintBoundary to avoid repainting on scroll
-          const RepaintBoundary(child: _HomeBackground()),
-          SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () => context.read<HomeCubit>().refreshHome(),
-              color: AppColors.neonBlue,
-              backgroundColor: AppColors.cardBackground,
-              child: CustomScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  _HomeSliverAppBar(
-                    userName: userName,
-                    currentLocation: currentLocation,
-                  ),
-                  const SliverToBoxAdapter(child: PromoCarousel()),
-                  const _BrowseByCategorySection(),
-                  const _LoungeSectionHeader(),
-                  _LoungeList(),
-                  BlocBuilder<HomeCubit, HomeState>(
-                    buildWhen: (previous, current) =>
-                        previous.status != current.status,
-                    builder: (context, state) {
-                      if (state.status == HomeStatus.loadingMore) {
-                        return SliverToBoxAdapter(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16.h),
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                color: AppColors.neonBlue,
+    return BlocListener<HomeCubit, HomeState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        if (state.status != HomeStatus.loadingMore) {
+          _isLoadingMoreTriggered = false;
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        body: Stack(
+          children: [
+            // Background decoration - wrapped in RepaintBoundary to avoid repainting on scroll
+            const RepaintBoundary(child: _HomeBackground()),
+            SafeArea(
+              child: RefreshIndicator(
+                onRefresh: () => context.read<HomeCubit>().refreshHome(),
+                color: AppColors.neonBlue,
+                backgroundColor: AppColors.cardBackground,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    _HomeSliverAppBar(
+                      userName: userName,
+                      currentLocation: currentLocation,
+                    ),
+                    const SliverToBoxAdapter(child: PromoCarousel()),
+                    const _BrowseByCategorySection(),
+                    const _LoungeSectionHeader(),
+                    _LoungeList(),
+                    BlocBuilder<HomeCubit, HomeState>(
+                      buildWhen: (previous, current) =>
+                          previous.status != current.status,
+                      builder: (context, state) {
+                        if (state.status == HomeStatus.loadingMore) {
+                          return SliverToBoxAdapter(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: AppColors.neonBlue,
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      }
-                      return const SliverToBoxAdapter(child: SizedBox.shrink());
-                    },
-                  ),
-                  SliverBottomSpacing(height: 150.h),
-                  const SliverSafeBottomSpacer(androidOnly: false),
-                ],
+                          );
+                        }
+                        return const SliverToBoxAdapter(child: SizedBox.shrink());
+                      },
+                    ),
+                    SliverBottomSpacing(height: 150.h),
+                    const SliverSafeBottomSpacer(androidOnly: false),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -313,6 +324,7 @@ class _LoungeList extends StatelessWidget {
               final lounge = lounges[index];
               final heroTag = 'lounge_${lounge.id}_main';
               return LoungeCard(
+                key: ValueKey(lounge.id),
                 lounge: lounge,
                 heroTag: heroTag,
                 onTap: () {

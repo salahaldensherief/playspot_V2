@@ -354,7 +354,8 @@ class _LoungeCardState extends State<LoungeCard> {
     return CachedNetworkImage(
       imageUrl: "$rawUrl?width=400&quality=80",
       fit: BoxFit.cover,
-      memCacheHeight: 400,
+      memCacheWidth: 350,
+      memCacheHeight: 430,
       placeholder: (context, url) => Container(
         color: AppColors.mutedBackground,
         child: const Center(
