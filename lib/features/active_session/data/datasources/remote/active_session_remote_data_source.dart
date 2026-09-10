@@ -252,13 +252,24 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
               .select('end_time, extensions_price, total_price')
               .eq('id', bookingId)
               .single();
-          final currentEnd = DateTime.parse(booking['end_time']);
+          final rawEnd = booking['end_time']?.toString() ?? '';
+          DateTime currentEnd;
+          if (rawEnd.contains('T')) {
+            currentEnd = DateTime.parse(rawEnd);
+          } else if (rawEnd.contains(':')) {
+            final parts = rawEnd.split(':');
+            final now = DateTime.now();
+            currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
+          } else {
+            currentEnd = DateTime.now();
+          }
           final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
+          final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
           final currentExtPrice = (booking['extensions_price'] as num?)?.toDouble() ?? 0.0;
           final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
 
           await _client.from('bookings').update({
-            'end_time': newEnd.toIso8601String(),
+            'end_time': newEndStr,
             'extensions_price': currentExtPrice + additionalCost,
             'total_price': currentTotal + additionalCost,
           }).eq('id', bookingId);
@@ -286,13 +297,24 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     dev.log("[LIVESESSION_DS] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}");
     try {
       if (items.isEmpty) return;
-      final itemsToInsert = items.map((item) => {
-        'booking_id': bookingId,
-        'item_id': item.id,
-        'name': item.name,
-        'quantity': item.quantity,
-        'price': item.price,
-        'note': item.note,
+      final itemsToInsert = items.map((item) {
+        final id = item.id;
+        final p = item.price;
+        final q = item.quantity;
+        final totalP = item.total > 0 ? item.total : p * q;
+
+        return {
+          'booking_id': bookingId,
+          if (id.isNotEmpty) 'product_id': id,
+          if (id.isNotEmpty) 'item_id': id,
+          if (id.isNotEmpty) 'extra_id': id,
+          'name': item.name,
+          'quantity': q,
+          'price': p,
+          'unit_price': p,
+          'total_price': totalP,
+          if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
+        };
       }).toList();
 
       await _client.from('booking_items').insert(itemsToInsert);

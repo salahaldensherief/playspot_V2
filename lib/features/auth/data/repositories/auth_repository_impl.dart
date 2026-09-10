@@ -72,11 +72,17 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   @override
   UserModel? getCurrentUser() {
     final cachedUser = _localDataSource.getCachedUser();
-    if (cachedUser != null) return cachedUser;
 
     final user = _remoteSource.getCurrentUser();
-    if (user != null) _localDataSource.saveUserData(user);
-    return user;
+    if (user != null) {
+      final phone = (user.phone != null && user.phone!.trim().isNotEmpty)
+          ? user.phone
+          : cachedUser?.phone;
+      final updated = user.copyWith(phone: phone);
+      _localDataSource.saveUserData(updated);
+      return updated;
+    }
+    return cachedUser;
   }
 
   @override

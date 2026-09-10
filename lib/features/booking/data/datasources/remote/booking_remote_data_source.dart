@@ -55,8 +55,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final user = _client.auth.currentUser;
     
     final datePart = "${params.startTime.year}-${params.startTime.month.toString().padLeft(2, '0')}-${params.startTime.day.toString().padLeft(2, '0')}";
-    final startPart = "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:00";
-    final endPart = "${params.endTime.hour.toString().padLeft(2, '0')}:${params.endTime.minute.toString().padLeft(2, '0')}:00";
+    final startPart = "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:${params.startTime.second.toString().padLeft(2, '0')}";
+    final endPart = "${params.endTime.hour.toString().padLeft(2, '0')}:${params.endTime.minute.toString().padLeft(2, '0')}:${params.endTime.second.toString().padLeft(2, '0')}";
 
     final fallbackName = user?.userMetadata?['full_name']?.toString() ??
         user?.userMetadata?['name']?.toString() ??
@@ -67,6 +67,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
     final finalUserName = params.userName.isNotEmpty ? params.userName : fallbackName;
     final finalUserPhone = params.userPhone.isNotEmpty ? params.userPhone : fallbackPhone;
+
+    final durationMinutes = params.endTime.difference(params.startTime).inMinutes;
 
     // Insert core booking
     final response = await _client.from('bookings').insert({
@@ -79,6 +81,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'date': datePart,
       'start_time': startPart,
       'end_time': endPart,
+      'duration_minutes': durationMinutes,
       'total_price': params.totalPrice,
       'room_price': params.roomPrice,
       if (params.discountAmount > 0) 'discount_amount': params.discountAmount,
@@ -93,40 +96,30 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     if (bookingId != null && params.addOns.isNotEmpty) {
       try {
         final itemsToInsert = params.addOns.map((e) {
-          final id = e['id']?.toString() ?? e['extra_id']?.toString() ?? e['item_id']?.toString();
+          final id = e['id']?.toString() ?? e['extra_id']?.toString() ?? e['item_id']?.toString() ?? e['product_id']?.toString();
+          final name = e['name']?.toString() ?? e['title']?.toString() ?? 'Extra';
+          final p = (e['price'] as num?)?.toDouble() ?? 0.0;
+          final q = (e['quantity'] as num?)?.toInt() ?? 1;
+          final totalP = p * q;
+          final note = e['note']?.toString();
+
           return {
             'booking_id': bookingId,
+            if (id != null && id.isNotEmpty) 'product_id': id,
+            if (id != null && id.isNotEmpty) 'item_id': id,
             if (id != null && id.isNotEmpty) 'extra_id': id,
-            'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
-            'price': (e['price'] as num?)?.toDouble() ?? 0.0,
-            'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
-            if (e['note'] != null && e['note'].toString().isNotEmpty) 'note': e['note'].toString(),
+            'name': name,
+            'quantity': q,
+            'price': p,
+            'unit_price': p,
+            'total_price': totalP,
+            if (note != null && note.isNotEmpty) 'note': note,
           };
         }).toList();
 
         await _client.from('booking_items').insert(itemsToInsert);
       } catch (e) {
-        try {
-          final itemsToInsertWithItemId = params.addOns.map((e) {
-            final id = e['id']?.toString() ?? e['item_id']?.toString() ?? e['extra_id']?.toString();
-            return {
-              'booking_id': bookingId,
-              if (id != null && id.isNotEmpty) 'item_id': id,
-              'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
-              'price': (e['price'] as num?)?.toDouble() ?? 0.0,
-              'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
-            };
-          }).toList();
-          await _client.from('booking_items').insert(itemsToInsertWithItemId);
-        } catch (_) {
-          final basicItems = params.addOns.map((e) => {
-            'booking_id': bookingId,
-            'name': e['name']?.toString() ?? e['title']?.toString() ?? 'Extra',
-            'price': (e['price'] as num?)?.toDouble() ?? 0.0,
-            'quantity': (e['quantity'] as num?)?.toInt() ?? 1,
-          }).toList();
-          await _client.from('booking_items').insert(basicItems);
-        }
+        dev.log("Error inserting booking_items: $e");
       }
     }
 
@@ -158,13 +151,24 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     } catch (e) {
       try {
         final booking = await _client.from('bookings').select('end_time, extensions_price, total_price').eq('id', bookingId).single();
-        final currentEnd = DateTime.parse(booking['end_time']);
+        final rawEnd = booking['end_time']?.toString() ?? '';
+        DateTime currentEnd;
+        if (rawEnd.contains('T')) {
+          currentEnd = DateTime.parse(rawEnd);
+        } else if (rawEnd.contains(':')) {
+          final parts = rawEnd.split(':');
+          final now = DateTime.now();
+          currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
+        } else {
+          currentEnd = DateTime.now();
+        }
         final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
+        final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
         final currentExtPrice = (booking['extensions_price'] as num?)?.toDouble() ?? 0.0;
         final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
 
         await _client.from('bookings').update({
-          'end_time': newEnd.toIso8601String(),
+          'end_time': newEndStr,
           'extensions_price': currentExtPrice + additionalCost,
           'total_price': currentTotal + additionalCost,
         }).eq('id', bookingId);
@@ -256,13 +260,22 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   }) async {
     final validUserId = _client.auth.currentUser?.id ?? userId;
     final itemsToInsert = items.map((item) {
-      final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString();
+      final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString();
+      final name = item['name']?.toString() ?? item['title']?.toString() ?? 'Extra';
+      final p = (item['price'] as num?)?.toDouble() ?? 0.0;
+      final q = (item['quantity'] as num?)?.toInt() ?? 1;
+      final totalP = p * q;
+
       return {
         'booking_id': bookingId,
+        if (id != null && id.isNotEmpty) 'product_id': id,
+        if (id != null && id.isNotEmpty) 'item_id': id,
         if (id != null && id.isNotEmpty) 'extra_id': id,
-        'name': item['name']?.toString() ?? item['title']?.toString() ?? 'Extra',
-        'price': (item['price'] as num?)?.toDouble() ?? 0.0,
-        'quantity': (item['quantity'] as num?)?.toInt() ?? 1,
+        'name': name,
+        'quantity': q,
+        'price': p,
+        'unit_price': p,
+        'total_price': totalP,
         if (note.isNotEmpty) 'note': note,
       };
     }).toList();

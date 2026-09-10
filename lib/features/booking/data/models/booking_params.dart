@@ -27,12 +27,20 @@ class BookingDetailsParams extends Equatable {
 
   factory BookingDetailsParams.fromMap(Map<String, dynamic> map) {
     return BookingDetailsParams(
-      lounge: map['lounge'] as LoungeModel,
-      room: map['room'] as RoomModel,
-      selectedDate: map['selectedDate'] as DateTime,
-      extras: List<Map<String, dynamic>>.from(map['extras'] ?? []),
+      lounge: map['lounge'] is LoungeModel
+          ? map['lounge'] as LoungeModel
+          : LoungeModel.fromJson(Map<String, dynamic>.from(map['lounge'] as Map)),
+      room: map['room'] is RoomModel
+          ? map['room'] as RoomModel
+          : RoomModel.fromJson(Map<String, dynamic>.from(map['room'] as Map)),
+      selectedDate: map['selectedDate'] is DateTime
+          ? map['selectedDate'] as DateTime
+          : DateTime.parse(map['selectedDate'].toString()),
+      extras: map['extras'] != null
+          ? (map['extras'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()
+          : [],
       playMode: map['playMode']?.toString() ?? 'single',
-      extraControllers: map['extraControllers'] as int? ?? 0,
+      extraControllers: (map['extraControllers'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -48,14 +56,7 @@ class BookingDetailsParams extends Equatable {
   }
 
   factory BookingDetailsParams.fromJson(Map<String, dynamic> json) {
-    return BookingDetailsParams(
-      lounge: LoungeModel.fromJson(json['lounge'] as Map<String, dynamic>),
-      room: RoomModel.fromJson(json['room'] as Map<String, dynamic>),
-      selectedDate: DateTime.parse(json['selectedDate'] as String),
-      extras: List<Map<String, dynamic>>.from(json['extras'] ?? []),
-      playMode: json['playMode']?.toString() ?? 'single',
-      extraControllers: json['extraControllers'] as int? ?? 0,
-    );
+    return BookingDetailsParams.fromMap(json);
   }
 }
 
@@ -119,6 +120,8 @@ class CreateBookingParams extends Equatable {
       'user_phone': userPhone,
       'start_at': startTime.toIso8601String(),
       'end_at': endTime.toIso8601String(),
+      'start_time': "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}:${startTime.second.toString().padLeft(2, '0')}",
+      'end_time': "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:${endTime.second.toString().padLeft(2, '0')}",
       'total_price': totalPrice,
       'room_price': roomPrice,
       'discount_amount': discountAmount,
@@ -177,20 +180,46 @@ class CheckoutParams extends Equatable {
       ];
 
   factory CheckoutParams.fromMap(Map<String, dynamic> map) {
+    final rawStartTime = map['startTime'];
+    TimeOfDay parsedStartTime;
+    if (rawStartTime is TimeOfDay) {
+      parsedStartTime = rawStartTime;
+    } else if (rawStartTime is Map) {
+      parsedStartTime = TimeOfDay(
+        hour: (rawStartTime['hour'] as num).toInt(),
+        minute: (rawStartTime['minute'] as num).toInt(),
+      );
+    } else if (rawStartTime is String) {
+      final parts = rawStartTime.split(':');
+      parsedStartTime = TimeOfDay(
+        hour: int.parse(parts[0]),
+        minute: int.parse(parts[1]),
+      );
+    } else {
+      parsedStartTime = const TimeOfDay(hour: 0, minute: 0);
+    }
+
     return CheckoutParams(
-      lounge: map['lounge'] as LoungeModel,
-      room: map['room'] as RoomModel,
-      date: map['date'] is String ? DateTime.parse(map['date']) : map['date'] as DateTime,
-      startTime: map['startTime'] is Map 
-          ? TimeOfDay(hour: map['startTime']['hour'], minute: map['startTime']['minute'])
-          : map['startTime'] as TimeOfDay,
-      duration: map['duration'] as int,
+      lounge: map['lounge'] is LoungeModel
+          ? map['lounge'] as LoungeModel
+          : LoungeModel.fromJson(Map<String, dynamic>.from(map['lounge'] as Map)),
+      room: map['room'] is RoomModel
+          ? map['room'] as RoomModel
+          : RoomModel.fromJson(Map<String, dynamic>.from(map['room'] as Map)),
+      date: map['date'] is DateTime
+          ? map['date'] as DateTime
+          : DateTime.parse(map['date'].toString()),
+      startTime: parsedStartTime,
+      duration: (map['duration'] as num).toInt(),
       totalPrice: (map['totalPrice'] as num).toDouble(),
-      originalTotalPrice: (map['originalTotalPrice'] as num?)?.toDouble() ?? (map['totalPrice'] as num).toDouble(),
-      addOns: List<Map<String, dynamic>>.from(map['addOns'] ?? []),
-      playMode: map['playMode']?.toString(),
+      originalTotalPrice: (map['originalTotalPrice'] as num?)?.toDouble() ??
+          (map['totalPrice'] as num).toDouble(),
+      addOns: map['addOns'] != null
+          ? (map['addOns'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()
+          : [],
+      playMode: map['playMode']?.toString() ?? map['play_mode']?.toString(),
       appliedHourlyRate: (map['appliedHourlyRate'] as num?)?.toDouble(),
-      extraControllers: map['extraControllers'] as int?,
+      extraControllers: (map['extraControllers'] as num?)?.toInt(),
       extraControllerPrice: (map['extraControllerPrice'] as num?)?.toDouble(),
     );
   }
@@ -205,6 +234,7 @@ class CheckoutParams extends Equatable {
       'totalPrice': totalPrice,
       'originalTotalPrice': originalTotalPrice,
       'addOns': addOns,
+      'playMode': playMode,
       'play_mode': playMode,
       'appliedHourlyRate': appliedHourlyRate,
       'extraControllers': extraControllers,

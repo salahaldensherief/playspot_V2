@@ -63,11 +63,18 @@ class UserModel extends UserEntity {
     final metadata =
         supabaseUser['user_metadata'] as Map<String, dynamic>? ?? {};
     final rawRole = metadata['role'] as String? ?? supabaseUser['role'] as String?;
+
+    final phoneVal = (supabaseUser['phone'] as String?)?.trim();
+    final metadataPhone = (metadata['phone'] as String?)?.trim();
+    final finalPhone = (phoneVal != null && phoneVal.isNotEmpty)
+        ? phoneVal
+        : (metadataPhone != null && metadataPhone.isNotEmpty ? metadataPhone : null);
+
     return UserModel(
       id: supabaseUser['id'] as String,
       name: metadata['full_name'] as String? ?? metadata['name'] as String?,
       email: supabaseUser['email'] as String?,
-      phone: supabaseUser['phone'] as String?,
+      phone: finalPhone,
       avatarUrl:
       metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
       referralCode: metadata['referral_code'] as String?,

@@ -44,32 +44,7 @@ class ReviewsSection extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      sliver: SliverToBoxAdapter(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(color: AppColors.borderDefault),
-          ),
-          child: Column(
-            children: [
-              Icon(Icons.star_outline_rounded, color: AppColors.textSecondary, size: 36.sp),
-              SizedBox(height: 8.h),
-              AppText(
-                text: AppStrings.noReviewsYet.tr(),
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return const SliverToBoxAdapter(child: SizedBox.shrink());
   }
 
   Widget _buildList(BuildContext context, List<ReviewModel> reviewsList, {bool limit = false}) {

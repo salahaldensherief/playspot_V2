@@ -103,9 +103,7 @@ class PushNotificationService {
       }
       final token = await _messaging.getToken();
       if (token != null) {
-        debugPrint('========================================');
-        debugPrint('🔥 FCM TOKEN: $token');
-        debugPrint('========================================');
+        debugPrint('🔥 FCM token fetched successfully');
       }
       return token;
     } catch (e) {

@@ -80,16 +80,39 @@ class LoungeDetailsScreen extends StatelessWidget {
                 const SliverSectionHeader(title: AppStrings.selectDate),
                 const DateSelectionSection(),
                 const SliverToBoxAdapter(child: SpaceTypeSelector()),
-                const SliverSectionHeader(
-                    title: AppStrings.availableRooms),
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (previous, current) =>
+                      previous.filteredRooms != current.filteredRooms ||
+                      previous.status != current.status,
+                  builder: (context, state) {
+                    if (state.status != LoungeDetailsStatus.loading && state.filteredRooms.isEmpty) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
+                    return const SliverSectionHeader(title: AppStrings.availableRooms);
+                  },
+                ),
                 const RoomsGrid(),
-                const SliverSectionHeader(title: AppStrings.extras),
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (previous, current) =>
+                      previous.extras != current.extras ||
+                      previous.status != current.status,
+                  builder: (context, state) {
+                    if (state.status != LoungeDetailsStatus.loading && state.extras.isEmpty) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
+                    return const SliverSectionHeader(title: AppStrings.extras);
+                  },
+                ),
                 const ExtrasList(),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                   buildWhen: (previous, current) =>
                       previous.lounge?.name != current.lounge?.name ||
-                      previous.reviews != current.reviews,
+                      previous.reviews != current.reviews ||
+                      previous.status != current.status,
                   builder: (context, state) {
+                    if (state.status != LoungeDetailsStatus.loading && state.reviews.isEmpty) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
                     return SliverSectionHeader(
                       title: AppStrings.reviews,
                       seeAllText: AppStrings.seeAll,

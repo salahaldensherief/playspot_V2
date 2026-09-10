@@ -33,10 +33,7 @@ class ExtrasList extends StatelessWidget {
         }
 
         if (state.extras.isEmpty) {
-          return const SliverAppStateView(
-            title: AppStrings.noExtrasAvailable,
-            icon: Icons.fastfood_outlined,
-          );
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
         }
 
         final categories = state.extras.map((e) => e.category).toSet().toList();

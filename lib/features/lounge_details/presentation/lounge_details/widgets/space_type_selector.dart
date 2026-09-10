@@ -54,6 +54,9 @@ class SpaceTypeSelector extends StatelessWidget {
       previous.selectedSpaceType != current.selectedSpaceType ||
           previous.rooms != current.rooms,
       builder: (context, state) {
+        if (state.rooms.isEmpty) {
+          return const SizedBox.shrink();
+        }
         // استخراج الأنواع الموجودة فعلياً في غرف الصالة الحالية
         final availableTypeSlugs = state.rooms
             .map((room) => room.spaceTypeName?.toLowerCase().trim())

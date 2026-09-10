@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,22 +15,87 @@ import '../../../../core/di.dart';
 import '../../data/models/booking_model.dart';
 import 'package:map_launcher/map_launcher.dart';
 
-class BookingCard extends StatelessWidget {
+class BookingCard extends StatefulWidget {
   final BookingModel booking;
   final VoidCallback? onCancel;
+  final bool isHighlighted;
 
-  const BookingCard({super.key, required this.booking, this.onCancel});
+  const BookingCard({
+    super.key,
+    required this.booking,
+    this.onCancel,
+    this.isHighlighted = false,
+  });
+
+  @override
+  State<BookingCard> createState() => _BookingCardState();
+}
+
+class _BookingCardState extends State<BookingCard> {
+  bool _showHighlight = false;
+  Timer? _highlightTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isHighlighted) {
+      _showHighlight = true;
+      _startHighlightTimer();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant BookingCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isHighlighted && !oldWidget.isHighlighted) {
+      setState(() {
+        _showHighlight = true;
+      });
+      _startHighlightTimer();
+    }
+  }
+
+  void _startHighlightTimer() {
+    _highlightTimer?.cancel();
+    _highlightTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _showHighlight = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _highlightTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isUpcoming = booking.status == 'upcoming' || booking.status == 'pending';
-    
-    return Container(
+    final isUpcoming = widget.booking.status == 'upcoming' || widget.booking.status == 'pending';
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOut,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: AppColors.borderDefault),
+        border: Border.all(
+          color: _showHighlight ? AppColors.neonBlue : AppColors.borderDefault,
+          width: _showHighlight ? 1.5.w : .5.w,
+        ),
+        boxShadow: _showHighlight
+            ? [
+                BoxShadow(
+                  color: AppColors.neonBlue.withValues(alpha: 0.35),
+                  blurRadius: 5.r,
+                  spreadRadius: 1.r,
+                )
+              ]
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,7 +105,7 @@ class BookingCard extends StatelessWidget {
             children: [
               Expanded(
                 child: AppText(
-                  text: booking.loungeName,
+                  text: widget.booking.loungeName,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   fontSize: 18.sp,
@@ -59,7 +125,7 @@ class BookingCard extends StatelessWidget {
               SizedBox(width: 4.w),
               Expanded(
                 child: AppText(
-                  text: booking.loungeLocation,
+                  text: widget.booking.loungeLocation,
                   fontSize: 12.sp,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -70,7 +136,7 @@ class BookingCard extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           AppText(
-            text: "${booking.spaceType ?? ''} - ${booking.roomName}${booking.playMode != null ? ' (${booking.playMode == 'single' ? AppStrings.singlePlay.tr() : AppStrings.multiPlay.tr()})' : ''} · ${booking.controllersCount} Controllers · ${booking.screenSize}",
+            text: "${widget.booking.spaceType ?? ''} - ${widget.booking.roomName}${widget.booking.playMode != null ? ' (${widget.booking.playMode == 'single' ? AppStrings.singlePlay.tr() : AppStrings.multiPlay.tr()})' : ''} · ${widget.booking.controllersCount} Controllers · ${widget.booking.screenSize}",
             fontSize: 12.sp,
             color: AppColors.textSecondary,
             maxLines: 1,
@@ -82,7 +148,7 @@ class BookingCard extends StatelessWidget {
               Icon(Icons.calendar_today_outlined, color: AppColors.neonBlue, size: 16.sp),
               SizedBox(width: 8.w),
               AppText(
-                text: booking.date.toAppDateString(),
+                text: widget.booking.date.toAppDateString(),
                 fontSize: 14.sp,
                 color: AppColors.white,
                 fontWeight: FontWeight.w600,
@@ -95,7 +161,7 @@ class BookingCard extends StatelessWidget {
               Icon(Icons.access_time, color: AppColors.neonBlue, size: 16.sp),
               SizedBox(width: 8.w),
               AppText(
-                text: booking.startTime.toAppTimeString(),
+                text: widget.booking.startTime.toAppTimeString(),
                 fontSize: 14.sp,
                 color: AppColors.white,
                 fontWeight: FontWeight.bold,
@@ -115,22 +181,23 @@ class BookingCard extends StatelessWidget {
                     content: ButtonContent(label: AppStrings.getDirections.tr()),
                     behavior: ButtonBehavior.tap(
                       onTap: () async {
-                        if (booking.lat != null && booking.lng != null) {
+                        if (widget.booking.lat != null && widget.booking.lng != null) {
                           final pref = sl<PreferenceManager>();
                           final userLat = double.tryParse(pref.latitude());
                           final userLng = double.tryParse(pref.longitude());
 
                           await MapLauncher.directions(
                             Location.coords(
-                              booking.lat!,
-                              booking.lng!,
-                              title: booking.loungeName,
+                              widget.booking.lat!,
+                              widget.booking.lng!,
+                              title: widget.booking.loungeName,
                             ),
                             from: (userLat != null && userLng != null)
                                 ? Location.coords(userLat, userLng, title: "My Location")
                                 : null,
                           ).show();
-                        }                        },
+                        }
+                      },
                     ),
                     buttonConfig: ButtonConfig(
                       height: 45.h,
@@ -144,7 +211,7 @@ class BookingCard extends StatelessWidget {
                   content: ButtonContent(
                     label: AppStrings.cancel.tr(),
                   ),
-                  behavior: ButtonBehavior.tap(onTap: onCancel),
+                  behavior: ButtonBehavior.tap(onTap: widget.onCancel),
                   buttonConfig: ButtonConfig(
                     height: 45.h,
                     width: 100.w,
@@ -165,7 +232,7 @@ class BookingCard extends StatelessWidget {
     Color color;
     String text;
 
-    switch (booking.status) {
+    switch (widget.booking.status) {
       case 'upcoming':
         color = AppColors.success;
         text = AppStrings.confirmed.tr();
@@ -200,24 +267,24 @@ class BookingCard extends StatelessWidget {
   }
 
   DateTime get _startDateTime {
-    if (booking.startTime.contains('T')) {
+    if (widget.booking.startTime.contains('T')) {
       try {
-        return DateTime.parse(booking.startTime);
+        return DateTime.parse(widget.booking.startTime);
       } catch (_) {}
     }
-    final parts = booking.startTime.split(':');
+    final parts = widget.booking.startTime.split(':');
     if (parts.length >= 2) {
       final hour = int.tryParse(parts[0]) ?? 0;
       final minute = int.tryParse(parts[1]) ?? 0;
       return DateTime(
-        booking.date.year,
-        booking.date.month,
-        booking.date.day,
+        widget.booking.date.year,
+        widget.booking.date.month,
+        widget.booking.date.day,
         hour,
         minute,
       );
     }
-    return booking.date;
+    return widget.booking.date;
   }
 
   Widget _buildCountdownBanner() {
@@ -294,7 +361,7 @@ class BookingCard extends StatelessWidget {
             maxLines: 5,
             overflow: TextOverflow.visible,
           ),
-          if (booking.status == 'pending') ...[
+          if (widget.booking.status == 'pending') ...[
             SizedBox(height: 8.h),
             Container(
               padding: EdgeInsets.all(8.w),

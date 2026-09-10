@@ -234,6 +234,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final user = _supabase.auth.currentUser;
       if (user == null) return;
       await _supabase.from('profiles').update({'fcm_token': token}).eq('id', user.id);
+      debugPrint(' [Profile] FCM token updated for user: ${user.id}');
     } catch (e) {
       debugPrint(' [Profile] Update FCM token error: $e');
     }

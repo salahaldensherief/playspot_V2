@@ -53,29 +53,11 @@ class RoomsGrid extends StatelessWidget {
           );
         }
 
-        if (state.rooms.isEmpty) {
-          return SliverAppStateView(
-            title: AppStrings.noRoomsAvailable,
-            icon: Icons.meeting_room_outlined,
-          );
+        if (state.rooms.isEmpty || state.filteredRooms.isEmpty) {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
         }
 
         final filteredRooms = state.filteredRooms;
-
-        if (filteredRooms.isEmpty) {
-          return SliverPadding(
-            padding: EdgeInsets.symmetric(vertical: 20.h),
-            sliver: SliverToBoxAdapter(
-              child: Center(
-                child: AppText(
-                  text: AppStrings.noRoomsForCategory.tr(),
-                  color: AppColors.textSecondary,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ),
-          );
-        }
 
         return SliverPadding(
           padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
