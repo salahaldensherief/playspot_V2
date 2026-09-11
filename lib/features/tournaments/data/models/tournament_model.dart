@@ -43,9 +43,17 @@ class TournamentModel extends TournamentEntity {
       registeredCount = (json['registered_count'] as num).toInt();
     }
 
+    final String parsedTitle = (json['title']?.toString().trim().isNotEmpty == true)
+        ? json['title'].toString()
+        : (json['name']?.toString().trim().isNotEmpty == true)
+            ? json['name'].toString()
+            : (json['game']?.toString().trim().isNotEmpty == true)
+                ? '${json['game']} Championship'
+                : 'PlaySpot Tournament';
+
     return TournamentModel(
       id: json['id']?.toString() ?? '',
-      title: json['title']?.toString() ?? json['name']?.toString() ?? '',
+      title: parsedTitle,
       description: json['description']?.toString(),
       game: json['game']?.toString() ?? json['game_title']?.toString() ?? 'PlayStation',
       cityId: json['city_id']?.toString(),

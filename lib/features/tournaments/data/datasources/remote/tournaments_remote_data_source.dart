@@ -109,14 +109,18 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
 
   @override
   Future<TournamentModel> getTournamentById(String tournamentId) async {
-    final response = await _client.from('tournaments').select('''
-      *,
-      cities (name),
-      lounges (name),
-      tournament_participants (id)
-    ''').eq('id', tournamentId).single();
+    try {
+      final response = await _client.from('tournaments').select('''
+        *,
+        tournament_participants (id)
+      ''').eq('id', tournamentId).single();
 
-    return TournamentModel.fromJson(response);
+      return TournamentModel.fromJson(response);
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] Fallback flat select for getTournamentById: $e');
+      final response = await _client.from('tournaments').select().eq('id', tournamentId).single();
+      return TournamentModel.fromJson(response);
+    }
   }
 
   @override
@@ -174,7 +178,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     try {
       final response = await _client
           .from('tournament_participants')
-          .select('*, profiles(full_name, avatar_url)')
+          .select()
           .eq('tournament_id', tournamentId)
           .eq('user_id', userId)
           .maybeSingle();
