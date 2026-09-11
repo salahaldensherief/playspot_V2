@@ -54,6 +54,8 @@ class ProfileHeader extends StatelessWidget {
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
+                        memCacheWidth: 160,
+                        memCacheHeight: 160,
                         placeholder: (context, url) => const CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),

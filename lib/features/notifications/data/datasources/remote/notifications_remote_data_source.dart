@@ -79,6 +79,13 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
         )
         .subscribe();
 
+    controller.onCancel = () {
+      if (_channel != null) {
+        _client.removeChannel(_channel!);
+        _channel = null;
+      }
+    };
+
     return controller.stream;
   }
 }

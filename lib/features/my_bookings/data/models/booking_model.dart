@@ -90,7 +90,11 @@ class BookingModel extends Equatable {
       screenSize: roomData?['screen_size']?.toString() ?? '',
       date: json['date'] != null 
           ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now()) 
-          : (json['time_range'] != null ? _parseTsRangeStart(json['time_range'].toString()) : DateTime.now()),
+          : (json['booking_period'] != null 
+              ? _parseTsRangeStart(json['booking_period'].toString()) 
+              : (json['time_range'] != null 
+                  ? _parseTsRangeStart(json['time_range'].toString()) 
+                  : DateTime.now())),
       startTime: json['start_time'] ?? '',
       endTime: json['end_time'] ?? '',
       status: BookingStatus.mapToDbStatus(json['status']?.toString()),

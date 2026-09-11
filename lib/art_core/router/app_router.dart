@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../di/provider_scope.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 import 'package:playspot/features/auth/presentation/sign_in/signin_screen.dart';
@@ -26,7 +28,6 @@ import '../../features/auth/presentation/sign_up/signup_cubit.dart';
 import '../../features/booking/data/models/booking_params.dart';
 import '../../features/booking/presentation/booking_screen.dart';
 import '../../features/booking/presentation/booking_cubit.dart';
-import '../../features/booking/domain/repositories/booking_repository.dart';
 import '../../features/checkout/presentation/checkout_cubit.dart';
 import '../../features/checkout/presentation/checkout_screen.dart';
 import '../../features/favorites/presentation/favorites_cubit.dart';
@@ -202,7 +203,7 @@ class AppRouter {
   late final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: RouterKeys.splash,
-    debugLogDiagnostics: true,
+    debugLogDiagnostics: kDebugMode,
     extraCodec: const MyExtraCodec(),
     redirect: (context, state) {
       if (state.uri.queryParameters.containsKey('ref') ||
@@ -250,22 +251,7 @@ class AppRouter {
         builder: (context, state, child) {
           return BlocProvider(
             create: (context) => sl<LocaleCubit>(),
-            child: BlocProvider(
-              create: (context) => sl<FavoritesCubit>()..getFavoriteIds(),
-              child: BlocProvider(
-                create: (context) => sl<ProfileCubit>()..getUserData(),
-                child: BlocProvider(
-                  create: (context) => sl<NotificationsCubit>(),
-                  child: BlocProvider(
-                    create: (context) => sl<ActiveSessionCubit>()..loadActiveSession(),
-                    child: BlocProvider(
-                      create: (context) => sl<MyBookingsCubit>()..getMyBookings(),
-                      child: child,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            child: child,
           );
         },
         routes: [
@@ -346,51 +332,6 @@ class AppRouter {
             },
           ),
 
-          // Routes that share Cubits in MainScreen
-          ShellRoute(
-            builder: (context, state, child) {
-              return BlocProvider(
-                create: (context) => sl<HomeCubit>()..getHomeData(),
-                child: child,
-              );
-            },
-            routes: [
-              GoRoute(
-                path: RouterKeys.home,
-                name: RouterKeys.home,
-                pageBuilder: (context, state) {
-                  final index = state.extra is int ? state.extra as int : 0;
-                  return _buildPageWithTransition(
-                    context: context,
-                    state: state,
-                    child: MainScreen(
-                      key: ValueKey(index),
-                      initialIndex: index,
-                    ),
-                  );
-                },
-              ),
-              GoRoute(
-                path: RouterKeys.search,
-                name: RouterKeys.search,
-                pageBuilder: (context, state) => _buildPageWithTransition(
-                  context: context,
-                  state: state,
-                  child: const SearchScreen(),
-                ),
-              ),
-              GoRoute(
-                path: RouterKeys.myBookings,
-                name: RouterKeys.myBookings,
-                pageBuilder: (context, state) => _buildPageWithTransition(
-                  context: context,
-                  state: state,
-                  child: const MyBookingsScreen(),
-                ),
-              ),
-            ],
-          ),
-
           ShellRoute(
             builder: (context, state, child) {
               return BlocProvider(
@@ -429,332 +370,391 @@ class AppRouter {
             ],
           ),
 
-          GoRoute(
-            path: RouterKeys.loungeDetails,
-            name: RouterKeys.loungeDetails,
-            pageBuilder: (context, state) {
-              LoungeModel? lounge;
-              String? loungeId;
-              String? heroTag;
-
-              if (state.extra is LoungeModel) {
-                lounge = state.extra as LoungeModel;
-              } else if (state.extra is Map<String, dynamic>) {
-                final map = state.extra as Map<String, dynamic>;
-                lounge = map['lounge'] as LoungeModel?;
-                loungeId = map['loungeId'] as String?;
-                heroTag = map['heroTag'] as String?;
-              }
-
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: BlocProvider(
-                  create: (context) {
-                    final cubit = sl<LoungeDetailsCubit>();
-                    if (lounge != null) {
-                      cubit.init(lounge);
-                    } else if (loungeId != null) {
-                      cubit.initById(loungeId);
-                    }
-                    return cubit;
-                  },
-                  child: lounge != null 
-                    ? LoungeDetailsScreen(lounge: lounge, heroTag: heroTag)
-                    : BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                        builder: (context, state) {
-                          if (state.lounge != null) {
-                            return LoungeDetailsScreen(lounge: state.lounge!, heroTag: heroTag);
-                          }
-                          return const Scaffold(
-                            backgroundColor: AppColors.scaffoldBackground,
-                            body: AppLoader(size: 40),
-                          );
-                        },
-                      ),
-                ),
+          // Authenticated ShellRoute - loaded only when user enters authenticated screens
+          ShellRoute(
+            builder: (context, state, child) {
+              return AppProviderScope(
+                providers: [
+                  BlocProvider(create: (context) => sl<FavoritesCubit>()..getFavoriteIds()),
+                  BlocProvider(create: (context) => sl<ProfileCubit>()..getUserData()),
+                  BlocProvider(create: (context) => sl<NotificationsCubit>()),
+                  BlocProvider(create: (context) => sl<ActiveSessionCubit>()..loadActiveSession()),
+                  BlocProvider(create: (context) => sl<MyBookingsCubit>()..getMyBookings()),
+                ],
+                child: child,
               );
             },
-          ),
-          GoRoute(
-            path: RouterKeys.roomDetails,
-            name: RouterKeys.roomDetails,
-            pageBuilder: (context, state) {
-              final roomId = state.pathParameters['roomId'] ?? '';
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: RoomDetailsScreen(roomId: roomId),
-              );
-            },
-          ),
-          GoRoute(
-            path: RouterKeys.booking,
-            name: RouterKeys.booking,
-            redirect: (context, state) {
-              if (state.extra == null) return RouterKeys.home;
-              if (state.extra is! BookingDetailsParams && state.extra is! Map<String, dynamic>) {
-                return RouterKeys.home;
-              }
-              return null;
-            },
-            pageBuilder: (context, state) {
-              BookingDetailsParams? params;
-              if (state.extra is BookingDetailsParams) {
-                params = state.extra as BookingDetailsParams;
-              } else if (state.extra is Map<String, dynamic>) {
-                try {
-                  params = BookingDetailsParams.fromMap(state.extra as Map<String, dynamic>);
-                } catch (_) {}
-              }
-
-              final bookingParams = params;
-              if (bookingParams == null) {
-                return _buildPageWithTransition(
-                  context: context,
-                  state: state,
-                  child: const Scaffold(
-                    backgroundColor: AppColors.scaffoldBackground,
-                    body: SizedBox.shrink(),
+            routes: [
+              // Routes that share Cubits in MainScreen
+              ShellRoute(
+                builder: (context, state, child) {
+                  return BlocProvider(
+                    create: (context) => sl<HomeCubit>()..getHomeData(),
+                    child: child,
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: RouterKeys.home,
+                    name: RouterKeys.home,
+                    pageBuilder: (context, state) {
+                      final index = state.extra is int ? state.extra as int : 0;
+                      return _buildPageWithTransition(
+                        context: context,
+                        state: state,
+                        child: MainScreen(
+                          key: ValueKey(index),
+                          initialIndex: index,
+                        ),
+                      );
+                    },
                   ),
-                );
-              }
-
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: BlocProvider(
-                  create: (context) => BookingCubit(
-                    sl<BookingRepository>(),
-                    bookingParams,
+                  GoRoute(
+                    path: RouterKeys.search,
+                    name: RouterKeys.search,
+                    pageBuilder: (context, state) => _buildPageWithTransition(
+                      context: context,
+                      state: state,
+                      child: const SearchScreen(),
+                    ),
                   ),
-                  child: BookingScreen(params: bookingParams),
-                ),
-              );
-            },
-          ),
-          GoRoute(
-            path: RouterKeys.checkout,
-            name: RouterKeys.checkout,
-            redirect: (context, state) {
-              if (state.extra == null) return RouterKeys.home;
-              if (state.extra is! CheckoutParams && state.extra is! Map<String, dynamic>) {
-                return RouterKeys.home;
-              }
-              return null;
-            },
-            pageBuilder: (context, state) {
-              CheckoutParams? params;
-              if (state.extra is CheckoutParams) {
-                params = state.extra as CheckoutParams;
-              } else if (state.extra is Map<String, dynamic>) {
-                try {
-                  params = CheckoutParams.fromMap(state.extra as Map<String, dynamic>);
-                } catch (_) {}
-              }
-
-              final checkoutParams = params;
-              if (checkoutParams == null) {
-                return _buildPageWithTransition(
-                  context: context,
-                  state: state,
-                  child: const Scaffold(
-                    backgroundColor: AppColors.scaffoldBackground,
-                    body: SizedBox.shrink(),
+                  GoRoute(
+                    path: RouterKeys.myBookings,
+                    name: RouterKeys.myBookings,
+                    pageBuilder: (context, state) => _buildPageWithTransition(
+                      context: context,
+                      state: state,
+                      child: const MyBookingsScreen(),
+                    ),
                   ),
-                );
-              }
-
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: BlocProvider(
-                  create: (context) => sl<CheckoutCubit>(),
-                  child: CheckoutScreen(params: checkoutParams),
-                ),
-              );
-            },
-          ),
-          GoRoute(
-            path: RouterKeys.editProfile,
-            name: RouterKeys.editProfile,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: BlocProvider(
-                create: (context) => sl<EditProfileCubit>()..init(),
-                child: const EditProfileScreen(),
+                ],
               ),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.redeemPoints,
-            name: RouterKeys.redeemPoints,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const RedeemPointsScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.pointsHistory,
-            name: RouterKeys.pointsHistory,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const PointsHistoryScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.myVouchers,
-            name: RouterKeys.myVouchers,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const MyVouchersScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.favorites,
-            name: RouterKeys.favorites,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const FavoritesScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.notifications,
-            name: RouterKeys.notifications,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const NotificationsScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.notificationSettings,
-            name: RouterKeys.notificationSettings,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: BlocProvider(
-                create: (context) => sl<NotificationSettingsCubit>(),
-                child: const NotificationSettingsScreen(),
+
+              GoRoute(
+                path: RouterKeys.loungeDetails,
+                name: RouterKeys.loungeDetails,
+                pageBuilder: (context, state) {
+                  LoungeModel? lounge;
+                  String? loungeId;
+                  String? heroTag;
+
+                  if (state.extra is LoungeModel) {
+                    lounge = state.extra as LoungeModel;
+                  } else if (state.extra is Map<String, dynamic>) {
+                    final map = state.extra as Map<String, dynamic>;
+                    lounge = map['lounge'] as LoungeModel?;
+                    loungeId = map['loungeId'] as String?;
+                    heroTag = map['heroTag'] as String?;
+                  }
+
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: BlocProvider(
+                      create: (context) {
+                        final cubit = sl<LoungeDetailsCubit>();
+                        if (lounge != null) {
+                          cubit.init(lounge);
+                        } else if (loungeId != null) {
+                          cubit.initById(loungeId);
+                        }
+                        return cubit;
+                      },
+                      child: lounge != null 
+                        ? LoungeDetailsScreen(lounge: lounge, heroTag: heroTag)
+                        : BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                            builder: (context, state) {
+                              if (state.lounge != null) {
+                                return LoungeDetailsScreen(lounge: state.lounge!, heroTag: heroTag);
+                              }
+                              return const Scaffold(
+                                backgroundColor: AppColors.scaffoldBackground,
+                                body: AppLoader(size: 40),
+                              );
+                            },
+                          ),
+                    ),
+                  );
+                },
               ),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.allReviews,
-            name: RouterKeys.allReviews,
-            redirect: (context, state) {
-              if (state.extra is Map<String, dynamic>) {
-                final map = state.extra as Map<String, dynamic>;
-                if (map['reviews'] is List<ReviewModel> && map['loungeName'] is String) {
+              GoRoute(
+                path: RouterKeys.roomDetails,
+                name: RouterKeys.roomDetails,
+                pageBuilder: (context, state) {
+                  final roomId = state.pathParameters['roomId'] ?? '';
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: RoomDetailsScreen(roomId: roomId),
+                  );
+                },
+              ),
+              GoRoute(
+                path: RouterKeys.booking,
+                name: RouterKeys.booking,
+                redirect: (context, state) {
+                  if (state.extra == null) return RouterKeys.home;
+                  if (state.extra is! BookingDetailsParams && state.extra is! Map<String, dynamic>) {
+                    return RouterKeys.home;
+                  }
                   return null;
-                }
-              }
-              return RouterKeys.home;
-            },
-            pageBuilder: (context, state) {
-              final extra = state.extra as Map<String, dynamic>? ?? {};
-              final reviews = (extra['reviews'] as List<ReviewModel>?) ?? [];
-              final loungeName = (extra['loungeName'] as String?) ?? '';
+                },
+                pageBuilder: (context, state) {
+                  BookingDetailsParams? params;
+                  if (state.extra is BookingDetailsParams) {
+                    params = state.extra as BookingDetailsParams;
+                  } else if (state.extra is Map<String, dynamic>) {
+                    try {
+                      params = BookingDetailsParams.fromMap(state.extra as Map<String, dynamic>);
+                    } catch (_) {}
+                  }
 
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: AllReviewsScreen(
-                  reviews: reviews,
-                  loungeName: loungeName,
-                ),
-              );
-            },
-          ),
-          GoRoute(
-            path: RouterKeys.termsAndConditions,
-            name: RouterKeys.termsAndConditions,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: const TermsAndConditionsScreen(),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.activeSession,
-            name: RouterKeys.activeSession,
-            pageBuilder: (context, state) {
-              String? bookingId;
-              if (state.extra is String) {
-                bookingId = state.extra as String;
-              } else if (state.extra is Map<String, dynamic>) {
-                bookingId = (state.extra as Map<String, dynamic>)['booking_id']?.toString();
-              }
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: ActiveSessionScreen(bookingId: bookingId),
-              );
-            },
-          ),
-          GoRoute(
-            path: RouterKeys.bookingDetails,
-            name: RouterKeys.bookingDetails,
-            pageBuilder: (context, state) {
-              final bookingId = state.pathParameters['id'];
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: MyBookingsScreen(highlightedBookingId: bookingId),
-              );
-            },
-          ),
-          GoRoute(
-            path: RouterKeys.tournaments,
-            name: RouterKeys.tournaments,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: BlocProvider(
-                create: (context) => sl<TournamentsFeedCubit>(),
-                child: const TournamentsFeedScreen(),
+                  final bookingParams = params;
+                  if (bookingParams == null) {
+                    return _buildPageWithTransition(
+                      context: context,
+                      state: state,
+                      child: const Scaffold(
+                        backgroundColor: AppColors.scaffoldBackground,
+                        body: SizedBox.shrink(),
+                      ),
+                    );
+                  }
+
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: BlocProvider(
+                      create: (context) => sl<BookingCubit>(param1: bookingParams),
+                      child: BookingScreen(params: bookingParams),
+                    ),
+                  );
+                },
               ),
-            ),
-          ),
-          GoRoute(
-            path: RouterKeys.tournamentDetails,
-            name: RouterKeys.tournamentDetails,
-            pageBuilder: (context, state) {
-              final id = state.pathParameters['id'] ?? '';
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: BlocProvider(
-                  create: (context) => sl<TournamentDetailsCubit>(),
-                  child: TournamentDetailsScreen(tournamentId: id),
-                ),
-              );
-            },
-          ),
-          GoRoute(
-            path: RouterKeys.tournamentMatch,
-            name: RouterKeys.tournamentMatch,
-            pageBuilder: (context, state) {
-              final tournamentId = state.pathParameters['id'] ?? '';
-              final matchId = state.pathParameters['matchId'] ?? '';
-              return _buildPageWithTransition(
-                context: context,
-                state: state,
-                child: BlocProvider(
-                  create: (context) => sl<TournamentMatchCubit>(),
-                  child: TournamentMatchScreen(
-                    tournamentId: tournamentId,
-                    matchId: matchId,
+              GoRoute(
+                path: RouterKeys.checkout,
+                name: RouterKeys.checkout,
+                redirect: (context, state) {
+                  if (state.extra == null) return RouterKeys.home;
+                  if (state.extra is! CheckoutParams && state.extra is! Map<String, dynamic>) {
+                    return RouterKeys.home;
+                  }
+                  return null;
+                },
+                pageBuilder: (context, state) {
+                  CheckoutParams? params;
+                  if (state.extra is CheckoutParams) {
+                    params = state.extra as CheckoutParams;
+                  } else if (state.extra is Map<String, dynamic>) {
+                    try {
+                      params = CheckoutParams.fromMap(state.extra as Map<String, dynamic>);
+                    } catch (_) {}
+                  }
+
+                  final checkoutParams = params;
+                  if (checkoutParams == null) {
+                    return _buildPageWithTransition(
+                      context: context,
+                      state: state,
+                      child: const Scaffold(
+                        backgroundColor: AppColors.scaffoldBackground,
+                        body: SizedBox.shrink(),
+                      ),
+                    );
+                  }
+
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: BlocProvider(
+                      create: (context) => sl<CheckoutCubit>(),
+                      child: CheckoutScreen(params: checkoutParams),
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                path: RouterKeys.editProfile,
+                name: RouterKeys.editProfile,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: BlocProvider(
+                    create: (context) => sl<EditProfileCubit>()..init(),
+                    child: const EditProfileScreen(),
                   ),
                 ),
-              );
-            },
-          )
+              ),
+              GoRoute(
+                path: RouterKeys.redeemPoints,
+                name: RouterKeys.redeemPoints,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const RedeemPointsScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.pointsHistory,
+                name: RouterKeys.pointsHistory,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const PointsHistoryScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.myVouchers,
+                name: RouterKeys.myVouchers,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const MyVouchersScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.favorites,
+                name: RouterKeys.favorites,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const FavoritesScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.notifications,
+                name: RouterKeys.notifications,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const NotificationsScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.notificationSettings,
+                name: RouterKeys.notificationSettings,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: BlocProvider(
+                    create: (context) => sl<NotificationSettingsCubit>(),
+                    child: const NotificationSettingsScreen(),
+                  ),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.allReviews,
+                name: RouterKeys.allReviews,
+                redirect: (context, state) {
+                  if (state.extra is Map<String, dynamic>) {
+                    final map = state.extra as Map<String, dynamic>;
+                    if (map['reviews'] is List<ReviewModel> && map['loungeName'] is String) {
+                      return null;
+                    }
+                  }
+                  return RouterKeys.home;
+                },
+                pageBuilder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>? ?? {};
+                  final reviews = (extra['reviews'] as List<ReviewModel>?) ?? [];
+                  final loungeName = (extra['loungeName'] as String?) ?? '';
+
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: AllReviewsScreen(
+                      reviews: reviews,
+                      loungeName: loungeName,
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                path: RouterKeys.termsAndConditions,
+                name: RouterKeys.termsAndConditions,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const TermsAndConditionsScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.activeSession,
+                name: RouterKeys.activeSession,
+                pageBuilder: (context, state) {
+                  String? bookingId;
+                  if (state.extra is String) {
+                    bookingId = state.extra as String;
+                  } else if (state.extra is Map<String, dynamic>) {
+                    bookingId = (state.extra as Map<String, dynamic>)['booking_id']?.toString();
+                  }
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: ActiveSessionScreen(bookingId: bookingId),
+                  );
+                },
+              ),
+              GoRoute(
+                path: RouterKeys.bookingDetails,
+                name: RouterKeys.bookingDetails,
+                pageBuilder: (context, state) {
+                  final bookingId = state.pathParameters['id'];
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: MyBookingsScreen(highlightedBookingId: bookingId),
+                  );
+                },
+              ),
+              GoRoute(
+                path: RouterKeys.tournaments,
+                name: RouterKeys.tournaments,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: BlocProvider(
+                    create: (context) => sl<TournamentsFeedCubit>(),
+                    child: const TournamentsFeedScreen(),
+                  ),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.tournamentDetails,
+                name: RouterKeys.tournamentDetails,
+                pageBuilder: (context, state) {
+                  final id = state.pathParameters['id'] ?? '';
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: BlocProvider(
+                      create: (context) => sl<TournamentDetailsCubit>(),
+                      child: TournamentDetailsScreen(tournamentId: id),
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                path: RouterKeys.tournamentMatch,
+                name: RouterKeys.tournamentMatch,
+                pageBuilder: (context, state) {
+                  final tournamentId = state.pathParameters['id'] ?? '';
+                  final matchId = state.pathParameters['matchId'] ?? '';
+                  return _buildPageWithTransition(
+                    context: context,
+                    state: state,
+                    child: BlocProvider(
+                      create: (context) => sl<TournamentMatchCubit>(),
+                      child: TournamentMatchScreen(
+                        tournamentId: tournamentId,
+                        matchId: matchId,
+                      ),
+                    ),
+                  );
+                },
+              )
+            ],
+          ),
         ],
       ),
     ],

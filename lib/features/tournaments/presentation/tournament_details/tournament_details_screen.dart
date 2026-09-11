@@ -132,6 +132,8 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                         CachedNetworkImage(
                           imageUrl: tournament.imageUrl!,
                           fit: BoxFit.cover,
+                          memCacheWidth: 800,
+                          memCacheHeight: 500,
                           placeholder: (context, url) => Container(color: AppColors.mutedBackground),
                           errorWidget: (context, url, error) => Container(color: AppColors.mutedBackground),
                         )

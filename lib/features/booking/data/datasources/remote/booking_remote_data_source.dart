@@ -43,7 +43,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     
     final response = await _client
         .from('bookings')
-        .select('room_id, start_time, end_time, date, status, start_at, end_at')
+        .select('room_id, start_time, end_time, date, status, start_at, end_at, booking_period')
         .eq('lounge_id', loungeId)
         .eq('date', dateStr);
 

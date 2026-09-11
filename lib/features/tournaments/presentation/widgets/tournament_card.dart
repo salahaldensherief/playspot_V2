@@ -59,6 +59,8 @@ class TournamentCard extends StatelessWidget {
                             height: 150,
                             width: double.infinity,
                             fit: BoxFit.cover,
+                            memCacheWidth: 600,
+                            memCacheHeight: 300,
                             placeholder: (context, url) => Container(
                               height: 150,
                               color: AppColors.mutedBackground,

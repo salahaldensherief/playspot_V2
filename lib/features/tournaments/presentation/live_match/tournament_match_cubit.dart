@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/tournament_entity.dart';
 import '../../domain/repositories/tournaments_repository.dart';
 import 'tournament_match_state.dart';
 
@@ -21,9 +22,18 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
         ));
       },
       (matches) {
-        final match = matches.firstWhere(
+        if (matches.isEmpty) {
+          emit(state.copyWith(
+            status: MatchScreenStatus.failure,
+            errorMessage: 'No matches found',
+          ));
+          return;
+        }
+
+        final List<TournamentMatchEntity> safeMatches = List<TournamentMatchEntity>.from(matches);
+        final match = safeMatches.firstWhere(
           (m) => m.id == matchId,
-          orElse: () => matches.first,
+          orElse: () => safeMatches.first,
         );
 
         emit(state.copyWith(

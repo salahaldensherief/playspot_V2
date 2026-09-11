@@ -95,7 +95,11 @@ class ReviewsSection extends StatelessWidget {
                   CircleAvatar(
                     radius: 16.r,
                     backgroundImage: review.userAvatar != null && review.userAvatar!.trim().isNotEmpty
-                        ? CachedNetworkImageProvider(review.userAvatar!.trim())
+                        ? CachedNetworkImageProvider(
+                            review.userAvatar!.trim(),
+                            maxHeight: 64,
+                            maxWidth: 64,
+                          )
                         : null,
                     child: review.userAvatar == null || review.userAvatar!.trim().isEmpty
                         ? const Icon(Icons.person, size: 16, color: AppColors.white)

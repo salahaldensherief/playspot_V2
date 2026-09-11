@@ -1,6 +1,8 @@
 import 'dart:developer';
+import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/models/time_range.dart';
+import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/lounge_details_params.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
@@ -54,20 +56,22 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     emit(state.copyWith(status: LoungeDetailsStatus.loading));
 
     try {
-      log("FETCHING ROOMS...");
-      final roomsRes = await _loungeDetailsRepository.getRoomsByLoungeId(loungeId, forceRefresh: true);
+      log("FETCHING LOUNGE DETAILS IN PARALLEL...");
+      final results = await Future.wait([
+        _loungeDetailsRepository.getRoomsByLoungeId(loungeId, forceRefresh: true),
+        _loungeDetailsRepository.getExtras(loungeId),
+        _loungeDetailsRepository.getLoungeCategories(loungeId),
+        _loungeDetailsRepository.getLoungeReviews(loungeId),
+      ]);
+
+      final roomsRes = results[0] as Either<Failure, List<RoomModel>>;
+      final extrasRes = results[1] as Either<Failure, List<ExtraModel>>;
+      final categoriesRes = results[2] as Either<Failure, List<CategoryModel>>;
+      final reviewsRes = results[3] as Either<Failure, List<ReviewModel>>;
+
       roomsRes.fold((l) => log("ROOMS ERROR: ${l.message}"), (r) => log("ROOMS SUCCESS"));
-
-      log("FETCHING EXTRAS...");
-      final extrasRes = await _loungeDetailsRepository.getExtras(loungeId);
       extrasRes.fold((l) => log("EXTRAS ERROR: ${l.message}"), (r) => log("EXTRAS SUCCESS"));
-
-      log("FETCHING CATEGORIES...");
-      final categoriesRes = await _loungeDetailsRepository.getLoungeCategories(loungeId);
       categoriesRes.fold((l) => log("CATEGORIES ERROR: ${l.message}"), (r) => log("CATEGORIES SUCCESS"));
-
-      log("FETCHING REVIEWS...");
-      final reviewsRes = await _loungeDetailsRepository.getLoungeReviews(loungeId);
       reviewsRes.fold((l) => log("REVIEWS ERROR: ${l.message}"), (r) => log("REVIEWS SUCCESS"));
 
       log("FOLDING DATA...");

@@ -68,12 +68,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String? searchQuery,
   }) async {
     try {
-      var query = _client.from('tournaments').select('''
-        *,
-        cities (name),
-        lounges (name),
-        tournament_participants (id)
-      ''');
+      var query = _client.from('tournaments').select();
 
       if (game != null && game.isNotEmpty && game != 'All') {
         query = query.ilike('game', '%$game%');
@@ -96,30 +91,18 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       return list.map((json) => TournamentModel.fromJson(json)).toList();
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error fetching tournaments: $e');
-      // Fallback query if relation joins fail
-      var fallbackQuery = _client.from('tournaments').select();
-      if (statusFilter != null && statusFilter.isNotEmpty && statusFilter != 'All') {
-        fallbackQuery = fallbackQuery.eq('status', statusFilter);
-      }
-      final response = await fallbackQuery.order('created_at', ascending: false);
-      final list = (response as List).cast<Map<String, dynamic>>();
-      return list.map((json) => TournamentModel.fromJson(json)).toList();
+      return [];
     }
   }
 
   @override
   Future<TournamentModel> getTournamentById(String tournamentId) async {
     try {
-      final response = await _client.from('tournaments').select('''
-        *,
-        tournament_participants (id)
-      ''').eq('id', tournamentId).single();
-
-      return TournamentModel.fromJson(response);
-    } catch (e) {
-      dev.log('[TOURNAMENTS_REMOTE] Fallback flat select for getTournamentById: $e');
       final response = await _client.from('tournaments').select().eq('id', tournamentId).single();
       return TournamentModel.fromJson(response);
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentById: $e');
+      rethrow;
     }
   }
 
@@ -145,21 +128,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     try {
       final response = await _client
           .from('tournament_matches')
-          .select('''
-            *,
-            player1:profiles!tournament_matches_player1_id_fkey(full_name, avatar_url),
-            player2:profiles!tournament_matches_player2_id_fkey(full_name, avatar_url)
-          ''')
-          .eq('tournament_id', tournamentId)
-          .order('round_number', ascending: true)
-          .order('match_order', ascending: true);
-
-      final list = (response as List).cast<Map<String, dynamic>>();
-      return list.map((json) => TournamentMatchModel.fromJson(json)).toList();
-    } catch (e) {
-      dev.log('[TOURNAMENTS_REMOTE] Flat match query fallback due to join error: $e');
-      final response = await _client
-          .from('tournament_matches')
           .select()
           .eq('tournament_id', tournamentId)
           .order('round_number', ascending: true)
@@ -167,6 +135,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
 
       final list = (response as List).cast<Map<String, dynamic>>();
       return list.map((json) => TournamentMatchModel.fromJson(json)).toList();
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentMatches: $e');
+      return [];
     }
   }
 
