@@ -28,4 +28,5 @@ abstract class ProfileRepository {
   Future<Either<Failure, List<LoyaltyMissionModel>>> getLoyaltyMissions();
   Future<Either<Failure, UserReferralStatsModel>> getReferralStats();
   Future<Either<Failure, ClaimReferralResult>> claimReferralCode(String referralCode);
+  Future<Either<Failure, int>> getTotalBookingsCount();
 }

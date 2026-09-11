@@ -42,6 +42,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         _profileRepository.getLoyaltyStatus(),
         _profileRepository.getLoyaltyMissions(),
         _profileRepository.getReferralStats(),
+        _profileRepository.getTotalBookingsCount(),
       ]);
 
       final pointsRes = results[0] as Either<Failure, int>;
@@ -51,8 +52,10 @@ class ProfileCubit extends Cubit<ProfileState> {
       final loyaltyRes = results[4] as Either<Failure, LoyaltyStatusModel>;
       final missionsRes = results[5] as Either<Failure, List<LoyaltyMissionModel>>;
       final statsRes = results[6] as Either<Failure, UserReferralStatsModel>;
+      final bookingsCountRes = results[7] as Either<Failure, int>;
 
       final points = pointsRes.fold((l) => 0, (r) => r);
+      final totalBookings = bookingsCountRes.fold((l) => 0, (r) => r);
       final loyaltyStatus = loyaltyRes.fold(
         (l) => LoyaltyStatusModel(
           pointsBalance: points,
@@ -67,6 +70,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         status: ProfileStatus.success,
         user: user,
         pointsBalance: points,
+        totalBookingsCount: totalBookings,
         redemptionOptions: optionsRes.fold((l) => [], (r) => r),
         myVouchers: vouchersRes.fold((l) => [], (r) => r),
         pointsHistory: historyRes.fold((l) => [], (r) => r),

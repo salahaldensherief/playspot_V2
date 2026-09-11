@@ -20,6 +20,7 @@ class ProfileState extends Equatable {
   final ProfileStatus status;
   final UserModel? user;
   final int pointsBalance;
+  final int totalBookingsCount;
   final List<RedemptionOptionModel> redemptionOptions;
   final List<Map<String, dynamic>> myVouchers;
   final List<Map<String, dynamic>> pointsHistory;
@@ -33,6 +34,7 @@ class ProfileState extends Equatable {
     this.status = ProfileStatus.initial,
     this.user,
     this.pointsBalance = 0,
+    this.totalBookingsCount = 0,
     this.redemptionOptions = const [],
     this.myVouchers = const [],
     this.pointsHistory = const [],
@@ -47,6 +49,7 @@ class ProfileState extends Equatable {
     ProfileStatus? status,
     UserModel? user,
     int? pointsBalance,
+    int? totalBookingsCount,
     List<RedemptionOptionModel>? redemptionOptions,
     List<Map<String, dynamic>>? myVouchers,
     List<Map<String, dynamic>>? pointsHistory,
@@ -60,6 +63,7 @@ class ProfileState extends Equatable {
       status: status ?? this.status,
       user: user ?? this.user,
       pointsBalance: pointsBalance ?? this.pointsBalance,
+      totalBookingsCount: totalBookingsCount ?? this.totalBookingsCount,
       redemptionOptions: redemptionOptions ?? this.redemptionOptions,
       myVouchers: myVouchers ?? this.myVouchers,
       pointsHistory: pointsHistory ?? this.pointsHistory,
@@ -76,6 +80,7 @@ class ProfileState extends Equatable {
         status,
         user,
         pointsBalance,
+        totalBookingsCount,
         redemptionOptions,
         myVouchers,
         pointsHistory,

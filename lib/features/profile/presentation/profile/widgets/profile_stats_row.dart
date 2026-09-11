@@ -19,31 +19,40 @@ class ProfileStatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
-      buildWhen: (previous, current) => previous.pointsBalance != current.pointsBalance,
+      buildWhen: (previous, current) =>
+          previous.pointsBalance != current.pointsBalance ||
+          previous.totalBookingsCount != current.totalBookingsCount,
       builder: (context, state) {
         return Row(
           children: [
             Expanded(
-              child: _buildStatCard(
-                TablerIcons.calendar,
-                "12",
-                AppStrings.totalBookings.tr(),
-                AppColors.neonBlue,
+              child: GestureDetector(
+                onTap: () => context.pushNamed(RouterKeys.myBookings),
+                child: _buildStatCard(
+                  TablerIcons.calendar,
+                  state.totalBookingsCount.toString(),
+                  AppStrings.totalBookings.tr(),
+                  AppColors.neonBlue,
+                ),
               ),
             ),
             SizedBox(width: 10.w),
             Expanded(
-              child: _buildStatCard(
-                TablerIcons.stars,
-                state.pointsBalance.toString(),
-                "Points Balance",
-                AppColors.warning,
+              child: GestureDetector(
+                onTap: () => context.pushNamed(RouterKeys.loyaltyDashboard),
+                child: _buildStatCard(
+                  TablerIcons.stars,
+                  state.pointsBalance.toString(),
+                  AppStrings.points.tr(),
+                  AppColors.warning,
+                ),
               ),
             ),
             SizedBox(width: 10.w),
             Expanded(
               child: BlocBuilder<FavoritesCubit, FavoritesState>(
-                buildWhen: (previous, current) => previous.favoriteIds.length != current.favoriteIds.length,
+                buildWhen: (previous, current) =>
+                    previous.favoriteIds.length != current.favoriteIds.length,
                 builder: (context, favoritesState) {
                   return GestureDetector(
                     onTap: () => context.pushNamed(RouterKeys.favorites),

@@ -132,4 +132,9 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   Future<Either<Failure, ClaimReferralResult>> claimReferralCode(String referralCode) async {
     return await callRepository(() => _remoteSource.claimReferralCode(referralCode));
   }
+
+  @override
+  Future<Either<Failure, int>> getTotalBookingsCount() async {
+    return await callRepository(() => _remoteSource.getTotalBookingsCount());
+  }
 }

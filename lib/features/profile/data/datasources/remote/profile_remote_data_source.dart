@@ -31,6 +31,7 @@ abstract class ProfileRemoteDataSource {
   Future<List<LoyaltyMissionModel>> getLoyaltyMissions();
   Future<UserReferralStatsModel> getReferralStats();
   Future<ClaimReferralResult> claimReferralCode(String referralCode);
+  Future<int> getTotalBookingsCount();
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -539,6 +540,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         status: ClaimReferralStatus.error,
         messageKey: AppStrings.somethingWentWrong,
       );
+    }
+  }
+
+  @override
+  Future<int> getTotalBookingsCount() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return 0;
+      final res = await _supabase
+          .from('bookings')
+          .select('id')
+          .eq('user_id', user.id);
+      return (res as List).length;
+    } catch (e) {
+      debugPrint('[Profile] Error fetching total bookings count: $e');
+      return 0;
     }
   }
 }
