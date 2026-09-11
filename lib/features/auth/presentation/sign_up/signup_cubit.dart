@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
+import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/data/models/auth_params.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'signup_state.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../../profile/domain/repositories/profile_repository.dart';
@@ -22,13 +25,22 @@ class SignupCubit extends Cubit<SignupState> {
 
   File? avatarFile;
 
-  SignupCubit(this._authRepository, this._profileRepository) : super(SignupState.init());
+  SignupCubit(this._authRepository, this._profileRepository) : super(SignupState.init()) {
+    try {
+      final pendingCode = sl<PreferenceManager>().getPendingReferralCode();
+      if (pendingCode.isNotEmpty) {
+        referralCodeController.text = pendingCode;
+      }
+    } catch (_) {}
+  }
 
   Future<void> _onSignupSuccess() async {
     final token = await PushNotificationService.instance.getToken();
     if (token != null) {
       await _profileRepository.updateFcmToken(token);
     }
+    // Attempt claiming pending referral code after successful sign up and login
+    await sl<ProfileCubit>().claimPendingReferralCode();
   }
 
   void setUserId(String id) {
@@ -57,6 +69,12 @@ class SignupCubit extends Cubit<SignupState> {
   Future<void> signUpWithEmail() async {
     log("SIGNUP_CUBIT: Signing up with email: ${emailController.text}");
     if (isClosed) return;
+
+    final enteredCode = referralCodeController.text.trim();
+    if (enteredCode.isNotEmpty) {
+      await sl<PreferenceManager>().savePendingReferralCode(enteredCode);
+    }
+
     emit(state.copyWith(status: SignupStatus.loading));
 
     final result = await _authRepository.signUpWithEmail(
@@ -66,7 +84,7 @@ class SignupCubit extends Cubit<SignupState> {
         name: nameController.text.trim(),
         phone: phoneController.text.trim(),
         avatarFile: avatarFile,
-        referralCode: referralCodeController.text.trim(),
+        referralCode: enteredCode,
       ),
     );
 
@@ -83,7 +101,67 @@ class SignupCubit extends Cubit<SignupState> {
         }
       },
       (user) async {
-        log("SIGNUP_CUBIT: Signup success for user: ${user.id}");
+        log("SIGNUP_CUBIT: Signup result for user: ${user.id}, isRequiresOtp: ${user.isRequiresOtp}");
+        if (user.isRequiresOtp) {
+          if (!isClosed) {
+            emit(state.copyWith(
+              status: SignupStatus.requiresOtp,
+              params: user,
+            ));
+          }
+        } else {
+          await _onSignupSuccess();
+          if (!isClosed) {
+            emit(state.copyWith(
+              status: SignupStatus.success,
+              params: user,
+            ));
+          }
+        }
+      },
+    );
+  }
+
+  Future<void> verifySignupOTP(String otp) async {
+    log("SIGNUP_CUBIT: Verifying signup OTP for: ${emailController.text}");
+    if (isClosed) return;
+    emit(state.copyWith(status: SignupStatus.loading));
+
+    final emailToUse = emailController.text.trim().isNotEmpty
+        ? emailController.text.trim()
+        : (state.params.email ?? '');
+
+    final result = await _authRepository.verifySignupOTP(
+      email: emailToUse,
+      otp: otp.trim(),
+      params: SignUpParams(
+        email: emailToUse,
+        password: passwordController.text.trim(),
+        name: nameController.text.trim().isNotEmpty
+            ? nameController.text.trim()
+            : (state.params.name ?? ''),
+        phone: phoneController.text.trim().isNotEmpty
+            ? phoneController.text.trim()
+            : (state.params.phone ?? ''),
+        avatarFile: avatarFile,
+        referralCode: referralCodeController.text.trim(),
+      ),
+    );
+
+    if (isClosed) return;
+
+    result.fold(
+      (failure) {
+        log("SIGNUP_CUBIT_ERROR (OTP): ${failure.message}");
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: SignupStatus.failure,
+            errorMessage: failure.message,
+          ));
+        }
+      },
+      (user) async {
+        log("SIGNUP_CUBIT: OTP verification success for user: ${user.id}");
         await _onSignupSuccess();
         if (!isClosed) {
           emit(state.copyWith(
@@ -91,6 +169,30 @@ class SignupCubit extends Cubit<SignupState> {
             params: user,
           ));
         }
+      },
+    );
+  }
+
+  Future<void> resendSignupOTP() async {
+    final email = emailController.text.trim().isNotEmpty
+        ? emailController.text.trim()
+        : (state.params.email ?? '');
+    log("SIGNUP_CUBIT: Resending signup OTP to: $email");
+    if (email.isEmpty) return;
+
+    final result = await _authRepository.resendSignupOTP(email);
+    result.fold(
+      (failure) {
+        log("SIGNUP_CUBIT_ERROR (Resend OTP): ${failure.message}");
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: SignupStatus.failure,
+            errorMessage: failure.message,
+          ));
+        }
+      },
+      (_) {
+        log("SIGNUP_CUBIT: Resent signup OTP successfully");
       },
     );
   }

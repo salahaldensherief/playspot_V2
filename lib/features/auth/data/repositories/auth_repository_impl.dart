@@ -29,9 +29,33 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   Future<Either<Failure, UserModel>> signUpWithEmail(SignUpParams params) async {
     return await callRepository(() async {
       final user = await _remoteSource.signUpWithEmail(params);
+      if (!user.isRequiresOtp) {
+        await _localDataSource.saveUserData(user);
+      }
+      return user;
+    });
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> verifySignupOTP({
+    required String email,
+    required String otp,
+    required SignUpParams params,
+  }) async {
+    return await callRepository(() async {
+      final user = await _remoteSource.verifySignupOTP(
+        email: email,
+        otp: otp,
+        params: params,
+      );
       await _localDataSource.saveUserData(user);
       return user;
     });
+  }
+
+  @override
+  Future<Either<Failure, void>> resendSignupOTP(String email) async {
+    return await callRepository(() => _remoteSource.resendSignupOTP(email));
   }
 
   @override

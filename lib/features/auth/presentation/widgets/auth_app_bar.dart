@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/buttons/language_toggle_widget.dart';
@@ -84,7 +85,7 @@ class AuthAppBar extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  (title ?? 'Create an Account').tr(),
+                  title ?? AppStrings.createAnAcc.tr(),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
@@ -97,7 +98,7 @@ class AuthAppBar extends StatelessWidget {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24.w),
                     child: Text(
-                      subTitle!.tr(),
+                      subTitle!,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white54, fontSize: 14.sp),
                     ),

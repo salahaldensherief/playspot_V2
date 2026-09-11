@@ -13,12 +13,18 @@ import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
+import 'package:playspot/core/di.dart';
+import 'package:playspot/features/auth/presentation/sign_up/signup_cubit.dart';
 import 'package:playspot/features/profile/data/models/redemption_option_model.dart';
+import 'package:playspot/features/profile/data/models/claim_referral_result.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
+import 'widgets/loyalty_level_card.dart';
+import 'widgets/loyalty_missions_section.dart';
+import 'widgets/referral_card.dart';
 
 class RedeemPointsScreen extends StatelessWidget {
   const RedeemPointsScreen({super.key});
@@ -30,7 +36,6 @@ class RedeemPointsScreen extends StatelessWidget {
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == ProfileStatus.redeemSuccess) {
-          // Success Dialog with Voucher Code
           final lastVoucher = state.myVouchers.isNotEmpty ? state.myVouchers.last : null;
           final code = lastVoucher?['code'] ?? "";
 
@@ -41,6 +46,8 @@ class RedeemPointsScreen extends StatelessWidget {
             description: AppStrings.rewardRedeemedDesc.tr(args: [code]),
             confirmText: AppStrings.continueText.tr(),
           );
+        } else if (state.status == ProfileStatus.claimReferralResult && state.claimResult != null) {
+          _handleClaimReferralResult(context, state.claimResult!);
         } else if (state.status == ProfileStatus.error && (state.errorMessage?.isNotEmpty ?? false)) {
           GameHudToast.show(
             context,
@@ -65,49 +72,150 @@ class RedeemPointsScreen extends StatelessWidget {
             },
           ),
           title: Text(
-            AppStrings.redeemPoints.tr(),
+            AppStrings.loyaltyDashboard.tr(),
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ),
-        body: Column(
-          children: [
-            _buildBalanceHeader(),
-            Expanded(
-              child: BlocBuilder<ProfileCubit, ProfileState>(
-                buildWhen: (previous, current) =>
-                    previous.status != current.status ||
-                    previous.redemptionOptions != current.redemptionOptions ||
-                    previous.pointsBalance != current.pointsBalance,
-                builder: (context, state) {
-                  if (state.status == ProfileStatus.loading) {
-                    return const AppLoader(size: 40);
-                  }
+        body: BlocBuilder<ProfileCubit, ProfileState>(
+          builder: (context, state) {
+            if (state.status == ProfileStatus.loading && state.user == null) {
+              return const Center(child: AppLoader(size: 50));
+            }
 
-                  if (state.redemptionOptions.isEmpty) {
-                    return Center(
-                      child: AppText(text: AppStrings.noRewardsAvailable.tr(), color: Colors.white),
-                    );
-                  }
+            if (state.status == ProfileStatus.error && state.user == null) {
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 50.sp),
+                      SizedBox(height: 16.h),
+                      AppText(
+                        text: state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                        fontSize: 16.sp,
+                        color: Colors.white,
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20.h),
+                      AppButton(
+                        buttonConfig: ButtonConfig(
+                          gradient: AppColors.primaryGradient,
+                        ),
+                        content: ButtonContent(
+                          label: AppStrings.retry.tr(),
+                        ),
+                        behavior: ButtonBehavior.tap(
+                          onTap: () => context.read<ProfileCubit>().getUserData(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
-                  return ListView.separated(
-                    padding: EdgeInsets.all(20.w),
-                    itemCount: state.redemptionOptions.length + 1,
-                    separatorBuilder: (context, index) => SizedBox(height: 16.h),
-                    itemBuilder: (context, index) {
-                      if (index == state.redemptionOptions.length) {
-                        return const SafeBottomSpacer();
-                      }
-                      final option = state.redemptionOptions[index];
-                      return _buildRedemptionCard(context, option, state.pointsBalance, isArabic);
-                    },
-                  );
-                },
+            return SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Loyalty Status Header Card
+                  const LoyaltyLevelCard(),
+                  SizedBox(height: 16.h),
+
+                  // Referral & Invitations Section
+                  const ReferralCard(),
+                  SizedBox(height: 20.h),
+
+                  // Loyalty Missions Section
+                  const LoyaltyMissionsSection(),
+                  SizedBox(height: 20.h),
+
+                  // Redeemable Rewards Header
+                  AppText(
+                    text: AppStrings.redeemPoints.tr(),
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: 12.h),
+
+                  // Rewards List
+                  if (state.redemptionOptions.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.h),
+                        child: AppText(
+                          text: AppStrings.noRewardsAvailable.tr(),
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    )
+                  else
+                    Column(
+                      children: state.redemptionOptions.map((option) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 16.h),
+                          child: _buildRedemptionCard(context, option, state.pointsBalance, isArabic),
+                        );
+                      }).toList(),
+                    ),
+                  const SafeBottomSpacer(extraPadding: 40),
+                ],
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
+  }
+
+  void _handleClaimReferralResult(BuildContext context, ClaimReferralResult claimResult) {
+    switch (claimResult.status) {
+      case ClaimReferralStatus.success:
+        GameHudToast.show(
+          context,
+          AppStrings.referralActivatedSuccess.tr(),
+          type: ToastType.success,
+        );
+        break;
+      case ClaimReferralStatus.alreadyClaimed:
+        GameHudToast.show(
+          context,
+          AppStrings.referralAlreadyClaimed.tr(),
+          type: ToastType.info,
+        );
+        break;
+      case ClaimReferralStatus.emailUnconfirmed:
+        AppDialog.show(
+          context,
+          type: AppDialogType.confirm,
+          title: AppStrings.confirmEmailFirst.tr(),
+          description: AppStrings.confirmEmailFirst.tr(),
+          confirmText: AppStrings.resendVerificationEmail.tr(),
+          onConfirm: () {
+            try {
+              sl<SignupCubit>().resendSignupOTP();
+            } catch (_) {}
+          },
+        );
+        break;
+      case ClaimReferralStatus.invalidCode:
+        GameHudToast.show(
+          context,
+          AppStrings.invalidReferralCode.tr(),
+          type: ToastType.error,
+        );
+        break;
+      case ClaimReferralStatus.error:
+        GameHudToast.show(
+          context,
+          claimResult.messageKey.tr(),
+          type: ToastType.error,
+        );
+        break;
+    }
   }
 
   Widget _buildRedemptionCard(
@@ -125,7 +233,6 @@ class RedeemPointsScreen extends StatelessWidget {
       borderRadius: 24.r,
       child: Stack(
         children: [
-          // Background Gradient Overlay for Points
           Positioned(
             top: 0,
             right: isArabic ? null : 0,
@@ -187,8 +294,8 @@ class RedeemPointsScreen extends StatelessWidget {
                           SizedBox(height: 2.h),
                           AppText(
                             text: option.rewardType == 'free_hour' 
-                                ? "1 Hour Session" 
-                                : "${option.rewardValue.toInt()} EGP Discount",
+                                ? AppStrings.oneHourSession.tr() 
+                                : AppStrings.egpDiscount.tr(args: [option.rewardValue.toInt().toString()]),
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w600,
                             color: AppColors.neonBlue,
@@ -224,46 +331,6 @@ class RedeemPointsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildBalanceHeader() {
-    return BlocBuilder<ProfileCubit, ProfileState>(
-      buildWhen: (previous, current) => previous.pointsBalance != current.pointsBalance,
-      builder: (context, state) {
-        return Container(
-          width: double.infinity,
-          margin: EdgeInsets.all(20.w),
-          padding: EdgeInsets.all(24.w),
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(24.r),
-          ),
-          child: Column(
-            children: [
-              AppText(
-                text: AppStrings.yourBalance.tr(),
-                color: Colors.white70,
-                fontSize: 16,
-              ),
-              SizedBox(height: 8.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.stars, color: Colors.white, size: 32.sp),
-                  SizedBox(width: 8.w),
-                  AppText(
-                    text: state.pointsBalance.toString(),
-                    fontSize: 36.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

@@ -73,6 +73,16 @@ class SignUpScreen extends StatelessWidget {
   }
 
   void _handleStateChange(BuildContext context, SignupState state) {
+    if (state.status == SignupStatus.requiresOtp) {
+      GameHudToast.show(
+        context,
+        AppStrings.accountCreatedVerifyEmail.tr(),
+        type: ToastType.info,
+      );
+      context.goNamed(RouterKeys.verifySignupOTP);
+      return;
+    }
+
     if (state.status == SignupStatus.successSocial || state.params.isNewUser) {
       context.goNamed(
         RouterKeys.completeProfile,

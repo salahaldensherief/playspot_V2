@@ -5,6 +5,7 @@ import '../../datasources/local/app_cache_local_data_source.dart';
 import '../../services/supabase_storage_service.dart';
 import '../../services/social_auth_service.dart';
 import '../../services/location_service.dart';
+import '../../services/deep_link_service.dart';
 import '../../../art_core/presentation/locale_cubit.dart';
 
 final sl = GetIt.instance;
@@ -34,5 +35,8 @@ Future<void> initCoreModule() async {
   );
   sl.registerLazySingleton<LocationService>(
     () => LocationServiceImpl(),
+  );
+  sl.registerLazySingleton<DeepLinkService>(
+    () => DeepLinkService(sl(), sl()),
   );
 }

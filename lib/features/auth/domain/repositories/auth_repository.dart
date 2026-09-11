@@ -12,6 +12,12 @@ abstract class AuthRepository {
   Future<Either<Failure, UserModel>> signInWithGoogle();
   Future<Either<Failure, UserModel>> signInWithFacebook();
   Future<Either<Failure, UserModel>> signUpWithEmail(SignUpParams params);
+  Future<Either<Failure, UserModel>> verifySignupOTP({
+    required String email,
+    required String otp,
+    required SignUpParams params,
+  });
+  Future<Either<Failure, void>> resendSignupOTP(String email);
   Future<Either<Failure, UserModel>> completeProfile(CompleteProfileParams params);
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
   Future<Either<Failure, void>> verifyPasswordResetOTP({

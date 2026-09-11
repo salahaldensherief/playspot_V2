@@ -23,10 +23,17 @@ class ReferralCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
-      buildWhen: (previous, current) => previous.user != current.user,
+      buildWhen: (previous, current) =>
+          previous.user != current.user ||
+          previous.referralStats != current.referralStats,
       builder: (context, state) {
         final user = state.user;
-        final referralCode = user?.referralCode ?? 'PLAYSPOT';
+        final stats = state.referralStats;
+        final referralCode = (stats?.referralCode.isNotEmpty ?? false)
+            ? stats!.referralCode
+            : (user?.referralCode ?? 'PLAYSPOT');
+        final invitedCount = stats?.invitedUsersCount ?? 0;
+        final pointsEarned = stats?.referralPointsEarned ?? 0;
 
         return GlassContainer(
           borderRadius: 24.r,
@@ -96,6 +103,71 @@ class ReferralCard extends StatelessWidget {
                   color: AppColors.textSecondary,
                   height: 1.4,
                   maxLines: 5,
+                ),
+                SizedBox(height: 16.h),
+                // Referral Stats Row
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBackground.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                            color: AppColors.neonPurple.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            AppText(
+                              text: invitedCount.toString(),
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.neonBlue,
+                            ),
+                            SizedBox(height: 4.h),
+                            AppText(
+                              text: AppStrings.invitedUsers.tr(),
+                              fontSize: 11.sp,
+                              color: AppColors.textSecondary,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardBackground.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(16.r),
+                          border: Border.all(
+                            color: AppColors.warning.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            AppText(
+                              text: "+$pointsEarned",
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.warning,
+                            ),
+                            SizedBox(height: 4.h),
+                            AppText(
+                              text: AppStrings.pointsEarnedFromReferrals.tr(),
+                              fontSize: 11.sp,
+                              color: AppColors.textSecondary,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: 16.h),
                 // Referral Code Box

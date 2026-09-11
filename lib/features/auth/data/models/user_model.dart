@@ -2,6 +2,7 @@ import '../../domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   final bool isNewUser;
+  final bool isRequiresOtp;
 
   const UserModel({
     required super.id,
@@ -14,6 +15,7 @@ class UserModel extends UserEntity {
     super.isBanned,
     super.createdAt,
     this.isNewUser = false,
+    this.isRequiresOtp = false,
   });
 
   /// Normalizes database role aliases to officially recognized role keys
@@ -88,7 +90,7 @@ class UserModel extends UserEntity {
   }
 
   @override
-  List<Object?> get props => super.props..add(isNewUser);
+  List<Object?> get props => super.props..addAll([isNewUser, isRequiresOtp]);
 
   Map<String, dynamic> toJson() {
     return {
@@ -114,6 +116,7 @@ class UserModel extends UserEntity {
     String? role,
     bool? isBanned,
     bool? isNewUser,
+    bool? isRequiresOtp,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -126,6 +129,7 @@ class UserModel extends UserEntity {
       role: role ?? this.role,
       isBanned: isBanned ?? this.isBanned,
       isNewUser: isNewUser ?? this.isNewUser,
+      isRequiresOtp: isRequiresOtp ?? this.isRequiresOtp,
       createdAt: createdAt ?? this.createdAt,
     );
   }

@@ -67,6 +67,19 @@ class PreferenceManager {
 
   String? userId() => _box.read(CachingKey.UserId) as String? ?? "";
 
+  Future<void> savePendingReferralCode(String? code) {
+    if (code == null || code.trim().isEmpty) return Future.value();
+    return _box.write(CachingKey.PENDING_REFERRAL_CODE, code.trim().toUpperCase());
+  }
+
+  String getPendingReferralCode() {
+    return _box.read(CachingKey.PENDING_REFERRAL_CODE) as String? ?? '';
+  }
+
+  Future<void> clearPendingReferralCode() {
+    return _box.remove(CachingKey.PENDING_REFERRAL_CODE);
+  }
+
   Future<void> saveUserData(UserModel user) {
     return _box.write(CachingKey.UserData, user.toJson());
   }

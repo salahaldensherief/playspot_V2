@@ -8,6 +8,10 @@ import '../datasources/remote/profile_remote_data_source.dart';
 import '../models/notification_settings_model.dart';
 import '../models/redemption_option_model.dart';
 import '../models/profile_params.dart';
+import '../models/loyalty_status_model.dart';
+import '../models/loyalty_mission_model.dart';
+import '../models/user_referral_stats_model.dart';
+import '../models/claim_referral_result.dart';
 
 class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   final ProfileRemoteDataSource _remoteSource;
@@ -107,5 +111,25 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   @override
   Future<Either<Failure, void>> updateNotificationSettings(NotificationSettingsModel settings) async {
     return await callRepository(() => _remoteSource.updateNotificationSettings(settings));
+  }
+
+  @override
+  Future<Either<Failure, LoyaltyStatusModel>> getLoyaltyStatus() async {
+    return await callRepository(() => _remoteSource.getLoyaltyStatus());
+  }
+
+  @override
+  Future<Either<Failure, List<LoyaltyMissionModel>>> getLoyaltyMissions() async {
+    return await callRepository(() => _remoteSource.getLoyaltyMissions());
+  }
+
+  @override
+  Future<Either<Failure, UserReferralStatsModel>> getReferralStats() async {
+    return await callRepository(() => _remoteSource.getReferralStats());
+  }
+
+  @override
+  Future<Either<Failure, ClaimReferralResult>> claimReferralCode(String referralCode) async {
+    return await callRepository(() => _remoteSource.claimReferralCode(referralCode));
   }
 }

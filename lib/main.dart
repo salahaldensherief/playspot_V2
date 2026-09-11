@@ -13,6 +13,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:playspot/firebase_options.dart';
 import 'art_core/router/app_router.dart';
 import 'core/di.dart';
+import 'core/services/deep_link_service.dart';
 import 'core/notifications/firebase_background_handler.dart';
 import 'core/notifications/local_notification_service.dart';
 import 'core/notifications/push_notification_service.dart';
@@ -43,6 +44,9 @@ void main() async {
   await EasyLocalization.ensureInitialized();
   await init();
   await initSupabase();
+
+  // Initialize Deep Link Service
+  sl<DeepLinkService>().initialize();
 
   // Register Firebase background handler
   FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);

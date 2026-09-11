@@ -15,6 +15,7 @@ import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../core/di.dart';
+import '../../core/services/deep_link_service.dart';
 import '../../features/auth/presentation/forgot_password/forgot_password_cubit.dart';
 import '../../features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import '../../features/auth/presentation/forgot_password/otp_verification_screen.dart';
@@ -163,6 +164,15 @@ class AppRouter {
     debugLogDiagnostics: true,
     extraCodec: const MyExtraCodec(),
     redirect: (context, state) {
+      if (state.uri.queryParameters.containsKey('ref') ||
+          state.uri.queryParameters.containsKey('referral') ||
+          state.uri.queryParameters.containsKey('code') ||
+          state.uri.queryParameters.containsKey('p_referral_code')) {
+        try {
+          sl<DeepLinkService>().handleIncomingUri(state.uri);
+        } catch (_) {}
+      }
+
       final user = sl<AuthRepository>().getCurrentUser();
       final currentPath = state.uri.path;
       final currentName = state.name;
@@ -171,6 +181,7 @@ class AppRouter {
           currentPath == RouterKeys.onboarding ||
           currentPath == RouterKeys.signIn ||
           currentPath == RouterKeys.signUp ||
+          currentPath == RouterKeys.verifySignupOTP ||
           currentPath == RouterKeys.completeProfile ||
           currentPath == RouterKeys.forgotPassword ||
           currentPath == RouterKeys.verifyOTP ||
@@ -235,17 +246,33 @@ class AppRouter {
               child: const OnBoardingPage(),
             ),
           ),
-          GoRoute(
-            path: RouterKeys.signUp,
-            name: RouterKeys.signUp,
-            pageBuilder: (context, state) => _buildPageWithTransition(
-              context: context,
-              state: state,
-              child: BlocProvider(
+          ShellRoute(
+            builder: (context, state, child) {
+              return BlocProvider(
                 create: (context) => sl<SignupCubit>(),
-                child: const SignUpScreen(),
+                child: child,
+              );
+            },
+            routes: [
+              GoRoute(
+                path: RouterKeys.signUp,
+                name: RouterKeys.signUp,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const SignUpScreen(),
+                ),
               ),
-            ),
+              GoRoute(
+                path: RouterKeys.verifySignupOTP,
+                name: RouterKeys.verifySignupOTP,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: const OTPVerificationScreen(isSignUp: true),
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: RouterKeys.signIn,
@@ -440,7 +467,8 @@ class AppRouter {
                 } catch (_) {}
               }
 
-              if (params == null) {
+              final bookingParams = params;
+              if (bookingParams == null) {
                 return _buildPageWithTransition(
                   context: context,
                   state: state,
@@ -457,9 +485,9 @@ class AppRouter {
                 child: BlocProvider(
                   create: (context) => BookingCubit(
                     sl<BookingRepository>(),
-                    params!,
+                    bookingParams,
                   ),
-                  child: BookingScreen(params: params!),
+                  child: BookingScreen(params: bookingParams),
                 ),
               );
             },
@@ -484,7 +512,8 @@ class AppRouter {
                 } catch (_) {}
               }
 
-              if (params == null) {
+              final checkoutParams = params;
+              if (checkoutParams == null) {
                 return _buildPageWithTransition(
                   context: context,
                   state: state,
@@ -500,7 +529,7 @@ class AppRouter {
                 state: state,
                 child: BlocProvider(
                   create: (context) => sl<CheckoutCubit>(),
-                  child: CheckoutScreen(params: params!),
+                  child: CheckoutScreen(params: checkoutParams),
                 ),
               );
             },

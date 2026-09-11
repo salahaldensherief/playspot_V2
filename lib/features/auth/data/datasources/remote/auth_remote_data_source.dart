@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
@@ -13,6 +14,12 @@ abstract class AuthRemoteSource {
     required String password,
   });
   Future<UserModel> signUpWithEmail(SignUpParams params);
+  Future<UserModel> verifySignupOTP({
+    required String email,
+    required String otp,
+    required SignUpParams params,
+  });
+  Future<void> resendSignupOTP(String email);
   Future<UserModel> signInWithGoogle();
   Future<UserModel> signInWithFacebook();
   Future<UserModel> completeProfile(CompleteProfileParams params);
@@ -37,6 +44,25 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     this._storageService,
     this._socialAuthService,
   );
+
+  String _parseAuthExceptionMessage(AuthException e) {
+    final msg = e.message;
+    if (msg.contains('already registered') || msg.contains('already in use')) {
+      return 'Email is already registered';
+    }
+    if (msg.contains('sending confirmation email') || msg.contains('unexpected_failure')) {
+      return 'Unable to send confirmation email. Please check your email address or try again.';
+    }
+    if (msg.startsWith('{') && msg.contains('"message":')) {
+      try {
+        final map = jsonDecode(msg) as Map<String, dynamic>;
+        if (map.containsKey('message')) {
+          return map['message'].toString();
+        }
+      } catch (_) {}
+    }
+    return msg;
+  }
 
   @override
   Future<UserModel> signInWithEmail({
@@ -78,6 +104,18 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       if (response.user == null) throw const ServerException('Sign up failed');
 
       final userId = response.user!.id;
+
+      // If session is null, Supabase requires email OTP verification before active login.
+      if (response.session == null) {
+        return UserModel(
+          id: userId,
+          email: params.email,
+          name: params.name,
+          phone: params.phone,
+          isRequiresOtp: true,
+        );
+      }
+
       String? avatarUrl;
       if (params.avatarFile != null) {
         final fileExt = params.avatarFile!.path.split('.').last;
@@ -128,10 +166,96 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         isNewUser: false,
       ).copyWith(name: params.name, phone: params.phone, avatarUrl: avatarUrl);
     } on AuthException catch (e) {
-      if (e.message.contains('already registered')) {
+      if (e.message.contains('already registered') || e.message.contains('already in use')) {
         throw const EmailAlreadyInUseException();
       }
-      throw AppException(e.message, code: e.statusCode);
+      throw AppException(_parseAuthExceptionMessage(e), code: e.statusCode);
+    } catch (e) {
+      throw AppException(e.toString());
+    }
+  }
+
+  @override
+  Future<UserModel> verifySignupOTP({
+    required String email,
+    required String otp,
+    required SignUpParams params,
+  }) async {
+    try {
+      final response = await _supabase.auth.verifyOTP(
+        email: email,
+        token: otp,
+        type: OtpType.signup,
+      );
+      final user = response.user ?? _supabase.auth.currentUser;
+      if (user == null) throw const ServerException('OTP Verification failed');
+
+      final userId = user.id;
+      String? avatarUrl;
+      if (params.avatarFile != null) {
+        final fileExt = params.avatarFile!.path.split('.').last;
+        avatarUrl = await _storageService.uploadFile(
+          bucket: 'avatars',
+          path: 'avatars/$userId.$fileExt',
+          file: params.avatarFile!,
+        );
+      }
+
+      await _supabase.from('profiles').upsert({
+        'id': userId,
+        'full_name': params.name,
+        'email': params.email,
+        'phone': params.phone,
+        'avatar_url': avatarUrl,
+        'is_banned': false,
+      });
+
+      if (params.referralCode != null && params.referralCode!.trim().isNotEmpty) {
+        try {
+          await _supabase.rpc('process_referral', params: {
+            'p_referral_code': params.referralCode!.trim(),
+            'p_new_user_id': userId,
+          });
+        } catch (_) {
+          try {
+            final referrer = await _supabase
+                .from('profiles')
+                .select('id')
+                .eq('referral_code', params.referralCode!.trim())
+                .maybeSingle();
+
+            if (referrer != null) {
+              await _supabase.from('referrals').insert({
+                'referrer_id': referrer['id'],
+                'referred_id': userId,
+              });
+            }
+          } catch (e) {
+            debugPrint(' [Referral] Error processing referral: $e');
+          }
+        }
+      }
+
+      return UserModel.fromSupabaseUser(
+        user.toJson(),
+        isNewUser: false,
+      ).copyWith(name: params.name, phone: params.phone, avatarUrl: avatarUrl);
+    } on AuthException catch (e) {
+      throw AppException(_parseAuthExceptionMessage(e), code: e.statusCode);
+    } catch (e) {
+      throw AppException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> resendSignupOTP(String email) async {
+    try {
+      await _supabase.auth.resend(
+        type: OtpType.signup,
+        email: email,
+      );
+    } on AuthException catch (e) {
+      throw AppException(_parseAuthExceptionMessage(e), code: e.statusCode);
     } catch (e) {
       throw AppException(e.toString());
     }

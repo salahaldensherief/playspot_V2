@@ -17,6 +17,7 @@ class CachingKey {
   static const String IS_GUEST_USER = 'IS_GUEST_USER';
   static const String USER_MODEL = 'USER_MODEL';
   static const String IS_DARK_MODE = 'IS_DARK_MODE';
+  static const String PENDING_REFERRAL_CODE = 'PENDING_REFERRAL_CODE';
 
   static const String LATITUDE = 'LATITUDE';
   static const String LONGITUDE = 'LONGITUDE';

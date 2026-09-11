@@ -146,6 +146,28 @@ class AppStrings {
   static const String rewardRedeemedDesc = "rewardRedeemedDesc";
   static const String loyaltyDashboard = "loyaltyDashboard";
   static const String pointsEarnedToast = "pointsEarnedToast";
+  static const String accountCreatedVerifyEmail = "accountCreatedVerifyEmail";
+  static const String referralActivatedSuccess = "referralActivatedSuccess";
+  static const String referralAlreadyClaimed = "referralAlreadyClaimed";
+  static const String confirmEmailFirst = "confirmEmailFirst";
+  static const String resendVerificationEmail = "resendVerificationEmail";
+  static const String invalidReferralCode = "invalidReferralCode";
+  static const String currentLevel = "currentLevel";
+  static const String nextLevelPoints = "nextLevelPoints";
+  static const String multiplier = "multiplier";
+  static const String loyaltyMissions = "loyaltyMissions";
+  static const String invitedUsers = "invitedUsers";
+  static const String pointsEarnedFromReferrals = "pointsEarnedFromReferrals";
+  static const String completed = "completed";
+  static const String inProgress = "inProgress";
+  static const String notStarted = "notStarted";
+  static const String pointsRemaining = "pointsRemaining";
+  static const String noActiveMissions = "noActiveMissions";
+  static const String userNotLoggedIn = "userNotLoggedIn";
+  static const String userNotFound = "userNotFound";
+  static const String oneHourSession = "oneHourSession";
+  static const String egpDiscount = "egpDiscount";
+  static const String failedToRedeemPoints = "failedToRedeemPoints";
 
   // New Strings
   static const String cancelBookingTitle = "cancelBookingTitle";

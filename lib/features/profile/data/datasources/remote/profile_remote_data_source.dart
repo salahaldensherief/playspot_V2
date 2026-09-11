@@ -1,11 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../models/notification_settings_model.dart';
 import '../../models/redemption_option_model.dart';
 import '../../models/profile_params.dart';
+import '../../models/loyalty_status_model.dart';
+import '../../models/loyalty_mission_model.dart';
+import '../../models/user_referral_stats_model.dart';
+import '../../models/claim_referral_result.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> updateProfile(UpdateProfileParams params);
@@ -22,6 +27,10 @@ abstract class ProfileRemoteDataSource {
   Future<void> updateFcmToken(String token);
   Future<NotificationSettingsModel> getNotificationSettings();
   Future<void> updateNotificationSettings(NotificationSettingsModel settings);
+  Future<LoyaltyStatusModel> getLoyaltyStatus();
+  Future<List<LoyaltyMissionModel>> getLoyaltyMissions();
+  Future<UserReferralStatsModel> getReferralStats();
+  Future<ClaimReferralResult> claimReferralCode(String referralCode);
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -277,6 +286,259 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       debugPrint(' [Profile] Error updating notification settings: $e');
     }
   }
+
+  @override
+  Future<LoyaltyStatusModel> getLoyaltyStatus() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return const LoyaltyStatusModel(
+        pointsBalance: 0,
+        currentLevel: 'Bronze',
+        nextLevelPoints: 100,
+        multiplier: 1.0,
+      );
+    }
+
+    try {
+      final response = await _supabase.rpc('get_loyalty_status', params: {
+        'p_user_id': user.id,
+      });
+
+      if (response != null) {
+        if (response is Map) {
+          return LoyaltyStatusModel.fromJson(Map<String, dynamic>.from(response));
+        } else if (response is List && response.isNotEmpty && response.first is Map) {
+          return LoyaltyStatusModel.fromJson(Map<String, dynamic>.from(response.first));
+        }
+      }
+    } catch (e) {
+      debugPrint('[Profile] get_loyalty_status RPC error: $e');
+    }
+
+    final points = await getPointsBalance();
+    return LoyaltyStatusModel(
+      pointsBalance: points,
+      currentLevel: points >= 1000 ? 'Gold' : (points >= 500 ? 'Silver' : 'Bronze'),
+      nextLevelPoints: points >= 1000 ? 2000 : (points >= 500 ? 1000 : 500),
+      multiplier: points >= 1000 ? 1.5 : (points >= 500 ? 1.2 : 1.0),
+    );
+  }
+
+  @override
+  Future<List<LoyaltyMissionModel>> getLoyaltyMissions() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return [];
+
+    try {
+      final missionsRes = await _supabase
+          .from('loyalty_missions')
+          .select()
+          .eq('is_active', true);
+
+      final progressRes = await _supabase
+          .from('user_mission_progress')
+          .select()
+          .eq('user_id', user.id);
+
+      final progressMap = <String, Map<String, dynamic>>{};
+      for (final p in (progressRes as List)) {
+        if (p is Map) {
+          final mId = p['mission_id']?.toString() ?? '';
+          if (mId.isNotEmpty) {
+            progressMap[mId] = Map<String, dynamic>.from(p);
+          }
+        }
+      }
+
+      return (missionsRes as List).map((m) {
+        final mMap = Map<String, dynamic>.from(m as Map);
+        final mId = mMap['id']?.toString() ?? '';
+        return LoyaltyMissionModel.fromJson(mMap, progressJson: progressMap[mId]);
+      }).toList();
+    } catch (e) {
+      debugPrint('[Profile] Error fetching loyalty missions: $e');
+    }
+    return [];
+  }
+
+  @override
+  Future<UserReferralStatsModel> getReferralStats() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return const UserReferralStatsModel(
+        referralCode: '',
+        invitedUsersCount: 0,
+        referralPointsEarned: 0,
+      );
+    }
+
+    String refCode = '';
+    try {
+      final profile = await _supabase
+          .from('profiles')
+          .select('referral_code')
+          .eq('id', user.id)
+          .maybeSingle();
+      refCode = profile?['referral_code']?.toString() ??
+          'PLAY-${user.id.substring(0, 6).toUpperCase()}';
+    } catch (_) {
+      refCode = 'PLAY-${user.id.substring(0, 6).toUpperCase()}';
+    }
+
+    int count = 0;
+    int points = 0;
+
+    try {
+      final referralsRes = await _supabase
+          .from('referrals')
+          .select('*')
+          .eq('referrer_id', user.id);
+
+      final list = referralsRes as List;
+      count = list.length;
+      for (final item in list) {
+        if (item is Map) {
+          points += ((item['reward_points'] ??
+                  item['points'] ??
+                  item['points_awarded']) as num?)
+              ?.toInt() ?? 0;
+        }
+      }
+    } catch (e) {
+      debugPrint('[Profile] Error fetching referrals: $e');
+    }
+
+    if (points == 0) {
+      try {
+        final txRes = await _supabase
+            .from('points_transactions')
+            .select('points')
+            .eq('user_id', user.id)
+            .or('source_type.eq.referral,source_type.eq.referral_bonus,description.ilike.%referral%');
+        for (final tx in (txRes as List)) {
+          if (tx is Map) {
+            points += ((tx['points']) as num?)?.toInt() ?? 0;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return UserReferralStatsModel(
+      referralCode: refCode,
+      invitedUsersCount: count,
+      referralPointsEarned: points,
+    );
+  }
+
+  @override
+  Future<ClaimReferralResult> claimReferralCode(String referralCode) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      return const ClaimReferralResult(
+        status: ClaimReferralStatus.error,
+        messageKey: AppStrings.userNotLoggedIn,
+      );
+    }
+
+    final cleanCode = referralCode.trim().toUpperCase();
+    if (cleanCode.isEmpty) {
+      return const ClaimReferralResult(
+        status: ClaimReferralStatus.invalidCode,
+        messageKey: AppStrings.invalidReferralCode,
+      );
+    }
+
+    try {
+      final response = await _supabase.rpc('claim_referral_code', params: {
+        'p_referral_code': cleanCode,
+      });
+
+      if (response != null) {
+        if (response is Map) {
+          final map = Map<String, dynamic>.from(response);
+          if (map['success'] == true) {
+            return const ClaimReferralResult(
+              status: ClaimReferralStatus.success,
+              messageKey: AppStrings.referralActivatedSuccess,
+            );
+          } else if (map['already_claimed'] == true ||
+              map['status'] == 'already_claimed' ||
+              (map['message']?.toString().contains('already') ?? false)) {
+            return const ClaimReferralResult(
+              status: ClaimReferralStatus.alreadyClaimed,
+              messageKey: AppStrings.referralAlreadyClaimed,
+            );
+          } else if (map['error'] != null) {
+            final err = map['error'].toString();
+            if (err.contains('أكد الإيميل') || err.contains('confirm email') || err.contains('unconfirmed')) {
+              return const ClaimReferralResult(
+                status: ClaimReferralStatus.emailUnconfirmed,
+                messageKey: AppStrings.confirmEmailFirst,
+              );
+            } else if (err.contains('غير صحيح') || err.contains('invalid') || err.contains('not found')) {
+              return const ClaimReferralResult(
+                status: ClaimReferralStatus.invalidCode,
+                messageKey: AppStrings.invalidReferralCode,
+              );
+            }
+            return const ClaimReferralResult(
+              status: ClaimReferralStatus.error,
+              messageKey: AppStrings.somethingWentWrong,
+            );
+          }
+        } else if (response == true) {
+          return const ClaimReferralResult(
+            status: ClaimReferralStatus.success,
+            messageKey: AppStrings.referralActivatedSuccess,
+          );
+        }
+      }
+
+      return const ClaimReferralResult(
+        status: ClaimReferralStatus.success,
+        messageKey: AppStrings.referralActivatedSuccess,
+      );
+    } on PostgrestException catch (e) {
+      final msg = e.message;
+      debugPrint('[Profile] claim_referral_code PostgrestException: $msg');
+      if (msg.contains('أكد الإيميل') || msg.contains('confirm email') || msg.contains('unconfirmed')) {
+        return const ClaimReferralResult(
+          status: ClaimReferralStatus.emailUnconfirmed,
+          messageKey: AppStrings.confirmEmailFirst,
+        );
+      } else if (msg.contains('غير صحيح') || msg.contains('invalid') || msg.contains('not found')) {
+        return const ClaimReferralResult(
+          status: ClaimReferralStatus.invalidCode,
+          messageKey: AppStrings.invalidReferralCode,
+        );
+      } else if (msg.contains('already') || msg.contains('سبق استخدام')) {
+        return const ClaimReferralResult(
+          status: ClaimReferralStatus.alreadyClaimed,
+          messageKey: AppStrings.referralAlreadyClaimed,
+        );
+      }
+      return const ClaimReferralResult(
+        status: ClaimReferralStatus.error,
+        messageKey: AppStrings.somethingWentWrong,
+      );
+    } catch (e) {
+      final msg = e.toString();
+      debugPrint('[Profile] claim_referral_code error: $msg');
+      if (msg.contains('أكد الإيميل') || msg.contains('confirm email')) {
+        return const ClaimReferralResult(
+          status: ClaimReferralStatus.emailUnconfirmed,
+          messageKey: AppStrings.confirmEmailFirst,
+        );
+      } else if (msg.contains('غير صحيح') || msg.contains('invalid')) {
+        return const ClaimReferralResult(
+          status: ClaimReferralStatus.invalidCode,
+          messageKey: AppStrings.invalidReferralCode,
+        );
+      }
+      return const ClaimReferralResult(
+        status: ClaimReferralStatus.error,
+        messageKey: AppStrings.somethingWentWrong,
+      );
+    }
+  }
 }
-
-

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/core/di.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'signin_state.dart';
 
 import '../../domain/repositories/auth_repository.dart';
@@ -21,6 +23,7 @@ class SignInCubit extends Cubit<LoginState> {
     if (token != null) {
       await _profileRepository.updateFcmToken(token);
     }
+    await sl<ProfileCubit>().claimPendingReferralCode();
   }
 
   Future<void> signInWithEmail({

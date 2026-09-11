@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/core/di.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../../../core/notifications/local_notification_service.dart';
 import '../domain/repositories/active_session_repository.dart';
@@ -218,6 +220,10 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
       },
       (_) {
         dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW SUCCESS");
+        // Requirement 9: Refresh points and missions data from Supabase after review submission
+        try {
+          sl<ProfileCubit>().getUserData();
+        } catch (_) {}
         emit(state.copyWith(
           status: ActiveSessionStatus.empty,
           session: null,
