@@ -52,6 +52,12 @@ import '../../features/profile/presentation/profile/my_vouchers_screen.dart';
 import '../../features/active_session/presentation/active_session_screen.dart';
 import '../../features/active_session/presentation/active_session_cubit.dart';
 import '../../features/lounge_details/presentation/lounge_details/room_details_screen.dart';
+import '../../features/tournaments/presentation/tournaments_feed/tournaments_feed_cubit.dart';
+import '../../features/tournaments/presentation/tournaments_feed/tournaments_feed_screen.dart';
+import '../../features/tournaments/presentation/tournament_details/tournament_details_cubit.dart';
+import '../../features/tournaments/presentation/tournament_details/tournament_details_screen.dart';
+import '../../features/tournaments/presentation/live_match/tournament_match_cubit.dart';
+import '../../features/tournaments/presentation/live_match/tournament_match_screen.dart';
 import 'package:flutter/services.dart';
 import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
@@ -118,6 +124,38 @@ class AppRouter {
         return true;
       }
 
+      final tournamentId = _extractKey(data, [
+        'tournament_id',
+        'tournamentId',
+      ]);
+
+      final matchId = _extractKey(data, [
+        'match_id',
+        'matchId',
+      ]);
+
+      if (typeStr.contains('tournament') || tournamentId.isNotEmpty) {
+        if (tournamentId.isNotEmpty) {
+          if (matchId.isNotEmpty) {
+            router.pushNamed(
+              RouterKeys.tournamentMatch,
+              pathParameters: {
+                'id': tournamentId,
+                'matchId': matchId,
+              },
+            );
+          } else {
+            router.pushNamed(
+              RouterKeys.tournamentDetails,
+              pathParameters: {'id': tournamentId},
+            );
+          }
+        } else {
+          router.pushNamed(RouterKeys.tournaments);
+        }
+        return true;
+      }
+
       return false;
     });
   }
@@ -145,6 +183,9 @@ class AppRouter {
     RouterKeys.notifications,
     RouterKeys.notificationSettings,
     RouterKeys.activeSession,
+    RouterKeys.tournaments,
+    RouterKeys.tournamentDetails,
+    RouterKeys.tournamentMatch,
   };
 
   static Page<T> _buildPageWithTransition<T>({
@@ -665,6 +706,52 @@ class AppRouter {
                 context: context,
                 state: state,
                 child: MyBookingsScreen(highlightedBookingId: bookingId),
+              );
+            },
+          ),
+          GoRoute(
+            path: RouterKeys.tournaments,
+            name: RouterKeys.tournaments,
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              context: context,
+              state: state,
+              child: BlocProvider(
+                create: (context) => sl<TournamentsFeedCubit>(),
+                child: const TournamentsFeedScreen(),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.tournamentDetails,
+            name: RouterKeys.tournamentDetails,
+            pageBuilder: (context, state) {
+              final id = state.pathParameters['id'] ?? '';
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: BlocProvider(
+                  create: (context) => sl<TournamentDetailsCubit>(),
+                  child: TournamentDetailsScreen(tournamentId: id),
+                ),
+              );
+            },
+          ),
+          GoRoute(
+            path: RouterKeys.tournamentMatch,
+            name: RouterKeys.tournamentMatch,
+            pageBuilder: (context, state) {
+              final tournamentId = state.pathParameters['id'] ?? '';
+              final matchId = state.pathParameters['matchId'] ?? '';
+              return _buildPageWithTransition(
+                context: context,
+                state: state,
+                child: BlocProvider(
+                  create: (context) => sl<TournamentMatchCubit>(),
+                  child: TournamentMatchScreen(
+                    tournamentId: tournamentId,
+                    matchId: matchId,
+                  ),
+                ),
               );
             },
           )

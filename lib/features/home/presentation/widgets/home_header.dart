@@ -76,6 +76,8 @@ class HomeHeader extends StatelessWidget {
               12.horizontalSpace,
               _buildPointsBadge(),
               8.horizontalSpace,
+              _buildTournamentButton(context),
+              8.horizontalSpace,
               _buildSearchButton(context),
               8.horizontalSpace,
               _buildNotificationBell(context),
@@ -121,6 +123,23 @@ class HomeHeader extends StatelessWidget {
               color: Colors.white,
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTournamentButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.pushNamed(RouterKeys.tournaments),
+      child: GlassContainer(
+        borderRadius: AppSizes.r12,
+        child: Padding(
+          padding: 8.allPadding,
+          child: Icon(
+            TablerIcons.trophy,
+            color: AppColors.neonBlue,
+            size: 20.sp,
+          ),
         ),
       ),
     );

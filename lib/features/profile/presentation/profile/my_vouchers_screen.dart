@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -36,7 +37,7 @@ class MyVouchersScreen extends StatelessWidget {
             },
           ),
           title: AppText(
-            text: "my_rewards".tr(), // Adjust key as needed
+            text: "my_rewards".tr(),
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -65,9 +66,9 @@ class MyVouchersScreen extends StatelessWidget {
             
             return TabBarView(
               children: [
-                _buildVoucherList(vouchers.where((v) => v['status'] == 'active').toList()),
-                _buildVoucherList(vouchers.where((v) => v['status'] == 'used').toList()),
-                _buildVoucherList(vouchers.where((v) => v['status'] == 'expired').toList()),
+                _buildVoucherList(context, vouchers.where((v) => v['status'] == 'active').toList()),
+                _buildVoucherList(context, vouchers.where((v) => v['status'] == 'used').toList()),
+                _buildVoucherList(context, vouchers.where((v) => v['status'] == 'expired').toList()),
               ],
             );
           },
@@ -76,7 +77,7 @@ class MyVouchersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVoucherList(List<Map<String, dynamic>> vouchers) {
+  Widget _buildVoucherList(BuildContext context, List<Map<String, dynamic>> vouchers) {
     if (vouchers.isEmpty) {
       return AppStateView.empty(title: "no_vouchers".tr());
     }
@@ -92,52 +93,126 @@ class MyVouchersScreen extends StatelessWidget {
         final isExpired = voucher['status'] == 'expired';
         final isUsed = voucher['status'] == 'used';
         final isInactive = isExpired || isUsed;
+        final String code = voucher['code']?.toString() ?? '';
         
         return GlassContainer(
           borderRadius: 20,
           child: Padding(
             padding: EdgeInsets.all(16.w),
             child: Opacity(
-              opacity: isInactive ? 0.6 : 1.0,
+              opacity: isInactive ? 0.5 : 1.0,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Top Row: Reward Title & Expiry countdown
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                        decoration: BoxDecoration(
-                          color: AppColors.neonBlue.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
+                      Expanded(
                         child: AppText(
-                          text: voucher['code'],
-                          fontSize: 16.sp,
+                          text: _getRewardText(voucher),
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.neonBlue,
+                          color: Colors.white,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (!isInactive)
+                      if (!isInactive) ...[
+                        SizedBox(width: 8.w),
                         _buildExpiryCountdown(voucher['expires_at']),
+                      ],
                     ],
                   ),
                   SizedBox(height: 12.h),
-                  AppText(
-                    text: _getRewardText(voucher),
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+
+                  // Voucher Code Banner with Copy Action
+                  GestureDetector(
+                    onTap: () => _copyCode(context, code),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.neonBlue.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: AppColors.neonBlue.withValues(alpha: 0.4),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.local_offer_outlined,
+                            color: AppColors.neonBlue,
+                            size: 18.sp,
+                          ),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: AppText(
+                              text: code,
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.neonBlue,
+                              letterSpacing: 1.0,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                            decoration: BoxDecoration(
+                              color: AppColors.neonBlue.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.copy_rounded,
+                                  color: AppColors.neonBlue,
+                                  size: 13.sp,
+                                ),
+                                SizedBox(width: 4.w),
+                                AppText(
+                                  text: "copyCode".tr(),
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.neonBlue,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 4.h),
-                  AppText(
-                    text: isUsed 
-                        ? "Used on ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['used_at']))}"
-                        : isExpired 
-                            ? "Expired on ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['expires_at']))}"
-                            : "Valid until ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['expires_at']))}",
-                    fontSize: 12.sp,
-                    color: AppColors.textSecondary,
+
+                  SizedBox(height: 10.h),
+
+                  // Expiry Date Footer
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 12.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                      SizedBox(width: 4.w),
+                      Expanded(
+                        child: AppText(
+                          text: isUsed 
+                              ? "Used on ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['used_at']))}"
+                              : isExpired 
+                                  ? "Expired on ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['expires_at']))}"
+                                  : "Valid until ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['expires_at']))}",
+                          fontSize: 12.sp,
+                          color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -145,6 +220,18 @@ class MyVouchersScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  void _copyCode(BuildContext context, String code) {
+    if (code.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: code));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("codeCopied".tr()),
+        backgroundColor: AppColors.neonBlue,
+        duration: const Duration(seconds: 2),
+      ),
     );
   }
 
@@ -161,6 +248,7 @@ class MyVouchersScreen extends StatelessWidget {
     final isUrgent = daysLeft < 5;
 
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           Icons.timer_outlined,

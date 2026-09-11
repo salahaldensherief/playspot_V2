@@ -29,4 +29,7 @@ class RouterKeys {
   static const String activeSession = '/activeSession';
   static const String roomDetails = '/roomDetails/:roomId';
   static const String bookingDetails = '/booking-details/:id';
+  static const String tournaments = '/tournaments';
+  static const String tournamentDetails = '/tournaments/:id';
+  static const String tournamentMatch = '/tournaments/:id/match/:matchId';
 }
