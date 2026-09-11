@@ -71,7 +71,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       var query = _client.from('tournaments').select();
 
       if (game != null && game.isNotEmpty && game != 'All') {
-        query = query.ilike('game', '%$game%');
+        query = query.or('game.ilike.%$game%,game_name.ilike.%$game%');
       }
 
       if (cityId != null && cityId.isNotEmpty) {
@@ -83,7 +83,8 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       }
 
       if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-        query = query.ilike('title', '%${searchQuery.trim()}%');
+        final q = searchQuery.trim();
+        query = query.or('title.ilike.%$q%,title_ar.ilike.%$q%,title_en.ilike.%$q%,game.ilike.%$q%');
       }
 
       final response = await query.order('created_at', ascending: false);
@@ -184,16 +185,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       return {'participant_id': res?.toString()};
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC register_for_tournament error: $e');
-      // Direct fallback insert if RPC is unavailable
-      final insertRes = await _client.from('tournament_participants').insert({
-        'tournament_id': tournamentId,
-        'user_id': currentUser.id,
-        'status': 'pending_payment',
-        'payment_status': 'unpaid',
-        'checked_in': false,
-      }).select().single();
-
-      return TournamentParticipantModel.fromJson(insertRes).toJson();
+      rethrow;
     }
   }
 
@@ -222,7 +214,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
 
     final signedUrl = await _client.storage
         .from('tournament-receipts')
-        .createSignedUrl(storagePath, 60 * 60 * 24 * 365); // 1 year signed URL
+        .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
 
     try {
       await _client.rpc(
@@ -236,11 +228,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC submit_tournament_payment error: $e');
-      await _client.from('tournament_participants').update({
-        'payment_status': 'pending_verification',
-        'payment_method': paymentMethod,
-        'receipt_url': signedUrl,
-      }).eq('id', participantId);
+      rethrow;
     }
   }
 
@@ -253,11 +241,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC check_in_tournament_participant error: $e');
-      await _client.from('tournament_participants').update({
-        'checked_in': true,
-        'checked_in_at': DateTime.now().toUtc().toIso8601String(),
-        'status': 'confirmed',
-      }).eq('id', participantId);
+      rethrow;
     }
   }
 
@@ -270,6 +254,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     File? proofFile,
   }) async {
     final currentUser = _client.auth.currentUser;
+    if (currentUser == null) {
+      throw Exception('User not logged in');
+    }
+
     String? proofUrl;
 
     if (proofFile != null) {
@@ -304,15 +292,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC submit_match_result error: $e');
-      final deadline = DateTime.now().add(const Duration(minutes: 5)).toUtc();
-      await _client.from('tournament_matches').update({
-        'player1_score': player1Score,
-        'player2_score': player2Score,
-        'status': 'pending_confirmation',
-        'proof_url': proofUrl,
-        'submitted_by': currentUser?.id,
-        'confirmation_deadline': deadline.toIso8601String(),
-      }).eq('id', matchId);
+      rethrow;
     }
   }
 
@@ -325,9 +305,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC confirm_match_result error: $e');
-      await _client.from('tournament_matches').update({
-        'status': 'completed',
-      }).eq('id', matchId);
+      rethrow;
     }
   }
 
@@ -346,10 +324,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC dispute_match_result error: $e');
-      await _client.from('tournament_matches').update({
-        'status': 'disputed',
-        'dispute_reason': disputeReason,
-      }).eq('id', matchId);
+      rethrow;
     }
   }
 
@@ -375,7 +350,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', currentUser.id);
     } catch (e) {
-      // Silent error - rule 12: no token logging
+      // Silent error for FCM token update
     }
   }
 }

@@ -65,7 +65,7 @@ class TournamentBracketView extends StatelessWidget {
               ..sort((a, b) => a.matchOrder.compareTo(b.matchOrder));
 
             return Container(
-              margin: const EdgeInsets.only(right: 48),
+              margin: const EdgeInsetsDirectional.only(end: 48),
               width: 220,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

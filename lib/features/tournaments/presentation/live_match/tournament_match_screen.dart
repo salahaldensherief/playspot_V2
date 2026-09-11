@@ -114,9 +114,17 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           ],
         ),
         actions: [
-          TextButton(
-            child: Text('close'.tr(), style: const TextStyle(color: AppColors.textSecondary)),
-            onPressed: () => Navigator.pop(dialogContext),
+          AppButton(
+            buttonConfig: ButtonConfig(
+              backgroundColor: Colors.transparent,
+              borderColor: AppColors.borderDefault,
+              isOutlined: true,
+              width: 90,
+            ),
+            content: ButtonContent(label: 'close'.tr()),
+            behavior: TapBehavior(
+              onTap: () => Navigator.pop(dialogContext),
+            ),
           ),
           AppButton(
             buttonConfig: ButtonConfig(

@@ -69,6 +69,22 @@ class TournamentStatusBadge extends StatelessWidget {
 
   _BadgeConfig _getBadgeConfig(BuildContext context, TournamentStatus status) {
     switch (status) {
+      case TournamentStatus.draft:
+        return _BadgeConfig(
+          label: 'draft'.tr(),
+          backgroundColor: AppColors.textSecondary.withOpacity(0.15),
+          borderColor: AppColors.textSecondary,
+          dotColor: AppColors.textSecondary,
+          textColor: AppColors.textSecondary,
+        );
+      case TournamentStatus.published:
+        return _BadgeConfig(
+          label: 'published'.tr(),
+          backgroundColor: AppColors.neonBlue.withOpacity(0.15),
+          borderColor: AppColors.neonBlue,
+          dotColor: AppColors.neonBlue,
+          textColor: AppColors.neonBlue,
+        );
       case TournamentStatus.registrationOpen:
         return _BadgeConfig(
           label: 'registrationOpen'.tr(),
@@ -77,6 +93,14 @@ class TournamentStatusBadge extends StatelessWidget {
           dotColor: AppColors.neonBlue,
           textColor: AppColors.neonBlue,
         );
+      case TournamentStatus.registrationClosed:
+        return _BadgeConfig(
+          label: 'registrationClosed'.tr(),
+          backgroundColor: AppColors.warning.withOpacity(0.15),
+          borderColor: AppColors.warning,
+          dotColor: AppColors.warning,
+          textColor: AppColors.warning,
+        );
       case TournamentStatus.checkInOpen:
         return _BadgeConfig(
           label: 'checkInOpen'.tr(),
@@ -84,6 +108,22 @@ class TournamentStatusBadge extends StatelessWidget {
           borderColor: AppColors.warning,
           dotColor: AppColors.warning,
           textColor: AppColors.warning,
+        );
+      case TournamentStatus.checkInClosed:
+        return _BadgeConfig(
+          label: 'checkInClosed'.tr(),
+          backgroundColor: AppColors.textSecondary.withOpacity(0.15),
+          borderColor: AppColors.textSecondary,
+          dotColor: AppColors.textSecondary,
+          textColor: AppColors.textSecondary,
+        );
+      case TournamentStatus.drawCompleted:
+        return _BadgeConfig(
+          label: 'drawCompleted'.tr(),
+          backgroundColor: AppColors.neonPurple.withOpacity(0.15),
+          borderColor: AppColors.neonPurple,
+          dotColor: AppColors.neonPurple,
+          textColor: AppColors.neonPurple,
         );
       case TournamentStatus.inProgress:
         return _BadgeConfig(
