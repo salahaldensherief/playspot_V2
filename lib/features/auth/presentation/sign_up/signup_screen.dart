@@ -86,7 +86,7 @@ class SignUpScreen extends StatelessWidget {
     if (state.status == SignupStatus.successSocial || state.params.isNewUser) {
       context.goNamed(
         RouterKeys.completeProfile,
-        extra: state.params.id,
+        extra: state.params,
       );
       return;
     }

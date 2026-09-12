@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
@@ -125,6 +126,7 @@ class _MyBookingsScreenContentState extends State<_MyBookingsScreenContent>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(

@@ -4,6 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../text/app_text.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
+
 
 class LoungeStatusBadge extends StatefulWidget {
   final bool isOpen;
@@ -53,8 +56,10 @@ class _LoungeStatusBadgeState extends State<LoungeStatusBadge>
     super.dispose();
   }
 
+
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     final color = widget.isOpen ? AppColors.success : AppColors.roomBooked;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),

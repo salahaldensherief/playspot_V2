@@ -18,6 +18,7 @@ import 'package:playspot/features/profile/presentation/profile/profile_state.dar
 import 'package:playspot/features/profile/presentation/profile/profile_screen.dart';
 import 'package:playspot/features/my_bookings/presentation/my_bookings_screen.dart';
 
+import '../../../art_core/presentation/locale_cubit.dart';
 import '../../../art_core/router/router_keys.dart';
 import '../../active_session/presentation/active_session_cubit.dart';
 import '../../active_session/presentation/active_session_state.dart';
@@ -33,7 +34,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   late int _selectedIndex;
-  late final List<Widget> _screens;
   
   final Map<int, DateTime> _lastRefreshTime = {};
   static const Duration _refreshThreshold = Duration(seconds: 10);
@@ -42,11 +42,6 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
-    _screens = [
-      const HomeScreen(),
-      const MyBookingsScreen(isTab: true),
-      const ProfileScreen(),
-    ];
     
     // 🚀 تنفيذ التحديث الأول عند دخول الشاشة
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -115,6 +110,13 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
+    final screens = [
+      const HomeScreen(),
+      const MyBookingsScreen(isTab: true),
+      const ProfileScreen(),
+    ];
+
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     final double navBarBottom = Platform.isAndroid 
         ? (bottomPadding > 0 ? bottomPadding + 10.h : 20.h)
@@ -122,6 +124,11 @@ class _MainScreenState extends State<MainScreen> {
 
     return MultiBlocListener(
       listeners: [
+        BlocListener<LocaleCubit, Locale>(
+          listener: (context, locale) {
+            _refreshModuleData(_selectedIndex, force: true);
+          },
+        ),
         BlocListener<ActiveSessionCubit, ActiveSessionState>(
           listenWhen: (prev, curr) => 
               prev.status != ActiveSessionStatus.loaded && curr.status == ActiveSessionStatus.loaded && curr.session != null,
@@ -181,7 +188,7 @@ class _MainScreenState extends State<MainScreen> {
           Positioned.fill(
             child: IndexedStack(
               index: _selectedIndex,
-              children: _screens,
+              children: screens,
             ),
           ),
           

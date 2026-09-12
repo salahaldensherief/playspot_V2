@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/widgets/shimmer/circle_category_shimmer.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import '../home_cubit.dart';
 import '../home_state.dart';
 import 'category_item.dart';
@@ -13,6 +14,7 @@ class ActivityCategories extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     final isArabic = context.locale.languageCode == 'ar';
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) =>

@@ -1,14 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_sizes.dart';
-import '../text/app_text.dart';
 import '../buttons/app_button.dart';
 import '../buttons/res/button_behavior.dart';
 import '../buttons/res/button_content.dart';
 import '../buttons/res/button_style_config.dart';
+import '../text/app_text.dart';
 
 typedef AppConfirmDialog = AppDialog;
 
@@ -41,19 +42,19 @@ class AppDialog extends StatelessWidget {
   });
 
   static Future<void> show(
-    BuildContext context, {
-    required AppDialogType type,
-    required String title,
-    required String description,
-    List<String>? titleArgs,
-    List<String>? descriptionArgs,
-    String? confirmText,
-    String? cancelText,
-    VoidCallback? onConfirm,
-    VoidCallback? onCancel,
-    IconData? icon,
-    bool barrierDismissible = true,
-  }) {
+      BuildContext context, {
+        required AppDialogType type,
+        required String title,
+        required String description,
+        List<String>? titleArgs,
+        List<String>? descriptionArgs,
+        String? confirmText,
+        String? cancelText,
+        VoidCallback? onConfirm,
+        VoidCallback? onCancel,
+        IconData? icon,
+        bool barrierDismissible = true,
+      }) {
     return showDialog(
       context: context,
       barrierDismissible: barrierDismissible,

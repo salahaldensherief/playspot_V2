@@ -18,6 +18,7 @@ import 'package:playspot/features/splash/presentation/splash_screen.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../core/di.dart';
 import '../../core/services/deep_link_service.dart';
+import '../../features/auth/data/models/user_model.dart';
 import '../../features/auth/presentation/forgot_password/forgot_password_cubit.dart';
 import '../../features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import '../../features/auth/presentation/forgot_password/otp_verification_screen.dart';
@@ -317,15 +318,26 @@ class AppRouter {
             name: RouterKeys.completeProfile,
             path: RouterKeys.completeProfile,
             pageBuilder: (context, state) {
-              final extraId = state.extra as String? ?? '';
-              final currentUserId = sl<AuthRepository>().getCurrentUser()?.id ?? '';
+              final extra = state.extra;
+              UserModel? userModel;
+              String extraId = '';
+              if (extra is UserModel) {
+                userModel = extra;
+                extraId = userModel.id;
+              } else if (extra is String) {
+                extraId = extra;
+              }
+
+              final currentUser = sl<AuthRepository>().getCurrentUser();
+              final currentUserId = currentUser?.id ?? '';
               final userId = extraId.isNotEmpty ? extraId : currentUserId;
+              final userToUse = userModel ?? currentUser;
 
               return _buildPageWithTransition(
                 context: context,
                 state: state,
                 child: BlocProvider(
-                  create: (context) => sl<SignupCubit>()..setUserId(userId),
+                  create: (context) => sl<SignupCubit>()..initWithUser(userToUse, userId: userId),
                   child: CompleteProfileScreen(userId: userId),
                 ),
               );

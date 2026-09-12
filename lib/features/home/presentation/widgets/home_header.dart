@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import '../../../notifications/presentation/notifications_cubit.dart';
 import '../../../notifications/presentation/notifications_state.dart';
 
@@ -34,6 +35,7 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return Padding(
       padding: 16.horizontalPadding + 8.verticalPadding,
       child: Column(

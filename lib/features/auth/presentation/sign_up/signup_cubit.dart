@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/data/models/auth_params.dart';
+import 'package:playspot/features/auth/data/models/user_model.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'signup_state.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -47,6 +48,24 @@ class SignupCubit extends Cubit<SignupState> {
     if (isClosed) return;
     emit(state.copyWith(
       params: state.params.copyWith(id: id),
+    ));
+  }
+
+  void initWithUser(UserModel? user, {String? userId}) {
+    if (isClosed) return;
+    final targetId = (userId != null && userId.isNotEmpty)
+        ? userId
+        : (user?.id ?? state.params.id);
+    final avatarUrl = user?.avatarUrl ?? state.params.avatarUrl;
+    final phone = user?.phone ?? state.params.phone;
+    if (phone != null && phone.isNotEmpty && phoneController.text.isEmpty) {
+      phoneController.text = phone;
+    }
+    emit(state.copyWith(
+      params: state.params.copyWith(
+        id: targetId,
+        avatarUrl: avatarUrl,
+      ),
     ));
   }
 

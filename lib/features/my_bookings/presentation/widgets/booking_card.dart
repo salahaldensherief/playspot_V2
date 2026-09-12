@@ -13,6 +13,10 @@ import '../../../../art_core/utils/extensions/date_time_extensions.dart';
 import '../../../../core/cache/preference_manager.dart';
 import '../../../../core/di.dart';
 import '../../data/models/booking_model.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
+
 import 'package:map_launcher/map_launcher.dart';
 
 class BookingCard extends StatefulWidget {
@@ -74,6 +78,7 @@ class _BookingCardState extends State<BookingCard> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     final isUpcoming = widget.booking.status == 'upcoming' || widget.booking.status == 'pending';
 
     return AnimatedContainer(

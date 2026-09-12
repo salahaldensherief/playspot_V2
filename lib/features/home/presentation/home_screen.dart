@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
@@ -93,6 +94,7 @@ class _HomeViewState extends State<_HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return BlocListener<HomeCubit, HomeState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
@@ -160,6 +162,7 @@ class _LoungeSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -394,6 +397,7 @@ class _BrowseByCategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) =>
           previous.categories != current.categories ||
@@ -405,7 +409,7 @@ class _BrowseByCategorySection extends StatelessWidget {
 
         return SliverMainAxisGroup(
           slivers: [
-            const SliverSectionHeader(title: AppStrings.browseByCategory),
+            SliverSectionHeader(title: AppStrings.browseByCategory),
             const SliverToBoxAdapter(child: ActivityCategories()),
             8.verticalSpace.toSliver,
           ],

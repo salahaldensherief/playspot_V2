@@ -1,7 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import '../../app_strings.dart';
@@ -17,6 +19,7 @@ class SearchLoungeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     final heroTag = 'lounge_${lounge.id}_search';
     return GestureDetector(
       onTap: () {

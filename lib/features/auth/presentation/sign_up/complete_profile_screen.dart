@@ -61,6 +61,7 @@ class CompleteProfileScreen extends StatelessWidget {
                     SizedBox(height: 200.h),
                     AvatarPickerWidget(
                       avatarFile: cubit.avatarFile,
+                      imageUrl: state.params.avatarUrl,
                       onTap: cubit.pickAvatar,
                     ),
                     SizedBox(height: 40.h),

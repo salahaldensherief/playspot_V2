@@ -13,6 +13,9 @@ import '../lounge/lounge_favorite_button.dart';
 import '../lounge/lounge_status_badge.dart';
 import '../../../features/home/data/models/lounge_model.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
+
 class LoungeCard extends StatefulWidget {
   final LoungeModel lounge;
   final VoidCallback? onTap;
@@ -29,6 +32,7 @@ class _LoungeCardState extends State<LoungeCard> {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     final lounge = widget.lounge;
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),

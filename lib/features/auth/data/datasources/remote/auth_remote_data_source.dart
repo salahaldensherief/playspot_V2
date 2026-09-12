@@ -284,6 +284,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       );
     } on GoogleSignInCancelledException {
       rethrow;
+    } on AuthException {
+      rethrow;
     } catch (e) {
       debugPrint('[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...');
       try {
@@ -318,7 +320,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
           },
         );
       } catch (oauthErr) {
-        throw AppException(e.toString());
+        if (oauthErr is AuthException) rethrow;
+        throw AppException(oauthErr.toString());
       }
     }
   }
@@ -381,13 +384,16 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final metadata = user.userMetadata ?? {};
       final fullName = metadata['full_name'] ?? metadata['name'] ?? user.email?.split('@').first ?? '';
 
+      final currentAvatarUrl = metadata['avatar_url'] as String? ?? metadata['picture'] as String?;
+      final finalAvatarUrl = avatarUrl ?? currentAvatarUrl;
+
       // Save profile to profiles table - throw if saving fails
       await _supabase.from('profiles').upsert({
         'id': userId,
         'full_name': fullName,
         'email': user.email,
         'phone': params.phone,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        if (finalAvatarUrl != null) 'avatar_url': finalAvatarUrl,
         'is_banned': false,
       });
 
@@ -396,7 +402,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
           UserAttributes(
             data: {
               'phone': params.phone,
-              if (avatarUrl != null) 'avatar_url': avatarUrl,
+              if (finalAvatarUrl != null) 'avatar_url': finalAvatarUrl,
             },
           ),
         );
@@ -407,7 +413,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final updatedUser = UserModel.fromSupabaseUser(user.toJson()).copyWith(
         id: userId,
         phone: params.phone,
-        avatarUrl: avatarUrl,
+        avatarUrl: finalAvatarUrl,
         isNewUser: false,
       );
 

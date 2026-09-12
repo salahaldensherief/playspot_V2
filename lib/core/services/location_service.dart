@@ -31,18 +31,21 @@ class LocationServiceImpl implements LocationService {
 
       bool serviceEnabled = await isLocationServiceEnabled();
       if (!serviceEnabled) {
-        log("LOCATION_SERVICE: GPS is disabled, prompting user...");
-        // This might prompt the user to enable GPS on some devices
-        await Geolocator.openLocationSettings();
-        return null;
+        log("LOCATION_SERVICE: GPS is disabled");
+        return await Geolocator.getLastKnownPosition();
       }
 
-      return await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 5),
-        ),
-      );
+      try {
+        return await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 5),
+          ),
+        );
+      } catch (e) {
+        log("LOCATION_SERVICE: getCurrentPosition failed ($e), trying last known position");
+        return await Geolocator.getLastKnownPosition();
+      }
     } catch (e) {
       log("LOCATION_SERVICE_ERROR: $e");
       return null;

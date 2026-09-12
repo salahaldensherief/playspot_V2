@@ -9,6 +9,9 @@ import '../buttons/res/button_behavior.dart';
 import '../buttons/res/button_content.dart';
 import '../buttons/res/button_style_config.dart';
 import '../text/app_text.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
+
 
 enum AppStateViewType { error, empty }
 
@@ -61,8 +64,10 @@ class AppStateView extends StatelessWidget {
     return text.tr();
   }
 
+
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return Center(
       child: Padding(
         padding: EdgeInsets.all(AppSizes.w24),

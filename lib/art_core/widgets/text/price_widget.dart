@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 
@@ -24,6 +26,7 @@ class PriceWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return RichText(
       text: TextSpan(
         children: [
