@@ -7,6 +7,7 @@ import '../../../../art_core/theme/app_colors.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
 import 'timer_widget.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class TimerSection extends StatefulWidget {
   const TimerSection({super.key});

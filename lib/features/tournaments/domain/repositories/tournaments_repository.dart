@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/failures.dart';
-import '../entities/tournament_entity.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 
 abstract class TournamentsRepository {
   Future<Either<Failure, List<TournamentEntity>>> getTournaments({
@@ -51,6 +52,12 @@ abstract class TournamentsRepository {
   });
 
   Stream<List<TournamentMatchEntity>> watchTournamentMatches(String tournamentId);
+
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getTournamentAuditLogsPage({
+    required String tournamentId,
+    int page = 1,
+    int pageSize = 50,
+  });
 
   Future<void> updateFcmToken(String token);
 }

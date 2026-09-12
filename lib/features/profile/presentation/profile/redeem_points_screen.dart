@@ -25,6 +25,7 @@ import 'profile_state.dart';
 import 'widgets/loyalty_level_card.dart';
 import 'widgets/loyalty_missions_section.dart';
 import 'widgets/referral_card.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class RedeemPointsScreen extends StatelessWidget {
   const RedeemPointsScreen({super.key});

@@ -13,6 +13,7 @@ import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class PointsHistoryScreen extends StatelessWidget {
   const PointsHistoryScreen({super.key});

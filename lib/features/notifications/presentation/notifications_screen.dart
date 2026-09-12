@@ -10,6 +10,7 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 
@@ -184,7 +185,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       if (state.status == NotificationsStatus.loading &&
                           state.notifications.isEmpty) {
                         return const Center(
-                          child: CircularProgressIndicator(
+                          child: AppLoader(
+                            size: 32,
                             color: AppColors.neonBlue,
                           ),
                         );
@@ -227,9 +229,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                       padding:
                                           EdgeInsets.symmetric(vertical: 16.h),
                                       child: const Center(
-                                        child: CircularProgressIndicator(
-                                          color: AppColors.neonBlue,
+                                        child: AppLoader(
+                                          size: 24,
                                           strokeWidth: 2.5,
+                                          color: AppColors.neonBlue,
                                         ),
                                       ),
                                     );

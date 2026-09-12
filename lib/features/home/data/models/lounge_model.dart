@@ -190,6 +190,15 @@ class LoungeModel extends Equatable {
       }
     }
 
+    final int? parsedTotalReviews = (json['total_reviews'] as num?)?.toInt() ??
+        (json['reviews_count'] as num?)?.toInt() ??
+        (json['review_count'] as num?)?.toInt() ??
+        (json['total_review'] as num?)?.toInt() ??
+        (json['num_reviews'] as num?)?.toInt() ??
+        (json['ratings_count'] as num?)?.toInt() ??
+        ((json['lounge_reviews'] is List) ? (json['lounge_reviews'] as List).length : null) ??
+        ((json['reviews'] is List) ? (json['reviews'] as List).length : null);
+
     return LoungeModel(
       id: json['id']?.toString() ?? '',
       name: parsedName,
@@ -200,7 +209,7 @@ class LoungeModel extends Equatable {
       isOpen: json['is_open'] as bool? ?? true,
       location: json['location']?.toString() ?? json['address']?.toString(),
       city: json['city']?.toString() ?? json['city_name']?.toString(),
-      totalReviews: (json['total_reviews'] as num?)?.toInt() ?? (json['reviews_count'] as num?)?.toInt(),
+      totalReviews: parsedTotalReviews,
       availableRooms: (json['available_rooms'] as num?)?.toInt() ?? (json['rooms_count'] as num?)?.toInt(),
       descriptionAr: json['description_ar']?.toString() ?? json['description']?.toString(),
       descriptionEn: json['description_en']?.toString() ?? json['description']?.toString(),

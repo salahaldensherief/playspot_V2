@@ -10,7 +10,7 @@ import 'package:playspot/features/auth/data/models/user_model.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'signup_state.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../../../profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../../../../core/notifications/push_notification_service.dart';
 
 class SignupCubit extends Cubit<SignupState> {

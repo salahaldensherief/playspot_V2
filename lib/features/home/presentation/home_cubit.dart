@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:ui';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,13 +14,11 @@ import '../data/models/lounge_model.dart';
 import '../data/models/category_model.dart';
 import '../data/models/promo_model.dart';
 import '../data/models/home_params.dart';
-import '../../../art_core/presentation/locale_cubit.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final HomeRepository _homeRepository;
   final LocationService _locationService;
   StreamSubscription<Position>? _positionSubscription;
-  StreamSubscription<Locale>? _localeSubscription;
   final _pref = sl<PreferenceManager>();
 
   // آخر موقع استخدمناه فعلياً في نداء getHomeData، عشان نقارن بيه ونمنع
@@ -29,11 +26,7 @@ class HomeCubit extends Cubit<HomeState> {
   double? _lastUsedLat;
   double? _lastUsedLng;
 
-  HomeCubit(this._homeRepository, this._locationService) : super(const HomeState()) {
-    _localeSubscription = sl<LocaleCubit>().stream.listen((_) {
-      refreshHome();
-    });
-  }
+  HomeCubit(this._homeRepository, this._locationService) : super(const HomeState());
 
   Future<void> init() async {
     _loadCachedHomeData();
@@ -337,7 +330,6 @@ class HomeCubit extends Cubit<HomeState> {
   @override
   Future<void> close() {
     _positionSubscription?.cancel();
-    _localeSubscription?.cancel();
     return super.close();
   }
 }

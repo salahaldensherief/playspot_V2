@@ -6,6 +6,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
@@ -56,9 +57,10 @@ class ProfileHeader extends StatelessWidget {
                         fit: BoxFit.cover,
                         memCacheWidth: 160,
                         memCacheHeight: 160,
-                        placeholder: (context, url) => const CircularProgressIndicator(
+                        placeholder: (context, url) => const AppLoader(
+                          size: 22,
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          color: Colors.white,
                         ),
                         errorWidget: (context, url, error) => Text(
                           initials,

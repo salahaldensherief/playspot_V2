@@ -24,6 +24,10 @@ class ProfileState extends Equatable {
   final List<RedemptionOptionModel> redemptionOptions;
   final List<Map<String, dynamic>> myVouchers;
   final List<Map<String, dynamic>> pointsHistory;
+  final int pointsPage;
+  final bool hasMorePointsHistory;
+  final bool isLoadingMorePointsHistory;
+  final int pointsTotalCount;
   final LoyaltyStatusModel? loyaltyStatus;
   final List<LoyaltyMissionModel> loyaltyMissions;
   final UserReferralStatsModel? referralStats;
@@ -38,6 +42,10 @@ class ProfileState extends Equatable {
     this.redemptionOptions = const [],
     this.myVouchers = const [],
     this.pointsHistory = const [],
+    this.pointsPage = 1,
+    this.hasMorePointsHistory = true,
+    this.isLoadingMorePointsHistory = false,
+    this.pointsTotalCount = 0,
     this.loyaltyStatus,
     this.loyaltyMissions = const [],
     this.referralStats,
@@ -53,6 +61,10 @@ class ProfileState extends Equatable {
     List<RedemptionOptionModel>? redemptionOptions,
     List<Map<String, dynamic>>? myVouchers,
     List<Map<String, dynamic>>? pointsHistory,
+    int? pointsPage,
+    bool? hasMorePointsHistory,
+    bool? isLoadingMorePointsHistory,
+    int? pointsTotalCount,
     LoyaltyStatusModel? loyaltyStatus,
     List<LoyaltyMissionModel>? loyaltyMissions,
     UserReferralStatsModel? referralStats,
@@ -67,6 +79,10 @@ class ProfileState extends Equatable {
       redemptionOptions: redemptionOptions ?? this.redemptionOptions,
       myVouchers: myVouchers ?? this.myVouchers,
       pointsHistory: pointsHistory ?? this.pointsHistory,
+      pointsPage: pointsPage ?? this.pointsPage,
+      hasMorePointsHistory: hasMorePointsHistory ?? this.hasMorePointsHistory,
+      isLoadingMorePointsHistory: isLoadingMorePointsHistory ?? this.isLoadingMorePointsHistory,
+      pointsTotalCount: pointsTotalCount ?? this.pointsTotalCount,
       loyaltyStatus: loyaltyStatus ?? this.loyaltyStatus,
       loyaltyMissions: loyaltyMissions ?? this.loyaltyMissions,
       referralStats: referralStats ?? this.referralStats,
@@ -84,6 +100,10 @@ class ProfileState extends Equatable {
         redemptionOptions,
         myVouchers,
         pointsHistory,
+        pointsPage,
+        hasMorePointsHistory,
+        isLoadingMorePointsHistory,
+        pointsTotalCount,
         loyaltyStatus,
         loyaltyMissions,
         referralStats,

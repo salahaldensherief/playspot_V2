@@ -6,6 +6,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
@@ -36,11 +37,10 @@ class LogoutButton extends StatelessWidget {
                    SizedBox(
                     width: 20.w,
                     height: 20.w,
-                    child: CircularProgressIndicator(
+                    child: const AppLoader(
+                      size: 20,
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.danger,
-                      ),
+                      color: AppColors.danger,
                     ),
                   )
                 else ...[

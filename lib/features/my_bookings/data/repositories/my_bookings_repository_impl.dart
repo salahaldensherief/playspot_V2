@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/models/paginated_response.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../domain/repositories/my_bookings_repository.dart';
 import '../datasources/remote/my_bookings_remote_data_source.dart';
@@ -13,6 +14,17 @@ class MyBookingsRepositoryImpl with RepositoryHelper implements MyBookingsReposi
   @override
   Future<Either<Failure, List<BookingModel>>> getMyBookings() async {
     return await callRepository(() => _remoteDataSource.getMyBookings());
+  }
+
+  @override
+  Future<Either<Failure, PaginatedResponse<BookingModel>>> getLoungeBookingsPage({
+    required String loungeId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getLoungeBookingsPage(loungeId: loungeId, page: page, pageSize: pageSize),
+    );
   }
 
   @override

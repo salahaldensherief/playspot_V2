@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
@@ -7,6 +8,8 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/rating/rating_display_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import '../lounge_details_cubit.dart';
+import '../lounge_details_state.dart';
 
 class LoungeInfoSection extends StatelessWidget {
   final LoungeModel lounge;
@@ -22,21 +25,33 @@ class LoungeInfoSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                RatingDisplayWidget(
-                  rating: lounge.rating,
-                  starSize: 18.sp,
-                  spacing: 2.w,
-                ),
-                SizedBox(width: 8.w),
-                AppText(
-                  text: "${lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A"} · ${lounge.totalReviews ?? 0} ${AppStrings.reviews.tr()}",
-                  fontSize: 13.sp,
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w600,
-                ),
-              ],
+            BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+              buildWhen: (previous, current) => previous.reviews != current.reviews,
+              builder: (context, state) {
+                final int reviewCount = state.reviews.isNotEmpty
+                    ? state.reviews.length
+                    : (lounge.totalReviews ?? 0);
+                final double displayRating = (state.reviews.isNotEmpty)
+                    ? (state.reviews.fold(0.0, (sum, item) => sum + item.rating) / state.reviews.length)
+                    : lounge.rating;
+
+                return Row(
+                  children: [
+                    RatingDisplayWidget(
+                      rating: displayRating,
+                      starSize: 18.sp,
+                      spacing: 2.w,
+                    ),
+                    SizedBox(width: 8.w),
+                    AppText(
+                      text: "${displayRating > 0 ? displayRating.toStringAsFixed(1) : "N/A"} · $reviewCount ${AppStrings.reviews.tr()}",
+                      fontSize: 13.sp,
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
+                );
+              },
             ),
             if (lounge.getDescription(isArabic) != null) ...[
               SizedBox(height: 8.h),

@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/core/models/paginated_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
@@ -48,7 +49,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       final pointsRes = results[0] as Either<Failure, int>;
       final optionsRes = results[1] as Either<Failure, List<RedemptionOptionModel>>;
       final vouchersRes = results[2] as Either<Failure, List<Map<String, dynamic>>>;
-      final historyRes = results[3] as Either<Failure, List<Map<String, dynamic>>>;
+      final historyRes = results[3] as Either<Failure, PaginatedResponse<Map<String, dynamic>>>;
       final loyaltyRes = results[4] as Either<Failure, LoyaltyStatusModel>;
       final missionsRes = results[5] as Either<Failure, List<LoyaltyMissionModel>>;
       final statsRes = results[6] as Either<Failure, UserReferralStatsModel>;
@@ -73,7 +74,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         totalBookingsCount: totalBookings,
         redemptionOptions: optionsRes.fold((l) => [], (r) => r),
         myVouchers: vouchersRes.fold((l) => [], (r) => r),
-        pointsHistory: historyRes.fold((l) => [], (r) => r),
+        pointsHistory: historyRes.fold((l) => [], (r) => r.items),
         loyaltyStatus: loyaltyStatus,
         loyaltyMissions: missionsRes.fold((l) => [], (r) => r),
         referralStats: statsRes.fold((l) => null, (r) => r),

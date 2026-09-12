@@ -1,6 +1,6 @@
 import 'package:get_it/get_it.dart';
 import '../../../features/profile/data/datasources/remote/profile_remote_data_source.dart';
-import '../../../features/profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 import '../../../features/profile/presentation/profile/profile_cubit.dart';

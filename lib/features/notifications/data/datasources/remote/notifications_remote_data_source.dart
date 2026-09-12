@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:playspot/core/models/paginated_response.dart';
 import '../../models/notification_model.dart';
 
 abstract class NotificationsRemoteDataSource {
-  Future<List<NotificationModel>> getNotifications(
+  Future<PaginatedResponse<NotificationModel>> getNotifications(
     String lang, {
-    int limit = 20,
-    int offset = 0,
+    int page = 1,
+    int pageSize = 20,
   });
   Future<void> markAsRead(String notificationId);
   Future<void> markAllAsRead();
@@ -21,23 +22,24 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
   NotificationsRemoteDataSourceImpl(this._client);
 
   @override
-  Future<List<NotificationModel>> getNotifications(
+  Future<PaginatedResponse<NotificationModel>> getNotifications(
     String lang, {
-    int limit = 20,
-    int offset = 0,
+    int page = 1,
+    int pageSize = 20,
   }) async {
     try {
-      dev.log("FETCHING_NOTIFICATIONS: lang=$lang, limit=$limit, offset=$offset");
-      final response = await _client.rpc('get_notifications', params: {
-        'p_lang': lang,
-        'p_limit': limit,
-        'p_offset': offset,
+      dev.log("FETCHING_NOTIFICATIONS_PAGE: lang=$lang, page=$page, pageSize=$pageSize");
+      final response = await _client.rpc('get_notifications_page', params: {
+        'p_page': page,
+        'p_page_size': pageSize,
       });
-      final List list = response as List;
 
-      return list
-          .map((e) => NotificationModel.fromJson(Map<String, dynamic>.from(e)))
-          .toList();
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => NotificationModel.fromJson(json),
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
     } catch (e) {
       dev.log("FETCH_NOTIFICATIONS_ERROR: $e");
       rethrow;
@@ -46,12 +48,35 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
 
   @override
   Future<void> markAsRead(String notificationId) async {
-    await _client.rpc('mark_notification_read', params: {'p_notification_id': notificationId});
+    try {
+      await _client.rpc('mark_notification_read', params: {'p_notification_id': notificationId});
+    } catch (e) {
+      dev.log("RPC mark_notification_read failed, trying direct table update: $e");
+      final userId = _client.auth.currentUser?.id;
+      if (userId != null) {
+        await _client
+            .from('notifications')
+            .update({'is_read': true})
+            .eq('id', notificationId)
+            .eq('user_id', userId);
+      }
+    }
   }
 
   @override
   Future<void> markAllAsRead() async {
-    await _client.rpc('mark_all_notifications_read');
+    try {
+      await _client.rpc('mark_all_notifications_read');
+    } catch (e) {
+      dev.log("RPC mark_all_notifications_read failed, trying direct table update: $e");
+      final userId = _client.auth.currentUser?.id;
+      if (userId != null) {
+        await _client
+            .from('notifications')
+            .update({'is_read': true})
+            .eq('user_id', userId);
+      }
+    }
   }
 
   @override

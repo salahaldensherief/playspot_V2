@@ -48,60 +48,58 @@ class CompleteProfileScreen extends StatelessWidget {
         final cubit = context.read<SignupCubit>();
         final isLoading = state.status == SignupStatus.loading;
         return Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              child: Form(
-                key: cubit.formKey,
-                child: Column(
-                  children: [
-                    AuthAppBar(
-                      title: AppStrings.completeProfile.tr(),
-                      subTitle: AppStrings.completeProfileSubtitle.tr(),
+          body: SingleChildScrollView(
+            child: Form(
+              key: cubit.formKey,
+              child: Column(
+                children: [
+                  AuthAppBar(
+                    title: AppStrings.completeProfile.tr(),
+                    subTitle: AppStrings.completeProfileSubtitle.tr(),
+                  ),
+                  SizedBox(height: 200.h),
+                  AvatarPickerWidget(
+                    avatarFile: cubit.avatarFile,
+                    imageUrl: state.params.avatarUrl,
+                    onTap: cubit.pickAvatar,
+                  ),
+                  SizedBox(height: 40.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: AppTextField(
+                      controller: cubit.phoneController,
+                      label: AppStrings.phone.tr(),
+                      isRequired: true,
+                      textInputType: TextInputType.phone,
+                      hint: AppStrings.pleaseEnterPhoneNum.tr(),
+                      validator: AppValidators.validatePhone,
                     ),
-                    SizedBox(height: 200.h),
-                    AvatarPickerWidget(
-                      avatarFile: cubit.avatarFile,
-                      imageUrl: state.params.avatarUrl,
-                      onTap: cubit.pickAvatar,
-                    ),
-                    SizedBox(height: 40.h),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: AppTextField(
-                        controller: cubit.phoneController,
-                        label: AppStrings.phone.tr(),
-                        isRequired: true,
-                        textInputType: TextInputType.phone,
-                        hint: AppStrings.pleaseEnterPhoneNum.tr(),
-                        validator: AppValidators.validatePhone,
+                  ),
+                  SizedBox(height: 30.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: AppButton(
+                      buttonConfig: ButtonConfig.gradient(
+                        gradient: AppColors.primaryGradient,
+                        glowColor: AppColors.neonBlue,
+                        borderRadius: 15.r,
+                        width: double.infinity,
+                        height: 50.h,
+                      ),
+                      content: ButtonContent(label: AppStrings.continueText.tr()),
+                      behavior: TapBehavior(
+                        isEnabled: !isLoading,
+                        isLoading: isLoading,
+                        onTap: () {
+                          if (cubit.formKey.currentState?.validate() ?? false) {
+                            cubit.completeProfile(userId: userId);
+                          }
+                        },
                       ),
                     ),
-                    SizedBox(height: 30.h),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: AppButton(
-                        buttonConfig: ButtonConfig.gradient(
-                          gradient: AppColors.primaryGradient,
-                          glowColor: AppColors.neonBlue,
-                          borderRadius: 15.r,
-                          width: double.infinity,
-                          height: 50.h,
-                        ),
-                        content: ButtonContent(label: AppStrings.continueText.tr()),
-                        behavior: TapBehavior(
-                          isEnabled: !isLoading,
-                          isLoading: isLoading,
-                          onTap: () {
-                            if (cubit.formKey.currentState?.validate() ?? false) {
-                              cubit.completeProfile(userId: userId);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    const SafeBottomSpacer(),
-                  ],
-                ),
+                  ),
+                  const SafeBottomSpacer(),
+                ],
               ),
             ),
           ),

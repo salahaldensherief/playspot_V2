@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import '../../features/profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 
 import 'local_notification_service.dart';
 import 'notification_router.dart';

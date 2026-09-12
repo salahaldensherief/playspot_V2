@@ -317,8 +317,10 @@ execSync(`"${chromePath}" --headless --screenshot="D:\\playspot_V2\\assets\\imag
 
 // Copy to target locations in project
 fs.copyFileSync('D:/playspot_V2/assets/images/splash_master_2048.png', 'D:/playspot_V2/android/app/src/main/res/drawable/splash_logo.png');
+fs.copyFileSync('D:/playspot_V2/assets/images/splash_master_2048.png', 'D:/playspot_V2/assets/images/app_icon.png');
+fs.copyFileSync('D:/playspot_V2/assets/images/splash_master_2048.png', 'D:/playspot_V2/android/app/src/main/res/playstore-icon.png');
 fs.copyFileSync('D:/playspot_V2/assets/images/splash_master_2048.png', 'D:/playspot_V2/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png');
 fs.copyFileSync('D:/playspot_V2/assets/images/splash_master_2048.png', 'D:/playspot_V2/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png');
 fs.copyFileSync('D:/playspot_V2/assets/images/splash_master_2048.png', 'D:/playspot_V2/ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png');
 
-console.log("All splash screen assets generated successfully!");
+console.log("All splash screen and app icon assets generated successfully!");

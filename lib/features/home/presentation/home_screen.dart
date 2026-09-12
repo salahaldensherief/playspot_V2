@@ -134,7 +134,8 @@ class _HomeViewState extends State<_HomeView> {
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 16.h),
                               child: const Center(
-                                child: CircularProgressIndicator(
+                                child: AppLoader(
+                                  size: 28,
                                   color: AppColors.neonBlue,
                                 ),
                               ),
@@ -372,7 +373,7 @@ class _HomeSliverAppBar extends StatelessWidget {
         final hasCities = state.availableCities.isNotEmpty;
         return SliverAppBar(
           backgroundColor: Colors.transparent,
-          expandedHeight: hasCities ? 125.h : 80.h,
+          expandedHeight: hasCities ? 165.h : 120.h,
           pinned: true,
           elevation: 0,
           flexibleSpace: FlexibleSpaceBar(

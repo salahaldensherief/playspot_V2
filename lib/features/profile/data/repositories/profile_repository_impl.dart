@@ -1,17 +1,18 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/cache/preference_manager.dart';
-import '../../../../core/error/failures.dart';
-import '../../../../core/utils/repository_helper.dart';
-import '../../../auth/data/models/user_model.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/core/utils/repository_helper.dart';
+import 'package:playspot/features/auth/data/models/user_model.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
-import '../datasources/remote/profile_remote_data_source.dart';
-import '../models/notification_settings_model.dart';
-import '../models/redemption_option_model.dart';
-import '../models/profile_params.dart';
-import '../models/loyalty_status_model.dart';
-import '../models/loyalty_mission_model.dart';
-import '../models/user_referral_stats_model.dart';
-import '../models/claim_referral_result.dart';
+import 'package:playspot/features/profile/data/datasources/remote/profile_remote_data_source.dart';
+import 'package:playspot/features/profile/data/models/notification_settings_model.dart';
+import 'package:playspot/features/profile/data/models/redemption_option_model.dart';
+import 'package:playspot/features/profile/data/models/profile_params.dart';
+import 'package:playspot/features/profile/data/models/loyalty_status_model.dart';
+import 'package:playspot/features/profile/data/models/loyalty_mission_model.dart';
+import 'package:playspot/features/profile/data/models/user_referral_stats_model.dart';
+import 'package:playspot/features/profile/data/models/claim_referral_result.dart';
 
 class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   final ProfileRemoteDataSource _remoteSource;
@@ -30,8 +31,13 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>> getPointsHistory() async {
-    return await callRepository<List<Map<String, dynamic>>>(() => _remoteSource.getPointsHistory());
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getPointsHistory({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    return await callRepository<PaginatedResponse<Map<String, dynamic>>>(
+      () => _remoteSource.getPointsHistory(page: page, pageSize: pageSize),
+    );
   }
 
   @override

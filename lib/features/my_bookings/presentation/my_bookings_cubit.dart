@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
-import '../../../core/di.dart';
 import '../domain/repositories/my_bookings_repository.dart';
 import 'my_bookings_state.dart';
 
@@ -10,19 +7,8 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   final MyBookingsRepository _repository;
   DateTime? _lastFetchTime;
   bool _isFetching = false;
-  StreamSubscription<Locale>? _localeSubscription;
 
-  MyBookingsCubit(this._repository) : super(const MyBookingsState()) {
-    _localeSubscription = sl<LocaleCubit>().stream.listen((_) {
-      getMyBookings(force: true);
-    });
-  }
-
-  @override
-  Future<void> close() {
-    _localeSubscription?.cancel();
-    return super.close();
-  }
+  MyBookingsCubit(this._repository) : super(const MyBookingsState());
 
   /// Refreshes bookings if data is stale (older than [staleDuration]) or if forced.
   /// Protects against spamming backend while ensuring fresh data on screen entry.

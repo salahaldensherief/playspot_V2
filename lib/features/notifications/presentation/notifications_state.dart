@@ -9,7 +9,8 @@ class NotificationsState extends Equatable {
   final String? errorMessage;
   final bool hasMore;
   final bool isLoadingMore;
-  final int offset;
+  final int page;
+  final int totalCount;
 
   const NotificationsState({
     this.notifications = const [],
@@ -17,7 +18,8 @@ class NotificationsState extends Equatable {
     this.errorMessage,
     this.hasMore = true,
     this.isLoadingMore = false,
-    this.offset = 0,
+    this.page = 1,
+    this.totalCount = 0,
   });
 
   NotificationsState copyWith({
@@ -26,7 +28,8 @@ class NotificationsState extends Equatable {
     String? errorMessage,
     bool? hasMore,
     bool? isLoadingMore,
-    int? offset,
+    int? page,
+    int? totalCount,
   }) {
     return NotificationsState(
       notifications: notifications ?? this.notifications,
@@ -34,7 +37,8 @@ class NotificationsState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      offset: offset ?? this.offset,
+      page: page ?? this.page,
+      totalCount: totalCount ?? this.totalCount,
     );
   }
 
@@ -47,7 +51,7 @@ class NotificationsState extends Equatable {
         errorMessage,
         hasMore,
         isLoadingMore,
-        offset,
+        page,
+        totalCount,
       ];
 }
-

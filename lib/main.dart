@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,11 +20,21 @@ import 'core/notifications/local_notification_service.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/utils/app_bloc_observer.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
-import 'features/profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: AppColors.scaffoldBackground,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+
   // Set up BlocObserver to track all actions and state changes
   Bloc.observer = AppBlocObserver();
 

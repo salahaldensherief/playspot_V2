@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/failures.dart';
-import '../../../../core/utils/repository_helper.dart';
-import '../../domain/entities/tournament_entity.dart';
-import '../../domain/repositories/tournaments_repository.dart';
-import '../datasources/remote/tournaments_remote_data_source.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/core/utils/repository_helper.dart';
+import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
+import 'package:playspot/features/tournaments/domain/repositories/tournaments_repository.dart';
+import 'package:playspot/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart';
 
 class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepository {
   final TournamentsRemoteDataSource _remoteDataSource;
@@ -114,6 +115,21 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   @override
   Stream<List<TournamentMatchEntity>> watchTournamentMatches(String tournamentId) {
     return _remoteDataSource.watchTournamentMatches(tournamentId);
+  }
+
+  @override
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getTournamentAuditLogsPage({
+    required String tournamentId,
+    int page = 1,
+    int pageSize = 50,
+  }) {
+    return callRepository(
+      () => _remoteDataSource.getTournamentAuditLogsPage(
+        tournamentId: tournamentId,
+        page: page,
+        pageSize: pageSize,
+      ),
+    );
   }
 
   @override

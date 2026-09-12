@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../domain/entities/tournament_entity.dart';
 import 'tournament_status_badge.dart';
@@ -65,9 +66,10 @@ class TournamentCard extends StatelessWidget {
                               height: 150,
                               color: AppColors.mutedBackground,
                               child: const Center(
-                                child: CircularProgressIndicator(
-                                  color: AppColors.neonBlue,
+                                child: AppLoader(
+                                  size: 24,
                                   strokeWidth: 2,
+                                  color: AppColors.neonBlue,
                                 ),
                               ),
                             ),

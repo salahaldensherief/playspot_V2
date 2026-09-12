@@ -6,24 +6,8 @@ import '../cache/preference_manager.dart';
 
 class AppConfig {
   // App Information
-  static const String appName = "60IX";
+  static const String appName = "PlaySpot";
   static const String appVersion = "1.1.1";
-
-  ///********************* Themes *********************///
-  // static bool get isDarkMode => AppThemes.themeMode() == ThemeMode.dark;
-
-
-  // {
-  //   try {
-  //     final context = Modular.routerDelegate.navigatorKey.currentContext;
-  //     if (context != null) {
-  //       return Theme.of(context).brightness == Brightness.dark;
-  //     }
-  //     return PreferenceManager().isDarkMode();
-  //   } catch (e) {
-  //     return PreferenceManager().isDarkMode();
-  //   }
-  // }
 
   // Context-aware isDarkMode for widgets usage
   static bool isDarkModeWithContext(BuildContext context) {

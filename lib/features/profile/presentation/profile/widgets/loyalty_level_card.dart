@@ -8,12 +8,14 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class LoyaltyLevelCard extends StatelessWidget {
   const LoyaltyLevelCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
     return BlocBuilder<ProfileCubit, ProfileState>(
       buildWhen: (previous, current) =>
           previous.pointsBalance != current.pointsBalance ||

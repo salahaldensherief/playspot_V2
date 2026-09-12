@@ -5,7 +5,7 @@ import 'package:playspot/features/profile/presentation/profile/profile_cubit.dar
 import 'signin_state.dart';
 
 import '../../domain/repositories/auth_repository.dart';
-import '../../../profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../../../../core/notifications/push_notification_service.dart';
 
 class SignInCubit extends Cubit<LoginState> {

@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/cache/preference_manager.dart';
 import '../../../../core/notifications/push_notification_service.dart';
 import '../../data/models/notification_settings_model.dart';
-import '../../domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import 'notification_settings_state.dart';
 
 class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {

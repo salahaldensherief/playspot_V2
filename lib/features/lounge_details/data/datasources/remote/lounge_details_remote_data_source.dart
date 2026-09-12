@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'package:playspot/core/models/paginated_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../home/data/models/category_model.dart';
@@ -14,6 +15,16 @@ abstract class LoungeDetailsRemoteDataSource {
   Future<List<ExtraModel>> getExtras(String loungeId);
   Future<List<CategoryModel>> getLoungeCategories(String loungeId);
   Future<List<ReviewModel>> getLoungeReviews(String loungeId);
+  Future<PaginatedResponse<ReviewModel>> getLoungeReviewsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 20,
+  });
+  Future<PaginatedResponse<Map<String, dynamic>>> getLoungeRolePermissionsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 50,
+  });
   Future<RoomModel?> getRoomById(String roomId);
 }
 
@@ -95,6 +106,85 @@ class LoungeDetailsRemoteDataSourceImpl
       params: {'p_lounge_id': loungeId},
     );
     return (response as List).map((e) => CategoryModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<PaginatedResponse<ReviewModel>> getLoungeReviewsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    if (loungeId.isEmpty) {
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+
+    try {
+      final response = await _client.rpc('get_lounge_reviews_page', params: {
+        'p_lounge_id': loungeId,
+        'p_page': page,
+        'p_page_size': pageSize,
+      });
+
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => ReviewModel.fromJson(json),
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
+    } catch (e) {
+      dev.log("[REVIEWS_DS] get_lounge_reviews_page error: $e, fallback to getLoungeReviews");
+      final legacy = await getLoungeReviews(loungeId);
+      return PaginatedResponse(
+        items: legacy,
+        totalCount: legacy.length,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+  }
+
+  @override
+  Future<PaginatedResponse<Map<String, dynamic>>> getLoungeRolePermissionsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    if (loungeId.isEmpty) {
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+
+    try {
+      final response = await _client.rpc('get_lounge_role_permissions_page', params: {
+        'p_lounge_id': loungeId,
+        'p_page': page,
+        'p_page_size': pageSize,
+      });
+
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => json,
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
+    } catch (e) {
+      dev.log("[LOUNGE_DS] get_lounge_role_permissions_page error: $e");
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
   }
 
   @override

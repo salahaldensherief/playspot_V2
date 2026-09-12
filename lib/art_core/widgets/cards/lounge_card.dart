@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/lounge_helper.dart';
 import 'package:playspot/art_core/widgets/lounge/lounge_category_icon.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../text/app_text.dart';
@@ -363,7 +364,7 @@ class _LoungeCardState extends State<LoungeCard> {
       placeholder: (context, url) => Container(
         color: AppColors.mutedBackground,
         child: const Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
+          child: AppLoader(size: 24, strokeWidth: 2),
         ),
       ),
       errorWidget: (context, url, error) => _buildImagePlaceholder(),

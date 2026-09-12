@@ -16,6 +16,8 @@ import '../../data/models/booking_model.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:map_launcher/map_launcher.dart';
 
@@ -38,6 +40,60 @@ class BookingCard extends StatefulWidget {
 class _BookingCardState extends State<BookingCard> {
   bool _showHighlight = false;
   Timer? _highlightTimer;
+
+  Future<void> _openDirections(BuildContext context) async {
+    final lat = widget.booking.lat;
+    final lng = widget.booking.lng;
+
+    if (lat == null || lng == null) {
+      GameHudToast.show(
+        context,
+        AppStrings.somethingWentWrong.tr(),
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    try {
+      final pref = sl<PreferenceManager>();
+      final userLat = double.tryParse(pref.latitude());
+      final userLng = double.tryParse(pref.longitude());
+
+      await MapLauncher.directions(
+        Location.coords(
+          lat,
+          lng,
+          title: widget.booking.loungeName,
+        ),
+        from: (userLat != null && userLng != null)
+            ? Location.coords(userLat, userLng, title: "My Location")
+            : null,
+      ).show();
+      return;
+    } catch (e) {
+      debugPrint('[BookingCard] MapLauncher error: $e');
+    }
+
+    final googleMapsUrl = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
+    );
+    try {
+      if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
+      }
+    } catch (e) {
+      debugPrint('[BookingCard] URL Launcher error: $e');
+      if (context.mounted) {
+        GameHudToast.show(
+          context,
+          AppStrings.somethingWentWrong.tr(),
+          type: ToastType.error,
+        );
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -185,24 +241,7 @@ class _BookingCardState extends State<BookingCard> {
                   child: AppButton(
                     content: ButtonContent(label: AppStrings.getDirections.tr()),
                     behavior: ButtonBehavior.tap(
-                      onTap: () async {
-                        if (widget.booking.lat != null && widget.booking.lng != null) {
-                          final pref = sl<PreferenceManager>();
-                          final userLat = double.tryParse(pref.latitude());
-                          final userLng = double.tryParse(pref.longitude());
-
-                          await MapLauncher.directions(
-                            Location.coords(
-                              widget.booking.lat!,
-                              widget.booking.lng!,
-                              title: widget.booking.loungeName,
-                            ),
-                            from: (userLat != null && userLng != null)
-                                ? Location.coords(userLat, userLng, title: "My Location")
-                                : null,
-                          ).show();
-                        }
-                      },
+                      onTap: () => _openDirections(context),
                     ),
                     buttonConfig: ButtonConfig(
                       height: 45.h,

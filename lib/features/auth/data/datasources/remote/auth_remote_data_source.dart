@@ -291,7 +291,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       try {
         await _supabase.auth.signInWithOAuth(
           OAuthProvider.google,
-          redirectTo: 'com.playspot.app://login-callback',
+          redirectTo: 'com.playspot.client://login-callback',
           authScreenLaunchMode: LaunchMode.externalApplication,
         );
 
@@ -331,7 +331,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     try {
       await _supabase.auth.signInWithOAuth(
         OAuthProvider.facebook,
-        redirectTo: 'com.playspot.app://login-callback',
+        redirectTo: 'com.playspot.client://login-callback',
         authScreenLaunchMode: LaunchMode.externalApplication,
       );
 
@@ -446,13 +446,24 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> sendPasswordResetEmail(String email) async {
     try {
-      debugPrint(' [Auth] Sending reset email to: $email');
-      await _supabase.auth.resetPasswordForEmail(email);
-    } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException sending reset email: ${e.message}');
-      throw AppException(e.message, code: e.statusCode);
-    } catch (e) {
+      final cleanEmail = email.trim();
+      debugPrint(' [Auth] Sending reset email to: $cleanEmail');
+      await _supabase.auth.resetPasswordForEmail(
+        cleanEmail,
+        redirectTo: 'com.playspot.client://login-callback',
+      );
+      debugPrint(' [Auth] Password reset email request sent successfully');
+    } on AuthException catch (e, stackTrace) {
+      debugPrint(' [Auth] AuthException sending reset email: ${e.message} (code: ${e.code}, status: ${e.statusCode})');
+      debugPrintStack(stackTrace: stackTrace);
+      String msg = e.message;
+      if (e.message.contains('unexpected_failure') || e.message.contains('Error sending recovery email')) {
+        msg = 'Failed to send recovery email. Please check your Supabase SMTP configuration or rate limit.';
+      }
+      throw AppException(msg, code: e.statusCode);
+    } catch (e, stackTrace) {
       debugPrint(' [Auth] Unexpected error sending reset email: $e');
+      debugPrintStack(stackTrace: stackTrace);
       throw AppException('An unexpected error occurred while sending the code.');
     }
   }

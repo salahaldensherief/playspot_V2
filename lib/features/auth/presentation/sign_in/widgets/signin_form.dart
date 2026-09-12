@@ -30,7 +30,7 @@ class SignInForm extends StatelessWidget {
             hint: AppStrings.pleaseEnterEmail.tr(),
             validator: AppValidators.validateEmail,
           ),
-          _space(),
+          10.verticalSpace,
           AppTextField(
             controller: cubit.passwordController,
             label: AppStrings.password.tr(),
@@ -40,22 +40,18 @@ class SignInForm extends StatelessWidget {
             textInputType: TextInputType.visiblePassword,
             validator: AppValidators.validatePassword,
           ),
-        _space(height: 10.h),
-        Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: AppText(
-            text: AppStrings.forgotPassword.tr(),
-            color: AppColors.white,
-            onTap: () => context.pushNamed(RouterKeys.forgotPassword),
+          10.verticalSpace,
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: AppText(
+              text: AppStrings.forgotPassword.tr(),
+              color: AppColors.white,
+              onTap: () => context.pushNamed(RouterKeys.forgotPassword),
+            ),
           ),
-        ),
-        _space(),
-      ],
-    ),
-        );
+          10.verticalSpace,
+        ],
+      ),
+    );
   }
-}
-
-Widget _space({double? height}) {
-  return SizedBox(height: height ?? 10.0);
 }

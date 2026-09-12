@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/active_session_model.dart';
@@ -26,6 +27,11 @@ abstract class ActiveSessionRemoteDataSource {
     required String bookingId,
     required double rating,
     String? comment,
+  });
+  Future<PaginatedResponse<Map<String, dynamic>>> getActiveLoungeRequestsPage({
+    required String loungeId,
+    int page = 1,
+    int pageSize = 20,
   });
 }
 
@@ -469,6 +475,36 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       dev.log("[LIVESESSION_DS] Direct update to bookings table SUCCESS");
     } catch (e5) {
       dev.log("[LIVESESSION_DS] Direct update to bookings table failed: $e5");
+    }
+  }
+
+  @override
+  Future<PaginatedResponse<Map<String, dynamic>>> getActiveLoungeRequestsPage({
+    required String loungeId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    try {
+      final response = await _client.rpc('get_active_lounge_requests_page', params: {
+        'p_lounge_id': loungeId,
+        'p_page': page,
+        'p_page_size': pageSize,
+      });
+
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => json,
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] get_active_lounge_requests_page error: $e");
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
     }
   }
 }

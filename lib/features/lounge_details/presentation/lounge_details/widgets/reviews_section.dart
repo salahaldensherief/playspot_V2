@@ -17,6 +17,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class ReviewsSection extends StatelessWidget {
   final List<ReviewModel>? reviews;

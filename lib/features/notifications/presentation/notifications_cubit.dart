@@ -5,8 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/app_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
-import '../data/models/notification_model.dart';
-import '../domain/repositories/notifications_repository.dart';
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/features/notifications/data/models/notification_model.dart';
+import 'package:playspot/features/notifications/domain/repositories/notifications_repository.dart';
 import 'notifications_state.dart';
 
 class NotificationsCubit extends Cubit<NotificationsState> {
@@ -26,39 +27,44 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
   Future<void> loadNotifications(String lang, {bool silent = false}) async {
     _lastLang = lang;
-    if (!silent) {
+    if (!silent && !isClosed) {
       emit(state.copyWith(
         status: NotificationsStatus.loading,
-        offset: 0,
+        page: 1,
         hasMore: true,
       ));
     }
 
     final result = await _repository.getNotifications(
       lang,
-      limit: _pageSize,
-      offset: 0,
+      page: 1,
+      pageSize: _pageSize,
     );
+
+    if (isClosed) return;
 
     result.fold(
       (failure) {
-        if (!silent) {
+        if (!isClosed && !silent) {
           emit(state.copyWith(
             status: NotificationsStatus.error,
             errorMessage: failure.message,
           ));
         }
       },
-      (notifications) {
-        emit(state.copyWith(
-          status: NotificationsStatus.success,
-          notifications: notifications,
-          offset: notifications.length,
-          hasMore: notifications.length >= _pageSize,
-          isLoadingMore: false,
-        ));
-        if (!silent) {
-          _subscribeToNotifications();
+      (PaginatedResponse<NotificationModel> paginatedRes) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: NotificationsStatus.success,
+            notifications: paginatedRes.items,
+            page: paginatedRes.page,
+            totalCount: paginatedRes.totalCount,
+            hasMore: paginatedRes.hasMore,
+            isLoadingMore: false,
+          ));
+          if (!silent && !isClosed) {
+            _subscribeToNotifications();
+          }
         }
       },
     );
@@ -70,31 +76,41 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     }
 
     _lastLang = lang;
-    emit(state.copyWith(isLoadingMore: true));
+    final nextPage = state.page + 1;
+    if (!isClosed) {
+      emit(state.copyWith(isLoadingMore: true));
+    }
 
     final result = await _repository.getNotifications(
       lang,
-      limit: _pageSize,
-      offset: state.offset,
+      page: nextPage,
+      pageSize: _pageSize,
     );
+
+    if (isClosed) return;
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          isLoadingMore: false,
-          errorMessage: failure.message,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            isLoadingMore: false,
+            errorMessage: failure.message,
+          ));
+        }
       },
-      (newNotifications) {
-        final updatedList = List<NotificationModel>.from(state.notifications)
-          ..addAll(newNotifications);
+      (PaginatedResponse<NotificationModel> paginatedRes) {
+        if (!isClosed) {
+          final updatedList = List<NotificationModel>.from(state.notifications)
+            ..addAll(paginatedRes.items);
 
-        emit(state.copyWith(
-          notifications: updatedList,
-          offset: state.offset + newNotifications.length,
-          hasMore: newNotifications.length >= _pageSize,
-          isLoadingMore: false,
-        ));
+          emit(state.copyWith(
+            notifications: updatedList,
+            page: paginatedRes.page,
+            totalCount: paginatedRes.totalCount,
+            hasMore: paginatedRes.hasMore,
+            isLoadingMore: false,
+          ));
+        }
       },
     );
   }
@@ -106,12 +122,18 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   void _subscribeToNotifications() {
     _subscription?.cancel();
     _subscription = _repository.subscribeToNewNotifications().listen((record) {
+      if (isClosed) return;
       if (_lastLang != null) {
         final newNotification = NotificationModel.fromRawRecord(record, _lastLang!);
-        
+
         // Add to list locally
         final updatedList = [newNotification, ...state.notifications];
-        emit(state.copyWith(notifications: updatedList));
+        if (!isClosed) {
+          emit(state.copyWith(
+            notifications: updatedList,
+            totalCount: state.totalCount + 1,
+          ));
+        }
 
         // Show Toast safely
         GameHudToast.show(
@@ -120,7 +142,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
           type: ToastType.info,
         );
 
-        // 🚀 Automated Active Session Navigation Trigger
+        // Automated Active Session Navigation Trigger
         _checkAndTriggerActiveSessionNavigation(record, newNotification);
       }
     });
@@ -181,33 +203,46 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void markAsRead(String id) async {
-    final originalList = List.of(state.notifications);
+    if (isClosed) return;
     final updatedList = state.notifications.map((n) {
       if (n.id == id) return n.copyWith(isRead: true);
       return n;
     }).toList();
-    
+
     emit(state.copyWith(notifications: updatedList));
 
     final result = await _repository.markAsRead(id);
-    
+
+    if (isClosed) return;
+
     result.fold(
-      (failure) => emit(state.copyWith(notifications: originalList)),
-      (_) => emit(state.copyWith(notifications: updatedList)),
+      (failure) {
+        // Keep optimism, state remains marked as read locally
+        if (!isClosed) emit(state.copyWith(notifications: updatedList));
+      },
+      (_) {
+        if (!isClosed) emit(state.copyWith(notifications: updatedList));
+      },
     );
   }
 
   void markAllAsRead() async {
-    final originalList = List.of(state.notifications);
+    if (isClosed) return;
     final updatedList = state.notifications.map((n) => n.copyWith(isRead: true)).toList();
-    
+
     emit(state.copyWith(notifications: updatedList));
 
     final result = await _repository.markAllAsRead();
-    
+
+    if (isClosed) return;
+
     result.fold(
-      (failure) => emit(state.copyWith(notifications: originalList)),
-      (_) => emit(state.copyWith(notifications: updatedList)),
+      (failure) {
+        if (!isClosed) emit(state.copyWith(notifications: updatedList));
+      },
+      (_) {
+        if (!isClosed) emit(state.copyWith(notifications: updatedList));
+      },
     );
   }
 }

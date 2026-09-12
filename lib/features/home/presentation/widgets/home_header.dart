@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
-import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:go_router/go_router.dart';
@@ -33,66 +32,156 @@ class HomeHeader extends StatelessWidget {
     required this.onCitySelected,
   });
 
+  String _getDisplayName(String fullName) {
+    final clean = fullName.trim();
+    if (clean.isEmpty) return '';
+    return clean;
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
+    final displayName = _getDisplayName(userName);
+
     return Padding(
-      padding: 16.horizontalPadding + 8.verticalPadding,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          // Row 1: Greeting & Location (Max Horizontal Space) + Points & Notification Bell
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // User Greeting & Location (Gets full remaining width)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     AppText(
-                      text: AppStrings.heyUser
-                          .tr(args: [userName.split(' ').first]),
-                      fontSize: 20.sp,
+                      text: AppStrings.heyUser.tr(args: [displayName]),
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.white,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    2.verticalSpace,
+                    SizedBox(height: 2.h),
                     Row(
                       children: [
-                        Icon(Icons.location_on, color: AppColors.neonBlue, size: 12.sp),
-                        4.horizontalSpace,
+                        Icon(
+                          Icons.location_on,
+                          color: AppColors.neonBlue,
+                          size: 13.sp,
+                        ),
+                        SizedBox(width: 4.w),
                         Expanded(
                           child: AppText(
-                                text: currentLocation.toUpperCase(),
-                                fontSize: 9.sp,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.bold,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                            text: currentLocation.toUpperCase(),
+                            fontSize: 10.sp,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.bold,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              12.horizontalSpace,
-              _buildPointsBadge(),
-              8.horizontalSpace,
-              _buildTournamentButton(context),
-              8.horizontalSpace,
-              _buildSearchButton(context),
-              8.horizontalSpace,
+
+              SizedBox(width: 10.w),
+
+              // Points Badge
+              _buildPointsBadge(context),
+
+              SizedBox(width: 8.w),
+
+              // Notification Bell
               _buildNotificationBell(context),
             ],
           ),
+
+          SizedBox(height: 10.h),
+
+          // Row 2: Search Bar + Tournaments Quick Chip (Wide comfortable touch targets)
+          Row(
+            children: [
+              // Search Bar Trigger
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => context.pushNamed(RouterKeys.search),
+                  child: GlassContainer(
+                    borderRadius: AppSizes.r12,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                      child: Row(
+                        children: [
+                          Icon(
+                            TablerIcons.search,
+                            color: AppColors.textSecondary,
+                            size: 16.sp,
+                          ),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: AppText(
+                              text: AppStrings.searchLoungesHint.tr(),
+                              fontSize: 12.sp,
+                              color: AppColors.textSecondary,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              SizedBox(width: 8.w),
+
+              // Tournaments Button Chip
+              GestureDetector(
+                onTap: () => context.pushNamed(RouterKeys.tournaments),
+                child: GlassContainer(
+                  borderRadius: AppSizes.r12,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          TablerIcons.trophy,
+                          color: AppColors.neonBlue,
+                          size: 16.sp,
+                        ),
+                        SizedBox(width: 6.w),
+                        AppText(
+                          text: AppStrings.tournamentsAndEvents.tr(),
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // Row 3: City Chips List
           if (cities.isNotEmpty) ...[
-            16.verticalSpace,
+            SizedBox(height: 10.h),
             SizedBox(
-              height: 34.h,
+              height: 32.h,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: cities.length + 1,
-                separatorBuilder: (context, index) => 8.horizontalSpace,
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return _buildCityChip(null, AppStrings.all.tr());
@@ -108,56 +197,25 @@ class HomeHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildPointsBadge() {
-    return GlassContainer(
-      borderRadius: AppSizes.r10,
-      child: Padding(
-        padding: 6.horizontalPadding + 4.verticalPadding,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.stars_rounded, color: AppColors.warning, size: 14.sp),
-            4.horizontalSpace,
-            AppText(
-              text: pointsBalance.toString(),
-              fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTournamentButton(BuildContext context) {
+  Widget _buildPointsBadge(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.pushNamed(RouterKeys.tournaments),
+      onTap: () => context.pushNamed(RouterKeys.pointsHistory),
       child: GlassContainer(
         borderRadius: AppSizes.r12,
         child: Padding(
-          padding: 8.allPadding,
-          child: Icon(
-            TablerIcons.trophy,
-            color: AppColors.neonBlue,
-            size: 20.sp,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchButton(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.pushNamed(RouterKeys.search),
-      child: GlassContainer(
-        borderRadius: AppSizes.r12,
-        child: Padding(
-          padding: 8.allPadding,
-          child: Icon(
-            TablerIcons.search,
-            color: Colors.white,
-            size: 20.sp,
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.stars_rounded, color: AppColors.warning, size: 16.sp),
+              SizedBox(width: 4.w),
+              AppText(
+                text: pointsBalance.toString(),
+                fontSize: 12.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ],
           ),
         ),
       ),
@@ -169,25 +227,27 @@ class HomeHeader extends StatelessWidget {
       onTap: () => context.pushNamed(RouterKeys.notifications),
       child: GlassContainer(
         borderRadius: AppSizes.r12,
-        child: Padding(
-          padding: 8.allPadding,
+        child: SizedBox(
+          width: 38.w,
+          height: 38.h,
           child: BlocBuilder<NotificationsCubit, NotificationsState>(
             buildWhen: (previous, current) => previous.unreadCount != current.unreadCount,
             builder: (context, state) {
               return Stack(
+                alignment: Alignment.center,
                 children: [
                   Icon(
                     TablerIcons.bell,
                     color: Colors.white,
-                    size: 20.sp,
+                    size: 19.sp,
                   ),
                   if (state.unreadCount > 0)
                     Positioned(
-                      right: 0,
-                      top: 0,
+                      right: 8.w,
+                      top: 8.h,
                       child: Container(
-                        width: 6.w,
-                        height: 6.h,
+                        width: 7.w,
+                        height: 7.h,
                         decoration: const BoxDecoration(
                           color: AppColors.neonBlue,
                           shape: BoxShape.circle,
@@ -216,7 +276,7 @@ class HomeHeader extends StatelessWidget {
       onTap: () => onCitySelected(cityValue),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: 12.horizontalPadding + 4.verticalPadding,
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.neonBlue10 : AppColors.whiteOverlay,
           borderRadius: BorderRadius.circular(12.r),

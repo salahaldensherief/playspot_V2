@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/datasources/local/app_cache_local_data_source.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/models/paginated_response.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../domain/repositories/active_session_repository.dart';
 import '../datasources/remote/active_session_remote_data_source.dart';
@@ -117,5 +118,16 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
       rating: rating,
       comment: comment,
     ));
+  }
+
+  @override
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getActiveLoungeRequestsPage({
+    required String loungeId,
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getActiveLoungeRequestsPage(loungeId: loungeId, page: page, pageSize: pageSize),
+    );
   }
 }

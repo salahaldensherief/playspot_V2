@@ -10,6 +10,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/profile/data/models/loyalty_mission_model.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class LoyaltyMissionsSection extends StatelessWidget {
   const LoyaltyMissionsSection({super.key});

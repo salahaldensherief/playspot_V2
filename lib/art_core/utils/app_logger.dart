@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Centralized logger utility for the application adhering to AGENT_RULES.md (Rule 12).
+/// Centralized logger utility for the application adhering to AGENTS_RULES.md (Rule 12).
 class AppLogger {
   const AppLogger._();
 

@@ -29,6 +29,7 @@ dependencies:
 
   # UI
   cached_network_image: ^4.0.0
+  flutter_cache_manager: ^3.4.1
   shimmer: ^4.0.0
   flutter_svg: ^2.0.10
   smooth_page_indicator: ^3.0.0

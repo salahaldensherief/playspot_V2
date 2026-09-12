@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
+import '../../../../../core/models/paginated_response.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../auth/data/models/user_model.dart';
 import '../../models/notification_settings_model.dart';
@@ -17,7 +18,10 @@ abstract class ProfileRemoteDataSource {
   UserModel? getCurrentUser();
   Future<UserModel> getUserProfile();
   Future<int> getPointsBalance();
-  Future<List<Map<String, dynamic>>> getPointsHistory();
+  Future<PaginatedResponse<Map<String, dynamic>>> getPointsHistory({
+    int page = 1,
+    int pageSize = 20,
+  });
   Future<List<RedemptionOptionModel>> getRedemptionOptions();
   Future<Map<String, dynamic>> redeemPoints(String optionId);
   Future<List<Map<String, dynamic>>> getMyVouchers();
@@ -97,23 +101,47 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getPointsHistory() async {
+  Future<PaginatedResponse<Map<String, dynamic>>> getPointsHistory({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
     try {
       final user = _supabase.auth.currentUser;
-      if (user == null) return [];
+      if (user == null) {
+        return PaginatedResponse(
+          items: const [],
+          totalCount: 0,
+          page: page,
+          pageSize: pageSize,
+        );
+      }
       try {
-        final response = await _supabase.rpc('get_points_history');
-        return List<Map<String, dynamic>>.from(response);
+        final response = await _supabase.rpc('get_points_transactions_page', params: {
+          'p_page': page,
+          'p_page_size': pageSize,
+        });
+        return PaginatedResponse.fromRpc(
+          response: response,
+          fromJson: (json) => json,
+          requestedPage: page,
+          requestedPageSize: pageSize,
+        );
       } catch (_) {
-        final response = await _supabase
-            .from('points_transactions')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', ascending: false);
-        return List<Map<String, dynamic>>.from(response as List);
+        final response = await _supabase.rpc('get_points_history');
+        return PaginatedResponse.fromRpc(
+          response: response,
+          fromJson: (json) => json,
+          requestedPage: page,
+          requestedPageSize: pageSize,
+        );
       }
     } catch (e) {
-      return [];
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
     }
   }
 

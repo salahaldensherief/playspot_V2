@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/datasources/local/app_cache_local_data_source.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/models/paginated_response.dart';
 import '../../../../core/utils/repository_helper.dart';
 import '../../domain/repositories/lounge_details_repository.dart';
 import '../datasources/remote/lounge_details_remote_data_source.dart';
@@ -115,6 +116,28 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
     bool forceRefresh = false,
   }) async {
     return await callRepository(() => _remoteDataSource.getLoungeReviews(loungeId));
+  }
+
+  @override
+  Future<Either<Failure, PaginatedResponse<ReviewModel>>> getLoungeReviewsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getLoungeReviewsPage(loungeId, page: page, pageSize: pageSize),
+    );
+  }
+
+  @override
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getLoungeRolePermissionsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getLoungeRolePermissionsPage(loungeId, page: page, pageSize: pageSize),
+    );
   }
 
   @override

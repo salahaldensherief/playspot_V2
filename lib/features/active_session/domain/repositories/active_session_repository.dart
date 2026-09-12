@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/models/paginated_response.dart';
 import 'package:playspot/features/active_session/data/models/active_session_model.dart';
 import 'package:playspot/features/active_session/data/models/order_item_model.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
@@ -28,5 +29,10 @@ abstract class ActiveSessionRepository {
     required String bookingId,
     required double rating,
     String? comment,
+  });
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getActiveLoungeRequestsPage({
+    required String loungeId,
+    int page = 1,
+    int pageSize = 20,
   });
 }

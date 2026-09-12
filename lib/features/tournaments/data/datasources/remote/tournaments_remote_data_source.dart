@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'package:playspot/core/models/paginated_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/tournament_model.dart';
 
@@ -51,6 +52,12 @@ abstract class TournamentsRemoteDataSource {
   });
 
   Stream<List<TournamentMatchModel>> watchTournamentMatches(String tournamentId);
+
+  Future<PaginatedResponse<Map<String, dynamic>>> getTournamentAuditLogsPage({
+    required String tournamentId,
+    int page = 1,
+    int pageSize = 50,
+  });
 
   Future<void> updateFcmToken(String token);
 }
@@ -337,6 +344,36 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         .order('round_number', ascending: true)
         .order('match_order', ascending: true)
         .map((list) => list.map((json) => TournamentMatchModel.fromJson(json)).toList());
+  }
+
+  @override
+  Future<PaginatedResponse<Map<String, dynamic>>> getTournamentAuditLogsPage({
+    required String tournamentId,
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    try {
+      final response = await _client.rpc('get_tournament_audit_logs_page', params: {
+        'p_tournament_id': tournamentId,
+        'p_page': page,
+        'p_page_size': pageSize,
+      });
+
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => json,
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] get_tournament_audit_logs_page error: $e');
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
   }
 
   @override

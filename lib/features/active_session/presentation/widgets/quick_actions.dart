@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -67,7 +68,8 @@ class QuickActions extends StatelessWidget {
                   child: SizedBox(
                     width: 20.w,
                     height: 20.w,
-                    child: const CircularProgressIndicator(
+                    child: const AppLoader(
+                      size: 20,
                       strokeWidth: 2.5,
                       color: AppColors.warning,
                     ),

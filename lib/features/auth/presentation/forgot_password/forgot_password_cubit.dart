@@ -18,6 +18,8 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
   ForgotPasswordCubit(this._authRepository) : super(ForgotPasswordState.initial());
 
   Future<void> sendResetEmail() async {
+    if (state.status.isLoading) return;
+
     final email = emailController.text.trim();
     if (email.isEmpty) return;
 

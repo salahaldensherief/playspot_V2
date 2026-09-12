@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../text/app_text.dart';
 
 class FullScreenGallery extends StatefulWidget {
@@ -61,7 +62,7 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
                       imageUrl: widget.images[index],
                       fit: BoxFit.contain,
                       placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(),
+                        child: AppLoader(size: 36),
                       ),
                       errorWidget: (context, url, error) => const Icon(
                         Icons.error,

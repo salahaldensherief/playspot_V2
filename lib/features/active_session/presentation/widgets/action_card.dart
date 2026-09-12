@@ -10,6 +10,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class ActionCard extends StatelessWidget {
   final String label;

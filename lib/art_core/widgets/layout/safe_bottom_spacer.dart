@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -8,7 +9,7 @@ class SafeBottomSpacer extends StatelessWidget {
 
   const SafeBottomSpacer({
     super.key,
-    this.extraPadding = 20,
+    this.extraPadding = 24,
     this.androidOnly = true,
   });
 
@@ -16,11 +17,15 @@ class SafeBottomSpacer extends StatelessWidget {
   Widget build(BuildContext context) {
     if (androidOnly && !Platform.isAndroid) return const SizedBox.shrink();
 
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
-    // On Android, system navigation buttons can sometimes overlap content.
-    // We add the system padding plus an extra buffer for better UX.
-    return SizedBox(height: bottomPadding + extraPadding.h);
+    // Calculate maximum bottom inset from system padding or viewPadding (Android System Nav Bar)
+    final bottomInset = math.max(
+      MediaQuery.paddingOf(context).bottom,
+      MediaQuery.viewPaddingOf(context).bottom,
+    );
+
+    final effectiveInset = bottomInset > 0 ? bottomInset : 0.0;
+
+    return SizedBox(height: effectiveInset + extraPadding.h);
   }
 }
 
@@ -30,7 +35,7 @@ class SliverSafeBottomSpacer extends StatelessWidget {
 
   const SliverSafeBottomSpacer({
     super.key,
-    this.extraPadding = 20,
+    this.extraPadding = 24,
     this.androidOnly = true,
   });
 

@@ -1,5 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 import '../signup_cubit.dart';
 
@@ -7,47 +9,48 @@ import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/widgets/text_field/app_text_field.dart';
 
 class SignUpForm extends StatelessWidget {
-  final SignupCubit cubit;
+  final SignupCubit? cubit;
   const SignUpForm({
     super.key,
-    required this.cubit,
+    this.cubit,
   });
 
   @override
   Widget build(BuildContext context) {
+    final activeCubit = cubit ?? context.read<SignupCubit>();
     return Form(
-      key: cubit.formKey,
+      key: activeCubit.formKey,
       child: Column(
         children: [
           AppTextField(
-            controller: cubit.nameController,
+            controller: activeCubit.nameController,
             label: AppStrings.name.tr(),
             isRequired: true,
             textInputType: TextInputType.name,
             hint: AppStrings.pleaseEnterUsername.tr(),
             validator: AppValidators.validateName,
           ),
-          _space(),
+          10.verticalSpace,
           AppTextField(
-            controller: cubit.emailController,
+            controller: activeCubit.emailController,
             textInputType: TextInputType.emailAddress,
             label: AppStrings.email.tr(),
             isRequired: true,
             hint: AppStrings.pleaseEnterEmail.tr(),
             validator: AppValidators.validateEmail,
           ),
-          _space(),
+          10.verticalSpace,
           AppTextField(
-            controller: cubit.phoneController,
+            controller: activeCubit.phoneController,
             label: AppStrings.phone.tr(),
             isRequired: true,
             textInputType: TextInputType.phone,
             hint: AppStrings.pleaseEnterPhoneNum.tr(),
             validator: AppValidators.validatePhone,
           ),
-          _space(),
+          10.verticalSpace,
           AppTextField(
-            controller: cubit.passwordController,
+            controller: activeCubit.passwordController,
             label: AppStrings.password.tr(),
             hint: AppStrings.pleaseEnterPassword.tr(),
             isPassword: true,
@@ -55,20 +58,16 @@ class SignUpForm extends StatelessWidget {
             textInputType: TextInputType.visiblePassword,
             validator: AppValidators.validatePassword,
           ),
-          _space(),
+          10.verticalSpace,
           AppTextField(
-            controller: cubit.referralCodeController,
+            controller: activeCubit.referralCodeController,
             label: AppStrings.referralCodeOptional.tr(),
             hint: AppStrings.referralCodeHint.tr(),
             textInputType: TextInputType.text,
           ),
-          _space(),
+          10.verticalSpace,
         ],
       ),
     );
   }
-}
-
-Widget _space({double? height}) {
-  return SizedBox(height: height ?? 10.0);
 }

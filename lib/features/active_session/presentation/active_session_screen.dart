@@ -11,6 +11,7 @@ import 'active_session_cubit.dart';
 import 'active_session_state.dart';
 import 'widgets/active_session_body.dart';
 import 'widgets/lounge_review_bottom_sheet.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class ActiveSessionScreen extends StatefulWidget {
   final String? bookingId;

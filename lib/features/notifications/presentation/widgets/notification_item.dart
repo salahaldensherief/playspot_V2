@@ -42,6 +42,7 @@ class NotificationItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
@@ -50,22 +51,26 @@ class NotificationItem extends StatelessWidget {
                               fontSize: 15.sp,
                               fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
                               color: Colors.white,
+                              overflow: TextOverflow.visible,
                             ),
                           ),
                           if (!notification.isRead)
-                            Container(
-                              width: 6.w,
-                              height: 6.h,
-                              decoration: const BoxDecoration(
-                                color: AppColors.neonBlue,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.neonBlue,
-                                    blurRadius: 6,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
+                            Padding(
+                              padding: EdgeInsetsDirectional.only(top: 4.h, start: 8.w),
+                              child: Container(
+                                width: 8.w,
+                                height: 8.h,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.neonBlue,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.neonBlue,
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                         ],
@@ -76,6 +81,7 @@ class NotificationItem extends StatelessWidget {
                         fontSize: 13.sp,
                         color: AppColors.textSecondary,
                         height: 1.4,
+                        overflow: TextOverflow.visible,
                       ),
                       SizedBox(height: 10.h),
                       AppText(

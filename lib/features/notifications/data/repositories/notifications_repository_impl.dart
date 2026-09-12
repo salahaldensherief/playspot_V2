@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/error/failures.dart';
-import '../../../../core/utils/repository_helper.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/core/utils/repository_helper.dart';
 import '../../domain/repositories/notifications_repository.dart';
 import '../datasources/remote/notifications_remote_data_source.dart';
 import '../models/notification_model.dart';
@@ -11,13 +12,13 @@ class NotificationsRepositoryImpl with RepositoryHelper implements Notifications
   NotificationsRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, List<NotificationModel>>> getNotifications(
+  Future<Either<Failure, PaginatedResponse<NotificationModel>>> getNotifications(
     String lang, {
-    int limit = 15,
-    int offset = 0,
+    int page = 1,
+    int pageSize = 20,
   }) async {
     return await callRepository(
-      () => _remoteDataSource.getNotifications(lang, limit: limit, offset: offset),
+      () => _remoteDataSource.getNotifications(lang, page: page, pageSize: pageSize),
     );
   }
 
