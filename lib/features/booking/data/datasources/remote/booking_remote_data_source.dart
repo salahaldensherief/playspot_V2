@@ -259,38 +259,49 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String note,
   }) async {
     final validUserId = _client.auth.currentUser?.id ?? userId;
-    final itemsToInsert = items.map((item) {
-      final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString();
-      final name = item['name']?.toString() ?? item['title']?.toString() ?? 'Extra';
-      final p = (item['price'] as num?)?.toDouble() ?? 0.0;
+    
+    final formattedItems = items.map((item) {
+      final id = item['extra_id']?.toString() ?? item['id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString() ?? '';
       final q = (item['quantity'] as num?)?.toInt() ?? 1;
-      final totalP = p * q;
-
       return {
-        'booking_id': bookingId,
-        if (id != null && id.isNotEmpty) 'product_id': id,
-        if (id != null && id.isNotEmpty) 'item_id': id,
-        if (id != null && id.isNotEmpty) 'extra_id': id,
-        'name': name,
+        'extra_id': id,
         'quantity': q,
-        'price': p,
-        'unit_price': p,
-        'total_price': totalP,
-        if (note.isNotEmpty) 'note': note,
       };
     }).toList();
 
     try {
-      await _client.from('booking_items').insert(itemsToInsert);
-    } catch (_) {
-      await _client.rpc('place_canteen_order', params: {
+      final response = await _client.rpc('place_canteen_order', params: {
         'p_booking_id': bookingId,
         'p_lounge_id': loungeId,
         'p_user_id': validUserId,
-        'p_items': items,
-        'p_total_price': totalPrice,
-        'p_note': note,
+        'p_items': formattedItems,
+        'p_total_price': totalPrice > 0 ? totalPrice : null,
+        'p_note': note.isNotEmpty ? note : null,
       });
+      dev.log("place_canteen_order RPC SUCCESS: $response");
+    } catch (e) {
+      dev.log("place_canteen_order RPC failed: $e, falling back to booking_items insert");
+      final itemsToInsert = items.map((item) {
+        final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString();
+        final name = item['name']?.toString() ?? item['title']?.toString() ?? 'Extra';
+        final p = (item['price'] as num?)?.toDouble() ?? 0.0;
+        final q = (item['quantity'] as num?)?.toInt() ?? 1;
+        final totalP = p * q;
+
+        return {
+          'booking_id': bookingId,
+          if (id != null && id.isNotEmpty) 'product_id': id,
+          if (id != null && id.isNotEmpty) 'item_id': id,
+          if (id != null && id.isNotEmpty) 'extra_id': id,
+          'name': name,
+          'quantity': q,
+          'price': p,
+          'unit_price': p,
+          'total_price': totalP,
+          if (note.isNotEmpty) 'note': note,
+        };
+      }).toList();
+      await _client.from('booking_items').insert(itemsToInsert);
     }
   }
 }

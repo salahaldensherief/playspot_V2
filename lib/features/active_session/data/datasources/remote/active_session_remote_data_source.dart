@@ -264,31 +264,41 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
 
   @override
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items) async {
-    dev.log("[LIVESESSION_DS] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}");
+    dev.log("[LIVESESSION_DS] PLACE_ORDER (Canteen): bookingId=$bookingId, itemsCount=${items.length}");
     try {
       if (items.isEmpty) return;
-      final itemsToInsert = items.map((item) {
-        final id = item.id;
-        final p = item.price;
-        final q = item.quantity;
-        final totalP = item.total > 0 ? item.total : p * q;
 
+      final currentUserId = _client.auth.currentUser?.id;
+      if (currentUserId == null) throw Exception('User not authenticated');
+
+      // Fetch lounge_id from booking
+      final bookingRes = await _client
+          .from('bookings')
+          .select('lounge_id')
+          .eq('id', bookingId)
+          .single();
+      
+      final loungeId = bookingRes['lounge_id'] as String;
+
+      final formattedItems = items.map((item) {
         return {
-          'booking_id': bookingId,
-          if (id.isNotEmpty) 'product_id': id,
-          if (id.isNotEmpty) 'item_id': id,
-          if (id.isNotEmpty) 'extra_id': id,
-          'name': item.name,
-          'quantity': q,
-          'price': p,
-          'unit_price': p,
-          'total_price': totalP,
-          if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
+          'extra_id': item.id,
+          'quantity': item.quantity,
         };
       }).toList();
 
-      await _client.from('booking_items').insert(itemsToInsert);
-      dev.log("[LIVESESSION_DS] Direct booking_items insert SUCCESS for ${items.length} items");
+      final notes = items.where((i) => i.note != null && i.note!.isNotEmpty).map((i) => i.note).join(', ');
+
+      final response = await _client.rpc('place_canteen_order', params: {
+        'p_booking_id': bookingId,
+        'p_lounge_id': loungeId,
+        'p_user_id': currentUserId,
+        'p_items': formattedItems,
+        'p_total_price': null,
+        'p_note': notes.isNotEmpty ? notes : null,
+      });
+
+      dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC SUCCESS: $response");
     } catch (e, st) {
       dev.log("[LIVESESSION_DS] PLACE_ORDER FAILED: $e", error: e, stackTrace: st);
       rethrow;

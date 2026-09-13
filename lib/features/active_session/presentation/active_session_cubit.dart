@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/core/services/play_spot_live_activity_service.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../../../core/notifications/local_notification_service.dart';
@@ -72,6 +73,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
           _realtimeSubscription = null;
           LocalNotificationService.instance.cancelActiveSessionNotification();
           NativeNotificationService.instance.cancelCustomNotification();
+          PlaySpotLiveActivityService.instance.endActivity();
           emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
         } else {
           dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION LOADED: bookingId=${session.bookingId}, status=${session.status}");
@@ -83,6 +85,13 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
           loadMenu(session.loungeId);
 
           try {
+            PlaySpotLiveActivityService.instance.startActivity(
+              sessionId: session.bookingId,
+              hallName: session.loungeName.isNotEmpty ? session.loungeName : 'PlaySpot Lounge',
+              deviceName: session.deviceName.isNotEmpty ? session.deviceName : session.roomName,
+              endTimeTimestamp: session.endTime.millisecondsSinceEpoch ~/ 1000,
+            );
+
             final notificationId = session.bookingId.hashCode.abs() & 0x7FFFFFFF;
             LocalNotificationService.instance.scheduleSessionExpiryWarning(
               id: notificationId,
@@ -125,6 +134,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
         _realtimeSubscription = null;
         LocalNotificationService.instance.cancelActiveSessionNotification();
         NativeNotificationService.instance.cancelCustomNotification();
+        PlaySpotLiveActivityService.instance.endActivity();
         emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
       } else {
         dev.log("[LIVESESSION_CUBIT] Re-fetching active session details after Realtime event...");
