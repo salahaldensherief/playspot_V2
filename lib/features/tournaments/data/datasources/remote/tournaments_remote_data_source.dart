@@ -78,7 +78,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       var query = _client.from('tournaments').select();
 
       if (game != null && game.isNotEmpty && game != 'All') {
-        query = query.or('game.ilike.%$game%,game_name.ilike.%$game%');
+        query = query.ilike('game_name', '%$game%');
       }
 
       if (cityId != null && cityId.isNotEmpty) {
@@ -91,7 +91,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
 
       if (searchQuery != null && searchQuery.trim().isNotEmpty) {
         final q = searchQuery.trim();
-        query = query.or('title.ilike.%$q%,title_ar.ilike.%$q%,title_en.ilike.%$q%,game.ilike.%$q%');
+        query = query.or('title_ar.ilike.%$q%,title_en.ilike.%$q%,game_name.ilike.%$q%,description_ar.ilike.%$q%,description_en.ilike.%$q%');
       }
 
       final response = await query.order('created_at', ascending: false);

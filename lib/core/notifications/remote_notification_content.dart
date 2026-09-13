@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
 
 class RemoteNotificationContent {
   final int id;
@@ -26,23 +26,23 @@ class RemoteNotificationContent {
     final bodyAr = data['body_ar']?.toString();
     final bodyEn = data['body_en']?.toString();
 
-    final currentLang = (lang ?? PlatformDispatcher.instance.locale.languageCode).toLowerCase().trim();
+    final currentLang = (lang ?? PreferenceManager().currentLang()).toLowerCase().trim();
 
     String? resolvedTitle;
     if (currentLang == 'ar') {
       resolvedTitle = _firstNonEmpty([
         titleAr,
-        message.notification?.title,
         data['title'],
         data['notification_title'],
+        message.notification?.title,
         titleEn,
       ]);
     } else {
       resolvedTitle = _firstNonEmpty([
         titleEn,
-        message.notification?.title,
         data['title'],
         data['notification_title'],
+        message.notification?.title,
         titleAr,
       ]);
     }
@@ -51,19 +51,19 @@ class RemoteNotificationContent {
     if (currentLang == 'ar') {
       resolvedBody = _firstNonEmpty([
         bodyAr,
-        message.notification?.body,
         data['body'],
         data['message'],
         data['content'],
+        message.notification?.body,
         bodyEn,
       ]);
     } else {
       resolvedBody = _firstNonEmpty([
         bodyEn,
-        message.notification?.body,
         data['body'],
         data['message'],
         data['content'],
+        message.notification?.body,
         bodyAr,
       ]);
     }

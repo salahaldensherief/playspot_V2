@@ -119,6 +119,9 @@ class PushNotificationService {
     final content = RemoteNotificationContent.fromMessage(message);
     _notificationEvents.add(content);
 
+    // Prevent duplicate notification if FCM / OS already displays message.notification
+    if (message.notification != null) return;
+
     if (!content.hasVisibleContent) return;
 
     await localNotifications.showNotification(

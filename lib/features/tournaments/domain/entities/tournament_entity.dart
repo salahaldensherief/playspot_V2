@@ -135,7 +135,7 @@ enum PaymentStatus {
       case PaymentStatus.unpaid:
         return 'unpaid';
       case PaymentStatus.pendingVerification:
-        return 'pending_verification';
+        return 'pending';
       case PaymentStatus.paid:
         return 'paid';
     }

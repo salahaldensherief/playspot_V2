@@ -103,7 +103,13 @@ class TournamentModel extends TournamentEntity {
           : json['start_date'] != null
               ? DateTime.tryParse(json['start_date'].toString())
               : null,
-      endDate: json['end_date'] != null ? DateTime.tryParse(json['end_date'].toString()) : null,
+      endDate: json['registration_closes_at'] != null
+          ? DateTime.tryParse(json['registration_closes_at'].toString())
+          : json['tournament_starts_at'] != null
+              ? DateTime.tryParse(json['tournament_starts_at'].toString())
+              : json['end_date'] != null
+                  ? DateTime.tryParse(json['end_date'].toString())
+                  : null,
       registrationOpensAt: json['registration_opens_at'] != null
           ? DateTime.tryParse(json['registration_opens_at'].toString())
           : null,
@@ -133,32 +139,25 @@ class TournamentModel extends TournamentEntity {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'title': title,
-      'title_ar': titleAr,
-      'title_en': titleEn,
-      'description': description,
-      'description_ar': descriptionAr,
-      'description_en': descriptionEn,
+      'title_ar': titleAr ?? title,
+      'title_en': titleEn ?? title,
+      'description_ar': descriptionAr ?? description,
+      'description_en': descriptionEn ?? description,
       'game_name': game,
       'city_id': cityId,
       'lounge_id': loungeId,
-      'banner_url': bannerUrl,
-      'thumbnail_url': thumbnailUrl,
+      'banner_url': bannerUrl ?? imageUrl,
       'status': status.toDbString(),
       'max_participants': maxParticipants,
       'bracket_size': bracketSize,
       'entry_fee': entryFee,
-      'rules': rules,
-      'rules_ar': rulesAr,
-      'rules_en': rulesEn,
       'tournament_starts_at': startDate?.toIso8601String(),
       'registration_opens_at': registrationOpensAt?.toIso8601String(),
       'registration_closes_at': registrationClosesAt?.toIso8601String(),
       'payment_deadline_minutes': paymentDeadlineMinutes,
       'check_in_opens_at': checkInOpensAt?.toIso8601String(),
       'check_in_closes_at': checkInClosesAt?.toIso8601String(),
-      'allow_waitlist': allowWaitlist,
-      'currency': currency,
+      'champion_participant_id': championParticipantId,
     };
   }
 }

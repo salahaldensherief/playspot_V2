@@ -49,11 +49,9 @@ class HomeHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Row 1: Greeting & Location (Max Horizontal Space) + Points & Notification Bell
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // User Greeting & Location (Gets full remaining width)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,19 +92,16 @@ class HomeHeader extends StatelessWidget {
 
               SizedBox(width: 10.w),
 
-              // Points Badge
               _buildPointsBadge(context),
 
               SizedBox(width: 8.w),
 
-              // Notification Bell
               _buildNotificationBell(context),
             ],
           ),
 
           SizedBox(height: 10.h),
 
-          // Row 2: Unified Search Bar
           Row(
             children: [
               Expanded(

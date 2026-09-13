@@ -19,7 +19,6 @@ import 'core/notifications/firebase_background_handler.dart';
 import 'core/notifications/local_notification_service.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/utils/app_bloc_observer.dart';
-import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 
 void main() async {
@@ -94,29 +93,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _appRouter = AppRouter();
-
-  @override
-  void initState() {
-    super.initState();
-    _setupNotificationListener();
-  }
-
-  void _setupNotificationListener() {
-    PushNotificationService.instance.notificationEvents.listen((content) {
-      if (content.hasVisibleContent) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final context = AppRouter.navigatorKey.currentContext;
-          if (context != null) {
-            GameHudToast.show(
-              context,
-              content.body ?? content.title ?? "",
-              type: ToastType.info,
-            );
-          }
-        });
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
