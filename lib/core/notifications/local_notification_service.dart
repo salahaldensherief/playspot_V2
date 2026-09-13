@@ -216,4 +216,64 @@ class LocalNotificationService {
       debugPrint('Error scheduling session expiry notification: $e');
     }
   }
+
+  static const int activeSessionNotificationId = 9999;
+
+  Future<void> showActiveSessionOngoingNotification({
+    required String loungeName,
+    required String deviceName,
+    required String timeText,
+  }) async {
+    try {
+      final androidDetails = AndroidNotificationDetails(
+        sessionChannelId,
+        sessionChannelName,
+        channelDescription: sessionChannelDescription,
+        importance: Importance.low,
+        priority: Priority.low,
+        ongoing: true,
+        autoCancel: false,
+        playSound: false,
+        enableVibration: false,
+        icon: '@mipmap/ic_launcher',
+        visibility: NotificationVisibility.public,
+        actions: <AndroidNotificationAction>[
+          const AndroidNotificationAction(
+            'join_session',
+            'Join',
+            showsUserInterface: true,
+          ),
+        ],
+      );
+
+      final iosDetails = DarwinNotificationDetails(
+        presentAlert: false,
+        presentBadge: true,
+        presentSound: false,
+      );
+
+      final notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
+
+      await _plugin.show(
+        id: activeSessionNotificationId,
+        title: '$loungeName - $deviceName',
+        body: '🟢 Live now • $timeText',
+        notificationDetails: notificationDetails,
+        payload: jsonEncode({'type': 'active_session'}),
+      );
+    } catch (e) {
+      debugPrint('Error showing active session ongoing notification: $e');
+    }
+  }
+
+  Future<void> cancelActiveSessionNotification() async {
+    try {
+      await _plugin.cancel(id: activeSessionNotificationId);
+    } catch (e) {
+      debugPrint('Error canceling active session notification: $e');
+    }
+  }
 }

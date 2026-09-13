@@ -74,6 +74,7 @@ dependencies:
   firebase_core: ^4.14.0
   timezone: ^0.11.0
   font_awesome_flutter: ^11.0.0
+  flutter_native_splash: ^2.4.6
 
 
 dev_dependencies:
@@ -81,8 +82,20 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.6
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
+
+flutter_native_splash:
+  color: "#0A0A0F"
+  image: "assets/images/splash_logo.png"
+  fullscreen: true
+
+  android_12:
+    color: "#0A0A0F"
+    image: "assets/images/splash_logo.png"
+
+  web: false
 
 flutter_launcher_icons:
   android: "ic_launcher"

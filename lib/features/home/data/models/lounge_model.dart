@@ -140,10 +140,15 @@ class LoungeModel extends Equatable {
 
     // 3. Price Per Hour Fallback
     final double parsedPricePerHour = (json['price_per_hour'] as num?)?.toDouble() ??
+        (json['hourly_rate'] as num?)?.toDouble() ??
+        (json['hourly_price'] as num?)?.toDouble() ??
+        (json['rate_per_hour'] as num?)?.toDouble() ??
+        (json['price_per_hr'] as num?)?.toDouble() ??
+        (json['hourly_fee'] as num?)?.toDouble() ??
         (json['min_price_per_hour'] as num?)?.toDouble() ??
         (json['min_price'] as num?)?.toDouble() ??
         (json['price'] as num?)?.toDouble() ??
-        0.0;
+        80.0;
 
     // 4. Rating Fallback
     final double parsedRating = (json['rating'] as num?)?.toDouble() ??

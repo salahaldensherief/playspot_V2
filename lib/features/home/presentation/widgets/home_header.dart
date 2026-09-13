@@ -35,7 +35,7 @@ class HomeHeader extends StatelessWidget {
   String _getDisplayName(String fullName) {
     final clean = fullName.trim();
     if (clean.isEmpty) return '';
-    return clean;
+    return clean.split(' ').first;
   }
 
   @override
@@ -106,23 +106,22 @@ class HomeHeader extends StatelessWidget {
 
           SizedBox(height: 10.h),
 
-          // Row 2: Search Bar + Tournaments Quick Chip (Wide comfortable touch targets)
+          // Row 2: Unified Search Bar
           Row(
             children: [
-              // Search Bar Trigger
               Expanded(
                 child: GestureDetector(
                   onTap: () => context.pushNamed(RouterKeys.search),
                   child: GlassContainer(
                     borderRadius: AppSizes.r12,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
                       child: Row(
                         children: [
                           Icon(
                             TablerIcons.search,
-                            color: AppColors.textSecondary,
-                            size: 16.sp,
+                            color: AppColors.neonBlue,
+                            size: 18.sp,
                           ),
                           SizedBox(width: 8.w),
                           Expanded(
@@ -134,38 +133,13 @@ class HomeHeader extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          Icon(
+                            TablerIcons.adjustments_horizontal,
+                            color: AppColors.textSecondary,
+                            size: 18.sp,
+                          ),
                         ],
                       ),
-                    ),
-                  ),
-                ),
-              ),
-
-              SizedBox(width: 8.w),
-
-              // Tournaments Button Chip
-              GestureDetector(
-                onTap: () => context.pushNamed(RouterKeys.tournaments),
-                child: GlassContainer(
-                  borderRadius: AppSizes.r12,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          TablerIcons.trophy,
-                          color: AppColors.neonBlue,
-                          size: 16.sp,
-                        ),
-                        SizedBox(width: 6.w),
-                        AppText(
-                          text: AppStrings.tournamentsAndEvents.tr(),
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ],
                     ),
                   ),
                 ),

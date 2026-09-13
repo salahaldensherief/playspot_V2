@@ -63,19 +63,15 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
 
       if (response == null) return null;
       final model = ActiveSessionModel.fromJson(Map<String, dynamic>.from(response));
-      if (model.status == 'completed' || model.status == 'cancelled' || model.status == 'expired') {
-        dev.log("[LIVESESSION_DS] Booking is finished: status=${model.status}");
-        return null;
-      }
-      if (now.isBefore(model.startTime)) {
-        dev.log("[LIVESESSION_DS] Booking start time has not arrived yet: ${model.startTime}");
+      if (model.status != 'in_progress') {
+        dev.log("[LIVESESSION_DS] Booking is not active/in_progress (status=${model.status})");
         return null;
       }
       dev.log("[LIVESESSION_DS] GET_ACTIVE_SESSION SUCCESS: bookingId=${model.bookingId}");
       return model;
     }
 
-    // 2. Prioritize active in_progress sessions FIRST
+    // 2. Fetch active in_progress session ONLY
     dev.log("[LIVESESSION_DS] Fetching active in_progress session...");
     final activeResponse = await _client
         .from('bookings')
@@ -88,32 +84,10 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
 
     if (activeResponse != null) {
       final activeModel = ActiveSessionModel.fromJson(Map<String, dynamic>.from(activeResponse));
-      final hasStarted = !now.isBefore(activeModel.startTime);
       final isExpired = now.isAfter(activeModel.endTime.add(const Duration(minutes: 5)));
-      if (hasStarted && !isExpired) {
+      if (!isExpired) {
         dev.log("[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}");
         return activeModel;
-      }
-    }
-
-    // 3. Fallback to upcoming / pending sessions ONLY IF start time has arrived!
-    dev.log("[LIVESESSION_DS] Checking upcoming/pending fallback sessions...");
-    final upcomingResponse = await _client
-        .from('bookings')
-        .select(selectQuery)
-        .eq('user_id', userId)
-        .or('status.eq.upcoming,status.eq.pending')
-        .order('created_at', ascending: false)
-        .limit(1)
-        .maybeSingle();
-
-    if (upcomingResponse != null) {
-      final upcomingModel = ActiveSessionModel.fromJson(Map<String, dynamic>.from(upcomingResponse));
-      final hasStarted = !now.isBefore(upcomingModel.startTime);
-      final isExpired = now.isAfter(upcomingModel.endTime.add(const Duration(minutes: 5)));
-      if (hasStarted && !isExpired) {
-        dev.log("[LIVESESSION_DS] Found valid upcoming/pending session that has started: ${upcomingModel.bookingId}");
-        return upcomingModel;
       }
     }
 
@@ -227,60 +201,50 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   Future<void> extendTime(String bookingId, int additionalMinutes, double additionalCost) async {
     dev.log("[LIVESESSION_DS] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$additionalCost");
     try {
-      await _client.rpc('extend_active_session', params: {
+      await _client.rpc('extend_booking_session', params: {
         'p_booking_id': bookingId,
         'p_additional_minutes': additionalMinutes,
         'p_additional_cost': additionalCost,
       });
-      dev.log("[LIVESESSION_DS] EXTEND_TIME RPC SUCCESS");
+      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC SUCCESS");
     } catch (e1) {
-      dev.log("[LIVESESSION_DS] EXTEND_TIME RPC fallback 1 error: $e1");
+      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC error: $e1");
       try {
         await _client.rpc('extend_active_session', params: {
-          'booking_id': bookingId,
-          'additional_minutes': additionalMinutes,
-          'additional_cost': additionalCost,
+          'p_booking_id': bookingId,
+          'p_additional_minutes': additionalMinutes,
+          'p_additional_cost': additionalCost,
         });
-        dev.log("[LIVESESSION_DS] EXTEND_TIME RPC 2 SUCCESS");
+        dev.log("[LIVESESSION_DS] EXTEND_ACTIVE_SESSION RPC SUCCESS");
       } catch (e2) {
-        dev.log("[LIVESESSION_DS] EXTEND_TIME RPC fallback 2 error: $e2");
-        try {
-          await _client.rpc('extend_booking_session', params: {
-            'p_booking_id': bookingId,
-            'p_additional_minutes': additionalMinutes,
-            'p_added_cost': additionalCost,
-          });
-          dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC SUCCESS");
-        } catch (e3) {
-          dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update fallback...");
-          final booking = await _client
-              .from('bookings')
-              .select('end_time, extensions_price, total_price')
-              .eq('id', bookingId)
-              .single();
-          final rawEnd = booking['end_time']?.toString() ?? '';
-          DateTime currentEnd;
-          if (rawEnd.contains('T')) {
-            currentEnd = DateTime.parse(rawEnd);
-          } else if (rawEnd.contains(':')) {
-            final parts = rawEnd.split(':');
-            final now = DateTime.now();
-            currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
-          } else {
-            currentEnd = DateTime.now();
-          }
-          final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
-          final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
-          final currentExtPrice = (booking['extensions_price'] as num?)?.toDouble() ?? 0.0;
-          final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
-
-          await _client.from('bookings').update({
-            'end_time': newEndStr,
-            'extensions_price': currentExtPrice + additionalCost,
-            'total_price': currentTotal + additionalCost,
-          }).eq('id', bookingId);
-          dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update SUCCESS");
+        dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update fallback...");
+        final booking = await _client
+            .from('bookings')
+            .select('end_time, extensions_price, total_price')
+            .eq('id', bookingId)
+            .single();
+        final rawEnd = booking['end_time']?.toString() ?? '';
+        DateTime currentEnd;
+        if (rawEnd.contains('T')) {
+          currentEnd = DateTime.parse(rawEnd);
+        } else if (rawEnd.contains(':')) {
+          final parts = rawEnd.split(':');
+          final now = DateTime.now();
+          currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
+        } else {
+          currentEnd = DateTime.now();
         }
+        final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
+        final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
+        final currentExtPrice = (booking['extensions_price'] as num?)?.toDouble() ?? 0.0;
+        final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
+
+        await _client.from('bookings').update({
+          'end_time': newEndStr,
+          'extensions_price': currentExtPrice + additionalCost,
+          'total_price': currentTotal + additionalCost,
+        }).eq('id', bookingId);
+        dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update SUCCESS");
       }
     }
   }

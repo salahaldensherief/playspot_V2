@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
@@ -24,26 +25,39 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
-  late Animation<double> _scaleAnim;
+  late Animation<double> _scaleAnim; // ثابتة على 1.0 - راجع initState
 
   @override
   void initState() {
     super.initState();
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FlutterNativeSplash.remove();
+    });
+
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 600),
     );
 
+    // بنأخر بداية الفيد بتاع النص شوية (بعد ما الـ Native يتشال) عشان
+    // النص يبقى العنصر الوحيد اللي "بيظهر جديد" - مش اللوجو.
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeIn),
     );
 
-    _scaleAnim = Tween<double>(begin: 0.5, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
+    // مهم جداً: اللوجو مبيعملش أنيميشن دخول (scale) خالص.
+    // بيفضل ثابت على 1.0 من أول فريم - نفس حجمه بالظبط زي ما هو
+    // في الـ Native Splash - عشان لحظة التبديل تبقى "فريم مطابق"
+    // من غير أي حركة ملحوظة. لو حبينا "نبضة" بسيطة بعد كده، بنعملها
+    // بحركة صغيرة جداً (1 -> 1.03 -> 1) بعد التبديل مش وقته.
+    _scaleAnim = const AlwaysStoppedAnimation<double>(1.0);
 
-    _controller.forward();
+    // بننده على forward بعد فريم واحد بس، عشان اللوجو يفضل ثابت لحظة
+    // التبديل بالظبط، وبعدها يبدأ فيد النص.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.forward();
+    });
 
     _handleInitialization();
   }
@@ -100,6 +114,8 @@ class _SplashScreenState extends State<SplashScreen>
     return Directionality(
       textDirection: ui.TextDirection.ltr,
       child: Scaffold(
+        // لازم اللون ده يبقى نفسه بالظبط اللون المكتوب في كونفيج
+        // flutter_native_splash جوه pubspec.yaml عشان مفيش وميض لوني.
         backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Column(

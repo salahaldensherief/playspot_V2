@@ -159,30 +159,6 @@ class _MainScreenState extends State<MainScreen> {
       ],
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        floatingActionButton: BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
-          buildWhen: (prev, curr) => prev.status != curr.status,
-          builder: (context, state) {
-            if (state.status != ActiveSessionStatus.loaded) return const SizedBox.shrink();
-          
-          return Container(
-            margin: EdgeInsets.only(bottom: 70.h),
-            child: FloatingActionButton.extended(
-              onPressed: () => context.pushNamed(RouterKeys.activeSession),
-              backgroundColor: AppColors.neonBlue,
-              icon: const Icon(TablerIcons.device_gamepad_2, color: Colors.black),
-              label: Text(
-                "Active Session",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "Orbitron",
-                ),
-              ),
-            ),
-          );
-        },
-      ),
       body: Stack(
         children: [
           Positioned.fill(

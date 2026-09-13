@@ -5,6 +5,7 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../../../core/notifications/local_notification_service.dart';
+import '../../../../core/notifications/native_notification_service.dart';
 import '../domain/repositories/active_session_repository.dart';
 import '../data/models/order_item_model.dart';
 import 'active_session_state.dart';
@@ -69,6 +70,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
           _subscribedBookingId = null;
           _realtimeSubscription?.cancel();
           _realtimeSubscription = null;
+          LocalNotificationService.instance.cancelActiveSessionNotification();
+          NativeNotificationService.instance.cancelCustomNotification();
           emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
         } else {
           dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION LOADED: bookingId=${session.bookingId}, status=${session.status}");
@@ -85,6 +88,18 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
               id: notificationId,
               loungeName: session.loungeName.isNotEmpty ? session.loungeName : 'Lounge',
               expiryTime: session.endTime,
+            );
+
+            final now = DateTime.now();
+            final remaining = session.endTime.difference(now);
+            final hours = remaining.inHours;
+            final mins = remaining.inMinutes % 60;
+            final timeText = hours > 0 ? '$hours h $mins m remaining' : '$mins mins remaining';
+
+            NativeNotificationService.instance.showCustomNotification(
+              loungeName: session.loungeName.isNotEmpty ? session.loungeName : 'Active Session',
+              deviceName: session.deviceName.isNotEmpty ? session.deviceName : session.roomName,
+              timeText: timeText,
             );
           } catch (_) {}
         }
@@ -104,10 +119,12 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
       dev.log("[LIVESESSION_CUBIT] REALTIME EVENT for $bookingId: status=${updatedSession.status}, end_time=${updatedSession.endTime}");
       final status = BookingStatus.fromString(updatedSession.status);
       if (status == BookingStatus.completed || status == BookingStatus.cancelled) {
-        dev.log("[LIVESESSION_CUBIT] Session ended or cancelled via Realtime");
+        dev.log("[LIVESESSION_CUBIT] Session ended or cancelled viaRealtime");
         _subscribedBookingId = null;
         _realtimeSubscription?.cancel();
         _realtimeSubscription = null;
+        LocalNotificationService.instance.cancelActiveSessionNotification();
+        NativeNotificationService.instance.cancelCustomNotification();
         emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
       } else {
         dev.log("[LIVESESSION_CUBIT] Re-fetching active session details after Realtime event...");

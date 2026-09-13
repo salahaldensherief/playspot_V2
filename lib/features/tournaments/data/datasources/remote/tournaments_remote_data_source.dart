@@ -182,7 +182,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         'register_for_tournament',
         params: {
           'p_tournament_id': tournamentId,
-          'p_user_id': currentUser.id,
         },
       );
 

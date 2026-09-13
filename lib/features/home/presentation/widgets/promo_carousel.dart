@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
-import 'package:playspot/art_core/widgets/shimmer/promo_shimmer.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../home_cubit.dart';
 import '../home_state.dart';
@@ -45,7 +44,9 @@ class PromoCarousel extends StatelessWidget {
                 return PromoCard(
                   promo: promo,
                   onTap: () {
-                    if (promo.isRoomSpecific && promo.roomId != null) {
+                    if (promo.deepLink == 'tournaments' || promo.id == 'tournaments') {
+                      context.pushNamed(RouterKeys.tournaments);
+                    } else if (promo.isRoomSpecific && promo.roomId != null) {
                       context.pushNamed(
                         RouterKeys.roomDetails,
                         pathParameters: {'roomId': promo.roomId!},

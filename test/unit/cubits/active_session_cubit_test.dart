@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/active_session/domain/repositories/active_session_repository.dart';
 import 'package:playspot/features/active_session/data/models/active_session_model.dart';
@@ -10,6 +12,11 @@ import 'package:playspot/features/active_session/presentation/active_session_sta
 class MockActiveSessionRepository extends Mock implements ActiveSessionRepository {}
 
 void main() {
+  setUpAll(() {
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('UTC'));
+  });
+
   late MockActiveSessionRepository mockRepository;
   late ActiveSessionCubit cubit;
 
