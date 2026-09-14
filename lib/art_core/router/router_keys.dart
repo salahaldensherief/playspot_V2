@@ -32,4 +32,5 @@ class RouterKeys {
   static const String tournaments = '/tournaments';
   static const String tournamentDetails = '/tournaments/:id';
   static const String tournamentMatch = '/tournaments/:id/match/:matchId';
+  static const String tournamentHistory = '/tournaments-history';
 }

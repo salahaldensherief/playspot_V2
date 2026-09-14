@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
 import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/tournament_model.dart';
 
@@ -10,6 +11,8 @@ abstract class TournamentsRemoteDataSource {
     String? cityId,
     String? statusFilter,
     String? searchQuery,
+    double? latitude,
+    double? longitude,
   });
 
   Future<TournamentModel> getTournamentById(String tournamentId);
@@ -59,6 +62,10 @@ abstract class TournamentsRemoteDataSource {
     int pageSize = 50,
   });
 
+  Future<void> withdrawFromTournament(String participantId);
+
+  Future<List<Map<String, dynamic>>> getUserTournamentHistory(String userId);
+
   Future<void> updateFcmToken(String token);
 }
 
@@ -73,30 +80,107 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String? cityId,
     String? statusFilter,
     String? searchQuery,
+    double? latitude,
+    double? longitude,
   }) async {
     try {
-      var query = _client.from('tournaments').select();
+      dynamic response;
+      try {
+        response = await _client.rpc('get_visible_tournaments', params: {
+          'p_latitude': latitude,
+          'p_longitude': longitude,
+        });
+      } catch (e1) {
+        dev.log('[TOURNAMENTS_REMOTE] RPC with params failed: $e1');
+      }
+
+      if (response == null || (response is List && response.isEmpty)) {
+        try {
+          response = await _client.rpc('get_visible_tournaments');
+        } catch (e2) {
+          dev.log('[TOURNAMENTS_REMOTE] RPC without params failed: $e2');
+        }
+      }
+
+      if (response == null || (response is List && response.isEmpty)) {
+        dev.log('[TOURNAMENTS_REMOTE] RPC returned empty or failed, querying tournaments table directly...');
+        try {
+          response = await _client.from('tournaments').select().order('created_at', ascending: false);
+        } catch (e3) {
+          dev.log('[TOURNAMENTS_REMOTE] Direct select failed: $e3');
+        }
+      }
+
+      final list = (response as List?)?.cast<Map<String, dynamic>>() ?? [];
+      dev.log('[TOURNAMENTS_REMOTE] Fetched ${list.length} raw tournaments from DB');
+
+      var models = list.map((json) => TournamentModel.fromJson(json)).toList();
+
+      // MOB-01: Exclude draft, cancelled, completed from active feed (unless statusFilter == 'completed')
+      if (statusFilter == 'completed') {
+        models = models.where((t) => t.status == TournamentStatus.completed).toList();
+      } else {
+        models = models.where((t) =>
+          t.status != TournamentStatus.draft &&
+          t.status != TournamentStatus.cancelled &&
+          t.status != TournamentStatus.completed
+        ).toList();
+      }
+
+      // MOB-02: If location is null (no location permission), exclude 'radius' tournaments
+      if (latitude == null || longitude == null) {
+        models = models.where((t) {
+          if (t.visibilityScope == TournamentVisibilityScope.radius) {
+            return false;
+          }
+          if (t.visibilityScope == TournamentVisibilityScope.city) {
+            return cityId == null || cityId.isEmpty || t.cityId == null || t.cityId == cityId;
+          }
+          return true; // TournamentVisibilityScope.all
+        }).toList();
+      }
 
       if (game != null && game.isNotEmpty && game != 'All') {
-        query = query.ilike('game_name', '%$game%');
+        models = models.where((t) => t.game.toLowerCase().contains(game.toLowerCase())).toList();
       }
 
       if (cityId != null && cityId.isNotEmpty) {
-        query = query.eq('city_id', cityId);
+        models = models.where((t) =>
+          t.visibilityScope == TournamentVisibilityScope.all ||
+          t.cityId == null ||
+          t.cityId == cityId
+        ).toList();
       }
 
-      if (statusFilter != null && statusFilter.isNotEmpty && statusFilter != 'All') {
-        query = query.eq('status', statusFilter);
+      if (statusFilter != null && statusFilter.isNotEmpty && statusFilter != 'All' && statusFilter != 'completed') {
+        models = models.where((t) {
+          final dbStatus = t.status.toDbString();
+          if (statusFilter == 'registration_open') {
+            return dbStatus == 'registration_open' || dbStatus == 'published';
+          }
+          return dbStatus == statusFilter;
+        }).toList();
       }
 
       if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-        final q = searchQuery.trim();
-        query = query.or('title_ar.ilike.%$q%,title_en.ilike.%$q%,game_name.ilike.%$q%,description_ar.ilike.%$q%,description_en.ilike.%$q%');
+        final q = searchQuery.trim().toLowerCase();
+        models = models.where((t) {
+          final titleAr = (t.titleAr ?? '').toLowerCase();
+          final titleEn = (t.titleEn ?? '').toLowerCase();
+          final title = t.title.toLowerCase();
+          final gameName = t.game.toLowerCase();
+          final descAr = (t.descriptionAr ?? '').toLowerCase();
+          final descEn = (t.descriptionEn ?? '').toLowerCase();
+          return titleAr.contains(q) ||
+              titleEn.contains(q) ||
+              title.contains(q) ||
+              gameName.contains(q) ||
+              descAr.contains(q) ||
+              descEn.contains(q);
+        }).toList();
       }
 
-      final response = await query.order('created_at', ascending: false);
-      final list = (response as List).cast<Map<String, dynamic>>();
-      return list.map((json) => TournamentModel.fromJson(json)).toList();
+      return models;
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error fetching tournaments: $e');
       return [];
@@ -387,6 +471,38 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       }).eq('id', currentUser.id);
     } catch (e) {
       // Silent error for FCM token update
+    }
+  }
+
+  @override
+  Future<void> withdrawFromTournament(String participantId) async {
+    try {
+      await _client.rpc(
+        'withdraw_from_tournament',
+        params: {'p_participant_id': participantId},
+      );
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] RPC withdraw_from_tournament error, fallback to direct update: $e');
+      await _client.from('tournament_participants').update({
+        'registration_status': 'withdrawn',
+      }).eq('id', participantId);
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getUserTournamentHistory(String userId) async {
+    try {
+      final response = await _client
+          .from('tournament_participants')
+          .select('*, tournaments(*)')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      final list = (response as List).cast<Map<String, dynamic>>();
+      return list;
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] Error fetching user tournament history: $e');
+      return [];
     }
   }
 }

@@ -12,6 +12,7 @@ class TournamentDetailsState extends Equatable {
   final bool isRegistering;
   final bool isSubmittingPayment;
   final bool isCheckingIn;
+  final bool isWithdrawing;
   final String? errorMessage;
   final String? successMessage;
 
@@ -24,6 +25,7 @@ class TournamentDetailsState extends Equatable {
     this.isRegistering = false,
     this.isSubmittingPayment = false,
     this.isCheckingIn = false,
+    this.isWithdrawing = false,
     this.errorMessage,
     this.successMessage,
   });
@@ -32,7 +34,7 @@ class TournamentDetailsState extends Equatable {
     if (tournament == null || userParticipant == null) return false;
     return tournament!.status == TournamentStatus.checkInOpen &&
         userParticipant!.status == ParticipantStatus.confirmed &&
-        userParticipant!.paymentStatus == PaymentStatus.paid &&
+        (userParticipant!.paymentStatus == PaymentStatus.approved) &&
         !userParticipant!.checkedIn;
   }
 
@@ -45,6 +47,7 @@ class TournamentDetailsState extends Equatable {
     bool? isRegistering,
     bool? isSubmittingPayment,
     bool? isCheckingIn,
+    bool? isWithdrawing,
     String? errorMessage,
     String? successMessage,
   }) {
@@ -57,6 +60,7 @@ class TournamentDetailsState extends Equatable {
       isRegistering: isRegistering ?? this.isRegistering,
       isSubmittingPayment: isSubmittingPayment ?? this.isSubmittingPayment,
       isCheckingIn: isCheckingIn ?? this.isCheckingIn,
+      isWithdrawing: isWithdrawing ?? this.isWithdrawing,
       errorMessage: errorMessage,
       successMessage: successMessage,
     );
@@ -72,6 +76,7 @@ class TournamentDetailsState extends Equatable {
         isRegistering,
         isSubmittingPayment,
         isCheckingIn,
+        isWithdrawing,
         errorMessage,
         successMessage,
       ];

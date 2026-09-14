@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
@@ -189,9 +190,9 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                     unselectedLabelColor: AppColors.textSecondary,
                     labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     tabs: [
-                      Tab(text: 'tournamentRules'.tr()),
-                      Tab(text: 'tournamentPrizes'.tr()),
-                      Tab(text: 'tournamentBracket'.tr()),
+                      Tab(text: AppStrings.tournamentRules.tr()),
+                      Tab(text: AppStrings.tournamentPrizes.tr()),
+                      Tab(text: AppStrings.tournamentBracket.tr()),
                     ],
                   ),
                 ),
@@ -229,27 +230,76 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
   }
 
   Widget _buildRulesTab(TournamentEntity tournament) {
+    final remainingSeats = (tournament.maxParticipants - tournament.registeredParticipantsCount).clamp(0, tournament.maxParticipants);
+    final scopeText = tournament.visibilityScope == TournamentVisibilityScope.city
+        ? AppStrings.visibilityScopeCity.tr()
+        : tournament.visibilityScope == TournamentVisibilityScope.radius
+            ? AppStrings.visibilityScopeRadius.tr()
+            : AppStrings.visibilityScopeAll.tr();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(TablerIcons.device_gamepad, 'filterByGame'.tr(), tournament.game),
+          // Basic Metadata Section
+          _buildInfoRow(TablerIcons.device_gamepad, AppStrings.filterByGame.tr(), tournament.game),
+          if (tournament.loungeName != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(TablerIcons.building, AppStrings.loungeVenue.tr(), tournament.loungeName!),
+          ],
+          if (tournament.cityName != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(TablerIcons.map_pin, AppStrings.city.tr(), tournament.cityName!),
+          ],
+          if (tournament.startDate != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              TablerIcons.calendar_event,
+              AppStrings.tournamentDate.tr(),
+              DateFormat('yyyy-MM-dd HH:mm').format(tournament.startDate!),
+            ),
+          ],
           const SizedBox(height: 12),
           _buildInfoRow(
             TablerIcons.cash,
-            'entryFee'.tr(),
-            tournament.entryFee > 0 ? '${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}' : 'freeEntry'.tr(),
+            AppStrings.entryFee.tr(),
+            tournament.entryFee > 0 ? '${tournament.entryFee.toStringAsFixed(0)} ${AppStrings.egp.tr()}' : AppStrings.freeEntry.tr(),
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
             TablerIcons.users,
-            'maxParticipants'.tr(),
+            AppStrings.maxParticipants.tr(),
             '${tournament.registeredParticipantsCount} / ${tournament.bracketSize}',
           ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            TablerIcons.user_check,
+            AppStrings.remainingSeats.tr(),
+            '$remainingSeats',
+          ),
+          if (tournament.registrationClosesAt != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              TablerIcons.clock,
+              AppStrings.registrationClosesAt.tr(),
+              DateFormat('yyyy-MM-dd HH:mm').format(tournament.registrationClosesAt!),
+            ),
+          ],
+          if (tournament.checkInOpensAt != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              TablerIcons.clock_play,
+              AppStrings.checkInWindow.tr(),
+              '${DateFormat('HH:mm').format(tournament.checkInOpensAt!)} - ${tournament.checkInClosesAt != null ? DateFormat('HH:mm').format(tournament.checkInClosesAt!) : ''}',
+            ),
+          ],
+          const SizedBox(height: 12),
+          _buildInfoRow(TablerIcons.eye, AppStrings.visibilityScope.tr(), scopeText),
+
           const Divider(color: AppColors.divider, height: 32),
           Text(
-            'tournamentRules'.tr(),
+            AppStrings.tournamentRules.tr(),
             style: const TextStyle(
               color: AppColors.neonBlue,
               fontSize: 16,
@@ -261,7 +311,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           Text(
             tournament.rules != null && tournament.rules!.isNotEmpty
                 ? tournament.rules!
-                : (tournament.description ?? 'noRulesProvided'.tr()),
+                : (tournament.description ?? AppStrings.noRulesProvided.tr()),
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 14,
@@ -382,22 +432,35 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
 
     if (tournament == null) return null;
 
+    final isRegistrationClosed = (tournament.registrationClosesAt != null &&
+            DateTime.now().isAfter(tournament.registrationClosesAt!)) ||
+        tournament.status == TournamentStatus.registrationClosed ||
+        tournament.status == TournamentStatus.completed ||
+        tournament.status == TournamentStatus.cancelled;
+
     // Case 1: Check-in available
     if (state.canCheckIn) {
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: AppButton(
-            buttonConfig: ButtonConfig.gradient(
-              gradient: AppColors.primaryGradient,
-              glowColor: AppColors.neonBlueAlt,
-              width: double.infinity,
-            ),
-            content: ButtonContent(label: 'checkIn'.tr()),
-            behavior: TapBehavior(
-              isLoading: state.isCheckingIn,
-              onTap: () => context.read<TournamentDetailsCubit>().checkIn(),
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppButton(
+                buttonConfig: ButtonConfig.gradient(
+                  gradient: AppColors.primaryGradient,
+                  glowColor: AppColors.neonBlueAlt,
+                  width: double.infinity,
+                ),
+                content: ButtonContent(label: AppStrings.checkIn.tr()),
+                behavior: TapBehavior(
+                  isLoading: state.isCheckingIn,
+                  onTap: () => context.read<TournamentDetailsCubit>().checkIn(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildWithdrawButton(context, state),
+            ],
           ),
         ),
       );
@@ -409,63 +472,137 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
         child: Container(
           padding: const EdgeInsets.all(16),
           color: AppColors.cardBackground,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(TablerIcons.circle_check, color: AppColors.success, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'checkedIn'.tr(),
-                style: const TextStyle(
-                  color: AppColors.success,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(TablerIcons.circle_check, color: AppColors.success, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppStrings.checkedIn.tr(),
+                    style: const TextStyle(
+                      color: AppColors.success,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
+              _buildWithdrawButton(context, state),
             ],
           ),
         ),
       );
     }
 
-    // Case 3: Pending Payment -> Show Upload Receipt
-    if (participant != null && participant.status == ParticipantStatus.pendingPayment) {
+    // Case 3: Payment Rejected (MOB-05)
+    if (participant != null && participant.paymentStatus == PaymentStatus.rejected) {
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: AppButton(
-            buttonConfig: ButtonConfig.gradient(
-              gradient: AppColors.primaryGradient,
-              glowColor: AppColors.neonBlueAlt,
-              width: double.infinity,
-            ),
-            content: ButtonContent(label: 'uploadReceipt'.tr()),
-            behavior: TapBehavior(
-              isLoading: state.isSubmittingPayment,
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (modalContext) => TournamentPaymentBottomSheet(
-                    entryFee: tournament.entryFee,
-                    onSubmit: (method, file) async {
-                      await context.read<TournamentDetailsCubit>().submitPayment(
-                            paymentMethod: method,
-                            receiptFile: file,
-                          );
-                    },
-                  ),
-                );
-              },
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.danger),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      AppStrings.paymentRejected.tr(),
+                      style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    if (participant.paymentRejectionReason != null && participant.paymentRejectionReason!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        AppStrings.paymentRejectedReason.tr(args: [participant.paymentRejectionReason!]),
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              AppButton(
+                buttonConfig: ButtonConfig.gradient(
+                  gradient: AppColors.primaryGradient,
+                  glowColor: AppColors.neonBlueAlt,
+                  width: double.infinity,
+                ),
+                content: ButtonContent(label: AppStrings.uploadReceipt.tr()),
+                behavior: TapBehavior(
+                  isLoading: state.isSubmittingPayment,
+                  onTap: () => _showPaymentBottomSheet(context, tournament),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildWithdrawButton(context, state),
+            ],
           ),
         ),
       );
     }
 
-    // Case 4: Registration Open & Not yet registered
-    if (participant == null && tournament.status == TournamentStatus.registrationOpen) {
+    // Case 4: Pending Payment -> Show Upload Receipt
+    if (participant != null && participant.status == ParticipantStatus.pendingPayment) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppButton(
+                buttonConfig: ButtonConfig.gradient(
+                  gradient: AppColors.primaryGradient,
+                  glowColor: AppColors.neonBlueAlt,
+                  width: double.infinity,
+                ),
+                content: ButtonContent(label: AppStrings.uploadReceipt.tr()),
+                behavior: TapBehavior(
+                  isLoading: state.isSubmittingPayment,
+                  onTap: () => _showPaymentBottomSheet(context, tournament),
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildWithdrawButton(context, state),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Case 5: Confirmed or Waitlist -> Show status + Withdraw button
+    if (participant != null && participant.status != ParticipantStatus.withdrawn && participant.status != ParticipantStatus.eliminated) {
+      return SafeArea(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          color: AppColors.cardBackground,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                participant.status == ParticipantStatus.waitlist ? AppStrings.waitlist.tr() : AppStrings.confirmed.tr(),
+                style: const TextStyle(color: AppColors.neonBlue, fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              const SizedBox(height: 8),
+              _buildWithdrawButton(context, state),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Case 6: Registration Open & Not yet registered
+    if (participant == null && tournament.status == TournamentStatus.registrationOpen && !isRegistrationClosed) {
       return SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -475,7 +612,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
               glowColor: AppColors.neonBlueAlt,
               width: double.infinity,
             ),
-            content: ButtonContent(label: 'registerForTournament'.tr()),
+            content: ButtonContent(label: AppStrings.registerForTournament.tr()),
             behavior: TapBehavior(
               isLoading: state.isRegistering,
               onTap: () => context.read<TournamentDetailsCubit>().registerForTournament(),
@@ -486,6 +623,73 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
     }
 
     return null;
+  }
+
+  Widget _buildWithdrawButton(BuildContext context, TournamentDetailsState state) {
+    return TextButton.icon(
+      onPressed: state.isWithdrawing ? null : () => _showWithdrawConfirmationDialog(context),
+      icon: const Icon(TablerIcons.user_minus, size: 18, color: AppColors.danger),
+      label: Text(
+        AppStrings.withdrawFromTournament.tr(),
+        style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+    );
+  }
+
+  void _showPaymentBottomSheet(BuildContext context, TournamentEntity tournament) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => TournamentPaymentBottomSheet(
+        entryFee: tournament.entryFee,
+        onSubmit: (method, file) async {
+          await context.read<TournamentDetailsCubit>().submitPayment(
+                paymentMethod: method,
+                receiptFile: file,
+              );
+        },
+      ),
+    );
+  }
+
+  void _showWithdrawConfirmationDialog(BuildContext parentContext) {
+    showDialog(
+      context: parentContext,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.cardBackground,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.danger),
+        ),
+        title: Text(
+          AppStrings.withdrawFromTournament.tr(),
+          style: const TextStyle(
+            color: AppColors.danger,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Orbitron',
+          ),
+        ),
+        content: Text(
+          AppStrings.withdrawConfirmation.tr(),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(AppStrings.cancel.tr(), style: const TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              parentContext.read<TournamentDetailsCubit>().withdrawFromTournament();
+            },
+            child: Text(AppStrings.withdrawFromTournament.tr()),
+          ),
+        ],
+      ),
+    );
   }
 }
 

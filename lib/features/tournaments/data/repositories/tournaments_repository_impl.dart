@@ -18,12 +18,16 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
     String? cityId,
     String? statusFilter,
     String? searchQuery,
+    double? latitude,
+    double? longitude,
   }) {
     return callRepository(() => _remoteDataSource.getTournaments(
           game: game,
           cityId: cityId,
           statusFilter: statusFilter,
           searchQuery: searchQuery,
+          latitude: latitude,
+          longitude: longitude,
         ));
   }
 
@@ -130,6 +134,16 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
         pageSize: pageSize,
       ),
     );
+  }
+
+  @override
+  Future<Either<Failure, void>> withdrawFromTournament(String participantId) {
+    return callRepository(() => _remoteDataSource.withdrawFromTournament(participantId));
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getUserTournamentHistory(String userId) {
+    return callRepository(() => _remoteDataSource.getUserTournamentHistory(userId));
   }
 
   @override

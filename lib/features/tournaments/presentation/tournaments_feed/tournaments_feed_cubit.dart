@@ -1,13 +1,22 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/repositories/tournaments_repository.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:playspot/core/services/location_service.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+import '../../domain/usecases/get_tournaments_usecase.dart';
 import 'tournaments_feed_state.dart';
 
 class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
-  final TournamentsRepository _repository;
+  final GetTournamentsUseCase _getTournamentsUseCase;
+  final LocationService _locationService;
+  final ProfileRepository? _profileRepository;
   Timer? _debounceTimer;
 
-  TournamentsFeedCubit(this._repository) : super(const TournamentsFeedState());
+  TournamentsFeedCubit(
+    this._getTournamentsUseCase,
+    this._locationService, [
+    this._profileRepository,
+  ]) : super(const TournamentsFeedState());
 
   @override
   Future<void> close() {
@@ -20,23 +29,36 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
 
     emit(state.copyWith(status: TournamentsFeedStatus.loading, errorMessage: null));
 
-    final result = await _repository.getTournaments(
+    Position? position;
+    try {
+      position = await _locationService.getCurrentLocation();
+    } catch (_) {}
+
+    final bool locationDisabled = position == null;
+    final String? userCityId = _profileRepository?.getCurrentUser()?.cityId;
+    final String? effectiveCity = state.selectedCityId ?? (locationDisabled ? userCityId : null);
+
+    final result = await _getTournamentsUseCase(
       game: state.selectedGame,
-      cityId: state.selectedCityId,
+      cityId: effectiveCity,
       statusFilter: state.selectedStatus,
       searchQuery: state.searchQuery,
+      latitude: position?.latitude,
+      longitude: position?.longitude,
     );
 
     result.fold(
       (failure) {
         emit(state.copyWith(
           status: TournamentsFeedStatus.failure,
+          isLocationDisabled: locationDisabled,
           errorMessage: failure.message,
         ));
       },
       (tournaments) {
         emit(state.copyWith(
           status: TournamentsFeedStatus.success,
+          isLocationDisabled: locationDisabled,
           tournaments: tournaments,
         ));
       },

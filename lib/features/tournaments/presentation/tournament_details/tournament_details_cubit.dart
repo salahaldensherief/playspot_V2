@@ -5,15 +5,33 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/tournament_entity.dart';
-import '../../domain/repositories/tournaments_repository.dart';
+import '../../domain/usecases/check_in_participant_usecase.dart';
+import '../../domain/usecases/get_tournament_details_usecase.dart';
+import '../../domain/usecases/register_tournament_usecase.dart';
+import '../../domain/usecases/submit_tournament_payment_usecase.dart';
+import '../../domain/usecases/watch_tournament_matches_usecase.dart';
+import '../../domain/usecases/withdraw_tournament_usecase.dart';
 import 'tournament_details_state.dart';
 
 class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
-  final TournamentsRepository _repository;
+  final GetTournamentDetailsUseCase _getTournamentDetailsUseCase;
+  final RegisterTournamentUseCase _registerTournamentUseCase;
+  final SubmitTournamentPaymentUseCase _submitTournamentPaymentUseCase;
+  final CheckInParticipantUseCase _checkInParticipantUseCase;
+  final WatchTournamentMatchesUseCase _watchTournamentMatchesUseCase;
+  final WithdrawTournamentUseCase _withdrawTournamentUseCase;
+
   StreamSubscription? _matchesSubscription;
   String? _activeTournamentId;
 
-  TournamentDetailsCubit(this._repository) : super(const TournamentDetailsState());
+  TournamentDetailsCubit(
+    this._getTournamentDetailsUseCase,
+    this._registerTournamentUseCase,
+    this._submitTournamentPaymentUseCase,
+    this._checkInParticipantUseCase,
+    this._watchTournamentMatchesUseCase,
+    this._withdrawTournamentUseCase,
+  ) : super(const TournamentDetailsState());
 
   @override
   Future<void> close() {
@@ -28,11 +46,11 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
     final results = await Future.wait([
-      _repository.getTournamentById(tournamentId),
-      _repository.getTournamentPrizes(tournamentId),
-      _repository.getTournamentMatches(tournamentId),
+      _getTournamentDetailsUseCase.getTournamentById(tournamentId),
+      _getTournamentDetailsUseCase.getPrizes(tournamentId),
+      _getTournamentDetailsUseCase.getMatches(tournamentId),
       if (currentUserId != null)
-        _repository.getUserParticipant(tournamentId, currentUserId)
+        _getTournamentDetailsUseCase.getUserParticipant(tournamentId, currentUserId)
       else
         Future.value(null),
     ]);
@@ -73,7 +91,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
   void _startWatchingMatches(String tournamentId) {
     _matchesSubscription?.cancel();
-    _matchesSubscription = _repository.watchTournamentMatches(tournamentId).listen(
+    _matchesSubscription = _watchTournamentMatchesUseCase(tournamentId).listen(
       (updatedMatches) {
         if (!isClosed) {
           emit(state.copyWith(matches: updatedMatches));
@@ -88,7 +106,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     emit(state.copyWith(isRegistering: true));
 
-    final result = await _repository.registerForTournament(state.tournament!.id);
+    final result = await _registerTournamentUseCase(state.tournament!.id);
 
     result.fold(
       (failure) {
@@ -100,7 +118,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
       (data) async {
         final currentUserId = Supabase.instance.client.auth.currentUser?.id;
         if (currentUserId != null && _activeTournamentId != null) {
-          final pRes = await _repository.getUserParticipant(_activeTournamentId!, currentUserId);
+          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUserId);
           pRes.fold((_) {}, (participant) {
             emit(state.copyWith(
               isRegistering: false,
@@ -129,7 +147,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     emit(state.copyWith(isSubmittingPayment: true));
 
-    final result = await _repository.submitTournamentPayment(
+    final result = await _submitTournamentPaymentUseCase(
       participantId: state.userParticipant!.id,
       tournamentId: state.tournament!.id,
       userId: currentUser.id,
@@ -147,7 +165,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
       },
       (_) async {
         if (_activeTournamentId != null) {
-          final pRes = await _repository.getUserParticipant(_activeTournamentId!, currentUser.id);
+          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUser.id);
           pRes.fold((_) {}, (participant) {
             emit(state.copyWith(
               isSubmittingPayment: false,
@@ -165,7 +183,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     emit(state.copyWith(isCheckingIn: true));
 
-    final result = await _repository.checkInParticipant(state.userParticipant!.id);
+    final result = await _checkInParticipantUseCase(state.userParticipant!.id);
 
     result.fold(
       (failure) {
@@ -177,12 +195,42 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
       (_) async {
         final currentUser = Supabase.instance.client.auth.currentUser;
         if (currentUser != null && _activeTournamentId != null) {
-          final pRes = await _repository.getUserParticipant(_activeTournamentId!, currentUser.id);
+          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUser.id);
           pRes.fold((_) {}, (participant) {
             emit(state.copyWith(
               isCheckingIn: false,
               userParticipant: participant,
               successMessage: 'checkInSuccess',
+            ));
+          });
+        }
+      },
+    );
+  }
+
+  Future<void> withdrawFromTournament() async {
+    if (state.userParticipant == null || state.isWithdrawing) return;
+
+    emit(state.copyWith(isWithdrawing: true));
+
+    final result = await _withdrawTournamentUseCase(state.userParticipant!.id);
+
+    result.fold(
+      (failure) {
+        emit(state.copyWith(
+          isWithdrawing: false,
+          errorMessage: failure.message,
+        ));
+      },
+      (_) async {
+        final currentUser = Supabase.instance.client.auth.currentUser;
+        if (currentUser != null && _activeTournamentId != null) {
+          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUser.id);
+          pRes.fold((_) {}, (participant) {
+            emit(state.copyWith(
+              isWithdrawing: false,
+              userParticipant: participant,
+              successMessage: 'withdrawSuccess',
             ));
           });
         }

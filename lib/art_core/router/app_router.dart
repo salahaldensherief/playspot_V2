@@ -60,6 +60,8 @@ import '../../features/tournaments/presentation/tournament_details/tournament_de
 import '../../features/tournaments/presentation/tournament_details/tournament_details_screen.dart';
 import '../../features/tournaments/presentation/live_match/tournament_match_cubit.dart';
 import '../../features/tournaments/presentation/live_match/tournament_match_screen.dart';
+import '../../features/tournaments/presentation/history/tournament_history_cubit.dart';
+import '../../features/tournaments/presentation/history/tournament_history_screen.dart';
 import 'package:flutter/services.dart';
 import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
@@ -764,6 +766,18 @@ class AppRouter {
                     ),
                   );
                 },
+              ),
+              GoRoute(
+                path: RouterKeys.tournamentHistory,
+                name: RouterKeys.tournamentHistory,
+                pageBuilder: (context, state) => _buildPageWithTransition(
+                  context: context,
+                  state: state,
+                  child: BlocProvider(
+                    create: (context) => sl<TournamentHistoryCubit>(),
+                    child: const TournamentHistoryScreen(),
+                  ),
+                ),
               )
             ],
           ),

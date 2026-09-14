@@ -10,6 +10,8 @@ abstract class TournamentsRepository {
     String? cityId,
     String? statusFilter,
     String? searchQuery,
+    double? latitude,
+    double? longitude,
   });
 
   Future<Either<Failure, TournamentEntity>> getTournamentById(String tournamentId);
@@ -58,6 +60,10 @@ abstract class TournamentsRepository {
     int page = 1,
     int pageSize = 50,
   });
+
+  Future<Either<Failure, void>> withdrawFromTournament(String participantId);
+
+  Future<Either<Failure, List<Map<String, dynamic>>>> getUserTournamentHistory(String userId);
 
   Future<void> updateFcmToken(String token);
 }

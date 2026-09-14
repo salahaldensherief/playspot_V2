@@ -7,6 +7,7 @@ class UserEntity extends Equatable {
   final String? phone;
   final String? avatarUrl;
   final String? referralCode;
+  final String? cityId;
   final String role;
   final bool isBanned;
   final DateTime? createdAt;
@@ -18,11 +19,12 @@ class UserEntity extends Equatable {
     this.phone,
     this.avatarUrl,
     this.referralCode,
+    this.cityId,
     this.role = 'user',
     this.isBanned = false,
     this.createdAt,
   });
 
   @override
-  List<Object?> get props => [id, name, email, phone, avatarUrl, referralCode, role, isBanned, createdAt];
+  List<Object?> get props => [id, name, email, phone, avatarUrl, referralCode, cityId, role, isBanned, createdAt];
 }

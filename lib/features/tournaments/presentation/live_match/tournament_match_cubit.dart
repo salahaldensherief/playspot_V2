@@ -1,18 +1,27 @@
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/tournament_entity.dart';
 import '../../domain/repositories/tournaments_repository.dart';
+import '../../domain/usecases/get_tournament_details_usecase.dart';
+import '../../domain/usecases/submit_match_result_usecase.dart';
 import 'tournament_match_state.dart';
 
 class TournamentMatchCubit extends Cubit<TournamentMatchState> {
   final TournamentsRepository _repository;
+  final GetTournamentDetailsUseCase _getTournamentDetailsUseCase;
+  final SubmitMatchResultUseCase _submitMatchResultUseCase;
 
-  TournamentMatchCubit(this._repository) : super(const TournamentMatchState());
+  TournamentMatchCubit(
+    this._repository,
+    this._getTournamentDetailsUseCase,
+    this._submitMatchResultUseCase,
+  ) : super(const TournamentMatchState());
 
   Future<void> loadMatch({required String tournamentId, required String matchId}) async {
     emit(state.copyWith(status: MatchScreenStatus.loading));
 
-    final result = await _repository.getTournamentMatches(tournamentId);
+    final result = await _getTournamentDetailsUseCase.getMatches(tournamentId);
 
     result.fold(
       (failure) {
@@ -61,9 +70,16 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
   Future<void> submitResult() async {
     if (state.match == null || state.isSubmittingResult) return;
 
+    if (state.player1Score == state.player2Score) {
+      emit(state.copyWith(
+        errorMessage: 'tieNotAllowedInTournaments'.tr(),
+      ));
+      return;
+    }
+
     emit(state.copyWith(isSubmittingResult: true));
 
-    final result = await _repository.submitMatchResult(
+    final result = await _submitMatchResultUseCase(
       matchId: state.match!.id,
       tournamentId: state.match!.tournamentId,
       player1Score: state.player1Score,

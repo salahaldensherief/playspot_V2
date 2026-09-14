@@ -36,6 +36,8 @@ class TournamentModel extends TournamentEntity {
     super.championParticipantId,
     super.allowWaitlist,
     super.currency,
+    super.visibilityScope,
+    super.visibilityRadiusKm,
     super.createdAt,
     super.updatedAt,
   });
@@ -131,14 +133,17 @@ class TournamentModel extends TournamentEntity {
       championParticipantId: json['champion_participant_id']?.toString(),
       allowWaitlist: json['allow_waitlist'] != false,
       currency: json['currency']?.toString() ?? 'EGP',
+      visibilityScope: TournamentVisibilityScope.fromString(json['visibility_scope']?.toString()),
+      visibilityRadiusKm: (json['visibility_radius_km'] as num?)?.toDouble(),
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) : null,
       updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString()) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
+    final scope = visibilityScope.toDbString();
     return {
-      'id': id,
+      if (id.isNotEmpty) 'id': id,
       'title_ar': titleAr ?? title,
       'title_en': titleEn ?? title,
       'description_ar': descriptionAr ?? description,
@@ -158,6 +163,8 @@ class TournamentModel extends TournamentEntity {
       'check_in_opens_at': checkInOpensAt?.toIso8601String(),
       'check_in_closes_at': checkInClosesAt?.toIso8601String(),
       'champion_participant_id': championParticipantId,
+      'visibility_scope': scope,
+      'visibility_radius_km': scope == 'radius' ? visibilityRadiusKm : null,
     };
   }
 }

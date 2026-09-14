@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
@@ -16,13 +15,23 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
-import '../../../../art_core/widgets/text/app_text.dart';
 import 'edit_profile_cubit.dart';
 import 'edit_profile_state.dart';
 import 'widgets/edit_profile_form.dart';
 
-class EditProfileScreen extends StatelessWidget {
+class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
+
+  @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<EditProfileCubit>().init();
+  }
 
   @override
   Widget build(BuildContext context) {

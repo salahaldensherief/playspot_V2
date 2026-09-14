@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
@@ -56,7 +57,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
         elevation: 0,
         leading: const BackButtonWidget(),
         title: Text(
-          'tournaments'.tr(),
+          AppStrings.tournaments.tr(),
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20,
@@ -64,11 +65,54 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
             fontFamily: 'Orbitron',
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(TablerIcons.history, color: AppColors.neonBlue),
+            tooltip: AppStrings.myTournamentHistory.tr(),
+            onPressed: () {
+              context.pushNamed(RouterKeys.tournamentHistory);
+            },
+          ),
+        ],
         centerTitle: true,
       ),
       body: SafeArea(
         child: Column(
           children: [
+            // MOB-02 Location Disabled Prompt Banner
+            BlocSelector<TournamentsFeedCubit, TournamentsFeedState, bool>(
+              selector: (state) => state.isLocationDisabled,
+              builder: (context, isLocationDisabled) {
+                if (!isLocationDisabled) return const SizedBox.shrink();
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.neonPurple.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.neonPurple.withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(TablerIcons.location_off, color: AppColors.neonPurple, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'enableLocationForNearbyTournaments'.tr(),
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+
             // Search Input
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -303,15 +347,15 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
   String _getLocalizedStatus(String key) {
     switch (key) {
       case 'All':
-        return 'all'.tr();
+        return AppStrings.all.tr();
       case 'registration_open':
-        return 'registrationOpen'.tr();
+        return AppStrings.registrationOpen.tr();
       case 'check_in_open':
-        return 'checkInOpen'.tr();
+        return AppStrings.checkInOpen.tr();
       case 'in_progress':
-        return 'tournamentInProgress'.tr();
+        return AppStrings.tournamentInProgress.tr();
       case 'completed':
-        return 'tournamentCompleted'.tr();
+        return AppStrings.tournamentCompleted.tr();
       default:
         return key;
     }

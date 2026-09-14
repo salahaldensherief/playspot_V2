@@ -196,7 +196,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         'full_name': params.name,
         'phone': params.phone,
         if (params.email != null) 'email': params.email,
-        'avatar_url': avatarUrl,
+        if (params.cityId != null) 'city_id': params.cityId,
+        if (avatarUrl != null) 'avatar_url': avatarUrl,
       };
 
       await _supabase.from('profiles').update(updateData).eq('id', userId);
@@ -206,7 +207,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           email: params.email,
           data: {
             'full_name': params.name,
-            'avatar_url': avatarUrl,
+            if (params.cityId != null) 'city_id': params.cityId,
+            if (avatarUrl != null) 'avatar_url': avatarUrl,
           },
         ),
       );
@@ -217,6 +219,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .copyWith(
         name: params.name,
         phone: params.phone,
+        cityId: params.cityId,
         avatarUrl: avatarUrl,
       );
     } on AppException {

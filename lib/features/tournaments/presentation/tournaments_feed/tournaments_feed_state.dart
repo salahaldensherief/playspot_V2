@@ -10,6 +10,7 @@ class TournamentsFeedState extends Equatable {
   final String? selectedCityId;
   final String? selectedStatus;
   final String searchQuery;
+  final bool isLocationDisabled;
   final String? errorMessage;
 
   const TournamentsFeedState({
@@ -19,6 +20,7 @@ class TournamentsFeedState extends Equatable {
     this.selectedCityId,
     this.selectedStatus,
     this.searchQuery = '',
+    this.isLocationDisabled = false,
     this.errorMessage,
   });
 
@@ -29,6 +31,7 @@ class TournamentsFeedState extends Equatable {
     String? selectedCityId,
     String? selectedStatus,
     String? searchQuery,
+    bool? isLocationDisabled,
     String? errorMessage,
   }) {
     return TournamentsFeedState(
@@ -38,6 +41,7 @@ class TournamentsFeedState extends Equatable {
       selectedCityId: selectedCityId ?? this.selectedCityId,
       selectedStatus: selectedStatus ?? this.selectedStatus,
       searchQuery: searchQuery ?? this.searchQuery,
+      isLocationDisabled: isLocationDisabled ?? this.isLocationDisabled,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -50,6 +54,7 @@ class TournamentsFeedState extends Equatable {
         selectedCityId,
         selectedStatus,
         searchQuery,
+        isLocationDisabled,
         errorMessage,
       ];
 }

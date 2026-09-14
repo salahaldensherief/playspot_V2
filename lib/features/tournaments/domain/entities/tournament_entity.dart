@@ -65,6 +65,26 @@ enum TournamentStatus {
   }
 }
 
+enum TournamentVisibilityScope {
+  all,
+  city,
+  radius;
+
+  String toDbString() => name;
+
+  static TournamentVisibilityScope fromString(String? val) {
+    switch (val?.toLowerCase().trim()) {
+      case 'city':
+        return TournamentVisibilityScope.city;
+      case 'radius':
+        return TournamentVisibilityScope.radius;
+      case 'all':
+      default:
+        return TournamentVisibilityScope.all;
+    }
+  }
+}
+
 enum ParticipantStatus {
   pendingPayment,
   waitlist,
@@ -127,27 +147,38 @@ enum ParticipantStatus {
 
 enum PaymentStatus {
   unpaid,
-  pendingVerification,
-  paid;
+  pending,
+  approved,
+  rejected,
+  refunded;
 
   String toDbString() {
     switch (this) {
       case PaymentStatus.unpaid:
         return 'unpaid';
-      case PaymentStatus.pendingVerification:
+      case PaymentStatus.pending:
         return 'pending';
-      case PaymentStatus.paid:
-        return 'paid';
+      case PaymentStatus.approved:
+        return 'approved';
+      case PaymentStatus.rejected:
+        return 'rejected';
+      case PaymentStatus.refunded:
+        return 'refunded';
     }
   }
 
   static PaymentStatus fromString(String? val) {
     switch (val?.toLowerCase().trim()) {
+      case 'approved':
       case 'paid':
-        return PaymentStatus.paid;
+        return PaymentStatus.approved;
       case 'pending':
       case 'pending_verification':
-        return PaymentStatus.pendingVerification;
+        return PaymentStatus.pending;
+      case 'rejected':
+        return PaymentStatus.rejected;
+      case 'refunded':
+        return PaymentStatus.refunded;
       case 'unpaid':
       default:
         return PaymentStatus.unpaid;
@@ -315,6 +346,8 @@ class TournamentEntity extends Equatable {
   final String? championParticipantId;
   final bool allowWaitlist;
   final String currency;
+  final TournamentVisibilityScope visibilityScope;
+  final double? visibilityRadiusKm;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -353,6 +386,8 @@ class TournamentEntity extends Equatable {
     this.championParticipantId,
     this.allowWaitlist = true,
     this.currency = 'EGP',
+    this.visibilityScope = TournamentVisibilityScope.all,
+    this.visibilityRadiusKm,
     this.createdAt,
     this.updatedAt,
   });
@@ -393,6 +428,8 @@ class TournamentEntity extends Equatable {
         championParticipantId,
         allowWaitlist,
         currency,
+        visibilityScope,
+        visibilityRadiusKm,
         createdAt,
         updatedAt,
       ];
