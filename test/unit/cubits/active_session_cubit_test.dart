@@ -13,6 +13,7 @@ class MockActiveSessionRepository extends Mock implements ActiveSessionRepositor
 
 void main() {
   setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('UTC'));
   });
@@ -92,29 +93,32 @@ void main() {
       await cubit.loadActiveSession(bookingId: null);
     });
 
-    test('extendTime emits loading and then success when requestExtension succeeds', () async {
+    test('extendTime emits loading and then success when extendTime succeeds', () async {
       await cubit.loadActiveSession(bookingId: 'b_100');
 
-      when(() => mockRepository.requestExtension(
-            bookingId: 'b_100',
-            requestedMinutes: 30,
+      when(() => mockRepository.extendTime(
+            'b_100',
+            30,
+            25.0,
           )).thenAnswer((_) async => const Right(null));
 
       final extendFuture = cubit.extendTime(30, 25.0);
       await extendFuture;
 
-      verify(() => mockRepository.requestExtension(
-            bookingId: 'b_100',
-            requestedMinutes: 30,
+      verify(() => mockRepository.extendTime(
+            'b_100',
+            30,
+            25.0,
           )).called(1);
     });
 
-    test('extendTime emits error when requestExtension fails', () async {
+    test('extendTime emits error when extendTime fails', () async {
       await cubit.loadActiveSession(bookingId: 'b_100');
 
-      when(() => mockRepository.requestExtension(
-            bookingId: 'b_100',
-            requestedMinutes: 30,
+      when(() => mockRepository.extendTime(
+            'b_100',
+            30,
+            25.0,
           )).thenAnswer((_) async => const Left(ServerFailure('Network error')));
 
       await cubit.extendTime(30, 25.0);
