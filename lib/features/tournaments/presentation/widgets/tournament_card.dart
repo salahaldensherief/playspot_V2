@@ -26,74 +26,76 @@ class TournamentCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.tournamentCardBg,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.neonBlue.withOpacity(0.2),
-          width: 1,
+          color: AppColors.neonBlue.withValues(alpha: 0.25),
+          width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neonBlue.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: AppColors.neonBlue.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.transparent,
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cover Image Header with Badges
+              // Cover Banner Image Header
               Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                     child: tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty
                         ? CachedNetworkImage(
                             imageUrl: tournament.imageUrl!,
-                            height: 150,
+                            height: 160,
                             width: double.infinity,
                             fit: BoxFit.cover,
                             memCacheWidth: 600,
-                            memCacheHeight: 300,
+                            memCacheHeight: 320,
                             placeholder: (context, url) => Container(
-                              height: 150,
-                              color: AppColors.mutedBackground,
+                              height: 160,
+                              color: AppColors.tournamentHeaderBg,
                               child: const Center(
                                 child: AppLoader(
-                                  size: 24,
+                                  size: 28,
                                   strokeWidth: 2,
                                   color: AppColors.neonBlue,
                                 ),
                               ),
                             ),
-                            errorWidget: (context, url, error) => _buildPlaceholderImage(),
+                            errorWidget: (context, url, error) => _buildPlaceholderBanner(),
                           )
-                        : _buildPlaceholderImage(),
+                        : _buildPlaceholderBanner(),
                   ),
-                  // Dark Overlay Gradient
+
+                  // Dark Vignette & Cyber Gradient
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withOpacity(0.3),
-                            Colors.black.withOpacity(0.8),
+                            AppColors.black.withValues(alpha: 0.35),
+                            AppColors.black.withValues(alpha: 0.85),
                           ],
                         ),
                       ),
                     ),
                   ),
-                  // Status Badge Top Left
+
+                  // Status Badge (Top Left)
                   Positioned(
                     top: 12,
                     left: 12,
@@ -102,52 +104,85 @@ class TournamentCard extends StatelessWidget {
                       compact: true,
                     ),
                   ),
-                  // Entry Fee Badge Top Right
+
+                  // Entry Fee / Prize Badge (Top Right)
                   Positioned(
                     top: 12,
                     right: 12,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.blackOverlay,
-                        borderRadius: BorderRadius.circular(12),
+                        color: AppColors.black.withValues(alpha: 0.75),
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.neonPurple.withOpacity(0.5),
+                          color: AppColors.tournamentGold.withValues(alpha: 0.6),
+                          width: 1,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.tournamentGold.withValues(alpha: 0.2),
+                            blurRadius: 8,
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        tournament.entryFee > 0
-                            ? '${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}'
-                            : 'freeEntry'.tr(),
-                        style: const TextStyle(
-                          color: AppColors.neonPurple,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            TablerIcons.trophy,
+                            size: 13,
+                            color: AppColors.tournamentGold,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            tournament.entryFee > 0
+                                ? '${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}'
+                                : 'freeEntry'.tr(),
+                            style: const TextStyle(
+                              color: AppColors.tournamentGold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              fontFamily: 'Orbitron',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  // Game Badge Bottom Left
+
+                  // Game Name Badge (Bottom Left)
                   Positioned(
                     bottom: 12,
                     left: 12,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          TablerIcons.device_gamepad_2,
-                          color: AppColors.neonBlue,
-                          size: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.neonBlue.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.neonBlue.withValues(alpha: 0.4),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          tournament.game,
-                          style: const TextStyle(
-                            color: AppColors.textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            TablerIcons.device_gamepad_2,
+                            color: AppColors.neonBlue,
+                            size: 14,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            tournament.game,
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Orbitron',
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -163,9 +198,10 @@ class TournamentCard extends StatelessWidget {
                       tournament.title,
                       style: const TextStyle(
                         color: AppColors.textPrimary,
-                        fontSize: 18,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Orbitron',
+                        height: 1.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -175,18 +211,19 @@ class TournamentCard extends StatelessWidget {
                     if (tournament.cityName != null || tournament.loungeName != null) ...[
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             TablerIcons.map_pin,
-                            color: AppColors.textSecondary,
+                            color: AppColors.neonBlue.withValues(alpha: 0.8),
                             size: 14,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               '${tournament.cityName ?? ''}${tournament.cityName != null && tournament.loungeName != null ? ' • ' : ''}${tournament.loungeName ?? ''}',
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
-                                fontSize: 13,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -197,41 +234,76 @@ class TournamentCard extends StatelessWidget {
                       const SizedBox(height: 12),
                     ],
 
-                    // Capacity Bar
+                    // Capacity Progress
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'participantsCapacity'.tr(args: [
-                            '${tournament.registeredParticipantsCount}',
-                            '${tournament.bracketSize}'
-                          ]),
-                          style: const TextStyle(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Row(
+                          children: [
+                            const Icon(
+                              TablerIcons.users,
+                              size: 14,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'participantsCapacity'.tr(args: [
+                                '${tournament.registeredParticipantsCount}',
+                                '${tournament.bracketSize}'
+                              ]),
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          '${(capacityProgress * 100).toInt()}%',
-                          style: const TextStyle(
-                            color: AppColors.neonBlue,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: capacityProgress >= 1.0
+                                ? AppColors.warning.withValues(alpha: 0.2)
+                                : AppColors.neonBlue.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${(capacityProgress * 100).toInt()}%',
+                            style: TextStyle(
+                              color: capacityProgress >= 1.0 ? AppColors.warning : AppColors.neonBlue,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Orbitron',
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
+
+                    // Custom Gradient Capacity Bar
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: capacityProgress,
-                        minHeight: 6,
-                        backgroundColor: AppColors.mutedBackground,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          capacityProgress >= 1.0 ? AppColors.warning : AppColors.neonBlue,
-                        ),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 6,
+                            color: AppColors.tournamentTrackBg,
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: capacityProgress,
+                            child: Container(
+                              height: 6,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: capacityProgress >= 1.0
+                                      ? [AppColors.warning, AppColors.categoryFood]
+                                      : [AppColors.neonBlue, AppColors.neonPurple],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -244,27 +316,31 @@ class TournamentCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderImage() {
+  Widget _buildPlaceholderBanner() {
     return Container(
-      height: 150,
+      height: 160,
       width: double.infinity,
-      color: AppColors.mutedBackground,
+      decoration: const BoxDecoration(
+        gradient: AppColors.tournamentPlaceholderGradient,
+      ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               TablerIcons.trophy,
-              size: 40,
-              color: AppColors.neonBlue.withOpacity(0.5),
+              size: 48,
+              color: AppColors.neonBlue.withValues(alpha: 0.6),
             ),
             const SizedBox(height: 8),
             Text(
-              tournament.game,
+              tournament.game.toUpperCase(),
               style: TextStyle(
-                color: AppColors.textSecondary.withOpacity(0.8),
+                color: AppColors.white.withValues(alpha: 0.8),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
+                fontFamily: 'Orbitron',
+                letterSpacing: 1.2,
               ),
             ),
           ],

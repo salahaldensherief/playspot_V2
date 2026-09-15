@@ -42,56 +42,86 @@ class _BookingCardState extends State<BookingCard> {
   Timer? _highlightTimer;
 
   Future<void> _openDirections(BuildContext context) async {
+    final mapsLink = widget.booking.mapsLink;
+    if (mapsLink != null && mapsLink.isNotEmpty) {
+      final uri = Uri.tryParse(mapsLink);
+      if (uri != null) {
+        try {
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            return;
+          }
+        } catch (e) {
+          debugPrint('[BookingCard] mapsLink launch error: $e');
+        }
+      }
+    }
+
     final lat = widget.booking.lat;
     final lng = widget.booking.lng;
 
-    if (lat == null || lng == null) {
+    if (lat != null && lng != null) {
+      try {
+        final pref = sl<PreferenceManager>();
+        final userLat = double.tryParse(pref.latitude());
+        final userLng = double.tryParse(pref.longitude());
+
+        await MapLauncher.directions(
+          Location.coords(
+            lat,
+            lng,
+            title: widget.booking.loungeName,
+          ),
+          from: (userLat != null && userLng != null)
+              ? Location.coords(userLat, userLng, title: "My Location")
+              : null,
+        ).show();
+        return;
+      } catch (e) {
+        debugPrint('[BookingCard] MapLauncher error: $e');
+      }
+
+      final googleMapsUrl = Uri.parse(
+        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
+      );
+      try {
+        if (await canLaunchUrl(googleMapsUrl)) {
+          await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+          return;
+        } else {
+          await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
+          return;
+        }
+      } catch (e) {
+        debugPrint('[BookingCard] URL Launcher error: $e');
+      }
+    }
+
+    // Fallback: search by lounge name and location if lat/lng & mapsLink are missing
+    final query = '${widget.booking.loungeName} ${widget.booking.loungeLocation}'.trim();
+    if (query.isNotEmpty) {
+      final searchUrl = Uri.parse(
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}',
+      );
+      try {
+        if (await canLaunchUrl(searchUrl)) {
+          await launchUrl(searchUrl, mode: LaunchMode.externalApplication);
+          return;
+        } else {
+          await launchUrl(searchUrl, mode: LaunchMode.platformDefault);
+          return;
+        }
+      } catch (e) {
+        debugPrint('[BookingCard] Search URL Launcher error: $e');
+      }
+    }
+
+    if (context.mounted) {
       GameHudToast.show(
         context,
         AppStrings.somethingWentWrong.tr(),
         type: ToastType.error,
       );
-      return;
-    }
-
-    try {
-      final pref = sl<PreferenceManager>();
-      final userLat = double.tryParse(pref.latitude());
-      final userLng = double.tryParse(pref.longitude());
-
-      await MapLauncher.directions(
-        Location.coords(
-          lat,
-          lng,
-          title: widget.booking.loungeName,
-        ),
-        from: (userLat != null && userLng != null)
-            ? Location.coords(userLat, userLng, title: "My Location")
-            : null,
-      ).show();
-      return;
-    } catch (e) {
-      debugPrint('[BookingCard] MapLauncher error: $e');
-    }
-
-    final googleMapsUrl = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
-    );
-    try {
-      if (await canLaunchUrl(googleMapsUrl)) {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-      } else {
-        await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
-      }
-    } catch (e) {
-      debugPrint('[BookingCard] URL Launcher error: $e');
-      if (context.mounted) {
-        GameHudToast.show(
-          context,
-          AppStrings.somethingWentWrong.tr(),
-          type: ToastType.error,
-        );
-      }
     }
   }
 

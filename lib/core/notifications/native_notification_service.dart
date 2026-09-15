@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import '../../art_core/utils/app_logger.dart';
 
 class NativeNotificationService {
   NativeNotificationService._();
@@ -18,16 +18,16 @@ class NativeNotificationService {
         'deviceName': deviceName,
         'timeText': timeText,
       });
-    } catch (e) {
-      debugPrint('Error invoking native custom notification: $e');
+    } catch (e, st) {
+      AppLogger.error('Error invoking native custom notification', e, st);
     }
   }
 
   Future<void> cancelCustomNotification() async {
     try {
       await _channel.invokeMethod('cancelCustomNotification');
-    } catch (e) {
-      debugPrint('Error canceling native custom notification: $e');
+    } catch (e, st) {
+      AppLogger.error('Error canceling native custom notification', e, st);
     }
   }
 }

@@ -211,14 +211,14 @@ class LoungeDetailsRemoteDataSourceImpl
 
       if (missingProfileUserIds.isNotEmpty) {
         try {
-          final profilesRes = await _client
-              .from('profiles')
-              .select('id, name, full_name, avatar_url')
-              .inFilter('id', missingProfileUserIds);
+          final profilesRes = await _client.rpc(
+            'get_users_public_info',
+            params: {'user_ids': missingProfileUserIds},
+          );
 
           final profilesMap = <String, Map<String, dynamic>>{};
           for (final p in (profilesRes as List)) {
-            final id = p['id']?.toString();
+            final id = p['user_id']?.toString() ?? p['id']?.toString();
             if (id != null) profilesMap[id] = Map<String, dynamic>.from(p);
           }
 
@@ -251,43 +251,17 @@ class LoungeDetailsRemoteDataSourceImpl
 
     final List<ReviewModel> combinedReviews = [];
 
-    // Attempt 1: lounge_reviews table with profiles join or flat
+    // Fetch lounge_reviews flat (since there is no direct FK relationship to profiles)
     try {
       final res = await _client
           .from('lounge_reviews')
-          .select('*, profiles:user_id(name, avatar_url, full_name)')
+          .select('*')
           .eq('lounge_id', loungeId)
           .order('created_at', ascending: false);
       final result = await processAndHydrate(res as List);
       combinedReviews.addAll(result);
     } catch (e) {
-      dev.log("[REVIEWS_DS] lounge_reviews with profiles join error: $e");
-      try {
-        final res = await _client
-            .from('lounge_reviews')
-            .select('*')
-            .eq('lounge_id', loungeId)
-            .order('created_at', ascending: false);
-        final result = await processAndHydrate(res as List);
-        combinedReviews.addAll(result);
-      } catch (e2) {
-        dev.log("[REVIEWS_DS] lounge_reviews flat select error: $e2");
-      }
-    }
-
-    // Attempt 2: bookings table with ratings
-    try {
-      final res = await _client
-          .from('bookings')
-          .select('id, user_id, rating, comment, review, created_at')
-          .eq('lounge_id', loungeId)
-          .not('rating', 'is', null)
-          .gt('rating', 0)
-          .order('created_at', ascending: false);
-      final result = await processAndHydrate(res as List);
-      combinedReviews.addAll(result);
-    } catch (e) {
-      dev.log("[REVIEWS_DS] bookings table ratings fallback error: $e");
+      dev.log("[REVIEWS_DS] lounge_reviews flat select error: $e");
     }
 
     // Deduplicate combined reviews

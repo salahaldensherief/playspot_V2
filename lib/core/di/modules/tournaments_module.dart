@@ -11,6 +11,8 @@ import '../../../features/tournaments/domain/usecases/submit_tournament_payment_
 import '../../../features/tournaments/domain/usecases/watch_tournament_matches_usecase.dart';
 import '../../../features/tournaments/domain/usecases/withdraw_tournament_usecase.dart';
 import '../../../features/tournaments/domain/usecases/get_user_tournament_history_usecase.dart';
+import '../../../features/tournaments/domain/usecases/get_home_tournament_usecase.dart';
+import '../../../features/tournaments/domain/usecases/get_my_active_tournament_usecase.dart';
 import '../../../features/tournaments/presentation/tournaments_feed/tournaments_feed_cubit.dart';
 import '../../../features/tournaments/presentation/tournament_details/tournament_details_cubit.dart';
 import '../../../features/tournaments/presentation/live_match/tournament_match_cubit.dart';
@@ -38,6 +40,8 @@ void initTournamentsModule() {
   sl.registerLazySingleton(() => SubmitMatchResultUseCase(sl()));
   sl.registerLazySingleton(() => WithdrawTournamentUseCase(sl()));
   sl.registerLazySingleton(() => GetUserTournamentHistoryUseCase(sl()));
+  sl.registerLazySingleton(() => GetHomeTournamentUseCase(sl()));
+  sl.registerLazySingleton(() => GetMyActiveTournamentUseCase(sl()));
 
   // Cubits (Factory per screen route creation)
   sl.registerFactory<TournamentsFeedCubit>(

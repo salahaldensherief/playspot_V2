@@ -4,6 +4,7 @@ import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/tournament_model.dart';
+import '../../models/user_tournament_participation_model.dart';
 
 abstract class TournamentsRemoteDataSource {
   Future<List<TournamentModel>> getTournaments({
@@ -13,6 +14,7 @@ abstract class TournamentsRemoteDataSource {
     String? searchQuery,
     double? latitude,
     double? longitude,
+    String? loungeId,
   });
 
   Future<TournamentModel> getTournamentById(String tournamentId);
@@ -62,9 +64,13 @@ abstract class TournamentsRemoteDataSource {
     int pageSize = 50,
   });
 
-  Future<void> withdrawFromTournament(String participantId);
+  Future<void> withdrawFromTournament(String participantId, {String? tournamentId});
 
   Future<List<Map<String, dynamic>>> getUserTournamentHistory(String userId);
+
+  Future<TournamentModel?> getHomeTournament();
+
+  Future<UserTournamentParticipationModel?> getMyActiveTournament();
 
   Future<void> updateFcmToken(String token);
 }
@@ -82,6 +88,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String? searchQuery,
     double? latitude,
     double? longitude,
+    String? loungeId,
   }) async {
     try {
       dynamic response;
@@ -138,6 +145,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           }
           return true; // TournamentVisibilityScope.all
         }).toList();
+      }
+
+      if (loungeId != null && loungeId.isNotEmpty) {
+        models = models.where((t) => t.loungeId == loungeId).toList();
       }
 
       if (game != null && game.isNotEmpty && game != 'All') {
@@ -475,13 +486,27 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<void> withdrawFromTournament(String participantId) async {
+  Future<void> withdrawFromTournament(String participantId, {String? tournamentId}) async {
     try {
       await _client.rpc(
         'withdraw_from_tournament',
-        params: {'p_participant_id': participantId},
+        params: {
+          'p_participant_id': participantId,
+          'p_tournament_id': tournamentId,
+        },
       );
     } catch (e) {
+      try {
+        if (tournamentId != null) {
+          await _client.rpc(
+            'withdraw_from_tournament',
+            params: {'p_tournament_id': tournamentId},
+          );
+          return;
+        }
+      } catch (e2) {
+        dev.log('[TOURNAMENTS_REMOTE] Second withdraw_from_tournament RPC attempt failed: $e2');
+      }
       dev.log('[TOURNAMENTS_REMOTE] RPC withdraw_from_tournament error, fallback to direct update: $e');
       await _client.from('tournament_participants').update({
         'registration_status': 'withdrawn',
@@ -503,6 +528,44 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error fetching user tournament history: $e');
       return [];
+    }
+  }
+
+  @override
+  Future<TournamentModel?> getHomeTournament() async {
+    try {
+      final response = await _client.rpc('get_home_tournament');
+      if (response == null) return null;
+      if (response is List) {
+        if (response.isEmpty) return null;
+        return TournamentModel.fromJson((response.first as Map).cast<String, dynamic>());
+      }
+      if (response is Map) {
+        return TournamentModel.fromJson(response.cast<String, dynamic>());
+      }
+      return null;
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] RPC get_home_tournament error: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<UserTournamentParticipationModel?> getMyActiveTournament() async {
+    try {
+      final response = await _client.rpc('get_my_active_tournament');
+      if (response == null) return null;
+      if (response is List) {
+        if (response.isEmpty) return null;
+        return UserTournamentParticipationModel.fromJson((response.first as Map).cast<String, dynamic>());
+      }
+      if (response is Map) {
+        return UserTournamentParticipationModel.fromJson(response.cast<String, dynamic>());
+      }
+      return null;
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] RPC get_my_active_tournament error: $e');
+      return null;
     }
   }
 }

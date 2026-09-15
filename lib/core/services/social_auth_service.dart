@@ -1,6 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import '../../art_core/utils/app_logger.dart';
 
 abstract class SocialAuthService {
   Future<String?> getGoogleIdToken();
@@ -17,13 +17,13 @@ class SocialAuthServiceImpl implements SocialAuthService {
   Future<void> _ensureInitialized() async {
     if (!_isInitialized) {
       try {
-        debugPrint('[SocialAuth] Initializing GoogleSignIn.instance with serverClientId...');
+        AppLogger.debug('[SocialAuth] Initializing GoogleSignIn.instance with serverClientId...');
         await GoogleSignIn.instance.initialize(
           serverClientId: _serverClientId,
         );
         _isInitialized = true;
-      } catch (e) {
-        debugPrint('[SocialAuth] GoogleSignIn initialize exception: $e');
+      } catch (e, st) {
+        AppLogger.error('[SocialAuth] GoogleSignIn initialize exception', e, st);
       }
     }
   }
@@ -31,26 +31,26 @@ class SocialAuthServiceImpl implements SocialAuthService {
   @override
   Future<String?> getGoogleIdToken() async {
     try {
-      debugPrint('[SocialAuth] Starting Google Sign-In...');
+      AppLogger.debug('[SocialAuth] Starting Google Sign-In...');
 
       await _ensureInitialized();
 
       final GoogleSignInAccount googleUser =
           await GoogleSignIn.instance.authenticate();
 
-      debugPrint('[SocialAuth] User signed in: ${googleUser.email}');
+      AppLogger.debug('[SocialAuth] User signed in: ${googleUser.email}');
 
       final googleAuth = googleUser.authentication;
 
       if (googleAuth.idToken == null) {
-        debugPrint(
+        AppLogger.warning(
             '[SocialAuth] FAILED: ID Token is null. Check Web Client ID (_serverClientId) and SHA-1 fingerprint in Google Cloud Console.');
         throw Exception('Could not get ID Token from Google');
       }
 
       return googleAuth.idToken;
-    } catch (e) {
-      debugPrint('[SocialAuth] Google Sign-in Error: $e');
+    } catch (e, st) {
+      AppLogger.error('[SocialAuth] Google Sign-in Error', e, st);
       final errStr = e.toString().toLowerCase();
       if (errStr.contains('cancel') || errStr.contains('user_canceled')) {
         return null;

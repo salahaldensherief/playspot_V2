@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class StorageService {
@@ -28,8 +29,8 @@ class SupabaseStorageServiceImpl implements StorageService {
             fileOptions: const FileOptions(upsert: true),
           );
       return _supabase.storage.from(bucket).getPublicUrl(path);
-    } catch (e) {
-      debugPrint('[StorageService] Upload failed: $e');
+    } catch (e, st) {
+      AppLogger.error('[StorageService] Upload failed', e, st);
       return null;
     }
   }

@@ -1,4 +1,7 @@
 {
+  "cold_drinks": "Cold Drinks",
+  "hot_drinks": "Hot Drinks",
+  "desserts": "Desserts",
   "noInternetConnection": "No internet connection",
   "internetRestored": "Internet connection restored",
   "published": "Published",

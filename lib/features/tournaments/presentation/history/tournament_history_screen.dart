@@ -8,7 +8,6 @@ import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
-import '../../data/models/tournament_model.dart';
 import 'tournament_history_cubit.dart';
 import 'tournament_history_state.dart';
 
@@ -69,7 +68,7 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                     Icon(
                       TablerIcons.trophy_off,
                       size: 64,
-                      color: AppColors.textSecondary.withOpacity(0.5),
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -90,9 +89,8 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final item = state.participations[index];
-                final participant = TournamentParticipantModel.fromJson(item);
-                final tournamentJson = item['tournaments'] as Map<String, dynamic>?;
-                final tournament = tournamentJson != null ? TournamentModel.fromJson(tournamentJson) : null;
+                final participant = item.participant;
+                final tournament = item.tournament;
 
                 final String tournamentTitle = tournament?.title ?? 'Tournament';
                 final String loungeName = tournament?.loungeName ?? '-';
@@ -115,7 +113,7 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.neonPurple.withOpacity(0.3)),
+                      border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,9 +137,9 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.neonBlue.withOpacity(0.15),
+                                color: AppColors.neonBlue.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.neonBlue.withOpacity(0.4)),
+                                border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
                               ),
                               child: Text(
                                 participant.paymentStatus.toDbString(),

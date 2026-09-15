@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../di/provider_scope.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 import 'package:playspot/features/auth/presentation/sign_in/signin_screen.dart';
 import 'package:playspot/features/auth/presentation/sign_up/signup_screen.dart';
@@ -96,7 +97,32 @@ class AppRouter {
         'coupon',
       ]);
 
-      if (typeStr.contains('booking') || bookingId.isNotEmpty) {
+      final tournamentId = _extractKey(data, [
+        'tournament_id',
+        'tournamentId',
+      ]);
+
+      final matchId = _extractKey(data, [
+        'match_id',
+        'matchId',
+      ]);
+
+      final reminderKey = _extractKey(data, ['reminder_key', 'reminderKey']);
+      final extensionMinutes = int.tryParse(_extractKey(data, ['extension_minutes', 'extensionMinutes'])) ?? 60;
+
+      if (reminderKey == 'extension_offer') {
+        if (bookingId.isNotEmpty) {
+          router.pushNamed(
+            RouterKeys.activeSession,
+            extra: {'booking_id': bookingId, 'extension_minutes': extensionMinutes},
+          );
+        } else {
+          router.pushNamed(RouterKeys.activeSession);
+        }
+        return true;
+      }
+
+      if (typeStr.contains('booking')) {
         if (bookingId.isNotEmpty) {
           router.pushNamed(
             RouterKeys.bookingDetails,
@@ -110,7 +136,7 @@ class AppRouter {
 
       if (typeStr.contains('offer') ||
           typeStr.contains('promo') ||
-          code.isNotEmpty) {
+          typeStr.contains('voucher')) {
         router.pushNamed(RouterKeys.myVouchers);
         if (code.isNotEmpty) {
           Clipboard.setData(ClipboardData(text: code));
@@ -118,27 +144,19 @@ class AppRouter {
         return true;
       }
 
-      if (typeStr.contains('loyalty')) {
+      if (typeStr.contains('loyalty') || typeStr.contains('points')) {
         router.goNamed(RouterKeys.home, extra: 2);
         return true;
       }
 
-      if (typeStr.contains('live_session') || typeStr.contains('active_session') || typeStr.contains('session')) {
+      if (typeStr.contains('live_session') ||
+          typeStr.contains('active_session') ||
+          typeStr.contains('session')) {
         router.pushNamed(RouterKeys.activeSession);
         return true;
       }
 
-      final tournamentId = _extractKey(data, [
-        'tournament_id',
-        'tournamentId',
-      ]);
-
-      final matchId = _extractKey(data, [
-        'match_id',
-        'matchId',
-      ]);
-
-      if (typeStr.contains('tournament') || tournamentId.isNotEmpty) {
+      if (typeStr.contains('tournament')) {
         if (tournamentId.isNotEmpty) {
           if (matchId.isNotEmpty) {
             router.pushNamed(
@@ -190,9 +208,10 @@ class AppRouter {
     RouterKeys.tournaments,
     RouterKeys.tournamentDetails,
     RouterKeys.tournamentMatch,
+    RouterKeys.tournamentHistory,
   };
 
-  static Page<T> _buildPageWithTransition<T>({
+  static Page<T> _buildPage<T>({
     required BuildContext context,
     required GoRouterState state,
     required Widget child,
@@ -215,7 +234,9 @@ class AppRouter {
           state.uri.queryParameters.containsKey('p_referral_code')) {
         try {
           sl<DeepLinkService>().handleIncomingUri(state.uri);
-        } catch (_) {}
+        } catch (e, stack) {
+          AppLogger.error('DeepLink handling failed for URI: ${state.uri}', e, stack);
+        }
       }
 
       final user = sl<AuthRepository>().getCurrentUser();
@@ -233,9 +254,9 @@ class AppRouter {
           currentPath == RouterKeys.resetPassword;
 
       if (user == null) {
-        final isProtected = _protectedRoutes.contains(currentName) ||
-            _protectedRoutes.contains(currentPath) ||
-            currentPath.startsWith('/booking-details');
+        final isProtected = (currentName != null && _protectedRoutes.contains(currentName)) ||
+            currentPath.startsWith('/booking-details') ||
+            currentPath.startsWith('/tournaments/');
         if (isProtected) {
           return RouterKeys.signIn;
         }
@@ -261,7 +282,7 @@ class AppRouter {
           GoRoute(
             path: RouterKeys.splash,
             name: RouterKeys.splash,
-            pageBuilder: (context, state) => _buildPageWithTransition(
+            pageBuilder: (context, state) => _buildPage(
               context: context,
               state: state,
               child: const SplashScreen(),
@@ -270,7 +291,7 @@ class AppRouter {
           GoRoute(
             path: RouterKeys.onboarding,
             name: RouterKeys.onboarding,
-            pageBuilder: (context, state) => _buildPageWithTransition(
+            pageBuilder: (context, state) => _buildPage(
               context: context,
               state: state,
               child: const OnBoardingPage(),
@@ -287,7 +308,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.signUp,
                 name: RouterKeys.signUp,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const SignUpScreen(),
@@ -296,7 +317,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.verifySignupOTP,
                 name: RouterKeys.verifySignupOTP,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const OTPVerificationScreen(isSignUp: true),
@@ -307,7 +328,7 @@ class AppRouter {
           GoRoute(
             path: RouterKeys.signIn,
             name: RouterKeys.signIn,
-            pageBuilder: (context, state) => _buildPageWithTransition(
+            pageBuilder: (context, state) => _buildPage(
               context: context,
               state: state,
               child: BlocProvider(
@@ -335,7 +356,7 @@ class AppRouter {
               final userId = extraId.isNotEmpty ? extraId : currentUserId;
               final userToUse = userModel ?? currentUser;
 
-              return _buildPageWithTransition(
+              return _buildPage(
                 context: context,
                 state: state,
                 child: BlocProvider(
@@ -357,7 +378,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.forgotPassword,
                 name: RouterKeys.forgotPassword,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const ForgotPasswordScreen(),
@@ -366,7 +387,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.verifyOTP,
                 name: RouterKeys.verifyOTP,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const OTPVerificationScreen(),
@@ -375,7 +396,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.resetPassword,
                 name: RouterKeys.resetPassword,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const ResetPasswordScreen(),
@@ -403,7 +424,7 @@ class AppRouter {
               ShellRoute(
                 builder: (context, state, child) {
                   return BlocProvider(
-                    create: (context) => sl<HomeCubit>()..getHomeData(),
+                    create: (context) => sl<HomeCubit>(),
                     child: child,
                   );
                 },
@@ -413,7 +434,7 @@ class AppRouter {
                     name: RouterKeys.home,
                     pageBuilder: (context, state) {
                       final index = state.extra is int ? state.extra as int : 0;
-                      return _buildPageWithTransition(
+                      return _buildPage(
                         context: context,
                         state: state,
                         child: MainScreen(
@@ -426,7 +447,7 @@ class AppRouter {
                   GoRoute(
                     path: RouterKeys.search,
                     name: RouterKeys.search,
-                    pageBuilder: (context, state) => _buildPageWithTransition(
+                    pageBuilder: (context, state) => _buildPage(
                       context: context,
                       state: state,
                       child: const SearchScreen(),
@@ -435,7 +456,7 @@ class AppRouter {
                   GoRoute(
                     path: RouterKeys.myBookings,
                     name: RouterKeys.myBookings,
-                    pageBuilder: (context, state) => _buildPageWithTransition(
+                    pageBuilder: (context, state) => _buildPage(
                       context: context,
                       state: state,
                       child: const MyBookingsScreen(),
@@ -461,7 +482,7 @@ class AppRouter {
                     heroTag = map['heroTag'] as String?;
                   }
 
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: BlocProvider(
@@ -496,7 +517,7 @@ class AppRouter {
                 name: RouterKeys.roomDetails,
                 pageBuilder: (context, state) {
                   final roomId = state.pathParameters['roomId'] ?? '';
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: RoomDetailsScreen(roomId: roomId),
@@ -520,12 +541,14 @@ class AppRouter {
                   } else if (state.extra is Map<String, dynamic>) {
                     try {
                       params = BookingDetailsParams.fromMap(state.extra as Map<String, dynamic>);
-                    } catch (_) {}
+                    } catch (e, stack) {
+                      AppLogger.error('Failed to parse BookingDetailsParams from extra map', e, stack);
+                    }
                   }
 
                   final bookingParams = params;
                   if (bookingParams == null) {
-                    return _buildPageWithTransition(
+                    return _buildPage(
                       context: context,
                       state: state,
                       child: const Scaffold(
@@ -535,7 +558,7 @@ class AppRouter {
                     );
                   }
 
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: BlocProvider(
@@ -562,12 +585,14 @@ class AppRouter {
                   } else if (state.extra is Map<String, dynamic>) {
                     try {
                       params = CheckoutParams.fromMap(state.extra as Map<String, dynamic>);
-                    } catch (_) {}
+                    } catch (e, stack) {
+                      AppLogger.error('Failed to parse CheckoutParams from extra map', e, stack);
+                    }
                   }
 
                   final checkoutParams = params;
                   if (checkoutParams == null) {
-                    return _buildPageWithTransition(
+                    return _buildPage(
                       context: context,
                       state: state,
                       child: const Scaffold(
@@ -577,7 +602,7 @@ class AppRouter {
                     );
                   }
 
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: BlocProvider(
@@ -590,7 +615,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.editProfile,
                 name: RouterKeys.editProfile,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: BlocProvider(
@@ -602,7 +627,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.redeemPoints,
                 name: RouterKeys.redeemPoints,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const RedeemPointsScreen(),
@@ -611,7 +636,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.pointsHistory,
                 name: RouterKeys.pointsHistory,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const PointsHistoryScreen(),
@@ -620,7 +645,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.myVouchers,
                 name: RouterKeys.myVouchers,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const MyVouchersScreen(),
@@ -629,7 +654,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.favorites,
                 name: RouterKeys.favorites,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const FavoritesScreen(),
@@ -638,7 +663,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.notifications,
                 name: RouterKeys.notifications,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const NotificationsScreen(),
@@ -647,7 +672,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.notificationSettings,
                 name: RouterKeys.notificationSettings,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: BlocProvider(
@@ -673,7 +698,7 @@ class AppRouter {
                   final reviews = (extra['reviews'] as List<ReviewModel>?) ?? [];
                   final loungeName = (extra['loungeName'] as String?) ?? '';
 
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: AllReviewsScreen(
@@ -686,7 +711,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.termsAndConditions,
                 name: RouterKeys.termsAndConditions,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: const TermsAndConditionsScreen(),
@@ -697,15 +722,18 @@ class AppRouter {
                 name: RouterKeys.activeSession,
                 pageBuilder: (context, state) {
                   String? bookingId;
+                  int? extensionMinutes;
                   if (state.extra is String) {
                     bookingId = state.extra as String;
                   } else if (state.extra is Map<String, dynamic>) {
-                    bookingId = (state.extra as Map<String, dynamic>)['booking_id']?.toString();
+                    final map = state.extra as Map<String, dynamic>;
+                    bookingId = map['booking_id']?.toString() ?? map['bookingId']?.toString();
+                    extensionMinutes = int.tryParse(map['extension_minutes']?.toString() ?? map['extensionMinutes']?.toString() ?? '');
                   }
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
-                    child: ActiveSessionScreen(bookingId: bookingId),
+                    child: ActiveSessionScreen(bookingId: bookingId, extensionMinutes: extensionMinutes),
                   );
                 },
               ),
@@ -714,7 +742,7 @@ class AppRouter {
                 name: RouterKeys.bookingDetails,
                 pageBuilder: (context, state) {
                   final bookingId = state.pathParameters['id'];
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: MyBookingsScreen(highlightedBookingId: bookingId),
@@ -724,7 +752,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.tournaments,
                 name: RouterKeys.tournaments,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: BlocProvider(
@@ -738,7 +766,7 @@ class AppRouter {
                 name: RouterKeys.tournamentDetails,
                 pageBuilder: (context, state) {
                   final id = state.pathParameters['id'] ?? '';
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: BlocProvider(
@@ -754,7 +782,7 @@ class AppRouter {
                 pageBuilder: (context, state) {
                   final tournamentId = state.pathParameters['id'] ?? '';
                   final matchId = state.pathParameters['matchId'] ?? '';
-                  return _buildPageWithTransition(
+                  return _buildPage(
                     context: context,
                     state: state,
                     child: BlocProvider(
@@ -770,7 +798,7 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.tournamentHistory,
                 name: RouterKeys.tournamentHistory,
-                pageBuilder: (context, state) => _buildPageWithTransition(
+                pageBuilder: (context, state) => _buildPage(
                   context: context,
                   state: state,
                   child: BlocProvider(

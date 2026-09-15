@@ -170,3 +170,42 @@ feature_name/
 ---
 
 **Priority Note:** If any rule above ever conflicts with the Directory Scaffolding in Section 6, Section 6 wins — the folder structure must never be altered to accommodate a new rule; new rules must fit inside the existing structure instead. This scaffolding must stay identical to the one used in the Web Dashboard repo — only the `presentation/` layer's widget implementations are allowed to differ between the two.
+
+
+
+## 18. Single Responsibility, File Size & Self-Documenting Code (MANDATORY)
+
+> Append this section identically to **both** `AGENTS.md` files (Dashboard and Mobile), immediately after the existing Section 17, renumbering nothing else. Per the Cross-Repo Consistency Note already in both files, this section is not platform-specific and must stay in lockstep between the two repos.
+
+### 18.1 Single Responsibility Principle (SRP) — Classes, Cubits, Functions, Widgets
+- **One Reason to Change:** Every class, Cubit, function, and widget must have exactly one reason to change. If describing what something does requires the word "and" (e.g., "validates the form **and** submits it **and** shows a snackbar"), it is two or more responsibilities and MUST be split.
+- **Cubits Orchestrate, They Don't Implement:** A Cubit method may call a Usecase, map the result to a state, and emit — it must NOT contain parsing logic, formatting logic, validation logic, or direct Supabase/HTTP calls inline. That logic belongs in the Usecase/Repository/DataSource/a dedicated formatter/validator class.
+- **Widgets Render, They Don't Decide:** A widget's `build()` method may read state and lay out other widgets — it must NOT contain business logic, data transformation, or branching on raw API/DB values. Pre-compute display-ready values in the State/ViewModel/Entity (e.g., a `displayPrice` getter on the entity), not inline inside `build()`.
+- **Extract Instead of Adding a Flag:** If a function needs a new boolean parameter to make it "do the other thing too" (`fetchBookings({bool forAdmin = false})` growing into two different queries), split it into two clearly named functions instead of branching internally.
+
+### 18.2 File Size & Function Size Limits
+- **Function/Method Length:** Soft target ~25 lines, hard cap **40 lines** (excluding braces-only lines and simple `switch`/`when` bodies). A function exceeding the cap MUST be split into clearly named private helper methods — do not disable the cap "just this once" for a complex screen.
+- **File Length:** Soft warning above **200 lines**, hard cap **300 lines** (excluding imports and generated `.g.dart`/`.freezed.dart` sections). A file crossing the cap MUST be split — typically by extracting private widgets into their own files under `widgets/`, splitting a fat Cubit method into Usecases, or splitting a large model into smaller composed models.
+- **`build()` Method Decomposition:** Any `build()` producing more than ~60–80 lines of widget tree, or nesting more than **4 levels deep**, MUST be broken into named private widget **classes** (`class _BookingSummaryCard extends StatelessWidget`), not just private `Widget _buildX()` methods on the same class — private build methods still share the parent's rebuild scope and state; extracted widget classes do not, and are the correct fix for both readability and rebuild performance (see Section 4).
+- **One Class Per File Is Absolute (reinforcing Section 6):** This applies to small/private classes too. Do not place two or three "related" tiny classes (e.g., a model plus its small companion enum-wrapper class, or two small state classes) in one file "because they're small." Enums are the only exception and may live alongside the single class that primarily uses them if truly private (`_`-prefixed) to that file.
+
+### 18.3 Self-Documenting Code — Comments Are a Last Resort, Not a Default
+- **Rename Instead of Explain:** If a comment is needed to explain what a variable, function, or block does, the correct fix is a better name or an extracted function with a descriptive name — not a comment. `// check if user can cancel` above an `if` block means the condition should be extracted into a function called `canUserCancelBooking(booking)`.
+- **No Comments That Restate the Code:** A comment that just repeats what the next line already says in English/Arabic (`// increment counter` above `counter++`) is prohibited outright, no exceptions.
+- **The Only Permitted Comments (narrow exception list):**
+  1. A non-obvious regex pattern, with a one-line comment showing an example input/output it matches.
+  2. A workaround for a specific external bug or platform quirk, citing the issue/source (e.g., `// Workaround for Flutter #123456 — remove once fixed on stable`).
+  3. A required license/copyright header.
+  4. A `// ignore: lint_rule_name` suppression, which must always be paired with a one-line reason on the same or preceding line.
+- **No Exploratory/Narrative Comments:** Comments like `// Step 1: fetch data`, `// now we handle the error case`, or a wall of text explaining a function's overall flow are prohibited — that narrative belongs in the function/variable names and the structure itself, not prose above it.
+- **This Extends Section 12:** No commented-out code (already required) and no `// TODO` without a tracked issue reference are both reinforced here as part of the same "self-documenting, nothing extraneous" standard.
+
+### 18.4 DRY Beyond the UI Layer
+- **The "Two Occurrences" Rule Applies to Logic, Not Just Widgets:** Section 10's "two occurrences is the trigger" for shared widgets applies equally to pure logic — validators, formatters, date/currency helpers, price calculations, permission checks. The second time the same non-trivial logic (more than a couple of lines) appears anywhere in the codebase, extract it to a shared utility/extension (`core/utils/` on Dashboard, `art_core/utils/` on Mobile) and replace both call sites.
+- **One Name Per Concept, Project-Wide:** Before introducing a new variable/parameter/field name for a value that already exists elsewhere (a lounge id, a booking status, a currency amount), search the codebase for the existing name and reuse it. Do not let `loungeId`, `lounge_id`, and `currentLoungeId` coexist as separate names for the same concept across files — this is a defect at review time, not a style preference.
+- **No Parallel Implementations of the Same Feature:** If a Usecase, RPC wrapper, or formatting helper already exists for a given concept, extend or reuse it rather than writing a second, slightly different version "for this screen." This is the logic-layer equivalent of Section 8's "No Dead Registrations" and Section 9's "Verify Existing Code First" — both already require checking first; this rule makes the DRY expectation explicit as its own standard rather than a side effect of those two.
+
+### 18.5 Readability & Control Flow
+- **Guard Clauses Over Nested Conditionals:** Prefer early returns to reduce nesting. Maximum nesting depth of **3** for combined `if`/`for`/`switch` blocks before the inner block MUST be extracted into its own function.
+- **No Boolean Parameter Soup:** A function with more than two boolean parameters (`buildCard(bool isSelected, bool isDisabled, bool showBadge)`) MUST be refactored to take a small named options object/enum instead — callers reading `buildCard(true, false, true)` cannot tell what any of those mean without jumping to the signature.
+- **Positive Naming for Booleans:** Name booleans for what `true` means (`isEnabled`, not `isNotDisabled`) to avoid double-negative conditionals (`if (!isNotDisabled)`).

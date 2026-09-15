@@ -19,7 +19,6 @@ import 'package:playspot/features/home/presentation/widgets/home_header.dart';
 import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart';
 import 'package:playspot/features/home/presentation/widgets/activity_categories.dart';
 import 'package:playspot/features/home/presentation/widgets/active_session_banner.dart';
-import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
@@ -125,7 +124,6 @@ class _HomeViewState extends State<_HomeView> {
                     ),
                     const SliverToBoxAdapter(child: ActiveSessionBanner()),
                     const SliverToBoxAdapter(child: PromoCarousel()),
-                    const SliverToBoxAdapter(child: TournamentsBanner()),
                     const _BrowseByCategorySection(),
                     const _LoungeSectionHeader(),
                     _LoungeList(),
@@ -424,80 +422,6 @@ class _BrowseByCategorySection extends StatelessWidget {
   }
 }
 
-class TournamentsBanner extends StatelessWidget {
-  const TournamentsBanner({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context.pushNamed(RouterKeys.tournaments),
-          borderRadius: BorderRadius.circular(16.r),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.r),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF7B1FA2), Color(0xFF00E5FF)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF7B1FA2).withValues(alpha: 0.35),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  TablerIcons.trophy,
-                  color: Colors.white,
-                  size: 32.sp,
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'tournamentsAndEvents'.tr(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15.sp,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Orbitron',
-                        ),
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        'exploreTournaments'.tr(),
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11.sp,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.white,
-                  size: 16.sp,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _HomeBackground extends StatelessWidget {
   const _HomeBackground();

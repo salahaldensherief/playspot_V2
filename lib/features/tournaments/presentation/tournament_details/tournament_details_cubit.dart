@@ -213,7 +213,10 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     emit(state.copyWith(isWithdrawing: true));
 
-    final result = await _withdrawTournamentUseCase(state.userParticipant!.id);
+    final result = await _withdrawTournamentUseCase(
+      state.userParticipant!.id,
+      tournamentId: state.tournament?.id ?? _activeTournamentId,
+    );
 
     result.fold(
       (failure) {

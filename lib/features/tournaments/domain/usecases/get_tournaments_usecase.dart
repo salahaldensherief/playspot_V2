@@ -15,6 +15,7 @@ class GetTournamentsUseCase {
     String? searchQuery,
     double? latitude,
     double? longitude,
+    String? loungeId,
   }) {
     return repository.getTournaments(
       game: game,
@@ -23,6 +24,7 @@ class GetTournamentsUseCase {
       searchQuery: searchQuery,
       latitude: latitude,
       longitude: longitude,
+      loungeId: loungeId,
     );
   }
 }

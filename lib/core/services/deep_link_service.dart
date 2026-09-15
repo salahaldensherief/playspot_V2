@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../art_core/utils/app_logger.dart';
 import '../cache/preference_manager.dart';
 
 class DeepLinkService {
@@ -17,13 +17,13 @@ class DeepLinkService {
         // If an OAuth or email confirmation redirect carries query parameters in session/URL
         // we can handle initial link checking or session events.
       });
-    } catch (e) {
-      debugPrint('[DeepLinkService] Initialization error: $e');
+    } catch (e, st) {
+      AppLogger.error('[DeepLinkService] Initialization error', e, st);
     }
   }
 
   void handleIncomingUri(Uri uri) {
-    debugPrint('[DeepLinkService] Handling URI: $uri');
+    AppLogger.debug('[DeepLinkService] Handling URI: $uri');
     final queryParams = uri.queryParameters;
     final code = queryParams['code'] ??
         queryParams['ref'] ??
@@ -32,7 +32,7 @@ class DeepLinkService {
 
     if (code != null && code.trim().isNotEmpty) {
       final cleanCode = code.trim().toUpperCase();
-      debugPrint('[DeepLinkService] Extracted referral code from URI: $cleanCode');
+      AppLogger.debug('[DeepLinkService] Extracted referral code from URI: $cleanCode');
       _preferenceManager.savePendingReferralCode(cleanCode);
     }
   }

@@ -12,17 +12,21 @@ import 'package:playspot/features/lounge_details/domain/repositories/lounge_deta
 import 'package:playspot/features/home/domain/repositories/home_repository.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/home/data/models/category_model.dart';
+import 'package:playspot/features/tournaments/domain/usecases/get_tournaments_usecase.dart';
+import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 import 'lounge_details_state.dart';
 
 class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   final LoungeDetailsRepository _loungeDetailsRepository;
   final HomeRepository _homeRepository;
   final BookingRepository _bookingRepository;
+  final GetTournamentsUseCase _getTournamentsUseCase;
 
   LoungeDetailsCubit(
     this._loungeDetailsRepository,
     this._homeRepository,
     this._bookingRepository,
+    this._getTournamentsUseCase,
   ) : super(const LoungeDetailsState());
 
   @override
@@ -62,36 +66,32 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         _loungeDetailsRepository.getExtras(loungeId),
         _loungeDetailsRepository.getLoungeCategories(loungeId),
         _loungeDetailsRepository.getLoungeReviews(loungeId),
+        _getTournamentsUseCase(loungeId: loungeId),
       ]);
 
       final roomsRes = results[0] as Either<Failure, List<RoomModel>>;
       final extrasRes = results[1] as Either<Failure, List<ExtraModel>>;
       final categoriesRes = results[2] as Either<Failure, List<CategoryModel>>;
       final reviewsRes = results[3] as Either<Failure, List<ReviewModel>>;
+      final tournamentsRes = results[4] as Either<Failure, List<TournamentEntity>>;
 
-      roomsRes.fold((l) => log("ROOMS ERROR: ${l.message}"), (r) => log("ROOMS SUCCESS"));
-      extrasRes.fold((l) => log("EXTRAS ERROR: ${l.message}"), (r) => log("EXTRAS SUCCESS"));
-      categoriesRes.fold((l) => log("CATEGORIES ERROR: ${l.message}"), (r) => log("CATEGORIES SUCCESS"));
-      reviewsRes.fold((l) => log("REVIEWS ERROR: ${l.message}"), (r) => log("REVIEWS SUCCESS"));
-
-      log("FOLDING DATA...");
       List<RoomModel>? rooms;
       List<ExtraModel>? extras;
       List<CategoryModel>? deviceCategories;
       List<ReviewModel>? reviews;
+      List<TournamentEntity> tournaments = [];
 
-      roomsRes.fold((l) { log("Rooms Fold Failure"); throw Exception("Rooms: ${l.message}"); }, (r) { rooms = r; log("Rooms Fold Success: ${r.length}"); });
-      extrasRes.fold((l) { log("Extras Fold Failure"); throw Exception("Extras: ${l.message}"); }, (r) { extras = r; log("Extras Fold Success: ${r.length}"); });
-      categoriesRes.fold((l) { log("Categories Fold Failure"); throw Exception("Categories: ${l.message}"); }, (r) { deviceCategories = r; log("Categories Fold Success: ${r.length}"); });
-      reviewsRes.fold((l) { log("Reviews Fold Failure"); throw Exception("Reviews: ${l.message}"); }, (r) { reviews = r; log("Reviews Fold Success: ${r.length}"); });
+      roomsRes.fold((l) { log("Rooms Fold Failure"); throw Exception("Rooms: ${l.message}"); }, (r) { rooms = r; });
+      extrasRes.fold((l) { log("Extras Fold Failure"); throw Exception("Extras: ${l.message}"); }, (r) { extras = r; });
+      categoriesRes.fold((l) { log("Categories Fold Failure"); throw Exception("Categories: ${l.message}"); }, (r) { deviceCategories = r; });
+      reviewsRes.fold((l) { log("Reviews Fold Failure"); throw Exception("Reviews: ${l.message}"); }, (r) { reviews = r; });
+      tournamentsRes.fold((l) { log("Tournaments Fold Failure"); tournaments = []; }, (t) { tournaments = t; });
 
       if (rooms == null || extras == null || deviceCategories == null || reviews == null) {
-        log("NULL DATA DETECTED: rooms=$rooms, extras=$extras, categories=$deviceCategories, reviews=$reviews");
         throw Exception('Data loading failed');
       }
 
       final date = state.selectedDate ?? DateTime.now();
-      log("PREPARING UpdateBookingsParams...");
       
       final updateParams = UpdateBookingsParams(
           loungeId: loungeId,
@@ -103,8 +103,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           reviews: reviews!,
         );
       
-      log("CALLING _updateBookings...");
-      await _updateBookings(updateParams);
+      await _updateBookings(updateParams, tournaments: tournaments);
       log("getLoungeDetails COMPLETED");
     } catch (e, stack) {
       log("CUBIT ERROR: $e", stackTrace: stack);
@@ -137,7 +136,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     }
   }
 
-  Future<void> _updateBookings(UpdateBookingsParams params) async {
+  Future<void> _updateBookings(UpdateBookingsParams params, {List<TournamentEntity>? tournaments}) async {
     log("FETCHING BOOKINGS FOR DATE: ${params.date}");
     final bookingsResult = await _bookingRepository.getRoomBookingsForDate(params.loungeId, params.date);
 
@@ -218,6 +217,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           rooms: params.rooms,
           extras: params.extras,
           reviews: params.reviews ?? state.reviews,
+          tournaments: tournaments ?? state.tournaments,
           bookedRoomIds: fullyBookedIds,
           bookedSlotsByRoom: bookedSlotsByRoom,
           categories: allActivities,

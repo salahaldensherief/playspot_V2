@@ -4,6 +4,8 @@ import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/core/utils/repository_helper.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
+import 'package:playspot/features/tournaments/domain/entities/user_tournament_participation_entity.dart';
+import 'package:playspot/features/tournaments/data/models/user_tournament_participation_model.dart';
 import 'package:playspot/features/tournaments/domain/repositories/tournaments_repository.dart';
 import 'package:playspot/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart';
 
@@ -20,6 +22,7 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
     String? searchQuery,
     double? latitude,
     double? longitude,
+    String? loungeId,
   }) {
     return callRepository(() => _remoteDataSource.getTournaments(
           game: game,
@@ -28,6 +31,7 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
           searchQuery: searchQuery,
           latitude: latitude,
           longitude: longitude,
+          loungeId: loungeId,
         ));
   }
 
@@ -137,13 +141,26 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   }
 
   @override
-  Future<Either<Failure, void>> withdrawFromTournament(String participantId) {
-    return callRepository(() => _remoteDataSource.withdrawFromTournament(participantId));
+  Future<Either<Failure, void>> withdrawFromTournament(String participantId, {String? tournamentId}) {
+    return callRepository(() => _remoteDataSource.withdrawFromTournament(participantId, tournamentId: tournamentId));
   }
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>> getUserTournamentHistory(String userId) {
-    return callRepository(() => _remoteDataSource.getUserTournamentHistory(userId));
+  Future<Either<Failure, List<UserTournamentParticipationEntity>>> getUserTournamentHistory(String userId) {
+    return callRepository(() async {
+      final list = await _remoteDataSource.getUserTournamentHistory(userId);
+      return list.map((json) => UserTournamentParticipationModel.fromJson(json)).toList();
+    });
+  }
+
+  @override
+  Future<Either<Failure, TournamentEntity?>> getHomeTournament() {
+    return callRepository(() => _remoteDataSource.getHomeTournament());
+  }
+
+  @override
+  Future<Either<Failure, UserTournamentParticipationEntity?>> getMyActiveTournament() {
+    return callRepository(() => _remoteDataSource.getMyActiveTournament());
   }
 
   @override

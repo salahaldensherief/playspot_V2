@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../art_core/app_strings.dart';
@@ -438,6 +439,15 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
         tournament.status == TournamentStatus.completed ||
         tournament.status == TournamentStatus.cancelled;
 
+    if (participant != null &&
+        (participant.status == ParticipantStatus.expired ||
+            participant.status == ParticipantStatus.withdrawn ||
+            participant.status == ParticipantStatus.cancelled ||
+            participant.status == ParticipantStatus.eliminated ||
+            participant.status == ParticipantStatus.noShow)) {
+      return null;
+    }
+
     // Case 1: Check-in available
     if (state.canCheckIn) {
       return SafeArea(
@@ -581,7 +591,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
     }
 
     // Case 5: Confirmed or Waitlist -> Show status + Withdraw button
-    if (participant != null && participant.status != ParticipantStatus.withdrawn && participant.status != ParticipantStatus.eliminated) {
+    if (participant != null && (participant.status == ParticipantStatus.confirmed || participant.status == ParticipantStatus.waitlist)) {
       return SafeArea(
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -626,12 +636,21 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
   }
 
   Widget _buildWithdrawButton(BuildContext context, TournamentDetailsState state) {
-    return TextButton.icon(
-      onPressed: state.isWithdrawing ? null : () => _showWithdrawConfirmationDialog(context),
-      icon: const Icon(TablerIcons.user_minus, size: 18, color: AppColors.danger),
-      label: Text(
-        AppStrings.withdrawFromTournament.tr(),
-        style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 13),
+    return AppButton(
+      content: ButtonContent(
+        label: AppStrings.withdrawFromTournament.tr(),
+        icon: const Icon(TablerIcons.user_minus, size: 18, color: AppColors.danger),
+      ),
+      behavior: ButtonBehavior.tap(
+        isEnabled: !state.isWithdrawing,
+        onTap: () => _showWithdrawConfirmationDialog(context),
+      ),
+      buttonConfig: ButtonConfig(
+        height: 40.h,
+        backgroundColor: Colors.transparent,
+        borderColor: AppColors.danger,
+        isOutlined: true,
+        textStyle: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 13),
       ),
     );
   }
@@ -659,7 +678,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.cardBackground,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           side: const BorderSide(color: AppColors.danger),
         ),
         title: Text(
@@ -675,17 +694,41 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(AppStrings.cancel.tr(), style: const TextStyle(color: AppColors.textSecondary)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              parentContext.read<TournamentDetailsCubit>().withdrawFromTournament();
-            },
-            child: Text(AppStrings.withdrawFromTournament.tr()),
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  content: ButtonContent(label: AppStrings.cancel.tr()),
+                  behavior: ButtonBehavior.tap(
+                    onTap: () => Navigator.pop(dialogContext),
+                  ),
+                  buttonConfig: ButtonConfig(
+                    height: 40.h,
+                    backgroundColor: Colors.transparent,
+                    borderColor: AppColors.textSecondary,
+                    isOutlined: true,
+                    borderRadius: 12.r,
+                  ),
+                ),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: AppButton(
+                  content: ButtonContent(label: AppStrings.withdrawFromTournament.tr()),
+                  behavior: ButtonBehavior.tap(
+                    onTap: () {
+                      Navigator.pop(dialogContext);
+                      parentContext.read<TournamentDetailsCubit>().withdrawFromTournament();
+                    },
+                  ),
+                  buttonConfig: ButtonConfig(
+                    height: 40.h,
+                    backgroundColor: AppColors.danger,
+                    borderRadius: 12.r,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

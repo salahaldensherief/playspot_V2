@@ -1,4 +1,7 @@
 {
+  "cold_drinks": "مشروبات باردة",
+  "hot_drinks": "مشروبات ساخنة",
+  "desserts": "حلويات",
   "noInternetConnection": "لا يوجد اتصال بالإنترنت",
   "internetRestored": "تم استعادة الاتصال بالإنترنت",
   "published": "منشورة",

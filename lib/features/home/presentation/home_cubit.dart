@@ -4,10 +4,16 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../art_core/extension/globlX.dart';
+import '../../../core/cache/caching_key.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
 import '../../../core/error/failures.dart';
 import '../../../core/services/location_service.dart';
+import '../../tournaments/domain/usecases/get_tournaments_usecase.dart';
+import '../../tournaments/domain/usecases/get_home_tournament_usecase.dart';
+import '../../tournaments/domain/usecases/get_my_active_tournament_usecase.dart';
+import '../../tournaments/domain/entities/tournament_entity.dart';
 import '../domain/repositories/home_repository.dart';
 import 'home_state.dart';
 import '../data/models/lounge_model.dart';
@@ -15,18 +21,43 @@ import '../data/models/category_model.dart';
 import '../data/models/promo_model.dart';
 import '../data/models/home_params.dart';
 
+class _MetaDataResult {
+  final List<Map<String, dynamic>> cities;
+  final List<PromoModel> promotions;
+  final List<CategoryModel> categories;
+  final int points;
+
+  const _MetaDataResult({
+    required this.cities,
+    required this.promotions,
+    required this.categories,
+    required this.points,
+  });
+}
+
 class HomeCubit extends Cubit<HomeState> {
   final HomeRepository _homeRepository;
   final LocationService _locationService;
+  final GetTournamentsUseCase _getTournamentsUseCase;
+  final GetHomeTournamentUseCase _getHomeTournamentUseCase;
+  final GetMyActiveTournamentUseCase _getMyActiveTournamentUseCase;
+
   StreamSubscription<Position>? _positionSubscription;
   final _pref = sl<PreferenceManager>();
 
-  // آخر موقع استخدمناه فعلياً في نداء getHomeData، عشان نقارن بيه ونمنع
-  // نداءات مكررة لو الموقع اتغير شوية بسيطة مش مؤثرة.
+  // Token to handle race conditions for getHomeData calls
+  int _homeDataFetchToken = 0;
+
   double? _lastUsedLat;
   double? _lastUsedLng;
 
-  HomeCubit(this._homeRepository, this._locationService) : super(const HomeState());
+  HomeCubit(
+    this._homeRepository,
+    this._locationService,
+    this._getTournamentsUseCase,
+    this._getHomeTournamentUseCase,
+    this._getMyActiveTournamentUseCase,
+  ) : super(const HomeState());
 
   Future<void> init() async {
     _loadCachedHomeData();
@@ -34,14 +65,35 @@ class HomeCubit extends Cubit<HomeState> {
     final userId = _pref.userId();
     final hasCachedData = state.nearestLounges.isNotEmpty;
 
-    // لو معندناش أي بيانات كاش خالص، دي أول مرة فعلاً يفتح فيها التطبيق،
-    // فمفيش مفر من شاشة تحميل حقيقية. لو عندنا كاش، بنستخدم حالة "تحديث
-    // في الخلفية" عشان البيانات القديمة تفضل ظاهرة للمستخدم مش تتغطى فجأة.
     emit(state.copyWith(
       status: hasCachedData ? HomeStatus.refreshing : HomeStatus.loading,
     ));
 
-    // البيانات الوصفية (مدن، عروض، تصنيفات، نقاط) بتتجاب مرة واحدة بس هنا.
+    final meta = await _fetchMetaData(userId);
+
+    emit(state.copyWith(
+      availableCities: meta.cities,
+      promotions: meta.promotions,
+      categories: meta.categories,
+      pointsBalance: meta.points,
+    ));
+
+    _cacheMetaData(meta.promotions, meta.categories);
+
+    unawaited(fetchTournamentsData());
+
+    final savedLat = double.tryParse(_pref.latitude());
+    final savedLng = double.tryParse(_pref.longitude());
+    final hasSavedLocation = savedLat != null && savedLng != null;
+
+    if (hasSavedLocation) {
+      unawaited(getHomeData());
+    }
+
+    await _detectLocation(meta.cities, shouldRefreshLounges: !hasSavedLocation);
+  }
+
+  Future<_MetaDataResult> _fetchMetaData(String? userId) async {
     final meta = await Future.wait([
       _homeRepository.getAvailableCities(),
       _homeRepository.getPromotions(loungeId: null),
@@ -51,49 +103,74 @@ class HomeCubit extends Cubit<HomeState> {
 
     final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>)
         .fold((l) => <Map<String, dynamic>>[], (r) => r);
+    final promotions =
+        (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
+    final categories =
+        (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
     final points = meta.length > 3
         ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r)
-        : 0;
+        : state.pointsBalance;
 
-    final promotions =
-    (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
-    final categories =
-    (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
-
-    emit(state.copyWith(
-      availableCities: cities,
+    return _MetaDataResult(
+      cities: cities,
       promotions: promotions,
       categories: categories,
-      pointsBalance: points,
-    ));
+      points: points,
+    );
+  }
 
-    _cacheMetaData(promotions, categories);
+  Future<void> fetchTournamentsData() async {
+    // 1) Fetch featured home promo tournament via RPC get_home_tournament
+    final homeTournamentResult = await _getHomeTournamentUseCase();
+    await homeTournamentResult.fold(
+      (failure) async {
+        // Fallback if RPC fails
+        final lat = double.tryParse(_pref.latitude());
+        final lng = double.tryParse(_pref.longitude());
+        final tournamentsResult = await _getTournamentsUseCase(latitude: lat, longitude: lng);
+        tournamentsResult.fold(
+          (failure) {},
+          (tournaments) {
+            final nearest = tournaments.firstWhereOrNull(
+              (t) => t.status == TournamentStatus.registrationOpen || t.status == TournamentStatus.published,
+            ) ?? tournaments.firstOrNull;
+            emit(state.copyWith(
+              nearbyTournament: nearest,
+              clearNearbyTournament: nearest == null,
+            ));
+          },
+        );
+      },
+      (tournament) async {
+        emit(state.copyWith(
+          nearbyTournament: tournament,
+          clearNearbyTournament: tournament == null,
+        ));
+      },
+    );
 
-    // 🔑 التغيير الأساسي: مبقيناش بننتظر تحديد الموقع الكامل (GPS + تحويل
-    // لعنوان نصي) قبل ما نجيب الصالات. لو عندنا lat/lng محفوظين من قبل،
-    // نجيب الصالات بيهم فوراً، وفي نفس الوقت (بالتوازي) نطلب موقع أحدث.
-    final savedLat = double.tryParse(_pref.latitude());
-    final savedLng = double.tryParse(_pref.longitude());
-    final hasSavedLocation = savedLat != null && savedLng != null;
-
-    if (hasSavedLocation) {
-      // نجيب الصالات فوراً من غير أي انتظار للموقع الجديد أو للعنوان النصي.
-      unawaited(getHomeData());
+    // 2) Fetch user active tournament via RPC get_my_active_tournament
+    final userId = _pref.userId();
+    if (userId != null && userId.isNotEmpty) {
+      final activeResult = await _getMyActiveTournamentUseCase();
+      activeResult.fold(
+        (failure) {},
+        (participation) {
+          emit(state.copyWith(
+            activeRegisteredTournament: participation?.tournament,
+            clearActiveRegisteredTournament: participation?.tournament == null,
+            activeUserParticipant: participation?.participant,
+            clearActiveUserParticipant: participation?.participant == null,
+          ));
+        },
+      );
     }
-
-    // تحديد الموقع الفعلي (GPS الجديد + تحويله لعنوان نصي) بيشتغل بالتوازي،
-    // مش قبل جلب الصالات. الفنكشن نفسها هي اللي هتقرر تنادي getHomeData
-    // تاني لو لقيت إن الموقع اتغير فرق مؤثر عن اللي كان محفوظ.
-    await _detectLocation(cities, shouldRefreshLounges: !hasSavedLocation);
-
-    // fallback: لو معندناش موقع محفوظ خالص من الأساس (أول مرة حقيقية)،
-    // getHomeData هتتنادى من جوه _detectLocation نفسها بعد ما يوصلها موقع.
   }
 
   void _loadCachedHomeData() {
-    final cachedPromos = _pref.getValue('CACHED_PROMOS');
-    final cachedCats = _pref.getValue('CACHED_CATEGORIES');
-    final cachedLounges = _pref.getValue('CACHED_LOUNGES');
+    final cachedPromos = _pref.getValue(CachingKey.PROMOTIONS_CACHE);
+    final cachedCats = _pref.getValue(CachingKey.CATEGORIES_CACHE);
+    final cachedLounges = _pref.getValue(CachingKey.CACHED_LOUNGES);
 
     if (cachedPromos.isNotEmpty || cachedCats.isNotEmpty || cachedLounges.isNotEmpty) {
       try {
@@ -121,8 +198,8 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void _cacheMetaData(List<PromoModel> promos, List<CategoryModel> cats) {
-    _pref.saveValue('CACHED_PROMOS', jsonEncode(promos.map((e) => e.toJson()).toList()));
-    _pref.saveValue('CACHED_CATEGORIES', jsonEncode(cats.map((e) => e.toJson()).toList()));
+    _pref.saveValue(CachingKey.PROMOTIONS_CACHE, jsonEncode(promos.map((e) => e.toJson()).toList()));
+    _pref.saveValue(CachingKey.CATEGORIES_CACHE, jsonEncode(cats.map((e) => e.toJson()).toList()));
   }
 
   Future<void> refreshHome() async {
@@ -130,35 +207,19 @@ class HomeCubit extends Cubit<HomeState> {
     
     emit(state.copyWith(status: HomeStatus.refreshing));
 
-    // Refresh Meta data
-    final meta = await Future.wait([
-      _homeRepository.getAvailableCities(),
-      _homeRepository.getPromotions(loungeId: null),
-      _homeRepository.getCategories(),
-      if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
-    ]);
-
-    final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>)
-        .fold((l) => <Map<String, dynamic>>[], (r) => r);
-    final points = meta.length > 3
-        ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r)
-        : state.pointsBalance;
-
-    final promotions =
-    (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
-    final categories =
-    (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
+    final meta = await _fetchMetaData(userId);
 
     emit(state.copyWith(
-      availableCities: cities,
-      promotions: promotions,
-      categories: categories,
-      pointsBalance: points,
+      availableCities: meta.cities,
+      promotions: meta.promotions,
+      categories: meta.categories,
+      pointsBalance: meta.points,
     ));
 
-    _cacheMetaData(promotions, categories);
+    _cacheMetaData(meta.promotions, meta.categories);
 
-    // Refresh Lounges (Reset to first page)
+    unawaited(fetchTournamentsData());
+
     await getHomeData(forceLoading: false);
   }
 
@@ -168,6 +229,8 @@ class HomeCubit extends Cubit<HomeState> {
 
     if (lat == null || lng == null) return;
     if (isLoadMore && (state.hasReachedMax || state.status == HomeStatus.loadingMore)) return;
+
+    final currentFetchToken = ++_homeDataFetchToken;
 
     _lastUsedLat = lat;
     _lastUsedLng = lng;
@@ -198,6 +261,9 @@ class HomeCubit extends Cubit<HomeState> {
       )
     );
 
+    // Stale request check: Ignore response if a newer getHomeData request was triggered
+    if (currentFetchToken != _homeDataFetchToken) return;
+
     result.fold(
       (f) => emit(state.copyWith(status: HomeStatus.failure)),
       (newLounges) {
@@ -212,7 +278,7 @@ class HomeCubit extends Cubit<HomeState> {
         ));
 
         if (!isLoadMore) {
-          _pref.saveValue('CACHED_LOUNGES', jsonEncode(updatedLounges.map((e) => e.toJson()).toList()));
+          _pref.saveValue(CachingKey.CACHED_LOUNGES, jsonEncode(updatedLounges.map((e) => e.toJson()).toList()));
         }
       },
     );
@@ -237,22 +303,18 @@ class HomeCubit extends Cubit<HomeState> {
     await pref.saveLatitude(pos.latitude);
     await pref.saveLongitude(pos.longitude);
 
-    // لو الموقع الجديد بعيد بشكل مؤثر عن اللي استخدمناه فعلياً في آخر نداء
-    // للصالات (أو معندناش موقع كان مستخدم من الأساس)، نحدّث الصالات.
     final movedSignificantly = _hasMovedSignificantly(pos.latitude, pos.longitude);
     if (shouldRefreshLounges || movedSignificantly) {
       unawaited(getHomeData());
     }
 
-    // تحويل الإحداثيات لعنوان نصي (لعرض "انت في: القاهرة" وتحديد الـ
-    // Dropdown) — ده مش لازم لجلب الصالات خالص، فمنفصل تماماً وبعدها.
     final address = await _locationService.getAddressFromLatLng(pos.latitude, pos.longitude);
     if (address == null) return;
 
     final lowerAddress = address.toLowerCase();
     final isInEgypt = lowerAddress.contains("egypt") || lowerAddress.contains("مصر");
 
-    await pref.saveValue('CURRENT_ADDRESS', address);
+    await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
 
     String? matchedCity;
     for (var c in cities) {
@@ -276,8 +338,6 @@ class HomeCubit extends Cubit<HomeState> {
     ));
   }
 
-  /// بيرجع true لو الموقع الجديد اختلف عن آخر موقع استخدمناه فعلياً بمسافة
-  /// مؤثرة (~500 متر تقريباً)، مش أي فرق بسيط في آخر رقمين عشري.
   bool _hasMovedSignificantly(double newLat, double newLng) {
     if (_lastUsedLat == null || _lastUsedLng == null) return true;
     final distanceInMeters = Geolocator.distanceBetween(
@@ -298,8 +358,6 @@ class HomeCubit extends Cubit<HomeState> {
       await pref.saveLatitude(p.latitude);
       await pref.saveLongitude(p.longitude);
 
-      // بفضل distanceFilter: 500 فوق، الـ stream نفسه مش هيبعت event
-      // إلا لو المستخدم اتحرك 500 متر فعلاً، فمفيش داعي لفحص إضافي هنا.
       await getHomeData();
     });
   }

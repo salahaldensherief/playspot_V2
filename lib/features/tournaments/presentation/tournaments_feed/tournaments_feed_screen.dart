@@ -56,30 +56,47 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         elevation: 0,
         leading: const BackButtonWidget(),
-        title: Text(
-          AppStrings.tournaments.tr(),
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Orbitron',
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(TablerIcons.trophy, color: AppColors.neonBlue, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              AppStrings.tournaments.tr().toUpperCase(),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                fontFamily: 'Orbitron',
+                letterSpacing: 1.0,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(TablerIcons.history, color: AppColors.neonBlue),
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.neonBlue.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+              ),
+              child: const Icon(TablerIcons.history, color: AppColors.neonBlue, size: 18),
+            ),
             tooltip: AppStrings.myTournamentHistory.tr(),
             onPressed: () {
               context.pushNamed(RouterKeys.tournamentHistory);
             },
           ),
+          const SizedBox(width: 8),
         ],
         centerTitle: true,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            // MOB-02 Location Disabled Prompt Banner
+            // Location Prompt Banner
             BlocSelector<TournamentsFeedCubit, TournamentsFeedState, bool>(
               selector: (state) => state.isLocationDisabled,
               builder: (context, isLocationDisabled) {
@@ -89,9 +106,9 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.neonPurple.withOpacity(0.15),
+                    color: AppColors.neonPurple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.neonPurple.withOpacity(0.4)),
+                    border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
                   ),
                   child: Row(
                     children: [
@@ -137,7 +154,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
 
             // Game Filter Chips
             SizedBox(
-              height: 40,
+              height: 38,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
@@ -149,23 +166,38 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                     selector: (state) => state.selectedGame,
                     builder: (context, selectedGame) {
                       final isSelected = (selectedGame == null && game == 'All') || selectedGame == game;
-                      return ChoiceChip(
-                        label: Text(game == 'All' ? 'all'.tr() : game),
-                        selected: isSelected,
-                        onSelected: (selected) {
+                      return GestureDetector(
+                        onTap: () {
                           context.read<TournamentsFeedCubit>().filterByGame(game == 'All' ? null : game);
                         },
-                        selectedColor: AppColors.neonBlue,
-                        backgroundColor: AppColors.cardBackground,
-                        labelStyle: TextStyle(
-                          color: isSelected ? AppColors.black : AppColors.textPrimary,
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.neonBlue : AppColors.tournamentFilterBg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? AppColors.neonBlue : AppColors.neonBlue.withValues(alpha: 0.2),
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.neonBlue.withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          child: Center(
+                            child: Text(
+                              game == 'All' ? 'all'.tr() : game,
+                              style: TextStyle(
+                                color: isSelected ? AppColors.black : AppColors.white,
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                                fontFamily: isSelected ? 'Orbitron' : null,
+                              ),
+                            ),
                           ),
                         ),
                       );
@@ -178,7 +210,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
 
             // Status Filter Chips
             SizedBox(
-              height: 40,
+              height: 38,
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
@@ -191,23 +223,37 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                     builder: (context, selectedStatus) {
                       final isSelected = (selectedStatus == null && statusKey == 'All') || selectedStatus == statusKey;
 
-                      return ChoiceChip(
-                        label: Text(_getLocalizedStatus(statusKey)),
-                        selected: isSelected,
-                        onSelected: (selected) {
+                      return GestureDetector(
+                        onTap: () {
                           context.read<TournamentsFeedCubit>().filterByStatus(statusKey == 'All' ? null : statusKey);
                         },
-                        selectedColor: AppColors.neonPurple,
-                        backgroundColor: AppColors.cardBackground,
-                        labelStyle: TextStyle(
-                          color: isSelected ? AppColors.white : AppColors.textSecondary,
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color: isSelected ? AppColors.neonPurple : AppColors.borderDefault,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? AppColors.neonPurple : AppColors.tournamentFilterBg,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? AppColors.neonPurple : AppColors.neonPurple.withValues(alpha: 0.2),
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: AppColors.neonPurple.withValues(alpha: 0.4),
+                                      blurRadius: 8,
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          child: Center(
+                            child: Text(
+                              _getLocalizedStatus(statusKey),
+                              style: TextStyle(
+                                color: isSelected ? AppColors.white : AppColors.textSecondary,
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              ),
+                            ),
                           ),
                         ),
                       );
@@ -293,7 +339,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                 Icon(
                                   TablerIcons.trophy_off,
                                   size: 64,
-                                  color: AppColors.textSecondary.withOpacity(0.5),
+                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
                                 ),
                                 const SizedBox(height: 16),
                                 Text(

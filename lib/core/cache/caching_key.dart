@@ -35,4 +35,6 @@ class CachingKey {
   static const String LOUNGE_EXTRAS_PREFIX = 'CACHED_LOUNGE_EXTRAS_';
   static const String CATEGORIES_CACHE = 'CACHED_CATEGORIES';
   static const String PROMOTIONS_CACHE = 'CACHED_PROMOTIONS';
+  static const String CACHED_LOUNGES = 'CACHED_LOUNGES';
+  static const String CURRENT_ADDRESS = 'CURRENT_ADDRESS';
 }

@@ -176,10 +176,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
 
     emit(state.copyWith(extendStatus: ActionStatus.loading));
 
-    final result = await _repo.requestExtension(
-      bookingId: bookingId,
-      requestedMinutes: additionalMinutes,
-    );
+    final result = await _repo.extendTime(bookingId, additionalMinutes, cost);
 
     result.fold(
       (failure) {

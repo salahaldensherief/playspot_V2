@@ -11,6 +11,8 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
+import 'package:intl/intl.dart';
 import 'lounge_details_cubit.dart';
 import 'lounge_details_state.dart';
 import 'widgets/lounge_details_app_bar.dart';
@@ -75,6 +77,15 @@ class LoungeDetailsScreen extends StatelessWidget {
                   buildWhen: (previous, current) => previous.lounge != current.lounge,
                   builder: (context, state) {
                     return LoungeInfoSection(lounge: state.lounge ?? lounge);
+                  },
+                ),
+                BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                  buildWhen: (previous, current) => previous.tournaments != current.tournaments,
+                  builder: (context, state) {
+                    if (state.tournaments.isEmpty) {
+                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                    }
+                    return _LoungeTournamentBanner(tournaments: state.tournaments);
                   },
                 ),
                 const SliverSectionHeader(title: AppStrings.selectDate),
@@ -216,6 +227,128 @@ class _LoungeDiscountBanner extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _LoungeTournamentBanner extends StatelessWidget {
+  final List<TournamentEntity> tournaments;
+
+  const _LoungeTournamentBanner({required this.tournaments});
+
+  @override
+  Widget build(BuildContext context) {
+    if (tournaments.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...tournaments.map((tournament) => Container(
+              margin: EdgeInsets.only(bottom: 10.h),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF2A0845), Color(0xFF1B003A), Color(0xFF003853)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16.r),
+                border: Border.all(color: AppColors.tournamentGold.withValues(alpha: 0.4)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.tournamentGold.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16.r),
+                  onTap: () {
+                    context.pushNamed(
+                      RouterKeys.tournamentDetails,
+                      pathParameters: {'id': tournament.id},
+                    );
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(12.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.tournamentGold.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.tournamentGold),
+                          ),
+                          child: Icon(Icons.emoji_events, color: AppColors.tournamentGold, size: 24.sp),
+                        ),
+                        16.horizontalSpace,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.tournamentGold.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(6.r),
+                                    ),
+                                    child: AppText(
+                                      text: tournament.game,
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.tournamentGold,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  AppText(
+                                    text: "${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}",
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.tournamentGold,
+                                  ),
+                                ],
+                              ),
+                              8.verticalSpace,
+                              AppText(
+                                text: tournament.title,
+                                fontSize: 15.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                              4.verticalSpace,
+                              Row(
+                                children: [
+                                  Icon(Icons.calendar_today, size: 12.sp, color: AppColors.textSecondary),
+                                  4.horizontalSpace,
+                                  AppText(
+                                    text: tournament.startDate != null ? DateFormat('dd/MM/yyyy · hh:mm a').format(tournament.startDate!) : '',
+                                    fontSize: 11.sp,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        8.horizontalSpace,
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white70),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            )),
+          ],
+        ),
       ),
     );
   }

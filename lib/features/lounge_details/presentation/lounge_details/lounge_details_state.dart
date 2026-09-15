@@ -5,6 +5,7 @@ import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
 import 'package:playspot/features/home/data/models/category_model.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 
 enum LoungeDetailsStatus { initial, loading, success, error }
 
@@ -26,6 +27,7 @@ class LoungeDetailsState extends Equatable {
   final Map<String, String> roomPlayModes; // {roomId: 'single' | 'multi'}
   final Map<String, int> roomExtraControllers; // {roomId: count}
   final LoungeModel? lounge;
+  final List<TournamentEntity> tournaments;
 
   const LoungeDetailsState({
     this.status = LoungeDetailsStatus.initial,
@@ -45,6 +47,7 @@ class LoungeDetailsState extends Equatable {
     this.roomPlayModes = const {},
     this.roomExtraControllers = const {},
     this.lounge,
+    this.tournaments = const [],
   });
 
   LoungeDetailsState copyWith({
@@ -66,6 +69,7 @@ class LoungeDetailsState extends Equatable {
     Map<String, String>? roomPlayModes,
     Map<String, int>? roomExtraControllers,
     LoungeModel? lounge,
+    List<TournamentEntity>? tournaments,
   }) {
     return LoungeDetailsState(
       status: status ?? this.status,
@@ -85,6 +89,7 @@ class LoungeDetailsState extends Equatable {
       roomPlayModes: roomPlayModes ?? this.roomPlayModes,
       roomExtraControllers: roomExtraControllers ?? this.roomExtraControllers,
       lounge: lounge ?? this.lounge,
+      tournaments: tournaments ?? this.tournaments,
     );
   }
 
@@ -133,5 +138,6 @@ class LoungeDetailsState extends Equatable {
         roomPlayModes,
         roomExtraControllers,
         lounge,
+        tournaments,
       ];
 }

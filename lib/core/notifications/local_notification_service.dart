@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -212,8 +212,8 @@ class LocalNotificationService {
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         payload: jsonEncode({'type': 'active_session'}),
       );
-    } catch (e) {
-      debugPrint('Error scheduling session expiry notification: $e');
+    } catch (e, st) {
+      AppLogger.error('Error scheduling session expiry notification', e, st);
     }
   }
 
@@ -264,16 +264,16 @@ class LocalNotificationService {
         notificationDetails: notificationDetails,
         payload: jsonEncode({'type': 'active_session'}),
       );
-    } catch (e) {
-      debugPrint('Error showing active session ongoing notification: $e');
+    } catch (e, st) {
+      AppLogger.error('Error showing active session ongoing notification', e, st);
     }
   }
 
   Future<void> cancelActiveSessionNotification() async {
     try {
       await _plugin.cancel(id: activeSessionNotificationId);
-    } catch (e) {
-      debugPrint('Error canceling active session notification: $e');
+    } catch (e, st) {
+      AppLogger.error('Error canceling active session notification', e, st);
     }
   }
 }

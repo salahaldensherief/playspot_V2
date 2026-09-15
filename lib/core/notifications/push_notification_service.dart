@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 
 import 'local_notification_service.dart';
@@ -65,9 +66,7 @@ class PushNotificationService {
         _syncToken(token);
       }
     } catch (error, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('FCM initialization error: $error\n$stackTrace');
-      }
+      AppLogger.error('FCM initialization error', error, stackTrace);
     }
   }
 
@@ -79,13 +78,13 @@ class PushNotificationService {
     try {
       if (enable) {
         await _messaging.subscribeToTopic(topic);
-        debugPrint(' [FCM] Subscribed to topic: $topic');
+        AppLogger.debug('[FCM] Subscribed to topic: $topic');
       } else {
         await _messaging.unsubscribeFromTopic(topic);
-        debugPrint(' [FCM] Unsubscribed from topic: $topic');
+        AppLogger.debug('[FCM] Unsubscribed from topic: $topic');
       }
-    } catch (e) {
-      debugPrint(' [FCM] Error toggling topic $topic: $e');
+    } catch (e, st) {
+      AppLogger.error('[FCM] Error toggling topic $topic', e, st);
     }
   }
 
@@ -103,11 +102,11 @@ class PushNotificationService {
       }
       final token = await _messaging.getToken();
       if (token != null) {
-        debugPrint('🔥 FCM token fetched successfully');
+        AppLogger.debug('FCM token fetched successfully');
       }
       return token;
-    } catch (e) {
-      debugPrint('❌ [FCM Token Error]: $e');
+    } catch (e, st) {
+      AppLogger.error('FCM Token Error', e, st);
       return null;
     }
   }

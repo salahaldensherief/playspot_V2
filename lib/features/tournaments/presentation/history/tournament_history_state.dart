@@ -1,10 +1,11 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/user_tournament_participation_entity.dart';
 
 enum TournamentHistoryStatus { initial, loading, success, failure }
 
 class TournamentHistoryState extends Equatable {
   final TournamentHistoryStatus status;
-  final List<Map<String, dynamic>> participations;
+  final List<UserTournamentParticipationEntity> participations;
   final String? errorMessage;
 
   const TournamentHistoryState({
@@ -15,7 +16,7 @@ class TournamentHistoryState extends Equatable {
 
   TournamentHistoryState copyWith({
     TournamentHistoryStatus? status,
-    List<Map<String, dynamic>>? participations,
+    List<UserTournamentParticipationEntity>? participations,
     String? errorMessage,
   }) {
     return TournamentHistoryState(

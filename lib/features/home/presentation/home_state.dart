@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../tournaments/domain/entities/tournament_entity.dart';
 import '../data/models/lounge_model.dart';
 import '../data/models/promo_model.dart';
 import '../data/models/category_model.dart';
@@ -22,6 +23,9 @@ class HomeState extends Equatable {
   final int currentPage;
   final bool hasReachedMax;
   final LoungeSortType sortType;
+  final TournamentEntity? nearbyTournament;
+  final TournamentEntity? activeRegisteredTournament;
+  final TournamentParticipantEntity? activeUserParticipant;
 
   const HomeState({
     this.status = HomeStatus.initial,
@@ -38,6 +42,9 @@ class HomeState extends Equatable {
     this.currentPage = 0,
     this.hasReachedMax = false,
     this.sortType = LoungeSortType.nearest,
+    this.nearbyTournament,
+    this.activeRegisteredTournament,
+    this.activeUserParticipant,
   });
 
   HomeState copyWith({
@@ -56,6 +63,12 @@ class HomeState extends Equatable {
     bool? hasReachedMax,
     LoungeSortType? sortType,
     bool clearCity = false,
+    TournamentEntity? nearbyTournament,
+    bool clearNearbyTournament = false,
+    TournamentEntity? activeRegisteredTournament,
+    bool clearActiveRegisteredTournament = false,
+    TournamentParticipantEntity? activeUserParticipant,
+    bool clearActiveUserParticipant = false,
   }) {
     return HomeState(
       status: status ?? this.status,
@@ -72,6 +85,13 @@ class HomeState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       sortType: sortType ?? this.sortType,
+      nearbyTournament: clearNearbyTournament ? null : (nearbyTournament ?? this.nearbyTournament),
+      activeRegisteredTournament: clearActiveRegisteredTournament
+          ? null
+          : (activeRegisteredTournament ?? this.activeRegisteredTournament),
+      activeUserParticipant: clearActiveUserParticipant
+          ? null
+          : (activeUserParticipant ?? this.activeUserParticipant),
     );
   }
 
@@ -91,5 +111,8 @@ class HomeState extends Equatable {
     currentPage,
     hasReachedMax,
     sortType,
+    nearbyTournament,
+    activeRegisteredTournament,
+    activeUserParticipant,
   ];
 }

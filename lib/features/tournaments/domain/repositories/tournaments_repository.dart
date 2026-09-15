@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
+import 'package:playspot/features/tournaments/domain/entities/user_tournament_participation_entity.dart';
 
 abstract class TournamentsRepository {
   Future<Either<Failure, List<TournamentEntity>>> getTournaments({
@@ -12,6 +13,7 @@ abstract class TournamentsRepository {
     String? searchQuery,
     double? latitude,
     double? longitude,
+    String? loungeId,
   });
 
   Future<Either<Failure, TournamentEntity>> getTournamentById(String tournamentId);
@@ -61,9 +63,13 @@ abstract class TournamentsRepository {
     int pageSize = 50,
   });
 
-  Future<Either<Failure, void>> withdrawFromTournament(String participantId);
+  Future<Either<Failure, void>> withdrawFromTournament(String participantId, {String? tournamentId});
 
-  Future<Either<Failure, List<Map<String, dynamic>>>> getUserTournamentHistory(String userId);
+  Future<Either<Failure, List<UserTournamentParticipationEntity>>> getUserTournamentHistory(String userId);
+
+  Future<Either<Failure, TournamentEntity?>> getHomeTournament();
+
+  Future<Either<Failure, UserTournamentParticipationEntity?>> getMyActiveTournament();
 
   Future<void> updateFcmToken(String token);
 }
