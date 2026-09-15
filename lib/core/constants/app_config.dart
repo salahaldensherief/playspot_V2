@@ -40,6 +40,12 @@ class AppConfig {
   }
 
   static String kGoogleApiKey = Platform.isIOS
-      ? "AIzaSyC67gDDTt0enFRQdH7ca1ex5FYIezlKqg4"
-      : "AIzaSyDmBCl0ScTRCDyoLdkphhr0JLYjDgGBry4";
+      ? const String.fromEnvironment(
+          'GOOGLE_API_KEY_IOS',
+          defaultValue: 'AIzaSyC67gDDTt0enFRQdH7ca1ex5FYIezlKqg4',
+        )
+      : const String.fromEnvironment(
+          'GOOGLE_API_KEY_ANDROID',
+          defaultValue: 'AIzaSyDmBCl0ScTRCDyoLdkphhr0JLYjDgGBry4',
+        );
 }

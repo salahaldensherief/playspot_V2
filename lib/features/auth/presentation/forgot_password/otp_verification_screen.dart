@@ -15,9 +15,6 @@ import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/otp/app_otp_field.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../widgets/auth_app_bar.dart';
-
-import 'forgot_password_cubit.dart';
-import 'forgot_password_state.dart';
 import '../sign_up/signup_cubit.dart';
 import '../sign_up/signup_state.dart';
 
@@ -26,7 +23,7 @@ class OTPVerificationScreen extends StatefulWidget {
 
   const OTPVerificationScreen({
     super.key,
-    this.isSignUp = false,
+    this.isSignUp = true,
   });
 
   @override
@@ -34,41 +31,35 @@ class OTPVerificationScreen extends StatefulWidget {
 }
 
 class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
-  late final TextEditingController _signupOtpController;
+  late final TextEditingController _otpController;
 
   @override
   void initState() {
     super.initState();
-    if (widget.isSignUp) {
-      _signupOtpController = TextEditingController();
-    }
+    _otpController = TextEditingController();
   }
 
   @override
   void dispose() {
-    if (widget.isSignUp) {
-      _signupOtpController.dispose();
-    }
+    _otpController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.isSignUp) {
-      return _buildSignUpOtpListener(context);
-    }
-    return _buildForgotPasswordOtpListener(context);
-  }
-
-  Widget _buildSignUpOtpListener(BuildContext context) {
     final cubit = context.read<SignupCubit>();
     return BlocListener<SignupCubit, SignupState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
-        if (state.status.isSuccess) {
+        if (state.status == SignupStatus.success) {
+          GameHudToast.show(
+            context,
+            AppStrings.accountCreatedVerifyEmail.tr(),
+            type: ToastType.success,
+          );
           context.goNamed(RouterKeys.home);
         }
-        if (state.status.isFailure) {
+        if (state.status == SignupStatus.failure) {
           GameHudToast.show(
             context,
             state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
@@ -77,6 +68,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         }
       },
       child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -84,11 +76,11 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 title: AppStrings.verifyOTP.tr(),
                 subTitle: AppStrings.otpVerificationSubtitle.tr(),
               ),
-              250.verticalSpace,
+              180.verticalSpace,
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 child: AppOtpField(
-                  controller: _signupOtpController,
+                  controller: _otpController,
                   length: 6,
                   onCompleted: (otp) {
                     cubit.verifySignupOTP(otp);
@@ -113,8 +105,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       behavior: TapBehavior(
                         isLoading: state.status.isLoading,
                         onTap: () {
-                          if (_signupOtpController.text.trim().isNotEmpty) {
-                            cubit.verifySignupOTP(_signupOtpController.text.trim());
+                          if (_otpController.text.trim().isNotEmpty) {
+                            cubit.verifySignupOTP(_otpController.text.trim());
                           }
                         },
                       ),
@@ -137,85 +129,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               ),
               const SafeBottomSpacer(),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildForgotPasswordOtpListener(BuildContext context) {
-    final cubit = context.read<ForgotPasswordCubit>();
-    return BlocListener<ForgotPasswordCubit, ForgotPasswordState>(
-      listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) {
-        if (state.status.isOtpVerified) {
-          context.goNamed(RouterKeys.resetPassword);
-        }
-        if (state.status.isFailure) {
-          GameHudToast.show(
-            context,
-            state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
-            type: ToastType.error,
-          );
-        }
-      },
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Form(
-            key: cubit.otpFormKey,
-            child: Column(
-              children: [
-                AuthAppBar(
-                  title: AppStrings.verifyOTP.tr(),
-                  subTitle: AppStrings.otpVerificationSubtitle.tr(),
-                ),
-                250.verticalSpace,
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: AppOtpField(
-                    controller: cubit.otpController,
-                    length: 6,
-                    onCompleted: (otp) {
-                      cubit.verifyOTP();
-                    },
-                  ),
-                ),
-                40.verticalSpace,
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: BlocBuilder<ForgotPasswordCubit, ForgotPasswordState>(
-                    buildWhen: (previous, current) => previous.status != current.status,
-                    builder: (context, state) {
-                      return AppButton(
-                        buttonConfig: ButtonConfig.gradient(
-                          gradient: AppColors.primaryGradient,
-                          glowColor: AppColors.neonBlueAlt,
-                          borderRadius: 15.r,
-                          width: double.infinity,
-                          height: 50.h,
-                        ),
-                        content: ButtonContent(label: AppStrings.verifyOTP.tr()),
-                        behavior: TapBehavior(
-                          isLoading: state.status.isLoading,
-                          onTap: () {
-                            if (cubit.otpFormKey.currentState?.validate() ?? false) {
-                              cubit.verifyOTP();
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                20.verticalSpace,
-                AppText(
-                  text: AppStrings.resendOTP.tr(),
-                  color: AppColors.white,
-                  onTap: () => cubit.sendResetEmail(),
-                ),
-                const SafeBottomSpacer(),
-              ],
-            ),
           ),
         ),
       ),

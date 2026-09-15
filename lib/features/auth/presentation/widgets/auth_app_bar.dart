@@ -39,7 +39,7 @@ class AuthAppBar extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.only(top: 8.h),
           child: SizedBox(
-            height: 70.h,
+            height: 20.h,
             child: Stack(
               clipBehavior: Clip.none,
               children: [

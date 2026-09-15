@@ -20,10 +20,7 @@ import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../core/di.dart';
 import '../../core/services/deep_link_service.dart';
 import '../../features/auth/data/models/user_model.dart';
-import '../../features/auth/presentation/forgot_password/forgot_password_cubit.dart';
-import '../../features/auth/presentation/forgot_password/forgot_password_screen.dart';
 import '../../features/auth/presentation/forgot_password/otp_verification_screen.dart';
-import '../../features/auth/presentation/forgot_password/reset_password_screen.dart';
 import '../../features/auth/presentation/sign_in/signin_cubit.dart';
 import '../../features/auth/presentation/sign_up/complete_profile_screen.dart';
 import '../../features/auth/presentation/sign_up/signup_cubit.dart';
@@ -248,10 +245,7 @@ class AppRouter {
           currentPath == RouterKeys.signIn ||
           currentPath == RouterKeys.signUp ||
           currentPath == RouterKeys.verifySignupOTP ||
-          currentPath == RouterKeys.completeProfile ||
-          currentPath == RouterKeys.forgotPassword ||
-          currentPath == RouterKeys.verifyOTP ||
-          currentPath == RouterKeys.resetPassword;
+          currentPath == RouterKeys.completeProfile;
 
       if (user == null) {
         final isProtected = (currentName != null && _protectedRoutes.contains(currentName)) ||
@@ -365,44 +359,6 @@ class AppRouter {
                 ),
               );
             },
-          ),
-
-          ShellRoute(
-            builder: (context, state, child) {
-              return BlocProvider(
-                create: (context) => sl<ForgotPasswordCubit>(),
-                child: child,
-              );
-            },
-            routes: [
-              GoRoute(
-                path: RouterKeys.forgotPassword,
-                name: RouterKeys.forgotPassword,
-                pageBuilder: (context, state) => _buildPage(
-                  context: context,
-                  state: state,
-                  child: const ForgotPasswordScreen(),
-                ),
-              ),
-              GoRoute(
-                path: RouterKeys.verifyOTP,
-                name: RouterKeys.verifyOTP,
-                pageBuilder: (context, state) => _buildPage(
-                  context: context,
-                  state: state,
-                  child: const OTPVerificationScreen(),
-                ),
-              ),
-              GoRoute(
-                path: RouterKeys.resetPassword,
-                name: RouterKeys.resetPassword,
-                pageBuilder: (context, state) => _buildPage(
-                  context: context,
-                  state: state,
-                  child: const ResetPasswordScreen(),
-                ),
-              ),
-            ],
           ),
 
           // Authenticated ShellRoute - loaded only when user enters authenticated screens

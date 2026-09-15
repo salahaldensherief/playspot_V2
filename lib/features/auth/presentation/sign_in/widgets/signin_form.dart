@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/features/auth/presentation/forgot_password/forgot_password_bottom_sheet.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 
 import '../../../../../art_core/app_strings.dart';
@@ -46,7 +46,7 @@ class SignInForm extends StatelessWidget {
             child: AppText(
               text: AppStrings.forgotPassword.tr(),
               color: AppColors.white,
-              onTap: () => context.pushNamed(RouterKeys.forgotPassword),
+              onTap: () => showForgotPasswordBottomSheet(context),
             ),
           ),
           10.verticalSpace,

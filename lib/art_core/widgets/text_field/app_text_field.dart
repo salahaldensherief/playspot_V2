@@ -186,7 +186,7 @@ class _AppTextFieldState extends State<AppTextField> {
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         onTap: widget.onTap,
                         scrollPadding: EdgeInsets.zero,
-                        // onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(), // Temporarily disabled to debug focus issues
+                        onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
                         style:
                             widget.textInputStyle ??
                             widget.textStyle ??

@@ -57,13 +57,13 @@ class CompleteProfileScreen extends StatelessWidget {
                     title: AppStrings.completeProfile.tr(),
                     subTitle: AppStrings.completeProfileSubtitle.tr(),
                   ),
-                  SizedBox(height: 200.h),
+                  180.verticalSpace,
                   AvatarPickerWidget(
                     avatarFile: cubit.avatarFile,
                     imageUrl: state.params.avatarUrl,
                     onTap: cubit.pickAvatar,
                   ),
-                  SizedBox(height: 40.h),
+                  40.verticalSpace,
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: AppTextField(
@@ -75,7 +75,7 @@ class CompleteProfileScreen extends StatelessWidget {
                       validator: AppValidators.validatePhone,
                     ),
                   ),
-                  SizedBox(height: 30.h),
+                  30.verticalSpace,
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: AppButton(
