@@ -17,6 +17,7 @@ import 'package:playspot/features/profile/presentation/settings/notification_set
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+import 'package:playspot/art_core/widgets/layout/swipe_back_wrapper.dart';
 import '../../core/di.dart';
 import '../../core/services/deep_link_service.dart';
 import '../../features/auth/data/models/user_model.dart';
@@ -215,7 +216,7 @@ class AppRouter {
   }) {
     return MaterialPage<T>(
       key: state.pageKey,
-      child: child,
+      child: SwipeBackWrapper(child: child),
     );
   }
 
