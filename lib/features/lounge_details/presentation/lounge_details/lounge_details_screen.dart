@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +10,7 @@ import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
@@ -248,99 +250,142 @@ class _LoungeTournamentBanner extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ...tournaments.map((tournament) => Container(
-              margin: EdgeInsets.only(bottom: 10.h),
+              margin: EdgeInsets.only(bottom: 12.h),
+              height: 130.h,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2A0845), Color(0xFF1B003A), Color(0xFF003853)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
                 borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(color: AppColors.tournamentGold.withValues(alpha: 0.4)),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.tournamentGold.withValues(alpha: 0.15),
-                    blurRadius: 10,
+                    color: AppColors.black.withValues(alpha: 0.3),
+                    blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16.r),
-                  onTap: () {
-                    context.pushNamed(
-                      RouterKeys.tournamentDetails,
-                      pathParameters: {'id': tournament.id},
-                    );
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(16.w),
-                    child: Row(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16.r),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      context.pushNamed(
+                        RouterKeys.tournamentDetails,
+                        pathParameters: {'id': tournament.id},
+                      );
+                    },
+                    child: Stack(
                       children: [
-                        Container(
-                          padding: EdgeInsets.all(12.w),
-                          decoration: BoxDecoration(
-                            color: AppColors.tournamentGold.withValues(alpha: 0.2),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.tournamentGold),
-                          ),
-                          child: Icon(Icons.emoji_events, color: AppColors.tournamentGold, size: 24.sp),
+                        // Background Image or Gradient
+                        Positioned.fill(
+                          child: tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: tournament.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: AppColors.tournamentHeaderBg,
+                                    child: const Center(
+                                      child: AppLoader(
+                                        size: 24,
+                                        strokeWidth: 2,
+                                        color: AppColors.neonBlue,
+                                      ),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Container(
+                                    decoration: const BoxDecoration(
+                                      gradient: AppColors.tournamentPromoGradient,
+                                    ),
+                                  ),
+                                )
+                              : Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: AppColors.tournamentPromoGradient,
+                                  ),
+                                ),
                         ),
-                        16.horizontalSpace,
-                        Expanded(
+                        // Dark Vignette Overlay
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  AppColors.black.withValues(alpha: 0.4),
+                                  AppColors.black.withValues(alpha: 0.85),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Content
+                        Padding(
+                          padding: EdgeInsets.all(16.w),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                                     decoration: BoxDecoration(
-                                      color: AppColors.tournamentGold.withValues(alpha: 0.2),
+                                      color: AppColors.neonBlue.withValues(alpha: 0.3),
+                                      borderRadius: BorderRadius.circular(6.r),
+                                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.5)),
+                                    ),
+                                    child: AppText(
+                                      text: tournament.game.toUpperCase(),
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.w900,
+                                      fontFamily: 'Orbitron',
+                                      color: AppColors.neonBlue,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.black.withValues(alpha: 0.6),
                                       borderRadius: BorderRadius.circular(6.r),
                                     ),
                                     child: AppText(
-                                      text: tournament.game,
-                                      fontSize: 10.sp,
+                                      text: "${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}",
+                                      fontSize: 12.sp,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.tournamentGold,
+                                      color: AppColors.success,
                                     ),
-                                  ),
-                                  const Spacer(),
-                                  AppText(
-                                    text: "${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}",
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.tournamentGold,
                                   ),
                                 ],
                               ),
-                              8.verticalSpace,
-                              AppText(
-                                text: tournament.title,
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                              4.verticalSpace,
-                              Row(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.calendar_today, size: 12.sp, color: AppColors.textSecondary),
-                                  4.horizontalSpace,
                                   AppText(
-                                    text: tournament.startDate != null ? DateFormat('dd/MM/yyyy · hh:mm a').format(tournament.startDate!) : '',
-                                    fontSize: 11.sp,
-                                    color: AppColors.textSecondary,
+                                    text: tournament.title,
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Orbitron',
+                                    color: Colors.white,
+                                    maxLines: 1,
+                                  ),
+                                  4.verticalSpace,
+                                  Row(
+                                    children: [
+                                      Icon(Icons.calendar_today, size: 12.sp, color: AppColors.neonBlue),
+                                      4.horizontalSpace,
+                                      AppText(
+                                        text: tournament.startDate != null ? DateFormat('dd/MM/yyyy · hh:mm a').format(tournament.startDate!) : '',
+                                        fontSize: 11.sp,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                        8.horizontalSpace,
-                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white70),
                       ],
                     ),
                   ),

@@ -99,10 +99,6 @@ class _TournamentPromoCardState extends State<TournamentPromoCard> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppSizes.r24),
           gradient: AppColors.tournamentPromoGradient,
-          border: Border.all(
-            color: AppColors.neonBlue.withValues(alpha: 0.4),
-            width: 1.5,
-          ),
           boxShadow: [
             BoxShadow(
               color: AppColors.neonPurple.withValues(alpha: 0.1),

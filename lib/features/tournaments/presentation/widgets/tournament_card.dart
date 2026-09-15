@@ -28,10 +28,6 @@ class TournamentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.tournamentCardBg,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.neonBlue.withValues(alpha: 0.25),
-          width: 1.2,
-        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.neonBlue.withValues(alpha: 0.06),
