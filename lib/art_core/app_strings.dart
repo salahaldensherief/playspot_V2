@@ -121,6 +121,7 @@ class AppStrings {
   static const String startsIn = "startsIn";
   static const String getDirections = "getDirections";
   static const String confirmed = "confirmed";
+  static const String pending = "pending";
   static const String errorLoadingExtras = "errorLoadingExtras";
   static const String noExtrasAvailable = "noExtrasAvailable";
   static const String ps5Rooms = "ps5Rooms";

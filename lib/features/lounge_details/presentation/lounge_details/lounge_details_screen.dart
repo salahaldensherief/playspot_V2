@@ -14,7 +14,6 @@ import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
-import 'package:intl/intl.dart';
 import 'lounge_details_cubit.dart';
 import 'lounge_details_state.dart';
 import 'widgets/lounge_details_app_bar.dart';
@@ -32,6 +31,8 @@ class LoungeDetailsScreen extends StatelessWidget {
   final String? heroTag;
 
   const LoungeDetailsScreen({super.key, required this.lounge, this.heroTag});
+
+  LoungeModel _displayLounge(LoungeDetailsState state) => state.lounge ?? lounge;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +55,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                   buildWhen: (previous, current) => previous.lounge != current.lounge,
                   builder: (context, state) {
                     return LoungeDetailsAppBar(
-                        lounge: state.lounge ?? lounge, heroTag: heroTag);
+                        lounge: _displayLounge(state), heroTag: heroTag);
                   },
                 ),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
@@ -62,7 +63,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                       previous.lounge?.isOpen != current.lounge?.isOpen ||
                       previous.lounge?.isDiscountActive != current.lounge?.isDiscountActive,
                   builder: (context, state) {
-                    final displayLounge = state.lounge ?? lounge;
+                    final displayLounge = _displayLounge(state);
                     
                     return SliverToBoxAdapter(
                       child: Column(
@@ -78,7 +79,7 @@ class LoungeDetailsScreen extends StatelessWidget {
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                   buildWhen: (previous, current) => previous.lounge != current.lounge,
                   builder: (context, state) {
-                    return LoungeInfoSection(lounge: state.lounge ?? lounge);
+                    return LoungeInfoSection(lounge: _displayLounge(state));
                   },
                 ),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
@@ -98,35 +99,36 @@ class LoungeDetailsScreen extends StatelessWidget {
                       previous.filteredRooms != current.filteredRooms ||
                       previous.status != current.status,
                   builder: (context, state) {
-                    if (state.status != LoungeDetailsStatus.loading && state.filteredRooms.isEmpty) {
-                      return const SliverToBoxAdapter(child: SizedBox.shrink());
-                    }
-                    return const SliverSectionHeader(title: AppStrings.availableRooms);
+                    return SliverConditionalSection(
+                      isVisible: state.status == LoungeDetailsStatus.loading ||
+                          state.filteredRooms.isNotEmpty,
+                      title: AppStrings.availableRooms,
+                      content: const RoomsGrid(),
+                    );
                   },
                 ),
-                const RoomsGrid(),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                   buildWhen: (previous, current) =>
                       previous.extras != current.extras ||
                       previous.status != current.status,
                   builder: (context, state) {
-                    if (state.status != LoungeDetailsStatus.loading && state.extras.isEmpty) {
-                      return const SliverToBoxAdapter(child: SizedBox.shrink());
-                    }
-                    return const SliverSectionHeader(title: AppStrings.extras);
+                    return SliverConditionalSection(
+                      isVisible: state.status == LoungeDetailsStatus.loading ||
+                          state.extras.isNotEmpty,
+                      title: AppStrings.extras,
+                      content: const ExtrasList(),
+                    );
                   },
                 ),
-                const ExtrasList(),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                   buildWhen: (previous, current) =>
                       previous.lounge?.name != current.lounge?.name ||
                       previous.reviews != current.reviews ||
                       previous.status != current.status,
                   builder: (context, state) {
-                    if (state.status != LoungeDetailsStatus.loading && state.reviews.isEmpty) {
-                      return const SliverToBoxAdapter(child: SizedBox.shrink());
-                    }
-                    return SliverSectionHeader(
+                    return SliverConditionalSection(
+                      isVisible: state.status == LoungeDetailsStatus.loading ||
+                          state.reviews.isNotEmpty,
                       title: AppStrings.reviews,
                       seeAllText: AppStrings.seeAll,
                       onSeeAllTap: () {
@@ -134,14 +136,14 @@ class LoungeDetailsScreen extends StatelessWidget {
                           RouterKeys.allReviews,
                           extra: {
                             'reviews': state.reviews,
-                            'loungeName': state.lounge?.name ?? lounge.name,
+                            'loungeName': _displayLounge(state).name,
                           },
                         );
                       },
+                      content: const ReviewsSection(),
                     );
                   },
                 ),
-                const ReviewsSection(),
                 const SliverBottomSpacing(),
                 const SliverSafeBottomSpacer(),
               ],
@@ -150,6 +152,40 @@ class LoungeDetailsScreen extends StatelessWidget {
           LoungeDetailsBottomBar(lounge: lounge),
         ],
       ),
+    );
+  }
+}
+
+class SliverConditionalSection extends StatelessWidget {
+  final bool isVisible;
+  final String title;
+  final String? seeAllText;
+  final VoidCallback? onSeeAllTap;
+  final Widget content;
+
+  const SliverConditionalSection({
+    super.key,
+    required this.isVisible,
+    required this.title,
+    this.seeAllText,
+    this.onSeeAllTap,
+    required this.content,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isVisible) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverSectionHeader(
+          title: title,
+          seeAllText: seeAllText,
+          onSeeAllTap: onSeeAllTap,
+        ),
+        content,
+      ],
     );
   }
 }
@@ -241,158 +277,161 @@ class _LoungeTournamentBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (tournaments.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    final itemWidth = tournaments.length == 1 ? 340.w : 280.w;
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...tournaments.map((tournament) => Container(
-              margin: EdgeInsets.only(bottom: 12.h),
-              height: 130.h,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16.r),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      context.pushNamed(
-                        RouterKeys.tournamentDetails,
-                        pathParameters: {'id': tournament.id},
-                      );
-                    },
-                    child: Stack(
-                      children: [
-                        // Background Image or Gradient
-                        Positioned.fill(
-                          child: tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty
-                              ? CachedNetworkImage(
-                                  imageUrl: tournament.imageUrl!,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => Container(
-                                    color: AppColors.tournamentHeaderBg,
-                                    child: const Center(
-                                      child: AppLoader(
-                                        size: 24,
-                                        strokeWidth: 2,
-                                        color: AppColors.neonBlue,
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: SizedBox(
+          height: 135.h,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            itemCount: tournaments.length,
+            itemBuilder: (context, index) {
+              final tournament = tournaments[index];
+              return Container(
+                width: itemWidth,
+                margin: EdgeInsetsDirectional.only(end: index == tournaments.length - 1 ? 0 : 12.w),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16.r),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        context.pushNamed(
+                          RouterKeys.tournamentDetails,
+                          pathParameters: {'id': tournament.id},
+                        );
+                      },
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: tournament.imageUrl!,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      color: AppColors.tournamentHeaderBg,
+                                      child: const Center(
+                                        child: AppLoader(
+                                          size: 24,
+                                          strokeWidth: 2,
+                                          color: AppColors.neonBlue,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  errorWidget: (context, url, error) => Container(
+                                    errorWidget: (context, url, error) => Container(
+                                      decoration: const BoxDecoration(
+                                        gradient: AppColors.tournamentPromoGradient,
+                                      ),
+                                    ),
+                                  )
+                                : Container(
                                     decoration: const BoxDecoration(
                                       gradient: AppColors.tournamentPromoGradient,
                                     ),
                                   ),
-                                )
-                              : Container(
-                                  decoration: const BoxDecoration(
-                                    gradient: AppColors.tournamentPromoGradient,
-                                  ),
+                          ),
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    AppColors.black.withValues(alpha: 0.4),
+                                    AppColors.black.withValues(alpha: 0.85),
+                                  ],
                                 ),
-                        ),
-                        // Dark Vignette Overlay
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  AppColors.black.withValues(alpha: 0.4),
-                                  AppColors.black.withValues(alpha: 0.85),
-                                ],
                               ),
                             ),
                           ),
-                        ),
-                        // Content
-                        Padding(
-                          padding: EdgeInsets.all(16.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.neonBlue.withValues(alpha: 0.3),
-                                      borderRadius: BorderRadius.circular(6.r),
-                                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.5)),
-                                    ),
-                                    child: AppText(
-                                      text: tournament.game.toUpperCase(),
-                                      fontSize: 10.sp,
-                                      fontWeight: FontWeight.w900,
-                                      fontFamily: 'Orbitron',
-                                      color: AppColors.neonBlue,
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.black.withValues(alpha: 0.6),
-                                      borderRadius: BorderRadius.circular(6.r),
-                                    ),
-                                    child: AppText(
-                                      text: "${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}",
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.success,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AppText(
-                                    text: tournament.title,
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'Orbitron',
-                                    color: Colors.white,
-                                    maxLines: 1,
-                                  ),
-                                  4.verticalSpace,
-                                  Row(
-                                    children: [
-                                      Icon(Icons.calendar_today, size: 12.sp, color: AppColors.neonBlue),
-                                      4.horizontalSpace,
-                                      AppText(
-                                        text: tournament.startDate != null ? DateFormat('dd/MM/yyyy · hh:mm a').format(tournament.startDate!) : '',
-                                        fontSize: 11.sp,
-                                        color: AppColors.textSecondary,
+                          Padding(
+                            padding: EdgeInsets.all(16.w),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.neonBlue.withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(6.r),
+                                        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.5)),
                                       ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
+                                      child: AppText(
+                                        text: tournament.game.toUpperCase(),
+                                        fontSize: 10.sp,
+                                        fontWeight: FontWeight.w900,
+                                        fontFamily: 'Orbitron',
+                                        color: AppColors.neonBlue,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.black.withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(6.r),
+                                      ),
+                                      child: AppText(
+                                        text: "${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}",
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.success,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AppText(
+                                      text: tournament.title,
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Orbitron',
+                                      color: Colors.white,
+                                      maxLines: 1,
+                                    ),
+                                    4.verticalSpace,
+                                    Row(
+                                      children: [
+                                        Icon(Icons.calendar_today, size: 12.sp, color: AppColors.neonBlue),
+                                        4.horizontalSpace,
+                                        AppText(
+                                          text: tournament.startDate != null ? DateFormat('dd/MM/yyyy · hh:mm a').format(tournament.startDate!) : '',
+                                          fontSize: 11.sp,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            )),
-          ],
+              );
+            },
+          ),
         ),
       ),
     );

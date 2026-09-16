@@ -35,55 +35,68 @@ class ProfileCubit extends Cubit<ProfileState> {
     );
 
     if (user != null) {
-      final results = await Future.wait([
-        _profileRepository.getPointsBalance(),
-        _profileRepository.getRedemptionOptions(),
-        _profileRepository.getMyVouchers(),
-        _profileRepository.getPointsHistory(),
-        _profileRepository.getLoyaltyStatus(),
-        _profileRepository.getLoyaltyMissions(),
-        _profileRepository.getReferralStats(),
-        _profileRepository.getTotalBookingsCount(),
-      ]);
+      try {
+        final results = await Future.wait([
+          _profileRepository.getPointsBalance(),
+          _profileRepository.getRedemptionOptions(),
+          _profileRepository.getMyVouchers(),
+          _profileRepository.getPointsHistory(),
+          _profileRepository.getLoyaltyStatus(),
+          _profileRepository.getLoyaltyMissions(),
+          _profileRepository.getReferralStats(),
+          _profileRepository.getTotalBookingsCount(),
+        ]);
 
-      final pointsRes = results[0] as Either<Failure, int>;
-      final optionsRes = results[1] as Either<Failure, List<RedemptionOptionModel>>;
-      final vouchersRes = results[2] as Either<Failure, List<Map<String, dynamic>>>;
-      final historyRes = results[3] as Either<Failure, PaginatedResponse<Map<String, dynamic>>>;
-      final loyaltyRes = results[4] as Either<Failure, LoyaltyStatusModel>;
-      final missionsRes = results[5] as Either<Failure, List<LoyaltyMissionModel>>;
-      final statsRes = results[6] as Either<Failure, UserReferralStatsModel>;
-      final bookingsCountRes = results[7] as Either<Failure, int>;
+        final pointsRes = results[0] as Either<Failure, int>;
+        final optionsRes = results[1] as Either<Failure, List<RedemptionOptionModel>>;
+        final vouchersRes = results[2] as Either<Failure, List<Map<String, dynamic>>>;
+        final historyRes = results[3] as Either<Failure, PaginatedResponse<Map<String, dynamic>>>;
+        final loyaltyRes = results[4] as Either<Failure, LoyaltyStatusModel>;
+        final missionsRes = results[5] as Either<Failure, List<LoyaltyMissionModel>>;
+        final statsRes = results[6] as Either<Failure, UserReferralStatsModel>;
+        final bookingsCountRes = results[7] as Either<Failure, int>;
 
-      final points = pointsRes.fold((l) => 0, (r) => r);
-      final totalBookings = bookingsCountRes.fold((l) => 0, (r) => r);
-      final loyaltyStatus = loyaltyRes.fold(
-        (l) => LoyaltyStatusModel(
-          pointsBalance: points,
-          currentLevel: 'Bronze',
-          nextLevelPoints: 100,
-          multiplier: 1.0,
-        ),
-        (r) => r,
-      );
+        final points = pointsRes.fold((l) => 0, (r) => r);
+        final totalBookings = bookingsCountRes.fold((l) => 0, (r) => r);
+        final loyaltyStatus = loyaltyRes.fold(
+          (l) => LoyaltyStatusModel(
+            pointsBalance: points,
+            currentLevel: 'Bronze',
+            nextLevelPoints: 100,
+            multiplier: 1.0,
+          ),
+          (r) => r,
+        );
 
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        user: user,
-        pointsBalance: points,
-        totalBookingsCount: totalBookings,
-        redemptionOptions: optionsRes.fold((l) => [], (r) => r),
-        myVouchers: vouchersRes.fold((l) => [], (r) => r),
-        pointsHistory: historyRes.fold((l) => [], (r) => r.items),
-        loyaltyStatus: loyaltyStatus,
-        loyaltyMissions: missionsRes.fold((l) => [], (r) => r),
-        referralStats: statsRes.fold((l) => null, (r) => r),
-      ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: ProfileStatus.success,
+            user: user,
+            pointsBalance: points,
+            totalBookingsCount: totalBookings,
+            redemptionOptions: optionsRes.fold((l) => [], (r) => r),
+            myVouchers: vouchersRes.fold((l) => [], (r) => r),
+            pointsHistory: historyRes.fold((l) => [], (r) => r.items),
+            loyaltyStatus: loyaltyStatus,
+            loyaltyMissions: missionsRes.fold((l) => [], (r) => r),
+            referralStats: statsRes.fold((l) => null, (r) => r),
+          ));
+        }
 
-      // Check if there is a pending referral code to claim after successful auth & email confirmation
-      claimPendingReferralCode();
+        // Check if there is a pending referral code to claim after successful auth & email confirmation
+        claimPendingReferralCode();
+      } catch (e) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: ProfileStatus.error,
+            errorMessage: e.toString(),
+          ));
+        }
+      }
     } else {
-      emit(state.copyWith(status: ProfileStatus.error, errorMessage: AppStrings.userNotFound));
+      if (!isClosed) {
+        emit(state.copyWith(status: ProfileStatus.error, errorMessage: AppStrings.userNotFound));
+      }
     }
   }
 
@@ -118,10 +131,12 @@ class ProfileCubit extends Cubit<ProfileState> {
           _preferenceManager.clearPendingReferralCode();
         }
 
-        emit(state.copyWith(
-          status: ProfileStatus.claimReferralResult,
-          claimResult: claimRes,
-        ));
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: ProfileStatus.claimReferralResult,
+            claimResult: claimRes,
+          ));
+        }
 
         if (claimRes.status == ClaimReferralStatus.success) {
           getUserData();
@@ -135,18 +150,29 @@ class ProfileCubit extends Cubit<ProfileState> {
     final result = await _profileRepository.redeemPoints(optionId);
 
     result.fold(
-      (failure) => emit(state.copyWith(status: ProfileStatus.error, errorMessage: failure.message)),
-      (data) {
+      (failure) {
+        if (!isClosed) {
+          emit(state.copyWith(status: ProfileStatus.error, errorMessage: failure.message));
+        }
+      },
+      (data) async {
         if (data['success'] == true) {
           final newBalance = (data['new_balance'] as num?)?.toInt() ?? state.pointsBalance;
-          emit(state.copyWith(
-            status: ProfileStatus.redeemSuccess,
-            pointsBalance: newBalance,
-          ));
-          getUserData();
+          if (!isClosed) {
+            emit(state.copyWith(
+              status: ProfileStatus.redeemSuccess,
+              pointsBalance: newBalance,
+            ));
+          }
+          await Future.delayed(const Duration(milliseconds: 200));
+          if (!isClosed) {
+            getUserData();
+          }
         } else {
           final errorMsg = data['error']?.toString() ?? AppStrings.failedToRedeemPoints;
-          emit(state.copyWith(status: ProfileStatus.error, errorMessage: errorMsg));
+          if (!isClosed) {
+            emit(state.copyWith(status: ProfileStatus.error, errorMessage: errorMsg));
+          }
         }
       },
     );
@@ -157,11 +183,19 @@ class ProfileCubit extends Cubit<ProfileState> {
     final result = await _authRepository.signOut();
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: ProfileStatus.error,
-        errorMessage: failure.message,
-      )),
-      (_) => emit(state.copyWith(status: ProfileStatus.logoutSuccess)),
+      (failure) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: ProfileStatus.error,
+            errorMessage: failure.message,
+          ));
+        }
+      },
+      (_) {
+        if (!isClosed) {
+          emit(state.copyWith(status: ProfileStatus.logoutSuccess));
+        }
+      },
     );
   }
 }

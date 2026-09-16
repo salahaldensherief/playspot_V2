@@ -10,7 +10,6 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/profile/data/models/loyalty_mission_model.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class LoyaltyMissionsSection extends StatelessWidget {
   const LoyaltyMissionsSection({super.key});
@@ -95,6 +94,10 @@ class LoyaltyMissionsSection extends StatelessWidget {
   }
 
   Widget _buildMissionCard(BuildContext context, LoyaltyMissionModel mission) {
+    final isArabic = context.locale.languageCode == 'ar';
+    final title = mission.getDisplayTitle(isArabic);
+    final description = mission.getDisplayDescription(isArabic);
+
     final progressRatio = mission.targetProgress > 0
         ? (mission.currentProgress / mission.targetProgress).clamp(0.0, 1.0)
         : (mission.isCompleted ? 1.0 : 0.0);
@@ -139,17 +142,21 @@ class LoyaltyMissionsSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AppText(
-                        text: mission.title,
+                        text: title,
                         fontSize: 15.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        maxLines: 2,
+                        showAllTextOnTap: true,
                       ),
-                      if (mission.description.isNotEmpty) ...[
+                      if (description.isNotEmpty) ...[
                         SizedBox(height: 4.h),
                         AppText(
-                          text: mission.description,
+                          text: description,
                           fontSize: 12.sp,
                           color: AppColors.textSecondary,
+                          maxLines: 2,
+                          showAllTextOnTap: true,
                         ),
                       ],
                     ],

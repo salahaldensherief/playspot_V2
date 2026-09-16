@@ -162,6 +162,10 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       final bookingId = _extractBookingId(data, record, notification);
       final sessionKey = bookingId.isNotEmpty ? bookingId : notification.id;
 
+      if (_processedActiveSessionIds.length > 50) {
+        _processedActiveSessionIds.clear();
+      }
+
       if (!_processedActiveSessionIds.contains(sessionKey)) {
         _processedActiveSessionIds.add(sessionKey);
 
@@ -217,12 +221,19 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
     result.fold(
       (failure) {
-        // Keep optimism, state remains marked as read locally
-        if (!isClosed) emit(state.copyWith(notifications: updatedList));
+        // Rollback local optimistic update on failure
+        final revertedList = state.notifications.map((n) {
+          if (n.id == id) return n.copyWith(isRead: false);
+          return n;
+        }).toList();
+        if (!isClosed) {
+          emit(state.copyWith(
+            notifications: revertedList,
+            errorMessage: failure.message,
+          ));
+        }
       },
-      (_) {
-        if (!isClosed) emit(state.copyWith(notifications: updatedList));
-      },
+      (_) {},
     );
   }
 
@@ -238,11 +249,14 @@ class NotificationsCubit extends Cubit<NotificationsState> {
 
     result.fold(
       (failure) {
-        if (!isClosed) emit(state.copyWith(notifications: updatedList));
+        if (!isClosed) {
+          emit(state.copyWith(
+            notifications: state.notifications,
+            errorMessage: failure.message,
+          ));
+        }
       },
-      (_) {
-        if (!isClosed) emit(state.copyWith(notifications: updatedList));
-      },
+      (_) {},
     );
   }
 }

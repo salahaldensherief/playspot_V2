@@ -434,5 +434,11 @@
   "visibilityScopeRadius": "Radius",
   "loungeVenue": "Lounge",
   "city": "City",
-  "tournamentDate": "Tournament Date"
+  "tournamentDate": "Tournament Date",
+  "unpaid": "Unpaid",
+  "rejected": "Rejected",
+  "refunded": "Refunded",
+  "eliminated": "Eliminated",
+  "withdrawn": "Withdrawn",
+  "noShow": "No Show"
 }

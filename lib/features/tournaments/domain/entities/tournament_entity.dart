@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:equatable/equatable.dart';
+import 'package:playspot/art_core/app_strings.dart';
 
 enum TournamentStatus {
   draft,
@@ -119,6 +121,29 @@ enum ParticipantStatus {
     }
   }
 
+  String toLocalizedName() {
+    switch (this) {
+      case ParticipantStatus.pendingPayment:
+        return AppStrings.pendingPayment.tr();
+      case ParticipantStatus.waitlist:
+        return 'waitlist'.tr();
+      case ParticipantStatus.confirmed:
+        return AppStrings.confirmed.tr();
+      case ParticipantStatus.checkedIn:
+        return AppStrings.checkedIn.tr();
+      case ParticipantStatus.eliminated:
+        return 'eliminated'.tr();
+      case ParticipantStatus.expired:
+        return 'expired'.tr();
+      case ParticipantStatus.cancelled:
+        return AppStrings.cancelled.tr();
+      case ParticipantStatus.withdrawn:
+        return 'withdrawn'.tr();
+      case ParticipantStatus.noShow:
+        return 'noShow'.tr();
+    }
+  }
+
   static ParticipantStatus fromString(String? val) {
     switch (val?.toLowerCase().trim()) {
       case 'pending_payment':
@@ -164,6 +189,21 @@ enum PaymentStatus {
         return 'rejected';
       case PaymentStatus.refunded:
         return 'refunded';
+    }
+  }
+
+  String toLocalizedName() {
+    switch (this) {
+      case PaymentStatus.unpaid:
+        return 'unpaid'.tr();
+      case PaymentStatus.pending:
+        return AppStrings.pendingPayment.tr();
+      case PaymentStatus.approved:
+        return AppStrings.confirmed.tr();
+      case PaymentStatus.rejected:
+        return 'rejected'.tr();
+      case PaymentStatus.refunded:
+        return 'refunded'.tr();
     }
   }
 

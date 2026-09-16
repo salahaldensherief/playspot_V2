@@ -81,6 +81,11 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
+  Future<Either<Failure, void>> updateUserLocation() async {
+    return await callRepository(() => _remoteSource.updateUserLocation());
+  }
+
+  @override
   UserModel? getCurrentUser() {
     final cachedUser = _preferenceManager.getUserData();
     if (cachedUser != null) {

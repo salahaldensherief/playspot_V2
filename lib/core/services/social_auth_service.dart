@@ -52,7 +52,11 @@ class SocialAuthServiceImpl implements SocialAuthService {
     } catch (e, st) {
       AppLogger.error('[SocialAuth] Google Sign-in Error', e, st);
       final errStr = e.toString().toLowerCase();
-      if (errStr.contains('cancel') || errStr.contains('user_canceled')) {
+      if (errStr.contains('user_canceled') ||
+          errStr.contains('user-cancelled') ||
+          (errStr.contains('canceled') &&
+              !errStr.contains('[16]') &&
+              !errStr.contains('reauth'))) {
         return null;
       }
       rethrow;

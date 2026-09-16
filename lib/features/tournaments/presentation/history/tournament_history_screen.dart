@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../art_core/app_strings.dart';
@@ -35,9 +36,9 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
         leading: const BackButtonWidget(),
         title: Text(
           AppStrings.myTournamentHistory.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textPrimary,
-            fontSize: 18,
+            fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             fontFamily: 'Orbitron',
           ),
@@ -55,27 +56,40 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
               return Center(
                 child: Text(
                   state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
-                  style: const TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
                 ),
               );
             }
 
             if (state.participations.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              return RefreshIndicator(
+                color: AppColors.neonBlue,
+                backgroundColor: AppColors.cardBackground,
+                onRefresh: () async {
+                  await context.read<TournamentHistoryCubit>().loadHistory();
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   children: [
-                    Icon(
-                      TablerIcons.trophy_off,
-                      size: 64,
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppStrings.noResults.tr(),
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 16,
+                    SizedBox(height: 120.h),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            TablerIcons.trophy_off,
+                            size: 64.sp,
+                            color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            AppStrings.noResults.tr(),
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 16.sp,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -83,116 +97,124 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
               );
             }
 
-            return ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: state.participations.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = state.participations[index];
-                final participant = item.participant;
-                final tournament = item.tournament;
-
-                final String tournamentTitle = tournament?.title ?? 'Tournament';
-                final String loungeName = tournament?.loungeName ?? '-';
-                final String gameName = tournament?.game ?? '-';
-                final DateTime? date = participant.createdAt ?? tournament?.startDate;
-                final String formattedDate = date != null ? DateFormat('yyyy-MM-dd').format(date) : '-';
-
-                return InkWell(
-                  onTap: () {
-                    if (tournament != null) {
-                      context.pushNamed(
-                        RouterKeys.tournamentDetails,
-                        pathParameters: {'id': tournament.id},
-                      );
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                tournamentTitle,
-                                style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  fontFamily: 'Orbitron',
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.neonBlue.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
-                              ),
-                              child: Text(
-                                participant.paymentStatus.toDbString(),
-                                style: const TextStyle(
-                                  color: AppColors.neonBlue,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(TablerIcons.device_gamepad, size: 14, color: AppColors.textSecondary),
-                            const SizedBox(width: 4),
-                            Text(
-                              gameName,
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                            ),
-                            const SizedBox(width: 16),
-                            const Icon(TablerIcons.building, size: 14, color: AppColors.textSecondary),
-                            const SizedBox(width: 4),
-                            Text(
-                              loungeName,
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${AppStrings.bookingDate.tr()}: $formattedDate',
-                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                            ),
-                            Text(
-                              participant.status.toDbString(),
-                              style: const TextStyle(
-                                color: AppColors.success,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
+            return RefreshIndicator(
+              color: AppColors.neonBlue,
+              backgroundColor: AppColors.cardBackground,
+              onRefresh: () async {
+                await context.read<TournamentHistoryCubit>().loadHistory();
               },
+              child: ListView.separated(
+                padding: EdgeInsets.all(16.w),
+                itemCount: state.participations.length,
+                separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                itemBuilder: (context, index) {
+                  final item = state.participations[index];
+                  final participant = item.participant;
+                  final tournament = item.tournament;
+
+                  final String tournamentTitle = tournament?.title ?? 'Tournament';
+                  final String loungeName = tournament?.loungeName ?? '-';
+                  final String gameName = tournament?.game ?? '-';
+                  final DateTime? date = participant.createdAt ?? tournament?.startDate;
+                  final String formattedDate = date != null ? DateFormat('yyyy-MM-dd').format(date) : '-';
+
+                  return InkWell(
+                    onTap: () {
+                      if (tournament != null) {
+                        context.pushNamed(
+                          RouterKeys.tournamentDetails,
+                          pathParameters: {'id': tournament.id},
+                        );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(16.r),
+                    child: Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardBackground,
+                        borderRadius: BorderRadius.circular(16.r),
+                        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  tournamentTitle,
+                                  style: TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.sp,
+                                    fontFamily: 'Orbitron',
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(width: 8.w),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                                decoration: BoxDecoration(
+                                  color: AppColors.neonBlue.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
+                                ),
+                                child: Text(
+                                  participant.paymentStatus.toLocalizedName(),
+                                  style: TextStyle(
+                                    color: AppColors.neonBlue,
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8.h),
+                          Row(
+                            children: [
+                              Icon(TablerIcons.device_gamepad, size: 14.sp, color: AppColors.textSecondary),
+                              SizedBox(width: 4.w),
+                              Text(
+                                gameName,
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
+                              ),
+                              SizedBox(width: 16.w),
+                              Icon(TablerIcons.building, size: 14.sp, color: AppColors.textSecondary),
+                              SizedBox(width: 4.w),
+                              Text(
+                                loungeName,
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${AppStrings.bookingDate.tr()}: $formattedDate',
+                                style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp),
+                              ),
+                              Text(
+                                participant.status.toLocalizedName(),
+                                style: TextStyle(
+                                  color: AppColors.success,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             );
           },
         ),

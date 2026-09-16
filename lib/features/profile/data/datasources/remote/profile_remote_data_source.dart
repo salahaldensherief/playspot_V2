@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:playspot/core/di.dart';
+import 'package:playspot/core/services/location_service.dart';
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
 import '../../../../../core/models/paginated_response.dart';
@@ -15,6 +18,7 @@ import '../../models/claim_referral_result.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> updateProfile(UpdateProfileParams params);
+  Future<void> updateUserLocation();
   UserModel? getCurrentUser();
   Future<UserModel> getUserProfile();
   Future<int> getPointsBalance();
@@ -196,7 +200,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         'full_name': params.name,
         'phone': params.phone,
         if (params.email != null) 'email': params.email,
-        if (params.cityId != null) 'city_id': params.cityId,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       };
 
@@ -207,7 +210,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           email: params.email,
           data: {
             'full_name': params.name,
-            if (params.cityId != null) 'city_id': params.cityId,
             if (avatarUrl != null) 'avatar_url': avatarUrl,
           },
         ),
@@ -219,7 +221,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .copyWith(
         name: params.name,
         phone: params.phone,
-        cityId: params.cityId,
         avatarUrl: avatarUrl,
       );
     } on AppException {
@@ -227,6 +228,60 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     } catch (e) {
       debugPrint(' [Profile] Update profile error: $e');
       throw AppException(e.toString());
+    }
+  }
+
+  @override
+  Future<void> updateUserLocation() async {
+    final locationService = sl<LocationService>();
+
+    LocationPermission permission = await locationService.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await locationService.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw const AppException('يرجى تفعيل صلاحية الوصول إلى الموقع للاستفادة من خدمات التطبيق');
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      throw const AppException('صلاحية الموقع مرفوضة بشكل دائم. يرجى تفعيلها من إعدادات الجهاز');
+    }
+
+    final position = await locationService.getCurrentLocation();
+    if (position == null) {
+      throw const AppException('تعذر تحديد موقعك الحالي. الموقع غير واضح أو غير مدعوم');
+    }
+
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      throw const AppException('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى');
+    }
+
+    try {
+      await _supabase.functions.invoke(
+        'update-user-location',
+        body: {
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+        },
+      );
+    } on FunctionException catch (e) {
+      if (e.status == 422) {
+        throw const AppException('المدينة غير مضافة حالياً للنظام');
+      } else if (e.status == 401 || e.status == 403) {
+        throw const AppException('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى');
+      } else {
+        final errMsg = e.details?.toString() ?? e.toString();
+        throw AppException(errMsg);
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (msg.contains('422')) {
+        throw const AppException('المدينة غير مضافة حالياً للنظام');
+      } else if (msg.contains('401') || msg.contains('403')) {
+        throw const AppException('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى');
+      } else {
+        throw const AppException('حدث خطأ مؤقت، يرجى المحاولة مرة أخرى');
+      }
     }
   }
 
@@ -245,7 +300,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final data = await _supabase
           .from('profiles')
-          .select()
+          .select('*, cities:city_id(id, name, name_ar, name_en)')
           .eq('id', user.id)
           .single();
 

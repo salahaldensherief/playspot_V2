@@ -13,13 +13,14 @@ class BookingModel extends Equatable {
   final DateTime date;
   final String startTime;
   final String endTime;
-  final String status; // upcoming, past, cancelled
+  final BookingStatus status;
   final String paymentStatus; // unpaid, paid, refunded, partially_paid
   final double totalPrice;
   final String? playMode;
   final String? mapsLink;
   final double? lat;
   final double? lng;
+  final DateTime startDateTime;
 
   const BookingModel({
     required this.id,
@@ -40,7 +41,10 @@ class BookingModel extends Equatable {
     this.mapsLink,
     this.lat,
     this.lng,
+    required this.startDateTime,
   });
+
+  bool get isUpcoming => status == BookingStatus.upcoming || status == BookingStatus.pending;
 
   @override
   List<Object?> get props => [
@@ -62,6 +66,7 @@ class BookingModel extends Equatable {
         mapsLink,
         lat,
         lng,
+        startDateTime,
       ];
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -79,6 +84,34 @@ class BookingModel extends Equatable {
       }
     }
 
+    final parsedDate = json['date'] != null 
+        ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now()) 
+        : (json['booking_period'] != null 
+            ? _parseTsRangeStart(json['booking_period'].toString()) 
+            : (json['time_range'] != null 
+                ? _parseTsRangeStart(json['time_range'].toString()) 
+                : DateTime.now()));
+
+    final rawStartTime = json['start_time']?.toString() ?? '';
+    DateTime parsedStartDateTime = parsedDate;
+
+    if (rawStartTime.contains('T')) {
+      parsedStartDateTime = DateTime.tryParse(rawStartTime) ?? parsedDate;
+    } else if (rawStartTime.isNotEmpty) {
+      final parts = rawStartTime.split(':');
+      if (parts.length >= 2) {
+        final hour = int.tryParse(parts[0]) ?? 0;
+        final minute = int.tryParse(parts[1]) ?? 0;
+        parsedStartDateTime = DateTime(
+          parsedDate.year,
+          parsedDate.month,
+          parsedDate.day,
+          hour,
+          minute,
+        );
+      }
+    }
+
     return BookingModel(
       id: json['id'].toString(),
       loungeName: loungeData?['name'] ?? '',
@@ -88,28 +121,23 @@ class BookingModel extends Equatable {
       spaceTypeName: roomData?['space_types']?['name'],
       controllersCount: (roomData?['controllers_count'] as num?)?.toInt() ?? 0,
       screenSize: roomData?['screen_size']?.toString() ?? '',
-      date: json['date'] != null 
-          ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now()) 
-          : (json['booking_period'] != null 
-              ? _parseTsRangeStart(json['booking_period'].toString()) 
-              : (json['time_range'] != null 
-                  ? _parseTsRangeStart(json['time_range'].toString()) 
-                  : DateTime.now())),
-      startTime: json['start_time'] ?? '',
-      endTime: json['end_time'] ?? '',
-      status: BookingStatus.mapToDbStatus(json['status']?.toString()),
+      date: parsedDate,
+      startTime: rawStartTime,
+      endTime: json['end_time']?.toString() ?? '',
+      status: BookingStatus.fromString(json['status']?.toString()),
       paymentStatus: json['payment_status'] ?? 'unpaid',
       totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
       playMode: json['play_mode'],
       mapsLink: loungeData?['maps_link'],
       lat: parsedLat,
       lng: parsedLng,
+      startDateTime: parsedStartDateTime,
     );
   }
 
   static DateTime _parseTsRangeStart(String rangeStr) {
     try {
-      final cleanStr = rangeStr.replaceAll(RegExp(r'[\"\[\]\)]'), '');
+      final cleanStr = rangeStr.replaceAll(RegExp(r'["\[\])]'), '');
       final parts = cleanStr.split(',');
       if (parts.isNotEmpty) {
         return DateTime.parse(parts[0].trim());

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/core/constants/booking_status.dart';
 import '../domain/repositories/my_bookings_repository.dart';
 import 'my_bookings_state.dart';
 
@@ -30,42 +31,51 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     if (_isFetching) return;
     _isFetching = true;
 
-    final hasExistingData = state.upcomingBookings.isNotEmpty ||
-        state.pastBookings.isNotEmpty ||
-        state.cancelledBookings.isNotEmpty;
+    try {
+      final hasExistingData = state.upcomingBookings.isNotEmpty ||
+          state.pastBookings.isNotEmpty ||
+          state.cancelledBookings.isNotEmpty;
 
-    // Show full loading shimmer only if no existing bookings exist
-    if (!hasExistingData) {
-      emit(state.copyWith(status: MyBookingsStatus.loading));
-    }
+      // Show full loading shimmer only if no existing bookings exist
+      if (!hasExistingData) {
+        emit(state.copyWith(status: MyBookingsStatus.loading));
+      }
 
-    final result = await _repository.getMyBookings();
-    _isFetching = false;
+      final result = await _repository.getMyBookings();
 
-    result.fold(
-      (failure) => emit(state.copyWith(
+      result.fold(
+        (failure) => emit(state.copyWith(
+          status: MyBookingsStatus.failure,
+          errorMessage: failure.message,
+        )),
+        (bookings) {
+          _lastFetchTime = DateTime.now();
+          final upcoming = bookings.where((b) => b.isUpcoming).toList();
+          final past = bookings
+              .where((b) =>
+                  b.status == BookingStatus.completed ||
+                  b.status == BookingStatus.inProgress)
+              .toList();
+          final cancelled = bookings
+              .where((b) => b.status == BookingStatus.cancelled)
+              .toList();
+
+          emit(state.copyWith(
+            status: MyBookingsStatus.success,
+            upcomingBookings: upcoming,
+            pastBookings: past,
+            cancelledBookings: cancelled,
+          ));
+        },
+      );
+    } catch (e) {
+      emit(state.copyWith(
         status: MyBookingsStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (bookings) {
-        _lastFetchTime = DateTime.now();
-        final upcoming = bookings
-            .where((b) => b.status == 'upcoming' || b.status == 'pending')
-            .toList();
-        final past = bookings
-            .where((b) => b.status == 'completed' || b.status == 'past')
-            .toList();
-        final cancelled =
-            bookings.where((b) => b.status == 'cancelled').toList();
-
-        emit(state.copyWith(
-          status: MyBookingsStatus.success,
-          upcomingBookings: upcoming,
-          pastBookings: past,
-          cancelledBookings: cancelled,
-        ));
-      },
-    );
+        errorMessage: e.toString(),
+      ));
+    } finally {
+      _isFetching = false;
+    }
   }
 
   Future<void> cancelBooking(String bookingId) async {

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../art_core/app_strings.dart';
@@ -26,6 +28,7 @@ class TournamentsFeedScreen extends StatefulWidget {
 
 class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   final List<String> _gameFilters = ['All', 'FIFA', 'EA FC 24', 'Tekken 8', 'Mortal Kombat', 'Rocket League'];
   final List<String> _statusFilters = [
@@ -44,8 +47,18 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchInputChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) {
+        context.read<TournamentsFeedCubit>().onSearchChanged(value);
+      }
+    });
   }
 
   @override
@@ -59,13 +72,13 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(TablerIcons.trophy, color: AppColors.neonBlue, size: 20),
-            const SizedBox(width: 8),
+            Icon(TablerIcons.trophy, color: AppColors.neonBlue, size: 20.sp),
+            SizedBox(width: 8.w),
             Text(
               AppStrings.tournaments.tr().toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w900,
                 fontFamily: 'Orbitron',
                 letterSpacing: 1.0,
@@ -76,20 +89,20 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
         actions: [
           IconButton(
             icon: Container(
-              padding: const EdgeInsets.all(6),
+              padding: EdgeInsets.all(6.w),
               decoration: BoxDecoration(
                 color: AppColors.neonBlue.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(10.r),
                 border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
               ),
-              child: const Icon(TablerIcons.history, color: AppColors.neonBlue, size: 18),
+              child: Icon(TablerIcons.history, color: AppColors.neonBlue, size: 18.sp),
             ),
             tooltip: AppStrings.myTournamentHistory.tr(),
             onPressed: () {
               context.pushNamed(RouterKeys.tournamentHistory);
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
         ],
         centerTitle: true,
       ),
@@ -103,23 +116,23 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 if (!isLocationDisabled) return const SizedBox.shrink();
                 return Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
                   decoration: BoxDecoration(
                     color: AppColors.neonPurple.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12.r),
                     border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(TablerIcons.location_off, color: AppColors.neonPurple, size: 20),
-                      const SizedBox(width: 10),
+                      Icon(TablerIcons.location_off, color: AppColors.neonPurple, size: 20.sp),
+                      SizedBox(width: 10.w),
                       Expanded(
                         child: Text(
                           'enableLocationForNearbyTournaments'.tr(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.textPrimary,
-                            fontSize: 12,
+                            fontSize: 12.sp,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -130,36 +143,39 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
               },
             ),
 
-            // Search Input
+            // Search Input with ValueListenableBuilder for clear icon
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: AppTextField(
-                controller: _searchController,
-                hint: 'searchLoungesHint'.tr(),
-                prefixIcon: TablerIcons.search,
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: AppColors.textSecondary, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          context.read<TournamentsFeedCubit>().onSearchChanged('');
-                        },
-                      )
-                    : null,
-                onChanged: (val) {
-                  context.read<TournamentsFeedCubit>().onSearchChanged(val);
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              child: ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _searchController,
+                builder: (context, value, child) {
+                  return AppTextField(
+                    controller: _searchController,
+                    hint: 'searchLoungesHint'.tr(),
+                    prefixIcon: TablerIcons.search,
+                    suffixIcon: value.text.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear, color: AppColors.textSecondary, size: 18.sp),
+                            onPressed: () {
+                              _searchController.clear();
+                              context.read<TournamentsFeedCubit>().onSearchChanged('');
+                            },
+                          )
+                        : null,
+                    onChanged: _onSearchInputChanged,
+                  );
                 },
               ),
             ),
 
             // Game Filter Chips
             SizedBox(
-              height: 38,
+              height: 38.h,
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
                 scrollDirection: Axis.horizontal,
                 itemCount: _gameFilters.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
                 itemBuilder: (context, index) {
                   final game = _gameFilters[index];
                   return BlocSelector<TournamentsFeedCubit, TournamentsFeedState, String?>(
@@ -172,10 +188,10 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
                           decoration: BoxDecoration(
                             color: isSelected ? AppColors.neonBlue : AppColors.tournamentFilterBg,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
                               color: isSelected ? AppColors.neonBlue : AppColors.neonBlue.withValues(alpha: 0.2),
                             ),
@@ -183,7 +199,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                 ? [
                                     BoxShadow(
                                       color: AppColors.neonBlue.withValues(alpha: 0.4),
-                                      blurRadius: 8,
+                                      blurRadius: 8.r,
                                     ),
                                   ]
                                 : [],
@@ -193,7 +209,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                               game == 'All' ? 'all'.tr() : game,
                               style: TextStyle(
                                 color: isSelected ? AppColors.black : AppColors.white,
-                                fontSize: 12,
+                                fontSize: 12.sp,
                                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                                 fontFamily: isSelected ? 'Orbitron' : null,
                               ),
@@ -206,16 +222,16 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
 
             // Status Filter Chips
             SizedBox(
-              height: 38,
+              height: 38.h,
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
                 scrollDirection: Axis.horizontal,
                 itemCount: _statusFilters.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                separatorBuilder: (context, index) => SizedBox(width: 8.w),
                 itemBuilder: (context, index) {
                   final statusKey = _statusFilters[index];
                   return BlocSelector<TournamentsFeedCubit, TournamentsFeedState, String?>(
@@ -229,10 +245,10 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
                           decoration: BoxDecoration(
                             color: isSelected ? AppColors.neonPurple : AppColors.tournamentFilterBg,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
                               color: isSelected ? AppColors.neonPurple : AppColors.neonPurple.withValues(alpha: 0.2),
                             ),
@@ -240,7 +256,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                 ? [
                                     BoxShadow(
                                       color: AppColors.neonPurple.withValues(alpha: 0.4),
-                                      blurRadius: 8,
+                                      blurRadius: 8.r,
                                     ),
                                   ]
                                 : [],
@@ -250,7 +266,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                               _getLocalizedStatus(statusKey),
                               style: TextStyle(
                                 color: isSelected ? AppColors.white : AppColors.textSecondary,
-                                fontSize: 12,
+                                fontSize: 12.sp,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
@@ -262,7 +278,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12.h),
 
             // Tournaments List / Shimmer / Empty / Error
             Expanded(
@@ -274,7 +290,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 builder: (context, state) {
                   if (state.status == TournamentsFeedStatus.loading && state.tournaments.isEmpty) {
                     return ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(16.w),
                       itemCount: 4,
                       itemBuilder: (context, index) => const LoungeCardShimmer(),
                     );
@@ -283,32 +299,32 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                   if (state.status == TournamentsFeedStatus.failure && state.tournaments.isEmpty) {
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: EdgeInsets.all(24.w),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               TablerIcons.alert_circle,
-                              size: 48,
+                              size: 48.sp,
                               color: AppColors.danger,
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 12.h),
                             Text(
-                              state.errorMessage ?? 'somethingWentWrong'.tr(),
-                              style: const TextStyle(
+                              state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                              style: TextStyle(
                                 color: AppColors.textSecondary,
-                                fontSize: 14,
+                                fontSize: 14.sp,
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16.h),
                             AppButton(
                               buttonConfig: ButtonConfig(
                                 backgroundColor: Colors.transparent,
                                 borderColor: AppColors.neonBlue,
                                 isOutlined: true,
                               ),
-                              content: ButtonContent(label: 'retry'.tr()),
+                              content: ButtonContent(label: AppStrings.retry.tr()),
                               behavior: TapBehavior(
                                 onTap: () {
                                   context.read<TournamentsFeedCubit>().loadTournaments(isRefresh: true);
@@ -331,22 +347,22 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         children: [
-                          const SizedBox(height: 80),
+                          SizedBox(height: 80.h),
                           Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   TablerIcons.trophy_off,
-                                  size: 64,
+                                  size: 64.sp,
                                   color: AppColors.textSecondary.withValues(alpha: 0.5),
                                 ),
-                                const SizedBox(height: 16),
+                                SizedBox(height: 16.h),
                                 Text(
                                   'noTournamentsFound'.tr(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.textSecondary,
-                                    fontSize: 16,
+                                    fontSize: 16.sp,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -365,7 +381,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                       await context.read<TournamentsFeedCubit>().loadTournaments(isRefresh: true);
                     },
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                       itemCount: state.tournaments.length,
                       itemBuilder: (context, index) {
                         final tournament = state.tournaments[index];

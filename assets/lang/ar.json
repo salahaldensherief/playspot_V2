@@ -438,5 +438,11 @@
   "visibilityScopeRadius": "حسب النطاق",
   "loungeVenue": "الصالة",
   "city": "المدينة",
-  "tournamentDate": "موعد البطولة"
+  "tournamentDate": "موعد البطولة",
+  "unpaid": "غير مدفوع",
+  "rejected": "مرفوض",
+  "refunded": "مسترجع",
+  "eliminated": "مستبعد",
+  "withdrawn": "منسحب",
+  "noShow": "لم يحضر"
 }

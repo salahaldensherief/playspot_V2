@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 import 'package:playspot/features/profile/data/models/profile_params.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
@@ -11,14 +10,11 @@ import 'edit_profile_state.dart';
 class EditProfileCubit extends Cubit<EditProfileState> {
   final ProfileRepository _profileRepository;
   final AuthRepository _authRepository;
-  final SupabaseClient _supabase = Supabase.instance.client;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
-  File? avatarFile;
 
   EditProfileCubit(this._profileRepository, this._authRepository) : super(const EditProfileState());
 
@@ -28,9 +24,9 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     phoneController.text = currentUser?.phone ?? '';
     emailController.text = currentUser?.email ?? '';
 
-    emit(state.copyWith(user: currentUser, selectedCityId: currentUser?.cityId));
+    emit(state.copyWith(user: currentUser));
 
-    // Fetch full profile to get city_id if not loaded
+    // Fetch full profile
     final profileRes = await _profileRepository.getUserProfile();
     profileRes.fold(
       (_) {},
@@ -39,47 +35,58 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         phoneController.text = user.phone ?? phoneController.text;
         emailController.text = user.email ?? emailController.text;
         if (!isClosed) {
-          emit(state.copyWith(
-            user: user,
-            selectedCityId: user.cityId ?? state.selectedCityId,
-          ));
+          emit(state.copyWith(user: user));
         }
       },
     );
-
-    // Fetch cities list
-    try {
-      final citiesRes = await _supabase.from('cities').select();
-      final citiesList = List<Map<String, dynamic>>.from(citiesRes as List);
-      if (!isClosed) {
-        emit(state.copyWith(cities: citiesList));
-      }
-    } catch (_) {
-      try {
-        final citiesRes = await _supabase.rpc('get_available_cities');
-        final citiesList = List<Map<String, dynamic>>.from(citiesRes as List);
-        if (!isClosed) {
-          emit(state.copyWith(cities: citiesList));
-        }
-      } catch (_) {}
-    }
   }
 
-  void selectCity(String? cityId) {
-    emit(state.copyWith(selectedCityId: cityId));
+  Future<void> updateLocation() async {
+    emit(state.copyWith(status: EditProfileStatus.loading));
+    final result = await _profileRepository.updateUserLocation();
+    result.fold(
+      (failure) {
+        if (!isClosed) {
+          emit(state.copyWith(
+            status: EditProfileStatus.error,
+            errorMessage: failure.message,
+          ));
+        }
+      },
+      (_) async {
+        final profileRes = await _profileRepository.getUserProfile();
+        profileRes.fold(
+          (_) {
+            if (!isClosed) {
+              emit(state.copyWith(status: EditProfileStatus.success));
+            }
+          },
+          (user) {
+            if (!isClosed) {
+              emit(state.copyWith(
+                status: EditProfileStatus.success,
+                user: user,
+              ));
+            }
+          },
+        );
+      },
+    );
   }
 
   Future<void> pickAvatar() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      avatarFile = File(pickedFile.path);
-      emit(state.copyWith(status: EditProfileStatus.initial)); // Force rebuild for image
+    if (pickedFile != null && !isClosed) {
+      emit(state.copyWith(
+        avatarFile: File(pickedFile.path),
+        status: EditProfileStatus.initial,
+      ));
     }
   }
 
   Future<void> updateProfile() async {
-    if (!(formKey.currentState?.validate() ?? false)) return;
+    if (!(formKey.currentState?.validate() ?? true)) return;
 
     emit(state.copyWith(status: EditProfileStatus.loading));
     final result = await _profileRepository.updateProfile(
@@ -87,8 +94,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         name: nameController.text.trim(),
         phone: phoneController.text.trim(),
         email: emailController.text.trim(),
-        cityId: state.selectedCityId,
-        avatarFile: avatarFile,
+        avatarFile: state.avatarFile,
       ),
     );
 
@@ -106,6 +112,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
           emit(state.copyWith(
             status: EditProfileStatus.success,
             user: user,
+            clearAvatarFile: true,
           ));
         }
       },

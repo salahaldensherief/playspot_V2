@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../art_core/app_strings.dart';
@@ -12,6 +13,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/notifications/game_hud_toast.dart';
 import '../../domain/entities/tournament_entity.dart';
 import '../widgets/match_countdown_timer.dart';
 import 'tournament_match_cubit.dart';
@@ -58,15 +60,17 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
         maxWidth: 1200,
       );
 
-      if (picked != null) {
-        if (mounted) {
-          context.read<TournamentMatchCubit>().setProofFile(File(picked.path));
-        }
+      if (picked != null && mounted) {
+        context.read<TournamentMatchCubit>().setProofFile(File(picked.path));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('errorPickingImage'.tr(args: ['$e']))),
-      );
+      if (mounted) {
+        GameHudToast.show(
+          context,
+          'errorPickingImage'.tr(args: ['$e']),
+          type: ToastType.error,
+        );
+      }
     }
   }
 
@@ -77,14 +81,15 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.cardBackground,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
           side: const BorderSide(color: AppColors.danger),
         ),
         title: Text(
           'disputeResult'.tr(),
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.danger,
             fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
             fontFamily: 'Orbitron',
           ),
         ),
@@ -94,20 +99,20 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           children: [
             Text(
               'disputeReason'.tr(),
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             TextField(
               controller: _disputeReasonController,
               maxLines: 3,
-              style: const TextStyle(color: AppColors.textPrimary),
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 13.sp),
               decoration: InputDecoration(
                 hintText: 'enterDisputeReason'.tr(),
-                hintStyle: const TextStyle(color: AppColors.hintText, fontSize: 12),
+                hintStyle: TextStyle(color: AppColors.hintText, fontSize: 12.sp),
                 filled: true,
                 fillColor: AppColors.mutedBackground,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(12.r),
                   borderSide: const BorderSide(color: AppColors.borderDefault),
                 ),
               ),
@@ -120,9 +125,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
               backgroundColor: Colors.transparent,
               borderColor: AppColors.borderDefault,
               isOutlined: true,
-              width: 90,
+              width: 90.w,
             ),
-            content: ButtonContent(label: 'close'.tr()),
+            content: ButtonContent(label: AppStrings.close.tr()),
             behavior: TapBehavior(
               onTap: () => Navigator.pop(dialogContext),
             ),
@@ -130,14 +135,22 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           AppButton(
             buttonConfig: ButtonConfig(
               backgroundColor: AppColors.danger,
-              width: 120,
+              width: 120.w,
             ),
             content: ButtonContent(label: 'disputeResult'.tr()),
             behavior: TapBehavior(
               onTap: () {
-                if (_disputeReasonController.text.trim().isEmpty) return;
+                final reason = _disputeReasonController.text.trim();
+                if (reason.isEmpty) {
+                  GameHudToast.show(
+                    context,
+                    'enterDisputeReason'.tr(),
+                    type: ToastType.error,
+                  );
+                  return;
+                }
                 Navigator.pop(dialogContext);
-                context.read<TournamentMatchCubit>().disputeResult(_disputeReasonController.text.trim());
+                context.read<TournamentMatchCubit>().disputeResult(reason);
               },
             ),
           ),
@@ -151,19 +164,17 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
     return BlocConsumer<TournamentMatchCubit, TournamentMatchState>(
       listener: (context, state) {
         if (state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: AppColors.danger,
-            ),
+          GameHudToast.show(
+            context,
+            state.errorMessage!,
+            type: ToastType.error,
           );
         }
         if (state.successMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.successMessage!.tr()),
-              backgroundColor: AppColors.success,
-            ),
+          GameHudToast.show(
+            context,
+            state.successMessage!.tr(),
+            type: ToastType.success,
           );
         }
       },
@@ -181,8 +192,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             appBar: AppBar(leading: const BackButtonWidget()),
             body: Center(
               child: Text(
-                'noResults'.tr(),
-                style: const TextStyle(color: AppColors.textSecondary),
+                AppStrings.noResults.tr(),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
               ),
             ),
           );
@@ -198,9 +209,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             leading: const BackButtonWidget(),
             title: Text(
               'matchDetails'.tr(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textPrimary,
-                fontSize: 18,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Orbitron',
               ),
@@ -209,7 +220,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           ),
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(20.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -221,44 +232,44 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         context.read<TournamentMatchCubit>().confirmResult();
                       },
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20.h),
                   ],
 
                   // Room/Station Info
                   if (match.stationNumber != null) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                       decoration: BoxDecoration(
                         color: AppColors.cardBackground,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.neonBlue.withOpacity(0.4)),
+                        borderRadius: BorderRadius.circular(20.r),
+                        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(TablerIcons.device_tv, color: AppColors.neonBlue, size: 18),
-                          const SizedBox(width: 8),
+                          Icon(TablerIcons.device_tv, color: AppColors.neonBlue, size: 18.sp),
+                          SizedBox(width: 8.w),
                           Text(
                             '${'roomStation'.tr()}: ${match.stationNumber}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: 13.sp,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24.h),
                   ],
 
                   // Players Scoreboard Card
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: EdgeInsets.all(20.w),
                     decoration: BoxDecoration(
                       color: AppColors.cardBackground,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.neonPurple.withOpacity(0.3)),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -269,19 +280,19 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                             name: match.player1Name ?? 'player1'.tr(),
                             score: state.player1Score,
                             onIncrement: () => context.read<TournamentMatchCubit>().updatePlayer1Score(state.player1Score + 1),
-                            onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer1Score(state.player1Score - 1),
+                            onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer1Score((state.player1Score - 1).clamp(0, 999)),
                             isEditable: match.status == MatchStatus.inProgress || match.status == MatchStatus.scheduled,
                           ),
                         ),
 
                         // VS Divider
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
                           child: Text(
                             'vs'.tr(),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.neonBlue,
-                              fontSize: 22,
+                              fontSize: 22.sp,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Orbitron',
                             ),
@@ -294,14 +305,14 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                             name: match.player2Name ?? 'player2'.tr(),
                             score: state.player2Score,
                             onIncrement: () => context.read<TournamentMatchCubit>().updatePlayer2Score(state.player2Score + 1),
-                            onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer2Score(state.player2Score - 1),
+                            onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer2Score((state.player2Score - 1).clamp(0, 999)),
                             isEditable: match.status == MatchStatus.inProgress || match.status == MatchStatus.scheduled,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.h),
 
                   // Proof Screenshot Section
                   if (match.status == MatchStatus.inProgress || match.status == MatchStatus.scheduled) ...[
@@ -309,34 +320,34 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'uploadMatchProof'.tr(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textPrimary,
-                          fontSize: 14,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8.h),
 
                     if (state.proofFile != null) ...[
                       Stack(
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(12.r),
                             child: Image.file(
                               state.proofFile!,
-                              height: 180,
+                              height: 180.h,
                               width: double.infinity,
                               fit: BoxFit.cover,
                             ),
                           ),
                           Positioned(
-                            top: 8,
-                            right: 8,
+                            top: 8.h,
+                            right: 8.w,
                             child: CircleAvatar(
-                              backgroundColor: Colors.black.withOpacity(0.7),
+                              backgroundColor: Colors.black.withValues(alpha: 0.7),
                               child: IconButton(
-                                icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                                icon: Icon(Icons.close, color: Colors.white, size: 18.sp),
                                 onPressed: () => context.read<TournamentMatchCubit>().setProofFile(null),
                               ),
                             ),
@@ -349,41 +360,41 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                           Expanded(
                             child: InkWell(
                               onTap: () => _pickProofImage(ImageSource.gallery),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12.r),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 20),
+                                padding: EdgeInsets.symmetric(vertical: 20.h),
                                 decoration: BoxDecoration(
                                   color: AppColors.mutedBackground,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12.r),
                                   border: Border.all(color: AppColors.borderDefault),
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(TablerIcons.photo, color: AppColors.neonBlue, size: 28),
-                                    const SizedBox(height: 6),
-                                    Text('gallery'.tr(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    Icon(TablerIcons.photo, color: AppColors.neonBlue, size: 28.sp),
+                                    SizedBox(height: 6.h),
+                                    Text('gallery'.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
                                   ],
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12.w),
                           Expanded(
                             child: InkWell(
                               onTap: () => _pickProofImage(ImageSource.camera),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12.r),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 20),
+                                padding: EdgeInsets.symmetric(vertical: 20.h),
                                 decoration: BoxDecoration(
                                   color: AppColors.mutedBackground,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(12.r),
                                   border: Border.all(color: AppColors.borderDefault),
                                 ),
                                 child: Column(
                                   children: [
-                                    const Icon(TablerIcons.camera, color: AppColors.neonPurple, size: 28),
-                                    const SizedBox(height: 6),
-                                    Text('camera'.tr(), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                    Icon(TablerIcons.camera, color: AppColors.neonPurple, size: 28.sp),
+                                    SizedBox(height: 6.h),
+                                    Text('camera'.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
                                   ],
                                 ),
                               ),
@@ -392,7 +403,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         ],
                       ),
                     ],
-                    const SizedBox(height: 28),
+                    SizedBox(height: 28.h),
 
                     // Submit Result Button
                     AppButton(
@@ -426,7 +437,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12.w),
                         Expanded(
                           child: AppButton(
                             buttonConfig: ButtonConfig(
@@ -462,47 +473,47 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
       children: [
         Text(
           name,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
-            fontSize: 15,
+            fontSize: 15.sp,
           ),
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12.h),
 
         // Score Box with Controls
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             color: AppColors.mutedBackground,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.neonBlue.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [
               Text(
                 '$score',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.neonBlue,
-                  fontSize: 28,
+                  fontSize: 28.sp,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Orbitron',
                 ),
               ),
               if (isEditable) ...[
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      icon: const Icon(TablerIcons.minus, color: AppColors.textSecondary, size: 20),
+                      icon: Icon(TablerIcons.minus, color: AppColors.textSecondary, size: 20.sp),
                       onPressed: onDecrement,
                     ),
                     IconButton(
-                      icon: const Icon(TablerIcons.plus, color: AppColors.neonBlue, size: 20),
+                      icon: Icon(TablerIcons.plus, color: AppColors.neonBlue, size: 20.sp),
                       onPressed: onIncrement,
                     ),
                   ],

@@ -10,16 +10,11 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/utils/extensions/date_time_extensions.dart';
-import '../../../../core/cache/preference_manager.dart';
+import '../../../../core/constants/booking_status.dart';
 import '../../../../core/di.dart';
+import '../../../../core/services/directions_service.dart';
 import '../../data/models/booking_model.dart';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
-import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import 'package:map_launcher/map_launcher.dart';
+import '../../../../art_core/widgets/notifications/game_hud_toast.dart';
 
 class BookingCard extends StatefulWidget {
   final BookingModel booking;
@@ -40,83 +35,18 @@ class BookingCard extends StatefulWidget {
 class _BookingCardState extends State<BookingCard> {
   bool _showHighlight = false;
   Timer? _highlightTimer;
+  Timer? _countdownTimer;
 
   Future<void> _openDirections(BuildContext context) async {
-    final mapsLink = widget.booking.mapsLink;
-    if (mapsLink != null && mapsLink.isNotEmpty) {
-      final uri = Uri.tryParse(mapsLink);
-      if (uri != null) {
-        try {
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-            return;
-          }
-        } catch (e) {
-          debugPrint('[BookingCard] mapsLink launch error: $e');
-        }
-      }
-    }
+    final success = await sl<DirectionsService>().openDirections(
+      lat: widget.booking.lat,
+      lng: widget.booking.lng,
+      loungeName: widget.booking.loungeName,
+      loungeLocation: widget.booking.loungeLocation,
+      mapsLink: widget.booking.mapsLink,
+    );
 
-    final lat = widget.booking.lat;
-    final lng = widget.booking.lng;
-
-    if (lat != null && lng != null) {
-      try {
-        final pref = sl<PreferenceManager>();
-        final userLat = double.tryParse(pref.latitude());
-        final userLng = double.tryParse(pref.longitude());
-
-        await MapLauncher.directions(
-          Location.coords(
-            lat,
-            lng,
-            title: widget.booking.loungeName,
-          ),
-          from: (userLat != null && userLng != null)
-              ? Location.coords(userLat, userLng, title: "My Location")
-              : null,
-        ).show();
-        return;
-      } catch (e) {
-        debugPrint('[BookingCard] MapLauncher error: $e');
-      }
-
-      final googleMapsUrl = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
-      );
-      try {
-        if (await canLaunchUrl(googleMapsUrl)) {
-          await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
-          return;
-        } else {
-          await launchUrl(googleMapsUrl, mode: LaunchMode.platformDefault);
-          return;
-        }
-      } catch (e) {
-        debugPrint('[BookingCard] URL Launcher error: $e');
-      }
-    }
-
-    // Fallback: search by lounge name and location if lat/lng & mapsLink are missing
-    final query = '${widget.booking.loungeName} ${widget.booking.loungeLocation}'.trim();
-    if (query.isNotEmpty) {
-      final searchUrl = Uri.parse(
-        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}',
-      );
-      try {
-        if (await canLaunchUrl(searchUrl)) {
-          await launchUrl(searchUrl, mode: LaunchMode.externalApplication);
-          return;
-        } else {
-          await launchUrl(searchUrl, mode: LaunchMode.platformDefault);
-          return;
-        }
-      } catch (e) {
-        debugPrint('[BookingCard] Search URL Launcher error: $e');
-      }
-    }
-
-    if (context.mounted) {
+    if (!success && context.mounted) {
       GameHudToast.show(
         context,
         AppStrings.somethingWentWrong.tr(),
@@ -132,6 +62,7 @@ class _BookingCardState extends State<BookingCard> {
       _showHighlight = true;
       _startHighlightTimer();
     }
+    _manageCountdownTimer();
   }
 
   @override
@@ -142,6 +73,9 @@ class _BookingCardState extends State<BookingCard> {
         _showHighlight = true;
       });
       _startHighlightTimer();
+    }
+    if (widget.booking != oldWidget.booking) {
+      _manageCountdownTimer();
     }
   }
 
@@ -156,16 +90,36 @@ class _BookingCardState extends State<BookingCard> {
     });
   }
 
+  void _manageCountdownTimer() {
+    _countdownTimer?.cancel();
+    if (widget.booking.isUpcoming) {
+      _countdownTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+  }
+
   @override
   void dispose() {
     _highlightTimer?.cancel();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<LocaleCubit>();
-    final isUpcoming = widget.booking.status == 'upcoming' || widget.booking.status == 'pending';
+    final isUpcoming = widget.booking.isUpcoming;
+
+    final playModeText = widget.booking.playMode != null
+        ? ' (${widget.booking.playMode == 'single' ? AppStrings.singlePlay.tr() : AppStrings.multiPlay.tr()})'
+        : '';
+    final spaceText = widget.booking.spaceType != null && widget.booking.spaceType!.isNotEmpty
+        ? '${widget.booking.spaceType} - '
+        : '';
+    final roomSpecsText =
+        "$spaceText${widget.booking.roomName}$playModeText · ${widget.booking.controllersCount} ${AppStrings.controllers.tr()} · ${widget.booking.screenSize}";
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 800),
@@ -227,11 +181,11 @@ class _BookingCardState extends State<BookingCard> {
           ),
           SizedBox(height: 8.h),
           AppText(
-            text: "${widget.booking.spaceType ?? ''} - ${widget.booking.roomName}${widget.booking.playMode != null ? ' (${widget.booking.playMode == 'single' ? AppStrings.singlePlay.tr() : AppStrings.multiPlay.tr()})' : ''} · ${widget.booking.controllersCount} Controllers · ${widget.booking.screenSize}",
+            text: roomSpecsText,
             fontSize: 12.sp,
             color: AppColors.textSecondary,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            overflow: TextOverflow.visible,
           ),
           SizedBox(height: 16.h),
           Row(
@@ -252,7 +206,7 @@ class _BookingCardState extends State<BookingCard> {
               Icon(Icons.access_time, color: AppColors.neonBlue, size: 16.sp),
               SizedBox(width: 8.w),
               AppText(
-                text: widget.booking.startTime.toAppTimeString(),
+                text: widget.booking.startDateTime.toAppTimeString(),
                 fontSize: 14.sp,
                 color: AppColors.white,
                 fontWeight: FontWeight.bold,
@@ -307,15 +261,15 @@ class _BookingCardState extends State<BookingCard> {
     String text;
 
     switch (widget.booking.status) {
-      case 'upcoming':
+      case BookingStatus.upcoming:
         color = AppColors.success;
         text = AppStrings.confirmed.tr();
         break;
-      case 'pending':
+      case BookingStatus.pending:
         color = AppColors.warning;
-        text = "pending".tr();
+        text = AppStrings.pending.tr();
         break;
-      case 'cancelled':
+      case BookingStatus.cancelled:
         color = AppColors.danger;
         text = AppStrings.cancelled.tr();
         break;
@@ -340,31 +294,9 @@ class _BookingCardState extends State<BookingCard> {
     );
   }
 
-  DateTime get _startDateTime {
-    if (widget.booking.startTime.contains('T')) {
-      try {
-        return DateTime.parse(widget.booking.startTime);
-      } catch (_) {}
-    }
-    final parts = widget.booking.startTime.split(':');
-    if (parts.length >= 2) {
-      final hour = int.tryParse(parts[0]) ?? 0;
-      final minute = int.tryParse(parts[1]) ?? 0;
-      return DateTime(
-        widget.booking.date.year,
-        widget.booking.date.month,
-        widget.booking.date.day,
-        hour,
-        minute,
-      );
-    }
-    return widget.booking.date;
-  }
-
   Widget _buildCountdownBanner() {
     final now = DateTime.now();
-    final start = _startDateTime;
-    final diff = start.difference(now);
+    final diff = widget.booking.startDateTime.difference(now);
     final hours = diff.inHours;
     final mins = diff.inMinutes % 60;
     final timeFormatted = diff.isNegative
@@ -435,7 +367,7 @@ class _BookingCardState extends State<BookingCard> {
             maxLines: 5,
             overflow: TextOverflow.visible,
           ),
-          if (widget.booking.status == 'pending') ...[
+          if (widget.booking.status == BookingStatus.pending) ...[
             SizedBox(height: 8.h),
             Container(
               padding: EdgeInsets.all(8.w),

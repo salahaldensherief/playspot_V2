@@ -5,14 +5,12 @@ class UpdateProfileParams {
   final String name;
   final String phone;
   final String? email;
-  final String? cityId;
   final File? avatarFile;
 
   UpdateProfileParams({
     required this.name,
     required this.phone,
     this.email,
-    this.cityId,
     this.avatarFile,
   });
 }

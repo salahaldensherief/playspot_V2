@@ -218,33 +218,39 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         dev.log("[LIVESESSION_DS] EXTEND_ACTIVE_SESSION RPC SUCCESS");
       } catch (e2) {
         dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update fallback...");
-        final booking = await _client
-            .from('bookings')
-            .select('end_time, extensions_price, total_price')
-            .eq('id', bookingId)
-            .single();
-        final rawEnd = booking['end_time']?.toString() ?? '';
-        DateTime currentEnd;
-        if (rawEnd.contains('T')) {
-          currentEnd = DateTime.parse(rawEnd);
-        } else if (rawEnd.contains(':')) {
-          final parts = rawEnd.split(':');
-          final now = DateTime.now();
-          currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
-        } else {
-          currentEnd = DateTime.now();
-        }
-        final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
-        final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
-        final currentExtPrice = (booking['extensions_price'] as num?)?.toDouble() ?? 0.0;
-        final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
+        try {
+          final booking = await _client
+              .from('bookings')
+              .select('end_time, total_price')
+              .eq('id', bookingId)
+              .single();
+          final rawEnd = booking['end_time']?.toString() ?? '';
+          DateTime currentEnd;
+          if (rawEnd.contains('T')) {
+            currentEnd = DateTime.parse(rawEnd);
+          } else if (rawEnd.contains(':')) {
+            final parts = rawEnd.split(':');
+            final now = DateTime.now();
+            currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
+          } else {
+            currentEnd = DateTime.now();
+          }
+          final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
+          final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
+          final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
 
-        await _client.from('bookings').update({
-          'end_time': newEndStr,
-          'extensions_price': currentExtPrice + additionalCost,
-          'total_price': currentTotal + additionalCost,
-        }).eq('id', bookingId);
-        dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update SUCCESS");
+          await _client.from('bookings').update({
+            'end_time': newEndStr,
+            'total_price': currentTotal + additionalCost,
+          }).eq('id', bookingId);
+          dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update SUCCESS");
+        } catch (dbError) {
+          dev.log("[LIVESESSION_DS] Direct DB update failed ($dbError), falling back to requestExtension...");
+          await requestExtension(
+            bookingId: bookingId,
+            requestedMinutes: additionalMinutes,
+          );
+        }
       }
     }
   }

@@ -2,16 +2,15 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
-import 'package:playspot/art_core/widgets/shimmer/search_lounge_card_shimmer.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/cards/search_lounge_card.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/home_state.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
@@ -28,14 +27,9 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounceTimer;
   String _searchQuery = "";
-  int _selectedFilterIndex = 0;
 
-  List<String> get _filterOptions => [
-        AppStrings.all.tr(),
-        AppStrings.openNow.tr(),
-        AppStrings.highestRated.tr(),
-        AppStrings.nearest.tr(),
-      ];
+  bool _isOpenNowFilter = false;
+  int _sortFilterIndex = 0; // 0: None, 1: Highest Rated, 2: Nearest
 
   @override
   void dispose() {
@@ -55,28 +49,36 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  void _resetAllFilters() {
+    setState(() {
+      _isOpenNowFilter = false;
+      _sortFilterIndex = 0;
+      _searchController.clear();
+      _searchQuery = "";
+    });
+  }
+
+  bool get _hasActiveFilters =>
+      _isOpenNowFilter || _sortFilterIndex != 0 || _searchQuery.isNotEmpty;
+
   List<LoungeModel> _filterAndSortLounges(List<LoungeModel> allLounges) {
     var result = allLounges.where((lounge) {
-      if (_searchQuery.isEmpty) return true;
-      final nameMatches = lounge.name.toLowerCase().contains(_searchQuery);
-      final cityMatches = (lounge.city ?? '').toLowerCase().contains(_searchQuery);
-      final addressMatches = (lounge.location ?? '').toLowerCase().contains(_searchQuery);
-      return nameMatches || cityMatches || addressMatches;
+      if (_searchQuery.isNotEmpty) {
+        final nameMatches = lounge.name.toLowerCase().contains(_searchQuery);
+        final cityMatches = (lounge.city ?? '').toLowerCase().contains(_searchQuery);
+        final addressMatches = (lounge.location ?? '').toLowerCase().contains(_searchQuery);
+        if (!nameMatches && !cityMatches && !addressMatches) return false;
+      }
+      if (_isOpenNowFilter && !lounge.isOpen) {
+        return false;
+      }
+      return true;
     }).toList();
 
-    switch (_selectedFilterIndex) {
-      case 1: // Open Now
-        result = result.where((l) => l.isOpen).toList();
-        break;
-      case 2: // Highest Rated
-        result.sort((a, b) => b.rating.compareTo(a.rating));
-        break;
-      case 3: // Nearest
-        result.sort((a, b) => a.distance.compareTo(b.distance));
-        break;
-      case 0:
-      default:
-        break;
+    if (_sortFilterIndex == 1) {
+      result.sort((a, b) => b.rating.compareTo(a.rating));
+    } else if (_sortFilterIndex == 2) {
+      result.sort((a, b) => a.distance.compareTo(b.distance));
     }
 
     return result;
@@ -161,36 +163,49 @@ class _SearchScreenState extends State<SearchScreen> {
             icon: const Icon(Icons.arrow_back, color: AppColors.white),
           ),
           Expanded(
-            child: AppTextField(
-              controller: _searchController,
-              hint: AppStrings.searchLoungesHint.tr(),
-              borderRadius: 25.r,
-              onChanged: _onSearchChanged,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, color: AppColors.textSecondary),
-                      onPressed: () {
-                        _searchController.clear();
-                        _onSearchChanged('');
-                      },
-                    )
-                  : null,
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _searchController,
+              builder: (context, value, child) {
+                return AppTextField(
+                  controller: _searchController,
+                  hint: AppStrings.searchLoungesHint.tr(),
+                  borderRadius: 25.r,
+                  onChanged: _onSearchChanged,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+                  suffixIcon: value.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: AppColors.textSecondary),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
+                );
+              },
             ),
           ),
           SizedBox(width: 8.w),
-          Container(
-            padding: EdgeInsets.all(10.w),
-            decoration: BoxDecoration(
-              color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: AppColors.borderDefault),
-            ),
-            child: SvgIconWidget(
-              path: AssetsManager.filter,
-              color: AppColors.white,
-              width: 20.w,
-              height: 20,
+          InkWell(
+            onTap: _resetAllFilters,
+            borderRadius: BorderRadius.circular(12.r),
+            child: Container(
+              padding: EdgeInsets.all(10.w),
+              decoration: BoxDecoration(
+                color: _hasActiveFilters
+                    ? AppColors.neonBlue.withValues(alpha: 0.15)
+                    : AppColors.cardBackground,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(
+                  color: _hasActiveFilters ? AppColors.neonBlue : AppColors.borderDefault,
+                ),
+              ),
+              child: SvgIconWidget(
+                path: AssetsManager.filter,
+                color: _hasActiveFilters ? AppColors.neonBlue : AppColors.white,
+                width: 20.w,
+                height: 20.h,
+              ),
             ),
           ),
         ],
@@ -199,40 +214,70 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildCategories() {
+    final filters = [
+      {'label': AppStrings.all.tr(), 'isAll': true},
+      {'label': AppStrings.openNow.tr(), 'isOpenNow': true},
+      {'label': AppStrings.highestRated.tr(), 'sortIndex': 1},
+      {'label': AppStrings.nearest.tr(), 'sortIndex': 2},
+    ];
+
     return SizedBox(
       height: 40.h,
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         scrollDirection: Axis.horizontal,
-        itemCount: _filterOptions.length,
+        itemCount: filters.length,
         separatorBuilder: (context, index) => SizedBox(width: 8.w),
         itemBuilder: (context, index) {
-          final filterName = _filterOptions[index];
-          final isSelected = _selectedFilterIndex == index;
+          final filter = filters[index];
+          final String label = filter['label'] as String;
+
+          bool isSelected = false;
+          if (filter['isAll'] == true) {
+            isSelected = !_isOpenNowFilter && _sortFilterIndex == 0;
+          } else if (filter['isOpenNow'] == true) {
+            isSelected = _isOpenNowFilter;
+          } else if (filter['sortIndex'] != null) {
+            isSelected = _sortFilterIndex == filter['sortIndex'];
+          }
+
           return GestureDetector(
-            onTap: () => setState(() => _selectedFilterIndex = index),
-            child: Container(
+            onTap: () {
+              setState(() {
+                if (filter['isAll'] == true) {
+                  _isOpenNowFilter = false;
+                  _sortFilterIndex = 0;
+                } else if (filter['isOpenNow'] == true) {
+                  _isOpenNowFilter = !_isOpenNowFilter;
+                } else if (filter['sortIndex'] != null) {
+                  final sortIdx = filter['sortIndex'] as int;
+                  _sortFilterIndex = _sortFilterIndex == sortIdx ? 0 : sortIdx;
+                }
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               padding: EdgeInsets.symmetric(horizontal: 14.w),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.transparent : AppColors.cardBackground,
+                color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.15) : AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
                   color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
-                  width: .8,
+                  width: isSelected ? 1.2 : 0.8,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
                           color: AppColors.neonBlue.withValues(alpha: 0.2),
-                          blurRadius: 4,
-                          spreadRadius: 1,
+                          blurRadius: 4.r,
+                          spreadRadius: 1.r,
                         )
                       ]
                     : null,
               ),
               alignment: Alignment.center,
               child: AppText(
-                text: filterName,
+                text: label,
                 fontSize: 13.sp,
                 color: isSelected ? AppColors.neonBlue : AppColors.white,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,

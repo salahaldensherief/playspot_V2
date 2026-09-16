@@ -107,11 +107,14 @@ class _AvatarSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EditProfileCubit, EditProfileState>(
-      buildWhen: (previous, current) => previous.user?.avatarUrl != current.user?.avatarUrl || previous.status != current.status,
+      buildWhen: (previous, current) =>
+          previous.user?.avatarUrl != current.user?.avatarUrl ||
+          previous.avatarFile != current.avatarFile ||
+          previous.status != current.status,
       builder: (context, state) {
         final cubit = context.read<EditProfileCubit>();
         return AvatarPickerWidget(
-          avatarFile: cubit.avatarFile,
+          avatarFile: state.avatarFile,
           imageUrl: state.user?.avatarUrl,
           onTap: cubit.pickAvatar,
           radius: 60,

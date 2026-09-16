@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../domain/entities/tournament_entity.dart';
@@ -19,21 +20,21 @@ class TournamentBracketView extends StatelessWidget {
     if (matches.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: EdgeInsets.all(32.w),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 TablerIcons.sitemap_off,
-                size: 56,
-                color: AppColors.textSecondary.withOpacity(0.5),
+                size: 56.sp,
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
               Text(
                 'tournamentBracket'.tr(),
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textSecondary,
-                  fontSize: 16,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -52,12 +53,12 @@ class TournamentBracketView extends StatelessWidget {
     final sortedRounds = roundsMap.keys.toList()..sort();
 
     return InteractiveViewer(
-      boundaryMargin: const EdgeInsets.all(120),
+      boundaryMargin: EdgeInsets.all(120.w),
       minScale: 0.4,
       maxScale: 2.5,
       constrained: false,
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24.w),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: sortedRounds.map((roundNumber) {
@@ -65,37 +66,37 @@ class TournamentBracketView extends StatelessWidget {
               ..sort((a, b) => a.matchOrder.compareTo(b.matchOrder));
 
             return Container(
-              margin: const EdgeInsetsDirectional.only(end: 48),
-              width: 220,
+              margin: EdgeInsetsDirectional.only(end: 48.w),
+              width: 220.w,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Round Header
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
                     decoration: BoxDecoration(
                       color: AppColors.mutedBackground,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.neonBlue.withOpacity(0.4)),
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
                     ),
                     child: Text(
                       'round'.tr(args: ['$roundNumber']),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.neonBlue,
                         fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontSize: 13.sp,
                         fontFamily: 'Orbitron',
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20.h),
 
                   // Matches Column
                   ...roundMatches.map((match) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 28),
+                      padding: EdgeInsets.only(bottom: 28.h),
                       child: _buildMatchNode(context, match),
                     );
                   }),
@@ -115,32 +116,32 @@ class TournamentBracketView extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: match.status == MatchStatus.inProgress
               ? AppColors.neonPurple
               : match.status == MatchStatus.completed
-                  ? AppColors.neonBlue.withOpacity(0.5)
+                  ? AppColors.neonBlue.withValues(alpha: 0.5)
                   : AppColors.borderDefault,
-          width: match.status == MatchStatus.inProgress ? 1.8 : 1.0,
+          width: match.status == MatchStatus.inProgress ? 1.8.w : 1.0.w,
         ),
         boxShadow: [
           if (match.status == MatchStatus.inProgress)
             BoxShadow(
-              color: AppColors.neonPurple.withOpacity(0.2),
-              blurRadius: 10,
-              spreadRadius: 1,
+              color: AppColors.neonPurple.withValues(alpha: 0.2),
+              blurRadius: 10.r,
+              spreadRadius: 1.r,
             ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         child: InkWell(
           onTap: () => onMatchTap?.call(match),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12.r),
           child: Padding(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(10.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -148,17 +149,17 @@ class TournamentBracketView extends StatelessWidget {
                 if (match.stationNumber != null) ...[
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         TablerIcons.device_tv,
-                        size: 12,
+                        size: 12.sp,
                         color: AppColors.neonBlue,
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4.w),
                       Text(
                         '${'roomStation'.tr()}: ${match.stationNumber}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 10,
+                          fontSize: 10.sp,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -174,9 +175,9 @@ class TournamentBracketView extends StatelessWidget {
                   isWinner: p1IsWinner,
                   isBye: match.player1Id == null,
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: 6.h),
                 const Divider(color: AppColors.divider, height: 1),
-                const SizedBox(height: 6),
+                SizedBox(height: 6.h),
 
                 // Player 2 Row
                 _buildPlayerRow(
@@ -206,11 +207,11 @@ class TournamentBracketView extends StatelessWidget {
             name,
             style: TextStyle(
               color: isBye
-                  ? AppColors.textSecondary.withOpacity(0.5)
+                  ? AppColors.textSecondary.withValues(alpha: 0.5)
                   : isWinner
                       ? AppColors.neonBlue
                       : AppColors.textPrimary,
-              fontSize: 12,
+              fontSize: 12.sp,
               fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
             ),
             maxLines: 1,
@@ -219,16 +220,16 @@ class TournamentBracketView extends StatelessWidget {
         ),
         if (score != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
             decoration: BoxDecoration(
-              color: isWinner ? AppColors.neonBlue.withOpacity(0.2) : AppColors.mutedBackground,
-              borderRadius: BorderRadius.circular(4),
+              color: isWinner ? AppColors.neonBlue.withValues(alpha: 0.2) : AppColors.mutedBackground,
+              borderRadius: BorderRadius.circular(4.r),
             ),
             child: Text(
               '$score',
               style: TextStyle(
                 color: isWinner ? AppColors.neonBlue : AppColors.textSecondary,
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),

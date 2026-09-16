@@ -150,7 +150,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       });
     } catch (e) {
       try {
-        final booking = await _client.from('bookings').select('end_time, extensions_price, total_price').eq('id', bookingId).single();
+        final booking = await _client.from('bookings').select('end_time, total_price').eq('id', bookingId).single();
         final rawEnd = booking['end_time']?.toString() ?? '';
         DateTime currentEnd;
         if (rawEnd.contains('T')) {
@@ -164,16 +164,17 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         }
         final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
         final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
-        final currentExtPrice = (booking['extensions_price'] as num?)?.toDouble() ?? 0.0;
         final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
 
         await _client.from('bookings').update({
           'end_time': newEndStr,
-          'extensions_price': currentExtPrice + additionalCost,
           'total_price': currentTotal + additionalCost,
         }).eq('id', bookingId);
       } catch (fallbackError) {
-        rethrow;
+        await _client.from('bookings').update({
+          'extension_status': 'pending',
+          'requested_extension_minutes': additionalMinutes,
+        }).eq('id', bookingId);
       }
     }
   }

@@ -9,6 +9,11 @@ extension DateTimeExtensions on DateTime {
     }
     return DateFormat('EEEE, MMMM d').format(this);
   }
+
+  /// Formats DateTime to "h:mm AM/PM"
+  String toAppTimeString() {
+    return DateFormat('h:mm a').format(this);
+  }
 }
 
 extension StringTimeExtensions on String {

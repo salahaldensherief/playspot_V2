@@ -12,6 +12,8 @@ class UserModel extends UserEntity {
     super.avatarUrl,
     super.referralCode,
     super.cityId,
+    super.cityNameAr,
+    super.cityNameEn,
     super.role = 'user',
     super.isBanned,
     super.createdAt,
@@ -44,6 +46,9 @@ class UserModel extends UserEntity {
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final cityData = json['cities'] is Map<String, dynamic>
+        ? json['cities'] as Map<String, dynamic>
+        : null;
     return UserModel(
       id: json['id'] as String,
       name: json['full_name'] as String? ?? json['name'] as String?,
@@ -52,6 +57,8 @@ class UserModel extends UserEntity {
       avatarUrl: json['avatar_url'] as String?,
       referralCode: json['referral_code'] as String?,
       cityId: json['city_id'] as String?,
+      cityNameAr: cityData?['name_ar'] as String? ?? cityData?['name'] as String?,
+      cityNameEn: cityData?['name_en'] as String? ?? cityData?['name'] as String?,
       role: normalizeRole(json['role'] as String?),
       isBanned: json['is_banned'] as bool? ?? false,
       createdAt: json['created_at'] != null
@@ -83,6 +90,8 @@ class UserModel extends UserEntity {
       metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
       referralCode: metadata['referral_code'] as String?,
       cityId: metadata['city_id'] as String?,
+      cityNameAr: metadata['city_name_ar'] as String?,
+      cityNameEn: metadata['city_name_en'] as String?,
       role: normalizeRole(rawRole),
       isBanned: false,
       isNewUser: isNewUser,
@@ -104,6 +113,8 @@ class UserModel extends UserEntity {
       'avatar_url': avatarUrl,
       'referral_code': referralCode,
       'city_id': cityId,
+      'city_name_ar': cityNameAr,
+      'city_name_en': cityNameEn,
       'role': role,
       'is_banned': isBanned,
       'created_at': createdAt?.toIso8601String(),
@@ -118,6 +129,8 @@ class UserModel extends UserEntity {
     String? avatarUrl,
     String? referralCode,
     String? cityId,
+    String? cityNameAr,
+    String? cityNameEn,
     String? role,
     bool? isBanned,
     bool? isNewUser,
@@ -132,6 +145,8 @@ class UserModel extends UserEntity {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       referralCode: referralCode ?? this.referralCode,
       cityId: cityId ?? this.cityId,
+      cityNameAr: cityNameAr ?? this.cityNameAr,
+      cityNameEn: cityNameEn ?? this.cityNameEn,
       role: role ?? this.role,
       isBanned: isBanned ?? this.isBanned,
       isNewUser: isNewUser ?? this.isNewUser,

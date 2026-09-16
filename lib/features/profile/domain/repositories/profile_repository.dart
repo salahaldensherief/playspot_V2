@@ -12,6 +12,7 @@ import 'package:playspot/features/profile/data/models/claim_referral_result.dart
 
 abstract class ProfileRepository {
   Future<Either<Failure, UserModel>> updateProfile(UpdateProfileParams params);
+  Future<Either<Failure, void>> updateUserLocation();
   UserModel? getCurrentUser();
   Future<Either<Failure, UserModel>> getUserProfile();
   Future<Either<Failure, int>> getPointsBalance();

@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'signin_state.dart';
@@ -24,6 +26,30 @@ class SignInCubit extends Cubit<LoginState> {
       await _profileRepository.updateFcmToken(token);
     }
     await sl<ProfileCubit>().claimPendingReferralCode();
+    unawaited(_updateLocationAfterAuth());
+  }
+
+  Future<void> _updateLocationAfterAuth() async {
+    try {
+      for (int i = 0; i < 5; i++) {
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user == null) return;
+        try {
+          final res = await Supabase.instance.client
+              .from('profiles')
+              .select('id')
+              .eq('id', user.id)
+              .maybeSingle();
+          if (res != null) {
+            await _profileRepository.updateUserLocation();
+            break;
+          }
+        } catch (_) {}
+        await Future.delayed(const Duration(seconds: 1));
+      }
+    } catch (e) {
+      debugPrint('Background location update error after login: $e');
+    }
   }
 
   Future<void> signInWithEmail({

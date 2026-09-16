@@ -41,7 +41,7 @@ class EditProfileForm extends StatelessWidget {
               if (value == null || value.isEmpty) {
                 return AppStrings.pleaseEnterEmail.tr();
               }
-              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+              if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
                 return AppStrings.pleaseEnterValidEmail.tr();
               }
               return null;
@@ -64,14 +64,17 @@ class EditProfileForm extends StatelessWidget {
           SizedBox(height: 20.h),
           BlocBuilder<EditProfileCubit, EditProfileState>(
             bloc: cubit,
-            buildWhen: (prev, curr) => prev.cities != curr.cities || prev.selectedCityId != curr.selectedCityId,
+            buildWhen: (prev, curr) => prev.user != curr.user || prev.status != curr.status,
             builder: (context, state) {
-              if (state.cities.isEmpty) return const SizedBox.shrink();
+              final isArabic = context.locale.languageCode == 'ar';
+              final cityName = state.user?.getCityName(isArabic) ?? 'غير محدد';
+              final isLoading = state.status == EditProfileStatus.loading;
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'city'.tr(),
+                    isArabic ? 'المدينة (تلقائي عبر GPS)' : 'City (Auto via GPS)',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14.sp,
@@ -79,48 +82,51 @@ class EditProfileForm extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  DropdownButtonFormField<String>(
-                    initialValue: state.cities.any((c) => c['id']?.toString() == state.selectedCityId)
-                        ? state.selectedCityId
-                        : null,
-                    dropdownColor: const Color(0xFF1E1E28),
-                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFF1A1A24),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: const BorderSide(color: Color(0xFF2E2E3E)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: const BorderSide(color: Color(0xFF2E2E3E)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: const BorderSide(color: Color(0xFF00E5FF)),
-                      ),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A24),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: const Color(0xFF2E2E3E)),
                     ),
-                    hint: Text(
-                      'selectCity'.tr(),
-                      style: TextStyle(color: Colors.white54, fontSize: 14.sp),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            cityName,
+                            style: TextStyle(
+                              color: cityName == 'غير محدد' ? Colors.white54 : Colors.white,
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        ElevatedButton.icon(
+                          onPressed: isLoading ? null : () => cubit.updateLocation(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00E5FF),
+                            foregroundColor: Colors.black,
+                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                          ),
+                          icon: isLoading
+                              ? SizedBox(
+                                  width: 16.w,
+                                  height: 16.w,
+                                  child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                )
+                              : const Icon(Icons.my_location, size: 16),
+                          label: Text(
+                            isArabic ? 'تحديث موقعي' : 'Update Location',
+                            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
-                    items: state.cities.map((city) {
-                      final id = city['id']?.toString() ?? '';
-                      final cityName = city['name']?.toString() ??
-                          city['name_ar']?.toString() ??
-                          city['name_en']?.toString() ??
-                          city['city']?.toString() ??
-                          'City';
-                      return DropdownMenuItem<String>(
-                        value: id,
-                        child: Text(cityName),
-                      );
-                    }).toList(),
-                    onChanged: (val) {
-                      cubit.selectCity(val);
-                    },
                   ),
                 ],
               );
