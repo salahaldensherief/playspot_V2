@@ -14,6 +14,7 @@ import '../../tournaments/domain/usecases/get_tournaments_usecase.dart';
 import '../../tournaments/domain/usecases/get_home_tournament_usecase.dart';
 import '../../tournaments/domain/usecases/get_my_active_tournament_usecase.dart';
 import '../../tournaments/domain/entities/tournament_entity.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../domain/repositories/home_repository.dart';
 import 'home_state.dart';
 import '../data/models/lounge_model.dart';
@@ -302,6 +303,11 @@ class HomeCubit extends Cubit<HomeState> {
     final pref = sl<PreferenceManager>();
     await pref.saveLatitude(pos.latitude);
     await pref.saveLongitude(pos.longitude);
+
+    // Invoke update-user-location Edge Function in background
+    try {
+      unawaited(sl<ProfileRepository>().updateUserLocation());
+    } catch (_) {}
 
     final movedSignificantly = _hasMovedSignificantly(pos.latitude, pos.longitude);
     if (shouldRefreshLounges || movedSignificantly) {

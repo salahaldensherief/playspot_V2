@@ -17,10 +17,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   Future<void> applyVoucher(String code) async {
-    if (code.isEmpty) return;
+    final cleanCode = code.trim().toUpperCase();
+    if (cleanCode.isEmpty) return;
     emit(state.copyWith(status: CheckoutStatus.loading));
-    final result = await _profileRepository.validateVoucherByCode(code);
-    
+    final result = await _profileRepository.validateVoucherByCode(cleanCode);
+
     result.fold(
       (failure) => emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: failure.message)),
       (data) {
@@ -29,26 +30,28 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           if (data['reward_type'] == 'discount_fixed') {
             discount = (data['reward_value'] as num).toDouble();
           } else if (data['reward_type'] == 'free_hour') {
-             // In case of free hour, we might need more logic or just fixed value
-             discount = (data['reward_value'] as num?)?.toDouble() ?? 0;
+            discount = (data['reward_value'] as num?)?.toDouble() ?? 0;
           }
-          
+
           emit(state.copyWith(
             status: CheckoutStatus.initial,
             selectedVoucher: Map<String, dynamic>.from(data),
             discountAmount: discount,
           ));
         } else {
-          emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: "Voucher invalid"));
+          final errorMsg = data['error']?.toString() ?? "Voucher invalid";
+          emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: errorMsg));
         }
       },
     );
   }
 
   Future<void> selectVoucher(Map<String, dynamic> voucher) async {
+    final code = (voucher['code'] ?? voucher['id'])?.toString().trim().toUpperCase() ?? '';
+    if (code.isEmpty) return;
     emit(state.copyWith(status: CheckoutStatus.loading));
-    final result = await _profileRepository.validateVoucher(voucher['id']);
-    
+    final result = await _profileRepository.validateVoucherByCode(code);
+
     result.fold(
       (failure) => emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: failure.message)),
       (data) {
@@ -56,15 +59,18 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           double discount = 0;
           if (data['reward_type'] == 'discount_fixed') {
             discount = (data['reward_value'] as num).toDouble();
+          } else if (data['reward_type'] == 'free_hour') {
+            discount = (data['reward_value'] as num?)?.toDouble() ?? 0;
           }
-          
+
           emit(state.copyWith(
             status: CheckoutStatus.initial,
-            selectedVoucher: voucher,
+            selectedVoucher: Map<String, dynamic>.from(data),
             discountAmount: discount,
           ));
         } else {
-          emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: "Voucher invalid"));
+          final errorMsg = data['error']?.toString() ?? "Voucher invalid";
+          emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: errorMsg));
         }
       },
     );
@@ -76,7 +82,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   Future<void> processPayment(CreateBookingParams params) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
-    
+
     final result = await _bookingRepository.createBooking(params);
 
     result.fold(
@@ -87,10 +93,13 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       (bookingData) async {
         if (state.selectedVoucher != null) {
           final bookingId = bookingData['id'].toString();
-          await _profileRepository.consumeVoucher(
-            voucherId: state.selectedVoucher!['id'],
-            bookingId: bookingId,
-          );
+          final voucherCode = (state.selectedVoucher!['code'] ?? state.selectedVoucher!['id'])?.toString().trim().toUpperCase() ?? '';
+          if (voucherCode.isNotEmpty) {
+            await _profileRepository.consumeVoucherByCode(
+              code: voucherCode,
+              bookingId: bookingId,
+            );
+          }
         }
         // Requirement 9: Refresh points and missions data from Supabase after booking completion
         try {

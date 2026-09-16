@@ -1,9 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+
 import '../../../../art_core/theme/app_colors.dart';
 import '../../domain/entities/tournament_entity.dart';
+import 'bracket_match_node.dart';
+import 'bracket_round_header.dart';
+import 'split_bracket_painter.dart';
 
 class TournamentBracketView extends StatelessWidget {
   final List<TournamentMatchEntity> matches;
@@ -18,223 +21,345 @@ class TournamentBracketView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (matches.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                TablerIcons.sitemap_off,
-                size: 56.sp,
-                color: AppColors.textSecondary.withValues(alpha: 0.5),
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                'tournamentBracket'.tr(),
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
+      return const BracketEmptyState();
+    }
+
+    final roundsMap = <int, List<TournamentMatchEntity>>{};
+    for (final match in matches) {
+      roundsMap.putIfAbsent(match.roundNumber, () => []).add(match);
+    }
+
+    final sortedRoundNumbers = roundsMap.keys.toList()..sort();
+    final rounds = sortedRoundNumbers
+        .map(
+          (roundNumber) => roundsMap[roundNumber]!
+            ..sort((a, b) => a.matchOrder.compareTo(b.matchOrder)),
+        )
+        .where((round) => round.isNotEmpty)
+        .toList();
+
+    if (rounds.isEmpty) {
+      return const BracketEmptyState();
+    }
+
+    List<List<TournamentMatchEntity>> bracketRounds;
+    TournamentMatchEntity? finalMatch;
+
+    if (rounds.length > 1 && rounds.last.length == 1) {
+      finalMatch = rounds.last.first;
+      bracketRounds = rounds.sublist(0, rounds.length - 1);
+    } else {
+      bracketRounds = rounds;
+    }
+
+    final leftRounds = <List<TournamentMatchEntity>>[];
+    final rightRounds = <List<TournamentMatchEntity>>[];
+
+    for (final roundMatches in bracketRounds) {
+      if (roundMatches.length >= 2) {
+        final half = roundMatches.length ~/ 2;
+        leftRounds.add(roundMatches.sublist(0, half));
+        rightRounds.add(roundMatches.sublist(half));
+      } else {
+        leftRounds.add(roundMatches);
+      }
+    }
+
+    const double columnWidth = 110;
+    const double horizontalGap = 16;
+    const double matchHeight = 90;
+    const double verticalGap = 16;
+    const double topOffset = 40;
+
+    final firstRoundMatchCount = [
+      if (leftRounds.isNotEmpty) leftRounds.first.length,
+      if (rightRounds.isNotEmpty) rightRounds.first.length,
+      if (finalMatch != null) 1,
+    ].fold<int>(0, (prev, val) => val > prev ? val : prev);
+
+    final safeCount = firstRoundMatchCount <= 0 ? 1 : firstRoundMatchCount;
+    final double branchHeight = safeCount * (matchHeight + verticalGap);
+
+    final totalColumns = leftRounds.length + 1 + rightRounds.length;
+    final double totalWidth = totalColumns * columnWidth + (totalColumns - 1) * horizontalGap;
+
+    if (leftRounds.isEmpty && rightRounds.isEmpty && finalMatch != null) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return InteractiveViewer(
+            boundaryMargin: const EdgeInsets.all(40),
+            minScale: 0.3,
+            maxScale: 2.5,
+            constrained: true,
+            child: Center(
+              child: SizedBox(
+                width: columnWidth + 40,
+                height: matchHeight + 80,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      left: 20,
+                      width: columnWidth,
+                      height: 32,
+                      child: _buildFinalHeader(),
+                    ),
+                    Positioned(
+                      left: 20,
+                      top: 55,
+                      width: columnWidth,
+                      height: matchHeight,
+                      child: BracketMatchNode(
+                        match: finalMatch!,
+                        onTap: () => onMatchTap?.call(finalMatch!),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+          );
+        },
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double availableWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 400;
+        final double availableHeight = constraints.maxHeight > 0 ? constraints.maxHeight : 500;
+        final double scaleX = availableWidth / (totalWidth + 40);
+        final double scaleY = availableHeight / (branchHeight + 100);
+        final double scale = [scaleX, scaleY, 1.0].reduce((a, b) => a < b ? a : b).clamp(0.15, 1.2);
+
+        return InteractiveViewer(
+          boundaryMargin: const EdgeInsets.all(30),
+          minScale: 0.1,
+          maxScale: 3.0,
+          constrained: true,
+          child: Center(
+            child: Transform.scale(
+              scale: scale,
+              child: SizedBox(
+                width: totalWidth + 40,
+                height: branchHeight + 80,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: SplitBracketPainter(
+                          leftRounds: leftRounds,
+                          rightRounds: rightRounds,
+                          columnWidth: columnWidth,
+                          horizontalGap: horizontalGap,
+                          matchHeight: matchHeight,
+                          verticalGap: verticalGap,
+                          branchHeight: branchHeight,
+                          lineColor: AppColors.neonBlue.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                    _buildBracketLayoutContent(
+                      context,
+                      leftRounds,
+                      rightRounds,
+                      finalMatch,
+                      columnWidth,
+                      horizontalGap,
+                      matchHeight,
+                      branchHeight,
+                      topOffset,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFinalHeader() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                AppColors.neonBlue.withValues(alpha: 0.25),
+                AppColors.neonPurple.withValues(alpha: 0.25),
+              ],
+            ),
+            border: Border.all(color: AppColors.neonBlue, width: 1.5),
+          ),
+          child: const Icon(TablerIcons.trophy, color: AppColors.warning, size: 22),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          'tournamentFinal'.tr(),
+          style: const TextStyle(
+            color: AppColors.warning,
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'Orbitron',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBracketLayoutContent(
+    BuildContext context,
+    List<List<TournamentMatchEntity>> leftRounds,
+    List<List<TournamentMatchEntity>> rightRounds,
+    TournamentMatchEntity? finalMatch,
+    double columnWidth,
+    double horizontalGap,
+    double matchHeight,
+    double branchHeight,
+    double topOffset,
+  ) {
+    final widgets = <Widget>[];
+    double currentX = 20;
+
+    // 1. Left Branch
+    for (int r = 0; r < leftRounds.length; r++) {
+      final matches = leftRounds[r];
+      final colX = currentX;
+
+      widgets.add(
+        Positioned(
+          left: colX,
+          top: 0,
+          width: columnWidth,
+          height: 32,
+          child: BracketRoundHeader(
+            roundsFromFinal: leftRounds.length - r,
+            matchCountInRound: matches.length,
+          ),
+        ),
+      );
+
+      final positions = _calculateRoundCenters(
+        count: matches.length,
+        branchHeight: branchHeight,
+        matchHeight: matchHeight,
+        topOffset: topOffset,
+      );
+
+      for (int i = 0; i < matches.length; i++) {
+        widgets.add(
+          Positioned(
+            left: colX,
+            top: positions[i] - (matchHeight / 2),
+            width: columnWidth,
+            height: matchHeight,
+            child: BracketMatchNode(
+              match: matches[i],
+              onTap: () => onMatchTap?.call(matches[i]),
+            ),
+          ),
+        );
+      }
+      currentX += columnWidth + horizontalGap;
+    }
+
+    // 2. Center (Trophy & Final Match)
+    final double centerColX = currentX;
+
+    if (finalMatch != null) {
+      widgets.add(
+        Positioned(
+          left: centerColX,
+          top: 0,
+          width: columnWidth,
+          child: _buildFinalHeader(),
+        ),
+      );
+
+      final finalTopY = topOffset + branchHeight / 2 - (matchHeight / 2);
+
+      widgets.add(
+        Positioned(
+          left: centerColX,
+          top: finalTopY,
+          width: columnWidth,
+          height: matchHeight,
+          child: BracketMatchNode(
+            match: finalMatch,
+            onTap: () => onMatchTap?.call(finalMatch),
           ),
         ),
       );
     }
 
-    // Group matches by round
-    final Map<int, List<TournamentMatchEntity>> roundsMap = {};
-    for (final match in matches) {
-      roundsMap.putIfAbsent(match.roundNumber, () => []).add(match);
+    currentX += columnWidth + horizontalGap;
+
+    // 3. Right Branch
+    final rightRoundsOutToIn = rightRounds.reversed.toList();
+
+    for (int r = 0; r < rightRoundsOutToIn.length; r++) {
+      final matches = rightRoundsOutToIn[r];
+      final colX = currentX;
+
+      widgets.add(
+        Positioned(
+          left: colX,
+          top: 0,
+          width: columnWidth,
+          height: 32,
+          child: BracketRoundHeader(
+            roundsFromFinal: r + 1,
+            matchCountInRound: matches.length,
+          ),
+        ),
+      );
+
+      final positions = _calculateRoundCenters(
+        count: matches.length,
+        branchHeight: branchHeight,
+        matchHeight: matchHeight,
+        topOffset: topOffset,
+      );
+
+      for (int i = 0; i < matches.length; i++) {
+        widgets.add(
+          Positioned(
+            left: colX,
+            top: positions[i] - (matchHeight / 2),
+            width: columnWidth,
+            height: matchHeight,
+            child: BracketMatchNode(
+              match: matches[i],
+              onTap: () => onMatchTap?.call(matches[i]),
+            ),
+          ),
+        );
+      }
+      currentX += columnWidth + horizontalGap;
     }
 
-    final sortedRounds = roundsMap.keys.toList()..sort();
-
-    return InteractiveViewer(
-      boundaryMargin: EdgeInsets.all(120.w),
-      minScale: 0.4,
-      maxScale: 2.5,
-      constrained: false,
-      child: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: sortedRounds.map((roundNumber) {
-            final roundMatches = roundsMap[roundNumber]!
-              ..sort((a, b) => a.matchOrder.compareTo(b.matchOrder));
-
-            return Container(
-              margin: EdgeInsetsDirectional.only(end: 48.w),
-              width: 220.w,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Round Header
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.mutedBackground,
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
-                    ),
-                    child: Text(
-                      'round'.tr(args: ['$roundNumber']),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.neonBlue,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13.sp,
-                        fontFamily: 'Orbitron',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20.h),
-
-                  // Matches Column
-                  ...roundMatches.map((match) {
-                    return Padding(
-                      padding: EdgeInsets.only(bottom: 28.h),
-                      child: _buildMatchNode(context, match),
-                    );
-                  }),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
+    return Stack(children: widgets);
   }
 
-  Widget _buildMatchNode(BuildContext context, TournamentMatchEntity match) {
-    final bool p1IsWinner = match.winnerId != null && match.winnerId == match.player1Id;
-    final bool p2IsWinner = match.winnerId != null && match.winnerId == match.player2Id;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: match.status == MatchStatus.inProgress
-              ? AppColors.neonPurple
-              : match.status == MatchStatus.completed
-                  ? AppColors.neonBlue.withValues(alpha: 0.5)
-                  : AppColors.borderDefault,
-          width: match.status == MatchStatus.inProgress ? 1.8.w : 1.0.w,
-        ),
-        boxShadow: [
-          if (match.status == MatchStatus.inProgress)
-            BoxShadow(
-              color: AppColors.neonPurple.withValues(alpha: 0.2),
-              blurRadius: 10.r,
-              spreadRadius: 1.r,
-            ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(12.r),
-        child: InkWell(
-          onTap: () => onMatchTap?.call(match),
-          borderRadius: BorderRadius.circular(12.r),
-          child: Padding(
-            padding: EdgeInsets.all(10.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Station/Room Header
-                if (match.stationNumber != null) ...[
-                  Row(
-                    children: [
-                      Icon(
-                        TablerIcons.device_tv,
-                        size: 12.sp,
-                        color: AppColors.neonBlue,
-                      ),
-                      SizedBox(width: 4.w),
-                      Text(
-                        '${'roomStation'.tr()}: ${match.stationNumber}',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Divider(color: AppColors.divider, height: 12),
-                ],
-
-                // Player 1 Row
-                _buildPlayerRow(
-                  name: match.player1Name ?? 'bye'.tr(),
-                  score: match.player1Score,
-                  isWinner: p1IsWinner,
-                  isBye: match.player1Id == null,
-                ),
-                SizedBox(height: 6.h),
-                const Divider(color: AppColors.divider, height: 1),
-                SizedBox(height: 6.h),
-
-                // Player 2 Row
-                _buildPlayerRow(
-                  name: match.player2Name ?? 'bye'.tr(),
-                  score: match.player2Score,
-                  isWinner: p2IsWinner,
-                  isBye: match.player2Id == null,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPlayerRow({
-    required String name,
-    required int? score,
-    required bool isWinner,
-    required bool isBye,
+  List<double> _calculateRoundCenters({
+    required int count,
+    required double branchHeight,
+    required double matchHeight,
+    required double topOffset,
   }) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            name,
-            style: TextStyle(
-              color: isBye
-                  ? AppColors.textSecondary.withValues(alpha: 0.5)
-                  : isWinner
-                      ? AppColors.neonBlue
-                      : AppColors.textPrimary,
-              fontSize: 12.sp,
-              fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (score != null)
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-            decoration: BoxDecoration(
-              color: isWinner ? AppColors.neonBlue.withValues(alpha: 0.2) : AppColors.mutedBackground,
-              borderRadius: BorderRadius.circular(4.r),
-            ),
-            child: Text(
-              '$score',
-              style: TextStyle(
-                color: isWinner ? AppColors.neonBlue : AppColors.textSecondary,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-      ],
+    if (count <= 0) return const [];
+    if (count == 1) return [topOffset + branchHeight / 2];
+
+    final available = branchHeight - matchHeight;
+    final spacing = available / (count - 1);
+
+    return List<double>.generate(
+      count,
+      (index) => topOffset + matchHeight / 2 + spacing * index,
     );
   }
 }

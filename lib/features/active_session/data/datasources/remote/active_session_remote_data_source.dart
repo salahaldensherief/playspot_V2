@@ -207,51 +207,16 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         'p_additional_cost': additionalCost,
       });
       dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC SUCCESS");
-    } catch (e1) {
-      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC error: $e1");
-      try {
-        await _client.rpc('extend_active_session', params: {
-          'p_booking_id': bookingId,
-          'p_additional_minutes': additionalMinutes,
-          'p_additional_cost': additionalCost,
-        });
-        dev.log("[LIVESESSION_DS] EXTEND_ACTIVE_SESSION RPC SUCCESS");
-      } catch (e2) {
-        dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update fallback...");
-        try {
-          final booking = await _client
-              .from('bookings')
-              .select('end_time, total_price')
-              .eq('id', bookingId)
-              .single();
-          final rawEnd = booking['end_time']?.toString() ?? '';
-          DateTime currentEnd;
-          if (rawEnd.contains('T')) {
-            currentEnd = DateTime.parse(rawEnd);
-          } else if (rawEnd.contains(':')) {
-            final parts = rawEnd.split(':');
-            final now = DateTime.now();
-            currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
-          } else {
-            currentEnd = DateTime.now();
-          }
-          final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
-          final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
-          final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
-
-          await _client.from('bookings').update({
-            'end_time': newEndStr,
-            'total_price': currentTotal + additionalCost,
-          }).eq('id', bookingId);
-          dev.log("[LIVESESSION_DS] EXTEND_TIME Direct DB update SUCCESS");
-        } catch (dbError) {
-          dev.log("[LIVESESSION_DS] Direct DB update failed ($dbError), falling back to requestExtension...");
-          await requestExtension(
-            bookingId: bookingId,
-            requestedMinutes: additionalMinutes,
-          );
-        }
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC error: $e");
+      final errorStr = e.toString();
+      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||
+          errorStr.contains('conflict') ||
+          errorStr.contains('23P01') ||
+          errorStr.contains('exclusion constraint')) {
+        throw Exception("لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.");
       }
+      rethrow;
     }
   }
 

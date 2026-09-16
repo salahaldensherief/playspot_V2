@@ -126,6 +126,28 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                 pinned: true,
                 backgroundColor: AppColors.scaffoldBackground,
                 leading: const BackButtonWidget(),
+                actions: [
+                  if (state.userParticipant != null &&
+                      state.userParticipant!.status != ParticipantStatus.withdrawn &&
+                      state.userParticipant!.status != ParticipantStatus.cancelled &&
+                      state.userParticipant!.status != ParticipantStatus.eliminated)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.danger.withValues(alpha: 0.15),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                        onPressed: () => _showWithdrawConfirmationDialog(context),
+                        icon: const Icon(TablerIcons.logout, color: AppColors.danger, size: 14),
+                        label: Text(
+                          AppStrings.withdrawFromTournament.tr(),
+                          style: const TextStyle(color: AppColors.danger, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
@@ -147,7 +169,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.black.withOpacity(0.4),
+                              Colors.black.withValues(alpha: 0.4),
                               AppColors.scaffoldBackground,
                             ],
                           ),
@@ -224,7 +246,13 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
               ],
             ),
           ),
-          bottomNavigationBar: _buildActionBottomBar(context, state),
+          bottomNavigationBar: (state.userParticipant != null &&
+                  (state.userParticipant!.status == ParticipantStatus.confirmed ||
+                   state.userParticipant!.status == ParticipantStatus.waitlist ||
+                   state.userParticipant!.checkedIn ||
+                   state.userParticipant!.status == ParticipantStatus.pendingPayment))
+              ? null
+              : _buildActionBottomBar(context, state),
         );
       },
     );
@@ -365,13 +393,13 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
             color: AppColors.cardBackground,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isFirst ? AppColors.warning : AppColors.neonBlue.withOpacity(0.3),
+              color: isFirst ? AppColors.warning : AppColors.neonBlue.withValues(alpha: 0.3),
               width: isFirst ? 1.5 : 1.0,
             ),
             boxShadow: [
               if (isFirst)
                 BoxShadow(
-                  color: AppColors.warning.withOpacity(0.2),
+                  color: AppColors.warning.withValues(alpha: 0.2),
                   blurRadius: 10,
                   spreadRadius: 1,
                 ),
@@ -380,7 +408,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           child: Row(
             children: [
               CircleAvatar(
-                backgroundColor: isFirst ? AppColors.warning.withOpacity(0.2) : AppColors.mutedBackground,
+                backgroundColor: isFirst ? AppColors.warning.withValues(alpha: 0.2) : AppColors.mutedBackground,
                 radius: 20,
                 child: Icon(
                   TablerIcons.trophy,
@@ -520,7 +548,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.danger.withOpacity(0.15),
+                  color: AppColors.danger.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.danger),
                 ),

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/core/notifications/push_notification_service.dart';
 import 'package:playspot/core/services/location_service.dart';
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
@@ -32,6 +34,7 @@ abstract class ProfileRemoteDataSource {
   Future<Map<String, dynamic>> validateVoucher(String voucherId);
   Future<Map<String, dynamic>> validateVoucherByCode(String code);
   Future<void> consumeVoucher({required String voucherId, required String bookingId});
+  Future<void> consumeVoucherByCode({required String code, required String bookingId});
   Future<void> updateFcmToken(String token);
   Future<NotificationSettingsModel> getNotificationSettings();
   Future<void> updateNotificationSettings(NotificationSettingsModel settings);
@@ -54,6 +57,25 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       'p_voucher_id': voucherId,
       'p_booking_id': bookingId,
     });
+  }
+
+  @override
+  Future<void> consumeVoucherByCode({required String code, required String bookingId}) async {
+    final cleanCode = code.trim().toUpperCase();
+    try {
+      await _supabase.rpc('consume_voucher_by_code', params: {
+        'p_code': cleanCode,
+        'p_booking_id': bookingId,
+      });
+    } catch (e) {
+      debugPrint('[ProfileDS] consume_voucher_by_code error: $e');
+      try {
+        await _supabase.rpc('consume_voucher', params: {
+          'p_voucher_id': code,
+          'p_booking_id': bookingId,
+        });
+      } catch (_) {}
+    }
   }
 
   @override
@@ -80,9 +102,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> validateVoucherByCode(String code) async {
+    final cleanCode = code.trim().toUpperCase();
     try {
       final response = await _supabase.rpc('validate_voucher_by_code', params: {
-        'p_code': code,
+        'p_code': cleanCode,
       });
       return Map<String, dynamic>.from(response);
     } catch (e) {
@@ -330,9 +353,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final user = _supabase.auth.currentUser;
       if (user == null) return;
       await _supabase.from('profiles').update({'fcm_token': token}).eq('id', user.id);
-      debugPrint(' [Profile] FCM token updated for user: ${user.id}');
+      debugPrint('[ProfileDS] FCM token updated for user: ${user.id}');
+
+      unawaited(PushNotificationService.instance.toggleTopicSubscription(
+        topic: 'user_${user.id}',
+        enable: true,
+      ));
+      unawaited(PushNotificationService.instance.toggleTopicSubscription(
+        topic: 'all_users',
+        enable: true,
+      ));
     } catch (e) {
-      debugPrint(' [Profile] Update FCM token error: $e');
+      debugPrint('[ProfileDS] Update FCM token error: $e');
     }
   }
 

@@ -146,36 +146,17 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       await _client.rpc('extend_booking_session', params: {
         'p_booking_id': bookingId,
         'p_additional_minutes': additionalMinutes,
-        'p_added_cost': additionalCost,
+        'p_additional_cost': additionalCost,
       });
     } catch (e) {
-      try {
-        final booking = await _client.from('bookings').select('end_time, total_price').eq('id', bookingId).single();
-        final rawEnd = booking['end_time']?.toString() ?? '';
-        DateTime currentEnd;
-        if (rawEnd.contains('T')) {
-          currentEnd = DateTime.parse(rawEnd);
-        } else if (rawEnd.contains(':')) {
-          final parts = rawEnd.split(':');
-          final now = DateTime.now();
-          currentEnd = DateTime(now.year, now.month, now.day, int.parse(parts[0]), int.parse(parts[1]), parts.length > 2 ? int.parse(parts[2].split('.')[0]) : 0);
-        } else {
-          currentEnd = DateTime.now();
-        }
-        final newEnd = currentEnd.add(Duration(minutes: additionalMinutes));
-        final newEndStr = "${newEnd.hour.toString().padLeft(2, '0')}:${newEnd.minute.toString().padLeft(2, '0')}:${newEnd.second.toString().padLeft(2, '0')}";
-        final currentTotal = (booking['total_price'] as num?)?.toDouble() ?? 0.0;
-
-        await _client.from('bookings').update({
-          'end_time': newEndStr,
-          'total_price': currentTotal + additionalCost,
-        }).eq('id', bookingId);
-      } catch (fallbackError) {
-        await _client.from('bookings').update({
-          'extension_status': 'pending',
-          'requested_extension_minutes': additionalMinutes,
-        }).eq('id', bookingId);
+      final errorStr = e.toString();
+      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||
+          errorStr.contains('conflict') ||
+          errorStr.contains('23P01') ||
+          errorStr.contains('exclusion constraint')) {
+        throw Exception("لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.");
       }
+      rethrow;
     }
   }
 
