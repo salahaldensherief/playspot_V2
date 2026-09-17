@@ -9,6 +9,7 @@ import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
+import '../../../../art_core/widgets/buttons/directions_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
@@ -63,12 +64,16 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           );
         }
         if (state.successMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.successMessage!.tr()),
-              backgroundColor: AppColors.success,
-            ),
-          );
+          if (state.successMessage == 'registeredSuccessfully' && state.tournament != null) {
+            _showRegistrationSuccessDialog(context, state.tournament!);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.successMessage!.tr()),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
         }
       },
       builder: (context, state) {
@@ -120,148 +125,153 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           backgroundColor: AppColors.scaffoldBackground,
           body: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              // Hero Header with Cover Image
-              SliverAppBar(
-                expandedHeight: 220,
-                pinned: true,
-                backgroundColor: AppColors.scaffoldBackground,
-                leading: const BackButtonWidget(),
-                actions: [
-                  if (state.userParticipant != null &&
-                      state.userParticipant!.status != ParticipantStatus.withdrawn &&
-                      state.userParticipant!.status != ParticipantStatus.cancelled &&
-                      state.userParticipant!.status != ParticipantStatus.eliminated)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      child: TextButton.icon(
-                        style: TextButton.styleFrom(
-                          backgroundColor: AppColors.danger.withValues(alpha: 0.15),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                        ),
-                        onPressed: () => _showWithdrawConfirmationDialog(context),
-                        icon: const Icon(TablerIcons.logout, color: AppColors.danger, size: 14),
-                        label: Text(
-                          AppStrings.withdrawFromTournament.tr(),
-                          style: const TextStyle(color: AppColors.danger, fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty)
-                        CachedNetworkImage(
-                          imageUrl: tournament.imageUrl!,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 800,
-                          memCacheHeight: 500,
-                          placeholder: (context, url) => Container(color: AppColors.mutedBackground),
-                          errorWidget: (context, url, error) => Container(color: AppColors.mutedBackground),
-                        )
-                      else
-                        Container(color: AppColors.mutedBackground),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.4),
-                              AppColors.scaffoldBackground,
-                            ],
+                    // Hero Header with Cover Image
+                    SliverAppBar(
+                      expandedHeight: 220,
+                      pinned: true,
+                      backgroundColor: AppColors.scaffoldBackground,
+                      leading: const BackButtonWidget(),
+                      actions: [
+                        if (state.userParticipant != null &&
+                            state.userParticipant!.status != ParticipantStatus.withdrawn &&
+                            state.userParticipant!.status != ParticipantStatus.cancelled &&
+                            state.userParticipant!.status != ParticipantStatus.eliminated)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppColors.success.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.successBorder),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(TablerIcons.circle_check, color: AppColors.success, size: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    state.userParticipant!.checkedIn
+                                        ? AppStrings.checkedIn.tr()
+                                        : AppStrings.confirmed.tr(),
+                                    style: const TextStyle(
+                                      color: AppColors.success,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 16,
-                        left: 16,
-                        right: 16,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      ],
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Stack(
+                          fit: StackFit.expand,
                           children: [
-                            TournamentStatusBadge(status: tournament.status),
-                            const SizedBox(height: 8),
-                            Text(
-                              tournament.title,
-                              style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Orbitron',
+                            if (tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty)
+                              CachedNetworkImage(
+                                imageUrl: tournament.imageUrl!,
+                                fit: BoxFit.cover,
+                                memCacheWidth: 800,
+                                memCacheHeight: 500,
+                                placeholder: (context, url) => Container(color: AppColors.mutedBackground),
+                                errorWidget: (context, url, error) => Container(color: AppColors.mutedBackground),
+                              )
+                            else
+                              Container(color: AppColors.mutedBackground),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.black.withValues(alpha: 0.4),
+                                    AppColors.scaffoldBackground,
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              bottom: 16,
+                              left: 16,
+                              right: 16,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  TournamentStatusBadge(status: tournament.status),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    tournament.title,
+                                    style: const TextStyle(
+                                      color: AppColors.textPrimary,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Orbitron',
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
 
-              // Sticky Tab Bar
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: _SliverTabBarDelegate(
-                  TabBar(
+                    // Sticky Tab Bar
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _SliverTabBarDelegate(
+                        TabBar(
+                          controller: _tabController,
+                          indicatorColor: AppColors.neonBlue,
+                          indicatorWeight: 3,
+                          labelColor: AppColors.neonBlue,
+                          unselectedLabelColor: AppColors.textSecondary,
+                          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          tabs: [
+                            Tab(text: AppStrings.tournamentRules.tr()),
+                            Tab(text: AppStrings.tournamentPrizes.tr()),
+                            Tab(text: AppStrings.tournamentBracket.tr()),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  body: TabBarView(
                     controller: _tabController,
-                    indicatorColor: AppColors.neonBlue,
-                    indicatorWeight: 3,
-                    labelColor: AppColors.neonBlue,
-                    unselectedLabelColor: AppColors.textSecondary,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    tabs: [
-                      Tab(text: AppStrings.tournamentRules.tr()),
-                      Tab(text: AppStrings.tournamentPrizes.tr()),
-                      Tab(text: AppStrings.tournamentBracket.tr()),
+                    children: [
+                      // Tab 1: Rules & Actions
+                      _buildRulesTab(tournament, state),
+
+                      // Tab 2: Prizes
+                      _buildPrizesTab(state.prizes),
+
+                      // Tab 3: Bracket
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: TournamentBracketView(
+                          matches: state.matches,
+                          onMatchTap: (match) {
+                            context.pushNamed(
+                              RouterKeys.tournamentMatch,
+                              pathParameters: {
+                                'id': tournament.id,
+                                'matchId': match.id,
+                              },
+                            );
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                // Tab 1: Rules
-                _buildRulesTab(tournament),
-
-                // Tab 2: Prizes
-                _buildPrizesTab(state.prizes),
-
-                // Tab 3: Bracket
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: TournamentBracketView(
-                    matches: state.matches,
-                    onMatchTap: (match) {
-                      context.pushNamed(
-                        RouterKeys.tournamentMatch,
-                        pathParameters: {
-                          'id': tournament.id,
-                          'matchId': match.id,
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          bottomNavigationBar: (state.userParticipant != null &&
-                  (state.userParticipant!.status == ParticipantStatus.confirmed ||
-                   state.userParticipant!.status == ParticipantStatus.waitlist ||
-                   state.userParticipant!.checkedIn ||
-                   state.userParticipant!.status == ParticipantStatus.pendingPayment))
-              ? null
-              : _buildActionBottomBar(context, state),
         );
       },
     );
   }
 
-  Widget _buildRulesTab(TournamentEntity tournament) {
+  Widget _buildRulesTab(TournamentEntity tournament, TournamentDetailsState state) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(16),
@@ -273,18 +283,16 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           _buildParticipantsCard(tournament),
           const SizedBox(height: 16),
           _buildRulesSectionCard(tournament),
+          if (_buildActionButtons(context, state) != null) ...[
+            const SizedBox(height: 20),
+            _buildActionButtons(context, state)!,
+          ],
         ],
       ),
     );
   }
 
   Widget _buildOverviewCard(TournamentEntity tournament) {
-    final scopeText = tournament.visibilityScope == TournamentVisibilityScope.city
-        ? AppStrings.visibilityScopeCity.tr()
-        : tournament.visibilityScope == TournamentVisibilityScope.radius
-            ? AppStrings.visibilityScopeRadius.tr()
-            : AppStrings.visibilityScopeAll.tr();
-
     final entryFeeText = tournament.entryFee > 0
         ? '${tournament.entryFee.toStringAsFixed(0)} ${AppStrings.egp.tr()}'
         : AppStrings.freeEntry.tr();
@@ -375,12 +383,6 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          _buildInfoTile(
-            icon: TablerIcons.eye,
-            label: AppStrings.visibilityScope.tr(),
-            value: scopeText,
           ),
         ],
       ),
@@ -929,7 +931,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
     );
   }
 
-  Widget? _buildActionBottomBar(BuildContext context, TournamentDetailsState state) {
+  Widget? _buildActionButtons(BuildContext context, TournamentDetailsState state) {
     final tournament = state.tournament;
     final participant = state.userParticipant;
 
@@ -941,105 +943,43 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
         tournament.status == TournamentStatus.completed ||
         tournament.status == TournamentStatus.cancelled;
 
+    // Case 1: Participant is withdrawn / cancelled / eliminated / expired
     if (participant != null &&
         (participant.status == ParticipantStatus.expired ||
             participant.status == ParticipantStatus.withdrawn ||
             participant.status == ParticipantStatus.cancelled ||
             participant.status == ParticipantStatus.eliminated ||
             participant.status == ParticipantStatus.noShow)) {
-      return null;
-    }
-
-    // Case 1: Check-in available
-    if (state.canCheckIn) {
-      return SafeArea(
-        child: Padding(
+      if (tournament.status == TournamentStatus.registrationOpen && !isRegistrationClosed) {
+        return Container(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppButton(
-                buttonConfig: ButtonConfig.gradient(
-                  gradient: AppColors.primaryGradient,
-                  glowColor: AppColors.neonBlueAlt,
-                  width: double.infinity,
-                ),
-                content: ButtonContent(label: AppStrings.checkIn.tr()),
-                behavior: TapBehavior(
-                  isLoading: state.isCheckingIn,
-                  onTap: () => context.read<TournamentDetailsCubit>().checkIn(),
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildWithdrawButton(context, state),
-            ],
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.borderDefault),
           ),
-        ),
-      );
-    }
-
-    // Case 2: Checked In
-    if (participant != null && participant.checkedIn) {
-      return SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          color: AppColors.cardBackground,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(TablerIcons.circle_check, color: AppColors.success, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    AppStrings.checkedIn.tr(),
-                    style: const TextStyle(
-                      color: AppColors.success,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _buildWithdrawButton(context, state),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Case 3: Payment Rejected (MOB-05)
-    if (participant != null && participant.paymentStatus == PaymentStatus.rejected) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.danger.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.danger),
+                  color: AppColors.danger.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
                 ),
-                child: Column(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const Icon(TablerIcons.info_circle, color: AppColors.danger, size: 16),
+                    const SizedBox(width: 8),
                     Text(
-                      AppStrings.paymentRejected.tr(),
-                      style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 14),
+                      participant.status == ParticipantStatus.withdrawn
+                          ? 'تم إلغاء الاشتراك من البطولة'
+                          : participant.status.name.tr(),
+                      style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
-                    if (participant.paymentRejectionReason != null && participant.paymentRejectionReason!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        AppStrings.paymentRejectedReason.tr(args: [participant.paymentRejectionReason!]),
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
                   ],
                 ),
               ),
@@ -1050,91 +990,277 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                   glowColor: AppColors.neonBlueAlt,
                   width: double.infinity,
                 ),
-                content: ButtonContent(label: AppStrings.uploadReceipt.tr()),
+                content: ButtonContent(label: AppStrings.registerForTournament.tr()),
                 behavior: TapBehavior(
-                  isLoading: state.isSubmittingPayment,
-                  onTap: () => _showPaymentBottomSheet(context, tournament),
+                  isLoading: state.isRegistering,
+                  onTap: () => context.read<TournamentDetailsCubit>().registerForTournament(),
                 ),
               ),
-              const SizedBox(height: 8),
-              _buildWithdrawButton(context, state),
             ],
           ),
-        ),
-      );
-    }
-
-    // Case 4: Pending Payment -> Show Upload Receipt
-    if (participant != null && participant.status == ParticipantStatus.pendingPayment) {
-      return SafeArea(
-        child: Padding(
+        );
+      } else {
+        return Container(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppButton(
-                buttonConfig: ButtonConfig.gradient(
-                  gradient: AppColors.primaryGradient,
-                  glowColor: AppColors.neonBlueAlt,
-                  width: double.infinity,
-                ),
-                content: ButtonContent(label: AppStrings.uploadReceipt.tr()),
-                behavior: TapBehavior(
-                  isLoading: state.isSubmittingPayment,
-                  onTap: () => _showPaymentBottomSheet(context, tournament),
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildWithdrawButton(context, state),
-            ],
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.borderDefault),
           ),
-        ),
-      );
+          child: Center(
+            child: Text(
+              participant.status == ParticipantStatus.withdrawn
+                  ? 'تم إلغاء الاشتراك من البطولة'
+                  : participant.status.name.tr(),
+              style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+        );
+      }
     }
 
-    // Case 5: Confirmed or Waitlist -> Show status + Withdraw button
-    if (participant != null && (participant.status == ParticipantStatus.confirmed || participant.status == ParticipantStatus.waitlist)) {
-      return SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(16),
+    // Case 2: Check-in available
+    if (state.canCheckIn) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
           color: AppColors.cardBackground,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                participant.status == ParticipantStatus.waitlist ? AppStrings.waitlist.tr() : AppStrings.confirmed.tr(),
-                style: const TextStyle(color: AppColors.neonBlue, fontWeight: FontWeight.bold, fontSize: 15),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderDefault),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppButton(
+              buttonConfig: ButtonConfig.gradient(
+                gradient: AppColors.primaryGradient,
+                glowColor: AppColors.neonBlueAlt,
+                width: double.infinity,
               ),
-              const SizedBox(height: 8),
-              _buildWithdrawButton(context, state),
-            ],
-          ),
+              content: ButtonContent(label: AppStrings.checkIn.tr()),
+              behavior: TapBehavior(
+                isLoading: state.isCheckingIn,
+                onTap: () => context.read<TournamentDetailsCubit>().checkIn(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _buildDirectionsButton(context, tournament)),
+                const SizedBox(width: 8),
+                Expanded(child: _buildWithdrawButton(context, state)),
+              ],
+            ),
+          ],
         ),
       );
     }
 
-    // Case 6: Registration Open & Not yet registered
-    if (participant == null && tournament.status == TournamentStatus.registrationOpen && !isRegistrationClosed) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: AppButton(
-            buttonConfig: ButtonConfig.gradient(
-              gradient: AppColors.primaryGradient,
-              glowColor: AppColors.neonBlueAlt,
+    // Case 3: Checked In
+    if (participant != null && participant.checkedIn) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderDefault),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(TablerIcons.circle_check, color: AppColors.success, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  AppStrings.checkedIn.tr(),
+                  style: const TextStyle(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _buildDirectionsButton(context, tournament)),
+                const SizedBox(width: 8),
+                Expanded(child: _buildWithdrawButton(context, state)),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Case 4: Payment Rejected
+    if (participant != null && participant.paymentStatus == PaymentStatus.rejected) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderDefault),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
               width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.danger.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.danger),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    AppStrings.paymentRejected.tr(),
+                    style: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  if (participant.paymentRejectionReason != null && participant.paymentRejectionReason!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      AppStrings.paymentRejectedReason.tr(args: [participant.paymentRejectionReason!]),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ],
+              ),
             ),
-            content: ButtonContent(label: AppStrings.registerForTournament.tr()),
-            behavior: TapBehavior(
-              isLoading: state.isRegistering,
-              onTap: () => context.read<TournamentDetailsCubit>().registerForTournament(),
+            const SizedBox(height: 12),
+            AppButton(
+              buttonConfig: ButtonConfig.gradient(
+                gradient: AppColors.primaryGradient,
+                glowColor: AppColors.neonBlueAlt,
+                width: double.infinity,
+              ),
+              content: ButtonContent(label: AppStrings.uploadReceipt.tr()),
+              behavior: TapBehavior(
+                isLoading: state.isSubmittingPayment,
+                onTap: () => _showPaymentBottomSheet(context, tournament),
+              ),
             ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _buildDirectionsButton(context, tournament)),
+                const SizedBox(width: 8),
+                Expanded(child: _buildWithdrawButton(context, state)),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Case 5: Pending Payment -> Show Upload Receipt
+    if (participant != null && participant.status == ParticipantStatus.pendingPayment) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderDefault),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppButton(
+              buttonConfig: ButtonConfig.gradient(
+                gradient: AppColors.primaryGradient,
+                glowColor: AppColors.neonBlueAlt,
+                width: double.infinity,
+              ),
+              content: ButtonContent(label: AppStrings.uploadReceipt.tr()),
+              behavior: TapBehavior(
+                isLoading: state.isSubmittingPayment,
+                onTap: () => _showPaymentBottomSheet(context, tournament),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _buildDirectionsButton(context, tournament)),
+                const SizedBox(width: 8),
+                Expanded(child: _buildWithdrawButton(context, state)),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Case 6: Confirmed or Waitlist -> Show status + Directions + Withdraw button
+    if (participant != null && (participant.status == ParticipantStatus.confirmed || participant.status == ParticipantStatus.waitlist)) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderDefault),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              participant.status == ParticipantStatus.waitlist ? AppStrings.waitlist.tr() : AppStrings.confirmed.tr(),
+              style: const TextStyle(color: AppColors.neonBlue, fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _buildDirectionsButton(context, tournament)),
+                const SizedBox(width: 8),
+                Expanded(child: _buildWithdrawButton(context, state)),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Case 7: Registration Open & Not yet registered
+    if (participant == null && tournament.status == TournamentStatus.registrationOpen && !isRegistrationClosed) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderDefault),
+        ),
+        child: AppButton(
+          buttonConfig: ButtonConfig.gradient(
+            gradient: AppColors.primaryGradient,
+            glowColor: AppColors.neonBlueAlt,
+            width: double.infinity,
+          ),
+          content: ButtonContent(label: AppStrings.registerForTournament.tr()),
+          behavior: TapBehavior(
+            isLoading: state.isRegistering,
+            onTap: () => context.read<TournamentDetailsCubit>().registerForTournament(),
           ),
         ),
       );
     }
 
     return null;
+  }
+
+  Widget _buildDirectionsButton(BuildContext context, TournamentEntity tournament) {
+    return DirectionsButton(
+      lat: tournament.latitude,
+      lng: tournament.longitude,
+      loungeName: tournament.loungeName,
+      loungeLocation: tournament.cityName,
+      mapsLink: tournament.mapsLink,
+      height: 40.h,
+    );
   }
 
   Widget _buildWithdrawButton(BuildContext context, TournamentDetailsState state) {
@@ -1153,6 +1279,103 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
         borderColor: AppColors.danger,
         isOutlined: true,
         textStyle: const TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+    );
+  }
+
+  void _showRegistrationSuccessDialog(BuildContext context, TournamentEntity tournament) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.cardBackground,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+          side: const BorderSide(color: AppColors.neonBlue, width: 1.5),
+        ),
+        title: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.success.withValues(alpha: 0.15),
+                border: Border.all(color: AppColors.success, width: 2),
+              ),
+              child: const Icon(TablerIcons.circle_check, color: AppColors.success, size: 40),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'registeredSuccessfully'.tr(),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                fontFamily: 'Orbitron',
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              tournament.title,
+              style: const TextStyle(
+                color: AppColors.neonBlue,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            if (tournament.loungeName != null) ...[
+              Text(
+                '${AppStrings.loungeVenue.tr()}: ${tournament.loungeName!}',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+            ],
+            const Text(
+              'يمكنك الوصول لمقر الصالة المقامة بها البطولة بسهولة من خلال الاتجاهات.',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          Column(
+            children: [
+              DirectionsButton(
+                lat: tournament.latitude,
+                lng: tournament.longitude,
+                loungeName: tournament.loungeName,
+                loungeLocation: tournament.cityName,
+                mapsLink: tournament.mapsLink,
+                height: 44.h,
+                isFullWidth: true,
+                isPrimary: true,
+                onBeforeLaunch: () => Navigator.pop(dialogContext),
+              ),
+              const SizedBox(height: 8),
+              AppButton(
+                content: ButtonContent(label: AppStrings.cancel.tr()),
+                behavior: ButtonBehavior.tap(
+                  onTap: () => Navigator.pop(dialogContext),
+                ),
+                buttonConfig: ButtonConfig(
+                  height: 40.h,
+                  backgroundColor: Colors.transparent,
+                  borderColor: AppColors.borderDefault,
+                  isOutlined: true,
+                  width: double.infinity,
+                  borderRadius: 12.r,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -22,14 +22,16 @@ abstract class TournamentsRepository {
 
   Future<Either<Failure, List<TournamentMatchEntity>>> getTournamentMatches(String tournamentId);
 
+  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(String tournamentId, String matchId);
+
   Future<Either<Failure, TournamentParticipantEntity?>> getUserParticipant(
     String tournamentId,
     String userId,
   );
 
-  Future<Either<Failure, Map<String, dynamic>>> registerForTournament(String tournamentId);
+  Future<Either<Failure, TournamentParticipantEntity?>> registerForTournament(String tournamentId);
 
-  Future<Either<Failure, void>> submitTournamentPayment({
+  Future<Either<Failure, TournamentParticipantEntity?>> submitTournamentPayment({
     required String participantId,
     required String tournamentId,
     required String userId,
@@ -38,7 +40,7 @@ abstract class TournamentsRepository {
     required File receiptFile,
   });
 
-  Future<Either<Failure, void>> checkInParticipant(String participantId);
+  Future<Either<Failure, TournamentParticipantEntity?>> checkInParticipant(String participantId);
 
   Future<Either<Failure, void>> submitMatchResult({
     required String matchId,
@@ -63,7 +65,7 @@ abstract class TournamentsRepository {
     int pageSize = 50,
   });
 
-  Future<Either<Failure, void>> withdrawFromTournament(String participantId, {String? tournamentId});
+  Future<Either<Failure, TournamentParticipantEntity?>> withdrawFromTournament(String participantId, {String? tournamentId});
 
   Future<Either<Failure, List<UserTournamentParticipationEntity>>> getUserTournamentHistory(String userId);
 

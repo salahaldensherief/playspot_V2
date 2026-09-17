@@ -23,14 +23,16 @@ abstract class TournamentsRemoteDataSource {
 
   Future<List<TournamentMatchModel>> getTournamentMatches(String tournamentId);
 
+  Future<TournamentMatchModel?> getMatchById(String tournamentId, String matchId);
+
   Future<TournamentParticipantModel?> getUserParticipant(
     String tournamentId,
     String userId,
   );
 
-  Future<Map<String, dynamic>> registerForTournament(String tournamentId);
+  Future<TournamentParticipantModel?> registerForTournament(String tournamentId);
 
-  Future<void> submitTournamentPayment({
+  Future<TournamentParticipantModel?> submitTournamentPayment({
     required String participantId,
     required String tournamentId,
     required String userId,
@@ -39,7 +41,7 @@ abstract class TournamentsRemoteDataSource {
     required File receiptFile,
   });
 
-  Future<void> checkInParticipant(String participantId);
+  Future<TournamentParticipantModel?> checkInParticipant(String participantId);
 
   Future<void> submitMatchResult({
     required String matchId,
@@ -64,7 +66,7 @@ abstract class TournamentsRemoteDataSource {
     int pageSize = 50,
   });
 
-  Future<void> withdrawFromTournament(String participantId, {String? tournamentId});
+  Future<TournamentParticipantModel?> withdrawFromTournament(String participantId, {String? tournamentId});
 
   Future<List<Map<String, dynamic>>> getUserTournamentHistory(String userId);
 
@@ -112,7 +114,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       if (response == null || (response is List && response.isEmpty)) {
         dev.log('[TOURNAMENTS_REMOTE] RPC returned empty or failed, querying tournaments table directly...');
         try {
-          response = await _client.from('tournaments').select().order('created_at', ascending: false);
+          response = await _client.from('tournaments').select('*, cities:city_id(*), lounges:lounge_id(*)').order('created_at', ascending: false);
         } catch (e3) {
           dev.log('[TOURNAMENTS_REMOTE] Direct select failed: $e3');
         }
@@ -212,7 +214,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
     }
     try {
-      final response = await _client.from('tournaments').select().eq('id', tournamentId).single();
+      final response = await _client.from('tournaments').select('*, cities:city_id(*), lounges:lounge_id(*)').eq('id', tournamentId).single();
       return TournamentModel.fromJson(response);
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentById: $e, using demo fallback...');
@@ -270,6 +272,45 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
+  Future<TournamentMatchModel?> getMatchById(String tournamentId, String matchId) async {
+    if (tournamentId.startsWith('demo_')) {
+      final demoMatches = _getDemoMatches(tournamentId);
+      final safeMatches = List<TournamentMatchModel>.from(demoMatches);
+      return safeMatches.firstWhere(
+        (m) => m.id == matchId,
+        orElse: () => safeMatches.first,
+      );
+    }
+    try {
+      final response = await _client
+          .from('tournament_matches')
+          .select()
+          .eq('id', matchId)
+          .maybeSingle();
+
+      if (response != null) {
+        return TournamentMatchModel.fromJson(response);
+      }
+      final demoMatches = _getDemoMatches(tournamentId);
+      if (demoMatches.isEmpty) return null;
+      final safeMatches = List<TournamentMatchModel>.from(demoMatches);
+      return safeMatches.firstWhere(
+        (m) => m.id == matchId,
+        orElse: () => safeMatches.first,
+      );
+    } catch (e) {
+      dev.log('[TOURNAMENTS_REMOTE] Error in getMatchById: $e');
+      final demoMatches = _getDemoMatches(tournamentId);
+      if (demoMatches.isEmpty) return null;
+      final safeMatches = List<TournamentMatchModel>.from(demoMatches);
+      return safeMatches.firstWhere(
+        (m) => m.id == matchId,
+        orElse: () => safeMatches.first,
+      );
+    }
+  }
+
+  @override
   Future<TournamentParticipantModel?> getUserParticipant(
     String tournamentId,
     String userId,
@@ -317,7 +358,12 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> registerForTournament(String tournamentId) async {
+  Future<TournamentParticipantModel?> registerForTournament(String tournamentId) async {
+    if (tournamentId.startsWith('demo_')) {
+      _demoParticipantStatuses[tournamentId] = ParticipantStatus.confirmed;
+      return _getDemoParticipant(tournamentId, 'demo_user');
+    }
+
     final currentUser = _client.auth.currentUser;
     if (currentUser == null) {
       throw Exception('User not logged in');
@@ -332,9 +378,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
 
       if (res is Map<String, dynamic>) {
-        return res;
+        return TournamentParticipantModel.fromJson(res);
       }
-      return {'participant_id': res?.toString()};
+      return await getUserParticipant(tournamentId, currentUser.id);
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC register_for_tournament error: $e');
       rethrow;
@@ -342,7 +388,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<void> submitTournamentPayment({
+  Future<TournamentParticipantModel?> submitTournamentPayment({
     required String participantId,
     required String tournamentId,
     required String userId,
@@ -350,6 +396,11 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     required String paymentMethod,
     required File receiptFile,
   }) async {
+    if (participantId.startsWith('p_demo') || tournamentId.startsWith('demo_')) {
+      _demoParticipantStatuses[tournamentId] = ParticipantStatus.pendingPayment;
+      return _getDemoParticipant(tournamentId, userId);
+    }
+
     final fileExt = receiptFile.path.split('.').last;
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
     final storagePath = 'tournament-receipts/$tournamentId/$userId/$fileName';
@@ -369,7 +420,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         .createSignedUrl(storagePath, 60 * 60 * 24 * 365);
 
     try {
-      await _client.rpc(
+      final res = await _client.rpc(
         'submit_tournament_payment',
         params: {
           'p_participant_id': participantId,
@@ -378,6 +429,11 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           'p_receipt_url': signedUrl,
         },
       );
+
+      if (res is Map<String, dynamic>) {
+        return TournamentParticipantModel.fromJson(res);
+      }
+      return await getUserParticipant(tournamentId, userId);
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC submit_tournament_payment error: $e');
       rethrow;
@@ -385,12 +441,24 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<void> checkInParticipant(String participantId) async {
+  Future<TournamentParticipantModel?> checkInParticipant(String participantId) async {
+    if (participantId.startsWith('p_demo')) {
+      _demoParticipantStatuses.forEach((key, value) {
+        _demoParticipantStatuses[key] = ParticipantStatus.checkedIn;
+      });
+      return _getDemoParticipant('demo_fc24', 'demo_user');
+    }
+
     try {
-      await _client.rpc(
+      final res = await _client.rpc(
         'check_in_tournament_participant',
         params: {'p_participant_id': participantId},
       );
+
+      if (res is Map<String, dynamic>) {
+        return TournamentParticipantModel.fromJson(res);
+      }
+      return null;
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC check_in_tournament_participant error: $e');
       rethrow;
@@ -536,32 +604,43 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     }
   }
 
+  final Map<String, ParticipantStatus> _demoParticipantStatuses = {};
+
   @override
-  Future<void> withdrawFromTournament(String participantId, {String? tournamentId}) async {
+  @override
+  Future<TournamentParticipantModel?> withdrawFromTournament(String participantId, {String? tournamentId}) async {
+    if (participantId.startsWith('p_demo') || (tournamentId != null && tournamentId.startsWith('demo_'))) {
+      dev.log('[TOURNAMENTS_REMOTE] Withdraw demo tournament $tournamentId for participant $participantId');
+      if (tournamentId != null) {
+        _demoParticipantStatuses[tournamentId] = ParticipantStatus.withdrawn;
+      } else {
+        _demoParticipantStatuses['demo_fc24'] = ParticipantStatus.withdrawn;
+      }
+      return _getDemoParticipant(tournamentId ?? 'demo_fc24', 'demo_user');
+    }
     try {
-      await _client.rpc(
+      final res = await _client.rpc(
         'withdraw_from_tournament',
         params: {
           'p_participant_id': participantId,
           'p_tournament_id': tournamentId,
         },
       );
-    } catch (e) {
-      try {
-        if (tournamentId != null) {
-          await _client.rpc(
-            'withdraw_from_tournament',
-            params: {'p_tournament_id': tournamentId},
-          );
-          return;
-        }
-      } catch (e2) {
-        dev.log('[TOURNAMENTS_REMOTE] Second withdraw_from_tournament RPC attempt failed: $e2');
+
+      if (res is Map<String, dynamic>) {
+        return TournamentParticipantModel.fromJson(res);
       }
+      return null;
+    } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC withdraw_from_tournament error, fallback to direct update: $e');
-      await _client.from('tournament_participants').update({
+      final res = await _client.from('tournament_participants').update({
         'registration_status': 'withdrawn',
-      }).eq('id', participantId);
+      }).eq('id', participantId).select().maybeSingle();
+
+      if (res != null) {
+        return TournamentParticipantModel.fromJson(res);
+      }
+      return null;
     }
   }
 
@@ -850,15 +929,16 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   TournamentParticipantModel _getDemoParticipant(String tournamentId, String userId) {
+    final status = _demoParticipantStatuses[tournamentId] ?? ParticipantStatus.checkedIn;
     return TournamentParticipantModel(
       id: 'p_demo',
       tournamentId: tournamentId,
       userId: userId,
       userName: 'أنت (المستخدم الحالي)',
-      status: ParticipantStatus.checkedIn,
+      status: status,
       paymentStatus: PaymentStatus.approved,
-      checkedIn: true,
-      checkedInAt: DateTime.now().subtract(const Duration(minutes: 30)),
+      checkedIn: status == ParticipantStatus.checkedIn,
+      checkedInAt: status == ParticipantStatus.checkedIn ? DateTime.now().subtract(const Duration(minutes: 30)) : null,
     );
   }
 

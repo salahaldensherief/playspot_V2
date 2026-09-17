@@ -14,6 +14,7 @@ import '../../tournaments/domain/usecases/get_tournaments_usecase.dart';
 import '../../tournaments/domain/usecases/get_home_tournament_usecase.dart';
 import '../../tournaments/domain/usecases/get_my_active_tournament_usecase.dart';
 import '../../tournaments/domain/entities/tournament_entity.dart';
+import '../../tournaments/domain/entities/user_tournament_participation_entity.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../domain/repositories/home_repository.dart';
 import 'home_state.dart';
@@ -79,7 +80,7 @@ class HomeCubit extends Cubit<HomeState> {
       pointsBalance: meta.points,
     ));
 
-    _cacheMetaData(meta.promotions, meta.categories);
+    _cacheMetaData(meta.promotions, meta.categories, meta.cities);
 
     unawaited(fetchTournamentsData());
 
@@ -94,11 +95,57 @@ class HomeCubit extends Cubit<HomeState> {
     await _detectLocation(meta.cities, shouldRefreshLounges: !hasSavedLocation);
   }
 
+  static const String _citiesCacheKey = 'CITIES_CACHE';
+  static const String _citiesCacheTimeKey = 'CITIES_CACHE_TIME';
+  static const String _categoriesCacheTimeKey = 'CATEGORIES_CACHE_TIME';
+  static const Duration _metaTtl = Duration(hours: 24);
+
+  bool _isCacheValid(String timeKey) {
+    final timestampStr = _pref.getValue(timeKey);
+    if (timestampStr.isEmpty) return false;
+    final timestamp = int.tryParse(timestampStr);
+    if (timestamp == null) return false;
+    final age = DateTime.now().millisecondsSinceEpoch - timestamp;
+    return age < _metaTtl.inMilliseconds;
+  }
+
+  List<Map<String, dynamic>> _getCachedCities() {
+    final raw = _pref.getValue(_citiesCacheKey);
+    if (raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  List<CategoryModel> _getCachedCategories() {
+    final raw = _pref.getValue(CachingKey.CATEGORIES_CACHE);
+    if (raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => CategoryModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<_MetaDataResult> _fetchMetaData(String? userId) async {
+    final bool citiesCacheValid = _isCacheValid(_citiesCacheTimeKey);
+    final cachedCities = citiesCacheValid ? _getCachedCities() : <Map<String, dynamic>>[];
+
+    final bool categoriesCacheValid = _isCacheValid(_categoriesCacheTimeKey);
+    final cachedCategories = categoriesCacheValid ? _getCachedCategories() : <CategoryModel>[];
+
     final meta = await Future.wait([
-      _homeRepository.getAvailableCities(),
+      (citiesCacheValid && cachedCities.isNotEmpty)
+          ? Future.value(Right<Failure, List<Map<String, dynamic>>>(cachedCities))
+          : _homeRepository.getAvailableCities(),
       _homeRepository.getPromotions(loungeId: null),
-      _homeRepository.getCategories(),
+      (categoriesCacheValid && cachedCategories.isNotEmpty)
+          ? Future.value(Right<Failure, List<CategoryModel>>(cachedCategories))
+          : _homeRepository.getCategories(),
       if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
     ]);
 
@@ -121,8 +168,18 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> fetchTournamentsData() async {
-    // 1) Fetch featured home promo tournament via RPC get_home_tournament
-    final homeTournamentResult = await _getHomeTournamentUseCase();
+    final userId = _pref.userId();
+    final hasUser = userId != null && userId.isNotEmpty;
+
+    final results = await Future.wait([
+      _getHomeTournamentUseCase(),
+      if (hasUser) _getMyActiveTournamentUseCase(),
+    ]);
+
+    final homeTournamentResult = results[0] as Either<Failure, TournamentEntity?>;
+    final activeResult = hasUser ? results[1] as Either<Failure, UserTournamentParticipationEntity?> : null;
+
+    // 1) Fetch featured home promo tournament
     await homeTournamentResult.fold(
       (failure) async {
         // Fallback if RPC fails
@@ -150,10 +207,8 @@ class HomeCubit extends Cubit<HomeState> {
       },
     );
 
-    // 2) Fetch user active tournament via RPC get_my_active_tournament
-    final userId = _pref.userId();
-    if (userId != null && userId.isNotEmpty) {
-      final activeResult = await _getMyActiveTournamentUseCase();
+    // 2) Fetch user active tournament
+    if (activeResult != null) {
       activeResult.fold(
         (failure) {},
         (participation) {
@@ -198,9 +253,18 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  void _cacheMetaData(List<PromoModel> promos, List<CategoryModel> cats) {
+  void _cacheMetaData(List<PromoModel> promos, List<CategoryModel> cats, List<Map<String, dynamic>> cities) {
+    final now = DateTime.now().millisecondsSinceEpoch.toString();
     _pref.saveValue(CachingKey.PROMOTIONS_CACHE, jsonEncode(promos.map((e) => e.toJson()).toList()));
-    _pref.saveValue(CachingKey.CATEGORIES_CACHE, jsonEncode(cats.map((e) => e.toJson()).toList()));
+
+    if (cats.isNotEmpty) {
+      _pref.saveValue(CachingKey.CATEGORIES_CACHE, jsonEncode(cats.map((e) => e.toJson()).toList()));
+      _pref.saveValue(_categoriesCacheTimeKey, now);
+    }
+    if (cities.isNotEmpty) {
+      _pref.saveValue(_citiesCacheKey, jsonEncode(cities));
+      _pref.saveValue(_citiesCacheTimeKey, now);
+    }
   }
 
   Future<void> refreshHome() async {
@@ -217,7 +281,7 @@ class HomeCubit extends Cubit<HomeState> {
       pointsBalance: meta.points,
     ));
 
-    _cacheMetaData(meta.promotions, meta.categories);
+    _cacheMetaData(meta.promotions, meta.categories, meta.cities);
 
     unawaited(fetchTournamentsData());
 

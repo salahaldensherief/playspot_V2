@@ -51,6 +51,11 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   }
 
   @override
+  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(String tournamentId, String matchId) {
+    return callRepository(() => _remoteDataSource.getMatchById(tournamentId, matchId));
+  }
+
+  @override
   Future<Either<Failure, TournamentParticipantEntity?>> getUserParticipant(
     String tournamentId,
     String userId,
@@ -59,12 +64,12 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> registerForTournament(String tournamentId) {
+  Future<Either<Failure, TournamentParticipantEntity?>> registerForTournament(String tournamentId) {
     return callRepository(() => _remoteDataSource.registerForTournament(tournamentId));
   }
 
   @override
-  Future<Either<Failure, void>> submitTournamentPayment({
+  Future<Either<Failure, TournamentParticipantEntity?>> submitTournamentPayment({
     required String participantId,
     required String tournamentId,
     required String userId,
@@ -83,7 +88,7 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   }
 
   @override
-  Future<Either<Failure, void>> checkInParticipant(String participantId) {
+  Future<Either<Failure, TournamentParticipantEntity?>> checkInParticipant(String participantId) {
     return callRepository(() => _remoteDataSource.checkInParticipant(participantId));
   }
 
@@ -141,7 +146,7 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   }
 
   @override
-  Future<Either<Failure, void>> withdrawFromTournament(String participantId, {String? tournamentId}) {
+  Future<Either<Failure, TournamentParticipantEntity?>> withdrawFromTournament(String participantId, {String? tournamentId}) {
     return callRepository(() => _remoteDataSource.withdrawFromTournament(participantId, tournamentId: tournamentId));
   }
 

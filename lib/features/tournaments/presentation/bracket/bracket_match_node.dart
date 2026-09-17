@@ -129,14 +129,14 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
             alignment: Alignment.topRight,
             children: [
               Container(
-                width: 36,
-                height: 36,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.cardBackground,
                   border: Border.all(
                     color: borderColor,
-                    width: isWinner || isLoser ? 2.2 : 1.2,
+                    width: isWinner || isLoser ? 2.5 : 1.5,
                   ),
                 ),
                 child: Padding(
@@ -157,7 +157,7 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                   bottom: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
                       color: isWinner
                           ? AppColors.success
@@ -171,7 +171,7 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                       '$score',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 7,
+                        fontSize: 9,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -182,13 +182,13 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
         ),
         if (showName)
           Positioned(
-            bottom: isTopPlayer ? 30 : null,
-            top: !isTopPlayer ? 30 : null,
+            bottom: isTopPlayer ? 42 : null,
+            top: !isTopPlayer ? 42 : null,
             child: Material(
               color: Colors.transparent,
               child: Container(
-                constraints: const BoxConstraints(maxWidth: 90),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                constraints: const BoxConstraints(maxWidth: 100),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
                   color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(5),
@@ -208,7 +208,7 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                         : isLoser
                             ? AppColors.danger
                             : AppColors.textSecondary,
-                    fontSize: 8,
+                    fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),
                   maxLines: 1,
@@ -227,7 +227,7 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
       color: AppColors.mutedBackground,
       child: const Icon(
         TablerIcons.user,
-        size: 16,
+        size: 22,
         color: AppColors.textSecondary,
       ),
     );

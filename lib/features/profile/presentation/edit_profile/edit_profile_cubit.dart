@@ -14,6 +14,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController locationController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   EditProfileCubit(this._profileRepository, this._authRepository) : super(const EditProfileState());
@@ -23,6 +24,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     nameController.text = currentUser?.name ?? '';
     phoneController.text = currentUser?.phone ?? '';
     emailController.text = currentUser?.email ?? '';
+    locationController.text = currentUser?.getCityName(true) ?? (currentUser?.getCityName(false) ?? '');
 
     emit(state.copyWith(user: currentUser));
 
@@ -34,6 +36,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         nameController.text = user.name ?? nameController.text;
         phoneController.text = user.phone ?? phoneController.text;
         emailController.text = user.email ?? emailController.text;
+        locationController.text = user.getCityName(true) ?? (user.getCityName(false) ?? locationController.text);
         if (!isClosed) {
           emit(state.copyWith(user: user));
         }
@@ -58,13 +61,14 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         profileRes.fold(
           (_) {
             if (!isClosed) {
-              emit(state.copyWith(status: EditProfileStatus.success));
+              emit(state.copyWith(status: EditProfileStatus.locationUpdated));
             }
           },
           (user) {
+            locationController.text = user.getCityName(true) ?? (user.getCityName(false) ?? locationController.text);
             if (!isClosed) {
               emit(state.copyWith(
-                status: EditProfileStatus.success,
+                status: EditProfileStatus.locationUpdated,
                 user: user,
               ));
             }
@@ -145,6 +149,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     nameController.dispose();
     phoneController.dispose();
     emailController.dispose();
+    locationController.dispose();
     return super.close();
   }
 }

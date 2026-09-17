@@ -13,7 +13,8 @@ import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
-import '../../../../art_core/widgets/shimmer/lounge_card_shimmer.dart';
+import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../../art_core/widgets/text_field/app_text_field.dart';
 import '../widgets/tournament_card.dart';
 import 'tournaments_feed_cubit.dart';
@@ -289,11 +290,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                     previous.errorMessage != current.errorMessage,
                 builder: (context, state) {
                   if (state.status == TournamentsFeedStatus.loading && state.tournaments.isEmpty) {
-                    return ListView.builder(
-                      padding: EdgeInsets.all(16.w),
-                      itemCount: 4,
-                      itemBuilder: (context, index) => const LoungeCardShimmer(),
-                    );
+                    return const AppLoader(size: 40);
                   }
 
                   if (state.status == TournamentsFeedStatus.failure && state.tournaments.isEmpty) {
@@ -338,9 +335,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                   }
 
                   if (state.tournaments.isEmpty) {
-                    return RefreshIndicator(
-                      color: AppColors.neonBlue,
-                      backgroundColor: AppColors.cardBackground,
+                    return AppRefreshIndicator(
                       onRefresh: () async {
                         await context.read<TournamentsFeedCubit>().loadTournaments(isRefresh: true);
                       },
@@ -374,9 +369,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                     );
                   }
 
-                  return RefreshIndicator(
-                    color: AppColors.neonBlue,
-                    backgroundColor: AppColors.cardBackground,
+                  return AppRefreshIndicator(
                     onRefresh: () async {
                       await context.read<TournamentsFeedCubit>().loadTournaments(isRefresh: true);
                     },

@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/booking_params.dart';
 
 abstract class BookingRemoteDataSource {
-  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date);
+  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId});
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
   Future<void> extendSession({
@@ -38,14 +38,20 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   BookingRemoteDataSourceImpl(this._client);
 
   @override
-  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date) async {
+  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId}) async {
     final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
     
-    final response = await _client
+    var query = _client
         .from('bookings')
         .select('room_id, start_time, end_time, date, status, start_at, end_at, booking_period')
         .eq('lounge_id', loungeId)
         .eq('date', dateStr);
+
+    if (roomId != null && roomId.isNotEmpty) {
+      query = query.eq('room_id', roomId);
+    }
+
+    final response = await query;
 
     return List<Map<String, dynamic>>.from(response);
   }

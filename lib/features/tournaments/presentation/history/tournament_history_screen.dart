@@ -9,6 +9,7 @@ import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import 'tournament_history_cubit.dart';
 import 'tournament_history_state.dart';
 
@@ -62,9 +63,7 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
             }
 
             if (state.participations.isEmpty) {
-              return RefreshIndicator(
-                color: AppColors.neonBlue,
-                backgroundColor: AppColors.cardBackground,
+              return AppRefreshIndicator(
                 onRefresh: () async {
                   await context.read<TournamentHistoryCubit>().loadHistory();
                 },
@@ -97,9 +96,7 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
               );
             }
 
-            return RefreshIndicator(
-              color: AppColors.neonBlue,
-              backgroundColor: AppColors.cardBackground,
+            return AppRefreshIndicator(
               onRefresh: () async {
                 await context.read<TournamentHistoryCubit>().loadHistory();
               },

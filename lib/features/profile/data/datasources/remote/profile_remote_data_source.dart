@@ -7,6 +7,7 @@ import 'package:playspot/core/notifications/push_notification_service.dart';
 import 'package:playspot/core/services/location_service.dart';
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
+import '../../../../../core/cache/preference_manager.dart';
 import '../../../../../core/models/paginated_response.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../auth/data/models/user_model.dart';
@@ -279,6 +280,23 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       throw const AppException('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى');
     }
 
+    // 1. Save lat/lng in local SharedPreferences for immediate distance calculations
+    final pref = sl<PreferenceManager>();
+    await pref.saveLatitude(position.latitude);
+    await pref.saveLongitude(position.longitude);
+
+    // 2. Direct update to profiles table so coordinates are always persisted
+    try {
+      await _supabase.from('profiles').update({
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', user.id);
+    } catch (e) {
+      debugPrint('[Profile] Direct profiles location update error: $e');
+    }
+
+    // 3. Invoke update-user-location Edge Function to resolve city_id
     try {
       await _supabase.functions.invoke(
         'update-user-location',
@@ -289,22 +307,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
     } on FunctionException catch (e) {
       if (e.status == 422) {
-        throw const AppException('المدينة غير مضافة حالياً للنظام');
+        debugPrint('[Profile] City not in cities table yet.');
       } else if (e.status == 401 || e.status == 403) {
         throw const AppException('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى');
-      } else {
-        final errMsg = e.details?.toString() ?? e.toString();
-        throw AppException(errMsg);
       }
     } catch (e) {
-      final msg = e.toString();
-      if (msg.contains('422')) {
-        throw const AppException('المدينة غير مضافة حالياً للنظام');
-      } else if (msg.contains('401') || msg.contains('403')) {
-        throw const AppException('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى');
-      } else {
-        throw const AppException('حدث خطأ مؤقت، يرجى المحاولة مرة أخرى');
-      }
+      debugPrint('[Profile] Edge function invoke exception: $e');
     }
   }
 

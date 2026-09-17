@@ -6,6 +6,7 @@ import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
@@ -71,9 +72,8 @@ class ActiveSessionBody extends StatelessWidget {
         }
 
         if (state.status == ActiveSessionStatus.empty || state.session == null) {
-          return RefreshIndicator(
+          return AppRefreshIndicator(
             onRefresh: () => context.read<ActiveSessionCubit>().loadActiveSession(),
-            color: AppColors.neonBlue,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Container(
@@ -122,10 +122,9 @@ class ActiveSessionBody extends StatelessWidget {
 
         final session = state.session!;
 
-        return RefreshIndicator(
+        return AppRefreshIndicator(
           onRefresh: () =>
               context.read<ActiveSessionCubit>().loadActiveSession(),
-          color: AppColors.neonBlue,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.all(20.w),

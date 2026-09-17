@@ -62,7 +62,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     try {
       log("FETCHING LOUNGE DETAILS IN PARALLEL...");
       final results = await Future.wait([
-        _loungeDetailsRepository.getRoomsByLoungeId(loungeId, forceRefresh: true),
+        _loungeDetailsRepository.getRoomsByLoungeId(loungeId, forceRefresh: false),
         _loungeDetailsRepository.getExtras(loungeId),
         _loungeDetailsRepository.getLoungeCategories(loungeId),
         _loungeDetailsRepository.getLoungeReviews(loungeId),

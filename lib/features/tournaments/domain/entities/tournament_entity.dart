@@ -364,6 +364,9 @@ class TournamentEntity extends Equatable {
   final String? cityName;
   final String? loungeId;
   final String? loungeName;
+  final double? latitude;
+  final double? longitude;
+  final String? mapsLink;
   final String? imageUrl;
   final String? bannerUrl;
   final String? thumbnailUrl;
@@ -404,6 +407,9 @@ class TournamentEntity extends Equatable {
     this.cityName,
     this.loungeId,
     this.loungeName,
+    this.latitude,
+    this.longitude,
+    this.mapsLink,
     this.imageUrl,
     this.bannerUrl,
     this.thumbnailUrl,
@@ -446,6 +452,9 @@ class TournamentEntity extends Equatable {
         cityName,
         loungeId,
         loungeName,
+        latitude,
+        longitude,
+        mapsLink,
         imageUrl,
         bannerUrl,
         thumbnailUrl,

@@ -20,6 +20,10 @@ class GetTournamentDetailsUseCase {
     return repository.getTournamentMatches(tournamentId);
   }
 
+  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(String tournamentId, String matchId) {
+    return repository.getMatchById(tournamentId, matchId);
+  }
+
   Future<Either<Failure, TournamentParticipantEntity?>> getUserParticipant(
     String tournamentId,
     String userId,

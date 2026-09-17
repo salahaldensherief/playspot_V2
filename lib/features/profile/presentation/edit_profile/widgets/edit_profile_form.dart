@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/features/profile/presentation/edit_profile/edit_profile_state.dart';
 import '../edit_profile_cubit.dart';
@@ -67,68 +68,43 @@ class EditProfileForm extends StatelessWidget {
             buildWhen: (prev, curr) => prev.user != curr.user || prev.status != curr.status,
             builder: (context, state) {
               final isArabic = context.locale.languageCode == 'ar';
-              final cityName = state.user?.getCityName(isArabic) ?? 'غير محدد';
               final isLoading = state.status == EditProfileStatus.loading;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isArabic ? 'المدينة (تلقائي عبر GPS)' : 'City (Auto via GPS)',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
+              final currentCity = state.user?.getCityName(isArabic);
+              if (currentCity != null && currentCity.isNotEmpty) {
+                cubit.locationController.text = currentCity;
+              }
+
+              return AppTextField(
+                controller: cubit.locationController,
+                label: isArabic ? 'المدينة (تلقائي عبر GPS)' : 'City (Auto via GPS)',
+                hint: isArabic ? 'اضغط تحديث موقعي...' : 'Tap update location...',
+                readOnly: true,
+                suffixIcon: Container(
+                  margin: EdgeInsets.only(left: 8.w, right: 8.w, top: 4.h, bottom: 4.h),
+                  child: ElevatedButton.icon(
+                    onPressed: isLoading ? null : () => cubit.updateLocation(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00E5FF),
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                    icon: isLoading
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: AppLoader(size: 14, strokeWidth: 2, color: Colors.black),
+                          )
+                        : const Icon(Icons.my_location, size: 14),
+                    label: Text(
+                      isArabic ? 'تحديث' : 'Update',
+                      style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  SizedBox(height: 8.h),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A24),
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: const Color(0xFF2E2E3E)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            cityName,
-                            style: TextStyle(
-                              color: cityName == 'غير محدد' ? Colors.white54 : Colors.white,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        ElevatedButton.icon(
-                          onPressed: isLoading ? null : () => cubit.updateLocation(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00E5FF),
-                            foregroundColor: Colors.black,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                          ),
-                          icon: isLoading
-                              ? SizedBox(
-                                  width: 16.w,
-                                  height: 16.w,
-                                  child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                                )
-                              : const Icon(Icons.my_location, size: 16),
-                          label: Text(
-                            isArabic ? 'تحديث موقعي' : 'Update Location',
-                            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               );
             },
           ),

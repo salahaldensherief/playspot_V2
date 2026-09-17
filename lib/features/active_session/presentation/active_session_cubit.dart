@@ -137,8 +137,40 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
         PlaySpotLiveActivityService.instance.endActivity();
         emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
       } else {
-        dev.log("[LIVESESSION_CUBIT] Re-fetching active session details after Realtime event...");
-        loadActiveSession(bookingId: bookingId);
+        dev.log("[LIVESESSION_CUBIT] Realtime update applied directly without re-fetching...");
+        final currentSession = state.session;
+        final mergedSession = updatedSession.copyWith(
+          loungeName: updatedSession.loungeName.isNotEmpty
+              ? updatedSession.loungeName
+              : currentSession?.loungeName ?? '',
+          roomName: updatedSession.roomName.isNotEmpty
+              ? updatedSession.roomName
+              : currentSession?.roomName ?? '',
+          orders: updatedSession.orders.isNotEmpty
+              ? updatedSession.orders
+              : currentSession?.orders ?? const [],
+        );
+
+        emit(state.copyWith(
+          status: ActiveSessionStatus.loaded,
+          session: mergedSession,
+        ));
+
+        try {
+          PlaySpotLiveActivityService.instance.startActivity(
+            sessionId: mergedSession.bookingId,
+            hallName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'PlaySpot Lounge',
+            deviceName: mergedSession.deviceName.isNotEmpty ? mergedSession.deviceName : mergedSession.roomName,
+            endTimeTimestamp: mergedSession.endTime.millisecondsSinceEpoch ~/ 1000,
+          );
+
+          final notificationId = mergedSession.bookingId.hashCode.abs() & 0x7FFFFFFF;
+          LocalNotificationService.instance.scheduleSessionExpiryWarning(
+            id: notificationId,
+            loungeName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'Lounge',
+            expiryTime: mergedSession.endTime,
+          );
+        } catch (_) {}
       }
     }, onError: (err) {
       dev.log("[LIVESESSION_CUBIT] REALTIME STREAM ERROR: $err");

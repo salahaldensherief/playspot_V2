@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
+import '../../../../art_core/widgets/buttons/directions_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
@@ -222,16 +223,14 @@ class _BookingCardState extends State<BookingCard> {
             Row(
               children: [
                 Expanded(
-                  child: AppButton(
-                    content: ButtonContent(label: AppStrings.getDirections.tr()),
-                    behavior: ButtonBehavior.tap(
-                      onTap: () => _openDirections(context),
-                    ),
-                    buttonConfig: ButtonConfig(
-                      height: 45.h,
-                      borderRadius: 12.r,
-                      gradient: AppColors.primaryGradient,
-                    ),
+                  child: DirectionsButton(
+                    lat: widget.booking.lat,
+                    lng: widget.booking.lng,
+                    loungeName: widget.booking.loungeName,
+                    loungeLocation: widget.booking.loungeLocation,
+                    mapsLink: widget.booking.mapsLink,
+                    height: 45.h,
+                    isPrimary: true,
                   ),
                 ),
                 SizedBox(width: 12.w),

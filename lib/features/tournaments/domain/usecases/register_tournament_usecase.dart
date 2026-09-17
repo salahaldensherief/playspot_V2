@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:playspot/core/error/failures.dart';
+import '../entities/tournament_entity.dart';
 import '../repositories/tournaments_repository.dart';
 
 class RegisterTournamentUseCase {
@@ -7,7 +8,7 @@ class RegisterTournamentUseCase {
 
   RegisterTournamentUseCase(this.repository);
 
-  Future<Either<Failure, Map<String, dynamic>>> call(String tournamentId) {
+  Future<Either<Failure, TournamentParticipantEntity?>> call(String tournamentId) {
     return repository.registerForTournament(tournamentId);
   }
 }

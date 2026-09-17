@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
@@ -239,11 +240,9 @@ class _MyBookingsScreenContentState extends State<_MyBookingsScreenContent>
     String emptyMessage,
     IconData emptyIcon,
   ) {
-    return RefreshIndicator(
+    return AppRefreshIndicator(
       onRefresh: () =>
           context.read<MyBookingsCubit>().refreshBookingsIfStale(force: true),
-      color: AppColors.neonBlue,
-      backgroundColor: AppColors.cardBackground,
       child: bookings.isEmpty
           ? SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),

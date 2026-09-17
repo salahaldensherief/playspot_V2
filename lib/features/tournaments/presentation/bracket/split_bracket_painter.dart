@@ -12,7 +12,7 @@ class SplitBracketPainter extends CustomPainter {
   final double finalCenterY; // بالنسبة لبداية المحتوى (بدون topOffset)
   final Color lineColor;
 
-  static const double _avatarRadius = 18.0;
+  static const double _avatarRadius = 24.0;
   static const double _mergeGap = 10.0;
 
   SplitBracketPainter({

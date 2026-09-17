@@ -43,24 +43,19 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     _activeTournamentId = tournamentId;
     emit(state.copyWith(status: TournamentDetailsStatus.loading));
 
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id ?? 'demo_user';
 
     final results = await Future.wait([
       _getTournamentDetailsUseCase.getTournamentById(tournamentId),
       _getTournamentDetailsUseCase.getPrizes(tournamentId),
       _getTournamentDetailsUseCase.getMatches(tournamentId),
-      if (currentUserId != null)
-        _getTournamentDetailsUseCase.getUserParticipant(tournamentId, currentUserId)
-      else
-        Future.value(null),
+      _getTournamentDetailsUseCase.getUserParticipant(tournamentId, currentUserId),
     ]);
 
     final tournamentRes = results[0] as Either<Failure, TournamentEntity>;
     final prizesRes = results[1] as Either<Failure, List<TournamentPrizeEntity>>;
     final matchesRes = results[2] as Either<Failure, List<TournamentMatchEntity>>;
-    final participantRes = results.length > 3
-        ? results[3] as Either<Failure, TournamentParticipantEntity?>?
-        : null;
+    final participantRes = results[3] as Either<Failure, TournamentParticipantEntity?>;
 
     tournamentRes.fold(
       (failure) => emit(state.copyWith(
@@ -70,9 +65,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
       (tournament) {
         prizesRes.fold((_) {}, (prizes) {
           matchesRes.fold((_) {}, (matches) {
-            final participant = participantRes != null
-                ? (participantRes.fold((_) => null, (p) => p))
-                : null;
+            final participant = participantRes.fold((_) => null, (p) => p);
 
             emit(state.copyWith(
               status: TournamentDetailsStatus.success,
@@ -115,23 +108,12 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
           errorMessage: failure.message,
         ));
       },
-      (data) async {
-        final currentUserId = Supabase.instance.client.auth.currentUser?.id;
-        if (currentUserId != null && _activeTournamentId != null) {
-          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUserId);
-          pRes.fold((_) {}, (participant) {
-            emit(state.copyWith(
-              isRegistering: false,
-              userParticipant: participant,
-              successMessage: 'registeredSuccessfully',
-            ));
-          });
-        } else {
-          emit(state.copyWith(
-            isRegistering: false,
-            successMessage: 'registeredSuccessfully',
-          ));
-        }
+      (participant) {
+        emit(state.copyWith(
+          isRegistering: false,
+          userParticipant: participant ?? state.userParticipant,
+          successMessage: 'registeredSuccessfully',
+        ));
       },
     );
   }
@@ -163,17 +145,12 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
           errorMessage: failure.message,
         ));
       },
-      (_) async {
-        if (_activeTournamentId != null) {
-          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUser.id);
-          pRes.fold((_) {}, (participant) {
-            emit(state.copyWith(
-              isSubmittingPayment: false,
-              userParticipant: participant,
-              successMessage: 'paymentSubmittedSuccess',
-            ));
-          });
-        }
+      (participant) {
+        emit(state.copyWith(
+          isSubmittingPayment: false,
+          userParticipant: participant ?? state.userParticipant,
+          successMessage: 'paymentSubmittedSuccess',
+        ));
       },
     );
   }
@@ -192,18 +169,12 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
           errorMessage: failure.message,
         ));
       },
-      (_) async {
-        final currentUser = Supabase.instance.client.auth.currentUser;
-        if (currentUser != null && _activeTournamentId != null) {
-          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUser.id);
-          pRes.fold((_) {}, (participant) {
-            emit(state.copyWith(
-              isCheckingIn: false,
-              userParticipant: participant,
-              successMessage: 'checkInSuccess',
-            ));
-          });
-        }
+      (participant) {
+        emit(state.copyWith(
+          isCheckingIn: false,
+          userParticipant: participant ?? state.userParticipant,
+          successMessage: 'checkInSuccess',
+        ));
       },
     );
   }
@@ -225,18 +196,12 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
           errorMessage: failure.message,
         ));
       },
-      (_) async {
-        final currentUser = Supabase.instance.client.auth.currentUser;
-        if (currentUser != null && _activeTournamentId != null) {
-          final pRes = await _getTournamentDetailsUseCase.getUserParticipant(_activeTournamentId!, currentUser.id);
-          pRes.fold((_) {}, (participant) {
-            emit(state.copyWith(
-              isWithdrawing: false,
-              userParticipant: participant,
-              successMessage: 'withdrawSuccess',
-            ));
-          });
-        }
+      (participant) {
+        emit(state.copyWith(
+          isWithdrawing: false,
+          userParticipant: participant ?? state.userParticipant,
+          successMessage: 'withdrawSuccess',
+        ));
       },
     );
   }

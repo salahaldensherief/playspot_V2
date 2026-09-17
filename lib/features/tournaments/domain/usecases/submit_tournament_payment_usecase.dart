@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:playspot/core/error/failures.dart';
+import '../entities/tournament_entity.dart';
 import '../repositories/tournaments_repository.dart';
 
 class SubmitTournamentPaymentUseCase {
@@ -8,7 +9,7 @@ class SubmitTournamentPaymentUseCase {
 
   SubmitTournamentPaymentUseCase(this.repository);
 
-  Future<Either<Failure, void>> call({
+  Future<Either<Failure, TournamentParticipantEntity?>> call({
     required String participantId,
     required String tournamentId,
     required String userId,

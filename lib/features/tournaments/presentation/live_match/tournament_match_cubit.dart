@@ -21,7 +21,7 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
   Future<void> loadMatch({required String tournamentId, required String matchId}) async {
     emit(state.copyWith(status: MatchScreenStatus.loading));
 
-    final result = await _getTournamentDetailsUseCase.getMatches(tournamentId);
+    final result = await _getTournamentDetailsUseCase.getMatchById(tournamentId, matchId);
 
     result.fold(
       (failure) {
@@ -30,20 +30,14 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
           errorMessage: failure.message,
         ));
       },
-      (matches) {
-        if (matches.isEmpty) {
+      (match) {
+        if (match == null) {
           emit(state.copyWith(
             status: MatchScreenStatus.failure,
             errorMessage: 'No matches found',
           ));
           return;
         }
-
-        final List<TournamentMatchEntity> safeMatches = List<TournamentMatchEntity>.from(matches);
-        final match = safeMatches.firstWhere(
-          (m) => m.id == matchId,
-          orElse: () => safeMatches.first,
-        );
 
         emit(state.copyWith(
           status: MatchScreenStatus.success,

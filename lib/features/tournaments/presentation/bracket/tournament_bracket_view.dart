@@ -1,6 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import '../../../../art_core/theme/app_colors.dart';
 import '../../domain/entities/tournament_entity.dart';
@@ -20,15 +18,11 @@ class TournamentBracketView extends StatelessWidget {
   });
 
   // العرض والمسافة الأفقية زي ما هما (مطلوب متتلمسش)
-  static const double columnWidth = 62;
-  static const double horizontalGap = 22;
-  // matchHeight كانت 78 وده كان أقل من المحتوى الفعلي (36 + 36 + كتلة VS ~14px)
-  // فده كان سبب "BOTTOM OVERFLOWED BY 7.0 PIXELS". كبّرناها + كبّرنا المسافات
-  // الرأسية بس عشان نستغل الفراغ تحت بالطول (الـ FittedBox بيحسب السكيل من
-  // العرض بس، فأي زيادة هنا بتزود طول الشجرة الكلي من غير ما تأثر على العرض).
-  static const double matchHeight = 104;
-  static const double firstRoundGap = 26;
-  static const double topOffset = 46;
+  static const double columnWidth = 68;
+  static const double horizontalGap = 20;
+  static const double matchHeight = 132;
+  static const double firstRoundGap = 36;
+  static const double topOffset = 16;
   static const double sidePadding = 16;
 
   @override
@@ -171,16 +165,6 @@ class TournamentBracketView extends StatelessWidget {
     final widgets = <Widget>[];
     for (int r = 0; r < leftRounds.length; r++) {
       final colX = sidePadding + r * (columnWidth + horizontalGap);
-      widgets.add(Positioned(
-        left: colX,
-        top: 0,
-        width: columnWidth,
-        height: 32,
-        child: BracketRoundHeader(
-          roundsFromFinal: leftRounds.length - r,
-          matchCountInRound: leftRounds[r].length * 2,
-        ),
-      ));
       final centers = layout.centersY[r];
       for (int i = 0; i < leftRounds[r].length; i++) {
         widgets.add(Positioned(
@@ -198,9 +182,6 @@ class TournamentBracketView extends StatelessWidget {
     return widgets;
   }
 
-  /// كانت دي فاضية (بگ) وده سبب اختفاء عمود ولاعبين الناحية اليمين بالكامل.
-  /// دلوقتي بتبني كل أدوار الفرع الأيمن فعليًا، بنفس منطق الفرع الأيسر
-  /// لكن بترتيب أعمدة معكوس (الأبعد عن الكأس على اليمين، الأقرب junto للنص).
   List<Widget> _buildRightBranch(
       List<List<TournamentMatchEntity>> rightRounds,
       BracketLayout layout,
@@ -213,21 +194,7 @@ class TournamentBracketView extends StatelessWidget {
     final double rightStartX = centerColX + columnWidth + horizontalGap;
 
     for (int k = 0; k < n; k++) {
-      // k=0 هو أقرب دور للكأس (نص نهائي)، وبيتحط في أول عمود بعد النص
-      // وكل ما زاد k بنبعد لليمين لحد أول دور (اللي فيه أكتر عدد مباريات)
       final colX = rightStartX + (n - 1 - k) * (columnWidth + horizontalGap);
-
-      widgets.add(Positioned(
-        left: colX,
-        top: 0,
-        width: columnWidth,
-        height: 32,
-        child: BracketRoundHeader(
-          roundsFromFinal: k + 1,
-          matchCountInRound: rightRounds[k].length * 2,
-        ),
-      ));
-
       final centers = layout.centersY[k];
       for (int i = 0; i < rightRounds[k].length; i++) {
         widgets.add(Positioned(
@@ -253,12 +220,6 @@ class TournamentBracketView extends StatelessWidget {
     return [
       Positioned(
         left: centerColX,
-        top: 0,
-        width: columnWidth,
-        child: _finalHeader(),
-      ),
-      Positioned(
-        left: centerColX,
         top: topOffset + finalCenterY - matchHeight / 2,
         width: columnWidth,
         height: matchHeight,
@@ -268,34 +229,5 @@ class TournamentBracketView extends StatelessWidget {
         ),
       ),
     ];
-  }
-
-  Widget _finalHeader() {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(colors: [
-              AppColors.neonBlue.withValues(alpha: 0.25),
-              AppColors.neonPurple.withValues(alpha: 0.25),
-            ]),
-            border: Border.all(color: AppColors.neonBlue, width: 1.5),
-          ),
-          child: const Icon(TablerIcons.trophy, color: AppColors.warning, size: 22),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          'tournamentFinal'.tr(),
-          style: const TextStyle(
-            color: AppColors.warning,
-            fontSize: 9,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Orbitron',
-          ),
-        ),
-      ],
-    );
   }
 }

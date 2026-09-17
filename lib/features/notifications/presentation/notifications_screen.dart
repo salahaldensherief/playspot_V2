@@ -10,10 +10,10 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-
 import '../data/models/notification_model.dart';
 import 'notifications_cubit.dart';
 import 'notifications_state.dart';
@@ -192,9 +192,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         );
                       }
 
-                      return RefreshIndicator(
-                        color: AppColors.neonBlue,
-                        backgroundColor: AppColors.cardBackground,
+                      return AppRefreshIndicator(
                         onRefresh: _onRefresh,
                         child: state.notifications.isEmpty
                             ? SingleChildScrollView(

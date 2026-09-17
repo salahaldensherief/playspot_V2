@@ -3,7 +3,7 @@ import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 
 abstract class BookingRepository {
-  Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date);
+  Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId});
   Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params);
   Future<Either<Failure, void>> extendSession({
     required String bookingId,

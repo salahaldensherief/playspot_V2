@@ -22,6 +22,7 @@ import 'package:playspot/features/home/presentation/widgets/active_session_banne
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../art_core/widgets/cards/lounge_card.dart';
 import '../../../art_core/widgets/text/app_text.dart';
 import '../../../core/cache/preference_manager.dart';
@@ -110,10 +111,8 @@ class _HomeViewState extends State<_HomeView> {
             // Background decoration - wrapped in RepaintBoundary to avoid repainting on scroll
             const RepaintBoundary(child: _HomeBackground()),
             SafeArea(
-              child: RefreshIndicator(
+              child: AppRefreshIndicator(
                 onRefresh: () => context.read<HomeCubit>().refreshHome(),
-                color: AppColors.neonBlue,
-                backgroundColor: AppColors.cardBackground,
                 child: CustomScrollView(
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),

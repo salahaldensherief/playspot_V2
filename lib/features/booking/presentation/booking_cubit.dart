@@ -26,7 +26,7 @@ class BookingCubit extends Cubit<BookingState> {
   Future<void> fetchBookedSlots(DateTime date) async {
     emit(state.copyWith(status: BookingStatus.loading, selectedDate: date));
 
-    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date);
+    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date, roomId: roomId);
 
     result.fold(
       (failure) => emit(state.copyWith(
@@ -74,7 +74,7 @@ class BookingCubit extends Cubit<BookingState> {
 
     emit(state.copyWith(status: BookingStatus.loading));
 
-    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, state.selectedDate);
+    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, state.selectedDate, roomId: roomId);
 
     return result.fold(
       (failure) {

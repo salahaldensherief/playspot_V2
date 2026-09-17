@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:playspot/core/error/failures.dart';
+import '../entities/tournament_entity.dart';
 import '../repositories/tournaments_repository.dart';
 
 class WithdrawTournamentUseCase {
@@ -7,7 +8,7 @@ class WithdrawTournamentUseCase {
 
   WithdrawTournamentUseCase(this.repository);
 
-  Future<Either<Failure, void>> call(String participantId, {String? tournamentId}) {
+  Future<Either<Failure, TournamentParticipantEntity?>> call(String participantId, {String? tournamentId}) {
     return repository.withdrawFromTournament(participantId, tournamentId: tournamentId);
   }
 }

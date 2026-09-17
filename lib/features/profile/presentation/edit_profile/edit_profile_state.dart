@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:playspot/features/auth/data/models/user_model.dart';
 
-enum EditProfileStatus { initial, loading, success, error, accountDeleted }
+enum EditProfileStatus { initial, loading, success, locationUpdated, error, accountDeleted }
 
 class EditProfileState extends Equatable {
   final EditProfileStatus status;

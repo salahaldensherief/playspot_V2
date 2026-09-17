@@ -11,8 +11,8 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   BookingRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date) async {
-    return await callRepository(() => _remoteDataSource.getRoomBookingsForDate(loungeId, date));
+  Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId}) async {
+    return await callRepository(() => _remoteDataSource.getRoomBookingsForDate(loungeId, date, roomId: roomId));
   }
 
   @override

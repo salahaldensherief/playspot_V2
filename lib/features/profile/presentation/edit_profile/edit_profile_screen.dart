@@ -77,7 +77,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _handleStateChange(BuildContext context, EditProfileState state) {
-    if (state.status == EditProfileStatus.success) {
+    if (state.status == EditProfileStatus.locationUpdated) {
+      GameHudToast.show(
+        context,
+        'تم تحديث موقعك بنجاح',
+        type: ToastType.success,
+      );
+    } else if (state.status == EditProfileStatus.success) {
       GameHudToast.show(
         context,
         'Profile updated successfully',

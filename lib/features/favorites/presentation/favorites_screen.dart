@@ -8,6 +8,7 @@ import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/cards/lounge_card.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'favorites_cubit.dart';
@@ -47,10 +48,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           ),
         ),
       ),
-      body: RefreshIndicator(
+      body: AppRefreshIndicator(
         onRefresh: () => context.read<FavoritesCubit>().getFavoriteLounges(),
-        color: AppColors.neonBlue,
-        backgroundColor: AppColors.cardBackground,
         child: BlocBuilder<FavoritesCubit, FavoritesState>(
           builder: (context, state) {
             if (state.status == FavoritesStatus.loading) {
