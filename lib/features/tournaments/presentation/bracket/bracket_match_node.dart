@@ -2,6 +2,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../domain/entities/tournament_entity.dart';
 
@@ -111,7 +112,7 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
     required bool isTopPlayer,
     required VoidCallback onTap,
   }) {
-    final displayName = name ?? 'bye'.tr();
+    final displayName = name ?? AppStrings.bye.tr();
 
     final Color borderColor = isWinner
         ? AppColors.success

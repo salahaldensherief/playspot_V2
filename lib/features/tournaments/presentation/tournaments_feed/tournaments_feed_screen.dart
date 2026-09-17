@@ -130,7 +130,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                       SizedBox(width: 10.w),
                       Expanded(
                         child: Text(
-                          'enableLocationForNearbyTournaments'.tr(),
+                          AppStrings.enableLocationForNearbyTournaments.tr(),
                           style: TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 12.sp,
@@ -152,7 +152,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 builder: (context, value, child) {
                   return AppTextField(
                     controller: _searchController,
-                    hint: 'searchLoungesHint'.tr(),
+                    hint: AppStrings.searchLoungesHint.tr(),
                     prefixIcon: TablerIcons.search,
                     suffixIcon: value.text.isNotEmpty
                         ? IconButton(
@@ -207,7 +207,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                           ),
                           child: Center(
                             child: Text(
-                              game == 'All' ? 'all'.tr() : game,
+                              game == 'All' ? AppStrings.all.tr() : game,
                               style: TextStyle(
                                 color: isSelected ? AppColors.black : AppColors.white,
                                 fontSize: 12.sp,
@@ -354,7 +354,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                 ),
                                 SizedBox(height: 16.h),
                                 Text(
-                                  'noTournamentsFound'.tr(),
+                                  AppStrings.noTournamentsFound.tr(),
                                   style: TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 16.sp,

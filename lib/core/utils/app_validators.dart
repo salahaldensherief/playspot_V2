@@ -28,7 +28,7 @@ class AppValidators {
       return AppStrings.pleaseEnterPassword.tr();
     }
     if (value != password) {
-      return "passwordsDoNotMatch".tr(); // Use the key directly if not in AppStrings
+      return AppStrings.passwordsDoNotMatch.tr();
     }
     return null;
   }
@@ -42,7 +42,7 @@ class AppValidators {
     }
     // Check if name contains numbers
     if (RegExp(r'[0-9]').hasMatch(value)) {
-      return "nameCannotContainNumbers".tr();
+      return AppStrings.nameCannotContainNumbers.tr();
     }
     return null;
   }
@@ -54,14 +54,14 @@ class AppValidators {
     // Simple phone regex, adjust as needed for Egypt (usually 11 digits starting with 01)
     final phoneRegex = RegExp(r'^01[0125][0-9]{8}$');
     if (!phoneRegex.hasMatch(value)) {
-      return "pleaseEnterValidPhoneNum".tr();
+      return AppStrings.pleaseEnterValidPhoneNum.tr();
     }
     return null;
   }
 
   static String? validateNotEmpty(String? value, String fieldName) {
     if (value == null || value.isEmpty) {
-      return "$fieldName ${"isRequired".tr()}";
+      return "$fieldName ${AppStrings.isRequired.tr()}";
     }
     return null;
   }

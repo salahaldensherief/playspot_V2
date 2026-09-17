@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
@@ -81,11 +82,16 @@ class LoungeDetailsScreen extends StatelessWidget {
                     return LoungeInfoSection(lounge: _displayLounge(state));
                   },
                 ),
+                const SliverSectionHeader(title: AppStrings.tournaments),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                  buildWhen: (previous, current) => previous.tournaments != current.tournaments,
+                  buildWhen: (previous, current) =>
+                      previous.tournaments != current.tournaments ||
+                      previous.status != current.status,
                   builder: (context, state) {
                     if (state.tournaments.isEmpty) {
-                      return const SliverToBoxAdapter(child: SizedBox.shrink());
+                      return const SliverToBoxAdapter(
+                        child: _EmptyTournamentsWidget(),
+                      );
                     }
                     return _LoungeTournamentBanner(tournaments: state.tournaments);
                   },
@@ -280,7 +286,7 @@ class _LoungeTournamentBanner extends StatelessWidget {
 
     return SliverToBoxAdapter(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 8.h),
+        padding: EdgeInsets.only(bottom: 8.h),
         child: SizedBox(
           height: 135.h,
           child: ListView.builder(
@@ -387,7 +393,7 @@ class _LoungeTournamentBanner extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(6.r),
                                       ),
                                       child: AppText(
-                                        text: "${tournament.entryFee.toStringAsFixed(0)} ${'egp'.tr()}",
+                                        text: "${tournament.entryFee.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                                         fontSize: 12.sp,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.success,
@@ -436,3 +442,41 @@ class _LoungeTournamentBanner extends StatelessWidget {
     );
   }
 }
+
+class _EmptyTournamentsWidget extends StatelessWidget {
+  const _EmptyTournamentsWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: AppColors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            TablerIcons.trophy_off,
+            size: 22.sp,
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+          ),
+          10.horizontalSpace,
+          AppText(
+            text: AppStrings.noTournamentsFound.tr(),
+            fontSize: 13.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+

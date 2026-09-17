@@ -98,7 +98,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                   const Icon(TablerIcons.alert_circle, size: 48, color: AppColors.danger),
                   const SizedBox(height: 12),
                   Text(
-                    state.errorMessage ?? 'somethingWentWrong'.tr(),
+                    state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 16),
@@ -108,7 +108,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                       borderColor: AppColors.neonBlue,
                       isOutlined: true,
                     ),
-                    content: ButtonContent(label: 'retry'.tr()),
+                    content: ButtonContent(label: AppStrings.retry.tr()),
                     behavior: TapBehavior(
                       onTap: () => context.read<TournamentDetailsCubit>().init(widget.tournamentId),
                     ),
@@ -319,7 +319,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
               ),
               const SizedBox(width: 12),
               Text(
-                'tournamentDetails'.tr(),
+                AppStrings.tournamentDetails.tr(),
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 15,
@@ -686,7 +686,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
             Icon(TablerIcons.trophy_off, size: 48, color: AppColors.textSecondary.withValues(alpha: 0.5)),
             const SizedBox(height: 12),
             Text(
-              'noResults'.tr(),
+              AppStrings.noResults.tr(),
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
           ],
@@ -774,7 +774,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${totalAmount.toStringAsFixed(0)} ${'egp'.tr()}',
+                  '${totalAmount.toStringAsFixed(0)} ${AppStrings.egp.tr()}',
                   style: const TextStyle(
                     color: AppColors.warning,
                     fontSize: 22,
@@ -917,7 +917,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
               border: Border.all(color: cardAccentColor.withValues(alpha: 0.3)),
             ),
             child: Text(
-              '${prize.amount.toStringAsFixed(0)} ${'egp'.tr()}',
+              '${prize.amount.toStringAsFixed(0)} ${AppStrings.egp.tr()}',
               style: TextStyle(
                 color: cardAccentColor,
                 fontWeight: FontWeight.bold,
@@ -1305,7 +1305,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              'registeredSuccessfully'.tr(),
+              AppStrings.registeredSuccessfully.tr(),
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,

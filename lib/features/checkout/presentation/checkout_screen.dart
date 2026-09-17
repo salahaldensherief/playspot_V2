@@ -406,7 +406,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               label: AppStrings.duration.tr(),
               value: widget.params.duration >= 60 
                   ? "${widget.params.duration / 60.0} ${AppStrings.hour_plural.tr(args: [''])}"
-                  : "${widget.params.duration} ${"min30".tr()}"),
+                  : "${widget.params.duration} ${AppStrings.min30.tr()}"),
           if (widget.params.playMode != null)
             InfoRow(
               label: AppStrings.playMode.tr(),

@@ -67,7 +67,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
       if (mounted) {
         GameHudToast.show(
           context,
-          'errorPickingImage'.tr(args: ['$e']),
+          AppStrings.errorPickingImage.tr(args: ['$e']),
           type: ToastType.error,
         );
       }
@@ -85,7 +85,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           side: const BorderSide(color: AppColors.danger),
         ),
         title: Text(
-          'disputeResult'.tr(),
+          AppStrings.disputeResult.tr(),
           style: TextStyle(
             color: AppColors.danger,
             fontWeight: FontWeight.bold,
@@ -98,7 +98,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'disputeReason'.tr(),
+              AppStrings.disputeReason.tr(),
               style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
             ),
             SizedBox(height: 8.h),
@@ -107,7 +107,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
               maxLines: 3,
               style: TextStyle(color: AppColors.textPrimary, fontSize: 13.sp),
               decoration: InputDecoration(
-                hintText: 'enterDisputeReason'.tr(),
+                hintText: AppStrings.enterDisputeReason.tr(),
                 hintStyle: TextStyle(color: AppColors.hintText, fontSize: 12.sp),
                 filled: true,
                 fillColor: AppColors.mutedBackground,
@@ -137,14 +137,14 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
               backgroundColor: AppColors.danger,
               width: 120.w,
             ),
-            content: ButtonContent(label: 'disputeResult'.tr()),
+            content: ButtonContent(label: AppStrings.disputeResult.tr()),
             behavior: TapBehavior(
               onTap: () {
                 final reason = _disputeReasonController.text.trim();
                 if (reason.isEmpty) {
                   GameHudToast.show(
                     context,
-                    'enterDisputeReason'.tr(),
+                    AppStrings.enterDisputeReason.tr(),
                     type: ToastType.error,
                   );
                   return;
@@ -208,7 +208,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             elevation: 0,
             leading: const BackButtonWidget(),
             title: Text(
-              'matchDetails'.tr(),
+              AppStrings.matchDetails.tr(),
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 18.sp,
@@ -250,7 +250,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                           Icon(TablerIcons.device_tv, color: AppColors.neonBlue, size: 18.sp),
                           SizedBox(width: 8.w),
                           Text(
-                            '${'roomStation'.tr()}: ${match.stationNumber}',
+                            '${AppStrings.roomStation.tr()}: ${match.stationNumber}',
                             style: TextStyle(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
@@ -277,7 +277,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         // Player 1
                         Expanded(
                           child: _buildPlayerScoreColumn(
-                            name: match.player1Name ?? 'player1'.tr(),
+                            name: match.player1Name ?? AppStrings.player1.tr(),
                             score: state.player1Score,
                             onIncrement: () => context.read<TournamentMatchCubit>().updatePlayer1Score(state.player1Score + 1),
                             onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer1Score((state.player1Score - 1).clamp(0, 999)),
@@ -289,7 +289,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12.w),
                           child: Text(
-                            'vs'.tr(),
+                            AppStrings.vs.tr(),
                             style: TextStyle(
                               color: AppColors.neonBlue,
                               fontSize: 22.sp,
@@ -302,7 +302,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         // Player 2
                         Expanded(
                           child: _buildPlayerScoreColumn(
-                            name: match.player2Name ?? 'player2'.tr(),
+                            name: match.player2Name ?? AppStrings.player2.tr(),
                             score: state.player2Score,
                             onIncrement: () => context.read<TournamentMatchCubit>().updatePlayer2Score(state.player2Score + 1),
                             onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer2Score((state.player2Score - 1).clamp(0, 999)),
@@ -319,7 +319,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'uploadMatchProof'.tr(),
+                        AppStrings.uploadMatchProof.tr(),
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 14.sp,
@@ -372,7 +372,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                                   children: [
                                     Icon(TablerIcons.photo, color: AppColors.neonBlue, size: 28.sp),
                                     SizedBox(height: 6.h),
-                                    Text('gallery'.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
+                                    Text(AppStrings.gallery.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
                                   ],
                                 ),
                               ),
@@ -394,7 +394,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                                   children: [
                                     Icon(TablerIcons.camera, color: AppColors.neonPurple, size: 28.sp),
                                     SizedBox(height: 6.h),
-                                    Text('camera'.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
+                                    Text(AppStrings.camera.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
                                   ],
                                 ),
                               ),
@@ -412,7 +412,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         glowColor: AppColors.neonBlueAlt,
                         width: double.infinity,
                       ),
-                      content: ButtonContent(label: 'submitResult'.tr()),
+                      content: ButtonContent(label: AppStrings.submitResult.tr()),
                       behavior: TapBehavior(
                         isLoading: state.isSubmittingResult,
                         onTap: () => context.read<TournamentMatchCubit>().submitResult(),
@@ -430,7 +430,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                               gradient: AppColors.primaryGradient,
                               glowColor: AppColors.neonBlueAlt,
                             ),
-                            content: ButtonContent(label: 'confirmResult'.tr()),
+                            content: ButtonContent(label: AppStrings.confirmResult.tr()),
                             behavior: TapBehavior(
                               isLoading: state.isConfirmingResult,
                               onTap: () => context.read<TournamentMatchCubit>().confirmResult(),
@@ -443,7 +443,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                             buttonConfig: ButtonConfig(
                               backgroundColor: AppColors.danger,
                             ),
-                            content: ButtonContent(label: 'disputeResult'.tr()),
+                            content: ButtonContent(label: AppStrings.disputeResult.tr()),
                             behavior: TapBehavior(
                               isLoading: state.isSubmittingDispute,
                               onTap: () => _showDisputeDialog(),

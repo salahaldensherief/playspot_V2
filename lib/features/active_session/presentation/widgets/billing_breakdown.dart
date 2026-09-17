@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/features/active_session/data/models/active_session_model.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/layout/info_row.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -39,7 +40,7 @@ class BillingBreakdownWidget extends StatelessWidget {
               ),
               SizedBox(width: 8.w),
               AppText(
-                text: "billingBreakdown".tr(),
+                text: AppStrings.billingBreakdown.tr(),
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -48,14 +49,14 @@ class BillingBreakdownWidget extends StatelessWidget {
           ),
           SizedBox(height: 14.h),
           InfoRow(
-            label: "baseCost".tr(),
-            value: "${session.basePrice.toStringAsFixed(2)} ${"egp".tr()}",
+            label: AppStrings.baseCost.tr(),
+            value: "${session.basePrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
           ),
           if (session.extensionsPrice > 0) ...[
             SizedBox(height: 6.h),
             InfoRow(
-              label: "extensions".tr(),
-              value: "${session.extensionsPrice.toStringAsFixed(2)} ${"egp".tr()}",
+              label: AppStrings.extensions.tr(),
+              value: "${session.extensionsPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
             ),
           ],
           if (session.orders.isNotEmpty) ...[
@@ -66,7 +67,7 @@ class BillingBreakdownWidget extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: 6.h),
                   child: InfoRow(
                     label: "${order.name} (x${order.quantity})",
-                    value: "${order.total.toStringAsFixed(2)} ${"egp".tr()}",
+                    value: "${order.total.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                     fontSize: 13.sp,
                   ),
                 )),
@@ -75,8 +76,8 @@ class BillingBreakdownWidget extends StatelessWidget {
           Divider(color: AppColors.divider, thickness: 1),
           SizedBox(height: 8.h),
           InfoRow(
-            label: "total".tr(),
-            value: "${session.grandTotal.toStringAsFixed(2)} ${"egp".tr()}",
+            label: AppStrings.total.tr(),
+            value: "${session.grandTotal.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
             valueColor: AppColors.neonBlue,
             fontSize: 18.sp,
           ),

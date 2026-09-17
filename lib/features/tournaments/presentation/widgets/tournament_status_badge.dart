@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../domain/entities/tournament_entity.dart';
 
@@ -72,7 +73,7 @@ class TournamentStatusBadge extends StatelessWidget {
     switch (status) {
       case TournamentStatus.draft:
         return _BadgeConfig(
-          label: 'draft'.tr(),
+          label: AppStrings.draft.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.6),
           borderColor: AppColors.textSecondary,
           dotColor: AppColors.textSecondary,
@@ -81,7 +82,7 @@ class TournamentStatusBadge extends StatelessWidget {
       case TournamentStatus.published:
       case TournamentStatus.registrationOpen:
         return _BadgeConfig(
-          label: 'registrationOpen'.tr(),
+          label: AppStrings.registrationOpen.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.75),
           borderColor: AppColors.neonBlue,
           dotColor: AppColors.neonBlue,
@@ -89,7 +90,7 @@ class TournamentStatusBadge extends StatelessWidget {
         );
       case TournamentStatus.registrationClosed:
         return _BadgeConfig(
-          label: 'registrationClosed'.tr(),
+          label: AppStrings.registrationClosed.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.75),
           borderColor: AppColors.warning,
           dotColor: AppColors.warning,
@@ -97,7 +98,7 @@ class TournamentStatusBadge extends StatelessWidget {
         );
       case TournamentStatus.checkInOpen:
         return _BadgeConfig(
-          label: 'checkInOpen'.tr(),
+          label: AppStrings.checkInOpen.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.75),
           borderColor: AppColors.warning,
           dotColor: AppColors.warning,
@@ -105,7 +106,7 @@ class TournamentStatusBadge extends StatelessWidget {
         );
       case TournamentStatus.checkInClosed:
         return _BadgeConfig(
-          label: 'checkInClosed'.tr(),
+          label: AppStrings.checkInClosed.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.75),
           borderColor: AppColors.textSecondary,
           dotColor: AppColors.textSecondary,
@@ -114,7 +115,7 @@ class TournamentStatusBadge extends StatelessWidget {
       case TournamentStatus.drawCompleted:
       case TournamentStatus.inProgress:
         return _BadgeConfig(
-          label: 'tournamentInProgress'.tr(),
+          label: AppStrings.tournamentInProgress.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.75),
           borderColor: AppColors.neonPurple,
           dotColor: AppColors.neonPurple,
@@ -122,7 +123,7 @@ class TournamentStatusBadge extends StatelessWidget {
         );
       case TournamentStatus.completed:
         return _BadgeConfig(
-          label: 'tournamentCompleted'.tr(),
+          label: AppStrings.tournamentCompleted.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.75),
           borderColor: AppColors.success,
           dotColor: AppColors.success,
@@ -130,7 +131,7 @@ class TournamentStatusBadge extends StatelessWidget {
         );
       case TournamentStatus.cancelled:
         return _BadgeConfig(
-          label: 'tournamentCancelled'.tr(),
+          label: AppStrings.tournamentCancelled.tr(),
           backgroundColor: AppColors.black.withValues(alpha: 0.75),
           borderColor: AppColors.danger,
           dotColor: AppColors.danger,

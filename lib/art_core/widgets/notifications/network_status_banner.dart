@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/core/services/network_connectivity_service.dart';
 
@@ -107,8 +108,8 @@ class _NetworkStatusWrapperState extends State<NetworkStatusWrapper> {
                         SizedBox(width: 8.w),
                         Text(
                           isOffline
-                              ? 'noInternetConnection'.tr()
-                              : 'internetRestored'.tr(),
+                              ? AppStrings.noInternetConnection.tr()
+                              : AppStrings.internetRestored.tr(),
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 13.sp,

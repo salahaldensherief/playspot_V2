@@ -1,6 +1,7 @@
 // bracket_round_header.dart
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 
 class BracketRoundHeader extends StatelessWidget {
@@ -15,18 +16,18 @@ class BracketRoundHeader extends StatelessWidget {
 
   String _label() {
     if (roundsFromFinal == 0) {
-      return 'tournamentFinal'.tr();
+      return AppStrings.tournamentFinal.tr();
     }
 
     if (roundsFromFinal == 1) {
-      return 'tournamentSemiFinal'.tr();
+      return AppStrings.tournamentSemiFinal.tr();
     }
 
     if (roundsFromFinal == 2) {
-      return 'tournamentQuarterFinal'.tr();
+      return AppStrings.tournamentQuarterFinal.tr();
     }
 
-    return 'roundOf'.tr(
+    return AppStrings.roundOf.tr(
       args: ['$matchCountInRound'],
     );
   }
@@ -80,7 +81,7 @@ class BracketEmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          'tournamentBracket'.tr(),
+          AppStrings.tournamentBracket.tr(),
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 16,

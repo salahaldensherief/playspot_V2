@@ -6,6 +6,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
@@ -135,7 +136,7 @@ class _MyBookingsScreenContentState extends State<_MyBookingsScreenContent>
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: (!widget.isTab || context.canPop() || Navigator.canPop(context))
-            ? IconButton(
+            ? BackButtonWidget(
                 onPressed: () {
                   if (context.canPop() || Navigator.canPop(context)) {
                     context.pop();
@@ -143,13 +144,6 @@ class _MyBookingsScreenContentState extends State<_MyBookingsScreenContent>
                     context.goNamed(RouterKeys.home);
                   }
                 },
-                icon: const Icon(TablerIcons.chevron_left, color: Colors.white),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
               )
             : null,
         title: AppText(

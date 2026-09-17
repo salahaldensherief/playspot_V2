@@ -399,4 +399,37 @@ class AppStrings {
   static const String loungeVenue = "loungeVenue";
   static const String city = "city";
   static const String tournamentDate = "tournamentDate";
+
+  // Network & Utility Strings
+  static const String noInternetConnection = "noInternetConnection";
+  static const String internetRestored = "internetRestored";
+
+  // Validator Strings
+  static const String passwordsDoNotMatch = "passwordsDoNotMatch";
+  static const String nameCannotContainNumbers = "nameCannotContainNumbers";
+  static const String pleaseEnterValidPhoneNum = "pleaseEnterValidPhoneNum";
+  static const String isRequired = "isRequired";
+
+  // Active Session / Billing Breakdown Strings
+  static const String billingBreakdown = "billingBreakdown";
+  static const String baseCost = "baseCost";
+  static const String extensions = "extensions";
+
+  // Vouchers / Rewards Strings
+  static const String myRewardsSnake = "my_rewards";
+  static const String noVouchers = "no_vouchers";
+
+  // Additional Tournament Strings
+  static const String draft = "draft";
+  static const String checkInClosed = "checkInClosed";
+  static const String eliminated = "eliminated";
+  static const String withdrawn = "withdrawn";
+  static const String noShow = "noShow";
+  static const String unpaid = "unpaid";
+  static const String rejected = "rejected";
+  static const String refunded = "refunded";
+  static const String tournamentFinal = "tournamentFinal";
+  static const String tournamentSemiFinal = "tournamentSemiFinal";
+  static const String tournamentQuarterFinal = "tournamentQuarterFinal";
+  static const String roundOf = "roundOf";
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 
 class MatchCountdownTimer extends StatefulWidget {
@@ -85,7 +86,7 @@ class _MatchCountdownTimerState extends State<MatchCountdownTimer> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'autoApprovalTimer'.tr(),
+                AppStrings.autoApprovalTimer.tr(),
                 style: const TextStyle(
                   color: AppColors.warning,
                   fontSize: 11,

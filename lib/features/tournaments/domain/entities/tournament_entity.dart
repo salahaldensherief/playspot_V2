@@ -126,21 +126,21 @@ enum ParticipantStatus {
       case ParticipantStatus.pendingPayment:
         return AppStrings.pendingPayment.tr();
       case ParticipantStatus.waitlist:
-        return 'waitlist'.tr();
+        return AppStrings.waitlist.tr();
       case ParticipantStatus.confirmed:
         return AppStrings.confirmed.tr();
       case ParticipantStatus.checkedIn:
         return AppStrings.checkedIn.tr();
       case ParticipantStatus.eliminated:
-        return 'eliminated'.tr();
+        return AppStrings.eliminated.tr();
       case ParticipantStatus.expired:
-        return 'expired'.tr();
+        return AppStrings.expired.tr();
       case ParticipantStatus.cancelled:
         return AppStrings.cancelled.tr();
       case ParticipantStatus.withdrawn:
-        return 'withdrawn'.tr();
+        return AppStrings.withdrawn.tr();
       case ParticipantStatus.noShow:
-        return 'noShow'.tr();
+        return AppStrings.noShow.tr();
     }
   }
 
@@ -195,15 +195,15 @@ enum PaymentStatus {
   String toLocalizedName() {
     switch (this) {
       case PaymentStatus.unpaid:
-        return 'unpaid'.tr();
+        return AppStrings.unpaid.tr();
       case PaymentStatus.pending:
         return AppStrings.pendingPayment.tr();
       case PaymentStatus.approved:
         return AppStrings.confirmed.tr();
       case PaymentStatus.rejected:
-        return 'rejected'.tr();
+        return AppStrings.rejected.tr();
       case PaymentStatus.refunded:
-        return 'refunded'.tr();
+        return AppStrings.refunded.tr();
     }
   }
 

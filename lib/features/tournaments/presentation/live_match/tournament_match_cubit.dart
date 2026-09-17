@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/tournament_entity.dart';
 import '../../domain/repositories/tournaments_repository.dart';
@@ -66,7 +67,7 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
 
     if (state.player1Score == state.player2Score) {
       emit(state.copyWith(
-        errorMessage: 'tieNotAllowedInTournaments'.tr(),
+        errorMessage: AppStrings.tieNotAllowedInTournaments.tr(),
       ));
       return;
     }

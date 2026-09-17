@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
@@ -37,7 +38,7 @@ class MyVouchersScreen extends StatelessWidget {
             },
           ),
           title: AppText(
-            text: "my_rewards".tr(),
+            text: AppStrings.myRewardsSnake.tr(),
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -47,9 +48,9 @@ class MyVouchersScreen extends StatelessWidget {
             labelColor: AppColors.neonBlue,
             unselectedLabelColor: AppColors.textSecondary,
             tabs: [
-              Tab(text: "available".tr()),
-              Tab(text: "used".tr()),
-              Tab(text: "expired".tr()),
+              Tab(text: AppStrings.available.tr()),
+              Tab(text: AppStrings.used.tr()),
+              Tab(text: AppStrings.expired.tr()),
             ],
           ),
         ),
@@ -79,7 +80,7 @@ class MyVouchersScreen extends StatelessWidget {
 
   Widget _buildVoucherList(BuildContext context, List<Map<String, dynamic>> vouchers) {
     if (vouchers.isEmpty) {
-      return AppStateView.empty(title: "no_vouchers".tr());
+      return AppStateView.empty(title: AppStrings.noVouchers.tr());
     }
 
     return ListView.separated(
@@ -175,7 +176,7 @@ class MyVouchersScreen extends StatelessWidget {
                                 ),
                                 SizedBox(width: 4.w),
                                 AppText(
-                                  text: "copyCode".tr(),
+                                  text: AppStrings.copyCode.tr(),
                                   fontSize: 11.sp,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.neonBlue,
@@ -228,7 +229,7 @@ class MyVouchersScreen extends StatelessWidget {
     Clipboard.setData(ClipboardData(text: code));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("codeCopied".tr()),
+        content: Text(AppStrings.codeCopied.tr()),
         backgroundColor: AppColors.neonBlue,
         duration: const Duration(seconds: 2),
       ),

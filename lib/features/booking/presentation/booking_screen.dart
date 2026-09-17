@@ -160,7 +160,7 @@ class _BookingScreenState extends State<BookingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppText(
-                text: "sessionDetails".tr(),
+                text: AppStrings.sessionDetails.tr(),
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.neonBlue,
@@ -170,12 +170,12 @@ class _BookingScreenState extends State<BookingScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildSummaryItem(
-                    "startTime".tr(),
+                    AppStrings.startTime.tr(),
                     startTime.format(context),
                   ),
                   Icon(Icons.arrow_forward, color: AppColors.textSecondary, size: 16.sp),
                   _buildSummaryItem(
-                    "endTime".tr(),
+                    AppStrings.endTime.tr(),
                     endTime.format(context),
                   ),
                 ],
@@ -190,7 +190,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     fontSize: 14.sp,
                   ),
                   AppText(
-                    text: "${state.durationMinutes / 60.0} ${"hour_plural".tr(args: [''])}",
+                    text: "${state.durationMinutes / 60.0} ${AppStrings.hour_plural.tr(args: [''])}",
                     fontWeight: FontWeight.bold,
                     color: AppColors.white,
                   ),

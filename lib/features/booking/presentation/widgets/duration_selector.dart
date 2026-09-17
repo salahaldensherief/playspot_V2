@@ -20,7 +20,7 @@ class DurationSelector extends StatelessWidget {
         final hours = state.durationMinutes / 60.0;
         final durationText = hours >= 1 
             ? AppStrings.hour_plural.tr(args: [hours.toStringAsFixed(hours == hours.toInt() ? 0 : 1)])
-            : "30 ${"min30".tr().replaceAll('+ ', '')}";
+            : "30 ${AppStrings.min30.tr().replaceAll('+ ', '')}";
 
         return Container(
           padding: EdgeInsets.all(16.w),

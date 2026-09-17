@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
@@ -45,7 +46,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('errorPickingImage'.tr(args: ['$e']))),
+        SnackBar(content: Text(AppStrings.errorPickingImage.tr(args: ['$e']))),
       );
     }
   }
@@ -91,7 +92,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'paymentInstructions'.tr(),
+                  AppStrings.paymentInstructions.tr(),
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 18,
@@ -115,14 +116,14 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'entryFee'.tr(),
+                    AppStrings.entryFee.tr(),
                     style: const TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 14,
                     ),
                   ),
                   Text(
-                    '${widget.entryFee.toStringAsFixed(0)} ${'egp'.tr()}',
+                    '${widget.entryFee.toStringAsFixed(0)} ${AppStrings.egp.tr()}',
                     style: const TextStyle(
                       color: AppColors.neonBlue,
                       fontSize: 16,
@@ -136,7 +137,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
 
             // Payment Method Selector
             Text(
-              'paymentMethod'.tr(),
+              AppStrings.paymentMethod.tr(),
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 14,
@@ -172,7 +173,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
 
             // Upload Receipt Section
             Text(
-              'uploadReceipt'.tr(),
+              AppStrings.uploadReceipt.tr(),
               style: const TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 14,
@@ -234,7 +235,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'selectReceiptImage'.tr(),
+                              AppStrings.selectReceiptImage.tr(),
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 12,
@@ -268,7 +269,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'camera'.tr(),
+                              AppStrings.camera.tr(),
                               style: const TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 12,
@@ -291,7 +292,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                 glowColor: AppColors.neonBlueAlt,
                 width: double.infinity,
               ),
-              content: ButtonContent(label: 'submitPayment'.tr()),
+              content: ButtonContent(label: AppStrings.submitPayment.tr()),
               behavior: TapBehavior(
                 isEnabled: _receiptFile != null,
                 isLoading: _isUploading,

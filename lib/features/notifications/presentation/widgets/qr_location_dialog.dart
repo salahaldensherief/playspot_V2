@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -42,7 +43,7 @@ class QrLocationDialog extends StatelessWidget {
               ),
               SizedBox(height: 24.h),
               AppText(
-                text: "loungeLocation".tr(),
+                text: AppStrings.loungeLocation.tr(),
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -71,13 +72,13 @@ class QrLocationDialog extends StatelessWidget {
               ),
               SizedBox(height: 30.h),
               AppText(
-                text: "scanDirections".tr(),
+                text: AppStrings.scanDirections.tr(),
                 fontSize: 12.sp,
                 color: AppColors.textSecondary,
               ),
               SizedBox(height: 20.h),
               AppButton(
-                content: ButtonContent(label: "close".tr().toUpperCase()),
+                content: ButtonContent(label: AppStrings.close.tr().toUpperCase()),
                 behavior: ButtonBehavior.tap(
                   onTap: () => Navigator.pop(context),
                 ),
