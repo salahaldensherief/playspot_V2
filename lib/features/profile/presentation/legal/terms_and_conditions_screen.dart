@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
@@ -86,14 +87,7 @@ class TermsAndConditionsScreen extends StatelessWidget {
       padding: 16.horizontalPadding + 20.verticalPadding,
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(TablerIcons.chevron_left, color: Colors.white),
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.whiteOverlay,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.r12)),
-            ),
-          ),
+          const BackButtonWidget(),
           16.horizontalSpace,
           AppText(
             text: AppStrings.termsOfService.tr(),

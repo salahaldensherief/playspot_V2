@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
@@ -25,8 +26,7 @@ class PointsHistoryScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+        leading: BackButtonWidget(
           onPressed: () {
             if (context.canPop()) {
               context.pop();

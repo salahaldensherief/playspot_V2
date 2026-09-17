@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
@@ -52,10 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
+          leading: const BackButtonWidget(),
         ),
         body: SingleChildScrollView(
           padding: 20.allPadding,

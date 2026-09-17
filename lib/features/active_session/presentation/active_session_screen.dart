@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
@@ -195,10 +196,7 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: AppColors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
+          leading: const BackButtonWidget(),
         ),
         body: const ActiveSessionBody(),
       ),
