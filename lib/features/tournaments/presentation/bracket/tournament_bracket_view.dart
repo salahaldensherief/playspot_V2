@@ -4,6 +4,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import '../../../../art_core/theme/app_colors.dart';
 import '../../domain/entities/tournament_entity.dart';
+import 'bracket_layout.dart';
 import 'bracket_match_node.dart';
 import 'bracket_round_header.dart';
 import 'split_bracket_painter.dart';
@@ -18,44 +19,46 @@ class TournamentBracketView extends StatelessWidget {
     this.onMatchTap,
   });
 
+  // العرض والمسافة الأفقية زي ما هما (مطلوب متتلمسش)
+  static const double columnWidth = 62;
+  static const double horizontalGap = 22;
+  // matchHeight كانت 78 وده كان أقل من المحتوى الفعلي (36 + 36 + كتلة VS ~14px)
+  // فده كان سبب "BOTTOM OVERFLOWED BY 7.0 PIXELS". كبّرناها + كبّرنا المسافات
+  // الرأسية بس عشان نستغل الفراغ تحت بالطول (الـ FittedBox بيحسب السكيل من
+  // العرض بس، فأي زيادة هنا بتزود طول الشجرة الكلي من غير ما تأثر على العرض).
+  static const double matchHeight = 104;
+  static const double firstRoundGap = 26;
+  static const double topOffset = 46;
+  static const double sidePadding = 16;
+
   @override
   Widget build(BuildContext context) {
-    if (matches.isEmpty) {
-      return const BracketEmptyState();
-    }
+    if (matches.isEmpty) return const BracketEmptyState();
 
     final roundsMap = <int, List<TournamentMatchEntity>>{};
     for (final match in matches) {
       roundsMap.putIfAbsent(match.roundNumber, () => []).add(match);
     }
-
     final sortedRoundNumbers = roundsMap.keys.toList()..sort();
     final rounds = sortedRoundNumbers
-        .map(
-          (roundNumber) => roundsMap[roundNumber]!
-            ..sort((a, b) => a.matchOrder.compareTo(b.matchOrder)),
-        )
-        .where((round) => round.isNotEmpty)
+        .map((rn) => roundsMap[rn]!..sort((a, b) => a.matchOrder.compareTo(b.matchOrder)))
+        .where((r) => r.isNotEmpty)
         .toList();
 
-    if (rounds.isEmpty) {
-      return const BracketEmptyState();
-    }
+    if (rounds.isEmpty) return const BracketEmptyState();
 
-    List<List<TournamentMatchEntity>> bracketRounds;
+    List<List<TournamentMatchEntity>> earlyRounds;
     TournamentMatchEntity? finalMatch;
-
     if (rounds.length > 1 && rounds.last.length == 1) {
       finalMatch = rounds.last.first;
-      bracketRounds = rounds.sublist(0, rounds.length - 1);
+      earlyRounds = rounds.sublist(0, rounds.length - 1);
     } else {
-      bracketRounds = rounds;
+      earlyRounds = rounds;
     }
 
     final leftRounds = <List<TournamentMatchEntity>>[];
     final rightRounds = <List<TournamentMatchEntity>>[];
-
-    for (final roundMatches in bracketRounds) {
+    for (final roundMatches in earlyRounds) {
       if (roundMatches.length >= 2) {
         final half = roundMatches.length ~/ 2;
         leftRounds.add(roundMatches.sublist(0, half));
@@ -65,134 +68,219 @@ class TournamentBracketView extends StatelessWidget {
       }
     }
 
-    const double columnWidth = 110;
-    const double horizontalGap = 16;
-    const double matchHeight = 90;
-    const double verticalGap = 16;
-    const double topOffset = 40;
+    final leftLayout = BracketLayout(
+      rounds: leftRounds,
+      matchHeight: matchHeight,
+      firstRoundGap: firstRoundGap,
+    );
+    final rightLayout = BracketLayout(
+      rounds: rightRounds,
+      matchHeight: matchHeight,
+      firstRoundGap: firstRoundGap,
+    );
 
-    final firstRoundMatchCount = [
-      if (leftRounds.isNotEmpty) leftRounds.first.length,
-      if (rightRounds.isNotEmpty) rightRounds.first.length,
-      if (finalMatch != null) 1,
-    ].fold<int>(0, (prev, val) => val > prev ? val : prev);
+    final double branchHeight = [
+      leftLayout.contentHeight,
+      rightLayout.contentHeight,
+      matchHeight,
+    ].reduce((a, b) => a > b ? a : b);
 
-    final safeCount = firstRoundMatchCount <= 0 ? 1 : firstRoundMatchCount;
-    final double branchHeight = safeCount * (matchHeight + verticalGap);
+    final double finalCenterY = branchHeight / 2;
+    final double centerColX = sidePadding + leftRounds.length * (columnWidth + horizontalGap);
+    final int totalColumns = leftRounds.length + 1 + rightRounds.length;
+    final double totalWidth =
+        sidePadding * 2 + totalColumns * columnWidth + (totalColumns - 1) * horizontalGap;
+    final double totalHeight = topOffset + branchHeight + 40;
 
-    final totalColumns = leftRounds.length + 1 + rightRounds.length;
-    final double totalWidth = totalColumns * columnWidth + (totalColumns - 1) * horizontalGap;
-
-    if (leftRounds.isEmpty && rightRounds.isEmpty && finalMatch != null) {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          return InteractiveViewer(
-            boundaryMargin: const EdgeInsets.all(40),
-            minScale: 0.3,
-            maxScale: 2.5,
-            constrained: true,
-            child: Center(
-              child: SizedBox(
-                width: columnWidth + 40,
-                height: matchHeight + 80,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 0,
-                      left: 20,
-                      width: columnWidth,
-                      height: 32,
-                      child: _buildFinalHeader(),
-                    ),
-                    Positioned(
-                      left: 20,
-                      top: 55,
-                      width: columnWidth,
-                      height: matchHeight,
-                      child: BracketMatchNode(
-                        match: finalMatch!,
-                        onTap: () => onMatchTap?.call(finalMatch!),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    }
+    // حد أدنى للسكيل عشان لو عدد اللاعبين كبر جدًا (32/64...) وعدد الأعمدة زاد،
+    // الصور والنصوص متوصلش لحجم مش مقروء. لو محتاجين نكبر عن عرض الشاشة، الحل
+    // بيبقى سكرول أفقي إضافي بدل ما نصغّر أكتر من الحد ده.
+    const double minReadableScale = 0.55;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double availableWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 400;
-        final double availableHeight = constraints.maxHeight > 0 ? constraints.maxHeight : 500;
-        final double scaleX = availableWidth / (totalWidth + 40);
-        final double scaleY = availableHeight / (branchHeight + 100);
-        final double scale = [scaleX, scaleY, 1.0].reduce((a, b) => a < b ? a : b).clamp(0.15, 1.2);
+        final double availableWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 360;
+        final double rawScale = availableWidth / totalWidth;
+        final double scale = rawScale < minReadableScale ? minReadableScale : rawScale;
+        final double scaledWidth = totalWidth * scale;
+        final double scaledHeight = totalHeight * scale;
 
-        return InteractiveViewer(
-          boundaryMargin: const EdgeInsets.all(30),
-          minScale: 0.1,
-          maxScale: 3.0,
-          constrained: true,
-          child: Center(
-            child: Transform.scale(
-              scale: scale,
-              child: SizedBox(
-                width: totalWidth + 40,
-                height: branchHeight + 80,
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: SplitBracketPainter(
-                          leftRounds: leftRounds,
-                          rightRounds: rightRounds,
-                          columnWidth: columnWidth,
-                          horizontalGap: horizontalGap,
-                          matchHeight: matchHeight,
-                          verticalGap: verticalGap,
-                          branchHeight: branchHeight,
-                          lineColor: AppColors.neonBlue.withValues(alpha: 0.4),
-                        ),
+        final bracketContent = SizedBox(
+          width: scaledWidth,
+          height: scaledHeight,
+          child: FittedBox(
+            fit: BoxFit.fill,
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: totalWidth,
+              height: totalHeight,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: SplitBracketPainter(
+                        leftLayout: leftLayout,
+                        rightLayout: rightLayout,
+                        columnWidth: columnWidth,
+                        horizontalGap: horizontalGap,
+                        matchHeight: matchHeight,
+                        topOffset: topOffset,
+                        centerColX: centerColX,
+                        finalCenterY: finalCenterY,
+                        lineColor: AppColors.neonBlue.withValues(alpha: 0.4),
                       ),
                     ),
-                    _buildBracketLayoutContent(
-                      context,
-                      leftRounds,
-                      rightRounds,
-                      finalMatch,
-                      columnWidth,
-                      horizontalGap,
-                      matchHeight,
-                      branchHeight,
-                      topOffset,
-                    ),
-                  ],
-                ),
+                  ),
+                  ..._buildLeftBranch(leftRounds, leftLayout),
+                  ..._buildRightBranch(rightRounds, rightLayout, centerColX),
+                  if (finalMatch != null) ..._buildFinal(finalMatch, centerColX, finalCenterY),
+                ],
               ),
             ),
           ),
+        );
+
+        // مفيش أي إمكانية تكبير/تصغير باليد (زوم) في الحالتين تحت، فرق بينهم
+        // بس هل محتاجين نسحب أفقي كمان ولا لأ:
+        if (scale > rawScale) {
+          // اتعمل clamp لفوق (يعني كان هيبقى أصغر من المسموح) فبقى أعرض من
+          // الشاشة، فمحتاجين سكرول أفقي بالإضافة للرأسي.
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const ClampingScrollPhysics(),
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: bracketContent,
+            ),
+          );
+        }
+
+        // الحالة العادية: بيملأ عرض الشاشة بالظبط وبيتسحب رأسي بس لو الطول زاد
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: bracketContent,
         );
       },
     );
   }
 
-  Widget _buildFinalHeader() {
+  List<Widget> _buildLeftBranch(
+      List<List<TournamentMatchEntity>> leftRounds,
+      BracketLayout layout,
+      ) {
+    final widgets = <Widget>[];
+    for (int r = 0; r < leftRounds.length; r++) {
+      final colX = sidePadding + r * (columnWidth + horizontalGap);
+      widgets.add(Positioned(
+        left: colX,
+        top: 0,
+        width: columnWidth,
+        height: 32,
+        child: BracketRoundHeader(
+          roundsFromFinal: leftRounds.length - r,
+          matchCountInRound: leftRounds[r].length * 2,
+        ),
+      ));
+      final centers = layout.centersY[r];
+      for (int i = 0; i < leftRounds[r].length; i++) {
+        widgets.add(Positioned(
+          left: colX,
+          top: topOffset + centers[i] - matchHeight / 2,
+          width: columnWidth,
+          height: matchHeight,
+          child: BracketMatchNode(
+            match: leftRounds[r][i],
+            onTap: () => onMatchTap?.call(leftRounds[r][i]),
+          ),
+        ));
+      }
+    }
+    return widgets;
+  }
+
+  /// كانت دي فاضية (بگ) وده سبب اختفاء عمود ولاعبين الناحية اليمين بالكامل.
+  /// دلوقتي بتبني كل أدوار الفرع الأيمن فعليًا، بنفس منطق الفرع الأيسر
+  /// لكن بترتيب أعمدة معكوس (الأبعد عن الكأس على اليمين، الأقرب junto للنص).
+  List<Widget> _buildRightBranch(
+      List<List<TournamentMatchEntity>> rightRounds,
+      BracketLayout layout,
+      double centerColX,
+      ) {
+    final widgets = <Widget>[];
+    final int n = rightRounds.length;
+    if (n == 0) return widgets;
+
+    final double rightStartX = centerColX + columnWidth + horizontalGap;
+
+    for (int k = 0; k < n; k++) {
+      // k=0 هو أقرب دور للكأس (نص نهائي)، وبيتحط في أول عمود بعد النص
+      // وكل ما زاد k بنبعد لليمين لحد أول دور (اللي فيه أكتر عدد مباريات)
+      final colX = rightStartX + (n - 1 - k) * (columnWidth + horizontalGap);
+
+      widgets.add(Positioned(
+        left: colX,
+        top: 0,
+        width: columnWidth,
+        height: 32,
+        child: BracketRoundHeader(
+          roundsFromFinal: k + 1,
+          matchCountInRound: rightRounds[k].length * 2,
+        ),
+      ));
+
+      final centers = layout.centersY[k];
+      for (int i = 0; i < rightRounds[k].length; i++) {
+        widgets.add(Positioned(
+          left: colX,
+          top: topOffset + centers[i] - matchHeight / 2,
+          width: columnWidth,
+          height: matchHeight,
+          child: BracketMatchNode(
+            match: rightRounds[k][i],
+            onTap: () => onMatchTap?.call(rightRounds[k][i]),
+          ),
+        ));
+      }
+    }
+    return widgets;
+  }
+
+  List<Widget> _buildFinal(
+      TournamentMatchEntity finalMatch,
+      double centerColX,
+      double finalCenterY,
+      ) {
+    return [
+      Positioned(
+        left: centerColX,
+        top: 0,
+        width: columnWidth,
+        child: _finalHeader(),
+      ),
+      Positioned(
+        left: centerColX,
+        top: topOffset + finalCenterY - matchHeight / 2,
+        width: columnWidth,
+        height: matchHeight,
+        child: BracketMatchNode(
+          match: finalMatch,
+          onTap: () => onMatchTap?.call(finalMatch),
+        ),
+      ),
+    ];
+  }
+
+  Widget _finalHeader() {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                AppColors.neonBlue.withValues(alpha: 0.25),
-                AppColors.neonPurple.withValues(alpha: 0.25),
-              ],
-            ),
+            gradient: LinearGradient(colors: [
+              AppColors.neonBlue.withValues(alpha: 0.25),
+              AppColors.neonPurple.withValues(alpha: 0.25),
+            ]),
             border: Border.all(color: AppColors.neonBlue, width: 1.5),
           ),
           child: const Icon(TablerIcons.trophy, color: AppColors.warning, size: 22),
@@ -208,158 +296,6 @@ class TournamentBracketView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildBracketLayoutContent(
-    BuildContext context,
-    List<List<TournamentMatchEntity>> leftRounds,
-    List<List<TournamentMatchEntity>> rightRounds,
-    TournamentMatchEntity? finalMatch,
-    double columnWidth,
-    double horizontalGap,
-    double matchHeight,
-    double branchHeight,
-    double topOffset,
-  ) {
-    final widgets = <Widget>[];
-    double currentX = 20;
-
-    // 1. Left Branch
-    for (int r = 0; r < leftRounds.length; r++) {
-      final matches = leftRounds[r];
-      final colX = currentX;
-
-      widgets.add(
-        Positioned(
-          left: colX,
-          top: 0,
-          width: columnWidth,
-          height: 32,
-          child: BracketRoundHeader(
-            roundsFromFinal: leftRounds.length - r,
-            matchCountInRound: matches.length,
-          ),
-        ),
-      );
-
-      final positions = _calculateRoundCenters(
-        count: matches.length,
-        branchHeight: branchHeight,
-        matchHeight: matchHeight,
-        topOffset: topOffset,
-      );
-
-      for (int i = 0; i < matches.length; i++) {
-        widgets.add(
-          Positioned(
-            left: colX,
-            top: positions[i] - (matchHeight / 2),
-            width: columnWidth,
-            height: matchHeight,
-            child: BracketMatchNode(
-              match: matches[i],
-              onTap: () => onMatchTap?.call(matches[i]),
-            ),
-          ),
-        );
-      }
-      currentX += columnWidth + horizontalGap;
-    }
-
-    // 2. Center (Trophy & Final Match)
-    final double centerColX = currentX;
-
-    if (finalMatch != null) {
-      widgets.add(
-        Positioned(
-          left: centerColX,
-          top: 0,
-          width: columnWidth,
-          child: _buildFinalHeader(),
-        ),
-      );
-
-      final finalTopY = topOffset + branchHeight / 2 - (matchHeight / 2);
-
-      widgets.add(
-        Positioned(
-          left: centerColX,
-          top: finalTopY,
-          width: columnWidth,
-          height: matchHeight,
-          child: BracketMatchNode(
-            match: finalMatch,
-            onTap: () => onMatchTap?.call(finalMatch),
-          ),
-        ),
-      );
-    }
-
-    currentX += columnWidth + horizontalGap;
-
-    // 3. Right Branch
-    final rightRoundsOutToIn = rightRounds.reversed.toList();
-
-    for (int r = 0; r < rightRoundsOutToIn.length; r++) {
-      final matches = rightRoundsOutToIn[r];
-      final colX = currentX;
-
-      widgets.add(
-        Positioned(
-          left: colX,
-          top: 0,
-          width: columnWidth,
-          height: 32,
-          child: BracketRoundHeader(
-            roundsFromFinal: r + 1,
-            matchCountInRound: matches.length,
-          ),
-        ),
-      );
-
-      final positions = _calculateRoundCenters(
-        count: matches.length,
-        branchHeight: branchHeight,
-        matchHeight: matchHeight,
-        topOffset: topOffset,
-      );
-
-      for (int i = 0; i < matches.length; i++) {
-        widgets.add(
-          Positioned(
-            left: colX,
-            top: positions[i] - (matchHeight / 2),
-            width: columnWidth,
-            height: matchHeight,
-            child: BracketMatchNode(
-              match: matches[i],
-              onTap: () => onMatchTap?.call(matches[i]),
-            ),
-          ),
-        );
-      }
-      currentX += columnWidth + horizontalGap;
-    }
-
-    return Stack(children: widgets);
-  }
-
-  List<double> _calculateRoundCenters({
-    required int count,
-    required double branchHeight,
-    required double matchHeight,
-    required double topOffset,
-  }) {
-    if (count <= 0) return const [];
-    if (count == 1) return [topOffset + branchHeight / 2];
-
-    final available = branchHeight - matchHeight;
-    final spacing = available / (count - 1);
-
-    return List<double>.generate(
-      count,
-      (index) => topOffset + matchHeight / 2 + spacing * index,
     );
   }
 }

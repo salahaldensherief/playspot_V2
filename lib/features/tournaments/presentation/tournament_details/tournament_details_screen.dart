@@ -231,17 +231,20 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                 _buildPrizesTab(state.prizes),
 
                 // Tab 3: Bracket
-                TournamentBracketView(
-                  matches: state.matches,
-                  onMatchTap: (match) {
-                    context.pushNamed(
-                      RouterKeys.tournamentMatch,
-                      pathParameters: {
-                        'id': tournament.id,
-                        'matchId': match.id,
-                      },
-                    );
-                  },
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: TournamentBracketView(
+                    matches: state.matches,
+                    onMatchTap: (match) {
+                      context.pushNamed(
+                        RouterKeys.tournamentMatch,
+                        pathParameters: {
+                          'id': tournament.id,
+                          'matchId': match.id,
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -259,92 +262,412 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
   }
 
   Widget _buildRulesTab(TournamentEntity tournament) {
-    final remainingSeats = (tournament.maxParticipants - tournament.registeredParticipantsCount).clamp(0, tournament.maxParticipants);
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildOverviewCard(tournament),
+          const SizedBox(height: 16),
+          _buildParticipantsCard(tournament),
+          const SizedBox(height: 16),
+          _buildRulesSectionCard(tournament),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverviewCard(TournamentEntity tournament) {
     final scopeText = tournament.visibilityScope == TournamentVisibilityScope.city
         ? AppStrings.visibilityScopeCity.tr()
         : tournament.visibilityScope == TournamentVisibilityScope.radius
             ? AppStrings.visibilityScopeRadius.tr()
             : AppStrings.visibilityScopeAll.tr();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+    final entryFeeText = tournament.entryFee > 0
+        ? '${tournament.entryFee.toStringAsFixed(0)} ${AppStrings.egp.tr()}'
+        : AppStrings.freeEntry.tr();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderDefault),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Basic Metadata Section
-          _buildInfoRow(TablerIcons.device_gamepad, AppStrings.filterByGame.tr(), tournament.game),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.purple.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(TablerIcons.info_circle, color: AppColors.neonPurple, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'tournamentDetails'.tr(),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Orbitron',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoTile(
+            icon: TablerIcons.device_gamepad,
+            label: AppStrings.filterByGame.tr(),
+            value: tournament.game,
+          ),
           if (tournament.loungeName != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(TablerIcons.building, AppStrings.loungeVenue.tr(), tournament.loungeName!),
+            const SizedBox(height: 10),
+            _buildInfoTile(
+              icon: TablerIcons.building,
+              label: AppStrings.loungeVenue.tr(),
+              value: tournament.loungeName!,
+            ),
           ],
           if (tournament.cityName != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(TablerIcons.map_pin, AppStrings.city.tr(), tournament.cityName!),
+            const SizedBox(height: 10),
+            _buildInfoTile(
+              icon: TablerIcons.map_pin,
+              label: AppStrings.city.tr(),
+              value: tournament.cityName!,
+            ),
           ],
           if (tournament.startDate != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              TablerIcons.calendar_event,
-              AppStrings.tournamentDate.tr(),
-              DateFormat('yyyy-MM-dd HH:mm').format(tournament.startDate!),
+            const SizedBox(height: 10),
+            _buildInfoTile(
+              icon: TablerIcons.calendar_event,
+              label: AppStrings.tournamentDate.tr(),
+              value: DateFormat('yyyy-MM-dd HH:mm').format(tournament.startDate!),
             ),
           ],
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            TablerIcons.cash,
-            AppStrings.entryFee.tr(),
-            tournament.entryFee > 0 ? '${tournament.entryFee.toStringAsFixed(0)} ${AppStrings.egp.tr()}' : AppStrings.freeEntry.tr(),
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            TablerIcons.users,
-            AppStrings.maxParticipants.tr(),
-            '${tournament.registeredParticipantsCount} / ${tournament.bracketSize}',
-          ),
-          const SizedBox(height: 12),
-          _buildInfoRow(
-            TablerIcons.user_check,
-            AppStrings.remainingSeats.tr(),
-            '$remainingSeats',
-          ),
-          if (tournament.registrationClosesAt != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              TablerIcons.clock,
-              AppStrings.registrationClosesAt.tr(),
-              DateFormat('yyyy-MM-dd HH:mm').format(tournament.registrationClosesAt!),
+          const SizedBox(height: 10),
+          _buildInfoTile(
+            icon: TablerIcons.ticket,
+            label: AppStrings.entryFee.tr(),
+            value: entryFeeText,
+            iconColor: tournament.entryFee > 0 ? AppColors.warning : AppColors.success,
+            customValueWidget: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: (tournament.entryFee > 0 ? AppColors.warning : AppColors.success).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: (tournament.entryFee > 0 ? AppColors.warning : AppColors.success).withValues(alpha: 0.4),
+                ),
+              ),
+              child: Text(
+                entryFeeText,
+                style: TextStyle(
+                  color: tournament.entryFee > 0 ? AppColors.warning : AppColors.success,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
             ),
+          ),
+          const SizedBox(height: 10),
+          _buildInfoTile(
+            icon: TablerIcons.eye,
+            label: AppStrings.visibilityScope.tr(),
+            value: scopeText,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParticipantsCard(TournamentEntity tournament) {
+    final remainingSeats = (tournament.maxParticipants - tournament.registeredParticipantsCount).clamp(0, tournament.maxParticipants);
+    final double fillPercentage = tournament.bracketSize > 0
+        ? (tournament.registeredParticipantsCount / tournament.bracketSize).clamp(0.0, 1.0)
+        : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderDefault),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.neonBlue.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(TablerIcons.users, color: AppColors.neonBlue, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  AppStrings.maxParticipants.tr(),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Orbitron',
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: remainingSeats > 0
+                      ? AppColors.success.withValues(alpha: 0.15)
+                      : AppColors.danger.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: remainingSeats > 0 ? AppColors.successBorder : AppColors.dangerBorder,
+                  ),
+                ),
+                child: Text(
+                  '$remainingSeats ${AppStrings.remainingSeats.tr()}',
+                  style: TextStyle(
+                    color: remainingSeats > 0 ? AppColors.success : AppColors.danger,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                AppStrings.maxParticipants.tr(),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
+              Text(
+                '${tournament.registeredParticipantsCount} / ${tournament.bracketSize}',
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  fontFamily: 'Orbitron',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: fillPercentage,
+              minHeight: 8,
+              backgroundColor: AppColors.mutedBackground,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.neonBlue),
+            ),
+          ),
+          if (tournament.registrationClosesAt != null || tournament.checkInOpensAt != null) ...[
+            const SizedBox(height: 16),
+            const Divider(color: AppColors.divider, height: 1),
+            const SizedBox(height: 12),
+          ],
+          if (tournament.registrationClosesAt != null) ...[
+            _buildInfoTile(
+              icon: TablerIcons.clock,
+              label: AppStrings.registrationClosesAt.tr(),
+              value: DateFormat('yyyy-MM-dd HH:mm').format(tournament.registrationClosesAt!),
+            ),
+            const SizedBox(height: 10),
           ],
           if (tournament.checkInOpensAt != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(
-              TablerIcons.clock_play,
-              AppStrings.checkInWindow.tr(),
-              '${DateFormat('HH:mm').format(tournament.checkInOpensAt!)} - ${tournament.checkInClosesAt != null ? DateFormat('HH:mm').format(tournament.checkInClosesAt!) : ''}',
+            _buildInfoTile(
+              icon: TablerIcons.clock_play,
+              label: AppStrings.checkInWindow.tr(),
+              value: '${DateFormat('HH:mm').format(tournament.checkInOpensAt!)} - ${tournament.checkInClosesAt != null ? DateFormat('HH:mm').format(tournament.checkInClosesAt!) : ''}',
             ),
           ],
-          const SizedBox(height: 12),
-          _buildInfoRow(TablerIcons.eye, AppStrings.visibilityScope.tr(), scopeText),
+        ],
+      ),
+    );
+  }
 
-          const Divider(color: AppColors.divider, height: 32),
-          Text(
-            AppStrings.tournamentRules.tr(),
-            style: const TextStyle(
-              color: AppColors.neonBlue,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Orbitron',
-            ),
+  Widget _buildRulesSectionCard(TournamentEntity tournament) {
+    final rulesText = tournament.rules != null && tournament.rules!.isNotEmpty
+        ? tournament.rules!
+        : (tournament.description ?? AppStrings.noRulesProvided.tr());
+
+    final lines = rulesText
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.neonBlue.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(TablerIcons.gavel, color: AppColors.neonBlue, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                AppStrings.tournamentRules.tr(),
+                style: const TextStyle(
+                  color: AppColors.neonBlue,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Orbitron',
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            tournament.rules != null && tournament.rules!.isNotEmpty
-                ? tournament.rules!
-                : (tournament.description ?? AppStrings.noRulesProvided.tr()),
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 14,
-              height: 1.5,
+          const SizedBox(height: 16),
+          if (lines.length > 1)
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: lines.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final lineText = lines[index].replaceFirst(RegExp(r'^\d+[\.\-\)]\s*'), '');
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.neonBlue.withValues(alpha: 0.15),
+                        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: const TextStyle(
+                            color: AppColors.neonBlue,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Orbitron',
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          lineText,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.mutedBackground.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(12),
+                border: const Border(
+                  left: BorderSide(color: AppColors.neonBlue, width: 3),
+                ),
+              ),
+              child: Text(
+                rulesText,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? iconColor,
+    Widget? customValueWidget,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.mutedBackground.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppColors.neonBlue).withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor ?? AppColors.neonBlue, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                customValueWidget ??
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+              ],
             ),
           ),
         ],
@@ -352,106 +675,257 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.neonBlue, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-        ),
-        Text(
-          value,
-          style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-      ],
-    );
-  }
-
   Widget _buildPrizesTab(List<TournamentPrizeEntity> prizes) {
     if (prizes.isEmpty) {
       return Center(
-        child: Text(
-          'noResults'.tr(),
-          style: const TextStyle(color: AppColors.textSecondary),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(TablerIcons.trophy_off, size: 48, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+            const SizedBox(height: 12),
+            Text(
+              'noResults'.tr(),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
+          ],
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
-      itemCount: prizes.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final prize = prizes[index];
-        final bool isFirst = prize.placement == 1;
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isFirst ? AppColors.warning : AppColors.neonBlue.withValues(alpha: 0.3),
-              width: isFirst ? 1.5 : 1.0,
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildPrizePoolHeader(prizes),
+          const SizedBox(height: 20),
+          Text(
+            AppStrings.tournamentPrizes.tr(),
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Orbitron',
             ),
-            boxShadow: [
-              if (isFirst)
-                BoxShadow(
-                  color: AppColors.warning.withValues(alpha: 0.2),
-                  blurRadius: 10,
-                  spreadRadius: 1,
-                ),
-            ],
           ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: isFirst ? AppColors.warning.withValues(alpha: 0.2) : AppColors.mutedBackground,
-                radius: 20,
-                child: Icon(
-                  TablerIcons.trophy,
-                  color: isFirst ? AppColors.warning : AppColors.neonBlue,
-                  size: 22,
+          const SizedBox(height: 12),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: prizes.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              return _buildPrizeCard(prizes[index]);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrizePoolHeader(List<TournamentPrizeEntity> prizes) {
+    final totalAmount = prizes.fold(0.0, (sum, p) => sum + p.amount);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: AppColors.tournamentPromoGradient,
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.warning.withValues(alpha: 0.15),
+            blurRadius: 16,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.warning.withValues(alpha: 0.2),
+              border: Border.all(color: AppColors.warning, width: 1.5),
+            ),
+            child: const Icon(
+              TablerIcons.trophy,
+              color: AppColors.warning,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.tournamentPrizes.tr(),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  '${totalAmount.toStringAsFixed(0)} ${'egp'.tr()}',
+                  style: const TextStyle(
+                    color: AppColors.warning,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Orbitron',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrizeCard(TournamentPrizeEntity prize) {
+    final bool isFirst = prize.placement == 1;
+    final bool isSecond = prize.placement == 2;
+    final bool isThird = prize.placement == 3;
+
+    final Color cardAccentColor = isFirst
+        ? AppColors.warning
+        : isSecond
+            ? const Color(0xFFCBD5E1)
+            : isThird
+                ? const Color(0xFFCD7F32)
+                : AppColors.neonBlue;
+
+    final IconData rankIcon = isFirst
+        ? TablerIcons.crown
+        : isSecond
+            ? TablerIcons.medal
+            : isThird
+                ? TablerIcons.award
+                : TablerIcons.trophy;
+
+    final String rankLabel = isFirst
+        ? '1st'
+        : isSecond
+            ? '2nd'
+            : isThird
+                ? '3rd'
+                : '#${prize.placement}';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: cardAccentColor.withValues(alpha: isFirst ? 0.8 : 0.4),
+          width: isFirst ? 1.5 : 1.0,
+        ),
+        boxShadow: [
+          if (isFirst)
+            BoxShadow(
+              color: AppColors.warning.withValues(alpha: 0.15),
+              blurRadius: 12,
+              spreadRadius: 1,
+            ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: cardAccentColor.withValues(alpha: 0.15),
+              border: Border.all(color: cardAccentColor.withValues(alpha: 0.5), width: 1.5),
+            ),
+            child: Center(
+              child: Icon(
+                rankIcon,
+                color: cardAccentColor,
+                size: 22,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Text(
-                      prize.title,
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: cardAccentColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                    ),
-                    if (prize.description != null)
-                      Text(
-                        prize.description!,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
+                      child: Text(
+                        rankLabel,
+                        style: TextStyle(
+                          color: cardAccentColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                          fontFamily: 'Orbitron',
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        prize.title,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              Text(
-                '${prize.amount.toStringAsFixed(0)} ${'egp'.tr()}',
-                style: TextStyle(
-                  color: isFirst ? AppColors.warning : AppColors.neonBlue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
+                if (prize.description != null && prize.description!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    prize.description!,
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
           ),
-        );
-      },
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: cardAccentColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: cardAccentColor.withValues(alpha: 0.3)),
+            ),
+            child: Text(
+              '${prize.amount.toStringAsFixed(0)} ${'egp'.tr()}',
+              style: TextStyle(
+                color: cardAccentColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                fontFamily: 'Orbitron',
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

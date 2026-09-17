@@ -1,61 +1,109 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/tournament_entity.dart';
+import 'bracket_layout.dart';
 
 class SplitBracketPainter extends CustomPainter {
-  final List<List<TournamentMatchEntity>> leftRounds;
-  final List<List<TournamentMatchEntity>> rightRounds;
+  final BracketLayout leftLayout;
+  final BracketLayout rightLayout;
   final double columnWidth;
   final double horizontalGap;
   final double matchHeight;
-  final double verticalGap;
-  final double branchHeight;
+  final double topOffset;
+  final double centerColX;
+  final double finalCenterY; // بالنسبة لبداية المحتوى (بدون topOffset)
   final Color lineColor;
 
-  // نص قطر صورة اللاعب - لازم يفضل متطابق مع حجم الأفاتار (36) في BracketMatchNode
   static const double _avatarRadius = 18.0;
   static const double _mergeGap = 10.0;
 
   SplitBracketPainter({
-    required this.leftRounds,
-    required this.rightRounds,
+    required this.leftLayout,
+    required this.rightLayout,
     required this.columnWidth,
     required this.horizontalGap,
     required this.matchHeight,
-    required this.verticalGap,
-    required this.branchHeight,
+    required this.topOffset,
+    required this.centerColX,
+    required this.finalCenterY,
     required this.lineColor,
   });
 
-  double _topY(int index, int count) {
-    final slot = branchHeight / count;
-    return 40 + slot * index + (slot - matchHeight) / 2;
-  }
+  double _y(double centerY) => topOffset + centerY;
+  double _avatarTop(double centerY) => _y(centerY) - matchHeight / 2 + _avatarRadius;
+  double _avatarBottom(double centerY) => _y(centerY) + matchHeight / 2 - _avatarRadius;
 
-  double _centerY(int index, int count) => _topY(index, count) + matchHeight / 2;
-  double _avatarTopY(int index, int count) => _topY(index, count) + _avatarRadius;
-  double _avatarBottomY(int index, int count) => _topY(index, count) + matchHeight - _avatarRadius;
-
-  /// يرسم الخط القصير اللي بيوحّد صورتي اللاعبين في نقطة واحدة (mergeX)
-  /// عشان الخط الأساسي يبان طالع من الصور فعلاً.
-  double _drawAvatarMerge(
-    Canvas canvas,
-    Paint paint,
-    double colX,
-    int index,
-    int count, {
-    required bool toRight,
-  }) {
+  double _mergeAtCol(Canvas canvas, Paint paint, double colX, double centerY, {required bool toRight}) {
     final centerX = colX + columnWidth / 2;
     final edgeX = toRight ? centerX + _avatarRadius : centerX - _avatarRadius;
     final mergeX = toRight ? edgeX + _mergeGap : edgeX - _mergeGap;
-    final topY = _avatarTopY(index, count);
-    final bottomY = _avatarBottomY(index, count);
+    final topY = _avatarTop(centerY);
+    final bottomY = _avatarBottom(centerY);
 
     canvas.drawLine(Offset(edgeX, topY), Offset(mergeX, topY), paint);
     canvas.drawLine(Offset(edgeX, bottomY), Offset(mergeX, bottomY), paint);
     canvas.drawLine(Offset(mergeX, topY), Offset(mergeX, bottomY), paint);
     return mergeX;
   }
+
+  void _connectRound(
+      Canvas canvas,
+      Paint paint,
+      BracketLayout layout,
+      int roundIndex,
+      double currColX,
+      double nextColX, {
+        required bool toRight,
+      }) {
+    final curr = layout.centersY[roundIndex];
+    final next = layout.centersY[roundIndex + 1];
+
+    for (int i = 0; i < next.length; i++) {
+      final mergeA = _mergeAtCol(canvas, paint, currColX, curr[i * 2], toRight: toRight);
+      final hasB = i * 2 + 1 < curr.length;
+      final mergeB = hasB ? _mergeAtCol(canvas, paint, currColX, curr[i * 2 + 1], toRight: toRight) : mergeA;
+
+      final yA = _y(curr[i * 2]);
+      final yB = hasB ? _y(curr[i * 2 + 1]) : yA;
+      final yNext = _y(next[i]);
+      final nextEdge = toRight ? nextColX : nextColX + columnWidth;
+      final midX = (mergeA + nextEdge) / 2;
+
+      canvas.drawLine(Offset(mergeA, yA), Offset(midX, yA), paint);
+      if (hasB) {
+        canvas.drawLine(Offset(mergeB, yB), Offset(midX, yB), paint);
+        canvas.drawLine(Offset(midX, yA), Offset(midX, yB), paint);
+      }
+      canvas.drawLine(Offset(midX, yNext), Offset(nextEdge, yNext), paint);
+    }
+  }
+
+  void _connectToFinal(
+      Canvas canvas,
+      Paint paint,
+      BracketLayout layout,
+      double lastColX, {
+        required bool toRight,
+        required bool enterTop,
+      }) {
+    if (layout.rounds.isEmpty) return;
+    final last = layout.centersY.last;
+    final finalAvatarY = enterTop
+        ? topOffset + finalCenterY - matchHeight / 2 + _avatarRadius
+        : topOffset + finalCenterY + matchHeight / 2 - _avatarRadius;
+    final centerEdge = toRight ? centerColX : centerColX + columnWidth;
+
+    for (final centerY in last) {
+      final mergeX = _mergeAtCol(canvas, paint, lastColX, centerY, toRight: toRight);
+      final y = _y(centerY);
+      final midX = (mergeX + centerEdge) / 2;
+      canvas.drawLine(Offset(mergeX, y), Offset(midX, y), paint);
+      canvas.drawLine(Offset(midX, y), Offset(midX, finalAvatarY), paint);
+      canvas.drawLine(Offset(midX, finalAvatarY), Offset(centerEdge, finalAvatarY), paint);
+    }
+  }
+
+  // X-position لعمود الفرع اليمين حسب رقم الدور (k=0 هو دور فيه أكتر مباريات)
+  double _rightColX(int roundIndex, int rightCount, double rightStartX) =>
+      rightStartX + (rightCount - 1 - roundIndex) * (columnWidth + horizontalGap);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -65,102 +113,29 @@ class SplitBracketPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    const double startX = 10;
-    final double centerColX = startX + leftRounds.length * (columnWidth + horizontalGap);
-    final double finalTopY = branchHeight / 2 - matchHeight / 2 + 20;
-
-    // ================= الفرع الأيسر (يتجه يمين ناحية الكأس) =================
-    for (int r = 0; r < leftRounds.length - 1; r++) {
-      final curr = leftRounds[r];
-      final next = leftRounds[r + 1];
-      final colX = startX + r * (columnWidth + horizontalGap);
-      final nextColX = startX + (r + 1) * (columnWidth + horizontalGap);
-
-      for (int i = 0; i < next.length; i++) {
-        final mergeA = _drawAvatarMerge(canvas, paint, colX, i * 2, curr.length, toRight: true);
-        final hasB = i * 2 + 1 < curr.length;
-        final mergeB = hasB
-            ? _drawAvatarMerge(canvas, paint, colX, i * 2 + 1, curr.length, toRight: true)
-            : mergeA;
-
-        final yA = _centerY(i * 2, curr.length);
-        final yB = hasB ? _centerY(i * 2 + 1, curr.length) : yA;
-        final yNext = _centerY(i, next.length);
-        final midX = (mergeA + nextColX) / 2;
-
-        canvas.drawLine(Offset(mergeA, yA), Offset(midX, yA), paint);
-        if (hasB) {
-          canvas.drawLine(Offset(mergeB, yB), Offset(midX, yB), paint);
-          canvas.drawLine(Offset(midX, yA), Offset(midX, yB), paint);
-        }
-        canvas.drawLine(Offset(midX, yNext), Offset(nextColX, yNext), paint);
-      }
+    // ================= الفرع الأيسر: بيتحرك يمين ناحية النص =================
+    for (int r = 0; r < leftLayout.rounds.length - 1; r++) {
+      final currColX = 20 + r * (columnWidth + horizontalGap);
+      final nextColX = 20 + (r + 1) * (columnWidth + horizontalGap);
+      _connectRound(canvas, paint, leftLayout, r, currColX, nextColX, toRight: true);
+    }
+    if (leftLayout.rounds.isNotEmpty) {
+      final lastColX = 20 + (leftLayout.rounds.length - 1) * (columnWidth + horizontalGap);
+      _connectToFinal(canvas, paint, leftLayout, lastColX, toRight: true, enterTop: true);
     }
 
-    // وصلة آخر عمود شمال -> مباراة النهائي (يدخل من فوق - أفاتار النهائي العلوي)
-    if (leftRounds.isNotEmpty) {
-      final lastIdx = leftRounds.length - 1;
-      final last = leftRounds[lastIdx];
-      final colX = startX + lastIdx * (columnWidth + horizontalGap);
-      final finalTopAvatarY = finalTopY + _avatarRadius;
+    // ================= الفرع الأيمن: بيتحرك شمال ناحية النص =================
+    final rightStartX = centerColX + columnWidth + horizontalGap;
+    final rightCount = rightLayout.rounds.length;
 
-      for (int i = 0; i < last.length; i++) {
-        final mergeX = _drawAvatarMerge(canvas, paint, colX, i, last.length, toRight: true);
-        final y = _centerY(i, last.length);
-        final midX = (mergeX + centerColX) / 2;
-        canvas.drawLine(Offset(mergeX, y), Offset(midX, y), paint);
-        canvas.drawLine(Offset(midX, y), Offset(midX, finalTopAvatarY), paint);
-        canvas.drawLine(Offset(midX, finalTopAvatarY), Offset(centerColX, finalTopAvatarY), paint);
-      }
+    for (int k = 0; k < rightCount - 1; k++) {
+      final currColX = _rightColX(k, rightCount, rightStartX);
+      final nextColX = _rightColX(k + 1, rightCount, rightStartX);
+      _connectRound(canvas, paint, rightLayout, k, currColX, nextColX, toRight: false);
     }
-
-    // ================= الفرع الأيمن (يتجه شمال ناحية الكأس) =================
-    final reversedRight = rightRounds.reversed.toList();
-    final double rightStartX = centerColX + (columnWidth + horizontalGap);
-
-    for (int r = 0; r < reversedRight.length - 1; r++) {
-      // التغذية لازم تيجي من العمود الأكتر ماتشات (الأبعد) للأقل (الأقرب للكأس)
-      final feeder = reversedRight[r + 1];
-      final target = reversedRight[r];
-      final feederColX = rightStartX + (r + 1) * (columnWidth + horizontalGap);
-      final targetColX = rightStartX + r * (columnWidth + horizontalGap);
-      final targetRightEdge = targetColX + columnWidth;
-
-      for (int i = 0; i < target.length; i++) {
-        final mergeA = _drawAvatarMerge(canvas, paint, feederColX, i * 2, feeder.length, toRight: false);
-        final hasB = i * 2 + 1 < feeder.length;
-        final mergeB = hasB
-            ? _drawAvatarMerge(canvas, paint, feederColX, i * 2 + 1, feeder.length, toRight: false)
-            : mergeA;
-
-        final yA = _centerY(i * 2, feeder.length);
-        final yB = hasB ? _centerY(i * 2 + 1, feeder.length) : yA;
-        final yTarget = _centerY(i, target.length);
-        final midX = (mergeA + targetRightEdge) / 2;
-
-        canvas.drawLine(Offset(mergeA, yA), Offset(midX, yA), paint);
-        if (hasB) {
-          canvas.drawLine(Offset(mergeB, yB), Offset(midX, yB), paint);
-          canvas.drawLine(Offset(midX, yA), Offset(midX, yB), paint);
-        }
-        canvas.drawLine(Offset(midX, yTarget), Offset(targetRightEdge, yTarget), paint);
-      }
-    }
-
-    // وصلة أقرب عمود يمين -> مباراة النهائي (يدخل من تحت - أفاتار النهائي السفلي)
-    if (reversedRight.isNotEmpty) {
-      final nearest = reversedRight.first;
-      final finalBottomAvatarY = finalTopY + matchHeight - _avatarRadius;
-      final rightEdgeOfCenter = centerColX + columnWidth;
-
-      for (int i = 0; i < nearest.length; i++) {
-        final mergeX = _drawAvatarMerge(canvas, paint, rightStartX, i, nearest.length, toRight: false);
-        final y = _centerY(i, nearest.length);
-        final midX = (mergeX + rightEdgeOfCenter) / 2;
-        canvas.drawLine(Offset(mergeX, y), Offset(midX, y), paint);
-        canvas.drawLine(Offset(midX, y), Offset(midX, finalBottomAvatarY), paint);
-        canvas.drawLine(Offset(midX, finalBottomAvatarY), Offset(rightEdgeOfCenter, finalBottomAvatarY), paint);
-      }
+    if (rightLayout.rounds.isNotEmpty) {
+      final lastColX = _rightColX(rightCount - 1, rightCount, rightStartX); // = rightStartX
+      _connectToFinal(canvas, paint, rightLayout, lastColX, toRight: false, enterTop: false);
     }
   }
 
