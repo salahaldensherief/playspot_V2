@@ -1,8 +1,10 @@
 import 'dart:developer' as dev;
 import 'dart:io';
+
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../models/tournament_model.dart';
 import '../../models/user_tournament_participation_model.dart';
 
@@ -23,14 +25,19 @@ abstract class TournamentsRemoteDataSource {
 
   Future<List<TournamentMatchModel>> getTournamentMatches(String tournamentId);
 
-  Future<TournamentMatchModel?> getMatchById(String tournamentId, String matchId);
+  Future<TournamentMatchModel?> getMatchById(
+    String tournamentId,
+    String matchId,
+  );
 
   Future<TournamentParticipantModel?> getUserParticipant(
     String tournamentId,
     String userId,
   );
 
-  Future<TournamentParticipantModel?> registerForTournament(String tournamentId);
+  Future<TournamentParticipantModel?> registerForTournament(
+    String tournamentId,
+  );
 
   Future<TournamentParticipantModel?> submitTournamentPayment({
     required String participantId,
@@ -58,7 +65,9 @@ abstract class TournamentsRemoteDataSource {
     required String disputeReason,
   });
 
-  Stream<List<TournamentMatchModel>> watchTournamentMatches(String tournamentId);
+  Stream<List<TournamentMatchModel>> watchTournamentMatches(
+    String tournamentId,
+  );
 
   Future<PaginatedResponse<Map<String, dynamic>>> getTournamentAuditLogsPage({
     required String tournamentId,
@@ -66,7 +75,10 @@ abstract class TournamentsRemoteDataSource {
     int pageSize = 50,
   });
 
-  Future<TournamentParticipantModel?> withdrawFromTournament(String participantId, {String? tournamentId});
+  Future<TournamentParticipantModel?> withdrawFromTournament(
+    String participantId, {
+    String? tournamentId,
+  });
 
   Future<List<Map<String, dynamic>>> getUserTournamentHistory(String userId);
 
@@ -95,10 +107,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     try {
       dynamic response;
       try {
-        response = await _client.rpc('get_visible_tournaments', params: {
-          'p_latitude': latitude,
-          'p_longitude': longitude,
-        });
+        response = await _client.rpc(
+          'get_visible_tournaments',
+          params: {'p_latitude': latitude, 'p_longitude': longitude},
+        );
       } catch (e1) {
         dev.log('[TOURNAMENTS_REMOTE] RPC with params failed: $e1');
       }
@@ -112,28 +124,40 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       }
 
       if (response == null || (response is List && response.isEmpty)) {
-        dev.log('[TOURNAMENTS_REMOTE] RPC returned empty or failed, querying tournaments table directly...');
+        dev.log(
+          '[TOURNAMENTS_REMOTE] RPC returned empty or failed, querying tournaments table directly...',
+        );
         try {
-          response = await _client.from('tournaments').select('*, cities:city_id(*), lounges:lounge_id(*)').order('created_at', ascending: false);
+          response = await _client
+              .from('tournaments')
+              .select('*, cities:city_id(*), lounges:lounge_id(*)')
+              .order('created_at', ascending: false);
         } catch (e3) {
           dev.log('[TOURNAMENTS_REMOTE] Direct select failed: $e3');
         }
       }
 
       final list = (response as List?)?.cast<Map<String, dynamic>>() ?? [];
-      dev.log('[TOURNAMENTS_REMOTE] Fetched ${list.length} raw tournaments from DB');
+      dev.log(
+        '[TOURNAMENTS_REMOTE] Fetched ${list.length} raw tournaments from DB',
+      );
 
       var models = list.map((json) => TournamentModel.fromJson(json)).toList();
 
       // MOB-01: Exclude draft, cancelled, completed from active feed (unless statusFilter == 'completed')
       if (statusFilter == 'completed') {
-        models = models.where((t) => t.status == TournamentStatus.completed).toList();
+        models = models
+            .where((t) => t.status == TournamentStatus.completed)
+            .toList();
       } else {
-        models = models.where((t) =>
-          t.status != TournamentStatus.draft &&
-          t.status != TournamentStatus.cancelled &&
-          t.status != TournamentStatus.completed
-        ).toList();
+        models = models
+            .where(
+              (t) =>
+                  t.status != TournamentStatus.draft &&
+                  t.status != TournamentStatus.cancelled &&
+                  t.status != TournamentStatus.completed,
+            )
+            .toList();
       }
 
       // MOB-02: If location is null (no location permission), exclude 'radius' tournaments
@@ -143,7 +167,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
             return false;
           }
           if (t.visibilityScope == TournamentVisibilityScope.city) {
-            return cityId == null || cityId.isEmpty || t.cityId == null || t.cityId == cityId;
+            return cityId == null ||
+                cityId.isEmpty ||
+                t.cityId == null ||
+                t.cityId == cityId;
           }
           return true; // TournamentVisibilityScope.all
         }).toList();
@@ -154,18 +181,26 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       }
 
       if (game != null && game.isNotEmpty && game != 'All') {
-        models = models.where((t) => t.game.toLowerCase().contains(game.toLowerCase())).toList();
+        models = models
+            .where((t) => t.game.toLowerCase().contains(game.toLowerCase()))
+            .toList();
       }
 
       if (cityId != null && cityId.isNotEmpty) {
-        models = models.where((t) =>
-          t.visibilityScope == TournamentVisibilityScope.all ||
-          t.cityId == null ||
-          t.cityId == cityId
-        ).toList();
+        models = models
+            .where(
+              (t) =>
+                  t.visibilityScope == TournamentVisibilityScope.all ||
+                  t.cityId == null ||
+                  t.cityId == cityId,
+            )
+            .toList();
       }
 
-      if (statusFilter != null && statusFilter.isNotEmpty && statusFilter != 'All' && statusFilter != 'completed') {
+      if (statusFilter != null &&
+          statusFilter.isNotEmpty &&
+          statusFilter != 'All' &&
+          statusFilter != 'completed') {
         models = models.where((t) {
           final dbStatus = t.status.toDbString();
           if (statusFilter == 'registration_open') {
@@ -193,14 +228,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         }).toList();
       }
 
-      if (models.isEmpty) {
-        models = _getDemoTournaments();
-      }
-
       return models;
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error fetching tournaments: $e');
-      return _getDemoTournaments();
+      return [];
     }
   }
 
@@ -214,20 +245,22 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       );
     }
     try {
-      final response = await _client.from('tournaments').select('*, cities:city_id(*), lounges:lounge_id(*)').eq('id', tournamentId).single();
+      final response = await _client
+          .from('tournaments')
+          .select('*, cities:city_id(*), lounges:lounge_id(*)')
+          .eq('id', tournamentId)
+          .single();
       return TournamentModel.fromJson(response);
     } catch (e) {
-      dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentById: $e, using demo fallback...');
-      final demoList = _getDemoTournaments();
-      return demoList.firstWhere(
-        (t) => t.id == tournamentId,
-        orElse: () => demoList.first,
-      );
+      dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentById: $e');
+      rethrow;
     }
   }
 
   @override
-  Future<List<TournamentPrizeModel>> getTournamentPrizes(String tournamentId) async {
+  Future<List<TournamentPrizeModel>> getTournamentPrizes(
+    String tournamentId,
+  ) async {
     if (tournamentId.startsWith('demo_')) {
       return _getDemoPrizes(tournamentId);
     }
@@ -239,7 +272,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .order('placement', ascending: true);
 
       final list = (response as List).cast<Map<String, dynamic>>();
-      final prizes = list.map((json) => TournamentPrizeModel.fromJson(json)).toList();
+      final prizes = list
+          .map((json) => TournamentPrizeModel.fromJson(json))
+          .toList();
       if (prizes.isNotEmpty) return prizes;
       return _getDemoPrizes(tournamentId);
     } catch (e) {
@@ -249,7 +284,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<List<TournamentMatchModel>> getTournamentMatches(String tournamentId) async {
+  Future<List<TournamentMatchModel>> getTournamentMatches(
+    String tournamentId,
+  ) async {
     if (tournamentId.startsWith('demo_')) {
       return _getDemoMatches(tournamentId);
     }
@@ -262,7 +299,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .order('match_order', ascending: true);
 
       final list = (response as List).cast<Map<String, dynamic>>();
-      final matches = list.map((json) => TournamentMatchModel.fromJson(json)).toList();
+      final matches = list
+          .map((json) => TournamentMatchModel.fromJson(json))
+          .toList();
       if (matches.isNotEmpty) return matches;
       return _getDemoMatches(tournamentId);
     } catch (e) {
@@ -272,7 +311,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<TournamentMatchModel?> getMatchById(String tournamentId, String matchId) async {
+  Future<TournamentMatchModel?> getMatchById(
+    String tournamentId,
+    String matchId,
+  ) async {
     if (tournamentId.startsWith('demo_')) {
       final demoMatches = _getDemoMatches(tournamentId);
       final safeMatches = List<TournamentMatchModel>.from(demoMatches);
@@ -358,7 +400,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<TournamentParticipantModel?> registerForTournament(String tournamentId) async {
+  Future<TournamentParticipantModel?> registerForTournament(
+    String tournamentId,
+  ) async {
     if (tournamentId.startsWith('demo_')) {
       _demoParticipantStatuses[tournamentId] = ParticipantStatus.confirmed;
       return _getDemoParticipant(tournamentId, 'demo_user');
@@ -372,9 +416,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     try {
       final res = await _client.rpc(
         'register_for_tournament',
-        params: {
-          'p_tournament_id': tournamentId,
-        },
+        params: {'p_tournament_id': tournamentId},
       );
 
       if (res is Map<String, dynamic>) {
@@ -396,7 +438,8 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     required String paymentMethod,
     required File receiptFile,
   }) async {
-    if (participantId.startsWith('p_demo') || tournamentId.startsWith('demo_')) {
+    if (participantId.startsWith('p_demo') ||
+        tournamentId.startsWith('demo_')) {
       _demoParticipantStatuses[tournamentId] = ParticipantStatus.pendingPayment;
       return _getDemoParticipant(tournamentId, userId);
     }
@@ -406,13 +449,12 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     final storagePath = 'tournament-receipts/$tournamentId/$userId/$fileName';
 
     final bytes = await receiptFile.readAsBytes();
-    await _client.storage.from('tournament-receipts').uploadBinary(
+    await _client.storage
+        .from('tournament-receipts')
+        .uploadBinary(
           storagePath,
           bytes,
-          fileOptions: FileOptions(
-            contentType: 'image/$fileExt',
-            upsert: true,
-          ),
+          fileOptions: FileOptions(contentType: 'image/$fileExt', upsert: true),
         );
 
     final signedUrl = await _client.storage
@@ -441,7 +483,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<TournamentParticipantModel?> checkInParticipant(String participantId) async {
+  Future<TournamentParticipantModel?> checkInParticipant(
+    String participantId,
+  ) async {
     if (participantId.startsWith('p_demo')) {
       _demoParticipantStatuses.forEach((key, value) {
         _demoParticipantStatuses[key] = ParticipantStatus.checkedIn;
@@ -460,7 +504,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       }
       return null;
     } catch (e) {
-      dev.log('[TOURNAMENTS_REMOTE] RPC check_in_tournament_participant error: $e');
+      dev.log(
+        '[TOURNAMENTS_REMOTE] RPC check_in_tournament_participant error: $e',
+      );
       rethrow;
     }
   }
@@ -483,10 +529,13 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     if (proofFile != null) {
       final fileExt = proofFile.path.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final storagePath = 'tournament-result-proofs/$tournamentId/$matchId/$fileName';
+      final storagePath =
+          'tournament-result-proofs/$tournamentId/$matchId/$fileName';
 
       final bytes = await proofFile.readAsBytes();
-      await _client.storage.from('tournament-result-proofs').uploadBinary(
+      await _client.storage
+          .from('tournament-result-proofs')
+          .uploadBinary(
             storagePath,
             bytes,
             fileOptions: FileOptions(
@@ -537,10 +586,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     try {
       await _client.rpc(
         'dispute_match_result',
-        params: {
-          'p_match_id': matchId,
-          'p_dispute_reason': disputeReason,
-        },
+        params: {'p_match_id': matchId, 'p_dispute_reason': disputeReason},
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC dispute_match_result error: $e');
@@ -549,14 +595,19 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Stream<List<TournamentMatchModel>> watchTournamentMatches(String tournamentId) {
+  Stream<List<TournamentMatchModel>> watchTournamentMatches(
+    String tournamentId,
+  ) {
     return _client
         .from('tournament_matches')
         .stream(primaryKey: ['id'])
         .eq('tournament_id', tournamentId)
         .order('round_number', ascending: true)
         .order('match_order', ascending: true)
-        .map((list) => list.map((json) => TournamentMatchModel.fromJson(json)).toList());
+        .map(
+          (list) =>
+              list.map((json) => TournamentMatchModel.fromJson(json)).toList(),
+        );
   }
 
   @override
@@ -566,11 +617,14 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     int pageSize = 50,
   }) async {
     try {
-      final response = await _client.rpc('get_tournament_audit_logs_page', params: {
-        'p_tournament_id': tournamentId,
-        'p_page': page,
-        'p_page_size': pageSize,
-      });
+      final response = await _client.rpc(
+        'get_tournament_audit_logs_page',
+        params: {
+          'p_tournament_id': tournamentId,
+          'p_page': page,
+          'p_page_size': pageSize,
+        },
+      );
 
       return PaginatedResponse.fromRpc(
         response: response,
@@ -595,10 +649,13 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     if (currentUser == null || token.isEmpty) return;
 
     try {
-      await _client.from('profiles').update({
-        'fcm_token': token,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', currentUser.id);
+      await _client
+          .from('profiles')
+          .update({
+            'fcm_token': token,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', currentUser.id);
     } catch (e) {
       // Silent error for FCM token update
     }
@@ -608,9 +665,15 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
 
   @override
   @override
-  Future<TournamentParticipantModel?> withdrawFromTournament(String participantId, {String? tournamentId}) async {
-    if (participantId.startsWith('p_demo') || (tournamentId != null && tournamentId.startsWith('demo_'))) {
-      dev.log('[TOURNAMENTS_REMOTE] Withdraw demo tournament $tournamentId for participant $participantId');
+  Future<TournamentParticipantModel?> withdrawFromTournament(
+    String participantId, {
+    String? tournamentId,
+  }) async {
+    if (participantId.startsWith('p_demo') ||
+        (tournamentId != null && tournamentId.startsWith('demo_'))) {
+      dev.log(
+        '[TOURNAMENTS_REMOTE] Withdraw demo tournament $tournamentId for participant $participantId',
+      );
       if (tournamentId != null) {
         _demoParticipantStatuses[tournamentId] = ParticipantStatus.withdrawn;
       } else {
@@ -632,10 +695,15 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       }
       return null;
     } catch (e) {
-      dev.log('[TOURNAMENTS_REMOTE] RPC withdraw_from_tournament error, fallback to direct update: $e');
-      final res = await _client.from('tournament_participants').update({
-        'registration_status': 'withdrawn',
-      }).eq('id', participantId).select().maybeSingle();
+      dev.log(
+        '[TOURNAMENTS_REMOTE] RPC withdraw_from_tournament error, fallback to direct update: $e',
+      );
+      final res = await _client
+          .from('tournament_participants')
+          .update({'registration_status': 'withdrawn'})
+          .eq('id', participantId)
+          .select()
+          .maybeSingle();
 
       if (res != null) {
         return TournamentParticipantModel.fromJson(res);
@@ -645,7 +713,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getUserTournamentHistory(String userId) async {
+  Future<List<Map<String, dynamic>>> getUserTournamentHistory(
+    String userId,
+  ) async {
     try {
       final response = await _client
           .from('tournament_participants')
@@ -657,7 +727,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       if (list.isNotEmpty) return list;
       return _getDemoHistory(userId);
     } catch (e) {
-      dev.log('[TOURNAMENTS_REMOTE] Error fetching user tournament history: $e');
+      dev.log(
+        '[TOURNAMENTS_REMOTE] Error fetching user tournament history: $e',
+      );
       return _getDemoHistory(userId);
     }
   }
@@ -669,7 +741,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       if (response == null) return _getDemoTournaments().first;
       if (response is List) {
         if (response.isEmpty) return _getDemoTournaments().first;
-        return TournamentModel.fromJson((response.first as Map).cast<String, dynamic>());
+        return TournamentModel.fromJson(
+          (response.first as Map).cast<String, dynamic>(),
+        );
       }
       if (response is Map) {
         return TournamentModel.fromJson(response.cast<String, dynamic>());
@@ -689,23 +763,30 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         title: 'بطولة EA FC 24 الأسبوعية',
         titleAr: 'بطولة EA FC 24 الأسبوعية',
         titleEn: 'EA FC 24 Weekly Cup',
-        description: 'بطولة حماسية لأفضل لاعبي بلايستيشن في المنصورة. التحدي على جوائز كاش ونقاط ولاء.',
-        descriptionAr: 'بطولة حماسية لأفضل لاعبي بلايستيشن في المنصورة. التحدي على جوائز كاش ونقاط ولاء.',
-        descriptionEn: 'Exciting FC 24 tournament for PlayStation gamers in Mansoura with cash prizes and loyalty points.',
+        description:
+            'بطولة حماسية لأفضل لاعبي بلايستيشن في المنصورة. التحدي على جوائز كاش ونقاط ولاء.',
+        descriptionAr:
+            'بطولة حماسية لأفضل لاعبي بلايستيشن في المنصورة. التحدي على جوائز كاش ونقاط ولاء.',
+        descriptionEn:
+            'Exciting FC 24 tournament for PlayStation gamers in Mansoura with cash prizes and loyalty points.',
         game: 'FC 24',
         cityId: '1',
         cityName: 'المنصورة',
         loungeId: 'bdc97209-63fa-4693-9ced-80f9c08f8e12',
         loungeName: 'Sybar Gaming Lounge',
-        bannerUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
-        imageUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
+        imageUrl:
+            'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
         status: TournamentStatus.registrationOpen,
         maxParticipants: 16,
         registeredParticipantsCount: 12,
         bracketSize: 16,
         entryFee: 50.0,
-        rulesAr: '1. نظام خروج المغلوب.\n2. مدة الشوط 6 دقائق.\n3. السرعة عادية والكاميرا الكلاسيكية.\n4. يمنع اختيار الفرق الخارقة (All-Stars).',
-        rulesEn: '1. Single elimination knockout.\n2. Half length 6 minutes.\n3. Normal speed, Tactical camera.\n4. All-Star teams forbidden.',
+        rulesAr:
+            '1. نظام خروج المغلوب.\n2. مدة الشوط 6 دقائق.\n3. السرعة عادية والكاميرا الكلاسيكية.\n4. يمنع اختيار الفرق الخارقة (All-Stars).',
+        rulesEn:
+            '1. Single elimination knockout.\n2. Half length 6 minutes.\n3. Normal speed, Tactical camera.\n4. All-Star teams forbidden.',
         startDate: now.add(const Duration(days: 2)),
         endDate: now.add(const Duration(days: 2, hours: 5)),
         registrationOpensAt: now.subtract(const Duration(days: 3)),
@@ -721,23 +802,30 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         title: 'بطولة Tekken 8 الكبرى',
         titleAr: 'بطولة Tekken 8 الكبرى',
         titleEn: 'Tekken 8 Ultimate Showdown',
-        description: 'تحدي القتال الأقوى في الصالة، مواجهات حماسية 1v1 بنظام Best of 3.',
-        descriptionAr: 'تحدي القتال الأقوى في الصالة، مواجهات حماسية 1v1 بنظام Best of 3.',
-        descriptionEn: 'The ultimate fighting tournament, intense 1v1 matches in Best of 3 format.',
+        description:
+            'تحدي القتال الأقوى في الصالة، مواجهات حماسية 1v1 بنظام Best of 3.',
+        descriptionAr:
+            'تحدي القتال الأقوى في الصالة، مواجهات حماسية 1v1 بنظام Best of 3.',
+        descriptionEn:
+            'The ultimate fighting tournament, intense 1v1 matches in Best of 3 format.',
         game: 'Tekken 8',
         cityId: '1',
         cityName: 'المنصورة',
         loungeId: 'bdc97209-63fa-4693-9ced-80f9c08f8e12',
         loungeName: 'Sybar Gaming Lounge',
-        bannerUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
-        imageUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
+        imageUrl:
+            'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
         status: TournamentStatus.inProgress,
         maxParticipants: 8,
         registeredParticipantsCount: 8,
         bracketSize: 8,
         entryFee: 75.0,
-        rulesAr: '1. نظام Best of 3.\n2. الجولات 3 جولات لكل ماكينة.\n3. اختيار المرحلة العشوائي.',
-        rulesEn: '1. Best of 3 matches.\n2. 3 rounds per game.\n3. Random stage select.',
+        rulesAr:
+            '1. نظام Best of 3.\n2. الجولات 3 جولات لكل ماكينة.\n3. اختيار المرحلة العشوائي.',
+        rulesEn:
+            '1. Best of 3 matches.\n2. 3 rounds per game.\n3. Random stage select.',
         startDate: now.subtract(const Duration(hours: 1)),
         endDate: now.add(const Duration(hours: 3)),
         allowWaitlist: false,
@@ -748,16 +836,20 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         title: 'دوري Valorant الأبطال',
         titleAr: 'دوري Valorant الأبطال',
         titleEn: 'Valorant Masters Cyber League',
-        description: 'بطولة الفرق لخمسة ضد خمسة على سيرفرات سريعة وشاشات 240Hz.',
-        descriptionAr: 'بطولة الفرق لخمسة ضد خمسة على سيرفرات سريعة وشاشات 240Hz.',
+        description:
+            'بطولة الفرق لخمسة ضد خمسة على سيرفرات سريعة وشاشات 240Hz.',
+        descriptionAr:
+            'بطولة الفرق لخمسة ضد خمسة على سيرفرات سريعة وشاشات 240Hz.',
         descriptionEn: '5v5 team tournament on high refresh rate PCs.',
         game: 'Valorant',
         cityId: '1',
         cityName: 'المنصورة',
         loungeId: 'bdc97209-63fa-4693-9ced-80f9c08f8e12',
         loungeName: 'Sybar Gaming Lounge',
-        bannerUrl: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
-        imageUrl: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
+        bannerUrl:
+            'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
+        imageUrl:
+            'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
         status: TournamentStatus.published,
         maxParticipants: 16,
         registeredParticipantsCount: 14,
@@ -928,8 +1020,12 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     ];
   }
 
-  TournamentParticipantModel _getDemoParticipant(String tournamentId, String userId) {
-    final status = _demoParticipantStatuses[tournamentId] ?? ParticipantStatus.checkedIn;
+  TournamentParticipantModel _getDemoParticipant(
+    String tournamentId,
+    String userId,
+  ) {
+    final status =
+        _demoParticipantStatuses[tournamentId] ?? ParticipantStatus.checkedIn;
     return TournamentParticipantModel(
       id: 'p_demo',
       tournamentId: tournamentId,
@@ -938,7 +1034,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       status: status,
       paymentStatus: PaymentStatus.approved,
       checkedIn: status == ParticipantStatus.checkedIn,
-      checkedInAt: status == ParticipantStatus.checkedIn ? DateTime.now().subtract(const Duration(minutes: 30)) : null,
+      checkedInAt: status == ParticipantStatus.checkedIn
+          ? DateTime.now().subtract(const Duration(minutes: 30))
+          : null,
     );
   }
 
@@ -950,7 +1048,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         'user_id': userId,
         'registration_status': 'confirmed',
         'payment_status': 'approved',
-        'created_at': DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+        'created_at': DateTime.now()
+            .subtract(const Duration(days: 1))
+            .toIso8601String(),
         'tournaments': {
           'id': 'demo_fc24',
           'title': 'بطولة EA FC 24 الأسبوعية',
@@ -959,7 +1059,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           'entry_fee': 50,
           'max_participants': 16,
           'registered_participants_count': 12,
-        }
+        },
       },
       {
         'id': 'p_history_2',
@@ -967,7 +1067,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         'user_id': userId,
         'registration_status': 'confirmed',
         'payment_status': 'approved',
-        'created_at': DateTime.now().subtract(const Duration(days: 10)).toIso8601String(),
+        'created_at': DateTime.now()
+            .subtract(const Duration(days: 10))
+            .toIso8601String(),
         'tournaments': {
           'id': 'demo_tekken8',
           'title': 'بطولة Tekken 8 الكبرى',
@@ -976,8 +1078,8 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           'entry_fee': 75,
           'max_participants': 8,
           'registered_participants_count': 8,
-        }
-      }
+        },
+      },
     ];
   }
 }

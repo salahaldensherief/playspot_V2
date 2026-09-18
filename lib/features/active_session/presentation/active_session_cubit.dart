@@ -58,14 +58,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.getActiveSession(bookingId: bookingId);
 
     result.fold(
-      (failure) {
+          (failure) {
         dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION FAILURE: ${failure.message}");
         emit(state.copyWith(
           status: ActiveSessionStatus.error,
           errorMessage: failure.message,
         ));
       },
-      (session) {
+          (session) {
         if (session == null) {
           dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION EMPTY: No session found");
           _subscribedBookingId = null;
@@ -193,8 +193,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.getLoungeMenu(loungeId);
     if (isClosed) return;
     result.fold(
-      (f) => dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}"),
-      (menu) {
+          (f) => dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}"),
+          (menu) {
         dev.log("[LIVESESSION_CUBIT] LOAD_MENU SUCCESS: ${menu.length} items");
         emit(state.copyWith(menu: menu));
       },
@@ -211,14 +211,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.extendTime(bookingId, additionalMinutes, cost);
 
     result.fold(
-      (failure) {
+          (failure) {
         dev.log("[LIVESESSION_CUBIT] EXTEND_TIME FAILURE: ${failure.message}");
         emit(state.copyWith(
           extendStatus: ActionStatus.error,
           errorMessage: failure.message,
         ));
       },
-      (_) {
+          (_) {
         dev.log("[LIVESESSION_CUBIT] EXTEND_TIME SUCCESS");
         emit(state.copyWith(extendStatus: ActionStatus.success));
         loadActiveSession(bookingId: bookingId);
@@ -240,14 +240,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     );
 
     result.fold(
-      (failure) {
+          (failure) {
         dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE FAILURE: ${failure.message}");
         emit(state.copyWith(
           staffRequestStatus: ActionStatus.error,
           errorMessage: failure.message,
         ));
       },
-      (_) {
+          (_) {
         dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE SUCCESS");
         emit(state.copyWith(staffRequestStatus: ActionStatus.success));
       },
@@ -270,11 +270,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     );
 
     result.fold(
-      (failure) {
+          (failure) {
         dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW FAILURE: ${failure.message}");
         emit(state.copyWith(errorMessage: failure.message));
       },
-      (_) {
+          (_) {
         dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW SUCCESS");
         // Requirement 9: Refresh points and missions data from Supabase after review submission
         try {
@@ -298,14 +298,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.placeOrder(bookingId, items);
 
     result.fold(
-      (failure) {
+          (failure) {
         dev.log("[LIVESESSION_CUBIT] PLACE_ORDER FAILURE: ${failure.message}");
         emit(state.copyWith(
           orderStatus: ActionStatus.error,
           errorMessage: failure.message,
         ));
       },
-      (_) {
+          (_) {
         dev.log("[LIVESESSION_CUBIT] PLACE_ORDER SUCCESS");
         emit(state.copyWith(orderStatus: ActionStatus.success));
         loadActiveSession(bookingId: bookingId);

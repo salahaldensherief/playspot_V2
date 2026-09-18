@@ -15,17 +15,17 @@ dependencies:
   get_it: ^9.2.1
   equatable: ^2.0.5
 
-#  # Supabase
-#  supabase_flutter: ^2.5.0
+  #  # Supabase
+  #  supabase_flutter: ^2.5.0
 
-#  # Location
-#  geolocator: ^11.0.0
-#  geocoding: ^3.0.0
-#  permission_handler: ^11.3.1
+  #  # Location
+  #  geolocator: ^11.0.0
+  #  geocoding: ^3.0.0
+  #  permission_handler: ^11.3.1
 
-#  # Payment
-#  webview_flutter: ^4.7.0
-#  dio: ^5.4.3
+  #  # Payment
+  #  webview_flutter: ^4.7.0
+  #  dio: ^5.4.3
 
   # UI
   cached_network_image: ^4.0.0
@@ -56,8 +56,8 @@ dependencies:
   flutter_local_notifications: ^22.3.0
 
   # Storage
-#  shared_preferences: ^2.2.3
-#  flutter_secure_storage: ^9.2.2
+  #  shared_preferences: ^2.2.3
+  #  flutter_secure_storage: ^9.2.2
 
   # Utils
   connectivity_plus: ^7.3.1
@@ -94,7 +94,7 @@ flutter_native_splash:
 
   android_12:
     color: "#0A0A0F"
-    image: "assets/images/splash_logo.png"
+    image: "assets/images/splash_logo_android12.png"
 
   web: false
 
@@ -112,7 +112,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
-#    - assets/animations/
+    #    - assets/animations/
     - assets/lang/en.json
     - assets/lang/ar.json
     - assets/fonts/

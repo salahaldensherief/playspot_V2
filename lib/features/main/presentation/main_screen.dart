@@ -130,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
           },
         ),
         BlocListener<ActiveSessionCubit, ActiveSessionState>(
-          listenWhen: (prev, curr) => 
+          listenWhen: (prev, curr) =>
               prev.status != ActiveSessionStatus.loaded && curr.status == ActiveSessionStatus.loaded && curr.session != null,
           listener: (context, state) {
             try {

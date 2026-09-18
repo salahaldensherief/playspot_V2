@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui' as ui;
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -10,6 +11,7 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
+
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/services/location_service.dart';
@@ -31,9 +33,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FlutterNativeSplash.remove();
-    });
+    _safeRemoveNativeSplash();
 
     _controller = AnimationController(
       vsync: this,
@@ -42,9 +42,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     // بنأخر بداية الفيد بتاع النص شوية (بعد ما الـ Native يتشال) عشان
     // النص يبقى العنصر الوحيد اللي "بيظهر جديد" - مش اللوجو.
-    _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+    _fadeAnim = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     // مهم جداً: اللوجو مبيعملش أنيميشن دخول (scale) خالص.
     // بيفضل ثابت على 1.0 من أول فريم - نفس حجمه بالظبط زي ما هو
@@ -101,6 +102,24 @@ class _SplashScreenState extends State<SplashScreen>
         }
       }
     } catch (_) {}
+  }
+
+  void _safeRemoveNativeSplash() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final size = View.of(context).physicalSize;
+      if (size.width > 0 && size.height > 0) {
+        FlutterNativeSplash.remove();
+      } else {
+        // Flutter surface layout is not ready yet (Width is zero. 0,0)
+        // Schedule removal on the next frame after layout settles
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            FlutterNativeSplash.remove();
+          }
+        });
+      }
+    });
   }
 
   @override

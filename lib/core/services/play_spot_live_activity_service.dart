@@ -1,4 +1,6 @@
 import 'dart:developer' as dev;
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:live_activities/live_activities.dart';
 
 class PlaySpotLiveActivityService {
@@ -10,9 +12,11 @@ class PlaySpotLiveActivityService {
   String? _currentActivityId;
 
   Future<void> init() async {
+    if (kIsWeb || !Platform.isIOS) {
+      _isSupported = false;
+      return;
+    }
     try {
-      // Initialize with app group if required by package
-      // await _liveActivitiesPlugin.init(appGroupId: 'group.com.playspot.app');
       _isSupported = true;
       dev.log("[LiveActivity] Initialized");
     } catch (e) {
@@ -26,6 +30,7 @@ class PlaySpotLiveActivityService {
     required String deviceName,
     required int endTimeTimestamp,
   }) async {
+    if (!_isSupported || kIsWeb || !Platform.isIOS) return;
     try {
       _currentActivityId = sessionId;
       final activityId = await _liveActivitiesPlugin.createActivity(
@@ -47,7 +52,7 @@ class PlaySpotLiveActivityService {
     required String deviceName,
     required int endTimeTimestamp,
   }) async {
-    if (_currentActivityId == null) return;
+    if (!_isSupported || kIsWeb || !Platform.isIOS || _currentActivityId == null) return;
     try {
       await _liveActivitiesPlugin.updateActivity(
         _currentActivityId!,
@@ -64,7 +69,7 @@ class PlaySpotLiveActivityService {
   }
 
   Future<void> endActivity() async {
-    if (_currentActivityId == null) return;
+    if (!_isSupported || kIsWeb || !Platform.isIOS || _currentActivityId == null) return;
     try {
       await _liveActivitiesPlugin.endActivity(_currentActivityId!);
       _currentActivityId = null;
