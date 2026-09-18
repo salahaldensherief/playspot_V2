@@ -12,12 +12,8 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
-import 'package:playspot/art_core/widgets/layout/app_divider.dart';
-import 'package:playspot/art_core/widgets/layout/info_row.dart';
-import 'package:playspot/core/di.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
-import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
@@ -26,10 +22,10 @@ import 'package:playspot/features/profile/presentation/profile/profile_state.dar
 
 import '../../../art_core/widgets/layout/glass_container.dart';
 import '../../../art_core/widgets/layout/safe_bottom_spacer.dart';
-import '../../../core/cache/preference_manager.dart';
 import '../../../core/utils/booking_error_formatter.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
+import 'widgets/checkout_summary_card.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CheckoutParams params;
@@ -96,7 +92,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSummaryCard(context),
+                    CheckoutSummaryCard(params: widget.params),
                     SizedBox(height: 16.h),
                     _buildLateArrivalPolicyBanner(),
                     SizedBox(height: 24.h),
@@ -135,7 +131,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             .toList();
 
         return BlocBuilder<CheckoutCubit, CheckoutState>(
-          buildWhen: (previous, current) => previous.selectedVoucher != current.selectedVoucher || previous.status != current.status,
+          buildWhen: (previous, current) =>
+              previous.selectedVoucher != current.selectedVoucher ||
+              previous.discountAmount != current.discountAmount ||
+              previous.status != current.status,
           builder: (context, checkoutState) {
             final isVoucherApplied = checkoutState.selectedVoucher != null;
 
@@ -170,7 +169,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 SizedBox(height: 12.h),
                 if (isVoucherApplied)
-                  _buildAppliedVoucherCard(checkoutState.selectedVoucher!)
+                  _buildAppliedVoucherCard(
+                    checkoutState.selectedVoucher!,
+                    checkoutState.discountAmount,
+                  )
                 else ...[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -229,33 +231,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildAppliedVoucherCard(Map<String, dynamic> voucher) {
+  Widget _buildAppliedVoucherCard(Map<String, dynamic> voucher, double discountAmount) {
     return GlassContainer(
       borderRadius: 15,
       child: Padding(
         padding: EdgeInsets.all(16.w),
         child: Row(
           children: [
-            Icon(Icons.confirmation_number_outlined, color: AppColors.neonBlue),
-            SizedBox(width: 12.w),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  text: voucher['code'],
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                AppText(
-                  text: AppStrings.voucherApplied.tr(),
-                  fontSize: 12.sp,
-                  color: AppColors.success,
-                ),
-              ],
+            Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.confirmation_number_outlined, color: AppColors.success, size: 20.sp),
             ),
-            const Spacer(),
-            const Icon(Icons.check_circle, color: AppColors.success),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    text: voucher['code'],
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: 2.h),
+                  AppText(
+                    text: discountAmount > 0
+                        ? AppStrings.youSaved.tr(args: [discountAmount.toStringAsFixed(0)])
+                        : AppStrings.voucherApplied.tr(),
+                    fontSize: 12.5.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.success,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.check_circle_rounded, color: AppColors.success),
           ],
         ),
       ),
@@ -358,176 +372,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   String _getRewardDescription(Map<String, dynamic> voucher) {
-    if (voucher['reward_type'] == 'free_hour') return "1 Free Hour";
-    return "${voucher['reward_value']} EGP Discount";
-  }
-
-  Widget _buildSummaryCard(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: AppColors.borderDefault),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AppText(
-            text: widget.params.lounge.name,
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.white,
-          ),
-          SizedBox(height: 4.h),
-          AppText(
-            text:
-                "${widget.params.room.spaceTypeLabel(context.locale.languageCode == 'ar')} - ${widget.params.room.getName(context.locale.languageCode == 'ar')} · ${widget.params.room.controllersCount} ${AppStrings.controllers.tr()} · ${widget.params.room.screenSize} ${AppStrings.screen.tr()}",
-            fontSize: 12.sp,
-            color: AppColors.textSecondary,
-          ),
-          if (widget.params.room.isSimulator || widget.params.room.isVR) ...[
-            SizedBox(height: 4.h),
-            AppText(
-              text: widget.params.room.isSimulator ? "Setup: Fanatec Base + Triple 4K" : "Gear: Meta Quest 3 + Pro Straps",
-              fontSize: 11.sp,
-              color: AppColors.neonBlue,
-              fontWeight: FontWeight.w500,
-            ),
-          ],
-          SizedBox(height: 16.h),
-          const AppDivider(),
-          InfoRow(label: AppStrings.selectDate.tr(), value: widget.params.date.toAppDateString()),
-          InfoRow(
-              label: AppStrings.startTime.tr(), value: widget.params.startTime.toAppTimeString()),
-          InfoRow(
-              label: AppStrings.duration.tr(),
-              value: widget.params.duration >= 60 
-                  ? "${widget.params.duration / 60.0} ${AppStrings.hour_plural.tr(args: [''])}"
-                  : "${widget.params.duration} ${AppStrings.min30.tr()}"),
-          if (widget.params.playMode != null)
-            InfoRow(
-              label: AppStrings.playMode.tr(),
-              value: widget.params.playMode == 'single' 
-                  ? AppStrings.singlePlay.tr() 
-                  : AppStrings.multiPlay.tr(),
-              valueColor: AppColors.neonBlue,
-            ),
-          if (widget.params.extraControllers != null && widget.params.extraControllers! > 0)
-            InfoRow(
-              label: context.locale.languageCode == 'ar' ? "دراعات إضافية" : "Extra Controllers",
-              value: "${widget.params.extraControllers}x (+${(widget.params.extraControllers! * (widget.params.extraControllerPrice ?? 0)).toStringAsFixed(2)} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
-              valueColor: AppColors.warning,
-              prefixIcon: Icons.videogame_asset_outlined,
-            ),
-          if (widget.params.addOns.isNotEmpty) ...[
-            SizedBox(height: 16.h),
-            AppText(
-              text: AppStrings.addOns.tr(),
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-            SizedBox(height: 8.h),
-            ...widget.params.addOns.map((addOn) {
-              IconData icon = Icons.local_drink_outlined;
-              final name = addOn['name'].toString().toLowerCase();
-              if (name.contains('snack') ||
-                  name.contains('food') ||
-                  name.contains('popcorn') ||
-                  name.contains('pizza')) {
-                icon = Icons.fastfood_outlined;
-              }
-              final itemTotal = (addOn['price'] as num) * (addOn['quantity'] as num);
-              return InfoRow(
-                label: "${addOn['quantity']}x ${addOn['name']}",
-                value:
-                    "${itemTotal.toDouble().toStringAsFixed(2)} ${AppStrings.egp.tr()}",
-                labelColor: AppColors.white,
-                fontSize: 14.sp,
-                prefixIcon: icon,
-              );
-            }),
-          ],
-          const AppDivider(),
-          SizedBox(height: 16.h),
-          BlocBuilder<CheckoutCubit, CheckoutState>(
-            buildWhen: (previous, current) => previous.discountAmount != current.discountAmount,
-            builder: (context, state) {
-              final roomPromoDiscount = widget.params.originalTotalPrice - widget.params.totalPrice;
-              final totalDiscount = roomPromoDiscount + state.discountAmount;
-              final finalPrice = widget.params.totalPrice - state.discountAmount;
-              
-              return Column(
-                children: [
-                  if (totalDiscount > 0) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        AppText(
-                          text: AppStrings.subtotal.tr(),
-                          fontSize: 14.sp,
-                          color: AppColors.textSecondary,
-                        ),
-                        AppText(
-                          text: "${widget.params.originalTotalPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
-                          fontSize: 14.sp,
-                          color: AppColors.textSecondary,
-                          textDecoration: TextDecoration.lineThrough,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        AppText(
-                          text: AppStrings.discount.tr(),
-                          fontSize: 14.sp,
-                          color: AppColors.success,
-                        ),
-                        AppText(
-                          text: "-${totalDiscount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
-                          fontSize: 14.sp,
-                          color: AppColors.success,
-                        ),
-                      ],
-                    ),
-                    if (roomPromoDiscount > 0 && state.discountAmount > 0)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4.h),
-                        child: AppText(
-                          text: AppStrings.inclRoomOfferAndVoucher.tr(),
-                          fontSize: 10.sp,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    SizedBox(height: 12.h),
-                  ],
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      AppText(
-                        text: AppStrings.total.tr(),
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.white,
-                      ),
-                      AppText(
-                        text: "${finalPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.neonBlue,
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
+    if (voucher['reward_type'] == 'free_hour') {
+      return AppStrings.freeHourReward.tr();
+    }
+    final val = voucher['reward_value']?.toString() ?? '0';
+    return AppStrings.discountAmountReward.tr(args: [val]);
   }
 
   Widget _buildPaymentMethods() {
@@ -550,6 +399,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               icon: Icons.phone_android,
               label: AppStrings.vodafoneCash.tr(),
               isSelected: state.selectedMethod == PaymentMethod.vodafoneCash,
+              hintText: AppStrings.vodafoneCashHint.tr(),
             ),
             SizedBox(height: 12.h),
             _buildPaymentOption(
@@ -558,6 +408,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               icon: Icons.account_balance_wallet_outlined,
               label: AppStrings.fawry.tr(),
               isSelected: state.selectedMethod == PaymentMethod.fawry,
+              hintText: AppStrings.fawryHint.tr(),
             ),
             SizedBox(height: 12.h),
             _buildPaymentOption(
@@ -566,6 +417,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               icon: Icons.money,
               label: AppStrings.cash.tr(),
               isSelected: state.selectedMethod == PaymentMethod.cash,
+              hintText: AppStrings.cashHint.tr(),
             ),
           ],
         );
@@ -579,10 +431,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required IconData icon,
     required String label,
     required bool isSelected,
+    String? hintText,
   }) {
     return GestureDetector(
       onTap: () => context.read<CheckoutCubit>().selectPaymentMethod(method),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
@@ -592,31 +446,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             width: isSelected ? 1.5 : 1,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.neonBlue.withValues(alpha: 0.1)
-                    : AppColors.backgroundAlt,
-                borderRadius: BorderRadius.circular(10.r),
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.neonBlue.withValues(alpha: 0.1)
+                        : AppColors.backgroundAlt,
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Icon(icon,
+                      color:
+                          isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                      size: 20.sp),
+                ),
+                SizedBox(width: 16.w),
+                AppText(
+                  text: label,
+                  fontSize: 16.sp,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? AppColors.white : AppColors.textSecondary,
+                ),
+                const Spacer(),
+                if (isSelected)
+                  Icon(Icons.check_circle, color: AppColors.neonBlue, size: 20.sp),
+              ],
+            ),
+            if (isSelected && hintText != null) ...[
+              SizedBox(height: 10.h),
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: AppColors.neonBlue.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: AppColors.neonBlue.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: AppText(
+                  text: hintText,
+                  fontSize: 11.5.sp,
+                  color: AppColors.textSecondary,
+                  height: 1.35,
+                ),
               ),
-              child: Icon(icon,
-                  color:
-                      isSelected ? AppColors.neonBlue : AppColors.textSecondary,
-                  size: 20.sp),
-            ),
-            SizedBox(width: 16.w),
-            AppText(
-              text: label,
-              fontSize: 16.sp,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? AppColors.white : AppColors.textSecondary,
-            ),
-            const Spacer(),
-            if (isSelected)
-              Icon(Icons.check_circle, color: AppColors.neonBlue, size: 20.sp),
+            ],
           ],
         ),
       ),
@@ -782,44 +660,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     if (state.selectedMethod == PaymentMethod.creditCard) {
                       if (!(_formKey.currentState?.validate() ?? false)) return;
                     }
-                    
-                    final startDateTime = DateTime(
-                      widget.params.date.year,
-                      widget.params.date.month,
-                      widget.params.date.day,
-                      widget.params.startTime.hour,
-                      widget.params.startTime.minute,
-                    );
-                    final endDateTime =
-                        startDateTime.add(Duration(minutes: widget.params.duration));
-
-                    final pref = sl<PreferenceManager>();
-                    final userName = pref.fullName() ?? "";
-                    final userPhone = pref.phoneNumber() ?? "";
-
-                    final roomPromoDiscount = widget.params.originalTotalPrice - widget.params.totalPrice;
-                    final totalDiscount = roomPromoDiscount + state.discountAmount;
-                    final finalPrice = widget.params.totalPrice - state.discountAmount;
-
-                    final targetLoungeId = widget.params.room.loungeId.isNotEmpty
-                        ? widget.params.room.loungeId
-                        : widget.params.lounge.id;
 
                     context.read<CheckoutCubit>().processPayment(
-                      CreateBookingParams(
-                        roomId: widget.params.room.id,
-                        roomName: widget.params.room.getName(context.locale.languageCode == 'ar'),
-                        loungeId: targetLoungeId,
-                        userName: userName,
-                        userPhone: userPhone,
-                        startTime: startDateTime,
-                        endTime: endDateTime,
-                        totalPrice: finalPrice,
-                        discountAmount: totalDiscount,
-                        roomPrice: widget.params.appliedHourlyRate ?? widget.params.room.effectivePrice,
-                        addOns: widget.params.addOns,
-                        playMode: widget.params.playMode,
-                      ),
+                      widget.params,
+                      isArabic: context.locale.languageCode == 'ar',
                     );
                   },
                 ),

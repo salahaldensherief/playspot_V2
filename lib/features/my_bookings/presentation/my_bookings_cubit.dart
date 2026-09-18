@@ -79,14 +79,21 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   }
 
   Future<void> cancelBooking(String bookingId) async {
-    emit(state.copyWith(status: MyBookingsStatus.loading));
+    emit(state.copyWith(cancellingBookingId: bookingId));
     final result = await _repository.cancelBooking(bookingId);
     result.fold(
       (failure) => emit(state.copyWith(
+        clearCancelling: true,
         status: MyBookingsStatus.failure,
         errorMessage: failure.message,
       )),
-      (_) => getMyBookings(force: true),
+      (_) {
+        emit(state.copyWith(
+          clearCancelling: true,
+          status: MyBookingsStatus.success,
+        ));
+        getMyBookings(force: true);
+      },
     );
   }
 }

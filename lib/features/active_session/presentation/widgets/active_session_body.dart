@@ -1,26 +1,43 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
+
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
-import '../../../../art_core/widgets/layout/app_loader.dart';
-import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
+import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
-import 'timer_section.dart';
-import 'station_info.dart';
-import 'quick_actions.dart';
 import 'active_session_action_bar.dart';
 import 'billing_breakdown.dart';
+import 'lounge_review_bottom_sheet.dart';
+import 'quick_actions.dart';
+import 'session_summary_card.dart';
+import 'station_info.dart';
+import 'timer_section.dart';
 
 class ActiveSessionBody extends StatelessWidget {
   const ActiveSessionBody({super.key});
+
+  void _showReviewBottomSheet(BuildContext context, dynamic session) {
+    final cubit = context.read<ActiveSessionCubit>();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => LoungeReviewBottomSheet(
+        loungeName: session.loungeName,
+        onSubmit: (rating, comment) =>
+            cubit.submitReview(rating: rating, comment: comment),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +45,7 @@ class ActiveSessionBody extends StatelessWidget {
       buildWhen: (prev, curr) =>
           prev.status != curr.status ||
           prev.session != curr.session ||
+          prev.completedSession != curr.completedSession ||
           prev.errorMessage != curr.errorMessage,
       builder: (context, state) {
         if (state.status == ActiveSessionStatus.loading ||
@@ -42,11 +60,15 @@ class ActiveSessionBody extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline_rounded,
-                      color: AppColors.danger, size: 48.sp),
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: AppColors.danger,
+                    size: 48.sp,
+                  ),
                   SizedBox(height: 16.h),
                   AppText(
-                    text: state.errorMessage ??
+                    text:
+                        state.errorMessage ??
                         AppStrings.somethingWentWrong.tr(),
                     textAlign: TextAlign.center,
                   ),
@@ -71,9 +93,20 @@ class ActiveSessionBody extends StatelessWidget {
           );
         }
 
-        if (state.status == ActiveSessionStatus.empty || state.session == null) {
+        if (state.status == ActiveSessionStatus.empty &&
+            state.completedSession != null) {
+          return SessionSummaryCard(
+            session: state.completedSession!,
+            onRateExperience: () =>
+                _showReviewBottomSheet(context, state.completedSession!),
+          );
+        }
+
+        if (state.status == ActiveSessionStatus.empty ||
+            state.session == null) {
           return AppRefreshIndicator(
-            onRefresh: () => context.read<ActiveSessionCubit>().loadActiveSession(),
+            onRefresh: () =>
+                context.read<ActiveSessionCubit>().loadActiveSession(),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Container(
@@ -85,10 +118,10 @@ class ActiveSessionBody extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.all(24.w),
                       decoration: BoxDecoration(
-                        color: AppColors.withOpacity(AppColors.neonBlue, 0.08),
+                        color: AppColors.neonBlue.withValues(alpha: 0.08),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AppColors.withOpacity(AppColors.neonBlue, 0.2),
+                          color: AppColors.neonBlue.withValues(alpha: 0.2),
                           width: 1.5,
                         ),
                       ),

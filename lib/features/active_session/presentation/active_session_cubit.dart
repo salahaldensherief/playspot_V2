@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/play_spot_live_activity_service.dart';
@@ -49,6 +50,13 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     });
   }
 
+  /// Calculates pre-calculated extension cost based on active session rates
+  double calculateExtensionCost(int additionalMinutes) {
+    final session = state.session ?? state.completedSession;
+    if (session == null) return 0.0;
+    return session.calculateExtensionCost(additionalMinutes);
+  }
+
   Future<void> loadActiveSession({String? bookingId}) async {
     dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION: bookingId=$bookingId");
     if (state.status != ActiveSessionStatus.loaded) {
@@ -58,14 +66,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.getActiveSession(bookingId: bookingId);
 
     result.fold(
-          (failure) {
+      (failure) {
         dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION FAILURE: ${failure.message}");
         emit(state.copyWith(
           status: ActiveSessionStatus.error,
           errorMessage: failure.message,
         ));
       },
-          (session) {
+      (session) {
         if (session == null) {
           dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION EMPTY: No session found");
           _subscribedBookingId = null;
@@ -74,7 +82,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
           LocalNotificationService.instance.cancelActiveSessionNotification();
           NativeNotificationService.instance.cancelCustomNotification();
           PlaySpotLiveActivityService.instance.endActivity();
-          emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
+          emit(state.copyWith(
+            status: ActiveSessionStatus.empty,
+            session: null,
+            completedSession: state.session ?? state.completedSession,
+          ));
         } else {
           dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION LOADED: bookingId=${session.bookingId}, status=${session.status}");
           emit(state.copyWith(
@@ -128,14 +140,18 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
       dev.log("[LIVESESSION_CUBIT] REALTIME EVENT for $bookingId: status=${updatedSession.status}, end_time=${updatedSession.endTime}");
       final status = BookingStatus.fromString(updatedSession.status);
       if (status == BookingStatus.completed || status == BookingStatus.cancelled) {
-        dev.log("[LIVESESSION_CUBIT] Session ended or cancelled viaRealtime");
+        dev.log("[LIVESESSION_CUBIT] Session ended or cancelled via Realtime");
         _subscribedBookingId = null;
         _realtimeSubscription?.cancel();
         _realtimeSubscription = null;
         LocalNotificationService.instance.cancelActiveSessionNotification();
         NativeNotificationService.instance.cancelCustomNotification();
         PlaySpotLiveActivityService.instance.endActivity();
-        emit(state.copyWith(status: ActiveSessionStatus.empty, session: null));
+        emit(state.copyWith(
+          status: ActiveSessionStatus.empty,
+          session: null,
+          completedSession: state.session ?? updatedSession,
+        ));
       } else {
         dev.log("[LIVESESSION_CUBIT] Realtime update applied directly without re-fetching...");
         final currentSession = state.session;
@@ -193,17 +209,22 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.getLoungeMenu(loungeId);
     if (isClosed) return;
     result.fold(
-          (f) => dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}"),
-          (menu) {
+      (f) => dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}"),
+      (menu) {
         dev.log("[LIVESESSION_CUBIT] LOAD_MENU SUCCESS: ${menu.length} items");
         emit(state.copyWith(menu: menu));
       },
     );
   }
 
-  Future<void> extendTime(int additionalMinutes, double cost) async {
-    if (state.session == null) return;
-    final bookingId = state.session!.bookingId;
+  Future<void> extendTime(int additionalMinutes, [double? precalculatedCost]) async {
+    final active = state.session;
+    if (active == null) return;
+
+    HapticFeedback.mediumImpact();
+
+    final cost = precalculatedCost ?? calculateExtensionCost(additionalMinutes);
+    final bookingId = active.bookingId;
     dev.log("[LIVESESSION_CUBIT] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$cost");
 
     emit(state.copyWith(extendStatus: ActionStatus.loading));
@@ -211,14 +232,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.extendTime(bookingId, additionalMinutes, cost);
 
     result.fold(
-          (failure) {
+      (failure) {
         dev.log("[LIVESESSION_CUBIT] EXTEND_TIME FAILURE: ${failure.message}");
         emit(state.copyWith(
           extendStatus: ActionStatus.error,
           errorMessage: failure.message,
         ));
       },
-          (_) {
+      (_) {
         dev.log("[LIVESESSION_CUBIT] EXTEND_TIME SUCCESS");
         emit(state.copyWith(extendStatus: ActionStatus.success));
         loadActiveSession(bookingId: bookingId);
@@ -228,6 +249,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
 
   Future<void> requestStaffAssistance(String type, String? notes) async {
     if (state.session == null) return;
+
+    HapticFeedback.mediumImpact();
+
     final bookingId = state.session!.bookingId;
     dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE: bookingId=$bookingId, type=$type");
 
@@ -240,14 +264,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     );
 
     result.fold(
-          (failure) {
+      (failure) {
         dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE FAILURE: ${failure.message}");
         emit(state.copyWith(
           staffRequestStatus: ActionStatus.error,
           errorMessage: failure.message,
         ));
       },
-          (_) {
+      (_) {
         dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE SUCCESS");
         emit(state.copyWith(staffRequestStatus: ActionStatus.success));
       },
@@ -258,31 +282,35 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     required double rating,
     String? comment,
   }) async {
-    if (state.session == null) return;
-    final bookingId = state.session!.bookingId;
+    final session = state.session ?? state.completedSession;
+    if (session == null) return;
+
+    HapticFeedback.mediumImpact();
+
+    final bookingId = session.bookingId;
     dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW: bookingId=$bookingId, rating=$rating");
 
     final result = await _repo.submitLoungeReview(
-      loungeId: state.session!.loungeId,
+      loungeId: session.loungeId,
       bookingId: bookingId,
       rating: rating,
       comment: comment,
     );
 
     result.fold(
-          (failure) {
+      (failure) {
         dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW FAILURE: ${failure.message}");
         emit(state.copyWith(errorMessage: failure.message));
       },
-          (_) {
+      (_) {
         dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW SUCCESS");
-        // Requirement 9: Refresh points and missions data from Supabase after review submission
         try {
           sl<ProfileCubit>().getUserData();
         } catch (_) {}
         emit(state.copyWith(
           status: ActiveSessionStatus.empty,
           session: null,
+          completedSession: null,
         ));
       },
     );
@@ -290,6 +318,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
 
   Future<void> placeOrder(List<OrderItemModel> items) async {
     if (state.session == null) return;
+
+    HapticFeedback.mediumImpact();
+
     final bookingId = state.session!.bookingId;
     dev.log("[LIVESESSION_CUBIT] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}");
 
@@ -298,14 +329,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     final result = await _repo.placeOrder(bookingId, items);
 
     result.fold(
-          (failure) {
+      (failure) {
         dev.log("[LIVESESSION_CUBIT] PLACE_ORDER FAILURE: ${failure.message}");
         emit(state.copyWith(
           orderStatus: ActionStatus.error,
           errorMessage: failure.message,
         ));
       },
-          (_) {
+      (_) {
         dev.log("[LIVESESSION_CUBIT] PLACE_ORDER SUCCESS");
         emit(state.copyWith(orderStatus: ActionStatus.success));
         loadActiveSession(bookingId: bookingId);

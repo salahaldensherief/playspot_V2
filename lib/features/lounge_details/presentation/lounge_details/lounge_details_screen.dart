@@ -3,7 +3,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
@@ -82,18 +81,16 @@ class LoungeDetailsScreen extends StatelessWidget {
                     return LoungeInfoSection(lounge: _displayLounge(state));
                   },
                 ),
-                const SliverSectionHeader(title: AppStrings.tournaments),
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                   buildWhen: (previous, current) =>
                       previous.tournaments != current.tournaments ||
                       previous.status != current.status,
                   builder: (context, state) {
-                    if (state.tournaments.isEmpty) {
-                      return const SliverToBoxAdapter(
-                        child: _EmptyTournamentsWidget(),
-                      );
-                    }
-                    return _LoungeTournamentBanner(tournaments: state.tournaments);
+                    return SliverConditionalSection(
+                      isVisible: state.tournaments.isNotEmpty,
+                      title: AppStrings.tournaments,
+                      content: _LoungeTournamentBanner(tournaments: state.tournaments),
+                    );
                   },
                 ),
                 const SliverSectionHeader(title: AppStrings.selectDate),
@@ -102,10 +99,12 @@ class LoungeDetailsScreen extends StatelessWidget {
                 BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                   buildWhen: (previous, current) =>
                       previous.filteredRooms != current.filteredRooms ||
+                      previous.isDateLoading != current.isDateLoading ||
                       previous.status != current.status,
                   builder: (context, state) {
                     return SliverConditionalSection(
                       isVisible: state.status == LoungeDetailsStatus.loading ||
+                          state.isDateLoading ||
                           state.filteredRooms.isNotEmpty,
                       title: AppStrings.availableRooms,
                       content: const RoomsGrid(),
@@ -149,8 +148,8 @@ class LoungeDetailsScreen extends StatelessWidget {
                     );
                   },
                 ),
-                const SliverBottomSpacing(),
-                const SliverSafeBottomSpacer(),
+                const SliverBottomSpacing(height: 100),
+                const SliverSafeBottomSpacer(extraPadding: 40),
               ],
             ),
           ),
@@ -195,81 +194,116 @@ class SliverConditionalSection extends StatelessWidget {
   }
 }
 
-class _LoungeDiscountBanner extends StatelessWidget {
+class _LoungeDiscountBanner extends StatefulWidget {
   final LoungeModel lounge;
   const _LoungeDiscountBanner({required this.lounge});
 
   @override
+  State<_LoungeDiscountBanner> createState() => _LoungeDiscountBannerState();
+}
+
+class _LoungeDiscountBannerState extends State<_LoungeDiscountBanner>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.022).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.warning.withValues(alpha: 0.9),
-            AppColors.warning.withValues(alpha: 0.7),
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.warning.withValues(alpha: 0.95),
+              AppColors.warning.withValues(alpha: 0.75),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.warning.withValues(alpha: 0.35),
+              blurRadius: 12,
+              spreadRadius: 1,
+              offset: const Offset(0, 4),
+            ),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.warning.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.local_offer, color: Colors.black, size: 20.sp),
-          ),
-          16.horizontalSpace,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                AppText(
-                  text: lounge.getDiscountTitle(isArabic) ??
-                      AppStrings.directDiscountAvailable.tr(),
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.black,
-                ),
-                AppText(
-                  text: AppStrings.getDiscountNow.tr(args: [lounge.discountPercentage.toString()]),
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black.withValues(alpha: 0.7),
-                ),
-              ],
-            ),
-          ),
-          if (lounge.discountPercentage > 0)
+        child: Row(
+          children: [
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+              padding: EdgeInsets.all(8.w),
               decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(20.r),
+                color: Colors.black.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
               ),
-              child: AppText(
-                text: "-${lounge.discountPercentage}%",
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w900,
-                color: AppColors.warning,
+              child: Icon(Icons.local_offer, color: Colors.black, size: 20.sp),
+            ),
+            16.horizontalSpace,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    text: widget.lounge.getDiscountTitle(isArabic) ??
+                        AppStrings.directDiscountAvailable.tr(),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                  ),
+                  AppText(
+                    text: AppStrings.getDiscountNow.tr(args: [widget.lounge.discountPercentage.toString()]),
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black.withValues(alpha: 0.7),
+                  ),
+                ],
               ),
             ),
-        ],
+            if (widget.lounge.discountPercentage > 0)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(20.r),
+                ),
+                child: AppText(
+                  text: "-${widget.lounge.discountPercentage}%",
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.warning,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -442,41 +476,3 @@ class _LoungeTournamentBanner extends StatelessWidget {
     );
   }
 }
-
-class _EmptyTournamentsWidget extends StatelessWidget {
-  const _EmptyTournamentsWidget();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: AppColors.white.withValues(alpha: 0.08),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            TablerIcons.trophy_off,
-            size: 22.sp,
-            color: AppColors.textSecondary.withValues(alpha: 0.5),
-          ),
-          10.horizontalSpace,
-          AppText(
-            text: AppStrings.noTournamentsFound.tr(),
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
-          ),
-        ],
-      ),
-    );
-  }
-}
-

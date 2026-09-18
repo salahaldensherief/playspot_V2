@@ -69,14 +69,22 @@ class PromoCarousel extends StatelessWidget {
                 return PromoCard(
                   promo: promo,
                   onTap: () {
-                    if (promo.deepLink == 'tournaments' || promo.id == 'tournaments') {
-                      context.pushNamed(RouterKeys.tournaments);
-                    } else if (promo.isRoomSpecific && promo.roomId != null) {
+                    if (promo.roomId != null && promo.roomId!.isNotEmpty) {
                       context.pushNamed(
                         RouterKeys.roomDetails,
                         pathParameters: {'roomId': promo.roomId!},
                       );
-                    } else if (promo.loungeId != null) {
+                    } else if (promo.deepLink != null && promo.deepLink!.contains('/room/')) {
+                      final parts = promo.deepLink!.split('/room/');
+                      if (parts.length > 1 && parts[1].trim().isNotEmpty) {
+                        context.pushNamed(
+                          RouterKeys.roomDetails,
+                          pathParameters: {'roomId': parts[1].trim()},
+                        );
+                      }
+                    } else if (promo.deepLink == 'tournaments' || promo.id == 'tournaments') {
+                      context.pushNamed(RouterKeys.tournaments);
+                    } else if (promo.loungeId != null && promo.loungeId!.isNotEmpty) {
                       context.pushNamed(
                         RouterKeys.loungeDetails,
                         extra: {'loungeId': promo.loungeId},

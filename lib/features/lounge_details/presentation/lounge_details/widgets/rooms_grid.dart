@@ -1,13 +1,10 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
 import 'package:playspot/art_core/widgets/shimmer/room_card_shimmer.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 import 'room_card/room_card.dart';
@@ -20,12 +17,13 @@ class RoomsGrid extends StatelessWidget {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       buildWhen: (previous, current) =>
           previous.status != current.status ||
+          previous.isDateLoading != current.isDateLoading ||
           previous.rooms != current.rooms ||
           previous.selectedCategory != current.selectedCategory ||
           previous.selectedSpaceType != current.selectedSpaceType ||
           previous.deviceCategories != current.deviceCategories,
       builder: (context, state) {
-        if (state.status == LoungeDetailsStatus.loading) {
+        if (state.status == LoungeDetailsStatus.loading || state.isDateLoading) {
           return SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
             sliver: SliverGrid(

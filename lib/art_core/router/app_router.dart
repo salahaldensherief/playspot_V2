@@ -105,8 +105,28 @@ class AppRouter {
         'matchId',
       ]);
 
+      final roomId = _extractKey(data, [
+        'room_id',
+        'roomId',
+        'target_room_id',
+      ]);
+
+      final loungeId = _extractKey(data, [
+        'lounge_id',
+        'loungeId',
+        'target_lounge_id',
+      ]);
+
       final reminderKey = _extractKey(data, ['reminder_key', 'reminderKey']);
       final extensionMinutes = int.tryParse(_extractKey(data, ['extension_minutes', 'extensionMinutes'])) ?? 60;
+
+      if (roomId.isNotEmpty) {
+        router.pushNamed(
+          RouterKeys.roomDetails,
+          pathParameters: {'roomId': roomId},
+        );
+        return true;
+      }
 
       if (reminderKey == 'extension_offer') {
         if (bookingId.isNotEmpty) {
@@ -135,6 +155,13 @@ class AppRouter {
       if (typeStr.contains('offer') ||
           typeStr.contains('promo') ||
           typeStr.contains('voucher')) {
+        if (loungeId.isNotEmpty) {
+          router.pushNamed(
+            RouterKeys.loungeDetails,
+            extra: {'loungeId': loungeId},
+          );
+          return true;
+        }
         router.pushNamed(RouterKeys.myVouchers);
         if (code.isNotEmpty) {
           Clipboard.setData(ClipboardData(text: code));

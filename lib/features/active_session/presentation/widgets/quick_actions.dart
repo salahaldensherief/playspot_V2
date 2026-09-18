@@ -1,11 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
-import '../../../../art_core/app_strings.dart';
-import '../../../../art_core/theme/app_colors.dart';
-import '../../../../art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
 import 'action_card.dart';
@@ -21,18 +21,11 @@ class QuickActions extends StatelessWidget {
       builder: (context, state) {
         final isLoading = state.extendStatus == ActionStatus.loading;
         final session = state.session;
+        final cubit = context.read<ActiveSessionCubit>();
 
-        double hourlyRate = 50.0;
-        if (session != null && session.basePrice > 0) {
-          final totalMinutes = session.endTime.difference(session.startTime).inMinutes;
-          if (totalMinutes > 0) {
-            hourlyRate = (session.basePrice / (totalMinutes / 60.0));
-          }
-        }
-
-        final cost30 = (hourlyRate * 0.5).roundToDouble();
-        final cost60 = hourlyRate.roundToDouble();
-        final cost120 = (hourlyRate * 2.0).roundToDouble();
+        final cost15 = cubit.calculateExtensionCost(15);
+        final cost30 = cubit.calculateExtensionCost(30);
+        final cost60 = cubit.calculateExtensionCost(60);
 
         final isPending = session?.isExtensionPending ?? false;
         final isRejected = session?.isExtensionRejected ?? false;
@@ -43,15 +36,15 @@ class QuickActions extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
-              color: AppColors.withOpacity(AppColors.warning, 0.1),
+              color: AppColors.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
-                color: AppColors.withOpacity(AppColors.warning, 0.4),
+                color: AppColors.warning.withValues(alpha: 0.4),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.withOpacity(AppColors.warning, 0.15),
+                  color: AppColors.warning.withValues(alpha: 0.15),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -62,7 +55,7 @@ class QuickActions extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: AppColors.withOpacity(AppColors.warning, 0.15),
+                    color: AppColors.warning.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: SizedBox(
@@ -106,15 +99,15 @@ class QuickActions extends StatelessWidget {
             width: double.infinity,
             padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
-              color: AppColors.withOpacity(AppColors.danger, 0.1),
+              color: AppColors.danger.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
-                color: AppColors.withOpacity(AppColors.danger, 0.4),
+                color: AppColors.danger.withValues(alpha: 0.4),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.withOpacity(AppColors.danger, 0.15),
+                  color: AppColors.danger.withValues(alpha: 0.15),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -125,7 +118,7 @@ class QuickActions extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: AppColors.withOpacity(AppColors.danger, 0.15),
+                    color: AppColors.danger.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -183,23 +176,23 @@ class QuickActions extends StatelessWidget {
             Row(
               children: [
                 ActionCard(
+                  label: AppStrings.min15.tr(),
+                  mins: 15,
+                  cost: cost15 > 0 ? cost15 : 15.0,
+                  isLoading: isLoading,
+                ),
+                SizedBox(width: 8.w),
+                ActionCard(
                   label: AppStrings.min30.tr(),
                   mins: 30,
                   cost: cost30 > 0 ? cost30 : 25.0,
                   isLoading: isLoading,
                 ),
-                SizedBox(width: 10.w),
+                SizedBox(width: 8.w),
                 ActionCard(
                   label: AppStrings.hr1.tr(),
                   mins: 60,
-                  cost: cost60 > 0 ? cost60 : 45.0,
-                  isLoading: isLoading,
-                ),
-                SizedBox(width: 10.w),
-                ActionCard(
-                  label: AppStrings.hr2.tr(),
-                  mins: 120,
-                  cost: cost120 > 0 ? cost120 : 80.0,
+                  cost: cost60 > 0 ? cost60 : 50.0,
                   isLoading: isLoading,
                 ),
               ],

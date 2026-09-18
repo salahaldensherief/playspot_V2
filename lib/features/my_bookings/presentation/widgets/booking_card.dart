@@ -1,32 +1,34 @@
 import 'dart:async';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/utils/extensions/date_time_extensions.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../art_core/widgets/buttons/directions_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
-import '../../../../art_core/utils/extensions/date_time_extensions.dart';
 import '../../../../core/constants/booking_status.dart';
-import '../../../../core/di.dart';
-import '../../../../core/services/directions_service.dart';
 import '../../data/models/booking_model.dart';
-import '../../../../art_core/widgets/notifications/game_hud_toast.dart';
 
 class BookingCard extends StatefulWidget {
   final BookingModel booking;
   final VoidCallback? onCancel;
   final bool isHighlighted;
+  final bool isCancelling;
 
   const BookingCard({
     super.key,
     required this.booking,
     this.onCancel,
     this.isHighlighted = false,
+    this.isCancelling = false,
   });
 
   @override
@@ -37,24 +39,6 @@ class _BookingCardState extends State<BookingCard> {
   bool _showHighlight = false;
   Timer? _highlightTimer;
   Timer? _countdownTimer;
-
-  Future<void> _openDirections(BuildContext context) async {
-    final success = await sl<DirectionsService>().openDirections(
-      lat: widget.booking.lat,
-      lng: widget.booking.lng,
-      loungeName: widget.booking.loungeName,
-      loungeLocation: widget.booking.loungeLocation,
-      mapsLink: widget.booking.mapsLink,
-    );
-
-    if (!success && context.mounted) {
-      GameHudToast.show(
-        context,
-        AppStrings.somethingWentWrong.tr(),
-        type: ToastType.error,
-      );
-    }
-  }
 
   @override
   void initState() {
@@ -116,7 +100,8 @@ class _BookingCardState extends State<BookingCard> {
     final playModeText = widget.booking.playMode != null
         ? ' (${widget.booking.playMode == 'single' ? AppStrings.singlePlay.tr() : AppStrings.multiPlay.tr()})'
         : '';
-    final spaceText = widget.booking.spaceType != null && widget.booking.spaceType!.isNotEmpty
+    final spaceText =
+        widget.booking.spaceType != null && widget.booking.spaceType!.isNotEmpty
         ? '${widget.booking.spaceType} - '
         : '';
     final roomSpecsText =
@@ -139,7 +124,7 @@ class _BookingCardState extends State<BookingCard> {
                   color: AppColors.neonBlue.withValues(alpha: 0.35),
                   blurRadius: 5.r,
                   spreadRadius: 1.r,
-                )
+                ),
               ]
             : null,
       ),
@@ -166,8 +151,11 @@ class _BookingCardState extends State<BookingCard> {
           SizedBox(height: 8.h),
           Row(
             children: [
-              Icon(Icons.location_on_outlined,
-                  color: AppColors.textSecondary, size: 16.sp),
+              Icon(
+                Icons.location_on_outlined,
+                color: AppColors.textSecondary,
+                size: 16.sp,
+              ),
               SizedBox(width: 4.w),
               Expanded(
                 child: AppText(
@@ -191,7 +179,11 @@ class _BookingCardState extends State<BookingCard> {
           SizedBox(height: 16.h),
           Row(
             children: [
-              Icon(Icons.calendar_today_outlined, color: AppColors.neonBlue, size: 16.sp),
+              Icon(
+                Icons.calendar_today_outlined,
+                color: AppColors.neonBlue,
+                size: 16.sp,
+              ),
               SizedBox(width: 8.w),
               AppText(
                 text: widget.booking.date.toAppDateString(),
@@ -236,9 +228,19 @@ class _BookingCardState extends State<BookingCard> {
                 SizedBox(width: 12.w),
                 AppButton(
                   content: ButtonContent(
-                    label: AppStrings.cancel.tr(),
+                    label: widget.isCancelling ? null : AppStrings.cancel.tr(),
+                    body: widget.isCancelling
+                        ? SizedBox(
+                            width: 16.w,
+                            height: 16.w,
+                            child: const AppLoader(strokeWidth: 2),
+                          )
+                        : null,
                   ),
-                  behavior: ButtonBehavior.tap(onTap: widget.onCancel),
+                  behavior: ButtonBehavior.tap(
+                    isEnabled: !widget.isCancelling,
+                    onTap: widget.isCancelling ? null : widget.onCancel,
+                  ),
                   buttonConfig: ButtonConfig(
                     height: 45.h,
                     width: 100.w,
@@ -343,7 +345,11 @@ class _BookingCardState extends State<BookingCard> {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 16.sp),
+              Icon(
+                Icons.info_outline_rounded,
+                color: AppColors.warning,
+                size: 16.sp,
+              ),
               SizedBox(width: 6.w),
               Expanded(
                 child: AppText(
@@ -376,7 +382,11 @@ class _BookingCardState extends State<BookingCard> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline_rounded, color: AppColors.neonBlue, size: 14.sp),
+                  Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: AppColors.neonBlue,
+                    size: 14.sp,
+                  ),
                   SizedBox(width: 6.w),
                   Expanded(
                     child: AppText(

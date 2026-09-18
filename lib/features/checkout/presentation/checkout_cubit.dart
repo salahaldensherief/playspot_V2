@@ -1,4 +1,6 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
@@ -13,12 +15,15 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   CheckoutCubit(this._bookingRepository, this._profileRepository) : super(const CheckoutState());
 
   void selectPaymentMethod(PaymentMethod method) {
+    HapticFeedback.selectionClick();
     emit(state.copyWith(selectedMethod: method));
   }
 
   Future<void> applyVoucher(String code) async {
     final cleanCode = code.trim().toUpperCase();
     if (cleanCode.isEmpty) return;
+
+    HapticFeedback.mediumImpact();
     emit(state.copyWith(status: CheckoutStatus.loading));
     final result = await _profileRepository.validateVoucherByCode(cleanCode);
 
@@ -49,6 +54,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   Future<void> selectVoucher(Map<String, dynamic> voucher) async {
     final code = (voucher['code'] ?? voucher['id'])?.toString().trim().toUpperCase() ?? '';
     if (code.isEmpty) return;
+
+    HapticFeedback.mediumImpact();
     emit(state.copyWith(status: CheckoutStatus.loading));
     final result = await _profileRepository.validateVoucherByCode(code);
 
@@ -77,11 +84,52 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   void removeVoucher() {
+    HapticFeedback.lightImpact();
     emit(state.copyWith(selectedVoucher: null, discountAmount: 0));
   }
 
-  Future<void> processPayment(CreateBookingParams params) async {
+  /// Refactored: Moves user data extraction, date calculations, and discount math out of UI layer into Cubit
+  Future<void> processPayment(
+    CheckoutParams checkoutParams, {
+    bool isArabic = false,
+  }) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
+
+    final startDateTime = DateTime(
+      checkoutParams.date.year,
+      checkoutParams.date.month,
+      checkoutParams.date.day,
+      checkoutParams.startTime.hour,
+      checkoutParams.startTime.minute,
+    );
+    final endDateTime = startDateTime.add(Duration(minutes: checkoutParams.duration));
+
+    final pref = sl<PreferenceManager>();
+    final userName = pref.fullName() ?? "";
+    final userPhone = pref.phoneNumber() ?? "";
+
+    final roomPromoDiscount = checkoutParams.originalTotalPrice - checkoutParams.totalPrice;
+    final totalDiscount = roomPromoDiscount + state.discountAmount;
+    final finalPrice = checkoutParams.totalPrice - state.discountAmount;
+
+    final targetLoungeId = checkoutParams.room.loungeId.isNotEmpty
+        ? checkoutParams.room.loungeId
+        : checkoutParams.lounge.id;
+
+    final params = CreateBookingParams(
+      roomId: checkoutParams.room.id,
+      roomName: checkoutParams.room.getName(isArabic),
+      loungeId: targetLoungeId,
+      userName: userName,
+      userPhone: userPhone,
+      startTime: startDateTime,
+      endTime: endDateTime,
+      totalPrice: finalPrice,
+      discountAmount: totalDiscount,
+      roomPrice: checkoutParams.appliedHourlyRate ?? checkoutParams.room.effectivePrice,
+      addOns: checkoutParams.addOns,
+      playMode: checkoutParams.playMode,
+    );
 
     final result = await _bookingRepository.createBooking(params);
 
@@ -101,7 +149,6 @@ class CheckoutCubit extends Cubit<CheckoutState> {
             );
           }
         }
-        // Requirement 9: Refresh points and missions data from Supabase after booking completion
         try {
           sl<ProfileCubit>().getUserData();
         } catch (_) {}

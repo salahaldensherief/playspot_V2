@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
@@ -10,7 +12,6 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../active_session_cubit.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class ActionCard extends StatelessWidget {
   final String label;
@@ -31,7 +32,9 @@ class ActionCard extends StatelessWidget {
       context: context,
       builder: (dialogContext) => Dialog(
         backgroundColor: AppColors.cardBackground,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
         child: Padding(
           padding: EdgeInsets.all(20.w),
           child: Column(
@@ -62,7 +65,9 @@ class ActionCard extends StatelessWidget {
               ),
               SizedBox(height: 10.h),
               AppText(
-                text: AppStrings.confirmExtensionSubtitle.tr(args: [label, cost.toInt().toString()]),
+                text: AppStrings.confirmExtensionSubtitle.tr(
+                  args: [label, cost.toInt().toString()],
+                ),
                 fontSize: 13.5.sp,
                 color: AppColors.textSecondary,
                 textAlign: TextAlign.center,
@@ -90,9 +95,10 @@ class ActionCard extends StatelessWidget {
                       behavior: ButtonBehavior.tap(
                         onTap: () {
                           Navigator.pop(dialogContext);
-                          context
-                              .read<ActiveSessionCubit>()
-                              .extendTime(mins, cost);
+                          context.read<ActiveSessionCubit>().extendTime(
+                            mins,
+                            cost,
+                          );
                         },
                       ),
                       buttonConfig: ButtonConfig(
@@ -117,7 +123,12 @@ class ActionCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isLoading ? null : () => _showConfirmationDialog(context),
+          onTap: isLoading
+              ? null
+              : () {
+                  HapticFeedback.mediumImpact();
+                  _showConfirmationDialog(context);
+                },
           borderRadius: BorderRadius.circular(14.r),
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 8.w),

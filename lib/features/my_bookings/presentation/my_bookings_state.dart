@@ -8,6 +8,7 @@ class MyBookingsState extends Equatable {
   final List<BookingModel> upcomingBookings;
   final List<BookingModel> pastBookings;
   final List<BookingModel> cancelledBookings;
+  final String? cancellingBookingId;
   final String? errorMessage;
 
   const MyBookingsState({
@@ -15,6 +16,7 @@ class MyBookingsState extends Equatable {
     this.upcomingBookings = const [],
     this.pastBookings = const [],
     this.cancelledBookings = const [],
+    this.cancellingBookingId,
     this.errorMessage,
   });
 
@@ -23,6 +25,8 @@ class MyBookingsState extends Equatable {
     List<BookingModel>? upcomingBookings,
     List<BookingModel>? pastBookings,
     List<BookingModel>? cancelledBookings,
+    String? cancellingBookingId,
+    bool clearCancelling = false,
     String? errorMessage,
   }) {
     return MyBookingsState(
@@ -30,10 +34,18 @@ class MyBookingsState extends Equatable {
       upcomingBookings: upcomingBookings ?? this.upcomingBookings,
       pastBookings: pastBookings ?? this.pastBookings,
       cancelledBookings: cancelledBookings ?? this.cancelledBookings,
+      cancellingBookingId: clearCancelling ? null : (cancellingBookingId ?? this.cancellingBookingId),
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [status, upcomingBookings, pastBookings, cancelledBookings, errorMessage];
+  List<Object?> get props => [
+        status,
+        upcomingBookings,
+        pastBookings,
+        cancelledBookings,
+        cancellingBookingId,
+        errorMessage,
+      ];
 }

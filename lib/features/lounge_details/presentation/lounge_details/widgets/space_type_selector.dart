@@ -108,7 +108,7 @@ class SpaceTypeSelector extends StatelessWidget {
                     boxShadow: isSelected
                         ? [
                       BoxShadow(
-                        color: themeColor.withOpacity(0.3),
+                        color: themeColor.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 4),
                       )

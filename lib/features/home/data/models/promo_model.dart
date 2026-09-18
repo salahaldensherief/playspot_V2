@@ -96,19 +96,35 @@ class PromoModel extends Equatable {
   }
 
   factory PromoModel.fromJson(Map<String, dynamic> json) {
+    String? rawRoomId = (json['room_id'] ?? json['roomId'] ?? json['target_room_id'])?.toString();
+    String? rawLoungeId = (json['lounge_id'] ?? json['loungeId'] ?? json['target_lounge_id'])?.toString();
+    final deepLinkStr = (json['deep_link'] ?? json['deepLink'])?.toString();
+
+    // Extract UUID from deepLink if room_id is not directly provided
+    if ((rawRoomId == null || rawRoomId.isEmpty) && deepLinkStr != null && deepLinkStr.isNotEmpty) {
+      final uuidRegex = RegExp(r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
+      final match = uuidRegex.firstMatch(deepLinkStr);
+      if (match != null && (deepLinkStr.contains('room') || deepLinkStr.contains('Specific'))) {
+        rawRoomId = match.group(0);
+      }
+    }
+
+    final isRoomSpecific = (json['is_room_specific'] as bool?) ??
+        (rawRoomId != null && rawRoomId.isNotEmpty);
+
     return PromoModel(
-      id: json['id']?.toString() ?? '',
-      titleAr: json['title_ar']?.toString() ?? '',
-      titleEn: json['title_en']?.toString() ?? '',
-      tagAr: json['tag_ar']?.toString() ?? '',
-      tagEn: json['tag_en']?.toString() ?? '',
+      id: json['id']?.toString() ?? json['promotion_id']?.toString() ?? '',
+      titleAr: json['title_ar']?.toString() ?? json['title']?.toString() ?? '',
+      titleEn: json['title_en']?.toString() ?? json['title']?.toString() ?? '',
+      tagAr: json['tag_ar']?.toString() ?? json['tag']?.toString() ?? '',
+      tagEn: json['tag_en']?.toString() ?? json['tag']?.toString() ?? '',
       hexColors: List<String>.from(json['colors'] ?? []),
       iconKey: json['icon_key']?.toString() ?? '',
       imageUrl: (json['image_url'] ?? json['image'] ?? json['imageUrl'] ?? json['banner'])?.toString(),
-      deepLink: json['deep_link']?.toString(),
-      loungeId: json['lounge_id']?.toString(),
-      roomId: json['room_id']?.toString(),
-      isRoomSpecific: json['is_room_specific'] as bool? ?? false,
+      deepLink: deepLinkStr,
+      loungeId: rawLoungeId,
+      roomId: rawRoomId,
+      isRoomSpecific: isRoomSpecific,
       expiresAt: (json['expires_at'] ?? json['end_date']) != null
           ? DateTime.tryParse((json['expires_at'] ?? json['end_date']).toString())
           : null,

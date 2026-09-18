@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:dartz/dartz.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import 'package:playspot/core/error/failures.dart';
@@ -111,13 +112,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     }
   }
 
+  /// Non-flickering date selection: Only sets `isDateLoading: true` without toggling global status to loading
   Future<void> selectDate(DateTime date) async {
+    HapticFeedback.selectionClick();
     if (state.rooms.isEmpty || state.lounge == null) {
       emit(state.copyWith(selectedDate: date));
       return;
     }
 
-    emit(state.copyWith(selectedDate: date, status: LoungeDetailsStatus.loading));
+    emit(state.copyWith(selectedDate: date, isDateLoading: true));
 
     try {
       await _updateBookings(
@@ -132,7 +135,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         ),
       );
     } catch (e) {
-      emit(state.copyWith(status: LoungeDetailsStatus.error));
+      emit(state.copyWith(isDateLoading: false));
     }
   }
 
@@ -143,7 +146,10 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     bookingsResult.fold(
       (failure) {
         log("CRITICAL BOOKINGS ERROR: ${failure.message}");
-        emit(state.copyWith(status: LoungeDetailsStatus.error));
+        emit(state.copyWith(
+          isDateLoading: false,
+          status: LoungeDetailsStatus.error,
+        ));
       },
       (rawBookings) {
         log("BOOKINGS FETCHED SUCCESSFULLY: ${rawBookings.length} found");
@@ -151,7 +157,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         final List<String> fullyBookedIds = [];
         final opHours = _calculateOperationalHours(params.lounge.opensAt, params.lounge.closesAt);
 
-        // Organize bookings by room
         for (final b in rawBookings) {
           final status = b['status']?.toString().toLowerCase().trim();
           if (status == 'cancelled' ||
@@ -187,7 +192,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           }
         }
 
-        // Calculate fully booked rooms
         for (final room in params.rooms) {
           final slots = bookedSlotsByRoom[room.id] ?? [];
           double totalBookedHours = 0;
@@ -203,7 +207,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         final allActivities = params.deviceCategories?.map((c) => c.nameEn).toList() ?? 
                              params.rooms.expand((r) => r.activityNames).toSet().toList();
 
-        // ترتيب التصنيفات بحيث يظهر PS5 أولاً لو موجود
         allActivities.sort((a, b) {
           if (a.toLowerCase().contains('ps')) return -1;
           if (b.toLowerCase().contains('ps')) return 1;
@@ -214,6 +217,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
         emit(state.copyWith(
           status: LoungeDetailsStatus.success,
+          isDateLoading: false,
           rooms: params.rooms,
           extras: params.extras,
           reviews: params.reviews ?? state.reviews,
@@ -224,7 +228,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           deviceCategories: params.deviceCategories ?? state.deviceCategories,
           selectedDate: params.date,
           availableRoomsCount: params.rooms.length - fullyBookedIds.length,
-          selectedCategory: state.selectedCategory, // Keep current selection or empty
+          selectedCategory: state.selectedCategory,
           clearRoom: shouldClearRoom,
           lounge: params.lounge,
         ));
@@ -250,21 +254,25 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   }
 
   void toggleRoomSelection(String roomId) {
+    HapticFeedback.selectionClick();
     emit(state.selectedRoomId == roomId ? state.copyWith(clearRoom: true) : state.copyWith(selectedRoomId: roomId));
   }
 
   void setSpaceType(String spaceType) {
     if (state.selectedSpaceType == spaceType) return;
+    HapticFeedback.selectionClick();
     emit(state.copyWith(selectedSpaceType: spaceType));
   }
 
   void setRoomPlayMode(String roomId, String mode) {
+    HapticFeedback.selectionClick();
     final updated = Map<String, String>.from(state.roomPlayModes);
     updated[roomId] = mode;
     emit(state.copyWith(roomPlayModes: updated));
   }
 
   void updateRoomExtraControllers(String roomId, int delta) {
+    HapticFeedback.selectionClick();
     final current = state.roomExtraControllers[roomId] ?? 0;
     final updated = Map<String, int>.from(state.roomExtraControllers);
     updated[roomId] = (current + delta).clamp(0, 4);
@@ -274,6 +282,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   void setCategory(String categoryId) async {
     if (state.selectedCategory == categoryId) return;
     
+    HapticFeedback.selectionClick();
     emit(state.copyWith(selectedCategory: categoryId, status: LoungeDetailsStatus.loading));
 
     final loungeId = state.lounge?.id ?? '';
@@ -295,6 +304,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   }
 
   void updateExtraQuantity(String extraId, int delta) {
+    HapticFeedback.selectionClick();
     final currentQty = state.selectedExtras[extraId] ?? 0;
     final newQty = (currentQty + delta).clamp(0, 99);
     final updatedExtras = Map<String, int>.from(state.selectedExtras);

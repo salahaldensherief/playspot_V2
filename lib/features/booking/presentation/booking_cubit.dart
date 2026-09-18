@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import '../data/models/booking_params.dart';
@@ -198,6 +199,7 @@ class BookingCubit extends Cubit<BookingState> {
       return;
     }
 
+    HapticFeedback.lightImpact();
     fetchBookedSlots(date);
   }
 
@@ -227,17 +229,20 @@ class BookingCubit extends Cubit<BookingState> {
       }
     }
 
+    HapticFeedback.lightImpact();
     emit(state.copyWith(startTime: time));
   }
 
   void setDurationMinutes(int minutes) {
     if (state.startTime != null && !isRangeAvailable(state.startTime!, minutes)) return;
+    HapticFeedback.lightImpact();
     emit(state.copyWith(durationMinutes: minutes));
   }
 
   void updateDuration(int deltaMinutes) {
     final newDuration = (state.durationMinutes + deltaMinutes).clamp(30, 720);
     if (state.startTime != null && !isRangeAvailable(state.startTime!, newDuration)) return;
+    HapticFeedback.lightImpact();
     emit(state.copyWith(durationMinutes: newDuration));
   }
 

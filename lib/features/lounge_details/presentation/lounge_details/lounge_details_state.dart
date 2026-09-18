@@ -11,6 +11,7 @@ enum LoungeDetailsStatus { initial, loading, success, error }
 
 class LoungeDetailsState extends Equatable {
   final LoungeDetailsStatus status;
+  final bool isDateLoading;
   final List<RoomModel> rooms;
   final List<ExtraModel> extras;
   final List<ReviewModel> reviews;
@@ -31,6 +32,7 @@ class LoungeDetailsState extends Equatable {
 
   const LoungeDetailsState({
     this.status = LoungeDetailsStatus.initial,
+    this.isDateLoading = false,
     this.rooms = const [],
     this.extras = const [],
     this.reviews = const [],
@@ -52,6 +54,7 @@ class LoungeDetailsState extends Equatable {
 
   LoungeDetailsState copyWith({
     LoungeDetailsStatus? status,
+    bool? isDateLoading,
     List<RoomModel>? rooms,
     List<ExtraModel>? extras,
     List<ReviewModel>? reviews,
@@ -73,6 +76,7 @@ class LoungeDetailsState extends Equatable {
   }) {
     return LoungeDetailsState(
       status: status ?? this.status,
+      isDateLoading: isDateLoading ?? this.isDateLoading,
       rooms: rooms ?? this.rooms,
       extras: extras ?? this.extras,
       reviews: reviews ?? this.reviews,
@@ -122,6 +126,7 @@ class LoungeDetailsState extends Equatable {
   @override
   List<Object?> get props => [
         status,
+        isDateLoading,
         rooms,
         extras,
         reviews,

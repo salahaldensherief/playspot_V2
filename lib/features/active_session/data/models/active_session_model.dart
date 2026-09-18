@@ -282,4 +282,34 @@ class ActiveSessionModel extends Equatable {
   bool get isOvertime {
     return DateTime.now().isAfter(endTime);
   }
+
+  /// Calculates extension cost based on basePrice / duration in hours * additionalMinutes
+  double calculateExtensionCost(int additionalMinutes) {
+    if (additionalMinutes <= 0) return 0.0;
+    final totalBookedMinutes = endTime.difference(startTime).inMinutes;
+    double hourlyRate = 50.0;
+    if (totalBookedMinutes > 0 && basePrice > 0) {
+      hourlyRate = basePrice / (totalBookedMinutes / 60.0);
+    }
+    final cost = (hourlyRate * (additionalMinutes / 60.0)).roundToDouble();
+    return cost > 0 ? cost : (additionalMinutes * 0.83).roundToDouble();
+  }
+
+  int get totalPlayDurationMinutes {
+    final diff = endTime.difference(startTime).inMinutes;
+    return diff > 0 ? diff : 0;
+  }
+
+  String get formattedPlayDuration {
+    final totalMins = totalPlayDurationMinutes;
+    final hours = totalMins ~/ 60;
+    final mins = totalMins % 60;
+    if (hours > 0 && mins > 0) {
+      return '$hours h $mins m';
+    } else if (hours > 0) {
+      return '$hours h';
+    } else {
+      return '$mins m';
+    }
+  }
 }

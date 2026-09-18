@@ -1,6 +1,9 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/presentation/locale_cubit.dart';
+
 import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_sizes.dart';
@@ -9,9 +12,6 @@ import '../buttons/res/button_behavior.dart';
 import '../buttons/res/button_content.dart';
 import '../buttons/res/button_style_config.dart';
 import '../text/app_text.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
-
 
 enum AppStateViewType { error, empty }
 
@@ -21,6 +21,8 @@ class AppStateView extends StatelessWidget {
   final IconData? icon;
   final AppStateViewType type;
   final VoidCallback? onRetry;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   const AppStateView({
     super.key,
@@ -29,32 +31,36 @@ class AppStateView extends StatelessWidget {
     this.icon,
     this.type = AppStateViewType.empty,
     this.onRetry,
+    this.actionLabel,
+    this.onAction,
   });
 
   factory AppStateView.error({
     String title = "somethingWentWrong",
     String? subtitle,
     VoidCallback? onRetry,
-  }) =>
-      AppStateView(
-        title: title,
-        subtitle: subtitle,
-        icon: Icons.error_outline_rounded,
-        type: AppStateViewType.error,
-        onRetry: onRetry,
-      );
+  }) => AppStateView(
+    title: title,
+    subtitle: subtitle,
+    icon: Icons.error_outline_rounded,
+    type: AppStateViewType.error,
+    onRetry: onRetry,
+  );
 
   factory AppStateView.empty({
     required String title,
     String? subtitle,
     IconData icon = Icons.hourglass_empty_rounded,
-  }) =>
-      AppStateView(
-        title: title,
-        subtitle: subtitle,
-        icon: icon,
-        type: AppStateViewType.empty,
-      );
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => AppStateView(
+    title: title,
+    subtitle: subtitle,
+    icon: icon,
+    type: AppStateViewType.empty,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
 
   String _safeTranslate(String text) {
     if (text.isEmpty) return text;
@@ -63,7 +69,6 @@ class AppStateView extends StatelessWidget {
     }
     return text.tr();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -75,9 +80,14 @@ class AppStateView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              icon ?? (type == AppStateViewType.error ? Icons.error_outline : Icons.inbox_outlined),
+              icon ??
+                  (type == AppStateViewType.error
+                      ? Icons.error_outline
+                      : Icons.inbox_outlined),
               size: 64.sp,
-              color: type == AppStateViewType.error ? AppColors.danger : AppColors.textSecondary,
+              color: type == AppStateViewType.error
+                  ? AppColors.danger
+                  : AppColors.textSecondary,
             ),
             SizedBox(height: AppSizes.s16),
             AppText(
@@ -96,7 +106,26 @@ class AppStateView extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ],
-            if (onRetry != null) ...[
+            if (onAction != null && actionLabel != null) ...[
+              SizedBox(height: AppSizes.s24),
+              AppButton(
+                content: ButtonContent(
+                  body: AppText(
+                    text: _safeTranslate(actionLabel!),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                behavior: ButtonBehavior.tap(onTap: onAction),
+                buttonConfig: ButtonConfig(
+                  height: 48.h,
+                  width: 220.w,
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: AppSizes.r12,
+                ),
+              ),
+            ] else if (onRetry != null) ...[
               SizedBox(height: AppSizes.s24),
               AppButton(
                 content: ButtonContent(label: AppStrings.retry.tr()),
@@ -143,7 +172,7 @@ class SliverAppStateView extends StatelessWidget {
       type: type,
       onRetry: onRetry,
     );
-    
+
     return fillRemaining
         ? SliverFillRemaining(hasScrollBody: false, child: child)
         : SliverToBoxAdapter(child: child);

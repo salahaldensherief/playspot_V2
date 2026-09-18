@@ -45,7 +45,7 @@ class CheckoutSummaryCard extends StatelessWidget {
           if (params.room.isSimulator || params.room.isVR) ...[
             SizedBox(height: 4.h),
             AppText(
-              text: params.room.isSimulator ? "Setup: Fanatec Base + Triple 4K" : "Gear: Meta Quest 3 + Pro Straps",
+              text: params.room.isSimulator ? AppStrings.simulatorSetup.tr() : AppStrings.vrGearSetup.tr(),
               fontSize: 11.sp,
               color: AppColors.neonBlue,
               fontWeight: FontWeight.w500,
@@ -71,7 +71,7 @@ class CheckoutSummaryCard extends StatelessWidget {
             ),
           if (params.extraControllers != null && params.extraControllers! > 0)
             InfoRow(
-              label: context.locale.languageCode == 'ar' ? "دراعات إضافية" : "Extra Controllers",
+              label: AppStrings.extraControllers.tr(),
               value: "${params.extraControllers}x (+${(params.extraControllers! * (params.extraControllerPrice ?? 0)).toStringAsFixed(2)} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
               valueColor: AppColors.warning,
               prefixIcon: Icons.videogame_asset_outlined,

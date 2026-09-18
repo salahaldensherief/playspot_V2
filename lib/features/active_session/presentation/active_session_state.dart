@@ -8,6 +8,7 @@ enum ActionStatus { initial, loading, success, error }
 class ActiveSessionState extends Equatable {
   final ActiveSessionStatus status;
   final ActiveSessionModel? session;
+  final ActiveSessionModel? completedSession;
   final List<ExtraModel> menu;
   final ActionStatus extendStatus;
   final ActionStatus orderStatus;
@@ -17,6 +18,7 @@ class ActiveSessionState extends Equatable {
   const ActiveSessionState({
     this.status = ActiveSessionStatus.initial,
     this.session,
+    this.completedSession,
     this.menu = const [],
     this.extendStatus = ActionStatus.initial,
     this.orderStatus = ActionStatus.initial,
@@ -27,6 +29,7 @@ class ActiveSessionState extends Equatable {
   ActiveSessionState copyWith({
     ActiveSessionStatus? status,
     ActiveSessionModel? session,
+    ActiveSessionModel? completedSession,
     List<ExtraModel>? menu,
     ActionStatus? extendStatus,
     ActionStatus? orderStatus,
@@ -36,6 +39,7 @@ class ActiveSessionState extends Equatable {
     return ActiveSessionState(
       status: status ?? this.status,
       session: session ?? this.session,
+      completedSession: completedSession ?? this.completedSession,
       menu: menu ?? this.menu,
       extendStatus: extendStatus ?? this.extendStatus,
       orderStatus: orderStatus ?? this.orderStatus,
@@ -48,6 +52,7 @@ class ActiveSessionState extends Equatable {
   List<Object?> get props => [
         status,
         session,
+        completedSession,
         menu,
         extendStatus,
         orderStatus,

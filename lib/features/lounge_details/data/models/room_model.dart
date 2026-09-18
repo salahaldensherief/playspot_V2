@@ -200,11 +200,11 @@ class RoomModel extends Equatable {
         featuresEn: json['features_en'] != null ? List<String>.from(json['features_en']) : [],
         controllersCount: (json['controllers_count'] as num?)?.toInt() ?? 2,
         screenSize: json['screen_size']?.toString() ?? '43"',
-        hasActivePromo: _parsePromoStatus(json['promotions'] as List?),
-        promoTagAr: _parsePromoTag(json['promotions'] as List?, true),
-        promoTagEn: _parsePromoTag(json['promotions'] as List?, false),
-        promoDiscountValue: _parsePromoDiscountValue(json['promotions'] as List?),
-        promoDiscountType: _parsePromoDiscountType(json['promotions'] as List?),
+        hasActivePromo: _parsePromoStatus(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo']),
+        promoTagAr: _parsePromoTag(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo'], true),
+        promoTagEn: _parsePromoTag(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo'], false),
+        promoDiscountValue: _parsePromoDiscountValue(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo']),
+        promoDiscountType: _parsePromoDiscountType(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo']),
       );
     } catch (e) {
       dev.log("Error parsing RoomModel: $e");
@@ -212,38 +212,46 @@ class RoomModel extends Equatable {
     }
   }
 
-  static double _parsePromoDiscountValue(List? promos) {
-    if (promos == null || promos.isEmpty) return 0.0;
-    final activePromo = _getActivePromo(promos);
+  static double _parsePromoDiscountValue(dynamic promoData) {
+    final activePromo = _getActivePromo(promoData);
     return (activePromo?['discount_value'] as num?)?.toDouble() ?? 0.0;
   }
 
-  static String? _parsePromoDiscountType(List? promos) {
-    if (promos == null || promos.isEmpty) return null;
-    final activePromo = _getActivePromo(promos);
+  static String? _parsePromoDiscountType(dynamic promoData) {
+    final activePromo = _getActivePromo(promoData);
     return activePromo?['discount_type']?.toString();
   }
 
-  static Map<String, dynamic>? _getActivePromo(List promos) {
+  static Map<String, dynamic>? _getActivePromo(dynamic promoData) {
+    if (promoData == null) return null;
     final now = DateTime.now();
+    List promos = [];
+    if (promoData is List) {
+      promos = promoData;
+    } else if (promoData is Map) {
+      promos = [promoData];
+    }
     for (var p in promos) {
-      final isActive = p['is_active'] as bool? ?? false;
-      final expiresAtStr = p['expires_at']?.toString();
-      bool isStillActive = expiresAtStr == null ? isActive : isActive && DateTime.parse(expiresAtStr).isAfter(now);
+      if (p is! Map) continue;
+      final isActive = p['is_active'] as bool? ?? true;
+      final expiresAtStr = (p['expires_at'] ?? p['end_date'])?.toString();
+      bool isStillActive = expiresAtStr == null
+          ? isActive
+          : isActive && (DateTime.tryParse(expiresAtStr)?.isAfter(now) ?? true);
       if (isStillActive) return Map<String, dynamic>.from(p);
     }
     return null;
   }
 
-  static bool _parsePromoStatus(List? promos) {
-    final active = _getActivePromo(promos ?? []);
+  static bool _parsePromoStatus(dynamic promoData) {
+    final active = _getActivePromo(promoData);
     if (active == null) return false;
     final discount = (active['discount_value'] as num?)?.toDouble() ?? 0.0;
     return discount > 0;
   }
 
-  static String? _parsePromoTag(List? promos, bool isAr) {
-    final activePromo = _getActivePromo(promos ?? []);
+  static String? _parsePromoTag(dynamic promoData, bool isAr) {
+    final activePromo = _getActivePromo(promoData);
     if (activePromo == null) return null;
     return (isAr ? activePromo['tag_ar'] : activePromo['tag_en'])?.toString() ?? activePromo['tag']?.toString();
   }
