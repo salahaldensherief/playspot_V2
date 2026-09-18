@@ -18,6 +18,43 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   final SupabaseClient _client;
   HomeRemoteDataSourceImpl(this._client);
 
+  Future<List<LoungeModel>> _hydrateLoungesWithPromotions(List<dynamic> rawLounges) async {
+    final loungeMaps = rawLounges.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    bool needsPromoFetch = loungeMaps.any((l) =>
+        (l['promotions'] == null || (l['promotions'] is List && (l['promotions'] as List).isEmpty)) &&
+        l['has_discount'] != true);
+
+    if (needsPromoFetch) {
+      try {
+        final promosRes = await _client
+            .from('promotions')
+            .select()
+            .eq('is_active', true);
+        if (promosRes.isNotEmpty) {
+          final Map<String, List<Map<String, dynamic>>> promoByLounge = {};
+          for (var p in promosRes) {
+            final lid = p['lounge_id']?.toString();
+            if (lid != null && lid.isNotEmpty) {
+              promoByLounge.putIfAbsent(lid, () => []).add(Map<String, dynamic>.from(p));
+            }
+          }
+          for (var l in loungeMaps) {
+            final lid = l['id']?.toString();
+            if (lid != null && (l['promotions'] == null || (l['promotions'] is List && (l['promotions'] as List).isEmpty))) {
+              if (promoByLounge.containsKey(lid)) {
+                l['promotions'] = promoByLounge[lid];
+              }
+            }
+          }
+        }
+      } catch (e) {
+        AppLogger.warning("LOUNGE_PROMO_HYDRATION_ERROR: $e");
+      }
+    }
+
+    return loungeMaps.map((e) => LoungeModel.fromJson(e)).toList();
+  }
+
   @override
   Future<LoungeModel?> getLoungeById(String id) async {
     try {
@@ -28,8 +65,11 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           .eq('status', 'active')
           .eq('is_active', true)
           .maybeSingle();
-      if (response == null) return null;
-      return LoungeModel.fromJson(Map<String, dynamic>.from(response));
+      if (response != null) {
+        final hydrated = await _hydrateLoungesWithPromotions([response]);
+        if (hydrated.isNotEmpty) return hydrated.first;
+      }
+      return null;
     } catch (e) {
       try {
         final fallbackRes = await _client
@@ -40,7 +80,9 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
             .eq('is_active', true)
             .maybeSingle();
         if (fallbackRes == null) return null;
-        return LoungeModel.fromJson(Map<String, dynamic>.from(fallbackRes));
+        final hydrated = await _hydrateLoungesWithPromotions([fallbackRes]);
+        if (hydrated.isNotEmpty) return hydrated.first;
+        return null;
       } catch (_) {
         return null;
       }
@@ -65,7 +107,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       AppLogger.info("FETCHING_LOUNGES directly from lounges table with promotions");
       dynamic query = _client
           .from('lounges')
-          .select('*, promotions:promotions!lounge_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type, discount_percentage, title_ar, title_en)')
+          .select('*, promotions:promotions!lounge_id(*)')
           .eq('status', 'active')
           .eq('is_active', true);
 
@@ -87,7 +129,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       final List lounges = response as List;
       AppLogger.info("LOUNGES_DIRECT_SELECT_COUNT: ${lounges.length}");
 
-      return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      return await _hydrateLoungesWithPromotions(lounges);
     } catch (e) {
       AppLogger.warning("FETCH_LOUNGES_PROMO_JOIN_ERROR: $e, trying flat select fallback");
       try {
@@ -113,7 +155,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
         final response = await query.range(params.offset, params.offset + params.limit - 1);
         final List lounges = response as List;
-        return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+        return await _hydrateLoungesWithPromotions(lounges);
       } catch (fallbackError) {
         AppLogger.warning("FETCH_LOUNGES_DIRECT_ERROR: $fallbackError, falling back to RPC get_nearby_lounges");
         try {
@@ -123,7 +165,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
           });
 
           final List lounges = response as List;
-          return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+          return await _hydrateLoungesWithPromotions(lounges);
         } catch (criticalError) {
           AppLogger.error("FETCH_LOUNGES_CRITICAL_ERROR: $criticalError");
           return [];

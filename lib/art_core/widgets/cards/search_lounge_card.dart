@@ -37,94 +37,101 @@ class SearchLoungeCard extends StatelessWidget {
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(AppSizes.r20),
           border: Border.all(
-            color: lounge.isDiscountActive
-                ? AppColors.withOpacity(AppColors.warning, 0.4)
-                : AppColors.borderDefault,
-            width: lounge.isDiscountActive ? 1.5 : 1,
+            color: AppColors.borderDefault,
+            width: 1,
           ),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
-            Stack(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Hero(
                   tag: heroTag,
                   child: AppImage(
                     urlImg: lounge.imageUrl,
-                    width: 140.w,
-                    height: 140.h,
+                    width: 130.w,
+                    height: 130.h,
                     fit: BoxFit.cover,
                     borderRadius: AppSizes.r15,
                   ),
                 ),
-                if (lounge.isDiscountActive)
-                  Positioned(
-                    top: 8.h,
-                    left: 8.w,
-                    child: _buildDiscountBadge(context),
-                  ),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: 16.horizontalPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(
-                      text: lounge.name,
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    AppText(
-                      text: lounge.location ?? "",
-                      fontSize: 12.sp,
-                      color: AppColors.textSecondary,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Row(
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.star, color: AppColors.warning, size: 16.sp),
-                        4.horizontalSpace,
                         AppText(
-                          text: lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A",
-                          fontSize: 12.sp,
-                          color: AppColors.white,
+                          text: lounge.name,
+                          fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
+                          color: AppColors.white,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        12.horizontalSpace,
-                        Icon(Icons.location_on_outlined,
-                            color: AppColors.textSecondary, size: 16.sp),
-                        4.horizontalSpace,
-                        Expanded(
-                          child: AppText(
-                            text: "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
-                            fontSize: 12.sp,
-                            color: AppColors.textSecondary,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        4.verticalSpace,
+                        AppText(
+                          text: lounge.location ?? "",
+                          fontSize: 11.sp,
+                          color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        6.verticalSpace,
+                        Row(
+                          children: [
+                            Icon(Icons.star, color: AppColors.warning, size: 14.sp),
+                            4.horizontalSpace,
+                            AppText(
+                              text: lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A",
+                              fontSize: 11.sp,
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            8.horizontalSpace,
+                            Icon(Icons.location_on_outlined,
+                                color: AppColors.textSecondary, size: 14.sp),
+                            4.horizontalSpace,
+                            Expanded(
+                              child: AppText(
+                                text: "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
+                                fontSize: 11.sp,
+                                color: AppColors.textSecondary,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        8.verticalSpace,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: _buildPriceInfo(),
+                        ),
+                        4.verticalSpace,
+                        AppText(
+                          text:
+                              "${lounge.availableRooms} ${AppStrings.ps5RoomsAvailable.tr()}",
+                          fontSize: 10.sp,
+                          color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
-                    12.verticalSpace,
-                    _buildPriceInfo(),
-                    4.verticalSpace,
-                    AppText(
-                      text:
-                          "${lounge.availableRooms} ${AppStrings.ps5RoomsAvailable.tr()}",
-                      fontSize: 10.sp,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
+            if (lounge.isDiscountActive)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: _buildDiscountBadge(context),
+              ),
           ],
         ),
       ),
@@ -133,23 +140,28 @@ class SearchLoungeCard extends StatelessWidget {
 
   Widget _buildDiscountBadge(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
+    final text = lounge.getDiscountTitle(isArabic) ??
+        "-${lounge.discountPercentage}%";
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: AppColors.warning,
-        borderRadius: BorderRadius.circular(8.r),
+        color: AppColors.success,
+        borderRadius: BorderRadius.only(
+          topRight: Radius.circular(AppSizes.r20),
+          bottomLeft: Radius.circular(10.r),
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(AppColors.black, 0.3),
+            color: AppColors.withOpacity(AppColors.black, 0.4),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: AppText(
-        text: lounge.getDiscountTitle(isArabic) ??
-            "${AppStrings.discount.tr()} ${lounge.discountPercentage}%",
-        fontSize: 8.sp,
+        text: text,
+        fontSize: 9.sp,
         fontWeight: FontWeight.w900,
         color: Colors.black,
       ),
@@ -157,21 +169,37 @@ class SearchLoungeCard extends StatelessWidget {
   }
 
   Widget _buildPriceInfo() {
+    final bool hasDiscount = lounge.isDiscountActive && lounge.discountPercentage > 0;
+    final double discountedPrice = hasDiscount
+        ? lounge.pricePerHour * (1 - (lounge.discountPercentage / 100))
+        : lounge.pricePerHour;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
+        if (hasDiscount) ...[
+          Text(
+            "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
+            style: TextStyle(
+              fontSize: 11.sp,
+              color: AppColors.textSecondary.withValues(alpha: 0.6),
+              decoration: TextDecoration.lineThrough,
+            ),
+          ),
+          4.horizontalSpace,
+        ],
         AppText(
-          text: "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
-          fontSize: 18.sp,
+          text: "${discountedPrice.toInt()} ${AppStrings.egp.tr()}",
+          fontSize: 16.sp,
           fontWeight: FontWeight.bold,
-          color: AppColors.neonBlue,
+          color: hasDiscount ? AppColors.success : AppColors.neonBlue,
         ),
         4.horizontalSpace,
         AppText(
           text: AppStrings.perHour.tr(),
-          fontSize: 12.sp,
+          fontSize: 11.sp,
           color: AppColors.textSecondary,
         ),
       ],

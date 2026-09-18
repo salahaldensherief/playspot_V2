@@ -43,12 +43,26 @@ class _BookingScreenState extends State<BookingScreen> {
     super.dispose();
   }
 
+  void _scrollToDurationAndSummary() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<BookingCubit, BookingState>(
       listenWhen: (previous, current) =>
           (previous.status != current.status &&
-          current.status == BookingStatus.error),
+              current.status == BookingStatus.error) ||
+          (previous.startTime != current.startTime &&
+              current.startTime != null),
       listener: (context, state) {
         if (state.status == BookingStatus.error && state.errorMessage != null) {
           final isEnglish = context.locale.languageCode == 'en';
@@ -66,6 +80,9 @@ class _BookingScreenState extends State<BookingScreen> {
               behavior: SnackBarBehavior.floating,
             ),
           );
+        }
+        if (state.startTime != null) {
+          _scrollToDurationAndSummary();
         }
       },
       child: Scaffold(
@@ -126,7 +143,9 @@ class _BookingScreenState extends State<BookingScreen> {
     return BlocBuilder<BookingCubit, BookingState>(
       buildWhen: (previous, current) =>
           previous.startTime != current.startTime ||
-          previous.durationMinutes != current.durationMinutes,
+          previous.durationMinutes != current.durationMinutes ||
+          previous.playMode != current.playMode ||
+          previous.extraControllersCount != current.extraControllersCount,
       builder: (context, state) {
         final startTime = state.startTime;
         if (startTime == null) return const SizedBox.shrink();
@@ -136,14 +155,18 @@ class _BookingScreenState extends State<BookingScreen> {
         final end = start.add(Duration(minutes: state.durationMinutes));
         final endTime = TimeOfDay.fromDateTime(end);
 
+        final offerInfo = state.getOfferInfo(widget.params, isArabic);
+        final subtotals = state.getCalculatedSubtotals(widget.params, isArabic);
+        final origRoomSubtotal = subtotals['originalRoomSubtotal'] ?? 0.0;
+        final discRoomSubtotal = subtotals['discountedRoomSubtotal'] ?? 0.0;
+        final roomDiscountAmount = subtotals['roomDiscountAmount'] ?? 0.0;
+
         return Container(
-          padding: EdgeInsets.all(16.w),
+          padding: 16.allPadding,
           decoration: BoxDecoration(
-            color: AppColors.neonBlue.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(
-              color: AppColors.neonBlue.withValues(alpha: 0.2),
-            ),
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(AppSizes.r16),
+            border: Border.all(color: AppColors.borderDefault),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,40 +175,89 @@ class _BookingScreenState extends State<BookingScreen> {
                 text: AppStrings.sessionDetails.tr(),
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
-                color: AppColors.neonBlue,
+                color: AppColors.white,
               ),
-              12.verticalSpace,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildSummaryItem(
-                    AppStrings.startTime.tr(),
-                    startTime.format(context),
-                  ),
-                  Icon(
-                    isArabic ? Icons.arrow_back : Icons.arrow_forward,
-                    color: AppColors.textSecondary,
-                    size: 18.sp,
-                  ),
-                  _buildSummaryItem(
-                    AppStrings.endTime.tr(),
-                    endTime.format(context),
-                  ),
-                ],
+              16.verticalSpace,
+              _buildSummaryRow(
+                "Time Slot",
+                "${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}",
               ),
-              Divider(height: 24.h, color: AppColors.divider),
+              8.verticalSpace,
+              _buildSummaryRow(
+                AppStrings.playMode.tr(),
+                state.playMode == PlayMode.single
+                    ? AppStrings.singlePlay.tr()
+                    : AppStrings.multiPlay.tr(),
+              ),
+              if (state.extraControllersCount > 0) ...[
+                8.verticalSpace,
+                _buildSummaryRow(
+                  AppStrings.extraControllers.tr(),
+                  "+${state.extraControllersCount}",
+                ),
+              ],
+              8.verticalSpace,
+              _buildSummaryRow(
+                AppStrings.duration.tr(),
+                "${state.durationMinutes} mins",
+              ),
+              const Divider(color: AppColors.borderDefault, height: 24),
+              if (offerInfo.hasOffer) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    AppText(
+                      text:
+                          offerInfo.discountLabel ??
+                          AppStrings.activeOffer.tr(),
+                      fontSize: 12.sp,
+                      color: AppColors.success,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    AppText(
+                      text:
+                          "-${roomDiscountAmount.toInt()} ${AppStrings.egp.tr()}",
+                      fontSize: 12.sp,
+                      color: AppColors.success,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
+                8.verticalSpace,
+              ],
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   AppText(
-                    text: AppStrings.duration.tr(),
-                    color: AppColors.textSecondary,
+                    text: AppStrings.totalAmount.tr(),
                     fontSize: 14.sp,
-                  ),
-                  AppText(
-                    text: state.getFormattedDuration(isArabic),
                     fontWeight: FontWeight.bold,
                     color: AppColors.white,
+                  ),
+                  Row(
+                    children: [
+                      if (offerInfo.hasOffer) ...[
+                        Text(
+                          "${origRoomSubtotal.toInt()} ${AppStrings.egp.tr()}",
+                          style: TextStyle(
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.5,
+                            ),
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                        8.horizontalSpace,
+                      ],
+                      PriceWidget(
+                        price: discRoomSubtotal,
+                        fontSize: 18.sp,
+                        color: offerInfo.hasOffer
+                            ? AppColors.success
+                            : AppColors.neonBlue,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -196,15 +268,14 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSummaryRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        AppText(text: label, fontSize: 12.sp, color: AppColors.textSecondary),
-        4.verticalSpace,
+        AppText(text: label, fontSize: 13.sp, color: AppColors.textSecondary),
         AppText(
           text: value,
-          fontSize: 16.sp,
+          fontSize: 13.sp,
           fontWeight: FontWeight.bold,
           color: AppColors.white,
         ),
@@ -212,147 +283,174 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return "$hour:$minute $period";
+  }
+
   Widget _buildBottomBar(BuildContext context) {
     return BlocBuilder<BookingCubit, BookingState>(
       buildWhen: (previous, current) =>
           previous.startTime != current.startTime ||
+          previous.status != current.status ||
           previous.durationMinutes != current.durationMinutes ||
-          previous.selectedDate != current.selectedDate ||
           previous.playMode != current.playMode ||
           previous.extraControllersCount != current.extraControllersCount,
       builder: (context, state) {
-        final isReady = state.startTime != null;
+        final canProceed =
+            state.startTime != null &&
+            state.status != BookingStatus.loading &&
+            !_isVerifying;
 
-        // Clean state-level price calculations
-        final total = state.calculateTotalPrice(widget.params);
-        final originalTotal = state.calculateOriginalTotalPrice(widget.params);
-        final appliedRate = state.calculateAppliedRate(widget.params);
+        final isArabic = context.locale.languageCode == 'ar';
+        final subtotals = state.getCalculatedSubtotals(widget.params, isArabic);
+        final offerInfo = state.getOfferInfo(widget.params, isArabic);
+        final totalPrice = subtotals['discountedRoomSubtotal'] ?? 0.0;
 
         return Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-          decoration: const BoxDecoration(
-            color: AppColors.scaffoldBackground,
-            border: Border(top: BorderSide(color: AppColors.borderDefault)),
+          padding: EdgeInsets.only(
+            left: 16.w,
+            right: 16.w,
+            top: 12.h,
+            bottom: 12.h,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AppText(
-                        text: AppStrings.totalPrice.tr(),
-                        fontSize: 12.sp,
-                        color: AppColors.textSecondary,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (widget.params.room.hasActivePromo) ...[
-                            Text(
-                              "${originalTotal.toInt()} ${AppStrings.egp.tr()}",
-                              style: TextStyle(
-                                color: AppColors.textSecondary.withValues(
-                                  alpha: 0.5,
-                                ),
-                                fontSize: 10.sp,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          ],
-                          PriceWidget(
-                            price: total,
-                            fontSize: 24.sp,
-                            color: widget.params.room.hasActivePromo
-                                ? AppColors.success
-                                : AppColors.neonBlue,
-                          ),
-                        ],
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppText(
+                          text: AppStrings.totalPrice.tr(),
+                          fontSize: 12.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                        PriceWidget(
+                          price: totalPrice,
+                          fontSize: 20.sp,
+                          color: AppColors.neonBlue,
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(
-                    width: 180.w,
+                  16.horizontalSpace,
+                  Expanded(
                     child: AppButton(
-                      content: ButtonContent(
-                        label: _isVerifying
-                            ? null
-                            : AppStrings.confirmAndPay.tr(),
-                        body: _isVerifying
-                            ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 18.w,
-                                    height: 18.w,
-                                    child: const CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 8.w),
-                                  AppText(
-                                    text: AppStrings.processing.tr(),
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13.sp,
-                                  ),
-                                ],
-                              )
-                            : null,
-                      ),
                       behavior: ButtonBehavior.tap(
-                        isEnabled: isReady && !_isVerifying,
-                        onTap: (isReady && !_isVerifying)
-                            ? () async {
-                                setState(() => _isVerifying = true);
-                                final cubit = context.read<BookingCubit>();
-                                final isAvailable = await cubit
-                                    .verifyAvailabilityBeforeProceed();
-                                if (mounted) {
-                                  setState(() => _isVerifying = false);
-                                }
-                                if (!isAvailable || !context.mounted) return;
+                        isEnabled: canProceed,
+                        isLoading:
+                            state.status == BookingStatus.loading ||
+                            _isVerifying,
+                        onTap: () async {
+                          if (!canProceed) return;
 
-                                context.pushNamed(
-                                  RouterKeys.checkout,
-                                  extra: {
-                                    'lounge': widget.params.lounge,
-                                    'room': widget.params.room,
-                                    'date': state.selectedDate,
-                                    'startTime': state.startTime!,
-                                    'duration': state.durationMinutes,
-                                    'totalPrice': total,
-                                    'originalTotalPrice': originalTotal,
-                                    'addOns': widget.params.extras,
-                                    'playMode': state.playMode.name,
-                                    'appliedHourlyRate': appliedRate,
-                                    'extraControllers':
-                                        state.extraControllersCount,
-                                    'extraControllerPrice':
-                                        widget.params.room.extraControllerPrice,
-                                  },
-                                );
-                              }
-                            : null,
+                          setState(() => _isVerifying = true);
+
+                          final cubit = context.read<BookingCubit>();
+                          final isAvailable = await cubit
+                              .verifyAvailabilityBeforeProceed();
+
+                          if (!mounted) return;
+                          setState(() => _isVerifying = false);
+
+                          if (isAvailable) {
+                            final currentState = cubit.state;
+                            if (currentState.startTime == null) return;
+
+                            final params = widget.params;
+                            final room = params.room;
+                            final lounge = params.lounge;
+
+                            final startTime = currentState.startTime!;
+                            final startDateTime = (startTime.hour >= 10)
+                                ? DateTime(
+                                    currentState.selectedDate.year,
+                                    currentState.selectedDate.month,
+                                    currentState.selectedDate.day,
+                                    startTime.hour,
+                                    startTime.minute,
+                                  )
+                                : DateTime(
+                                    currentState.selectedDate.year,
+                                    currentState.selectedDate.month,
+                                    currentState.selectedDate.day + 1,
+                                    startTime.hour,
+                                    startTime.minute,
+                                  );
+
+                            final checkoutParams = CheckoutParams(
+                              lounge: lounge,
+                              room: room,
+                              date: currentState.selectedDate,
+                              startTime: startTime,
+                              duration: currentState.durationMinutes,
+                              originalRoomSubtotal:
+                                  subtotals['originalRoomSubtotal'] ?? 0.0,
+                              discountedRoomSubtotal:
+                                  subtotals['discountedRoomSubtotal'] ?? 0.0,
+                              discountAmount:
+                                  subtotals['roomDiscountAmount'] ?? 0.0,
+                              discountPercentage: offerInfo.discountPercentage,
+                              discountLabel: offerInfo.discountLabel,
+                              discountSource: offerInfo.discountSource,
+                              addonsTotal: subtotals['addonsTotal'] ?? 0.0,
+                              totalPrice: totalPrice,
+                              originalTotalPrice:
+                                  subtotals['originalTotalPrice'] ?? totalPrice,
+                              addOns: params.extras,
+                              playMode: currentState.playMode == PlayMode.single
+                                  ? 'single'
+                                  : 'multi',
+                              extraControllers:
+                                  currentState.extraControllersCount,
+                              extraControllerPrice: room.extraControllerPrice,
+                              appliedHourlyRate: offerInfo.discountedHourlyRate,
+                            );
+
+                            context.pushNamed(
+                              RouterKeys.checkout,
+                              extra: checkoutParams,
+                            );
+                          }
+                        },
                       ),
                       buttonConfig: ButtonConfig(
-                        backgroundColor: (isReady && !_isVerifying)
-                            ? AppColors.success
-                            : AppColors.cardBackground,
-                        borderRadius: AppSizes.r12,
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: 15.r,
+                        height: 50.h,
+                        backgroundColor: AppColors.neonBlue,
+                      ),
+                      content: ButtonContent(
+                        body: AppText(
+                          text: _isVerifying
+                              ? "Checking..."
+                              : AppStrings.continueText.tr(),
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SafeBottomSpacer(extraPadding: 10),
+              const SafeBottomSpacer(),
             ],
           ),
         );

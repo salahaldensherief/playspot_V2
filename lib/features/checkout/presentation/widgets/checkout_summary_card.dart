@@ -110,56 +110,102 @@ class CheckoutSummaryCard extends StatelessWidget {
           BlocBuilder<CheckoutCubit, CheckoutState>(
             buildWhen: (previous, current) => previous.discountAmount != current.discountAmount,
             builder: (context, state) {
-              final roomPromoDiscount = params.originalTotalPrice - params.totalPrice;
-              final totalDiscount = roomPromoDiscount + state.discountAmount;
-              final finalPrice = params.totalPrice - state.discountAmount;
-              
+              final isArabic = context.locale.languageCode == 'ar';
+              final roomOriginalSubtotal = params.originalRoomSubtotal;
+              final roomDiscount = params.discountAmount;
+              final voucherDiscount = state.discountAmount;
+              final finalPrice = params.totalPrice - voucherDiscount;
+
               return Column(
                 children: [
-                  if (totalDiscount > 0) ...[
+                  // 1. Original Room Subtotal
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      AppText(
+                        text: isArabic ? "سعر الغرفة الأصلي" : "Original Room Price",
+                        fontSize: 14.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                      AppText(
+                        text: "${roomOriginalSubtotal.toInt()} ${AppStrings.egp.tr()}",
+                        fontSize: 14.sp,
+                        color: roomDiscount > 0 ? AppColors.textSecondary : AppColors.white,
+                        textDecoration: roomDiscount > 0 ? TextDecoration.lineThrough : null,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+
+                  // 2. Offer Discount Line (Room or Lounge offer)
+                  if (roomDiscount > 0) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         AppText(
-                          text: AppStrings.subtotal.tr(),
+                          text: params.discountLabel ?? (isArabic ? "خصم العرض" : "Offer Discount"),
                           fontSize: 14.sp,
-                          color: AppColors.textSecondary,
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w600,
                         ),
                         AppText(
-                          text: "${params.originalTotalPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                          text: "-${roomDiscount.toInt()} ${AppStrings.egp.tr()}",
                           fontSize: 14.sp,
-                          color: AppColors.textSecondary,
-                          textDecoration: TextDecoration.lineThrough,
+                          color: AppColors.success,
+                          fontWeight: FontWeight.bold,
                         ),
                       ],
                     ),
                     SizedBox(height: 8.h),
+                  ],
+
+                  // 3. Voucher Discount Line (if applied)
+                  if (voucherDiscount > 0) ...[
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         AppText(
-                          text: AppStrings.discount.tr(),
+                          text: isArabic ? "كوبون الخصم" : "Voucher Discount",
                           fontSize: 14.sp,
                           color: AppColors.success,
+                          fontWeight: FontWeight.w600,
                         ),
                         AppText(
-                          text: "-${totalDiscount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                          text: "-${voucherDiscount.toInt()} ${AppStrings.egp.tr()}",
                           fontSize: 14.sp,
                           color: AppColors.success,
+                          fontWeight: FontWeight.bold,
                         ),
                       ],
                     ),
-                    if (roomPromoDiscount > 0 && state.discountAmount > 0)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4.h),
-                        child: AppText(
-                          text: AppStrings.inclRoomOfferAndVoucher.tr(),
-                          fontSize: 10.sp,
+                    SizedBox(height: 8.h),
+                  ],
+
+                  // 4. Canteen / Add-ons Total (Not discounted by room offer)
+                  if (params.addonsTotal > 0 || params.addOns.isNotEmpty) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        AppText(
+                          text: AppStrings.addOns.tr(),
+                          fontSize: 14.sp,
                           color: AppColors.textSecondary,
                         ),
-                      ),
-                    SizedBox(height: 12.h),
+                        AppText(
+                          text: "${params.addonsTotal.toInt()} ${AppStrings.egp.tr()}",
+                          fontSize: 14.sp,
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8.h),
                   ],
+
+                  const AppDivider(),
+                  SizedBox(height: 12.h),
+
+                  // 5. Final Total
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -170,7 +216,7 @@ class CheckoutSummaryCard extends StatelessWidget {
                         color: AppColors.white,
                       ),
                       AppText(
-                        text: "${finalPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                        text: "${finalPrice.toInt()} ${AppStrings.egp.tr()}",
                         fontSize: 24.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.neonBlue,

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import '../data/models/booking_offer_info.dart';
 import '../data/models/booking_params.dart';
 
 enum BookingStatus { initial, loading, success, error }
@@ -50,18 +51,41 @@ class BookingState extends Equatable {
   }
 
   // ─── Price & Logic Calculations ──────────────────────────────
+  BookingOfferInfo getOfferInfo(BookingDetailsParams params, bool isArabic) {
+    return BookingOfferInfo.resolve(
+      room: params.room,
+      lounge: params.lounge,
+      isSinglePlay: playMode == PlayMode.single,
+      isArabic: isArabic,
+    );
+  }
+
+  Map<String, double> getCalculatedSubtotals(BookingDetailsParams params, bool isArabic) {
+    final offerInfo = getOfferInfo(params, isArabic);
+    return offerInfo.calculateSubtotals(
+      durationMinutes: durationMinutes,
+      extraControllersCount: extraControllersCount,
+      extraControllerPrice: params.room.extraControllerPrice,
+      extras: params.extras,
+    );
+  }
+
   double calculateExtrasPrice(BookingDetailsParams params) {
     return params.extras.fold<double>(
       0,
       (sum, item) =>
-          sum + ((item['price'] as num).toDouble() * (item['quantity'] as num).toDouble()),
+          sum + (((item['price'] as num?)?.toDouble() ?? 0.0) * ((item['quantity'] as num?)?.toDouble() ?? 1.0)),
     );
   }
 
   double calculateAppliedRate(BookingDetailsParams params) {
-    return playMode == PlayMode.single
-        ? params.room.effectivePriceSingle
-        : params.room.effectivePriceMulti;
+    final offerInfo = BookingOfferInfo.resolve(
+      room: params.room,
+      lounge: params.lounge,
+      isSinglePlay: playMode == PlayMode.single,
+      isArabic: true,
+    );
+    return offerInfo.discountedHourlyRate;
   }
 
   double calculateOriginalRate(BookingDetailsParams params) {
@@ -75,19 +99,13 @@ class BookingState extends Equatable {
   }
 
   double calculateTotalPrice(BookingDetailsParams params) {
-    final extras = calculateExtrasPrice(params);
-    final appliedRate = calculateAppliedRate(params);
-    final controllers = calculateExtraControllersCharge(params);
-    final durationHours = durationMinutes / 60.0;
-    return ((appliedRate + controllers) * durationHours) + extras;
+    final subtotals = getCalculatedSubtotals(params, true);
+    return subtotals['totalPrice'] ?? 0.0;
   }
 
   double calculateOriginalTotalPrice(BookingDetailsParams params) {
-    final extras = calculateExtrasPrice(params);
-    final originalRate = calculateOriginalRate(params);
-    final controllers = calculateExtraControllersCharge(params);
-    final durationHours = durationMinutes / 60.0;
-    return ((originalRate + controllers) * durationHours) + extras;
+    final subtotals = getCalculatedSubtotals(params, true);
+    return subtotals['originalTotalPrice'] ?? 0.0;
   }
 
   // ─── Smart Localized Duration Formatting ──────────────────────

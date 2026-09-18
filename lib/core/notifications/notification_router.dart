@@ -1,12 +1,23 @@
-typedef NotificationNavigationHandler =
-    bool Function(Map<String, dynamic> data);
+import 'strategies/active_session_notification_strategy.dart';
+import 'strategies/booking_notification_strategy.dart';
+import 'strategies/default_notification_strategy.dart';
+import 'strategies/notification_strategy_registry.dart';
+
+typedef NotificationNavigationHandler = bool Function(Map<String, dynamic> data);
 
 class NotificationRouter {
   NotificationRouter._();
 
   static NotificationNavigationHandler? _handler;
-
   static Map<String, dynamic>? _pendingData;
+
+  static final NotificationStrategyRegistry registry = NotificationStrategyRegistry(
+    strategies: [
+      const BookingNotificationStrategy(),
+      const ActiveSessionNotificationStrategy(),
+    ],
+    fallbackStrategy: const DefaultNotificationStrategy(),
+  );
 
   static void configure(NotificationNavigationHandler handler) {
     _handler = handler;
@@ -14,21 +25,33 @@ class NotificationRouter {
   }
 
   static void navigate(Map<String, dynamic> data) {
-    final handler = _handler;
+    final customHandler = _handler;
 
-    if (handler == null || !handler(data)) {
-      _pendingData = data;
+    if (customHandler != null && customHandler(data)) {
+      _pendingData = null;
       return;
     }
 
-    _pendingData = null;
+    final handledByRegistry = registry.handleNotification(data);
+    if (!handledByRegistry) {
+      _pendingData = data;
+    } else {
+      _pendingData = null;
+    }
   }
 
   static void handlePending() {
     final pendingData = _pendingData;
-    final handler = _handler;
-    if (pendingData == null || handler == null || !handler(pendingData)) return;
+    if (pendingData == null) return;
 
-    _pendingData = null;
+    final customHandler = _handler;
+    if (customHandler != null && customHandler(pendingData)) {
+      _pendingData = null;
+      return;
+    }
+
+    if (registry.handleNotification(pendingData)) {
+      _pendingData = null;
+    }
   }
 }

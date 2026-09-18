@@ -32,10 +32,14 @@ class RoomActionArea extends StatelessWidget {
       buildWhen: (prev, curr) =>
           prev.roomPlayModes[room.id] != curr.roomPlayModes[room.id] ||
           prev.roomExtraControllers[room.id] !=
-              curr.roomExtraControllers[room.id],
+              curr.roomExtraControllers[room.id] ||
+          prev.lounge != curr.lounge,
       builder: (context, state) {
         final playMode = state.roomPlayModes[room.id] ?? 'single';
         final extraControllers = state.roomExtraControllers[room.id] ?? 0;
+        final lounge = state.lounge;
+        final bool hasLoungeOffer = lounge != null && lounge.isDiscountActive && lounge.discountPercentage > 0;
+        final bool hasOffer = (room.hasActivePromo && room.promoDiscountValue > 0) || hasLoungeOffer;
 
         double originalBase = room.hourlyRateSingle;
         if (room.isOpenArea) {
@@ -51,6 +55,8 @@ class RoomActionArea extends StatelessWidget {
             effectiveBase =
                 (originalBase - room.promoDiscountValue).clamp(0.0, double.infinity);
           }
+        } else if (hasLoungeOffer) {
+          effectiveBase = originalBase * (1 - (lounge.discountPercentage / 100));
         }
 
         final double finalEffectivePrice =
@@ -66,8 +72,8 @@ class RoomActionArea extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (room.hasActivePromo) 25.verticalSpace,
-              if (room.hasActivePromo) ...[
+              if (hasOffer) 25.verticalSpace,
+              if (hasOffer) ...[
                 Text(
                   "${finalOriginalPrice.toInt()} ${AppStrings.egp.tr()}",
                   style: TextStyle(
@@ -82,7 +88,7 @@ class RoomActionArea extends StatelessWidget {
               PriceWidget(
                 price: finalEffectivePrice,
                 fontSize: 16.sp,
-                color: room.hasActivePromo ? AppColors.success : themeColor,
+                color: hasOffer ? AppColors.success : themeColor,
               ),
               AppText(
                 text: AppStrings.perHour.tr().toUpperCase(),

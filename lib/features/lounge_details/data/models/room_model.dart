@@ -195,16 +195,22 @@ class RoomModel extends Equatable {
         extraControllerPrice: (json['extra_controller_price'] as num?)?.toDouble() ?? 0.0,
         isAvailable: json['is_available'] ?? true,
         status: json['status']?.toString() ?? 'available',
-        images: json['images'] != null ? List<String>.from(json['images']) : [],
-        featuresAr: json['features_ar'] != null ? List<String>.from(json['features_ar']) : [],
-        featuresEn: json['features_en'] != null ? List<String>.from(json['features_en']) : [],
+        images: json['images'] != null
+            ? List<String>.from(json['images'])
+            : (json['photo_url'] != null ? [json['photo_url'].toString()] : []),
+        featuresAr: json['features_ar'] != null
+            ? List<String>.from(json['features_ar'])
+            : (json['features'] != null && json['features'] is List ? List<String>.from(json['features']) : []),
+        featuresEn: json['features_en'] != null
+            ? List<String>.from(json['features_en'])
+            : (json['features'] != null && json['features'] is List ? List<String>.from(json['features']) : []),
         controllersCount: (json['controllers_count'] as num?)?.toInt() ?? 2,
         screenSize: json['screen_size']?.toString() ?? '43"',
-        hasActivePromo: _parsePromoStatus(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo']),
-        promoTagAr: _parsePromoTag(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo'], true),
-        promoTagEn: _parsePromoTag(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo'], false),
-        promoDiscountValue: _parsePromoDiscountValue(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo']),
-        promoDiscountType: _parsePromoDiscountType(json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo']),
+        hasActivePromo: _parsePromoStatus(json, json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['offer'] ?? json['active_promo'] ?? json['promo']),
+        promoTagAr: _parsePromoTag(json, json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['offer'] ?? json['active_promo'] ?? json['promo'], true),
+        promoTagEn: _parsePromoTag(json, json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['offer'] ?? json['active_promo'] ?? json['promo'], false),
+        promoDiscountValue: _parsePromoDiscountValue(json, json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['offer'] ?? json['active_promo'] ?? json['promo']),
+        promoDiscountType: _parsePromoDiscountType(json, json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['offer'] ?? json['active_promo'] ?? json['promo']),
       );
     } catch (e) {
       dev.log("Error parsing RoomModel: $e");
@@ -212,14 +218,37 @@ class RoomModel extends Equatable {
     }
   }
 
-  static double _parsePromoDiscountValue(dynamic promoData) {
+  static double _parsePromoDiscountValue(dynamic json, dynamic promoData) {
     final activePromo = _getActivePromo(promoData);
-    return (activePromo?['discount_value'] as num?)?.toDouble() ?? 0.0;
+    if (activePromo != null) {
+      final val = (activePromo['discount_value'] as num?)?.toDouble() ??
+          (activePromo['discount_percentage'] as num?)?.toDouble() ??
+          (activePromo['discount_amount'] as num?)?.toDouble() ??
+          (activePromo['discount'] as num?)?.toDouble() ??
+          (activePromo['value'] as num?)?.toDouble() ??
+          0.0;
+      if (val > 0) return val;
+    }
+    final flatVal = (json['discount_value'] as num?)?.toDouble() ??
+        (json['discount_percentage'] as num?)?.toDouble() ??
+        (json['discount_amount'] as num?)?.toDouble() ??
+        (json['discount'] as num?)?.toDouble() ??
+        (json['promo_discount_value'] as num?)?.toDouble() ??
+        0.0;
+    return flatVal;
   }
 
-  static String? _parsePromoDiscountType(dynamic promoData) {
+  static String? _parsePromoDiscountType(dynamic json, dynamic promoData) {
     final activePromo = _getActivePromo(promoData);
-    return activePromo?['discount_type']?.toString();
+    if (activePromo != null) {
+      final type = (activePromo['discount_type'] ?? activePromo['type'] ?? activePromo['promo_type'])?.toString();
+      if (type != null && type.isNotEmpty) return type;
+      if (activePromo['discount_percentage'] != null || activePromo['percentage'] != null) return 'percentage';
+    }
+    final flatType = (json['discount_type'] ?? json['promo_discount_type'] ?? json['type'])?.toString();
+    if (flatType != null && flatType.isNotEmpty) return flatType;
+    if (json['discount_percentage'] != null) return 'percentage';
+    return 'percentage';
   }
 
   static Map<String, dynamic>? _getActivePromo(dynamic promoData) {
@@ -234,8 +263,8 @@ class RoomModel extends Equatable {
     for (var p in promos) {
       if (p is! Map) continue;
       final isActive = p['is_active'] as bool? ?? true;
-      final expiresAtStr = (p['expires_at'] ?? p['end_date'])?.toString();
-      bool isStillActive = expiresAtStr == null
+      final expiresAtStr = (p['expires_at'] ?? p['end_date'] ?? p['discount_expires_at'])?.toString();
+      bool isStillActive = expiresAtStr == null || expiresAtStr.isEmpty
           ? isActive
           : isActive && (DateTime.tryParse(expiresAtStr)?.isAfter(now) ?? true);
       if (isStillActive) return Map<String, dynamic>.from(p);
@@ -243,16 +272,42 @@ class RoomModel extends Equatable {
     return null;
   }
 
-  static bool _parsePromoStatus(dynamic promoData) {
+  static bool _parsePromoStatus(dynamic json, dynamic promoData) {
     final active = _getActivePromo(promoData);
-    if (active == null) return false;
-    final discount = (active['discount_value'] as num?)?.toDouble() ?? 0.0;
-    return discount > 0;
+    if (active != null) {
+      final isActive = active['is_active'] as bool? ?? true;
+      final discount = (active['discount_value'] as num?)?.toDouble() ??
+          (active['discount_percentage'] as num?)?.toDouble() ??
+          (active['discount_amount'] as num?)?.toDouble() ??
+          (active['discount'] as num?)?.toDouble() ??
+          (active['value'] as num?)?.toDouble() ??
+          0.0;
+      if (isActive && discount > 0) return true;
+    }
+    if (json['has_active_promo'] == true ||
+        json['has_discount'] == true ||
+        json['is_discount_active'] == true) {
+      return true;
+    }
+    final flatDiscount = _parsePromoDiscountValue(json, promoData);
+    return flatDiscount > 0;
   }
 
-  static String? _parsePromoTag(dynamic promoData, bool isAr) {
+  static String? _parsePromoTag(dynamic json, dynamic promoData, bool isAr) {
     final activePromo = _getActivePromo(promoData);
-    if (activePromo == null) return null;
-    return (isAr ? activePromo['tag_ar'] : activePromo['tag_en'])?.toString() ?? activePromo['tag']?.toString();
+    if (activePromo != null) {
+      final tag = (isAr
+              ? activePromo['tag_ar'] ?? activePromo['title_ar'] ?? activePromo['name_ar'] ?? activePromo['promo_title_ar']
+              : activePromo['tag_en'] ?? activePromo['title_en'] ?? activePromo['name_en'] ?? activePromo['promo_title_en'])
+          ?.toString() ??
+          (activePromo['tag'] ?? activePromo['title'] ?? activePromo['name'])?.toString();
+      if (tag != null && tag.isNotEmpty) return tag;
+    }
+    final flatTag = (isAr
+            ? json['tag_ar'] ?? json['promo_tag_ar'] ?? json['title_ar'] ?? json['discount_title_ar']
+            : json['tag_en'] ?? json['promo_tag_en'] ?? json['title_en'] ?? json['discount_title_en'])
+        ?.toString() ??
+        (json['tag'] ?? json['promo_tag'] ?? json['title'] ?? json['discount_title'])?.toString();
+    return flatTag;
   }
 }

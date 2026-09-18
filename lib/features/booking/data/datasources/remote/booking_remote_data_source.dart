@@ -76,8 +76,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
     final durationMinutes = params.endTime.difference(params.startTime).inMinutes;
 
-    // Insert core booking
-    final response = await _client.from('bookings').insert({
+    final bookingPayload = <String, dynamic>{
       'room_id': params.roomId,
       'room_name': params.roomName,
       'lounge_id': params.loungeId,
@@ -88,13 +87,47 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'start_time': startPart,
       'end_time': endPart,
       'duration_minutes': durationMinutes,
+      'original_room_price': params.originalRoomPrice,
+      'discounted_room_price': params.discountedRoomPrice,
+      'room_price': params.discountedRoomPrice,
+      'discount_amount': params.discountAmount,
+      'discount_percentage': params.discountPercentage,
+      if (params.discountLabel != null) 'discount_label': params.discountLabel,
+      if (params.discountReason != null) 'discount_reason': params.discountReason,
+      if (params.discountSource != null) 'discount_source': params.discountSource,
+      'duration_hours': params.durationHours,
+      'room_subtotal': params.roomSubtotal,
+      'addons_total': params.addonsTotal,
       'total_price': params.totalPrice,
-      'room_price': params.roomPrice,
-      if (params.discountAmount > 0) 'discount_amount': params.discountAmount,
       'status': BookingStatus.mapToDbStatus(params.status),
       'payment_status': params.paymentStatus,
       'play_mode': params.playMode,
-    }).select('id').single();
+    };
+
+    dynamic response;
+    try {
+      response = await _client.from('bookings').insert(bookingPayload).select('id').single();
+    } catch (e) {
+      // Fallback in case Postgres table doesn't have all optional snapshot columns
+      response = await _client.from('bookings').insert({
+        'room_id': params.roomId,
+        'room_name': params.roomName,
+        'lounge_id': params.loungeId,
+        'user_id': user?.id,
+        'user_name': finalUserName,
+        'user_phone': finalUserPhone,
+        'date': datePart,
+        'start_time': startPart,
+        'end_time': endPart,
+        'duration_minutes': durationMinutes,
+        'total_price': params.totalPrice,
+        'room_price': params.discountedRoomPrice,
+        if (params.discountAmount > 0) 'discount_amount': params.discountAmount,
+        'status': BookingStatus.mapToDbStatus(params.status),
+        'payment_status': params.paymentStatus,
+        'play_mode': params.playMode,
+      }).select('id').single();
+    }
 
     final bookingId = response['id']?.toString();
 

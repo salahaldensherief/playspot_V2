@@ -1,36 +1,52 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:playspot/features/auth/domain/strategies/auth_context.dart';
+import 'package:playspot/features/auth/domain/strategies/auth_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../../art_core/exceptions/app_exceptions.dart';
-import '../../../../../core/services/supabase_storage_service.dart';
 import '../../../../../core/services/social_auth_service.dart';
-import '../../models/user_model.dart';
+import '../../../../../core/services/supabase_storage_service.dart';
 import '../../models/auth_params.dart';
+import '../../models/user_model.dart';
 
 abstract class AuthRemoteSource {
   Future<UserModel> signInWithEmail({
     required String email,
     required String password,
   });
+
   Future<UserModel> signUpWithEmail(SignUpParams params);
+
   Future<UserModel> verifySignupOTP({
     required String email,
     required String otp,
     required SignUpParams params,
   });
+
   Future<void> resendSignupOTP(String email);
+
   Future<UserModel> signInWithGoogle();
+
   Future<UserModel> signInWithFacebook();
+
   Future<UserModel> completeProfile(CompleteProfileParams params);
+
   Future<void> signOut();
+
   UserModel? getCurrentUser();
+
   Future<void> sendPasswordResetEmail(String email);
+
   Future<void> verifyPasswordResetOTP({
     required String email,
     required String otp,
   });
+
   Future<void> resetPassword(String newPassword);
+
   Future<void> deleteAccount();
 }
 
@@ -38,11 +54,13 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   final SupabaseClient _supabase;
   final StorageService _storageService;
   final SocialAuthService _socialAuthService;
+  final AuthContext _authContext;
 
   AuthRemoteSourceImpl(
     this._supabase,
     this._storageService,
     this._socialAuthService,
+    this._authContext,
   );
 
   String _parseAuthExceptionMessage(AuthException e) {
@@ -50,7 +68,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     if (msg.contains('already registered') || msg.contains('already in use')) {
       return 'Email is already registered';
     }
-    if (msg.contains('sending confirmation email') || msg.contains('unexpected_failure')) {
+    if (msg.contains('sending confirmation email') ||
+        msg.contains('unexpected_failure')) {
       return 'Unable to send confirmation email. Please check your email address or try again.';
     }
     if (msg.startsWith('{') && msg.contains('"message":')) {
@@ -68,30 +87,11 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   Future<UserModel> signInWithEmail({
     required String email,
     required String password,
-  }) async {
-    try {
-      final response = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-      if (response.user == null) throw const ServerException('Sign in failed');
-
-      final user = response.user!;
-      final isNewUser = await _checkIsNewUser(user.id);
-      await _upsertUser(user);
-
-      return UserModel.fromSupabaseUser(
-        user.toJson(),
-        isNewUser: isNewUser,
-      );
-    } on AuthException catch (e) {
-      if (e.message.contains('Invalid login')) {
-        throw const InvalidCredentialsException();
-      }
-      throw AppException(e.message, code: e.statusCode);
-    } catch (e) {
-      throw AppException(e.toString());
-    }
+  }) {
+    return _authContext.authenticate(
+      provider: AuthProviderType.email,
+      credentials: {'email': email, 'password': password},
+    );
   }
 
   @override
@@ -135,12 +135,16 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'is_banned': false,
       });
 
-      if (params.referralCode != null && params.referralCode!.trim().isNotEmpty) {
+      if (params.referralCode != null &&
+          params.referralCode!.trim().isNotEmpty) {
         try {
-          await _supabase.rpc('process_referral', params: {
-            'p_referral_code': params.referralCode!.trim(),
-            'p_new_user_id': userId,
-          });
+          await _supabase.rpc(
+            'process_referral',
+            params: {
+              'p_referral_code': params.referralCode!.trim(),
+              'p_new_user_id': userId,
+            },
+          );
         } catch (_) {
           try {
             final referrer = await _supabase
@@ -166,7 +170,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         isNewUser: false,
       ).copyWith(name: params.name, phone: params.phone, avatarUrl: avatarUrl);
     } on AuthException catch (e) {
-      if (e.message.contains('already registered') || e.message.contains('already in use')) {
+      if (e.message.contains('already registered') ||
+          e.message.contains('already in use')) {
         throw const EmailAlreadyInUseException();
       }
       throw AppException(_parseAuthExceptionMessage(e), code: e.statusCode);
@@ -210,12 +215,16 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'is_banned': false,
       });
 
-      if (params.referralCode != null && params.referralCode!.trim().isNotEmpty) {
+      if (params.referralCode != null &&
+          params.referralCode!.trim().isNotEmpty) {
         try {
-          await _supabase.rpc('process_referral', params: {
-            'p_referral_code': params.referralCode!.trim(),
-            'p_new_user_id': userId,
-          });
+          await _supabase.rpc(
+            'process_referral',
+            params: {
+              'p_referral_code': params.referralCode!.trim(),
+              'p_new_user_id': userId,
+            },
+          );
         } catch (_) {
           try {
             final referrer = await _supabase
@@ -250,10 +259,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> resendSignupOTP(String email) async {
     try {
-      await _supabase.auth.resend(
-        type: OtpType.signup,
-        email: email,
-      );
+      await _supabase.auth.resend(type: OtpType.signup, email: email);
     } on AuthException catch (e) {
       throw AppException(_parseAuthExceptionMessage(e), code: e.statusCode);
     } catch (e) {
@@ -262,106 +268,13 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   }
 
   @override
-  Future<UserModel> signInWithGoogle() async {
-    try {
-      final idToken = await _socialAuthService.getGoogleIdToken();
-      if (idToken == null) throw const GoogleSignInCancelledException();
-
-      final response = await _supabase.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-      );
-
-      if (response.user == null) throw const ServerException('Sign in failed');
-
-      final user = response.user!;
-      final isNewUser = await _checkIsNewUser(user.id);
-      await _upsertUser(user);
-
-      return UserModel.fromSupabaseUser(
-        user.toJson(),
-        isNewUser: isNewUser,
-      );
-    } on GoogleSignInCancelledException {
-      rethrow;
-    } on AuthException {
-      rethrow;
-    } catch (e) {
-      debugPrint('[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...');
-      try {
-        await _supabase.auth.signInWithOAuth(
-          OAuthProvider.google,
-          redirectTo: 'com.playspot.client://login-callback',
-          authScreenLaunchMode: LaunchMode.externalApplication,
-        );
-
-        final completer = Completer<UserModel>();
-        late final StreamSubscription subscription;
-        subscription = _supabase.auth.onAuthStateChange.listen((data) async {
-          if (data.event == AuthChangeEvent.signedIn && data.session != null) {
-            final user = data.session!.user;
-            final isNewUser = await _checkIsNewUser(user.id);
-            await _upsertUser(user);
-            subscription.cancel();
-            if (!completer.isCompleted) {
-              completer.complete(UserModel.fromSupabaseUser(
-                user.toJson(),
-                isNewUser: isNewUser,
-              ));
-            }
-          }
-        });
-
-        return completer.future.timeout(
-          const Duration(minutes: 2),
-          onTimeout: () {
-            subscription.cancel();
-            throw const ServerException('Google sign in timeout');
-          },
-        );
-      } catch (oauthErr) {
-        if (oauthErr is AuthException) rethrow;
-        throw AppException(oauthErr.toString());
-      }
-    }
+  Future<UserModel> signInWithGoogle() {
+    return _authContext.authenticate(provider: AuthProviderType.google);
   }
 
   @override
-  Future<UserModel> signInWithFacebook() async {
-    try {
-      await _supabase.auth.signInWithOAuth(
-        OAuthProvider.facebook,
-        redirectTo: 'com.playspot.client://login-callback',
-        authScreenLaunchMode: LaunchMode.externalApplication,
-      );
-
-      final completer = Completer<UserModel>();
-      late final StreamSubscription subscription;
-      subscription = _supabase.auth.onAuthStateChange.listen((data) async {
-        if (data.event == AuthChangeEvent.signedIn && data.session != null) {
-          final user = data.session!.user;
-          final isNewUser = await _checkIsNewUser(user.id);
-          await _upsertUser(user);
-          subscription.cancel();
-          if (!completer.isCompleted) {
-            completer.complete(UserModel.fromSupabaseUser(
-              user.toJson(),
-              isNewUser: isNewUser,
-            ));
-          }
-        }
-      });
-
-      return completer.future.timeout(
-        const Duration(minutes: 2),
-        onTimeout: () {
-          subscription.cancel();
-          throw const ServerException('Facebook sign in timeout');
-        },
-      );
-    } catch (e) {
-      throw AppException(e.toString());
-    }
+  Future<UserModel> signInWithFacebook() {
+    return _authContext.authenticate(provider: AuthProviderType.facebook);
   }
 
   @override
@@ -382,9 +295,14 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       }
 
       final metadata = user.userMetadata ?? {};
-      final fullName = metadata['full_name'] ?? metadata['name'] ?? user.email?.split('@').first ?? '';
+      final fullName =
+          metadata['full_name'] ??
+          metadata['name'] ??
+          user.email?.split('@').first ??
+          '';
 
-      final currentAvatarUrl = metadata['avatar_url'] as String? ?? metadata['picture'] as String?;
+      final currentAvatarUrl =
+          metadata['avatar_url'] as String? ?? metadata['picture'] as String?;
       final finalAvatarUrl = avatarUrl ?? currentAvatarUrl;
 
       // Save profile to profiles table - throw if saving fails
@@ -454,17 +372,23 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       );
       debugPrint(' [Auth] Password reset email request sent successfully');
     } on AuthException catch (e, stackTrace) {
-      debugPrint(' [Auth] AuthException sending reset email: ${e.message} (code: ${e.code}, status: ${e.statusCode})');
+      debugPrint(
+        ' [Auth] AuthException sending reset email: ${e.message} (code: ${e.code}, status: ${e.statusCode})',
+      );
       debugPrintStack(stackTrace: stackTrace);
       String msg = e.message;
-      if (e.message.contains('unexpected_failure') || e.message.contains('Error sending recovery email')) {
-        msg = 'Failed to send recovery email. Please check your Supabase SMTP configuration or rate limit.';
+      if (e.message.contains('unexpected_failure') ||
+          e.message.contains('Error sending recovery email')) {
+        msg =
+            'Failed to send recovery email. Please check your Supabase SMTP configuration or rate limit.';
       }
       throw AppException(msg, code: e.statusCode);
     } catch (e, stackTrace) {
       debugPrint(' [Auth] Unexpected error sending reset email: $e');
       debugPrintStack(stackTrace: stackTrace);
-      throw AppException('An unexpected error occurred while sending the code.');
+      throw AppException(
+        'An unexpected error occurred while sending the code.',
+      );
     }
   }
 
@@ -492,9 +416,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> resetPassword(String newPassword) async {
     try {
-      await _supabase.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
+      await _supabase.auth.updateUser(UserAttributes(password: newPassword));
     } on AuthException catch (e) {
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
@@ -509,7 +431,9 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       try {
         await _supabase.functions.invoke('delete-account');
       } catch (e) {
-        debugPrint(' [Auth] Edge Function delete-account error ($e), falling back to RPC...');
+        debugPrint(
+          ' [Auth] Edge Function delete-account error ($e), falling back to RPC...',
+        );
         await _supabase.rpc('delete_user_account');
       }
       debugPrint(' [Auth] Account deletion executed successfully.');
@@ -521,58 +445,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     } catch (e) {
       debugPrint(' [Auth] Unexpected error during deletion: $e');
       throw AppException(e.toString());
-    }
-  }
-
-  Future<bool> _checkIsNewUser(String userId) async {
-    final user = _supabase.auth.currentUser;
-    final authPhone = user?.phone?.trim();
-    final metadataPhone = user?.userMetadata?['phone']?.toString().trim();
-    final hasAuthPhone = (authPhone?.isNotEmpty ?? false) || (metadataPhone?.isNotEmpty ?? false);
-
-    if (hasAuthPhone) {
-      return false;
-    }
-
-    try {
-      final profile = await _supabase
-          .from('profiles')
-          .select('phone')
-          .eq('id', userId)
-          .maybeSingle();
-
-      if (profile == null) return true;
-
-      final phone = profile['phone']?.toString().trim();
-      final isPhoneMissing = phone == null || phone.isEmpty;
-
-      return isPhoneMissing;
-    } catch (e) {
-      debugPrint('[Auth] Error checking isNewUser for $userId: $e');
-      return false;
-    }
-  }
-
-  Future<void> _upsertUser(User user) async {
-    try {
-      final metadata = user.userMetadata ?? {};
-      final existing = await _supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .maybeSingle();
-
-      if (existing == null) {
-        await _supabase.from('profiles').insert({
-          'id': user.id,
-          'full_name': metadata['full_name'] ?? metadata['name'],
-          'email': user.email,
-          'avatar_url': metadata['avatar_url'] ?? metadata['picture'],
-          'is_banned': false,
-        });
-      }
-    } catch (e) {
-      debugPrint('[Auth] Error in _upsertUser: $e');
     }
   }
 }

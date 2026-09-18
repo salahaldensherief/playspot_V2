@@ -183,11 +183,13 @@ class LoungeModel extends Equatable {
 
     String? parsedDiscountTitleAr = json['discount_title_ar']?.toString() ??
         json['promo_title_ar']?.toString() ??
-        json['tag_ar']?.toString();
+        json['tag_ar']?.toString() ??
+        json['title_ar']?.toString();
 
     String? parsedDiscountTitleEn = json['discount_title_en']?.toString() ??
         json['promo_title_en']?.toString() ??
-        json['tag_en']?.toString();
+        json['tag_en']?.toString() ??
+        json['title_en']?.toString();
 
     DateTime? parsedDiscountExpiresAt;
     if (json['discount_expires_at'] != null || json['expires_at'] != null) {
@@ -196,21 +198,31 @@ class LoungeModel extends Equatable {
       } catch (_) {}
     }
 
-    final promoData = json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo'];
+    final promoData = json['promotions'] ??
+        json['active_promotion'] ??
+        json['promotion'] ??
+        json['active_promo'] ??
+        json['promo'];
+
     if (promoData != null) {
       final now = DateTime.now();
       List promos = promoData is List ? promoData : (promoData is Map ? [promoData] : []);
       for (var p in promos) {
         if (p is! Map) continue;
         final isActive = p['is_active'] as bool? ?? true;
-        final expStr = (p['expires_at'] ?? p['end_date'])?.toString();
-        bool isStillActive = expStr == null ? isActive : isActive && (DateTime.tryParse(expStr)?.isAfter(now) ?? true);
+        final expStr = (p['expires_at'] ?? p['end_date'] ?? p['discount_expires_at'])?.toString();
+        bool isStillActive = expStr == null || expStr.isEmpty
+            ? isActive
+            : isActive && (DateTime.tryParse(expStr)?.isAfter(now) ?? true);
         if (isStillActive) {
-          final discVal = (p['discount_percentage'] as num?)?.toInt() ?? (p['discount_value'] as num?)?.toInt() ?? 0;
+          final discVal = (p['discount_percentage'] as num?)?.toInt() ??
+              (p['discount_value'] as num?)?.toInt() ??
+              (p['discount'] as num?)?.toInt() ??
+              0;
           if (discVal > 0) parsedDiscountPercentage = discVal;
-          parsedDiscountTitleAr ??= p['tag_ar']?.toString() ?? p['title_ar']?.toString();
-          parsedDiscountTitleEn ??= p['tag_en']?.toString() ?? p['title_en']?.toString();
-          if (expStr != null) {
+          parsedDiscountTitleAr ??= p['tag_ar']?.toString() ?? p['title_ar']?.toString() ?? p['tag']?.toString() ?? p['title']?.toString();
+          parsedDiscountTitleEn ??= p['tag_en']?.toString() ?? p['title_en']?.toString() ?? p['tag']?.toString() ?? p['title']?.toString();
+          if (expStr != null && expStr.isNotEmpty) {
             try { parsedDiscountExpiresAt = DateTime.parse(expStr); } catch (_) {}
           }
           break;
@@ -218,9 +230,10 @@ class LoungeModel extends Equatable {
       }
     }
 
-    final bool parsedHasDiscount = (json['has_discount'] as bool?) ??
-        (json['is_discount_active'] as bool?) ??
-        (parsedDiscountPercentage > 0) ??
+    final bool parsedHasDiscount = json['has_discount'] == true ||
+        json['is_discount_active'] == true ||
+        json['has_active_promo'] == true ||
+        parsedDiscountPercentage > 0 ||
         (parsedDiscountTitleAr != null && parsedDiscountTitleAr.isNotEmpty);
 
     // 8. Spatial Location parsing from location_point (PostGIS) or flat RPC fields

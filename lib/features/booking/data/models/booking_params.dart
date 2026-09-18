@@ -69,9 +69,18 @@ class CreateBookingParams extends Equatable {
   final String userPhone;
   final DateTime startTime;
   final DateTime endTime;
-  final double totalPrice;
+  final double originalRoomPrice;
+  final double discountedRoomPrice;
   final double roomPrice;
   final double discountAmount;
+  final double discountPercentage;
+  final String? discountLabel;
+  final String? discountReason;
+  final String? discountSource;
+  final double durationHours;
+  final double roomSubtotal;
+  final double addonsTotal;
+  final double totalPrice;
   final List<Map<String, dynamic>> addOns;
   final String? playMode;
   final String status;
@@ -85,9 +94,18 @@ class CreateBookingParams extends Equatable {
     required this.userPhone,
     required this.startTime,
     required this.endTime,
-    required this.totalPrice,
+    required this.originalRoomPrice,
+    required this.discountedRoomPrice,
     required this.roomPrice,
     this.discountAmount = 0.0,
+    this.discountPercentage = 0.0,
+    this.discountLabel,
+    this.discountReason,
+    this.discountSource,
+    required this.durationHours,
+    required this.roomSubtotal,
+    required this.addonsTotal,
+    required this.totalPrice,
     this.addOns = const [],
     this.playMode,
     this.status = 'pending',
@@ -103,9 +121,18 @@ class CreateBookingParams extends Equatable {
         userPhone,
         startTime,
         endTime,
-        totalPrice,
+        originalRoomPrice,
+        discountedRoomPrice,
         roomPrice,
         discountAmount,
+        discountPercentage,
+        discountLabel,
+        discountReason,
+        discountSource,
+        durationHours,
+        roomSubtotal,
+        addonsTotal,
+        totalPrice,
         addOns,
         playMode,
         status,
@@ -122,9 +149,18 @@ class CreateBookingParams extends Equatable {
       'end_at': endTime.toIso8601String(),
       'start_time': "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}:${startTime.second.toString().padLeft(2, '0')}",
       'end_time': "${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:${endTime.second.toString().padLeft(2, '0')}",
-      'total_price': totalPrice,
-      'room_price': roomPrice,
+      'original_room_price': originalRoomPrice,
+      'discounted_room_price': discountedRoomPrice,
+      'room_price': discountedRoomPrice,
       'discount_amount': discountAmount,
+      'discount_percentage': discountPercentage,
+      'discount_label': discountLabel,
+      'discount_reason': discountReason ?? discountLabel,
+      'discount_source': discountSource,
+      'duration_hours': durationHours,
+      'room_subtotal': roomSubtotal,
+      'addons_total': addonsTotal,
+      'total_price': totalPrice,
       'extras': addOns,
       'play_mode': playMode,
       'status': BookingStatus.mapToDbStatus(status),
@@ -140,6 +176,13 @@ class CheckoutParams extends Equatable {
   final DateTime date;
   final TimeOfDay startTime;
   final int duration;
+  final double originalRoomSubtotal;
+  final double discountedRoomSubtotal;
+  final double discountAmount;
+  final double discountPercentage;
+  final String? discountLabel;
+  final String? discountSource;
+  final double addonsTotal;
   final double totalPrice;
   final double originalTotalPrice;
   final List<Map<String, dynamic>> addOns;
@@ -154,6 +197,13 @@ class CheckoutParams extends Equatable {
     required this.date,
     required this.startTime,
     required this.duration,
+    required this.originalRoomSubtotal,
+    required this.discountedRoomSubtotal,
+    required this.discountAmount,
+    required this.discountPercentage,
+    this.discountLabel,
+    this.discountSource,
+    required this.addonsTotal,
     required this.totalPrice,
     required this.originalTotalPrice,
     required this.addOns,
@@ -170,6 +220,13 @@ class CheckoutParams extends Equatable {
         date,
         startTime,
         duration,
+        originalRoomSubtotal,
+        discountedRoomSubtotal,
+        discountAmount,
+        discountPercentage,
+        discountLabel,
+        discountSource,
+        addonsTotal,
         totalPrice,
         originalTotalPrice,
         addOns,
@@ -199,6 +256,9 @@ class CheckoutParams extends Equatable {
       parsedStartTime = const TimeOfDay(hour: 0, minute: 0);
     }
 
+    final double totPrice = (map['totalPrice'] as num?)?.toDouble() ?? 0.0;
+    final double origTotPrice = (map['originalTotalPrice'] as num?)?.toDouble() ?? totPrice;
+
     return CheckoutParams(
       lounge: map['lounge'] is LoungeModel
           ? map['lounge'] as LoungeModel
@@ -210,10 +270,16 @@ class CheckoutParams extends Equatable {
           ? map['date'] as DateTime
           : DateTime.parse(map['date'].toString()),
       startTime: parsedStartTime,
-      duration: (map['duration'] as num).toInt(),
-      totalPrice: (map['totalPrice'] as num).toDouble(),
-      originalTotalPrice: (map['originalTotalPrice'] as num?)?.toDouble() ??
-          (map['totalPrice'] as num).toDouble(),
+      duration: (map['duration'] as num?)?.toInt() ?? 60,
+      originalRoomSubtotal: (map['originalRoomSubtotal'] as num?)?.toDouble() ?? origTotPrice,
+      discountedRoomSubtotal: (map['discountedRoomSubtotal'] as num?)?.toDouble() ?? totPrice,
+      discountAmount: (map['discountAmount'] as num?)?.toDouble() ?? (origTotPrice - totPrice).clamp(0.0, double.infinity),
+      discountPercentage: (map['discountPercentage'] as num?)?.toDouble() ?? 0.0,
+      discountLabel: map['discountLabel']?.toString(),
+      discountSource: map['discountSource']?.toString() ?? 'none',
+      addonsTotal: (map['addonsTotal'] as num?)?.toDouble() ?? 0.0,
+      totalPrice: totPrice,
+      originalTotalPrice: origTotPrice,
       addOns: map['addOns'] != null
           ? (map['addOns'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()
           : [],
@@ -231,6 +297,13 @@ class CheckoutParams extends Equatable {
       'date': date.toIso8601String(),
       'startTime': {'hour': startTime.hour, 'minute': startTime.minute},
       'duration': duration,
+      'originalRoomSubtotal': originalRoomSubtotal,
+      'discountedRoomSubtotal': discountedRoomSubtotal,
+      'discountAmount': discountAmount,
+      'discountPercentage': discountPercentage,
+      'discountLabel': discountLabel,
+      'discountSource': discountSource,
+      'addonsTotal': addonsTotal,
       'totalPrice': totalPrice,
       'originalTotalPrice': originalTotalPrice,
       'addOns': addOns,

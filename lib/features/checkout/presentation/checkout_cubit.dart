@@ -108,8 +108,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     final userName = pref.fullName() ?? "";
     final userPhone = pref.phoneNumber() ?? "";
 
-    final roomPromoDiscount = checkoutParams.originalTotalPrice - checkoutParams.totalPrice;
-    final totalDiscount = roomPromoDiscount + state.discountAmount;
+    final totalDiscount = checkoutParams.discountAmount + state.discountAmount;
     final finalPrice = checkoutParams.totalPrice - state.discountAmount;
 
     final targetLoungeId = checkoutParams.room.loungeId.isNotEmpty
@@ -124,9 +123,18 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       userPhone: userPhone,
       startTime: startDateTime,
       endTime: endDateTime,
-      totalPrice: finalPrice,
+      originalRoomPrice: checkoutParams.originalRoomSubtotal,
+      discountedRoomPrice: checkoutParams.discountedRoomSubtotal,
+      roomPrice: checkoutParams.discountedRoomSubtotal,
       discountAmount: totalDiscount,
-      roomPrice: checkoutParams.appliedHourlyRate ?? checkoutParams.room.effectivePrice,
+      discountPercentage: checkoutParams.discountPercentage,
+      discountLabel: checkoutParams.discountLabel,
+      discountReason: checkoutParams.discountLabel,
+      discountSource: checkoutParams.discountSource,
+      durationHours: checkoutParams.duration / 60.0,
+      roomSubtotal: checkoutParams.discountedRoomSubtotal,
+      addonsTotal: checkoutParams.addonsTotal,
+      totalPrice: finalPrice,
       addOns: checkoutParams.addOns,
       playMode: checkoutParams.playMode,
     );

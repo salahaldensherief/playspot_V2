@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/art_core/models/time_range.dart';
 import '../data/models/booking_params.dart';
 import '../domain/repositories/booking_repository.dart';
+import '../domain/strategies/booking_slot_strategy.dart';
 import 'booking_state.dart';
 
 class BookingCubit extends Cubit<BookingState> {
   final BookingRepository _bookingRepository;
+  final BookingSlotStrategy _slotStrategy;
   final String roomId;
   final String loungeId;
 
   BookingCubit(
     this._bookingRepository,
+    this._slotStrategy,
     BookingDetailsParams params,
   )   : roomId = params.room.id,
         loungeId = params.lounge.id,
@@ -35,29 +37,11 @@ class BookingCubit extends Cubit<BookingState> {
         errorMessage: failure.message,
       )),
       (rawBookings) {
-        final roomBookings = rawBookings
-            .where((b) => b['room_id'].toString() == roomId)
-            .map((b) => _parseBookingRow(b, date))
-            .whereType<TimeRange>()
-            .toList();
-
-        List<TimeOfDay> bookedSlots = [];
-
-        for (int h = 0; h < 24; h++) {
-          for (int m in [0, 30]) {
-            final slotDateTime = (h >= 10)
-                ? DateTime(date.year, date.month, date.day, h, m)
-                : DateTime(date.year, date.month, date.day + 1, h, m);
-            final slotEnd = slotDateTime.add(const Duration(minutes: 30));
-
-            final isOccupied = roomBookings.any((range) =>
-                range.start.isBefore(slotEnd) && range.end.isAfter(slotDateTime));
-
-            if (isOccupied) {
-              bookedSlots.add(TimeOfDay(hour: h, minute: m));
-            }
-          }
-        }
+        final bookedSlots = _slotStrategy.calculateBookedSlots(
+          rawBookings: rawBookings,
+          roomId: roomId,
+          date: date,
+        );
 
         emit(state.copyWith(
           status: BookingStatus.success,
@@ -86,37 +70,19 @@ class BookingCubit extends Cubit<BookingState> {
         return false;
       },
       (rawBookings) {
-        final roomBookings = rawBookings
-            .where((b) => b['room_id'].toString() == roomId)
-            .map((b) => _parseBookingRow(b, state.selectedDate))
-            .whereType<TimeRange>()
-            .toList();
+        final bookedSlots = _slotStrategy.calculateBookedSlots(
+          rawBookings: rawBookings,
+          roomId: roomId,
+          date: state.selectedDate,
+        );
 
-        List<TimeOfDay> bookedSlots = [];
-        for (int h = 0; h < 24; h++) {
-          for (int m in [0, 30]) {
-            final slotDateTime = (h >= 10)
-                ? DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, h, m)
-                : DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day + 1, h, m);
-            final slotEnd = slotDateTime.add(const Duration(minutes: 30));
-
-            final isOccupied = roomBookings.any((range) =>
-                range.start.isBefore(slotEnd) && range.end.isAfter(slotDateTime));
-
-            if (isOccupied) {
-              bookedSlots.add(TimeOfDay(hour: h, minute: m));
-            }
-          }
-        }
-
-        final start = state.startTime!;
-        final startDateTime = (start.hour >= 10)
-            ? DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, start.hour, start.minute)
-            : DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day + 1, start.hour, start.minute);
-        final endDateTime = startDateTime.add(Duration(minutes: state.durationMinutes));
-
-        final isConflict = roomBookings.any((range) =>
-            range.start.isBefore(endDateTime) && range.end.isAfter(startDateTime));
+        final isConflict = _slotStrategy.isBookingConflicting(
+          rawBookings: rawBookings,
+          roomId: roomId,
+          date: state.selectedDate,
+          startTime: state.startTime!,
+          durationMinutes: state.durationMinutes,
+        );
 
         if (isConflict) {
           emit(state.copyWith(
@@ -135,61 +101,6 @@ class BookingCubit extends Cubit<BookingState> {
         return true;
       },
     );
-  }
-
-  TimeRange? _parseBookingRow(Map<String, dynamic> b, DateTime date) {
-    final status = b['status']?.toString().toLowerCase().trim();
-    if (status == 'cancelled' ||
-        status == 'rejected' ||
-        status == 'declined' ||
-        status == 'canceled') {
-      return null;
-    }
-
-    final startAt = b['start_at'] ?? b['start_time'];
-    final endAt = b['end_at'] ?? b['end_time'];
-    if (startAt == null || endAt == null) return null;
-
-    final dateStr = b['date']?.toString() ??
-        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-
-    try {
-      final start = _parseDateTime(dateStr, startAt.toString());
-      var end = _parseDateTime(dateStr, endAt.toString());
-      if (start == null || end == null) return null;
-
-      if (end.isBefore(start) || end.isAtSameMomentAs(start)) {
-        end = end.add(const Duration(days: 1));
-      }
-
-      return TimeRange(start: start, end: end);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  DateTime? _parseDateTime(String dateStr, String timeOrIsoStr) {
-    if (timeOrIsoStr.contains('T') || (timeOrIsoStr.contains('-') && timeOrIsoStr.contains(' '))) {
-      final parsed = DateTime.tryParse(timeOrIsoStr.replaceFirst(' ', 'T'));
-      if (parsed != null) {
-        return DateTime(parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute);
-      }
-    }
-
-    final dateParts = dateStr.split('-');
-    if (dateParts.length < 3) return null;
-    final year = int.tryParse(dateParts[0]);
-    final month = int.tryParse(dateParts[1]);
-    final day = int.tryParse(dateParts[2]);
-    if (year == null || month == null || day == null) return null;
-
-    final timeParts = timeOrIsoStr.split(':');
-    if (timeParts.length < 2) return null;
-    final hour = int.tryParse(timeParts[0]);
-    final minute = int.tryParse(timeParts[1]);
-    if (hour == null || minute == null) return null;
-
-    return DateTime(year, month, day, hour, minute);
   }
 
   void selectDate(DateTime date) {

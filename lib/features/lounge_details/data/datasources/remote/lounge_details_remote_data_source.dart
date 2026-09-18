@@ -40,7 +40,7 @@ class LoungeDetailsRemoteDataSourceImpl
       final response = await _client
           .from('rooms')
           .select(
-            '*, space_types(name, label), room_categories(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
+            '*, space_types(name, label), room_categories(category_id, categories(name_en)), promotions:promotions!room_id(*)',
           )
           .eq('id', roomId)
           .neq('status', 'deleted')
@@ -49,8 +49,62 @@ class LoungeDetailsRemoteDataSourceImpl
       if (response != null) return RoomModel.fromJson(response);
       return null;
     } catch (e) {
-      return null;
+      try {
+        final fallback = await _client
+            .from('rooms')
+            .select('*, space_types(name, label)')
+            .eq('id', roomId)
+            .neq('status', 'deleted')
+            .maybeSingle();
+        if (fallback != null) return RoomModel.fromJson(fallback);
+        return null;
+      } catch (_) {
+        return null;
+      }
     }
+  }
+
+  Future<List<RoomModel>> _hydrateRoomsWithPromotions(String loungeId, List<dynamic> rawRooms) async {
+    final roomMaps = rawRooms.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    if (roomMaps.isEmpty) return [];
+
+    try {
+      final promosRes = await _client
+          .from('promotions')
+          .select()
+          .eq('is_active', true)
+          .eq('lounge_id', loungeId);
+
+      if (promosRes.isNotEmpty) {
+        final Map<String, List<Map<String, dynamic>>> promoByRoom = {};
+        final List<Map<String, dynamic>> loungePromos = [];
+
+        for (var p in promosRes) {
+          final rid = p['room_id']?.toString();
+          if (rid != null && rid.isNotEmpty) {
+            promoByRoom.putIfAbsent(rid, () => []).add(Map<String, dynamic>.from(p));
+          } else {
+            loungePromos.add(Map<String, dynamic>.from(p));
+          }
+        }
+
+        for (var r in roomMaps) {
+          final rid = r['id']?.toString();
+          final existingPromos = r['promotions'];
+          if (existingPromos == null || (existingPromos is List && existingPromos.isEmpty)) {
+            if (rid != null && promoByRoom.containsKey(rid)) {
+              r['promotions'] = promoByRoom[rid];
+            } else if (loungePromos.isNotEmpty) {
+              r['promotions'] = loungePromos;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      dev.log("[ROOMS_DS] ROOM_PROMO_HYDRATION_ERROR: $e");
+    }
+
+    return roomMaps.map((e) => RoomModel.fromJson(e)).toList();
   }
 
   @override
@@ -67,7 +121,7 @@ class LoungeDetailsRemoteDataSourceImpl
     var query = _client
         .from('rooms')
         .select(
-          '*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type)',
+          '*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(*)',
         )
         .eq('lounge_id', loungeId)
         .eq('is_available', true)
@@ -82,10 +136,34 @@ class LoungeDetailsRemoteDataSourceImpl
 
     try {
       final response = await query;
-      return (response as List).map((e) => RoomModel.fromJson(e)).toList();
+      return await _hydrateRoomsWithPromotions(loungeId, response as List);
     } catch (e) {
-      dev.log("[ROOMS_DS] Error getting rooms by lounge id: $e");
-      return [];
+      dev.log("[ROOMS_DS] Error getting rooms with promo join: $e, trying simpler fallback query");
+      try {
+        var fallbackQuery = _client
+            .from('rooms')
+            .select('*, space_types(name, label), promotions(*)')
+            .eq('lounge_id', loungeId)
+            .eq('is_available', true)
+            .neq('status', 'deleted');
+        final response = await fallbackQuery;
+        return await _hydrateRoomsWithPromotions(loungeId, response as List);
+      } catch (fallbackError) {
+        dev.log("[ROOMS_DS] Error on secondary query: $fallbackError, trying plain select");
+        try {
+          var plainQuery = _client
+              .from('rooms')
+              .select('*, space_types(name, label)')
+              .eq('lounge_id', loungeId)
+              .eq('is_available', true)
+              .neq('status', 'deleted');
+          final response = await plainQuery;
+          return await _hydrateRoomsWithPromotions(loungeId, response as List);
+        } catch (finalError) {
+          dev.log("[ROOMS_DS] Final rooms query error: $finalError");
+          return [];
+        }
+      }
     }
   }
 

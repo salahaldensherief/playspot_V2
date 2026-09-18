@@ -39,10 +39,11 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
       },
       child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
         buildWhen: (prev, curr) =>
-        prev.selectedRoomId != curr.selectedRoomId ||
+            prev.selectedRoomId != curr.selectedRoomId ||
             prev.bookedRoomIds.contains(widget.room.id) !=
                 curr.bookedRoomIds.contains(widget.room.id) ||
-            prev.lounge?.isOpen != curr.lounge?.isOpen,
+            prev.lounge?.isOpen != curr.lounge?.isOpen ||
+            prev.lounge?.isDiscountActive != curr.lounge?.isDiscountActive,
         builder: (context, state) {
           final isSelected = state.selectedRoomId == widget.room.id;
           final isBooked = state.bookedRoomIds.contains(widget.room.id);
@@ -51,6 +52,10 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
               !widget.room.isOccupied &&
               !isBooked &&
               isLoungeOpen;
+          final hasOffer = widget.room.hasActivePromo ||
+              (state.lounge != null &&
+                  state.lounge!.isDiscountActive &&
+                  state.lounge!.discountPercentage > 0);
 
           return GestureDetector(
             onTap: isAvailable ? () => setState(() => _isExpanded = !_isExpanded) : null,
@@ -64,11 +69,11 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
                 color: Colors.white.withOpacity(0.02),
                 borderColor: isSelected
                     ? themeColor
-                    : (widget.room.hasActivePromo
-                    ? AppColors.warning.withOpacity(0.4)
-                    : (isAvailable
-                    ? AppColors.borderDefault
-                    : AppColors.danger.withOpacity(0.15))),
+                    : (hasOffer
+                        ? AppColors.warning.withOpacity(0.4)
+                        : (isAvailable
+                            ? AppColors.borderDefault
+                            : AppColors.danger.withOpacity(0.15))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

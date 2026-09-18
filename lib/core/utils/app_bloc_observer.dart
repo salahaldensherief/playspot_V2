@@ -1,42 +1,56 @@
-import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 
 class AppBlocObserver extends BlocObserver {
+  String _getStateSummary(dynamic state) {
+    try {
+      final status = (state as dynamic).status;
+      if (status != null) return '$status';
+    } catch (_) {}
+    return '${state.runtimeType}';
+  }
+
   @override
   void onCreate(BlocBase bloc) {
     super.onCreate(bloc);
-    log('CREATED: ${bloc.runtimeType}');
+    AppLogger.debug('🟢 CREATED: ${bloc.runtimeType}');
   }
 
   @override
   void onChange(BlocBase bloc, Change change) {
     super.onChange(bloc, change);
     if (bloc.runtimeType.toString().contains('ActiveSession')) return;
-    log('CHANGE: ${bloc.runtimeType} | Current: ${change.currentState} | Next: ${change.nextState}');
+
+    final currentSummary = _getStateSummary(change.currentState);
+    final nextSummary = _getStateSummary(change.nextState);
+    AppLogger.debug('⚡ CHANGE [${bloc.runtimeType}]: $currentSummary ➔ $nextSummary');
   }
 
   @override
   void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
-    log('ERROR in ${bloc.runtimeType}: $error', stackTrace: stackTrace);
+    AppLogger.error('🔴 ERROR in ${bloc.runtimeType}', error, stackTrace);
     super.onError(bloc, error, stackTrace);
   }
 
   @override
   void onClose(BlocBase bloc) {
     super.onClose(bloc);
-    log('CLOSED: ${bloc.runtimeType}');
+    AppLogger.debug('🔴 CLOSED: ${bloc.runtimeType}');
   }
 
   @override
   void onEvent(Bloc bloc, Object? event) {
     super.onEvent(bloc, event);
-    log('EVENT: ${bloc.runtimeType} | Event: $event');
+    AppLogger.debug('📌 EVENT [${bloc.runtimeType}]: ${event.runtimeType}');
   }
 
   @override
   void onTransition(Bloc bloc, Transition transition) {
     super.onTransition(bloc, transition);
     if (bloc.runtimeType.toString().contains('ActiveSession')) return;
-    log('TRANSITION: ${bloc.runtimeType} | Current: ${transition.currentState} | Event: ${transition.event} | Next: ${transition.nextState}');
+
+    final currentSummary = _getStateSummary(transition.currentState);
+    final nextSummary = _getStateSummary(transition.nextState);
+    AppLogger.debug('🔄 TRANSITION [${bloc.runtimeType}]: $currentSummary ➔ ${transition.event.runtimeType} ➔ $nextSummary');
   }
 }
