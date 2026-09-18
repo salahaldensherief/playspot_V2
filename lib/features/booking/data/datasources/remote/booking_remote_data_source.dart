@@ -134,6 +134,52 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
   @override
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId) async {
+    try {
+      final canteenOrders = await _client
+          .from('canteen_orders')
+          .select('*, canteen_order_items(*, extras(id, name, name_ar, name_en, price))')
+          .eq('booking_id', bookingId);
+
+      final List<Map<String, dynamic>> extractedItems = [];
+
+      for (var cOrder in (canteenOrders as List)) {
+        final cItems = cOrder['canteen_order_items'] as List?;
+        if (cItems != null) {
+          for (var item in cItems) {
+            if (item is Map) {
+              final extraData = item['extras'] as Map<String, dynamic>?;
+              final name = extraData?['name_ar']?.toString() ??
+                  extraData?['name']?.toString() ??
+                  extraData?['name_en']?.toString() ??
+                  item['name']?.toString() ??
+                  item['item_name']?.toString() ??
+                  'Item';
+              final price = (item['unit_price'] as num?)?.toDouble() ??
+                  (item['price'] as num?)?.toDouble() ??
+                  (extraData?['price'] as num?)?.toDouble() ??
+                  0.0;
+              final qty = (item['quantity'] as num?)?.toInt() ?? 1;
+              final total = (item['total_price'] as num?)?.toDouble() ?? (price * qty);
+
+              extractedItems.add({
+                'id': item['id']?.toString() ?? extraData?['id']?.toString() ?? '',
+                'name': name,
+                'quantity': qty,
+                'unit_price': price,
+                'price': price,
+                'total_price': total,
+                'note': item['note']?.toString() ?? cOrder['notes']?.toString(),
+              });
+            }
+          }
+        }
+      }
+
+      if (extractedItems.isNotEmpty) return extractedItems;
+    } catch (e) {
+      dev.log("Error querying canteen_orders: $e, falling back to booking_items");
+    }
+
     final response = await _client
         .from('booking_items')
         .select('*')

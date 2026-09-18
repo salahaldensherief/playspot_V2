@@ -151,6 +151,40 @@ class ActiveSessionModel extends Equatable {
       }
     }
 
+    // Parse canteen order items:
+    // Check canteen_orders -> canteen_order_items -> extras, OR fallback to booking_items
+    final List<OrderItemModel> parsedOrders = [];
+
+    final canteenOrders = json['canteen_orders'] as List?;
+    if (canteenOrders != null && canteenOrders.isNotEmpty) {
+      for (var cOrder in canteenOrders) {
+        if (cOrder is! Map) continue;
+        final cItems = cOrder['canteen_order_items'] as List?;
+        if (cItems != null) {
+          for (var item in cItems) {
+            if (item is Map) {
+              try {
+                parsedOrders.add(OrderItemModel.fromJson(Map<String, dynamic>.from(item)));
+              } catch (_) {}
+            }
+          }
+        }
+      }
+    }
+
+    if (parsedOrders.isEmpty) {
+      final bookingItems = json['booking_items'] as List?;
+      if (bookingItems != null) {
+        for (var item in bookingItems) {
+          if (item is Map) {
+            try {
+              parsedOrders.add(OrderItemModel.fromJson(Map<String, dynamic>.from(item)));
+            } catch (_) {}
+          }
+        }
+      }
+    }
+
     return ActiveSessionModel(
       bookingId: json['id']?.toString() ?? '',
       loungeId: json['lounge_id']?.toString() ?? '',
@@ -163,16 +197,7 @@ class ActiveSessionModel extends Equatable {
       extensionsPrice: (json['extensions_price'] as num?)?.toDouble() ?? 0.0,
       extensionStatus: json['extension_status']?.toString(),
       requestedExtensionMinutes: (json['requested_extension_minutes'] as num?)?.toInt(),
-      orders: ordersData
-          .map((e) {
-            try {
-              return OrderItemModel.fromJson(Map<String, dynamic>.from(e));
-            } catch (_) {
-              return null;
-            }
-          })
-          .whereType<OrderItemModel>()
-          .toList(),
+      orders: parsedOrders,
       status: json['status']?.toString() ?? 'in_progress',
     );
   }

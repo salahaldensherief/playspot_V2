@@ -21,6 +21,7 @@ class BookingModel extends Equatable {
   final double? lat;
   final double? lng;
   final DateTime startDateTime;
+  final List<Map<String, dynamic>> canteenItems;
 
   const BookingModel({
     required this.id,
@@ -42,9 +43,11 @@ class BookingModel extends Equatable {
     this.lat,
     this.lng,
     required this.startDateTime,
+    this.canteenItems = const [],
   });
 
   bool get isUpcoming => status == BookingStatus.upcoming || status == BookingStatus.pending;
+  bool get hasCanteenOrders => canteenItems.isNotEmpty;
 
   @override
   List<Object?> get props => [
@@ -67,6 +70,7 @@ class BookingModel extends Equatable {
         lat,
         lng,
         startDateTime,
+        canteenItems,
       ];
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -112,6 +116,40 @@ class BookingModel extends Equatable {
       }
     }
 
+    final List<Map<String, dynamic>> parsedCanteenItems = [];
+    final canteenOrders = json['canteen_orders'] as List?;
+    if (canteenOrders != null && canteenOrders.isNotEmpty) {
+      for (var cOrder in canteenOrders) {
+        if (cOrder is! Map) continue;
+        final cItems = cOrder['canteen_order_items'] as List?;
+        if (cItems != null) {
+          for (var item in cItems) {
+            if (item is Map) {
+              final extraData = item['extras'] as Map<String, dynamic>?;
+              final name = extraData?['name_ar']?.toString() ??
+                  extraData?['name']?.toString() ??
+                  extraData?['name_en']?.toString() ??
+                  item['name']?.toString() ??
+                  'Item';
+              final price = (item['unit_price'] as num?)?.toDouble() ??
+                  (item['price'] as num?)?.toDouble() ??
+                  (extraData?['price'] as num?)?.toDouble() ??
+                  0.0;
+              final qty = (item['quantity'] as num?)?.toInt() ?? 1;
+              final total = (item['total_price'] as num?)?.toDouble() ?? (price * qty);
+
+              parsedCanteenItems.add({
+                'name': name,
+                'quantity': qty,
+                'unit_price': price,
+                'total_price': total,
+              });
+            }
+          }
+        }
+      }
+    }
+
     return BookingModel(
       id: json['id'].toString(),
       loungeName: loungeData?['name'] ?? '',
@@ -132,6 +170,7 @@ class BookingModel extends Equatable {
       lat: parsedLat,
       lng: parsedLng,
       startDateTime: parsedStartDateTime,
+      canteenItems: parsedCanteenItems,
     );
   }
 

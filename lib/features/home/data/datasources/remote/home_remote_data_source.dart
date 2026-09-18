@@ -23,7 +23,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     try {
       final response = await _client
           .from('lounges')
-          .select()
+          .select('*, promotions:promotions!lounge_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type, discount_percentage, title_ar, title_en)')
           .eq('id', id)
           .eq('status', 'active')
           .eq('is_active', true)
@@ -31,7 +31,19 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       if (response == null) return null;
       return LoungeModel.fromJson(Map<String, dynamic>.from(response));
     } catch (e) {
-      return null;
+      try {
+        final fallbackRes = await _client
+            .from('lounges')
+            .select()
+            .eq('id', id)
+            .eq('status', 'active')
+            .eq('is_active', true)
+            .maybeSingle();
+        if (fallbackRes == null) return null;
+        return LoungeModel.fromJson(Map<String, dynamic>.from(fallbackRes));
+      } catch (_) {
+        return null;
+      }
     }
   }
 
@@ -50,10 +62,10 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   @override
   Future<List<LoungeModel>> getLounges(GetLoungesParams params) async {
     try {
-      AppLogger.info("FETCHING_LOUNGES directly from lounges table");
+      AppLogger.info("FETCHING_LOUNGES directly from lounges table with promotions");
       dynamic query = _client
           .from('lounges')
-          .select()
+          .select('*, promotions:promotions!lounge_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type, discount_percentage, title_ar, title_en)')
           .eq('status', 'active')
           .eq('is_active', true);
 
@@ -77,18 +89,45 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
       return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
     } catch (e) {
-      AppLogger.warning("FETCH_LOUNGES_DIRECT_ERROR: $e, falling back to RPC get_nearby_lounges");
+      AppLogger.warning("FETCH_LOUNGES_PROMO_JOIN_ERROR: $e, trying flat select fallback");
       try {
-        final response = await _client.rpc('get_nearby_lounges', params: {
-          'user_lat': params.lat ?? 30.0444,
-          'user_lon': params.lng ?? 31.2357,
-        });
+        dynamic query = _client
+            .from('lounges')
+            .select()
+            .eq('status', 'active')
+            .eq('is_active', true);
 
+        if (params.city != null && params.city!.isNotEmpty) {
+          query = query.eq('city', params.city!);
+        }
+
+        if (params.searchQuery != null && params.searchQuery!.trim().isNotEmpty) {
+          query = query.ilike('name', '%${params.searchQuery!.trim()}%');
+        }
+
+        if (params.sortType == 'top_rated') {
+          query = query.order('rating', ascending: false);
+        } else {
+          query = query.order('is_open', ascending: false).order('rating', ascending: false);
+        }
+
+        final response = await query.range(params.offset, params.offset + params.limit - 1);
         final List lounges = response as List;
         return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
       } catch (fallbackError) {
-        AppLogger.error("FETCH_LOUNGES_CRITICAL_ERROR: $fallbackError");
-        return [];
+        AppLogger.warning("FETCH_LOUNGES_DIRECT_ERROR: $fallbackError, falling back to RPC get_nearby_lounges");
+        try {
+          final response = await _client.rpc('get_nearby_lounges', params: {
+            'user_lat': params.lat ?? 30.0444,
+            'user_lon': params.lng ?? 31.2357,
+          });
+
+          final List lounges = response as List;
+          return lounges.map((e) => LoungeModel.fromJson(Map<String, dynamic>.from(e))).toList();
+        } catch (criticalError) {
+          AppLogger.error("FETCH_LOUNGES_CRITICAL_ERROR: $criticalError");
+          return [];
+        }
       }
     }
   }

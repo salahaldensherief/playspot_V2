@@ -175,13 +175,53 @@ class LoungeModel extends Equatable {
       parsedImages = List<String>.from(json['gallery'].map((e) => e.toString()));
     }
 
-    // 7. Discount Expiration Date
+    // 7. Discount & Promotions Parsing (Supports promotions join, active_promotion map, or flat discount fields)
+    int parsedDiscountPercentage = (json['discount_percentage'] as num?)?.toInt() ??
+        (json['discount_value'] as num?)?.toInt() ??
+        (json['discount'] as num?)?.toInt() ??
+        0;
+
+    String? parsedDiscountTitleAr = json['discount_title_ar']?.toString() ??
+        json['promo_title_ar']?.toString() ??
+        json['tag_ar']?.toString();
+
+    String? parsedDiscountTitleEn = json['discount_title_en']?.toString() ??
+        json['promo_title_en']?.toString() ??
+        json['tag_en']?.toString();
+
     DateTime? parsedDiscountExpiresAt;
-    if (json['discount_expires_at'] != null) {
+    if (json['discount_expires_at'] != null || json['expires_at'] != null) {
       try {
-        parsedDiscountExpiresAt = DateTime.parse(json['discount_expires_at'].toString());
+        parsedDiscountExpiresAt = DateTime.parse((json['discount_expires_at'] ?? json['expires_at']).toString());
       } catch (_) {}
     }
+
+    final promoData = json['promotions'] ?? json['active_promotion'] ?? json['promotion'] ?? json['active_promo'];
+    if (promoData != null) {
+      final now = DateTime.now();
+      List promos = promoData is List ? promoData : (promoData is Map ? [promoData] : []);
+      for (var p in promos) {
+        if (p is! Map) continue;
+        final isActive = p['is_active'] as bool? ?? true;
+        final expStr = (p['expires_at'] ?? p['end_date'])?.toString();
+        bool isStillActive = expStr == null ? isActive : isActive && (DateTime.tryParse(expStr)?.isAfter(now) ?? true);
+        if (isStillActive) {
+          final discVal = (p['discount_percentage'] as num?)?.toInt() ?? (p['discount_value'] as num?)?.toInt() ?? 0;
+          if (discVal > 0) parsedDiscountPercentage = discVal;
+          parsedDiscountTitleAr ??= p['tag_ar']?.toString() ?? p['title_ar']?.toString();
+          parsedDiscountTitleEn ??= p['tag_en']?.toString() ?? p['title_en']?.toString();
+          if (expStr != null) {
+            try { parsedDiscountExpiresAt = DateTime.parse(expStr); } catch (_) {}
+          }
+          break;
+        }
+      }
+    }
+
+    final bool parsedHasDiscount = (json['has_discount'] as bool?) ??
+        (json['is_discount_active'] as bool?) ??
+        (parsedDiscountPercentage > 0) ??
+        (parsedDiscountTitleAr != null && parsedDiscountTitleAr.isNotEmpty);
 
     // 8. Spatial Location parsing from location_point (PostGIS) or flat RPC fields
     double? parsedLat = (json['latitude'] as num?)?.toDouble() ?? (json['lat'] as num?)?.toDouble();
@@ -225,10 +265,10 @@ class LoungeModel extends Equatable {
       lat: parsedLat,
       lng: parsedLng,
       categoryIcons: parsedCategoryIcons,
-      hasDiscount: json['has_discount'] as bool? ?? (json['discount_percentage'] != null && (json['discount_percentage'] as num) > 0),
-      discountPercentage: (json['discount_percentage'] as num?)?.toInt() ?? 0,
-      discountTitleAr: json['discount_title_ar']?.toString(),
-      discountTitleEn: json['discount_title_en']?.toString(),
+      hasDiscount: parsedHasDiscount,
+      discountPercentage: parsedDiscountPercentage,
+      discountTitleAr: parsedDiscountTitleAr,
+      discountTitleEn: parsedDiscountTitleEn,
       discountExpiresAt: parsedDiscountExpiresAt,
       status: json['status']?.toString() ?? 'active',
       isActive: json['is_active'] as bool? ?? true,

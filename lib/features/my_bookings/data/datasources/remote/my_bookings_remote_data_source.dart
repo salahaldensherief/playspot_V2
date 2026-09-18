@@ -24,7 +24,7 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
 
     final response = await _client
         .from('bookings')
-        .select('*, lounges(*), rooms(name, name_en, controllers_count, screen_size, space_types(label, name))')
+        .select('*, lounges(*), rooms(name, name_en, controllers_count, screen_size, space_types(label, name)), canteen_orders(*, canteen_order_items(*, extras(id, name, name_ar, name_en, price)))')
         .eq('user_id', userId)
         .order('date', ascending: false);
 

@@ -49,7 +49,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       return null;
     }
 
-    const selectQuery = '*, lounges(name), rooms(name, name_en), booking_items(*)';
+    const selectQuery = '*, lounges(name), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*, extras(id, name, name_ar, name_en, price)))';
     final now = DateTime.now();
 
     // 1. If specific booking ID requested

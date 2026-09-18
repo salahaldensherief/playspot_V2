@@ -19,22 +19,40 @@ class OrderItemModel extends Equatable {
   List<Object?> get props => [id, name, price, quantity, note];
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
+    // Check joined extras relation from canteen_order_items
+    final extraData = json['extras'] as Map<String, dynamic>?;
+
+    final String parsedName = extraData?['name_ar']?.toString() ??
+        extraData?['name']?.toString() ??
+        extraData?['name_en']?.toString() ??
+        json['name']?.toString() ??
+        json['item_name']?.toString() ??
+        json['title']?.toString() ??
+        '';
+
+    final double parsedPrice = (json['unit_price'] as num?)?.toDouble() ??
+        (json['price'] as num?)?.toDouble() ??
+        (extraData?['price'] as num?)?.toDouble() ??
+        0.0;
+
+    final int parsedQty = (json['quantity'] as num?)?.toInt() ?? 1;
+
     return OrderItemModel(
-      id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      quantity: json['quantity'] as int? ?? 1,
-      note: json['note']?.toString(),
+      id: json['id']?.toString() ?? extraData?['id']?.toString() ?? '',
+      name: parsedName,
+      price: parsedPrice,
+      quantity: parsedQty,
+      note: json['note']?.toString() ?? json['notes']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'price': price,
-    'quantity': quantity,
-    'note': note,
-  };
+        'id': id,
+        'name': name,
+        'price': price,
+        'quantity': quantity,
+        'note': note,
+      };
 
   double get total => price * quantity;
 }
