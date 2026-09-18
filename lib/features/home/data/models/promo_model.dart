@@ -104,7 +104,7 @@ class PromoModel extends Equatable {
       tagEn: json['tag_en']?.toString() ?? '',
       hexColors: List<String>.from(json['colors'] ?? []),
       iconKey: json['icon_key']?.toString() ?? '',
-      imageUrl: json['image_url']?.toString(),
+      imageUrl: (json['image_url'] ?? json['image'] ?? json['imageUrl'] ?? json['banner'])?.toString(),
       deepLink: json['deep_link']?.toString(),
       loungeId: json['lounge_id']?.toString(),
       roomId: json['room_id']?.toString(),
