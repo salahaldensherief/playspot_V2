@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/core/services/supabase_storage_service.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
@@ -92,6 +94,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   Future<void> processPayment(
     CheckoutParams checkoutParams, {
     bool isArabic = false,
+    File? receiptFile,
+    String? paymentMethod,
   }) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
 
@@ -107,6 +111,19 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     final pref = sl<PreferenceManager>();
     final userName = pref.fullName() ?? "";
     final userPhone = pref.phoneNumber() ?? "";
+
+    String? receiptUrl;
+    if (receiptFile != null) {
+      try {
+        final storageService = sl<StorageService>();
+        final fileName = 'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        receiptUrl = await storageService.uploadFile(
+          bucket: 'receipts',
+          path: fileName,
+          file: receiptFile,
+        );
+      } catch (_) {}
+    }
 
     final totalDiscount = checkoutParams.discountAmount + state.discountAmount;
     final finalPrice = checkoutParams.totalPrice - state.discountAmount;
@@ -137,6 +154,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       totalPrice: finalPrice,
       addOns: checkoutParams.addOns,
       playMode: checkoutParams.playMode,
+      receiptUrl: receiptUrl,
+      paymentMethod: paymentMethod ?? 'Vodafone Cash',
     );
 
     final result = await _bookingRepository.createBooking(params);

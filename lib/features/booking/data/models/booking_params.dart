@@ -85,6 +85,9 @@ class CreateBookingParams extends Equatable {
   final String? playMode;
   final String status;
   final String paymentStatus;
+  final String? receiptUrl;
+  final String? paymentMethod;
+  final DateTime? expiresAt;
 
   const CreateBookingParams({
     required this.roomId,
@@ -110,6 +113,9 @@ class CreateBookingParams extends Equatable {
     this.playMode,
     this.status = 'pending',
     this.paymentStatus = 'unpaid',
+    this.receiptUrl,
+    this.paymentMethod,
+    this.expiresAt,
   });
 
   @override
@@ -137,6 +143,9 @@ class CreateBookingParams extends Equatable {
         playMode,
         status,
         paymentStatus,
+        receiptUrl,
+        paymentMethod,
+        expiresAt,
       ];
 
   Map<String, dynamic> toJson() {

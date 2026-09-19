@@ -110,7 +110,12 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
           retryCount = 0; // Reset error count on successful event
           dev.log("[LIVESESSION_DS] REALTIME_EVENT received for booking $bookingId, rows: ${data.length}");
           if (data.isNotEmpty) {
-            yield ActiveSessionModel.fromJson(data.first);
+            final fullSession = await getActiveSession(bookingId: bookingId);
+            if (fullSession != null) {
+              yield fullSession;
+            } else {
+              yield ActiveSessionModel.fromJson(data.first);
+            }
           }
         }
         dev.log("[LIVESESSION_DS] Realtime stream for booking $bookingId completed normally.");

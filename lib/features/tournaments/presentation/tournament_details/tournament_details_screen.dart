@@ -18,7 +18,7 @@ import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../domain/entities/tournament_entity.dart';
 import '../bracket/tournament_bracket_view.dart';
-import '../widgets/tournament_payment_bottom_sheet.dart';
+import '../../../../art_core/widgets/bottom_sheets/manual_payment_bottom_sheet.dart';
 import '../widgets/tournament_status_badge.dart';
 import 'tournament_details_cubit.dart';
 import 'tournament_details_state.dart';
@@ -1395,19 +1395,16 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
   }
 
   void _showPaymentBottomSheet(BuildContext context, TournamentEntity tournament) {
-    showModalBottomSheet(
+    ManualPaymentBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (modalContext) => TournamentPaymentBottomSheet(
-        entryFee: tournament.entryFee,
-        onSubmit: (method, file) async {
-          await context.read<TournamentDetailsCubit>().submitPayment(
-                paymentMethod: method,
-                receiptFile: file,
-              );
-        },
-      ),
+      amount: tournament.entryFee,
+      loungeName: tournament.loungeName ?? AppStrings.playSpot.tr(),
+      onConfirm: (method, file, senderPhone) async {
+        await context.read<TournamentDetailsCubit>().submitPayment(
+              paymentMethod: method,
+              receiptFile: file,
+            );
+      },
     );
   }
 

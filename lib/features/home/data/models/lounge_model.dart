@@ -28,6 +28,8 @@ class LoungeModel extends Equatable {
   final DateTime? discountExpiresAt;
   final String status;
   final bool isActive;
+  final String? vodafoneCashNumber;
+  final String? instaPayAccount;
 
   const LoungeModel({
     required this.id,
@@ -57,6 +59,8 @@ class LoungeModel extends Equatable {
     this.discountExpiresAt,
     this.status = 'active',
     this.isActive = true,
+    this.vodafoneCashNumber,
+    this.instaPayAccount,
   });
 
   String get opensAt => openingTime;
@@ -92,6 +96,8 @@ class LoungeModel extends Equatable {
         discountExpiresAt,
         status,
         isActive,
+        vodafoneCashNumber,
+        instaPayAccount,
       ];
 
   String getName(bool isArabic) => name;
@@ -285,6 +291,8 @@ class LoungeModel extends Equatable {
       discountExpiresAt: parsedDiscountExpiresAt,
       status: json['status']?.toString() ?? 'active',
       isActive: json['is_active'] as bool? ?? true,
+      vodafoneCashNumber: json['vodafone_cash_number']?.toString().trim(),
+      instaPayAccount: json['instapay_account']?.toString().trim() ?? json['insta_pay_account']?.toString().trim(),
     );
   }
 
@@ -314,6 +322,8 @@ class LoungeModel extends Equatable {
       'discount_expires_at': discountExpiresAt?.toIso8601String(),
       'status': status,
       'is_active': isActive,
+      if (vodafoneCashNumber != null) 'vodafone_cash_number': vodafoneCashNumber,
+      if (instaPayAccount != null) 'instapay_account': instaPayAccount,
     };
   }
 }

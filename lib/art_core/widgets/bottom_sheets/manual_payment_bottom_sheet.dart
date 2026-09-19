@@ -19,17 +19,17 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/contact_launcher_service.dart';
 import 'package:playspot/features/profile/data/datasources/remote/support_remote_data_source.dart';
 
-class VodafoneCashBottomSheet extends StatefulWidget {
+class ManualPaymentBottomSheet extends StatefulWidget {
   final double amount;
-  final String walletNumber;
+  final String? walletNumber;
   final String? instaPayAccount;
   final String loungeName;
-  final Function(String paymentMethod, File? receiptFile, String senderPhone) onConfirm;
+  final Function(String paymentMethod, File receiptFile, String senderPhone) onConfirm;
 
-  const VodafoneCashBottomSheet({
+  const ManualPaymentBottomSheet({
     super.key,
     required this.amount,
-    this.walletNumber = '',
+    this.walletNumber,
     this.instaPayAccount,
     required this.loungeName,
     required this.onConfirm,
@@ -39,9 +39,9 @@ class VodafoneCashBottomSheet extends StatefulWidget {
     required BuildContext context,
     required double amount,
     required String loungeName,
-    required Function(String paymentMethod, File? receiptFile, String senderPhone) onConfirm,
-    String walletNumber = '',
+    String? walletNumber,
     String? instaPayAccount,
+    required Function(String paymentMethod, File receiptFile, String senderPhone) onConfirm,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -50,7 +50,7 @@ class VodafoneCashBottomSheet extends StatefulWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
-      builder: (_) => VodafoneCashBottomSheet(
+      builder: (_) => ManualPaymentBottomSheet(
         amount: amount,
         walletNumber: walletNumber,
         instaPayAccount: instaPayAccount,
@@ -61,10 +61,10 @@ class VodafoneCashBottomSheet extends StatefulWidget {
   }
 
   @override
-  State<VodafoneCashBottomSheet> createState() => _VodafoneCashBottomSheetState();
+  State<ManualPaymentBottomSheet> createState() => _ManualPaymentBottomSheetState();
 }
 
-class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
+class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
   final _senderPhoneController = TextEditingController();
   String _selectedMethod = 'Vodafone Cash';
   String _vodafoneCashNumber = '';
@@ -78,13 +78,12 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _vodafoneCashNumber = widget.walletNumber.trim();
+    _vodafoneCashNumber = widget.walletNumber?.trim() ?? '';
     _instaPayAccount = widget.instaPayAccount?.trim() ?? '';
-    
+
     _hasVodafoneCash = _vodafoneCashNumber.isNotEmpty;
     _hasInstaPay = _instaPayAccount.isNotEmpty;
 
-    // Set initial selection
     if (_hasVodafoneCash) {
       _selectedMethod = 'Vodafone Cash';
     } else if (_hasInstaPay) {
@@ -95,7 +94,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
   }
 
   Future<void> _fetchFallbackSettingsIfNeeded() async {
-    // If lounge didn't provide any payment methods, fetch fallback support settings
     if (!_hasVodafoneCash && !_hasInstaPay) {
       try {
         final settings = await sl<SupportRemoteDataSource>().getSupportSettings();
@@ -218,7 +216,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
           ),
           SizedBox(height: 16.h),
 
-          // Payment Method Selector (Only shown if both are configured)
           if (showMethodSelector) ...[
             AppText(
               text: AppStrings.paymentMethod.tr(),
@@ -253,7 +250,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
             SizedBox(height: 16.h),
           ],
 
-          // Active Account & Amount Card
           GlassContainer(
             borderRadius: 16,
             child: Padding(
@@ -333,7 +329,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
           ),
           SizedBox(height: 16.h),
 
-          // Sender Phone Field
           AppTextField(
             controller: _senderPhoneController,
             label: AppStrings.userWalletPhone.tr(),
@@ -342,7 +337,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
           ),
           SizedBox(height: 16.h),
 
-          // Upload Receipt Section
           AppText(
             text: AppStrings.uploadReceipt.tr(),
             fontSize: 14.sp,
@@ -437,7 +431,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
           ],
           SizedBox(height: 20.h),
 
-          // Action Buttons
           Row(
             children: [
               Expanded(
@@ -483,7 +476,7 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
                       setState(() => _isUploading = true);
                       final phone = _senderPhoneController.text.trim();
                       Navigator.pop(context);
-                      widget.onConfirm(_selectedMethod, _receiptFile, phone);
+                      widget.onConfirm(_selectedMethod, _receiptFile!, phone);
                     },
                   ),
                 ),

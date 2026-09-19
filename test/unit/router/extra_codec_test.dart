@@ -68,6 +68,11 @@ void main() {
         date: DateTime(2025, 5, 1),
         startTime: const TimeOfDay(hour: 15, minute: 30),
         duration: 2,
+        originalRoomSubtotal: 200.0,
+        discountedRoomSubtotal: 200.0,
+        discountAmount: 0.0,
+        discountPercentage: 0.0,
+        addonsTotal: 0.0,
         totalPrice: 200.0,
         originalTotalPrice: 220.0,
         addOns: const [

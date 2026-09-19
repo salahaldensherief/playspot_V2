@@ -102,6 +102,9 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'status': BookingStatus.mapToDbStatus(params.status),
       'payment_status': params.paymentStatus,
       'play_mode': params.playMode,
+      if (params.receiptUrl != null) 'receipt_url': params.receiptUrl,
+      if (params.paymentMethod != null) 'payment_method': params.paymentMethod,
+      if (params.expiresAt != null) 'expires_at': params.expiresAt!.toIso8601String(),
     };
 
     dynamic response;

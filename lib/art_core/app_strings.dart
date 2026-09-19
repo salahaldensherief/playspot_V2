@@ -448,6 +448,8 @@ class AppStrings {
   static const String draft = "draft";
   static const String checkInClosed = "checkInClosed";
   static const String eliminated = "eliminated";
+  static const String bookingPendingReview = "bookingPendingReview";
+  static const String multiRoomAllowedNote = "multiRoomAllowedNote";
   static const String withdrawn = "withdrawn";
   static const String noShow = "noShow";
   static const String unpaid = "unpaid";

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum PaymentMethod { creditCard, vodafoneCash, fawry, cash }
+enum PaymentMethod { vodafoneCash }
 enum CheckoutStatus { initial, loading, success, failure }
 
 class CheckoutState extends Equatable {
@@ -12,7 +12,7 @@ class CheckoutState extends Equatable {
 
   const CheckoutState({
     this.status = CheckoutStatus.initial,
-    this.selectedMethod = PaymentMethod.creditCard,
+    this.selectedMethod = PaymentMethod.vodafoneCash,
     this.errorMessage,
     this.selectedVoucher,
     this.discountAmount = 0,

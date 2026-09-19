@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../art_core/models/time_range.dart';
 
 /// Domain Service responsible for booking availability calculations,
@@ -17,11 +18,26 @@ class BookingAvailabilityService {
       return null;
     }
 
+    // Ignore pending / pending_payment bookings older than 30 minutes
+    if (status == 'pending' || status == 'pending_payment') {
+      final createdAtStr = b['created_at']?.toString();
+      if (createdAtStr != null) {
+        final createdAt = DateTime.tryParse(createdAtStr);
+        if (createdAt != null) {
+          final age = DateTime.now().difference(createdAt.toLocal());
+          if (age > const Duration(minutes: 30)) {
+            return null; // Expired pending booking, does not block slot
+          }
+        }
+      }
+    }
+
     final startAt = b['start_at'] ?? b['start_time'];
     final endAt = b['end_at'] ?? b['end_time'];
     if (startAt == null || endAt == null) return null;
 
-    final dateStr = b['date']?.toString() ??
+    final dateStr =
+        b['date']?.toString() ??
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
     try {
@@ -40,7 +56,10 @@ class BookingAvailabilityService {
   }
 
   /// Calculates all 30-minute booked [TimeOfDay] slots for a list of [TimeRange]s on a given date.
-  List<TimeOfDay> calculateBookedSlots(List<TimeRange> roomBookings, DateTime date) {
+  List<TimeOfDay> calculateBookedSlots(
+    List<TimeRange> roomBookings,
+    DateTime date,
+  ) {
     final List<TimeOfDay> bookedSlots = [];
 
     for (int h = 0; h < 24; h++) {
@@ -50,8 +69,10 @@ class BookingAvailabilityService {
             : DateTime(date.year, date.month, date.day + 1, h, m);
         final slotEnd = slotDateTime.add(const Duration(minutes: 30));
 
-        final isOccupied = roomBookings.any((range) =>
-            range.start.isBefore(slotEnd) && range.end.isAfter(slotDateTime));
+        final isOccupied = roomBookings.any(
+          (range) =>
+              range.start.isBefore(slotEnd) && range.end.isAfter(slotDateTime),
+        );
 
         if (isOccupied) {
           bookedSlots.add(TimeOfDay(hour: h, minute: m));
@@ -70,12 +91,26 @@ class BookingAvailabilityService {
     required int durationMinutes,
   }) {
     final startDateTime = (startTime.hour >= 10)
-        ? DateTime(date.year, date.month, date.day, startTime.hour, startTime.minute)
-        : DateTime(date.year, date.month, date.day + 1, startTime.hour, startTime.minute);
+        ? DateTime(
+            date.year,
+            date.month,
+            date.day,
+            startTime.hour,
+            startTime.minute,
+          )
+        : DateTime(
+            date.year,
+            date.month,
+            date.day + 1,
+            startTime.hour,
+            startTime.minute,
+          );
     final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
 
-    return roomBookings.any((range) =>
-        range.start.isBefore(endDateTime) && range.end.isAfter(startDateTime));
+    return roomBookings.any(
+      (range) =>
+          range.start.isBefore(endDateTime) && range.end.isAfter(startDateTime),
+    );
   }
 
   /// Parses raw booking rows and groups valid [TimeRange]s by `room_id`.
@@ -103,10 +138,17 @@ class BookingAvailabilityService {
     try {
       final openParts = opensAt.split(':');
       final closeParts = closesAt.split(':');
-      final openDuration = Duration(hours: int.parse(openParts[0]), minutes: int.parse(openParts[1]));
-      var closeDuration = Duration(hours: int.parse(closeParts[0]), minutes: int.parse(closeParts[1]));
+      final openDuration = Duration(
+        hours: int.parse(openParts[0]),
+        minutes: int.parse(openParts[1]),
+      );
+      var closeDuration = Duration(
+        hours: int.parse(closeParts[0]),
+        minutes: int.parse(closeParts[1]),
+      );
 
-      if (closeDuration <= openDuration) closeDuration += const Duration(days: 1);
+      if (closeDuration <= openDuration)
+        closeDuration += const Duration(days: 1);
 
       return (closeDuration - openDuration).inMinutes / 60.0;
     } catch (_) {
@@ -115,10 +157,17 @@ class BookingAvailabilityService {
   }
 
   DateTime? _parseDateTime(String dateStr, String timeOrIsoStr) {
-    if (timeOrIsoStr.contains('T') || (timeOrIsoStr.contains('-') && timeOrIsoStr.contains(' '))) {
+    if (timeOrIsoStr.contains('T') ||
+        (timeOrIsoStr.contains('-') && timeOrIsoStr.contains(' '))) {
       final parsed = DateTime.tryParse(timeOrIsoStr.replaceFirst(' ', 'T'));
       if (parsed != null) {
-        return DateTime(parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute);
+        return DateTime(
+          parsed.year,
+          parsed.month,
+          parsed.day,
+          parsed.hour,
+          parsed.minute,
+        );
       }
     }
 
