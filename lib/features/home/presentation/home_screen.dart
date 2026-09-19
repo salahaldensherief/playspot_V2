@@ -282,6 +282,7 @@ class _LoungeList extends StatelessWidget {
         final lounges = state.nearestLounges;
 
         if (lounges.isEmpty) {
+          final hasFilter = state.selectedCity != null || state.selectedCategoryIds.isNotEmpty;
           return SliverToBoxAdapter(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -299,18 +300,36 @@ class _LoungeList extends StatelessWidget {
                   fontSize: 16.sp,
                 ),
                 16.verticalSpace,
-                AppButton(
-                  content: ButtonContent(label: AppStrings.retry.tr()),
-                  behavior: ButtonBehavior.tap(
-                    onTap: () => context.read<HomeCubit>().getHomeData(),
+                if (hasFilter)
+                  AppButton(
+                    content: ButtonContent(label: AppStrings.allLounges.tr()),
+                    behavior: ButtonBehavior.tap(
+                      onTap: () {
+                        context.read<HomeCubit>().selectCity(null);
+                      },
+                    ),
+                    buttonConfig: ButtonConfig(
+                      height: 40.h,
+                      width: 160.w,
+                      backgroundColor: Colors.transparent,
+                      borderColor: AppColors.neonBlue,
+                      isOutlined: true,
+                      borderRadius: 12.r,
+                    ),
+                  )
+                else
+                  AppButton(
+                    content: ButtonContent(label: AppStrings.retry.tr()),
+                    behavior: ButtonBehavior.tap(
+                      onTap: () => context.read<HomeCubit>().getHomeData(),
+                    ),
+                    buttonConfig: ButtonConfig(
+                      height: 40.h,
+                      width: 120.w,
+                      backgroundColor: Colors.transparent,
+                      borderRadius: 12.r,
+                    ),
                   ),
-                  buttonConfig: ButtonConfig(
-                    height: 40.h,
-                    width: 120.w,
-                    backgroundColor: Colors.transparent,
-                    borderRadius: 12.r,
-                  ),
-                ),
               ],
             ),
           );

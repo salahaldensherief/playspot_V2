@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
-enum NotificationType { booking, offer, loyalty, system, kyc }
+enum NotificationType { booking, offer, loyalty, system, kyc, tournament, canteen, staff }
 
 class NotificationModel extends Equatable {
   final String id;
@@ -193,8 +193,14 @@ class NotificationModel extends Equatable {
 
   static NotificationType _parseType(String type) {
     final t = type.toLowerCase().trim();
-    if (t.contains('booking')) {
+    if (t.contains('booking') || t.contains('extension')) {
       return NotificationType.booking;
+    } else if (t.contains('tournament')) {
+      return NotificationType.tournament;
+    } else if (t.contains('canteen') || t.contains('order') || t.contains('service')) {
+      return NotificationType.canteen;
+    } else if (t.contains('staff') || t.contains('shift')) {
+      return NotificationType.staff;
     } else if (t.contains('offer') || t.contains('promo')) {
       return NotificationType.offer;
     } else if (t.contains('loyalty')) {

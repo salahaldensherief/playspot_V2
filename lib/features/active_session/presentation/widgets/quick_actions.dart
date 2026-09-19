@@ -44,9 +44,9 @@ class QuickActions extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.warning.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: AppColors.warning.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -107,9 +107,9 @@ class QuickActions extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.danger.withValues(alpha: 0.15),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+                  color: AppColors.danger.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),

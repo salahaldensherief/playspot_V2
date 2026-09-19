@@ -45,6 +45,7 @@ import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/profile/presentation/settings/notification_settings_screen.dart';
 import '../../features/profile/presentation/profile/profile_cubit.dart';
 import '../../features/profile/presentation/legal/terms_and_conditions_screen.dart';
+import '../../features/profile/presentation/support/help_support_screen.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 import '../../features/profile/presentation/edit_profile/edit_profile_screen.dart';
 import '../../features/profile/presentation/profile/redeem_points_screen.dart';
@@ -61,6 +62,10 @@ import '../../features/tournaments/presentation/live_match/tournament_match_cubi
 import '../../features/tournaments/presentation/live_match/tournament_match_screen.dart';
 import '../../features/tournaments/presentation/history/tournament_history_cubit.dart';
 import '../../features/tournaments/presentation/history/tournament_history_screen.dart';
+import '../../features/app_status/presentation/screens/maintenance_screen.dart';
+import '../../features/app_status/presentation/screens/force_update_screen.dart';
+import '../../features/app_status/domain/entities/app_status_entity.dart';
+import '../../features/app_status/presentation/widgets/announcement_dialog.dart';
 import 'package:flutter/services.dart';
 import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
@@ -78,6 +83,27 @@ class AppRouter {
     NotificationRouter.configure((data) {
       final typeStr =
           (data['type'] ?? data['notification_type'] ?? '').toString().toLowerCase();
+
+      if (typeStr.contains('announcement') || typeStr.contains('offer') || data.containsKey('announcement_id') || data.containsKey('announcement_title')) {
+        final annTitle = _extractKey(data, ['announcement_title', 'title', 'heading']);
+        final annBody = _extractKey(data, ['announcement_body', 'body', 'message']);
+        final annImg = _extractKey(data, ['announcement_image_url', 'image_url', 'image']);
+        final annAction = _extractKey(data, ['announcement_action_url', 'action_url', 'url']);
+
+        if (annTitle.isNotEmpty || annBody.isNotEmpty) {
+          final ctx = AppRouter.navigatorKey.currentContext;
+          if (ctx != null) {
+            AnnouncementDialog.show(
+              ctx,
+              title: annTitle.isNotEmpty ? annTitle : 'PlaySpot Announcement',
+              body: annBody,
+              imageUrl: annImg,
+              actionUrl: annAction,
+            );
+            return true;
+          }
+        }
+      }
 
       final bookingId = _extractKey(data, [
         'booking_id',
@@ -176,7 +202,8 @@ class AppRouter {
 
       if (typeStr.contains('live_session') ||
           typeStr.contains('active_session') ||
-          typeStr.contains('session')) {
+          typeStr.contains('session') ||
+          typeStr.contains('canteen')) {
         router.pushNamed(RouterKeys.activeSession);
         return true;
       }
@@ -309,6 +336,35 @@ class AppRouter {
               state: state,
               child: const SplashScreen(),
             ),
+          ),
+          GoRoute(
+            path: RouterKeys.maintenance,
+            name: RouterKeys.maintenance,
+            pageBuilder: (context, state) => _buildPage(
+              context: context,
+              state: state,
+              child: MaintenanceScreen(statusEntity: state.extra as AppStatusEntity?),
+            ),
+          ),
+          GoRoute(
+            path: RouterKeys.forceUpdate,
+            name: RouterKeys.forceUpdate,
+            pageBuilder: (context, state) {
+              final extra = state.extra;
+              AppStatusEntity? entity;
+              String version = '1.0.0';
+              if (extra is Map<String, dynamic>) {
+                entity = extra['entity'] as AppStatusEntity?;
+                version = extra['version'] as String? ?? '1.0.0';
+              } else if (extra is AppStatusEntity) {
+                entity = extra;
+              }
+              return _buildPage(
+                context: context,
+                state: state,
+                child: ForceUpdateScreen(statusEntity: entity, currentVersion: version),
+              );
+            },
           ),
           GoRoute(
             path: RouterKeys.onboarding,
@@ -699,6 +755,15 @@ class AppRouter {
                   context: context,
                   state: state,
                   child: const TermsAndConditionsScreen(),
+                ),
+              ),
+              GoRoute(
+                path: RouterKeys.helpSupport,
+                name: RouterKeys.helpSupport,
+                pageBuilder: (context, state) => _buildPage(
+                  context: context,
+                  state: state,
+                  child: const HelpSupportScreen(),
                 ),
               ),
               GoRoute(

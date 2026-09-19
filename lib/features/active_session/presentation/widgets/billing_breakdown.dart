@@ -22,9 +22,9 @@ class BillingBreakdownWidget extends StatelessWidget {
         border: Border.all(color: AppColors.borderDefault),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(AppColors.black, 0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.withOpacity(AppColors.black, 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),

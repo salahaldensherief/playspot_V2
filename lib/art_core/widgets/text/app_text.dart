@@ -157,7 +157,9 @@ class _AppTextState extends State<AppText> {
         displayText,
         style: textStyle,
         maxLines: widget.maxLines,
-        overflow: widget.overflow ?? TextOverflow.ellipsis,
+        overflow: widget.maxLines != null
+            ? (widget.overflow ?? TextOverflow.ellipsis)
+            : widget.overflow,
         textAlign: widget.textAlign ?? TextAlign.start,
       ),
     );

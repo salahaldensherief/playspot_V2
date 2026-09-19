@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +28,6 @@ class TournamentsFeedScreen extends StatefulWidget {
 
 class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
   final TextEditingController _searchController = TextEditingController();
-  Timer? _searchDebounce;
 
   final List<String> _gameFilters = ['All', 'FIFA', 'EA FC 24', 'Tekken 8', 'Mortal Kombat', 'Rocket League'];
   final List<String> _statusFilters = [
@@ -48,18 +46,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _onSearchInputChanged(String value) {
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 350), () {
-      if (mounted) {
-        context.read<TournamentsFeedCubit>().onSearchChanged(value);
-      }
-    });
   }
 
   @override
@@ -163,7 +151,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                             },
                           )
                         : null,
-                    onChanged: _onSearchInputChanged,
+                    onChanged: context.read<TournamentsFeedCubit>().onSearchChanged,
                   );
                 },
               ),

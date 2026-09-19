@@ -174,7 +174,7 @@ class _BookingCardState extends State<BookingCard> {
             fontSize: 12.sp,
             color: AppColors.textSecondary,
             maxLines: 2,
-            overflow: TextOverflow.visible,
+            overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: 16.h),
           Row(
@@ -358,7 +358,7 @@ class _BookingCardState extends State<BookingCard> {
                   fontWeight: FontWeight.bold,
                   color: AppColors.warning,
                   maxLines: 2,
-                  overflow: TextOverflow.visible,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -369,7 +369,6 @@ class _BookingCardState extends State<BookingCard> {
             fontSize: 11.sp,
             color: AppColors.textSecondary,
             height: 1.3,
-            maxLines: 5,
             overflow: TextOverflow.visible,
           ),
           if (widget.booking.status == BookingStatus.pending) ...[
@@ -393,7 +392,6 @@ class _BookingCardState extends State<BookingCard> {
                       text: AppStrings.bookingStatusPendingDesc.tr(),
                       fontSize: 11.sp,
                       color: AppColors.neonBlue,
-                      maxLines: 5,
                       overflow: TextOverflow.visible,
                     ),
                   ),

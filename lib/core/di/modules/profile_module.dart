@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import '../../../features/profile/data/datasources/remote/profile_remote_data_source.dart';
+import '../../../features/profile/data/datasources/remote/support_remote_data_source.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../../../features/profile/data/repositories/profile_repository_impl.dart';
 import '../../../features/profile/presentation/edit_profile/edit_profile_cubit.dart';
@@ -9,6 +10,9 @@ import '../../../features/profile/presentation/settings/notification_settings_cu
 final sl = GetIt.instance;
 
 void initProfileModule() {
+  sl.registerLazySingleton<SupportRemoteDataSource>(
+    () => SupportRemoteDataSourceImpl(sl()),
+  );
   sl.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSourceImpl(sl(), sl()),
   );

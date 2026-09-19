@@ -141,9 +141,9 @@ class ActionCard extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.withOpacity(AppColors.black, 0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  color: AppColors.withOpacity(AppColors.black, 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),

@@ -8,11 +8,17 @@ import '../../../features/booking/domain/strategies/booking_slot_strategy.dart';
 import '../../../features/booking/presentation/booking_cubit.dart';
 import '../../../features/checkout/presentation/checkout_cubit.dart';
 
+import '../../../features/booking/domain/services/booking_availability_service.dart';
+
 final sl = GetIt.instance;
 
 void initBookingModule() {
+  sl.registerLazySingleton<BookingAvailabilityService>(
+    () => const BookingAvailabilityService(),
+  );
+
   sl.registerLazySingleton<BookingSlotStrategy>(
-    () => const StandardBookingSlotStrategy(),
+    () => StandardBookingSlotStrategy(sl<BookingAvailabilityService>()),
   );
 
   sl.registerLazySingleton<BookingRemoteDataSource>(

@@ -129,30 +129,40 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     emit(state.copyWith(isSubmittingPayment: true));
 
-    final result = await _submitTournamentPaymentUseCase(
-      participantId: state.userParticipant!.id,
-      tournamentId: state.tournament!.id,
-      userId: currentUser.id,
-      amount: state.tournament!.entryFee,
-      paymentMethod: paymentMethod,
-      receiptFile: receiptFile,
-    );
+    try {
+      final result = await _submitTournamentPaymentUseCase(
+        participantId: state.userParticipant!.id,
+        tournamentId: state.tournament!.id,
+        userId: currentUser.id,
+        amount: state.tournament!.entryFee,
+        paymentMethod: paymentMethod,
+        receiptFile: receiptFile,
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => Left(ServerFailure('Connection timed out while uploading receipt. Please try again.')),
+      );
 
-    result.fold(
-      (failure) {
-        emit(state.copyWith(
-          isSubmittingPayment: false,
-          errorMessage: failure.message,
-        ));
-      },
-      (participant) {
-        emit(state.copyWith(
-          isSubmittingPayment: false,
-          userParticipant: participant ?? state.userParticipant,
-          successMessage: 'paymentSubmittedSuccess',
-        ));
-      },
-    );
+      result.fold(
+        (failure) {
+          emit(state.copyWith(
+            isSubmittingPayment: false,
+            errorMessage: failure.message,
+          ));
+        },
+        (participant) {
+          emit(state.copyWith(
+            isSubmittingPayment: false,
+            userParticipant: participant ?? state.userParticipant,
+            successMessage: 'paymentSubmittedSuccess',
+          ));
+        },
+      );
+    } catch (_) {
+      emit(state.copyWith(
+        isSubmittingPayment: false,
+        errorMessage: 'Connection timed out while uploading receipt. Please check your network and try again.',
+      ));
+    }
   }
 
   Future<void> checkIn() async {

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
@@ -555,7 +556,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
               itemCount: lines.length,
               separatorBuilder: (context, index) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
-                final lineText = lines[index].replaceFirst(RegExp(r'^\d+[\.\-\)]\s*'), '');
+                final lineText = lines[index].replaceFirst(RegExp(r'^\d+[.\-)]\s*'), '');
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1146,6 +1147,19 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                 onTap: () => _showPaymentBottomSheet(context, tournament),
               ),
             ),
+            const SizedBox(height: 8),
+            AppButton(
+              buttonConfig: ButtonConfig(
+                backgroundColor: Colors.transparent,
+                borderColor: AppColors.neonBlue,
+                isOutlined: true,
+                width: double.infinity,
+              ),
+              content: ButtonContent(label: AppStrings.contactUs.tr()),
+              behavior: TapBehavior(
+                onTap: () => _contactSupport(context),
+              ),
+            ),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -1458,6 +1472,15 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
         ],
       ),
     );
+  }
+
+  void _contactSupport(BuildContext context) async {
+    final Uri whatsappUri = Uri.parse("https://wa.me/201000000000?text=${Uri.encodeComponent('I need support for tournament ID: ${widget.tournamentId}')}");
+    try {
+      if (await canLaunchUrl(whatsappUri)) {
+        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 }
 

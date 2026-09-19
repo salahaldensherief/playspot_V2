@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/play_spot_live_activity_service.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
+import 'package:playspot/core/mixins/realtime_watcher_mixin.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../../../core/notifications/local_notification_service.dart';
 import '../../../../core/notifications/native_notification_service.dart';
@@ -12,7 +13,7 @@ import '../domain/repositories/active_session_repository.dart';
 import '../data/models/order_item_model.dart';
 import 'active_session_state.dart';
 
-class ActiveSessionCubit extends Cubit<ActiveSessionState> {
+class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherMixin {
   final ActiveSessionRepository _repo;
   StreamSubscription? _realtimeSubscription;
   StreamSubscription? _userSessionsSubscription;
@@ -24,30 +25,23 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
 
   void _watchUserSessions() {
     _userSessionsSubscription?.cancel();
-    _userSessionsSubscription = _repo.watchUserActiveSession().listen((activeSession) {
-      if (activeSession != null) {
-        dev.log("[LIVESESSION_CUBIT] Watch Stream detected active session: ${activeSession.bookingId}");
-        if (state.session == null || state.session!.bookingId != activeSession.bookingId || state.status != ActiveSessionStatus.loaded) {
-          loadActiveSession(bookingId: activeSession.bookingId);
-        }
-      }
-    }, onError: (err) {
-      dev.log("[LIVESESSION_CUBIT] WATCH USER SESSIONS STREAM ERROR: $err");
-      _userSessionsSubscription?.cancel();
-      _userSessionsSubscription = null;
-      final errStr = err.toString().toLowerCase();
-      final isAuthError = errStr.contains('permission denied') ||
-          errStr.contains('unauthorized') ||
-          errStr.contains('jwt expired') ||
-          errStr.contains('not authenticated');
-      if (!isAuthError) {
-        Future.delayed(const Duration(seconds: 5), () {
-          if (!isClosed) {
-            _watchUserSessions();
+    _userSessionsSubscription = subscribeWithRetry(
+      streamFactory: () => _repo.watchUserActiveSession(),
+      onData: (activeSession) {
+        if (activeSession != null) {
+          dev.log("[LIVESESSION_CUBIT] Watch Stream detected active session: ${activeSession.bookingId}");
+          if (state.session == null || state.session!.bookingId != activeSession.bookingId || state.status != ActiveSessionStatus.loaded) {
+            loadActiveSession(bookingId: activeSession.bookingId);
           }
-        });
-      }
-    });
+        }
+      },
+      onError: (err) {
+        dev.log("[LIVESESSION_CUBIT] WATCH USER SESSIONS STREAM ERROR: $err");
+      },
+      isClosedCheck: () => isClosed,
+      retryDelay: const Duration(seconds: 5),
+      tag: 'LIVESESSION_WATCH_USER',
+    );
   }
 
   /// Calculates pre-calculated extension cost based on active session rates
@@ -136,71 +130,70 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> {
     dev.log("[LIVESESSION_CUBIT] Subscribing to Realtime stream for booking: $bookingId");
     _subscribedBookingId = bookingId;
     _realtimeSubscription?.cancel();
-    _realtimeSubscription = _repo.streamActiveSession(bookingId).listen((updatedSession) {
-      dev.log("[LIVESESSION_CUBIT] REALTIME EVENT for $bookingId: status=${updatedSession.status}, end_time=${updatedSession.endTime}");
-      final status = BookingStatus.fromString(updatedSession.status);
-      if (status == BookingStatus.completed || status == BookingStatus.cancelled) {
-        dev.log("[LIVESESSION_CUBIT] Session ended or cancelled via Realtime");
-        _subscribedBookingId = null;
-        _realtimeSubscription?.cancel();
-        _realtimeSubscription = null;
-        LocalNotificationService.instance.cancelActiveSessionNotification();
-        NativeNotificationService.instance.cancelCustomNotification();
-        PlaySpotLiveActivityService.instance.endActivity();
-        emit(state.copyWith(
-          status: ActiveSessionStatus.empty,
-          session: null,
-          completedSession: state.session ?? updatedSession,
-        ));
-      } else {
-        dev.log("[LIVESESSION_CUBIT] Realtime update applied directly without re-fetching...");
-        final currentSession = state.session;
-        final mergedSession = updatedSession.copyWith(
-          loungeName: updatedSession.loungeName.isNotEmpty
-              ? updatedSession.loungeName
-              : currentSession?.loungeName ?? '',
-          roomName: updatedSession.roomName.isNotEmpty
-              ? updatedSession.roomName
-              : currentSession?.roomName ?? '',
-          orders: updatedSession.orders.isNotEmpty
-              ? updatedSession.orders
-              : currentSession?.orders ?? const [],
-        );
 
-        emit(state.copyWith(
-          status: ActiveSessionStatus.loaded,
-          session: mergedSession,
-        ));
-
-        try {
-          PlaySpotLiveActivityService.instance.startActivity(
-            sessionId: mergedSession.bookingId,
-            hallName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'PlaySpot Lounge',
-            deviceName: mergedSession.deviceName.isNotEmpty ? mergedSession.deviceName : mergedSession.roomName,
-            endTimeTimestamp: mergedSession.endTime.millisecondsSinceEpoch ~/ 1000,
+    _realtimeSubscription = subscribeWithRetry(
+      streamFactory: () => _repo.streamActiveSession(bookingId),
+      onData: (updatedSession) {
+        dev.log("[LIVESESSION_CUBIT] REALTIME EVENT for $bookingId: status=${updatedSession.status}, end_time=${updatedSession.endTime}");
+        final status = BookingStatus.fromString(updatedSession.status);
+        if (status == BookingStatus.completed || status == BookingStatus.cancelled) {
+          dev.log("[LIVESESSION_CUBIT] Session ended or cancelled via Realtime");
+          _subscribedBookingId = null;
+          _realtimeSubscription?.cancel();
+          _realtimeSubscription = null;
+          LocalNotificationService.instance.cancelActiveSessionNotification();
+          NativeNotificationService.instance.cancelCustomNotification();
+          PlaySpotLiveActivityService.instance.endActivity();
+          emit(state.copyWith(
+            status: ActiveSessionStatus.empty,
+            session: null,
+            completedSession: state.session ?? updatedSession,
+          ));
+        } else {
+          dev.log("[LIVESESSION_CUBIT] Realtime update applied directly without re-fetching...");
+          final currentSession = state.session;
+          final mergedSession = updatedSession.copyWith(
+            loungeName: updatedSession.loungeName.isNotEmpty
+                ? updatedSession.loungeName
+                : currentSession?.loungeName ?? '',
+            roomName: updatedSession.roomName.isNotEmpty
+                ? updatedSession.roomName
+                : currentSession?.roomName ?? '',
+            orders: updatedSession.orders.isNotEmpty
+                ? updatedSession.orders
+                : currentSession?.orders ?? const [],
           );
 
-          final notificationId = mergedSession.bookingId.hashCode.abs() & 0x7FFFFFFF;
-          LocalNotificationService.instance.scheduleSessionExpiryWarning(
-            id: notificationId,
-            loungeName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'Lounge',
-            expiryTime: mergedSession.endTime,
-          );
-        } catch (_) {}
-      }
-    }, onError: (err) {
-      dev.log("[LIVESESSION_CUBIT] REALTIME STREAM ERROR: $err");
-      _subscribedBookingId = null;
-      _realtimeSubscription?.cancel();
-      _realtimeSubscription = null;
-      Future.delayed(const Duration(seconds: 3), () {
-        if (!isClosed && (_subscribedBookingId == null || _subscribedBookingId == bookingId)) {
-          if (state.session?.bookingId == bookingId || state.status == ActiveSessionStatus.loaded) {
-            _subscribeToRealtime(bookingId);
-          }
+          emit(state.copyWith(
+            status: ActiveSessionStatus.loaded,
+            session: mergedSession,
+          ));
+
+          try {
+            PlaySpotLiveActivityService.instance.startActivity(
+              sessionId: mergedSession.bookingId,
+              hallName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'PlaySpot Lounge',
+              deviceName: mergedSession.deviceName.isNotEmpty ? mergedSession.deviceName : mergedSession.roomName,
+              endTimeTimestamp: mergedSession.endTime.millisecondsSinceEpoch ~/ 1000,
+            );
+
+            final notificationId = mergedSession.bookingId.hashCode.abs() & 0x7FFFFFFF;
+            LocalNotificationService.instance.scheduleSessionExpiryWarning(
+              id: notificationId,
+              loungeName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'Lounge',
+              expiryTime: mergedSession.endTime,
+            );
+          } catch (_) {}
         }
-      });
-    });
+      },
+      onError: (err) {
+        dev.log("[LIVESESSION_CUBIT] REALTIME STREAM ERROR: $err");
+        _subscribedBookingId = null;
+      },
+      isClosedCheck: () => isClosed || (_subscribedBookingId != null && _subscribedBookingId != bookingId),
+      retryDelay: const Duration(seconds: 3),
+      tag: 'LIVESESSION_REALTIME',
+    );
   }
 
   Future<void> loadMenu(String loungeId) async {

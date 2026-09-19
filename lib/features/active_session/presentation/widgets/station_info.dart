@@ -1,14 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
-import 'package:easy_localization/easy_localization.dart';
 import '../../data/models/active_session_model.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class StationInfo extends StatelessWidget {
   final ActiveSessionModel session;
@@ -28,9 +26,9 @@ class StationInfo extends StatelessWidget {
         border: Border.all(color: AppColors.borderDefault),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(AppColors.black, 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: AppColors.withOpacity(AppColors.black, 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),

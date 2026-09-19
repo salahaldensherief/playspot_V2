@@ -1,8 +1,11 @@
 import 'dart:io';
+
+import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:playspot/art_core/app_strings.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/entities/tournament_entity.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/core/error/failures.dart';
+
 import '../../domain/repositories/tournaments_repository.dart';
 import '../../domain/usecases/get_tournament_details_usecase.dart';
 import '../../domain/usecases/submit_match_result_usecase.dart';
@@ -19,33 +22,45 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
     this._submitMatchResultUseCase,
   ) : super(const TournamentMatchState());
 
-  Future<void> loadMatch({required String tournamentId, required String matchId}) async {
+  Future<void> loadMatch({
+    required String tournamentId,
+    required String matchId,
+  }) async {
     emit(state.copyWith(status: MatchScreenStatus.loading));
 
-    final result = await _getTournamentDetailsUseCase.getMatchById(tournamentId, matchId);
+    final result = await _getTournamentDetailsUseCase.getMatchById(
+      tournamentId,
+      matchId,
+    );
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          status: MatchScreenStatus.failure,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            status: MatchScreenStatus.failure,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (match) {
         if (match == null) {
-          emit(state.copyWith(
-            status: MatchScreenStatus.failure,
-            errorMessage: 'No matches found',
-          ));
+          emit(
+            state.copyWith(
+              status: MatchScreenStatus.failure,
+              errorMessage: 'No matches found',
+            ),
+          );
           return;
         }
 
-        emit(state.copyWith(
-          status: MatchScreenStatus.success,
-          match: match,
-          player1Score: match.player1Score ?? 0,
-          player2Score: match.player2Score ?? 0,
-        ));
+        emit(
+          state.copyWith(
+            status: MatchScreenStatus.success,
+            match: match,
+            player1Score: match.player1Score ?? 0,
+            player2Score: match.player2Score ?? 0,
+          ),
+        );
       },
     );
   }
@@ -66,40 +81,64 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
     if (state.match == null || state.isSubmittingResult) return;
 
     if (state.player1Score == state.player2Score) {
-      emit(state.copyWith(
-        errorMessage: AppStrings.tieNotAllowedInTournaments.tr(),
-      ));
+      emit(
+        state.copyWith(
+          errorMessage: AppStrings.tieNotAllowedInTournaments.tr(),
+        ),
+      );
       return;
     }
 
     emit(state.copyWith(isSubmittingResult: true));
 
-    final result = await _submitMatchResultUseCase(
-      matchId: state.match!.id,
-      tournamentId: state.match!.tournamentId,
-      player1Score: state.player1Score,
-      player2Score: state.player2Score,
-      proofFile: state.proofFile,
-    );
+    try {
+      final result =
+          await _submitMatchResultUseCase(
+            matchId: state.match!.id,
+            tournamentId: state.match!.tournamentId,
+            player1Score: state.player1Score,
+            player2Score: state.player2Score,
+            proofFile: state.proofFile,
+          ).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => Left(
+              ServerFailure(
+                'Connection timed out while uploading proof file. Please try again.',
+              ),
+            ),
+          );
 
-    result.fold(
-      (failure) {
-        emit(state.copyWith(
+      result.fold(
+        (failure) {
+          emit(
+            state.copyWith(
+              isSubmittingResult: false,
+              errorMessage: failure.message,
+            ),
+          );
+        },
+        (_) {
+          emit(
+            state.copyWith(
+              isSubmittingResult: false,
+              successMessage: 'resultSubmittedSuccess',
+            ),
+          );
+          loadMatch(
+            tournamentId: state.match!.tournamentId,
+            matchId: state.match!.id,
+          );
+        },
+      );
+    } catch (_) {
+      emit(
+        state.copyWith(
           isSubmittingResult: false,
-          errorMessage: failure.message,
-        ));
-      },
-      (_) {
-        emit(state.copyWith(
-          isSubmittingResult: false,
-          successMessage: 'resultSubmittedSuccess',
-        ));
-        loadMatch(
-          tournamentId: state.match!.tournamentId,
-          matchId: state.match!.id,
-        );
-      },
-    );
+          errorMessage:
+              'Connection timed out while uploading match result. Please check your network and try again.',
+        ),
+      );
+    }
   }
 
   Future<void> confirmResult() async {
@@ -111,16 +150,20 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          isConfirmingResult: false,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            isConfirmingResult: false,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (_) {
-        emit(state.copyWith(
-          isConfirmingResult: false,
-          successMessage: 'resultConfirmedSuccess',
-        ));
+        emit(
+          state.copyWith(
+            isConfirmingResult: false,
+            successMessage: 'resultConfirmedSuccess',
+          ),
+        );
         loadMatch(
           tournamentId: state.match!.tournamentId,
           matchId: state.match!.id,
@@ -130,7 +173,10 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
   }
 
   Future<void> disputeResult(String reason) async {
-    if (state.match == null || state.isSubmittingDispute || reason.trim().isEmpty) return;
+    if (state.match == null ||
+        state.isSubmittingDispute ||
+        reason.trim().isEmpty)
+      return;
 
     emit(state.copyWith(isSubmittingDispute: true));
 
@@ -141,16 +187,20 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          isSubmittingDispute: false,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            isSubmittingDispute: false,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (_) {
-        emit(state.copyWith(
-          isSubmittingDispute: false,
-          successMessage: 'disputeSubmittedSuccess',
-        ));
+        emit(
+          state.copyWith(
+            isSubmittingDispute: false,
+            successMessage: 'disputeSubmittedSuccess',
+          ),
+        );
         loadMatch(
           tournamentId: state.match!.tournamentId,
           matchId: state.match!.id,

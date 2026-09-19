@@ -26,6 +26,7 @@ class RouterKeys {
   static const String notificationSettings = '/notification-settings';
   static const String allReviews = '/allReviews';
   static const String termsAndConditions = '/terms-and-conditions';
+  static const String helpSupport = '/help-support';
   static const String activeSession = '/activeSession';
   static const String roomDetails = '/roomDetails/:roomId';
   static const String bookingDetails = '/booking-details/:id';
@@ -33,4 +34,6 @@ class RouterKeys {
   static const String tournamentDetails = '/tournaments/:id';
   static const String tournamentMatch = '/tournaments/:id/match/:matchId';
   static const String tournamentHistory = '/tournaments-history';
+  static const String maintenance = '/maintenance';
+  static const String forceUpdate = '/force-update';
 }

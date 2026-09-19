@@ -128,6 +128,18 @@ class NotificationItem extends StatelessWidget {
         iconData = TablerIcons.stars;
         iconColor = AppColors.warning;
         break;
+      case NotificationType.tournament:
+        iconData = TablerIcons.trophy;
+        iconColor = AppColors.neonPurple;
+        break;
+      case NotificationType.canteen:
+        iconData = TablerIcons.cup;
+        iconColor = AppColors.neonBlue;
+        break;
+      case NotificationType.staff:
+        iconData = TablerIcons.user_check;
+        iconColor = AppColors.success;
+        break;
       case NotificationType.system:
         iconData = TablerIcons.info_circle;
         iconColor = Colors.white;

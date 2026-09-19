@@ -81,13 +81,13 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
             border: Border.all(color: AppColors.neonBlue, width: 1.5),
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.6),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
+                color: AppColors.black.withValues(alpha: 0.15),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
               BoxShadow(
-                color: AppColors.neonBlue.withValues(alpha: 0.25),
-                blurRadius: 12,
+                color: AppColors.neonBlue.withValues(alpha: 0.08),
+                blurRadius: 4,
                 spreadRadius: 1,
               ),
             ],

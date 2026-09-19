@@ -11,6 +11,9 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
+import 'package:playspot/features/app_status/presentation/cubit/app_status_cubit.dart';
+import 'package:playspot/features/app_status/domain/entities/app_status_type.dart';
+import 'package:playspot/features/app_status/presentation/widgets/soft_update_dialog.dart';
 
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/preference_manager.dart';
@@ -27,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnim;
-  late Animation<double> _scaleAnim; // ثابتة على 1.0 - راجع initState
+  late Animation<double> _scaleAnim;
 
   @override
   void initState() {
@@ -40,22 +43,13 @@ class _SplashScreenState extends State<SplashScreen>
       duration: const Duration(milliseconds: 600),
     );
 
-    // بنأخر بداية الفيد بتاع النص شوية (بعد ما الـ Native يتشال) عشان
-    // النص يبقى العنصر الوحيد اللي "بيظهر جديد" - مش اللوجو.
     _fadeAnim = Tween<double>(
       begin: 0,
       end: 1,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
-    // مهم جداً: اللوجو مبيعملش أنيميشن دخول (scale) خالص.
-    // بيفضل ثابت على 1.0 من أول فريم - نفس حجمه بالظبط زي ما هو
-    // في الـ Native Splash - عشان لحظة التبديل تبقى "فريم مطابق"
-    // من غير أي حركة ملحوظة. لو حبينا "نبضة" بسيطة بعد كده، بنعملها
-    // بحركة صغيرة جداً (1 -> 1.03 -> 1) بعد التبديل مش وقته.
     _scaleAnim = const AlwaysStoppedAnimation<double>(1.0);
 
-    // بننده على forward بعد فريم واحد بس، عشان اللوجو يفضل ثابت لحظة
-    // التبديل بالظبط، وبعدها يبدأ فيد النص.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
     });
@@ -70,7 +64,37 @@ class _SplashScreenState extends State<SplashScreen>
     );
     final minDisplayFuture = Future.delayed(const Duration(milliseconds: 2500));
 
-    await Future.wait([locationFuture, minDisplayFuture]);
+    final appStatusCubit = sl<AppStatusCubit>();
+    final statusTypeFuture = appStatusCubit.checkAndListen();
+
+    final results = await Future.wait([locationFuture, minDisplayFuture, statusTypeFuture]);
+    final statusType = results[2] as AppStatusType;
+
+    if (!mounted) return;
+
+    if (statusType == AppStatusType.maintenance) {
+      context.goNamed(RouterKeys.maintenance, extra: appStatusCubit.state.statusEntity);
+      return;
+    }
+
+    if (statusType == AppStatusType.forceUpdate) {
+      context.goNamed(
+        RouterKeys.forceUpdate,
+        extra: {
+          'entity': appStatusCubit.state.statusEntity,
+          'version': appStatusCubit.state.currentAppVersion,
+        },
+      );
+      return;
+    }
+
+    if (statusType == AppStatusType.softUpdate) {
+      await SoftUpdateDialog.show(
+        context,
+        statusEntity: appStatusCubit.state.statusEntity,
+        onDismiss: () => appStatusCubit.dismissSoftUpdate(),
+      );
+    }
 
     if (!mounted) return;
 
@@ -111,8 +135,6 @@ class _SplashScreenState extends State<SplashScreen>
       if (size.width > 0 && size.height > 0) {
         FlutterNativeSplash.remove();
       } else {
-        // Flutter surface layout is not ready yet (Width is zero. 0,0)
-        // Schedule removal on the next frame after layout settles
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
             FlutterNativeSplash.remove();
@@ -133,8 +155,6 @@ class _SplashScreenState extends State<SplashScreen>
     return Directionality(
       textDirection: ui.TextDirection.ltr,
       child: Scaffold(
-        // لازم اللون ده يبقى نفسه بالظبط اللون المكتوب في كونفيج
-        // flutter_native_splash جوه pubspec.yaml عشان مفيش وميض لوني.
         backgroundColor: AppColors.scaffoldBackground,
         body: Center(
           child: Column(

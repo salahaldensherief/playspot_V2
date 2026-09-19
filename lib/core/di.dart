@@ -11,6 +11,7 @@ import 'di/modules/favorites_module.dart';
 import 'di/modules/notifications_module.dart';
 import 'di/modules/active_session_module.dart';
 import 'di/modules/tournaments_module.dart';
+import 'di/modules/app_status_module.dart';
 
 final sl = GetIt.instance;
 
@@ -29,6 +30,7 @@ Future<void> init() async {
   initNotificationsModule();
   initActiveSessionModule();
   initTournamentsModule();
+  initAppStatusModule();
 }
 
 

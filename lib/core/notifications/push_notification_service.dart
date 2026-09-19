@@ -65,6 +65,10 @@ class PushNotificationService {
       if (token != null) {
         _syncToken(token);
       }
+
+      // Subscribe to default broadcast topics
+      await toggleTopicSubscription(topic: 'all_users', enable: true);
+      await toggleTopicSubscription(topic: 'announcements', enable: true);
     } catch (error, stackTrace) {
       AppLogger.error('FCM initialization error', error, stackTrace);
     }
@@ -120,12 +124,15 @@ class PushNotificationService {
 
     if (!content.hasVisibleContent) return;
 
-    await localNotifications.showNotification(
-      id: content.id,
-      title: content.title,
-      body: content.body,
-      data: content.data,
-    );
+    // Prevent duplicate notification when FCM already presents the notification payload in foreground
+    if (message.notification == null) {
+      await localNotifications.showNotification(
+        id: content.id,
+        title: content.title,
+        body: content.body,
+        data: content.data,
+      );
+    }
   }
 
   void _handleOpenedMessage(RemoteMessage message) {

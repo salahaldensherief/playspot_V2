@@ -457,4 +457,50 @@ class AppStrings {
   static const String tournamentSemiFinal = "tournamentSemiFinal";
   static const String tournamentQuarterFinal = "tournamentQuarterFinal";
   static const String roundOf = "roundOf";
+
+  // Payment Instruction Strings
+  static const String fawryPaymentTitle = "fawryPaymentTitle";
+  static const String fawryCodeLabel = "fawryCodeLabel";
+  static const String fawryInstructions = "fawryInstructions";
+  static const String vodafoneCashTitle = "vodafoneCashTitle";
+  static const String vodafoneCashWalletNumber = "vodafoneCashWalletNumber";
+  static const String copyNumber = "copyNumber";
+  static const String vodafoneCashInstructions = "vodafoneCashInstructions";
+  static const String confirmViaWhatsApp = "confirmViaWhatsApp";
+  static const String userWalletPhone = "userWalletPhone";
+  static const String userWalletPhoneHint = "userWalletPhoneHint";
+
+  // Help & Support Strings
+  static const String helpSupportTitle = "helpSupportTitle";
+  static const String supportContactUs = "supportContactUs";
+  static const String supportWhatsApp = "supportWhatsApp";
+  static const String supportCall = "supportCall";
+  static const String supportEmail = "supportEmail";
+  static const String faqTitle = "faqTitle";
+  static const String sendSupportTicket = "sendSupportTicket";
+  static const String selectIssueCategory = "selectIssueCategory";
+  static const String issueCategoryBooking = "issueCategoryBooking";
+  static const String issueCategoryPayment = "issueCategoryPayment";
+  static const String issueCategoryTechnical = "issueCategoryTechnical";
+  static const String issueCategoryOther = "issueCategoryOther";
+  static const String describeIssue = "describeIssue";
+  static const String ticketSentSuccess = "ticketSentSuccess";
+
+  // Legal & Policy Strings
+  static const String privacyPolicyTitle = "privacyPolicyTitle";
+  static const String refundPolicyTitle = "refundPolicyTitle";
+  static const String termsTab = "termsTab";
+  static const String privacyTab = "privacyTab";
+  static const String refundTab = "refundTab";
+  static const String maintenanceModeTitle = "maintenanceModeTitle";
+  static const String maintenanceModeDesc = "maintenanceModeDesc";
+  static const String expectedReturnTime = "expectedReturnTime";
+  static const String contactSupport = "contactSupport";
+  static const String updateRequiredTitle = "updateRequiredTitle";
+  static const String updateRequiredDesc = "updateRequiredDesc";
+  static const String updateNow = "updateNow";
+  static const String newUpdateAvailableTitle = "newUpdateAvailableTitle";
+  static const String newUpdateAvailableDesc = "newUpdateAvailableDesc";
+  static const String later = "later";
+  static const String maintenanceActiveSessionNotice = "maintenanceActiveSessionNotice";
 }

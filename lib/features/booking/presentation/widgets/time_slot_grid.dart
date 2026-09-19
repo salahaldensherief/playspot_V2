@@ -32,9 +32,16 @@ class TimeSlotGrid extends StatelessWidget {
         final morningSlots = _generateSlots(10, 16);
         final eveningSlots = _generateSlots(16, 22); // 4 PM to 10 PM
         final nightSlots = _generateSlots(22, 26);   // 10 PM to 2 AM (next day)
+        final allSlots = [...morningSlots, ...eveningSlots, ...nightSlots];
+
+        final allDisabled = allSlots.isNotEmpty && allSlots.every((s) => _isSlotDisabled(s, state));
 
         return Column(
           children: [
+            if (allDisabled) ...[
+              _buildFullyBookedBanner(context),
+              SizedBox(height: 16.h),
+            ],
             _buildTimeSection(context, "☀️ Morning Shift", morningSlots, state),
             SizedBox(height: 24.h),
             _buildTimeSection(context, "🌆 Evening Shift", eveningSlots, state),
@@ -43,6 +50,53 @@ class TimeSlotGrid extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  bool _isSlotDisabled(TimeOfDay slot, BookingState state) {
+    final isBooked = state.bookedTimeSlots.any((s) => s.hour == slot.hour && s.minute == slot.minute);
+    
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDate = DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day);
+    bool isPast = selectedDate.isBefore(today);
+    if (selectedDate.isAtSameMomentAs(today)) {
+      var slotDateTime = DateTime(now.year, now.month, now.day, slot.hour, slot.minute);
+      if (slot.hour < 10) slotDateTime = slotDateTime.add(const Duration(days: 1));
+      isPast = slotDateTime.isBefore(now.add(const Duration(minutes: 5)));
+    }
+
+    return isBooked || isPast;
+  }
+
+  Widget _buildFullyBookedBanner(BuildContext context) {
+    final isEnglish = context.locale.languageCode == 'en';
+    final message = isEnglish
+        ? 'All time slots for this date are booked or past. Please select another date.'
+        : 'جميع الأوقات لهذا اليوم محجوزة أو انقضت. يرجى اختيار تاريخ آخر.';
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: AppColors.warning, size: 20.sp),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: AppText(
+              text: message,
+              fontSize: 12.sp,
+              color: AppColors.warning,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

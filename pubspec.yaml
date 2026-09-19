@@ -61,6 +61,7 @@ dependencies:
 
   # Utils
   connectivity_plus: ^7.3.1
+  package_info_plus: ^10.2.1
   pretty_dio_logger: ^1.4.0
   logger: ^2.5.0
   dartz: ^0.10.1

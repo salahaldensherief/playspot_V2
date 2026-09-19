@@ -26,6 +26,8 @@ import '../../../core/utils/booking_error_formatter.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
 import 'widgets/checkout_summary_card.dart';
+import 'widgets/fawry_code_bottom_sheet.dart';
+import 'widgets/vodafone_cash_bottom_sheet.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CheckoutParams params;
@@ -58,7 +60,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
             if (state.status == CheckoutStatus.success) {
-              _showSuccessDialog(context);
+              if (state.selectedMethod == PaymentMethod.fawry) {
+                final finalPrice = widget.params.totalPrice - state.discountAmount;
+                final fawryCode = "984 ${300 + DateTime.now().second * 7} ${100 + DateTime.now().millisecond % 900}";
+                FawryCodeBottomSheet.show(
+                  context: context,
+                  fawryCode: fawryCode,
+                  amount: finalPrice,
+                  onDone: () => context.goNamed(RouterKeys.home, extra: 1),
+                );
+              } else {
+                _showSuccessDialog(context);
+              }
             } else if (state.status == CheckoutStatus.failure) {
               final isEnglish = context.locale.languageCode == 'en';
               final errorMsg = getBookingErrorMessage(
@@ -440,7 +453,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(15.r),
+          borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
             color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
             width: isSelected ? 1.5 : 1,
@@ -455,43 +468,57 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   padding: EdgeInsets.all(8.w),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.neonBlue.withValues(alpha: 0.1)
+                        ? AppColors.neonBlue.withValues(alpha: 0.15)
                         : AppColors.backgroundAlt,
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(icon,
-                      color:
-                          isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                      color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
                       size: 20.sp),
                 ),
-                SizedBox(width: 16.w),
-                AppText(
-                  text: label,
-                  fontSize: 16.sp,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? AppColors.white : AppColors.textSecondary,
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: AppText(
+                    text: label,
+                    fontSize: 16.sp,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? AppColors.white : AppColors.textSecondary,
+                  ),
                 ),
-                const Spacer(),
+                SizedBox(width: 8.w),
                 if (isSelected)
-                  Icon(Icons.check_circle, color: AppColors.neonBlue, size: 20.sp),
+                  Icon(Icons.check_circle_rounded, color: AppColors.neonBlue, size: 22.sp)
+                else
+                  Icon(Icons.radio_button_off, color: AppColors.textSecondary.withValues(alpha: 0.5), size: 20.sp),
               ],
             ),
             if (isSelected && hintText != null) ...[
-              SizedBox(height: 10.h),
+              SizedBox(height: 12.h),
               Container(
-                padding: EdgeInsets.all(10.w),
+                width: double.infinity,
+                padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
                   color: AppColors.neonBlue.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10.r),
+                  borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: AppColors.neonBlue.withValues(alpha: 0.2),
+                    color: AppColors.neonBlue.withValues(alpha: 0.25),
                   ),
                 ),
-                child: AppText(
-                  text: hintText,
-                  fontSize: 11.5.sp,
-                  color: AppColors.textSecondary,
-                  height: 1.35,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.lightbulb_outline, color: AppColors.neonBlue, size: 18.sp),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: AppText(
+                        text: hintText,
+                        fontSize: 12.sp,
+                        color: AppColors.textSecondary,
+                        height: 1.45,
+                        overflow: TextOverflow.visible,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -596,7 +623,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   fontWeight: FontWeight.bold,
                   color: AppColors.warning,
                   maxLines: 2,
-                  overflow: TextOverflow.visible,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 6.h),
                 AppText(
@@ -604,7 +631,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   fontSize: 12.sp,
                   color: Colors.white.withValues(alpha: 0.85),
                   height: 1.4,
-                  maxLines: 5,
                   overflow: TextOverflow.visible,
                 ),
               ],
@@ -659,12 +685,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   onTap: () {
                     if (state.selectedMethod == PaymentMethod.creditCard) {
                       if (!(_formKey.currentState?.validate() ?? false)) return;
+                      context.read<CheckoutCubit>().processPayment(
+                        widget.params,
+                        isArabic: context.locale.languageCode == 'ar',
+                      );
+                    } else if (state.selectedMethod == PaymentMethod.vodafoneCash) {
+                      VodafoneCashBottomSheet.show(
+                        context: context,
+                        amount: finalPrice,
+                        loungeName: widget.params.lounge.name,
+                        onConfirm: (senderPhone) {
+                          context.read<CheckoutCubit>().processPayment(
+                            widget.params,
+                            isArabic: context.locale.languageCode == 'ar',
+                          );
+                        },
+                      );
+                    } else {
+                      context.read<CheckoutCubit>().processPayment(
+                        widget.params,
+                        isArabic: context.locale.languageCode == 'ar',
+                      );
                     }
-
-                    context.read<CheckoutCubit>().processPayment(
-                      widget.params,
-                      isArabic: context.locale.languageCode == 'ar',
-                    );
                   },
                 ),
                 buttonConfig: ButtonConfig(
