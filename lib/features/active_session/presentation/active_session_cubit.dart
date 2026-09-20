@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/di.dart';
@@ -12,6 +13,12 @@ import '../../../../core/notifications/native_notification_service.dart';
 import '../domain/repositories/active_session_repository.dart';
 import '../data/models/order_item_model.dart';
 import 'active_session_state.dart';
+import 'widgets/lounge_review_bottom_sheet.dart';
+import '../../../../art_core/router/app_router.dart';
+import '../../../../art_core/widgets/layout/app_bottom_sheet.dart';
+import '../data/models/active_session_model.dart';
+import 'package:get_storage/get_storage.dart';
+import '../../../../core/cache/caching_key.dart';
 
 class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherMixin {
   final ActiveSessionRepository _repo;
@@ -51,6 +58,39 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     return session.calculateExtensionCost(additionalMinutes);
   }
 
+  bool _hasBeenReviewedOrPrompted(String bookingId) {
+    final rawList = GetStorage().read<List>(CachingKey.REVIEWED_BOOKINGS) ?? [];
+    return rawList.contains(bookingId);
+  }
+
+  void _markAsReviewedOrPrompted(String bookingId) {
+    final rawList = GetStorage().read<List>(CachingKey.REVIEWED_BOOKINGS) ?? [];
+    if (!rawList.contains(bookingId)) {
+      rawList.add(bookingId);
+      GetStorage().write(CachingKey.REVIEWED_BOOKINGS, rawList);
+    }
+  }
+
+  void _showGlobalReviewBottomSheet(ActiveSessionModel session) {
+    if (_hasBeenReviewedOrPrompted(session.bookingId)) return;
+    _markAsReviewedOrPrompted(session.bookingId);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = AppRouter.navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        AppBottomSheet.show(
+          context: context,
+          child: LoungeReviewBottomSheet(
+            loungeName: session.loungeName.isNotEmpty ? session.loungeName : session.roomName,
+            onSubmit: (rating, comment) {
+              submitReview(rating: rating, comment: comment);
+            },
+          ),
+        );
+      }
+    });
+  }
+
   Future<void> loadActiveSession({String? bookingId}) async {
     dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION: bookingId=$bookingId");
     if (state.status != ActiveSessionStatus.loaded) {
@@ -76,11 +116,15 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
           LocalNotificationService.instance.cancelActiveSessionNotification();
           NativeNotificationService.instance.cancelCustomNotification();
           PlaySpotLiveActivityService.instance.endActivity();
+          final completed = state.session ?? state.completedSession;
           emit(state.copyWith(
             status: ActiveSessionStatus.empty,
             session: null,
-            completedSession: state.session ?? state.completedSession,
+            completedSession: completed,
           ));
+          if (completed != null && state.session != null) {
+            _showGlobalReviewBottomSheet(completed);
+          }
         } else {
           dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION LOADED: bookingId=${session.bookingId}, status=${session.status}");
           emit(state.copyWith(
@@ -144,11 +188,15 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
           LocalNotificationService.instance.cancelActiveSessionNotification();
           NativeNotificationService.instance.cancelCustomNotification();
           PlaySpotLiveActivityService.instance.endActivity();
+          final completed = state.session ?? updatedSession;
           emit(state.copyWith(
             status: ActiveSessionStatus.empty,
             session: null,
-            completedSession: state.session ?? updatedSession,
+            completedSession: completed,
           ));
+          if (status == BookingStatus.completed) {
+            _showGlobalReviewBottomSheet(completed);
+          }
         } else {
           dev.log("[LIVESESSION_CUBIT] Realtime update applied directly without re-fetching...");
           final currentSession = state.session;

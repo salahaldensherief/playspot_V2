@@ -9,6 +9,7 @@ import 'package:playspot/features/profile/data/models/claim_referral_result.dart
 enum ProfileStatus {
   initial,
   loading,
+  loggingOut,
   success,
   error,
   logoutSuccess,

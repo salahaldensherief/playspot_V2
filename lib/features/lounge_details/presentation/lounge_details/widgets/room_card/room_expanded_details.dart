@@ -148,9 +148,9 @@ class RoomExpandedDetails extends StatelessWidget {
           child: Row(
             children: [
               _buildToggleOption(context, 'single',
-                  isArabic ? "👤 فردي" : "👤 Single", currentMode == 'single'),
+                  "👤 ${AppStrings.singlePlay.tr()}", currentMode == 'single'),
               _buildToggleOption(context, 'multi',
-                  isArabic ? "👥 زوجي" : "👥 Multi", currentMode == 'multi'),
+                  "👥 ${AppStrings.multiPlay.tr()}", currentMode == 'multi'),
             ],
           ),
         ),
@@ -188,7 +188,7 @@ class RoomExpandedDetails extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AppText(
-                text: isArabic ? "دراعات إضافية" : "Extra Controllers",
+                text: AppStrings.extraControllers.tr(),
                 fontSize: 12.sp,
                 color: Colors.white70,
                 fontWeight: FontWeight.bold),

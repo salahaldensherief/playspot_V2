@@ -19,8 +19,9 @@ class LogoutButton extends StatelessWidget {
     return BlocBuilder<ProfileCubit, ProfileState>(
       buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) {
+        final isLoggingOut = state.status == ProfileStatus.loggingOut;
         return GestureDetector(
-          onTap: state.status == ProfileStatus.loading
+          onTap: isLoggingOut
               ? null
               : () => _showLogoutConfirmation(context),
           child: Container(
@@ -33,7 +34,7 @@ class LogoutButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (state.status == ProfileStatus.loading)
+                if (isLoggingOut)
                    SizedBox(
                     width: 20.w,
                     height: 20.w,

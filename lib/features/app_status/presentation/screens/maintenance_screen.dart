@@ -132,14 +132,19 @@ class MaintenanceScreen extends StatelessWidget {
                           size: 20.r,
                         ),
                         10.horizontalSpace,
-                        Text(
-                          AppStrings.expectedReturnTime.tr(args: [
-                            DateFormat('yyyy-MM-dd hh:mm a', context.locale.languageCode).format(expectedTime.toLocal())
-                          ]),
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              AppStrings.expectedReturnTime.tr(args: [
+                                DateFormat('yyyy-MM-dd hh:mm a', context.locale.languageCode).format(expectedTime.toLocal())
+                              ]),
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ),
                         ),
                       ],

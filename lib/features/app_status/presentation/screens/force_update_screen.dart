@@ -123,33 +123,38 @@ class ForceUpdateScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
                   color: AppColors.cardBackground.withValues(alpha: 0.8),
                   borderColor: AppColors.purple.withValues(alpha: 0.3),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'v$currentVersion',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 13.sp,
-                          decoration: TextDecoration.lineThrough,
-                        ),
+                  child: Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'v$currentVersion',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 13.sp,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          12.horizontalSpace,
+                          Icon(
+                            TablerIcons.arrow_right,
+                            color: AppColors.purple,
+                            size: 18.r,
+                          ),
+                          12.horizontalSpace,
+                          Text(
+                            'v$minVersion+',
+                            style: TextStyle(
+                              color: AppColors.purple,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      12.horizontalSpace,
-                      Icon(
-                        TablerIcons.arrow_right,
-                        color: AppColors.purple,
-                        size: 18.r,
-                      ),
-                      12.horizontalSpace,
-                      Text(
-                        'v$minVersion+',
-                        style: TextStyle(
-                          color: AppColors.purple,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
                 const Spacer(),

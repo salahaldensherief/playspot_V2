@@ -16,6 +16,7 @@ class UserModel extends UserEntity {
     super.cityNameEn,
     super.role = 'user',
     super.isBanned,
+    super.bannedReason,
     super.createdAt,
     this.isNewUser = false,
     this.isRequiresOtp = false,
@@ -61,6 +62,7 @@ class UserModel extends UserEntity {
       cityNameEn: cityData?['name_en'] as String? ?? cityData?['name'] as String?,
       role: normalizeRole(json['role'] as String?),
       isBanned: json['is_banned'] as bool? ?? false,
+      bannedReason: json['banned_reason']?.toString(),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -93,7 +95,8 @@ class UserModel extends UserEntity {
       cityNameAr: metadata['city_name_ar'] as String?,
       cityNameEn: metadata['city_name_en'] as String?,
       role: normalizeRole(rawRole),
-      isBanned: false,
+      isBanned: (metadata['is_banned'] as bool?) ?? (supabaseUser['is_banned'] as bool?) ?? false,
+      bannedReason: (metadata['banned_reason'] as String?) ?? (supabaseUser['banned_reason'] as String?),
       isNewUser: isNewUser,
       createdAt: supabaseUser['created_at'] != null
           ? DateTime.parse(supabaseUser['created_at'] as String)
@@ -117,6 +120,7 @@ class UserModel extends UserEntity {
       'city_name_en': cityNameEn,
       'role': role,
       'is_banned': isBanned,
+      if (bannedReason != null) 'banned_reason': bannedReason,
       'created_at': createdAt?.toIso8601String(),
     };
   }
@@ -133,6 +137,7 @@ class UserModel extends UserEntity {
     String? cityNameEn,
     String? role,
     bool? isBanned,
+    String? bannedReason,
     bool? isNewUser,
     bool? isRequiresOtp,
     DateTime? createdAt,

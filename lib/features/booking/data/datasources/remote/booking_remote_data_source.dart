@@ -59,6 +59,33 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   @override
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params) async {
     final user = _client.auth.currentUser;
+    if (user != null) {
+      try {
+        final profile = await _client
+            .from('profiles')
+            .select('is_banned, banned_reason')
+            .eq('id', user.id)
+            .maybeSingle();
+        if (profile != null && profile['is_banned'] == true) {
+          throw Exception('تم حظر حسابك لمخالفة الشروط');
+        }
+
+        final loungeBan = await _client
+            .from('lounge_banned_users')
+            .select('id')
+            .eq('lounge_id', params.loungeId)
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (loungeBan != null) {
+          throw Exception('لا يمكنك الحجز في هذه الصالة بناءً على سياسة الإدارة');
+        }
+      } catch (e) {
+        if (e.toString().contains('تم حظر حسابك') || e.toString().contains('لا يمكنك الحجز')) {
+          rethrow;
+        }
+      }
+    }
     
     final datePart = "${params.startTime.year}-${params.startTime.month.toString().padLeft(2, '0')}-${params.startTime.day.toString().padLeft(2, '0')}";
     final startPart = "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:${params.startTime.second.toString().padLeft(2, '0')}";
@@ -75,6 +102,10 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final finalUserPhone = params.userPhone.isNotEmpty ? params.userPhone : fallbackPhone;
 
     final durationMinutes = params.endTime.difference(params.startTime).inMinutes;
+
+    final String cleanPaymentMethod = (params.paymentMethod?.toLowerCase() == 'cash')
+        ? 'cash'
+        : 'manual_transfer';
 
     final bookingPayload = <String, dynamic>{
       'room_id': params.roomId,
@@ -98,18 +129,23 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'duration_hours': params.durationHours,
       'room_subtotal': params.roomSubtotal,
       'addons_total': params.addonsTotal,
+      'addons_price': params.addonsTotal,
       'total_price': params.totalPrice,
       'status': BookingStatus.mapToDbStatus(params.status),
       'payment_status': params.paymentStatus,
       'play_mode': params.playMode,
-      if (params.receiptUrl != null) 'receipt_url': params.receiptUrl,
-      if (params.paymentMethod != null) 'payment_method': params.paymentMethod,
+      'payment_method': cleanPaymentMethod,
+      if (params.receiptUrl != null && params.receiptUrl!.isNotEmpty) 'receipt_url': params.receiptUrl,
+      if (cleanPaymentMethod == 'manual_transfer' &&
+          params.senderWalletPhone != null &&
+          params.senderWalletPhone!.isNotEmpty)
+        'sender_wallet_phone': params.senderWalletPhone,
       if (params.expiresAt != null) 'expires_at': params.expiresAt!.toIso8601String(),
     };
 
     dynamic response;
     try {
-      response = await _client.from('bookings').insert(bookingPayload).select('id').single();
+      response = await _client.from('bookings').insert(bookingPayload).select('id, is_first_booking, payment_method, status').single();
     } catch (e) {
       // Fallback in case Postgres table doesn't have all optional snapshot columns
       response = await _client.from('bookings').insert({
@@ -128,8 +164,13 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         if (params.discountAmount > 0) 'discount_amount': params.discountAmount,
         'status': BookingStatus.mapToDbStatus(params.status),
         'payment_status': params.paymentStatus,
+        'payment_method': cleanPaymentMethod,
         'play_mode': params.playMode,
-      }).select('id').single();
+        if (cleanPaymentMethod == 'manual_transfer' &&
+            params.senderWalletPhone != null &&
+            params.senderWalletPhone!.isNotEmpty)
+          'sender_wallet_phone': params.senderWalletPhone,
+      }).select('id, is_first_booking, payment_method, status').single();
     }
 
     final bookingId = response['id']?.toString();

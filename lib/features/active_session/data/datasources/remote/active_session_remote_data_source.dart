@@ -49,8 +49,29 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       return null;
     }
 
-    const selectQuery = '*, lounges(name), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*, extras(id, name, name_ar, name_en, price)))';
+    const selectQuery = '*, lounges(name), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*))';
     final now = DateTime.now();
+
+    // Try RPC get_active_session_details first for rich hydrated session details
+    try {
+      final rpcRes = await _client.rpc('get_active_session_details', params: {
+        if (bookingId != null && bookingId.isNotEmpty) 'p_booking_id': bookingId,
+      });
+      if (rpcRes != null) {
+        final Map<String, dynamic> rpcMap = rpcRes is List
+            ? (rpcRes.isNotEmpty ? Map<String, dynamic>.from(rpcRes.first) : {})
+            : Map<String, dynamic>.from(rpcRes);
+        if (rpcMap.isNotEmpty && rpcMap['id'] != null) {
+          final rpcModel = ActiveSessionModel.fromJson(rpcMap);
+          if (rpcModel.bookingId.isNotEmpty && rpcModel.status == 'in_progress') {
+            dev.log("[LIVESESSION_DS] GET_ACTIVE_SESSION RPC SUCCESS: bookingId=${rpcModel.bookingId}");
+            return rpcModel;
+          }
+        }
+      }
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] RPC get_active_session_details failed: $e, falling back to selectQuery");
+    }
 
     // 1. If specific booking ID requested
     if (bookingId != null && bookingId.isNotEmpty) {

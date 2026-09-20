@@ -204,19 +204,13 @@ class _MyBookingsScreenContentState extends State<_MyBookingsScreenContent>
               labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
               tabs: [
                 Tab(
-                  text: state.upcomingBookings.isNotEmpty
-                      ? "${AppStrings.upcoming.tr()} (${state.upcomingBookings.length})"
-                      : AppStrings.upcoming.tr(),
+                  text: AppStrings.upcoming.tr(),
                 ),
                 Tab(
-                  text: state.pastBookings.isNotEmpty
-                      ? "${AppStrings.past.tr()} (${state.pastBookings.length})"
-                      : AppStrings.past.tr(),
+                  text: AppStrings.past.tr(),
                 ),
                 Tab(
-                  text: state.cancelledBookings.isNotEmpty
-                      ? "${AppStrings.cancelled.tr()} (${state.cancelledBookings.length})"
-                      : AppStrings.cancelled.tr(),
+                  text: AppStrings.cancelled.tr(),
                 ),
               ],
             ),

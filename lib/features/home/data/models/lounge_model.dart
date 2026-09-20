@@ -30,6 +30,11 @@ class LoungeModel extends Equatable {
   final bool isActive;
   final String? vodafoneCashNumber;
   final String? instaPayAccount;
+  final String? walletNumber;
+  final String? instapayHandle;
+  final bool allowCashPayment;
+  final bool requirePrepaidFirstTime;
+  final int cashGracePeriodMinutes;
 
   const LoungeModel({
     required this.id,
@@ -61,11 +66,22 @@ class LoungeModel extends Equatable {
     this.isActive = true,
     this.vodafoneCashNumber,
     this.instaPayAccount,
+    this.walletNumber,
+    this.instapayHandle,
+    this.allowCashPayment = true,
+    this.requirePrepaidFirstTime = false,
+    this.cashGracePeriodMinutes = 10,
   });
 
   String get opensAt => openingTime;
   String get closesAt => closingTime;
   String? get address => location;
+
+  String? get effectiveWalletNumber =>
+      walletNumber ?? vodafoneCashNumber;
+
+  String? get effectiveInstapayHandle =>
+      instapayHandle ?? instaPayAccount;
 
   @override
   List<Object?> get props => [
@@ -98,6 +114,11 @@ class LoungeModel extends Equatable {
         isActive,
         vodafoneCashNumber,
         instaPayAccount,
+        walletNumber,
+        instapayHandle,
+        allowCashPayment,
+        requirePrepaidFirstTime,
+        cashGracePeriodMinutes,
       ];
 
   String getName(bool isArabic) => name;
@@ -293,6 +314,14 @@ class LoungeModel extends Equatable {
       isActive: json['is_active'] as bool? ?? true,
       vodafoneCashNumber: json['vodafone_cash_number']?.toString().trim(),
       instaPayAccount: json['instapay_account']?.toString().trim() ?? json['insta_pay_account']?.toString().trim(),
+      walletNumber: json['wallet_number']?.toString().trim() ?? json['vodafone_cash_number']?.toString().trim(),
+      instapayHandle: json['instapay_handle']?.toString().trim() ?? json['instapay_account']?.toString().trim() ?? json['insta_pay_account']?.toString().trim(),
+      allowCashPayment: json['allow_cash_payment'] as bool? ?? json['allow_cash'] as bool? ?? true,
+      requirePrepaidFirstTime: json['require_prepaid_first_time'] as bool? ?? json['require_prepaid'] as bool? ?? false,
+      cashGracePeriodMinutes: (json['cash_grace_period_minutes'] as num?)?.toInt() ??
+          (json['cancellation_grace_period_minutes'] as num?)?.toInt() ??
+          (json['grace_period_minutes'] as num?)?.toInt() ??
+          10,
     );
   }
 
@@ -324,6 +353,11 @@ class LoungeModel extends Equatable {
       'is_active': isActive,
       if (vodafoneCashNumber != null) 'vodafone_cash_number': vodafoneCashNumber,
       if (instaPayAccount != null) 'instapay_account': instaPayAccount,
+      if (walletNumber != null) 'wallet_number': walletNumber,
+      if (instapayHandle != null) 'instapay_handle': instapayHandle,
+      'allow_cash_payment': allowCashPayment,
+      'require_prepaid_first_time': requirePrepaidFirstTime,
+      'cash_grace_period_minutes': cashGracePeriodMinutes,
     };
   }
 }

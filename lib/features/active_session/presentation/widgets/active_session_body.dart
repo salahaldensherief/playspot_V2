@@ -164,7 +164,8 @@ class ActiveSessionBody extends StatelessWidget {
             child: Column(
               children: [
                 const TimerSection(),
-                SizedBox(height: 32.h),
+                SizedBox(height: 20.h),
+                _buildPendingExtensionBanner(context, session),
                 StationInfo(session: session),
                 SizedBox(height: 24.h),
                 const QuickActions(),
@@ -178,6 +179,67 @@ class ActiveSessionBody extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPendingExtensionBanner(BuildContext context, dynamic session) {
+    final status = session.extensionStatus?.toString().toLowerCase();
+    final mins = session.requestedExtensionMinutes ?? 0;
+
+    if (status != 'pending' && mins <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    final isArabic = context.locale.languageCode == 'ar';
+    final displayMins = mins > 0 ? mins : 30;
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: 20.h),
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: AppColors.warning.withValues(alpha: 0.4),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.hourglass_top_rounded, color: AppColors.warning, size: 20.sp),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: isArabic ? "طلب التمديد قيد المراجعة ⏳" : "Extension Request Pending ⏳",
+                  fontSize: 13.5.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.warning,
+                ),
+                SizedBox(height: 3.h),
+                AppText(
+                  text: isArabic
+                      ? "تم إرسال طلب تمديد الجلسة (+$displayMins دقيقة) لكاشير الصالة وجاري اعتماده الآن."
+                      : "Session extension request (+$displayMins mins) sent to lounge staff and is being processed.",
+                  fontSize: 11.5.sp,
+                  color: Colors.white.withValues(alpha: 0.9),
+                  height: 1.3,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

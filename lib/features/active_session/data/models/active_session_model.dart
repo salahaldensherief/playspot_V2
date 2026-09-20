@@ -84,7 +84,6 @@ class ActiveSessionModel extends Equatable {
   factory ActiveSessionModel.fromJson(Map<String, dynamic> json) {
     final loungeData = json['lounges'] as Map<String, dynamic>?;
     final roomData = json['rooms'] as Map<String, dynamic>?;
-    final ordersData = json['booking_items'] as List? ?? [];
 
     final loungeName = loungeData?['name']?.toString() ??
         json['lounge_name']?.toString() ??
@@ -155,11 +154,22 @@ class ActiveSessionModel extends Equatable {
     // Check canteen_orders -> canteen_order_items -> extras, OR fallback to booking_items
     final List<OrderItemModel> parsedOrders = [];
 
+    final bookingItems = json['items'] as List? ?? json['booking_items'] as List?;
+    if (bookingItems != null) {
+      for (var item in bookingItems) {
+        if (item is Map) {
+          try {
+            parsedOrders.add(OrderItemModel.fromJson(Map<String, dynamic>.from(item)));
+          } catch (_) {}
+        }
+      }
+    }
+
     final canteenOrders = json['canteen_orders'] as List?;
     if (canteenOrders != null && canteenOrders.isNotEmpty) {
       for (var cOrder in canteenOrders) {
         if (cOrder is! Map) continue;
-        final cItems = cOrder['canteen_order_items'] as List?;
+        final cItems = cOrder['items'] as List? ?? cOrder['canteen_order_items'] as List?;
         if (cItems != null) {
           for (var item in cItems) {
             if (item is Map) {
@@ -172,17 +182,18 @@ class ActiveSessionModel extends Equatable {
       }
     }
 
-    if (parsedOrders.isEmpty) {
-      final bookingItems = json['booking_items'] as List?;
-      if (bookingItems != null) {
-        for (var item in bookingItems) {
-          if (item is Map) {
-            try {
-              parsedOrders.add(OrderItemModel.fromJson(Map<String, dynamic>.from(item)));
-            } catch (_) {}
-          }
-        }
-      }
+    // Calculate Room Base Price (excluding add-ons)
+    double roomBasePrice = (json['room_price'] as num?)?.toDouble() ??
+        (json['room_subtotal'] as num?)?.toDouble() ??
+        (json['discounted_room_price'] as num?)?.toDouble() ??
+        (json['base_price'] as num?)?.toDouble() ??
+        0.0;
+
+    final double rawTotalPrice = (json['total_price'] as num?)?.toDouble() ?? 0.0;
+
+    if (roomBasePrice == 0.0 && rawTotalPrice > 0) {
+      final double ordersSum = parsedOrders.fold(0.0, (sum, o) => sum + o.total);
+      roomBasePrice = (rawTotalPrice - ordersSum).clamp(0.0, double.infinity);
     }
 
     return ActiveSessionModel(
@@ -193,7 +204,7 @@ class ActiveSessionModel extends Equatable {
       deviceName: json['device_name']?.toString() ?? 'Station',
       startTime: startTime,
       endTime: endTime,
-      basePrice: totalPrice,
+      basePrice: roomBasePrice,
       extensionsPrice: (json['extensions_price'] as num?)?.toDouble() ?? 0.0,
       extensionStatus: json['extension_status']?.toString(),
       requestedExtensionMinutes: (json['requested_extension_minutes'] as num?)?.toInt(),

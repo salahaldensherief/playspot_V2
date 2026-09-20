@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,13 +7,11 @@ import '../../../art_core/extension/globlX.dart';
 import '../../../core/cache/caching_key.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
-import '../../../core/error/failures.dart';
 import '../../../core/services/location_service.dart';
 import '../../tournaments/domain/usecases/get_tournaments_usecase.dart';
 import '../../tournaments/domain/usecases/get_home_tournament_usecase.dart';
 import '../../tournaments/domain/usecases/get_my_active_tournament_usecase.dart';
 import '../../tournaments/domain/entities/tournament_entity.dart';
-import '../../tournaments/domain/entities/user_tournament_participation_entity.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../domain/repositories/home_repository.dart';
 import 'home_state.dart';
@@ -22,20 +19,6 @@ import '../data/models/lounge_model.dart';
 import '../data/models/category_model.dart';
 import '../data/models/promo_model.dart';
 import '../data/models/home_params.dart';
-
-class _MetaDataResult {
-  final List<Map<String, dynamic>> cities;
-  final List<PromoModel> promotions;
-  final List<CategoryModel> categories;
-  final int points;
-
-  const _MetaDataResult({
-    required this.cities,
-    required this.promotions,
-    required this.categories,
-    required this.points,
-  });
-}
 
 class HomeCubit extends Cubit<HomeState> {
   final HomeRepository _homeRepository;
@@ -61,38 +44,49 @@ class HomeCubit extends Cubit<HomeState> {
     this._getMyActiveTournamentUseCase,
   ) : super(const HomeState());
 
+  void _safeEmit(HomeState s) {
+    if (!isClosed) emit(s);
+  }
+
   Future<void> init() async {
     _loadCachedHomeData();
 
     final userId = _pref.userId();
     final hasCachedData = state.nearestLounges.isNotEmpty;
 
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: hasCachedData ? HomeStatus.refreshing : HomeStatus.loading,
     ));
 
-    final meta = await _fetchMetaData(userId);
-
-    emit(state.copyWith(
-      availableCities: meta.cities,
-      promotions: meta.promotions,
-      categories: meta.categories,
-      pointsBalance: meta.points,
-    ));
-
-    _cacheMetaData(meta.promotions, meta.categories, meta.cities);
-
-    unawaited(fetchTournamentsData());
-
     final savedLat = double.tryParse(_pref.latitude());
     final savedLng = double.tryParse(_pref.longitude());
-    final hasSavedLocation = savedLat != null && savedLng != null;
+    var hasSavedLocation = savedLat != null && savedLng != null;
 
-    if (hasSavedLocation) {
+    if (!hasSavedLocation) {
+      try {
+        final lastPos = await Geolocator.getLastKnownPosition();
+        if (lastPos != null) {
+          await _pref.saveLatitude(lastPos.latitude);
+          await _pref.saveLongitude(lastPos.longitude);
+          hasSavedLocation = true;
+          unawaited(getHomeData());
+        }
+      } catch (_) {}
+    }
+
+    final citiesFuture = _loadCities();
+    unawaited(_loadPromotions());
+    unawaited(_loadCategories());
+    unawaited(_loadPoints(userId));
+    unawaited(fetchTournamentsData());
+    if (hasSavedLocation && state.nearestLounges.isEmpty) {
       unawaited(getHomeData());
     }
 
-    await _detectLocation(meta.cities, shouldRefreshLounges: !hasSavedLocation);
+    await _detectLocation(
+      citiesFuture,
+      shouldRefreshLounges: !hasSavedLocation,
+    );
   }
 
   static const String _citiesCacheKey = 'CITIES_CACHE';
@@ -131,96 +125,103 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<_MetaDataResult> _fetchMetaData(String? userId) async {
-    final bool citiesCacheValid = _isCacheValid(_citiesCacheTimeKey);
-    final cachedCities = citiesCacheValid ? _getCachedCities() : <Map<String, dynamic>>[];
+  Future<List<Map<String, dynamic>>> _loadCities() async {
+    if (_isCacheValid(_citiesCacheTimeKey)) {
+      final cached = _getCachedCities();
+      if (cached.isNotEmpty) {
+        _safeEmit(state.copyWith(availableCities: cached));
+        return cached;
+      }
+    }
+    final res = await _homeRepository.getAvailableCities();
+    return res.fold((_) => <Map<String, dynamic>>[], (cities) {
+      if (cities.isNotEmpty) {
+        _safeEmit(state.copyWith(availableCities: cities));
+        _pref.saveValue(_citiesCacheKey, jsonEncode(cities));
+        _pref.saveValue(_citiesCacheTimeKey,
+            DateTime.now().millisecondsSinceEpoch.toString());
+      }
+      return cities;
+    });
+  }
 
-    final bool categoriesCacheValid = _isCacheValid(_categoriesCacheTimeKey);
-    final cachedCategories = categoriesCacheValid ? _getCachedCategories() : <CategoryModel>[];
+  Future<void> _loadCategories() async {
+    if (_isCacheValid(_categoriesCacheTimeKey)) {
+      final cached = _getCachedCategories();
+      if (cached.isNotEmpty) {
+        _safeEmit(state.copyWith(categories: cached));
+        return;
+      }
+    }
+    final res = await _homeRepository.getCategories();
+    res.fold((_) {}, (cats) {
+      if (cats.isEmpty) return;
+      _safeEmit(state.copyWith(categories: cats));
+      _pref.saveValue(CachingKey.CATEGORIES_CACHE,
+          jsonEncode(cats.map((e) => e.toJson()).toList()));
+      _pref.saveValue(_categoriesCacheTimeKey,
+          DateTime.now().millisecondsSinceEpoch.toString());
+    });
+  }
 
-    final meta = await Future.wait([
-      (citiesCacheValid && cachedCities.isNotEmpty)
-          ? Future.value(Right<Failure, List<Map<String, dynamic>>>(cachedCities))
-          : _homeRepository.getAvailableCities(),
-      _homeRepository.getPromotions(loungeId: null),
-      (categoriesCacheValid && cachedCategories.isNotEmpty)
-          ? Future.value(Right<Failure, List<CategoryModel>>(cachedCategories))
-          : _homeRepository.getCategories(),
-      if (userId != null && userId.isNotEmpty) _homeRepository.getUserPoints(userId),
-    ]);
+  Future<void> _loadPromotions() async {
+    final res = await _homeRepository.getPromotions(loungeId: null);
+    res.fold((_) {}, (promos) {
+      if (promos.isNotEmpty) {
+        _safeEmit(state.copyWith(promotions: promos));
+        _pref.saveValue(CachingKey.PROMOTIONS_CACHE,
+            jsonEncode(promos.map((e) => e.toJson()).toList()));
+      }
+    });
+  }
 
-    final cities = (meta[0] as Either<Failure, List<Map<String, dynamic>>>)
-        .fold((l) => <Map<String, dynamic>>[], (r) => r);
-    final promotions =
-        (meta[1] as Either<Failure, List<PromoModel>>).fold((l) => <PromoModel>[], (r) => r);
-    final categories =
-        (meta[2] as Either<Failure, List<CategoryModel>>).fold((l) => <CategoryModel>[], (r) => r);
-    final points = meta.length > 3
-        ? (meta[3] as Either<Failure, int>).fold((l) => 0, (r) => r)
-        : state.pointsBalance;
-
-    return _MetaDataResult(
-      cities: cities,
-      promotions: promotions,
-      categories: categories,
-      points: points,
-    );
+  Future<void> _loadPoints(String? userId) async {
+    if (userId == null || userId.isEmpty) return;
+    final res = await _homeRepository.getUserPoints(userId);
+    res.fold((_) {}, (p) => _safeEmit(state.copyWith(pointsBalance: p)));
   }
 
   Future<void> fetchTournamentsData() async {
-    final userId = _pref.userId();
-    final hasUser = userId != null && userId.isNotEmpty;
+    await Future.wait([_loadHomeTournament(), _loadActiveTournament()]);
+  }
 
-    final results = await Future.wait([
-      _getHomeTournamentUseCase(),
-      if (hasUser) _getMyActiveTournamentUseCase(),
-    ]);
-
-    final homeTournamentResult = results[0] as Either<Failure, TournamentEntity?>;
-    final activeResult = hasUser ? results[1] as Either<Failure, UserTournamentParticipationEntity?> : null;
-
-    // 1) Fetch featured home promo tournament
-    await homeTournamentResult.fold(
-      (failure) async {
-        // Fallback if RPC fails
+  Future<void> _loadHomeTournament() async {
+    final result = await _getHomeTournamentUseCase();
+    await result.fold(
+      (_) async {
         final lat = double.tryParse(_pref.latitude());
         final lng = double.tryParse(_pref.longitude());
-        final tournamentsResult = await _getTournamentsUseCase(latitude: lat, longitude: lng);
-        tournamentsResult.fold(
-          (failure) {},
-          (tournaments) {
-            final nearest = tournaments.firstWhereOrNull(
-              (t) => t.status == TournamentStatus.registrationOpen || t.status == TournamentStatus.published,
-            ) ?? tournaments.firstOrNull;
-            emit(state.copyWith(
-              nearbyTournament: nearest,
-              clearNearbyTournament: nearest == null,
-            ));
-          },
-        );
-      },
-      (tournament) async {
-        emit(state.copyWith(
-          nearbyTournament: tournament,
-          clearNearbyTournament: tournament == null,
-        ));
-      },
-    );
-
-    // 2) Fetch user active tournament
-    if (activeResult != null) {
-      activeResult.fold(
-        (failure) {},
-        (participation) {
-          emit(state.copyWith(
-            activeRegisteredTournament: participation?.tournament,
-            clearActiveRegisteredTournament: participation?.tournament == null,
-            activeUserParticipant: participation?.participant,
-            clearActiveUserParticipant: participation?.participant == null,
+        final res = await _getTournamentsUseCase(latitude: lat, longitude: lng);
+        res.fold((_) {}, (tournaments) {
+          final nearest = tournaments.firstWhereOrNull((t) =>
+                  t.status == TournamentStatus.registrationOpen ||
+                  t.status == TournamentStatus.published) ??
+              tournaments.firstOrNull;
+          _safeEmit(state.copyWith(
+            nearbyTournament: nearest,
+            clearNearbyTournament: nearest == null,
           ));
-        },
-      );
-    }
+        });
+      },
+      (t) async => _safeEmit(state.copyWith(
+        nearbyTournament: t,
+        clearNearbyTournament: t == null,
+      )),
+    );
+  }
+
+  Future<void> _loadActiveTournament() async {
+    final userId = _pref.userId();
+    if (userId == null || userId.isEmpty) return;
+    final result = await _getMyActiveTournamentUseCase();
+    result.fold((_) {}, (p) {
+      _safeEmit(state.copyWith(
+        activeRegisteredTournament: p?.tournament,
+        clearActiveRegisteredTournament: p?.tournament == null,
+        activeUserParticipant: p?.participant,
+        clearActiveUserParticipant: p?.participant == null,
+      ));
+    });
   }
 
   void _loadCachedHomeData() {
@@ -253,39 +254,16 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  void _cacheMetaData(List<PromoModel> promos, List<CategoryModel> cats, List<Map<String, dynamic>> cities) {
-    final now = DateTime.now().millisecondsSinceEpoch.toString();
-    _pref.saveValue(CachingKey.PROMOTIONS_CACHE, jsonEncode(promos.map((e) => e.toJson()).toList()));
-
-    if (cats.isNotEmpty) {
-      _pref.saveValue(CachingKey.CATEGORIES_CACHE, jsonEncode(cats.map((e) => e.toJson()).toList()));
-      _pref.saveValue(_categoriesCacheTimeKey, now);
-    }
-    if (cities.isNotEmpty) {
-      _pref.saveValue(_citiesCacheKey, jsonEncode(cities));
-      _pref.saveValue(_citiesCacheTimeKey, now);
-    }
-  }
-
   Future<void> refreshHome() async {
-    final userId = _pref.userId();
-    
-    emit(state.copyWith(status: HomeStatus.refreshing));
-
-    final meta = await _fetchMetaData(userId);
-
-    emit(state.copyWith(
-      availableCities: meta.cities,
-      promotions: meta.promotions,
-      categories: meta.categories,
-      pointsBalance: meta.points,
-    ));
-
-    _cacheMetaData(meta.promotions, meta.categories, meta.cities);
-
-    unawaited(fetchTournamentsData());
-
-    await getHomeData(forceLoading: false);
+    _safeEmit(state.copyWith(status: HomeStatus.refreshing));
+    await Future.wait([
+      _loadCities(),
+      _loadPromotions(),
+      _loadCategories(),
+      _loadPoints(_pref.userId()),
+      fetchTournamentsData(),
+      getHomeData(forceLoading: false),
+    ]);
   }
 
   Future<void> getHomeData({bool isLoadMore = false, bool forceLoading = false}) async {
@@ -305,7 +283,7 @@ class HomeCubit extends Cubit<HomeState> {
 
     final isBackgroundRefresh = state.nearestLounges.isNotEmpty && !isLoadMore && !forceLoading;
     
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: isLoadMore 
           ? HomeStatus.loadingMore
           : (isBackgroundRefresh ? HomeStatus.refreshing : HomeStatus.loading),
@@ -330,13 +308,13 @@ class HomeCubit extends Cubit<HomeState> {
     if (currentFetchToken != _homeDataFetchToken) return;
 
     result.fold(
-      (f) => emit(state.copyWith(status: HomeStatus.failure)),
+      (f) => _safeEmit(state.copyWith(status: HomeStatus.failure)),
       (newLounges) {
         final List<LoungeModel> updatedLounges = isLoadMore 
             ? [...state.nearestLounges, ...newLounges]
             : newLounges;
 
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           status: HomeStatus.success,
           nearestLounges: updatedLounges,
           hasReachedMax: newLounges.length < pageSize,
@@ -351,18 +329,23 @@ class HomeCubit extends Cubit<HomeState> {
 
   void changeSortType(LoungeSortType type) {
     if (state.sortType == type) return;
-    emit(state.copyWith(sortType: type));
+    _safeEmit(state.copyWith(sortType: type));
     getHomeData();
   }
 
   void loadMore() => getHomeData(isLoadMore: true);
 
   Future<void> _detectLocation(
-      List<Map<String, dynamic>> cities, {
-        required bool shouldRefreshLounges,
-      }) async {
+    Future<List<Map<String, dynamic>>> citiesFuture, {
+    required bool shouldRefreshLounges,
+  }) async {
     final pos = await _locationService.getCurrentLocation();
-    if (pos == null) return;
+    if (pos == null) {
+      if (state.status == HomeStatus.loading) {
+        _safeEmit(state.copyWith(status: HomeStatus.failure));
+      }
+      return;
+    }
 
     final pref = sl<PreferenceManager>();
     await pref.saveLatitude(pos.latitude);
@@ -380,20 +363,11 @@ class HomeCubit extends Cubit<HomeState> {
 
     final address = await _locationService.getAddressFromLatLng(pos.latitude, pos.longitude);
     if (address == null) return;
+    await citiesFuture;
 
-    final lowerAddress = address.toLowerCase();
-    final isInEgypt = lowerAddress.contains("egypt") || lowerAddress.contains("مصر");
+    final isInEgypt = address.toLowerCase().contains("egypt") || address.toLowerCase().contains("مصر");
 
     await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
-
-    String? matchedCity;
-    for (var c in cities) {
-      final cityName = c['city'].toString();
-      if (lowerAddress.contains(cityName.toLowerCase())) {
-        matchedCity = cityName;
-        break;
-      }
-    }
 
     String displayLocation = address;
     if (isInEgypt) {
@@ -402,8 +376,7 @@ class HomeCubit extends Cubit<HomeState> {
       displayLocation = "$area, Egypt";
     }
 
-    emit(state.copyWith(
-      selectedCity: matchedCity,
+    _safeEmit(state.copyWith(
       currentAddress: displayLocation,
     ));
   }
@@ -434,7 +407,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   Future<void> selectCity(String? city) async {
     if (city == state.selectedCity) return;
-    emit(city == null || city.isEmpty
+    _safeEmit(city == null || city.isEmpty
         ? state.copyWith(clearCity: true, status: HomeStatus.loading)
         : state.copyWith(selectedCity: city, status: HomeStatus.loading));
     await getHomeData();
@@ -448,7 +421,7 @@ class HomeCubit extends Cubit<HomeState> {
       currentSelected.add(categoryId);
     }
 
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       selectedCategoryIds: currentSelected,
     ));
 

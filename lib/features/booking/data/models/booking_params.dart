@@ -87,6 +87,7 @@ class CreateBookingParams extends Equatable {
   final String paymentStatus;
   final String? receiptUrl;
   final String? paymentMethod;
+  final String? senderWalletPhone;
   final DateTime? expiresAt;
 
   const CreateBookingParams({
@@ -115,6 +116,7 @@ class CreateBookingParams extends Equatable {
     this.paymentStatus = 'unpaid',
     this.receiptUrl,
     this.paymentMethod,
+    this.senderWalletPhone,
     this.expiresAt,
   });
 
@@ -145,6 +147,7 @@ class CreateBookingParams extends Equatable {
         paymentStatus,
         receiptUrl,
         paymentMethod,
+        senderWalletPhone,
         expiresAt,
       ];
 

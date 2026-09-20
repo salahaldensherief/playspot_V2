@@ -22,6 +22,10 @@ class BookingModel extends Equatable {
   final double? lng;
   final DateTime startDateTime;
   final List<Map<String, dynamic>> canteenItems;
+  final String? paymentMethod;
+  final bool? isFirstBooking;
+  final DateTime? checkedInAt;
+  final String? cancellationReason;
 
   const BookingModel({
     required this.id,
@@ -44,6 +48,10 @@ class BookingModel extends Equatable {
     this.lng,
     required this.startDateTime,
     this.canteenItems = const [],
+    this.paymentMethod,
+    this.isFirstBooking,
+    this.checkedInAt,
+    this.cancellationReason,
   });
 
   bool get isUpcoming => status == BookingStatus.upcoming || status == BookingStatus.pending;
@@ -71,6 +79,10 @@ class BookingModel extends Equatable {
         lng,
         startDateTime,
         canteenItems,
+        paymentMethod,
+        isFirstBooking,
+        checkedInAt,
+        cancellationReason,
       ];
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -117,29 +129,73 @@ class BookingModel extends Equatable {
     }
 
     final List<Map<String, dynamic>> parsedCanteenItems = [];
+
+    final bookingItems = json['items'] as List? ?? json['booking_items'] as List?;
+    if (bookingItems != null && bookingItems.isNotEmpty) {
+      for (var item in bookingItems) {
+        if (item is Map) {
+          final rawName = item['name_ar']?.toString() ??
+              item['name_en']?.toString() ??
+              item['name']?.toString() ??
+              item['product_name']?.toString() ??
+              item['extra_name']?.toString() ??
+              item['item_name']?.toString() ??
+              item['title']?.toString() ??
+              'صنف';
+          final qty = (item['quantity'] as num?)?.toInt() ?? 1;
+          final rawTotal = (item['total_price'] as num?)?.toDouble() ??
+              (item['total'] as num?)?.toDouble();
+          double unitPrice = (item['unit_price'] as num?)?.toDouble() ??
+              (item['price'] as num?)?.toDouble() ??
+              0.0;
+          if (unitPrice == 0.0 && rawTotal != null && rawTotal > 0) {
+            unitPrice = rawTotal / (qty > 0 ? qty : 1);
+          }
+          final totalPrice = rawTotal ?? (unitPrice * qty);
+
+          parsedCanteenItems.add({
+            'name': rawName.trim().isNotEmpty ? rawName.trim() : 'صنف',
+            'quantity': qty,
+            'unit_price': unitPrice,
+            'total_price': totalPrice,
+          });
+        }
+      }
+    }
+
     final canteenOrders = json['canteen_orders'] as List?;
     if (canteenOrders != null && canteenOrders.isNotEmpty) {
       for (var cOrder in canteenOrders) {
         if (cOrder is! Map) continue;
-        final cItems = cOrder['canteen_order_items'] as List?;
+        final cItems = cOrder['items'] as List? ?? cOrder['canteen_order_items'] as List?;
         if (cItems != null) {
           for (var item in cItems) {
             if (item is Map) {
               final extraData = item['extras'] as Map<String, dynamic>?;
-              final name = extraData?['name_ar']?.toString() ??
-                  extraData?['name']?.toString() ??
-                  extraData?['name_en']?.toString() ??
+              final rawName = item['name_ar']?.toString() ??
+                  item['name_en']?.toString() ??
                   item['name']?.toString() ??
-                  'Item';
-              final price = (item['unit_price'] as num?)?.toDouble() ??
+                  item['product_name']?.toString() ??
+                  item['extra_name']?.toString() ??
+                  extraData?['name_ar']?.toString() ??
+                  extraData?['name_en']?.toString() ??
+                  extraData?['name']?.toString() ??
+                  item['item_name']?.toString() ??
+                  'صنف';
+              final qty = (item['quantity'] as num?)?.toInt() ?? 1;
+              final rawTotal = (item['total_price'] as num?)?.toDouble() ??
+                  (item['total'] as num?)?.toDouble();
+              double price = (item['unit_price'] as num?)?.toDouble() ??
                   (item['price'] as num?)?.toDouble() ??
                   (extraData?['price'] as num?)?.toDouble() ??
                   0.0;
-              final qty = (item['quantity'] as num?)?.toInt() ?? 1;
-              final total = (item['total_price'] as num?)?.toDouble() ?? (price * qty);
+              if (price == 0.0 && rawTotal != null && rawTotal > 0) {
+                price = rawTotal / (qty > 0 ? qty : 1);
+              }
+              final total = rawTotal ?? (price * qty);
 
               parsedCanteenItems.add({
-                'name': name,
+                'name': rawName.trim().isNotEmpty ? rawName.trim() : 'إضافة',
                 'quantity': qty,
                 'unit_price': price,
                 'total_price': total,
@@ -149,6 +205,9 @@ class BookingModel extends Equatable {
         }
       }
     }
+
+    final checkedInStr = json['checked_in_at']?.toString();
+    final parsedCheckedIn = checkedInStr != null ? DateTime.tryParse(checkedInStr) : null;
 
     return BookingModel(
       id: json['id'].toString(),
@@ -171,6 +230,10 @@ class BookingModel extends Equatable {
       lng: parsedLng,
       startDateTime: parsedStartDateTime,
       canteenItems: parsedCanteenItems,
+      paymentMethod: json['payment_method']?.toString(),
+      isFirstBooking: json['is_first_booking'] as bool?,
+      checkedInAt: parsedCheckedIn,
+      cancellationReason: json['cancellation_reason']?.toString(),
     );
   }
 

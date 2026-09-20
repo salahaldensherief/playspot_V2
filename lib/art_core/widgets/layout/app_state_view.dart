@@ -110,17 +110,24 @@ class AppStateView extends StatelessWidget {
               SizedBox(height: AppSizes.s24),
               AppButton(
                 content: ButtonContent(
-                  body: AppText(
-                    text: _safeTranslate(actionLabel!),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  body: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: AppText(
+                      text: _safeTranslate(actionLabel!),
+                      fontSize: 13.5.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
                 behavior: ButtonBehavior.tap(onTap: onAction),
                 buttonConfig: ButtonConfig(
                   height: 48.h,
-                  width: 220.w,
+                  width: null,
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
                   gradient: AppColors.primaryGradient,
                   borderRadius: AppSizes.r12,
                 ),

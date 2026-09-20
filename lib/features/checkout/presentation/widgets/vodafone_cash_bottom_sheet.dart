@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -24,6 +25,7 @@ class VodafoneCashBottomSheet extends StatefulWidget {
   final String walletNumber;
   final String? instaPayAccount;
   final String loungeName;
+  final String? initialMethod;
   final Function(String paymentMethod, File? receiptFile, String senderPhone) onConfirm;
 
   const VodafoneCashBottomSheet({
@@ -32,6 +34,7 @@ class VodafoneCashBottomSheet extends StatefulWidget {
     this.walletNumber = '',
     this.instaPayAccount,
     required this.loungeName,
+    this.initialMethod,
     required this.onConfirm,
   });
 
@@ -42,6 +45,7 @@ class VodafoneCashBottomSheet extends StatefulWidget {
     required Function(String paymentMethod, File? receiptFile, String senderPhone) onConfirm,
     String walletNumber = '',
     String? instaPayAccount,
+    String? initialMethod,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -55,6 +59,7 @@ class VodafoneCashBottomSheet extends StatefulWidget {
         walletNumber: walletNumber,
         instaPayAccount: instaPayAccount,
         loungeName: loungeName,
+        initialMethod: initialMethod,
         onConfirm: onConfirm,
       ),
     );
@@ -85,7 +90,9 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
     _hasInstaPay = _instaPayAccount.isNotEmpty;
 
     // Set initial selection
-    if (_hasVodafoneCash) {
+    if (widget.initialMethod != null && widget.initialMethod!.isNotEmpty) {
+      _selectedMethod = widget.initialMethod!;
+    } else if (_hasVodafoneCash) {
       _selectedMethod = 'Vodafone Cash';
     } else if (_hasInstaPay) {
       _selectedMethod = 'InstaPay';
@@ -234,7 +241,9 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
                     child: _buildMethodTile(
                       title: 'Vodafone Cash',
                       isSelected: _selectedMethod == 'Vodafone Cash',
-                      icon: TablerIcons.wallet,
+                      imagePath: AssetsManager.vodafoneCashLogo,
+                      imageFit: BoxFit.cover,
+                      imageBorderRadius: 6.r,
                       onTap: () => setState(() => _selectedMethod = 'Vodafone Cash'),
                     ),
                   ),
@@ -244,7 +253,9 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
                     child: _buildMethodTile(
                       title: 'InstaPay',
                       isSelected: _selectedMethod == 'InstaPay',
-                      icon: TablerIcons.device_mobile,
+                      imagePath: AssetsManager.instaPayLogo,
+                      imageBgColor: Colors.white,
+                      imageBorderRadius: 4.r,
                       onTap: () => setState(() => _selectedMethod = 'InstaPay'),
                     ),
                   ),
@@ -472,6 +483,18 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
                   behavior: ButtonBehavior.tap(
                     isEnabled: _receiptFile != null && !_isUploading,
                     onTap: () async {
+                      final phone = _senderPhoneController.text.trim();
+                      if (phone.isEmpty) {
+                        final isEnglish = context.locale.languageCode == 'en';
+                        GameHudToast.show(
+                          context,
+                          isEnglish
+                              ? 'Sender wallet/phone number is required for manual transfer.'
+                              : 'يجب إدخال رقم المحفظة الذي تم التحويل منه.',
+                          type: ToastType.error,
+                        );
+                        return;
+                      }
                       if (_receiptFile == null) {
                         GameHudToast.show(
                           context,
@@ -481,7 +504,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
                         return;
                       }
                       setState(() => _isUploading = true);
-                      final phone = _senderPhoneController.text.trim();
                       Navigator.pop(context);
                       widget.onConfirm(_selectedMethod, _receiptFile, phone);
                     },
@@ -499,14 +521,18 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
   Widget _buildMethodTile({
     required String title,
     required bool isSelected,
-    required IconData icon,
+    String? imagePath,
+    BoxFit imageFit = BoxFit.contain,
+    Color? imageBgColor,
+    double? imageBorderRadius,
+    IconData? icon,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.1) : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(12.r),
@@ -518,17 +544,40 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
-              size: 18.sp,
-            ),
-            SizedBox(width: 8.w),
-            AppText(
-              text: title,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? AppColors.neonBlue : AppColors.textPrimary,
+            if (imagePath != null)
+              Container(
+                decoration: BoxDecoration(
+                  color: imageBgColor ?? Colors.transparent,
+                  borderRadius: BorderRadius.circular(imageBorderRadius ?? 4.r),
+                ),
+                padding: imageBgColor != null ? EdgeInsets.all(2.w) : EdgeInsets.zero,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(imageBorderRadius ?? 4.r),
+                  child: Image.asset(
+                    imagePath,
+                    width: 20.w,
+                    height: 20.w,
+                    fit: imageFit,
+                  ),
+                ),
+              )
+            else if (icon != null)
+              Icon(
+                icon,
+                color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                size: 18.sp,
+              ),
+            SizedBox(width: 6.w),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: AppText(
+                  text: title,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? AppColors.neonBlue : AppColors.textPrimary,
+                ),
+              ),
             ),
           ],
         ),

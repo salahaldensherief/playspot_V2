@@ -9,6 +9,8 @@ class AssetsManager {
   static const String congratsGif = '$_jsonPath/congrats.json';
   static const String giftsLoading = '$_jsonPath/gifts.gif';
   static const String joystickIcon = '$_imagePath/joystik.svg';
+  static const String vodafoneCashLogo = '$_imagePath/vodafone_cash_logo.png';
+  static const String instaPayLogo = '$_imagePath/InstaPay_Logo.png';
 
   ///---- Nav Bar Icons
 

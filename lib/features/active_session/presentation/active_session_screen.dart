@@ -6,12 +6,12 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import '../../../art_core/widgets/layout/app_bottom_sheet.dart';
 import '../data/models/active_session_model.dart';
 import 'active_session_cubit.dart';
 import 'active_session_state.dart';
 import 'widgets/active_session_body.dart';
 import 'widgets/extension_prompt_card.dart';
-import 'widgets/lounge_review_bottom_sheet.dart';
 
 class ActiveSessionScreen extends StatefulWidget {
   final String? bookingId;
@@ -36,19 +36,6 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ActiveSessionCubit>().loadActiveSession(bookingId: widget.bookingId);
     });
-  }
-
-  void _showReviewBottomSheet(BuildContext context, ActiveSessionModel session) {
-    final cubit = context.read<ActiveSessionCubit>();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => LoungeReviewBottomSheet(
-        loungeName: session.loungeName,
-        onSubmit: (rating, comment) => cubit.submitReview(rating: rating, comment: comment),
-      ),
-    );
   }
 
   @override
@@ -119,10 +106,6 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
             type: ToastType.error,
           );
         }
-
-        if (state.status == ActiveSessionStatus.empty && state.completedSession != null) {
-          _showReviewBottomSheet(context, state.completedSession!);
-        }
       },
       child: Scaffold(
         appBar: AppBar(
@@ -130,6 +113,7 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
             text: AppStrings.activeSession.tr(),
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
           backgroundColor: Colors.transparent,
           elevation: 0,

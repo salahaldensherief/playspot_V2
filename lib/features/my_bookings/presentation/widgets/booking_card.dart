@@ -145,7 +145,7 @@ class _BookingCardState extends State<BookingCard> {
                 ),
               ),
               SizedBox(width: 8.w),
-              _buildStatusBadge(),
+              _buildBadgesRow(),
             ],
           ),
           SizedBox(height: 8.h),
@@ -206,6 +206,8 @@ class _BookingCardState extends State<BookingCard> {
               ),
             ],
           ),
+          _buildCashArrivalWarningBanner(),
+          _buildCancellationReasonBanner(),
           if (isUpcoming) ...[
             SizedBox(height: 16.h),
             _buildCountdownBanner(),
@@ -257,26 +259,145 @@ class _BookingCardState extends State<BookingCard> {
     );
   }
 
+  Widget _buildBadgesRow() {
+    final isCash = widget.booking.paymentMethod?.toLowerCase() == 'cash';
+    final paymentMethodText = isCash
+        ? AppStrings.cashAtLounge.tr()
+        : AppStrings.manualTransfer.tr();
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (widget.booking.isFirstBooking == true) ...[
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: AppColors.neonPurple.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+            ),
+            child: AppText(
+              text: AppStrings.firstBooking.tr(),
+              fontSize: 10.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.neonPurple,
+            ),
+          ),
+          SizedBox(width: 6.w),
+        ],
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: AppColors.borderDefault),
+          ),
+          child: AppText(
+            text: paymentMethodText,
+            fontSize: 10.sp,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        SizedBox(width: 6.w),
+        _buildStatusBadge(),
+      ],
+    );
+  }
+
+  Widget _buildCashArrivalWarningBanner() {
+    final isCash = widget.booking.paymentMethod?.toLowerCase() == 'cash';
+    final isNotCheckedIn = widget.booking.checkedInAt == null;
+    final isPendingOrUpcoming = widget.booking.status == BookingStatus.pending ||
+        widget.booking.status == BookingStatus.upcoming;
+
+    if (!isCash || !isNotCheckedIn || !isPendingOrUpcoming) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(top: 10.h),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.alarm_on_rounded, color: AppColors.warning, size: 18.sp),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: AppText(
+              text: AppStrings.cashArrivalNotice.tr(),
+              fontSize: 11.5.sp,
+              fontWeight: FontWeight.w600,
+              color: AppColors.warning,
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCancellationReasonBanner() {
+    final reason = widget.booking.cancellationReason;
+    if (reason == null || reason.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(top: 10.h),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: AppColors.danger.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppText(
+            text: AppStrings.cancellationReason.tr(),
+            fontSize: 12.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.danger,
+          ),
+          SizedBox(height: 4.h),
+          AppText(
+            text: reason,
+            fontSize: 11.5.sp,
+            color: Colors.white,
+            height: 1.3,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatusBadge() {
+    final isArabic = context.locale.languageCode == 'ar';
     Color color;
     String text;
 
     switch (widget.booking.status) {
       case BookingStatus.upcoming:
         color = AppColors.success;
-        text = AppStrings.confirmed.tr();
+        text = isArabic ? 'قادم' : 'Upcoming';
         break;
       case BookingStatus.pending:
         color = AppColors.warning;
-        text = AppStrings.pending.tr();
+        text = isArabic ? 'قيد المراجعة' : 'Pending';
         break;
       case BookingStatus.cancelled:
         color = AppColors.danger;
-        text = AppStrings.cancelled.tr();
+        text = isArabic ? 'ملغي' : 'Cancelled';
         break;
       default:
         color = AppColors.textSecondary;
-        text = AppStrings.past.tr();
+        text = isArabic ? 'مكتمل' : 'Completed';
     }
 
     return Container(

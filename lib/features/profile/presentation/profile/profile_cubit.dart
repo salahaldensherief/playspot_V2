@@ -179,7 +179,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> logout() async {
-    emit(state.copyWith(status: ProfileStatus.loading));
+    emit(state.copyWith(status: ProfileStatus.loggingOut));
     final result = await _authRepository.signOut();
 
     result.fold(

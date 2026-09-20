@@ -36,4 +36,5 @@ class RouterKeys {
   static const String tournamentHistory = '/tournaments-history';
   static const String maintenance = '/maintenance';
   static const String forceUpdate = '/force-update';
+  static const String bannedAccount = '/banned-account';
 }

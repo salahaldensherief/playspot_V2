@@ -7,6 +7,7 @@ import '../di/provider_scope.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
+import 'package:playspot/features/auth/presentation/banned_account_screen.dart';
 import 'package:playspot/features/auth/presentation/sign_in/signin_screen.dart';
 import 'package:playspot/features/auth/presentation/sign_up/signup_screen.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -313,8 +314,15 @@ class AppRouter {
       }
 
       final isPhoneMissing = user.phone == null || user.phone!.trim().isEmpty;
-      if (isPhoneMissing && !isAuthPath) {
+      if (isPhoneMissing && !isAuthPath && currentPath != RouterKeys.bannedAccount) {
         return RouterKeys.completeProfile;
+      }
+
+      if (user.isBanned) {
+        if (currentPath != RouterKeys.bannedAccount) {
+          return RouterKeys.bannedAccount;
+        }
+        return null;
       }
 
       return null;
@@ -328,6 +336,18 @@ class AppRouter {
           );
         },
         routes: [
+          GoRoute(
+            path: RouterKeys.bannedAccount,
+            name: RouterKeys.bannedAccount,
+            pageBuilder: (context, state) {
+              final user = sl<AuthRepository>().getCurrentUser();
+              return _buildPage(
+                context: context,
+                state: state,
+                child: BannedAccountScreen(reason: user?.bannedReason),
+              );
+            },
+          ),
           GoRoute(
             path: RouterKeys.splash,
             name: RouterKeys.splash,

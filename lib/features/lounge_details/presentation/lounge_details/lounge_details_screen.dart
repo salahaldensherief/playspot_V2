@@ -39,47 +39,16 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final selectedRoom = context.read<LoungeDetailsCubit>().state.selectedRoomId;
-      if (selectedRoom != null) {
-        _scrollToRoomsSection();
-      }
-    });
-  }
-
-  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _scrollToRoomsSection() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          480.h,
-          duration: const Duration(milliseconds: 600),
-          curve: Curves.easeInOutCubic,
-        );
-      }
-    });
   }
 
   LoungeModel _displayLounge(LoungeDetailsState state) => state.lounge ?? widget.lounge;
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LoungeDetailsCubit, LoungeDetailsState>(
-      listenWhen: (previous, current) =>
-          previous.selectedRoomId != current.selectedRoomId && current.selectedRoomId != null,
-      listener: (context, state) {
-        if (state.selectedRoomId != null) {
-          _scrollToRoomsSection();
-        }
-      },
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
         body: Stack(
           children: [
@@ -199,8 +168,7 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
             LoungeDetailsBottomBar(lounge: widget.lounge),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

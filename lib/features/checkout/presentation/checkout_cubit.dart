@@ -6,6 +6,7 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/supabase_storage_service.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
+import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'checkout_state.dart';
@@ -16,9 +17,47 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   CheckoutCubit(this._bookingRepository, this._profileRepository) : super(const CheckoutState());
 
+  Future<void> initCheckout(LoungeModel lounge, {int? completedBookingsCount}) async {
+    int userBookingsCount = completedBookingsCount ?? 0;
+    if (completedBookingsCount == null) {
+      final result = await _profileRepository.getTotalBookingsCount();
+      result.fold(
+        (_) => userBookingsCount = 0,
+        (count) => userBookingsCount = count,
+      );
+    }
+
+    final bool allowCash = lounge.allowCashPayment;
+    bool isCashEnabled = true;
+
+    if (allowCash && lounge.requirePrepaidFirstTime && userBookingsCount == 0) {
+      isCashEnabled = false;
+    }
+
+    PaymentMethod defaultMethod = state.selectedMethod;
+    if (!allowCash || (!isCashEnabled && defaultMethod == PaymentMethod.cash)) {
+      defaultMethod = PaymentMethod.vodafoneCash;
+    }
+
+    emit(state.copyWith(
+      allowCashPayment: allowCash,
+      isCashEnabled: isCashEnabled,
+      completedBookingsCount: userBookingsCount,
+      selectedMethod: defaultMethod,
+    ));
+  }
+
   void selectPaymentMethod(PaymentMethod method) {
+    if (method == PaymentMethod.cash && (!state.allowCashPayment || !state.isCashEnabled)) {
+      HapticFeedback.vibrate();
+      return;
+    }
     HapticFeedback.selectionClick();
     emit(state.copyWith(selectedMethod: method));
+  }
+
+  void updateSenderWalletNumber(String value) {
+    emit(state.copyWith(senderWalletNumber: value.trim()));
   }
 
   Future<void> applyVoucher(String code) async {
@@ -96,6 +135,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     bool isArabic = false,
     File? receiptFile,
     String? paymentMethod,
+    String? senderWalletPhone,
   }) async {
     emit(state.copyWith(status: CheckoutStatus.loading));
 
@@ -132,6 +172,10 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         ? checkoutParams.room.loungeId
         : checkoutParams.lounge.id;
 
+    final String methodStr = (paymentMethod?.toLowerCase() == 'cash' || state.selectedMethod == PaymentMethod.cash)
+        ? 'cash'
+        : 'manual_transfer';
+
     final params = CreateBookingParams(
       roomId: checkoutParams.room.id,
       roomName: checkoutParams.room.getName(isArabic),
@@ -155,7 +199,10 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       addOns: checkoutParams.addOns,
       playMode: checkoutParams.playMode,
       receiptUrl: receiptUrl,
-      paymentMethod: paymentMethod ?? 'Vodafone Cash',
+      paymentMethod: methodStr,
+      senderWalletPhone: methodStr == 'manual_transfer'
+          ? (senderWalletPhone ?? state.senderWalletNumber)
+          : null,
     );
 
     final result = await _bookingRepository.createBooking(params);

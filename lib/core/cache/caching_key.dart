@@ -37,4 +37,5 @@ class CachingKey {
   static const String PROMOTIONS_CACHE = 'CACHED_PROMOTIONS';
   static const String CACHED_LOUNGES = 'CACHED_LOUNGES';
   static const String CURRENT_ADDRESS = 'CURRENT_ADDRESS';
+  static const String REVIEWED_BOOKINGS = 'REVIEWED_BOOKINGS';
 }
