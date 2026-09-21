@@ -14,6 +14,8 @@ import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
+import '../../../../art_core/widgets/layout/glass_container.dart';
+import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/text_field/app_text_field.dart';
 import '../widgets/tournament_card.dart';
 import 'tournaments_feed_cubit.dart';
@@ -177,30 +179,22 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-                          decoration: BoxDecoration(
-                            color: isSelected ? AppColors.neonBlue : AppColors.tournamentFilterBg,
-                            borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(
-                              color: isSelected ? AppColors.neonBlue : AppColors.neonBlue.withValues(alpha: 0.2),
-                            ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.neonBlue.withValues(alpha: 0.4),
-                                      blurRadius: 8.r,
-                                    ),
-                                  ]
-                                : [],
-                          ),
-                          child: Center(
-                            child: Text(
-                              game == 'All' ? AppStrings.all.tr() : game,
-                              style: TextStyle(
+                          child: GlassContainer(
+                            borderRadius: 12,
+                            blur: 8,
+                            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                            color: isSelected
+                                ? AppColors.neonBlue.withValues(alpha: 0.85)
+                                : AppColors.tournamentFilterBg.withValues(alpha: 0.5),
+                            borderColor: isSelected
+                                ? AppColors.neonBlue
+                                : AppColors.neonBlue.withValues(alpha: 0.25),
+                            child: Center(
+                              child: AppText(
+                                text: game == 'All' ? AppStrings.all.tr() : game,
                                 color: isSelected ? AppColors.black : AppColors.white,
                                 fontSize: 12.sp,
                                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                                fontFamily: isSelected ? 'Orbitron' : null,
                               ),
                             ),
                           ),

@@ -93,11 +93,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
 
   Future<void> loadActiveSession({String? bookingId}) async {
     dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION: bookingId=$bookingId");
+    if (isClosed) return;
     if (state.status != ActiveSessionStatus.loaded) {
       emit(state.copyWith(status: ActiveSessionStatus.loading));
     }
 
     final result = await _repo.getActiveSession(bookingId: bookingId);
+
+    if (isClosed) return;
 
     result.fold(
       (failure) {

@@ -2,6 +2,8 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../../domain/entities/tournament_entity.dart';
 
 class TournamentStatusBadge extends StatelessWidget {
@@ -18,22 +20,15 @@ class TournamentStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final config = _getBadgeConfig(context, status);
 
-    return Container(
+    return GlassContainer(
+      borderRadius: 12,
+      blur: 8,
+      borderOpacity: 0.35,
+      borderColor: config.borderColor,
+      color: config.backgroundColor,
       padding: EdgeInsets.symmetric(
         horizontal: compact ? 8 : 12,
         vertical: compact ? 4 : 6,
-      ),
-      decoration: BoxDecoration(
-        color: config.backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: config.borderColor, width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: config.borderColor.withValues(alpha: 0.3),
-            blurRadius: 10,
-            spreadRadius: 1,
-          ),
-        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -54,15 +49,11 @@ class TournamentStatusBadge extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 6),
-          Text(
-            config.label.toUpperCase(),
-            style: TextStyle(
-              color: config.textColor,
-              fontSize: compact ? 10 : 11,
-              fontWeight: FontWeight.w800,
-              fontFamily: 'Orbitron',
-              letterSpacing: 0.6,
-            ),
+          AppText(
+            text: config.label,
+            color: config.textColor,
+            fontSize: compact ? 10 : 11,
+            fontWeight: FontWeight.w800,
           ),
         ],
       ),

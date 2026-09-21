@@ -3,12 +3,12 @@ const { execSync } = require('child_process');
 
 const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 
-const rawLogoPath = 'D:/playspot_V2/assets/6_extracted/apple-devices/AppIcon.appiconset/icon-ios-1024x1024.png';
+const rawLogoPath = 'D:/playspot_V2/assets/images/Firefly.png';
 
-// 1. Copy full 1024x1024 raw logo for iOS (full width)
+// 1. Copy full Firefly logo for splash_logo.png
 fs.copyFileSync(rawLogoPath, 'D:/playspot_V2/assets/images/splash_logo.png');
 
-// 2. Generate padded logo for Android 12 circle mask (width: 52% of canvas)
+// 2. Generate larger Firefly logo for Android 12 circle mask (width: 80% of canvas)
 const htmlAndroid12 = `<!DOCTYPE html>
 <html>
 <head>
@@ -25,7 +25,7 @@ const htmlAndroid12 = `<!DOCTYPE html>
     align-items: center;
   }
   img {
-    width: 52%;
+    width: 80%;
     height: auto;
     object-fit: contain;
   }
@@ -38,7 +38,11 @@ const htmlAndroid12 = `<!DOCTYPE html>
 
 fs.writeFileSync('D:/playspot_V2/android12_splash.html', htmlAndroid12);
 
-console.log('Rendering splash_logo_android12.png...');
+console.log('Rendering splash_logo_android12.png from Firefly.png (80% size)...');
 execSync(`"${chromePath}" --headless --screenshot="D:\\playspot_V2\\assets\\images\\splash_logo_android12.png" --window-size=2048,2048 "file:///D:/playspot_V2/android12_splash.html"`);
+fs.copyFileSync('D:/playspot_V2/assets/images/splash_logo_android12.png', 'D:/playspot_V2/assets/images/firefly_android12.png');
 
-console.log('Generated splash_logo.png for iOS and splash_logo_android12.png for Android 12!');
+console.log('Running flutter_native_splash to regenerate native splash drawables...');
+execSync(`E:\\flutter\\bin\\flutter.bat pub run flutter_native_splash:create`);
+
+console.log('Successfully updated Android native splash with larger Firefly logo!');

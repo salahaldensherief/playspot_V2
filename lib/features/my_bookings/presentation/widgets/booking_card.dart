@@ -206,7 +206,6 @@ class _BookingCardState extends State<BookingCard> {
               ),
             ],
           ),
-          _buildCashArrivalWarningBanner(),
           _buildCancellationReasonBanner(),
           if (isUpcoming) ...[
             SizedBox(height: 16.h),
@@ -301,43 +300,6 @@ class _BookingCardState extends State<BookingCard> {
         SizedBox(width: 6.w),
         _buildStatusBadge(),
       ],
-    );
-  }
-
-  Widget _buildCashArrivalWarningBanner() {
-    final isCash = widget.booking.paymentMethod?.toLowerCase() == 'cash';
-    final isNotCheckedIn = widget.booking.checkedInAt == null;
-    final isPendingOrUpcoming = widget.booking.status == BookingStatus.pending ||
-        widget.booking.status == BookingStatus.upcoming;
-
-    if (!isCash || !isNotCheckedIn || !isPendingOrUpcoming) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(top: 10.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.alarm_on_rounded, color: AppColors.warning, size: 18.sp),
-          SizedBox(width: 8.w),
-          Expanded(
-            child: AppText(
-              text: AppStrings.cashArrivalNotice.tr(),
-              fontSize: 11.5.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.warning,
-              height: 1.3,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

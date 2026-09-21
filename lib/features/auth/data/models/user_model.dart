@@ -46,10 +46,23 @@ class UserModel extends UserEntity {
     }
   }
 
+  /// Checks if a string is a valid non-null/non-undefined UUID
+  static bool isValidUuid(String? id) {
+    if (id == null) return false;
+    final clean = id.trim();
+    if (clean.isEmpty || clean == 'undefined' || clean == 'null') return false;
+    return RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+    ).hasMatch(clean);
+  }
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     final cityData = json['cities'] is Map<String, dynamic>
         ? json['cities'] as Map<String, dynamic>
         : null;
+    final rawCityId = json['city_id']?.toString();
+    final validCityId = isValidUuid(rawCityId) ? rawCityId : null;
+
     return UserModel(
       id: json['id'] as String,
       name: json['full_name'] as String? ?? json['name'] as String?,
@@ -57,7 +70,7 @@ class UserModel extends UserEntity {
       phone: json['phone'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       referralCode: json['referral_code'] as String?,
-      cityId: json['city_id'] as String?,
+      cityId: validCityId,
       cityNameAr: cityData?['name_ar'] as String? ?? cityData?['name'] as String?,
       cityNameEn: cityData?['name_en'] as String? ?? cityData?['name'] as String?,
       role: normalizeRole(json['role'] as String?),
@@ -83,6 +96,9 @@ class UserModel extends UserEntity {
         ? phoneVal
         : (metadataPhone != null && metadataPhone.isNotEmpty ? metadataPhone : null);
 
+    final rawCityId = metadata['city_id']?.toString() ?? supabaseUser['city_id']?.toString();
+    final validCityId = isValidUuid(rawCityId) ? rawCityId : null;
+
     return UserModel(
       id: supabaseUser['id'] as String,
       name: metadata['full_name'] as String? ?? metadata['name'] as String?,
@@ -91,7 +107,7 @@ class UserModel extends UserEntity {
       avatarUrl:
       metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
       referralCode: metadata['referral_code'] as String?,
-      cityId: metadata['city_id'] as String?,
+      cityId: validCityId,
       cityNameAr: metadata['city_name_ar'] as String?,
       cityNameEn: metadata['city_name_en'] as String?,
       role: normalizeRole(rawRole),
@@ -108,21 +124,23 @@ class UserModel extends UserEntity {
   List<Object?> get props => super.props..addAll([isNewUser, isRequiresOtp]);
 
   Map<String, dynamic> toJson() {
-    return {
+    final validCityId = isValidUuid(cityId) ? cityId : null;
+    final map = <String, dynamic>{
       'id': id,
-      'full_name': name,
-      'email': email,
-      'phone': phone,
-      'avatar_url': avatarUrl,
-      'referral_code': referralCode,
-      'city_id': cityId,
-      'city_name_ar': cityNameAr,
-      'city_name_en': cityNameEn,
       'role': role,
       'is_banned': isBanned,
-      if (bannedReason != null) 'banned_reason': bannedReason,
-      'created_at': createdAt?.toIso8601String(),
     };
+    if (name != null && name!.trim().isNotEmpty) map['full_name'] = name;
+    if (email != null && email!.trim().isNotEmpty) map['email'] = email;
+    if (phone != null && phone!.trim().isNotEmpty) map['phone'] = phone;
+    if (avatarUrl != null && avatarUrl!.trim().isNotEmpty && avatarUrl != 'undefined') map['avatar_url'] = avatarUrl;
+    if (referralCode != null && referralCode!.trim().isNotEmpty) map['referral_code'] = referralCode;
+    if (validCityId != null) map['city_id'] = validCityId;
+    if (cityNameAr != null && cityNameAr!.trim().isNotEmpty) map['city_name_ar'] = cityNameAr;
+    if (cityNameEn != null && cityNameEn!.trim().isNotEmpty) map['city_name_en'] = cityNameEn;
+    if (bannedReason != null && bannedReason!.trim().isNotEmpty) map['banned_reason'] = bannedReason;
+    if (createdAt != null) map['created_at'] = createdAt?.toIso8601String();
+    return map;
   }
 
   UserModel copyWith({

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/text/font_manager.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
@@ -16,15 +18,14 @@ import '../../domain/entities/app_status_entity.dart';
 class MaintenanceScreen extends StatelessWidget {
   final AppStatusEntity? statusEntity;
 
-  const MaintenanceScreen({
-    super.key,
-    this.statusEntity,
-  });
+  const MaintenanceScreen({super.key, this.statusEntity});
 
   Future<void> _contactSupport(BuildContext context) async {
     final supportNumber = statusEntity?.contactSupportNumber ?? '201000000000';
     final cleanNumber = supportNumber.replaceAll(RegExp(r'[^\d+]'), '');
-    final whatsappUri = Uri.parse("https://wa.me/$cleanNumber?text=${Uri.encodeComponent('مرحباً فريق بلاي سبوت، أستفسر عن موعد انتهاء الصيانة.')}");
+    final whatsappUri = Uri.parse(
+      "https://wa.me/$cleanNumber?text=${Uri.encodeComponent('مرحباً فريق بلاي سبوت، أستفسر عن موعد انتهاء الصيانة.')}",
+    );
 
     try {
       if (await canLaunchUrl(whatsappUri)) {
@@ -103,7 +104,9 @@ class MaintenanceScreen extends StatelessWidget {
                     color: AppColors.textPrimary,
                     fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
-                    fontFamily: context.locale.languageCode == 'ar' ? 'Cairo' : 'Orbitron',
+                    fontFamily: context.locale.languageCode == 'ar'
+                        ? FontsManager.arabicFontFamily
+                        : 'Orbitron',
                   ),
                 ),
                 12.verticalSpace,
@@ -120,7 +123,10 @@ class MaintenanceScreen extends StatelessWidget {
                   24.verticalSpace,
                   GlassContainer(
                     borderRadius: 16.r,
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 12.h,
+                    ),
                     color: AppColors.cardBackground.withValues(alpha: 0.8),
                     borderColor: AppColors.primary.withValues(alpha: 0.3),
                     child: Row(
@@ -136,9 +142,14 @@ class MaintenanceScreen extends StatelessWidget {
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             child: Text(
-                              AppStrings.expectedReturnTime.tr(args: [
-                                DateFormat('yyyy-MM-dd hh:mm a', context.locale.languageCode).format(expectedTime.toLocal())
-                              ]),
+                              AppStrings.expectedReturnTime.tr(
+                                args: [
+                                  DateFormat(
+                                    'yyyy-MM-dd hh:mm a',
+                                    context.locale.languageCode,
+                                  ).format(expectedTime.toLocal()),
+                                ],
+                              ),
                               style: TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 13.sp,
@@ -155,7 +166,11 @@ class MaintenanceScreen extends StatelessWidget {
                 AppButton(
                   content: ButtonContent(
                     label: AppStrings.contactSupport.tr(),
-                    icon: Icon(TablerIcons.brand_whatsapp, color: AppColors.scaffoldBackground, size: 20.r),
+                    icon: Icon(
+                      TablerIcons.brand_whatsapp,
+                      color: AppColors.scaffoldBackground,
+                      size: 20.r,
+                    ),
                   ),
                   behavior: TapBehavior(
                     isEnabled: true,

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/services/network_connectivity_service.dart';
 
 class NetworkStatusWrapper extends StatefulWidget {
@@ -106,15 +107,13 @@ class _NetworkStatusWrapperState extends State<NetworkStatusWrapper> {
                           size: 18.sp,
                         ),
                         SizedBox(width: 8.w),
-                        Text(
-                          isOffline
+                        AppText(
+                          text: isOffline
                               ? AppStrings.noInternetConnection.tr()
                               : AppStrings.internetRestored.tr(),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          color: Colors.white,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.bold,
                         ),
                       ],
                     ),

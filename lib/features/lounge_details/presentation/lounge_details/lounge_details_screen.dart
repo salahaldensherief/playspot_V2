@@ -5,6 +5,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
@@ -335,18 +339,24 @@ class _LoungeTournamentBanner extends StatelessWidget {
                 ],
               ),
             ),
-            TextButton(
-              onPressed: () {
-                context.pushNamed(
-                  RouterKeys.tournamentDetails,
-                  pathParameters: {'id': tournament.id},
-                );
-              },
-              child: AppText(
-                text: AppStrings.cardDetails.tr(),
-                fontSize: 11.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.neonBlue,
+            AppButton(
+              buttonConfig: ButtonConfig(
+                backgroundColor: AppColors.neonBlue.withValues(alpha: 0.15),
+                borderColor: AppColors.neonBlue.withValues(alpha: 0.3),
+                textStyle: TextStyle(color: AppColors.neonBlue, fontSize: 11.sp, fontWeight: FontWeight.bold),
+                height: 32.h,
+                borderRadius: 8.r,
+              ),
+              content: ButtonContent(
+                label: AppStrings.cardDetails.tr(),
+              ),
+              behavior: TapBehavior(
+                onTap: () {
+                  context.pushNamed(
+                    RouterKeys.tournamentDetails,
+                    pathParameters: {'id': tournament.id},
+                  );
+                },
               ),
             ),
           ],

@@ -6,6 +6,8 @@ import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import '../../app_strings.dart';
 import '../../theme/app_colors.dart';
 
+import 'font_manager.dart';
+
 class PriceWidget extends StatelessWidget {
   final double price;
   final double? fontSize;
@@ -44,9 +46,9 @@ class PriceWidget extends StatelessWidget {
               text: " ${AppStrings.egp.tr()}",
               style: TextStyle(
                 color: color ?? AppColors.neonBlue,
-                fontSize: currencyFontSize ?? 10.sp,
+                fontSize: FontsManager.getScaledFontSize(context, currencyFontSize ?? 10.sp),
                 fontWeight: FontWeight.bold,
-                fontFamily: fontFamily,
+                fontFamily: FontsManager.getFontFamily(context),
               ),
             ),
         ],

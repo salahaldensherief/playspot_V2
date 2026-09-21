@@ -74,14 +74,12 @@ class RoomActionArea extends StatelessWidget {
             children: [
               if (hasOffer) 25.verticalSpace,
               if (hasOffer) ...[
-                Text(
-                  "${finalOriginalPrice.toInt()} ${AppStrings.egp.tr()}",
-                  style: TextStyle(
-                    color: AppColors.textSecondary.withOpacity(0.5),
-                    fontSize: 10.sp,
-                    fontWeight: FontWeight.bold,
-                    decoration: TextDecoration.lineThrough,
-                  ),
+                AppText(
+                  text: "${finalOriginalPrice.toInt()} ${AppStrings.egp.tr()}",
+                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.bold,
+                  textDecoration: TextDecoration.lineThrough,
                 ),
                 2.verticalSpace,
               ],

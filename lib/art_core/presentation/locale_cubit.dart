@@ -15,12 +15,11 @@ class LocaleCubit extends Cubit<Locale> {
     await PreferenceManager().saveLanguage(languageCode);
     if (context.mounted) {
       await context.setLocale(newLocale);
+      if (context.mounted) {
+        context.goNamed(RouterKeys.splash);
+      }
     }
     emit(newLocale);
-
-    if (context.mounted) {
-      context.goNamed(RouterKeys.splash);
-    }
   }
 
   void toggleLocale(BuildContext context) {

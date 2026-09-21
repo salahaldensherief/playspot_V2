@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/text/app_text.dart';
 
 class MatchCountdownTimer extends StatefulWidget {
   final DateTime deadline;
@@ -85,13 +86,11 @@ class _MatchCountdownTimerState extends State<MatchCountdownTimer> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                AppStrings.autoApprovalTimer.tr(),
-                style: const TextStyle(
-                  color: AppColors.warning,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
+              AppText(
+                text: AppStrings.autoApprovalTimer.tr(),
+                color: AppColors.warning,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
               ),
               Text(
                 '$minutes:$seconds',

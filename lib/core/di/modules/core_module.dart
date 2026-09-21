@@ -20,7 +20,7 @@ Future<void> initCoreModule() async {
   );
 
   // Locale Cubit
-  sl.registerLazySingleton(() => LocaleCubit());
+  sl.registerFactory(() => LocaleCubit());
 
   // Supabase
   sl.registerLazySingleton<SupabaseClient>(

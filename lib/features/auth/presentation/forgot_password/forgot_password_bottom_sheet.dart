@@ -9,6 +9,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/app_bottom_sheet.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/art_core/widgets/otp/app_otp_field.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
@@ -63,21 +64,17 @@ class ForgotPasswordBottomSheetContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 10.verticalSpace,
-                Text(
-                  _getTitle(state.status),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
+                AppText(
+                  text: _getTitle(state.status),
+                  color: Colors.white,
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.bold,
                 ),
                 8.verticalSpace,
-                Text(
-                  _getSubTitle(state.status),
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 14.sp,
-                  ),
+                AppText(
+                  text: _getSubTitle(state.status),
+                  color: Colors.white54,
+                  fontSize: 14.sp,
                 ),
                 24.verticalSpace,
                 _buildBody(context, cubit, state),

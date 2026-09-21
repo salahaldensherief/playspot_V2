@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'dart:developer' as dev;
@@ -120,7 +121,12 @@ class _MyAppState extends State<MyApp> {
           theme: ThemeData(
             useMaterial3: false,
             scaffoldBackgroundColor: AppColors.scaffoldBackground,
-            fontFamily: context.locale.languageCode == 'ar' ? 'Cairo' : 'Orbitron',
+            fontFamily: context.locale.languageCode == 'ar'
+                ? GoogleFonts.tajawal().fontFamily
+                : 'Orbitron',
+            textTheme: context.locale.languageCode == 'ar'
+                ? GoogleFonts.tajawalTextTheme(ThemeData.dark().textTheme)
+                : GoogleFonts.orbitronTextTheme(ThemeData.dark().textTheme),
           ),
           scrollBehavior: const MaterialScrollBehavior().copyWith(
             physics: const BouncingScrollPhysics(),

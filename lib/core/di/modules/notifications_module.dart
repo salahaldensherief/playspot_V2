@@ -17,5 +17,5 @@ void initNotificationsModule() {
   );
 
   // Cubit
-  sl.registerLazySingleton(() => NotificationsCubit(sl<NotificationsRepository>()));
+  sl.registerFactory(() => NotificationsCubit(sl<NotificationsRepository>()));
 }

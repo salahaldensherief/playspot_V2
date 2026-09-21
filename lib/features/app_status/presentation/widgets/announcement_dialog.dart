@@ -12,6 +12,8 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 
+import '../../../../art_core/widgets/text/app_text.dart';
+
 class AnnouncementDialog extends StatelessWidget {
   final String title;
   final String body;
@@ -102,44 +104,37 @@ class AnnouncementDialog extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: Column(
                 children: [
-                  Text(
-                    title,
+                  AppText(
+                    text: title,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                   10.verticalSpace,
-                  Text(
-                    body,
+                  AppText(
+                    text: body,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13.sp,
-                      height: 1.4,
-                    ),
+                    fontSize: 13.sp,
+                    color: AppColors.textSecondary,
                   ),
                   20.verticalSpace,
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                            side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.3)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
+                        child: AppButton(
+                          buttonConfig: ButtonConfig(
+                            backgroundColor: Colors.transparent,
+                            borderColor: AppColors.textSecondary.withValues(alpha: 0.3),
+                            isOutlined: true,
+                            height: 44.h,
+                            borderRadius: 12.r,
                           ),
-                          child: Text(
-                            AppStrings.close.tr(),
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 14.sp,
-                            ),
+                          content: ButtonContent(
+                            label: AppStrings.close.tr(),
+                          ),
+                          behavior: TapBehavior(
+                            onTap: () => Navigator.of(context).pop(),
                           ),
                         ),
                       ),

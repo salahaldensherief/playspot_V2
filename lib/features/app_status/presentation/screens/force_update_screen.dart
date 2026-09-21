@@ -6,6 +6,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/text/font_manager.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
@@ -104,7 +105,7 @@ class ForceUpdateScreen extends StatelessWidget {
                     color: AppColors.textPrimary,
                     fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
-                    fontFamily: context.locale.languageCode == 'ar' ? 'Cairo' : 'Orbitron',
+                    fontFamily: context.locale.languageCode == 'ar' ? FontsManager.arabicFontFamily : 'Orbitron',
                   ),
                 ),
                 12.verticalSpace,

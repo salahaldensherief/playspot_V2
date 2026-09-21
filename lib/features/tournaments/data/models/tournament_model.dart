@@ -89,7 +89,7 @@ class TournamentModel extends TournamentEntity {
       descriptionEn: json['description_en']?.toString(),
       game: json['game_name']?.toString() ?? json['game']?.toString() ?? json['game_title']?.toString() ?? 'PlayStation',
       cityId: json['city_id']?.toString(),
-      cityName: cityData?['name']?.toString() ?? json['city_name']?.toString(),
+      cityName: cityData?['name_ar']?.toString() ?? cityData?['name_en']?.toString() ?? cityData?['name']?.toString() ?? json['city_name']?.toString(),
       loungeId: json['lounge_id']?.toString(),
       loungeName: loungeData?['name']?.toString() ?? json['lounge_name']?.toString(),
       latitude: (loungeData?['latitude'] as num?)?.toDouble() ?? (json['latitude'] as num?)?.toDouble(),

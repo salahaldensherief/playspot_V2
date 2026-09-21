@@ -4,14 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/text/font_manager.dart';
 
 class LanguageToggleWidget extends StatelessWidget {
   final bool isCompact;
 
-  const LanguageToggleWidget({
-    super.key,
-    this.isCompact = false,
-  });
+  const LanguageToggleWidget({super.key, this.isCompact = false});
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +59,9 @@ class LanguageToggleWidget extends StatelessWidget {
                   Text(
                     targetLanguageLabel,
                     style: TextStyle(
-                      fontFamily: isArabic ? 'Orbitron' : 'Cairo',
+                      fontFamily: isArabic
+                          ? 'Orbitron'
+                          : FontsManager.arabicFontFamily,
                       color: AppColors.white,
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,

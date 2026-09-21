@@ -9,6 +9,7 @@ class FavoritesCubit extends Cubit<FavoritesState> {
 
   Future<void> getFavoriteIds() async {
     final result = await _repository.getFavoriteIds();
+    if (isClosed) return;
     result.fold(
       (failure) => null,
       (ids) => emit(state.copyWith(favoriteIds: ids)),
@@ -16,8 +17,9 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   }
 
   Future<void> getFavoriteLounges() async {
-    emit(state.copyWith(status: FavoritesStatus.loading));
+    if (!isClosed) emit(state.copyWith(status: FavoritesStatus.loading));
     final result = await _repository.getFavorites();
+    if (isClosed) return;
     result.fold(
       (failure) => emit(state.copyWith(
         status: FavoritesStatus.failure,
@@ -41,18 +43,20 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     } else {
       updatedIds.add(loungeId);
     }
-    emit(state.copyWith(favoriteIds: updatedIds));
+    if (!isClosed) emit(state.copyWith(favoriteIds: updatedIds));
 
     final result = isFavorite 
         ? await _repository.removeFavorite(loungeId)
         : await _repository.addFavorite(loungeId);
 
+    if (isClosed) return;
+
     result.fold(
       (failure) {
-        emit(state.copyWith(favoriteIds: previousIds));
+        if (!isClosed) emit(state.copyWith(favoriteIds: previousIds));
       },
       (_) {
-        if (state.status == FavoritesStatus.success) {
+        if (!isClosed && state.status == FavoritesStatus.success) {
            getFavoriteLounges();
         }
       },

@@ -10,6 +10,8 @@ import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
+import '../../../../art_core/widgets/layout/glass_container.dart';
+import '../../../../art_core/widgets/text/app_text.dart';
 import 'tournament_history_cubit.dart';
 import 'tournament_history_state.dart';
 
@@ -125,13 +127,12 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                       }
                     },
                     borderRadius: BorderRadius.circular(16.r),
-                    child: Container(
+                    child: GlassContainer(
                       padding: EdgeInsets.all(16.w),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardBackground,
-                        borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
-                      ),
+                      borderRadius: 16,
+                      blur: 10,
+                      borderColor: AppColors.neonPurple.withValues(alpha: 0.35),
+                      color: AppColors.cardBackground.withValues(alpha: 0.5),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -139,33 +140,27 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                child: Text(
-                                  tournamentTitle,
-                                  style: TextStyle(
-                                    color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16.sp,
-                                    fontFamily: 'Orbitron',
-                                  ),
+                                child: AppText(
+                                  text: tournamentTitle,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.sp,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               SizedBox(width: 8.w),
-                              Container(
+                              GlassContainer(
+                                borderRadius: 20,
+                                blur: 8,
                                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                                decoration: BoxDecoration(
-                                  color: AppColors.neonBlue.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(20.r),
-                                  border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
-                                ),
-                                child: Text(
-                                  participant.paymentStatus.toLocalizedName(),
-                                  style: TextStyle(
-                                    color: AppColors.neonBlue,
-                                    fontSize: 11.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                borderColor: AppColors.neonBlue.withValues(alpha: 0.4),
+                                color: AppColors.neonBlue.withValues(alpha: 0.15),
+                                child: AppText(
+                                  text: participant.paymentStatus.toLocalizedName(),
+                                  color: AppColors.neonBlue,
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
@@ -175,16 +170,18 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                             children: [
                               Icon(TablerIcons.device_gamepad, size: 14.sp, color: AppColors.textSecondary),
                               SizedBox(width: 4.w),
-                              Text(
-                                gameName,
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
+                              AppText(
+                                text: gameName,
+                                color: AppColors.textSecondary,
+                                fontSize: 13.sp,
                               ),
                               SizedBox(width: 16.w),
                               Icon(TablerIcons.building, size: 14.sp, color: AppColors.textSecondary),
                               SizedBox(width: 4.w),
-                              Text(
-                                loungeName,
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
+                              AppText(
+                                text: loungeName,
+                                color: AppColors.textSecondary,
+                                fontSize: 13.sp,
                               ),
                             ],
                           ),
@@ -192,17 +189,16 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                '${AppStrings.bookingDate.tr()}: $formattedDate',
-                                style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp),
+                              AppText(
+                                text: '${AppStrings.bookingDate.tr()}: $formattedDate',
+                                color: AppColors.textSecondary,
+                                fontSize: 12.sp,
                               ),
-                              Text(
-                                participant.status.toLocalizedName(),
-                                style: TextStyle(
-                                  color: AppColors.success,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12.sp,
-                                ),
+                              AppText(
+                                text: participant.status.toLocalizedName(),
+                                color: AppColors.success,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12.sp,
                               ),
                             ],
                           ),

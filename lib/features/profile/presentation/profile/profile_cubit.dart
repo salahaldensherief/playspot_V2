@@ -26,9 +26,12 @@ class ProfileCubit extends Cubit<ProfileState> {
   ) : super(const ProfileState());
 
   void getUserData() async {
+    if (isClosed) return;
     emit(state.copyWith(status: ProfileStatus.loading));
 
     final userProfileRes = await _profileRepository.getUserProfile();
+    if (isClosed) return;
+
     final user = userProfileRes.fold(
       (_) => _profileRepository.getCurrentUser(),
       (userModel) => userModel,
@@ -46,6 +49,8 @@ class ProfileCubit extends Cubit<ProfileState> {
           _profileRepository.getReferralStats(),
           _profileRepository.getTotalBookingsCount(),
         ]);
+
+        if (isClosed) return;
 
         final pointsRes = results[0] as Either<Failure, int>;
         final optionsRes = results[1] as Either<Failure, List<RedemptionOptionModel>>;

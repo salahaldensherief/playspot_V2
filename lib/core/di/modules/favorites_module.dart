@@ -15,7 +15,7 @@ void initFavoritesModule() {
     () => FavoritesRepositoryImpl(sl()),
   );
 
-  sl.registerLazySingleton<FavoritesCubit>(
+  sl.registerFactory<FavoritesCubit>(
     () => FavoritesCubit(sl()),
   );
 }

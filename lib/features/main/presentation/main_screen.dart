@@ -221,9 +221,9 @@ class _MainScreenState extends State<MainScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, TablerIcons.home, "Home"),
-                _buildNavItem(1, TablerIcons.calendar, "Booking"),
-                _buildNavItem(2, TablerIcons.user, "Profile"),
+                _buildNavItem(0, TablerIcons.home, AppStrings.home.tr()),
+                _buildNavItem(1, TablerIcons.calendar, AppStrings.bookings.tr()),
+                _buildNavItem(2, TablerIcons.user, AppStrings.profile.tr()),
               ],
             ),
           ),

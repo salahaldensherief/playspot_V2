@@ -220,12 +220,17 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         );
       }
 
-      final updateData = {
+      final updateData = <String, dynamic>{
         'full_name': params.name,
         'phone': params.phone,
         if (params.email != null) 'email': params.email,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
       };
+
+      updateData.removeWhere((key, value) =>
+          value == null ||
+          value.toString() == 'undefined' ||
+          value.toString() == 'null');
 
       await _supabase.from('profiles').update(updateData).eq('id', userId);
 
@@ -331,7 +336,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final data = await _supabase
           .from('profiles')
-          .select('*, cities:city_id(id, name, name_ar, name_en)')
+          .select('*, cities:city_id(id, name_ar, name_en)')
           .eq('id', user.id)
           .single();
 

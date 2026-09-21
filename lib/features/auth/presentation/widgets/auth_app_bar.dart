@@ -7,6 +7,7 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/buttons/language_toggle_widget.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 
 class AuthAppBar extends StatelessWidget {
   const AuthAppBar({
@@ -97,23 +98,22 @@ class AuthAppBar extends StatelessWidget {
                   end: 0,
                   child: Column(
                     children: [
-                      Text(
-                        title ?? AppStrings.createAnAcc.tr(),
+                      AppText(
+                        text: title ?? AppStrings.createAnAcc.tr(),
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        color: Colors.white,
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.bold,
                       ),
                       if (subTitle != null) ...[
                         SizedBox(height: 12.h),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 24.w),
-                          child: Text(
-                            subTitle!,
+                          child: AppText(
+                            text: subTitle!,
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white54, fontSize: 14.sp),
+                            color: Colors.white54,
+                            fontSize: 14.sp,
                           ),
                         ),
                       ],

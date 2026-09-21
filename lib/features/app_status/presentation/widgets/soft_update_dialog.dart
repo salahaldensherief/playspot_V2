@@ -13,6 +13,8 @@ import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../../domain/entities/app_status_entity.dart';
 
+import '../../../../art_core/widgets/text/app_text.dart';
+
 class SoftUpdateDialog extends StatelessWidget {
   final AppStatusEntity? statusEntity;
   final VoidCallback onDismiss;
@@ -91,48 +93,40 @@ class SoftUpdateDialog extends StatelessWidget {
               ),
             ),
             16.verticalSpace,
-            Text(
-              title,
+            AppText(
+              text: title,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-              ),
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
             ),
             10.verticalSpace,
-            Text(
-              message,
+            AppText(
+              text: message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13.sp,
-                height: 1.4,
-              ),
+              fontSize: 13.sp,
+              color: AppColors.textSecondary,
             ),
             24.verticalSpace,
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      onDismiss();
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      side: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.3)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
+                  child: AppButton(
+                    buttonConfig: ButtonConfig(
+                      backgroundColor: Colors.transparent,
+                      borderColor: AppColors.textSecondary.withValues(alpha: 0.3),
+                      isOutlined: true,
+                      height: 48.h,
+                      borderRadius: 12.r,
                     ),
-                    child: Text(
-                      AppStrings.later.tr(),
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    content: ButtonContent(
+                      label: AppStrings.later.tr(),
+                    ),
+                    behavior: TapBehavior(
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        onDismiss();
+                      },
                     ),
                   ),
                 ),

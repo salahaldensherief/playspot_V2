@@ -92,6 +92,8 @@ class AppStrings {
   static const String logoutConfirmation = "logoutConfirmation";
   static const String accountSettings = "accountSettings";
   static const String profile = "profile";
+  static const String home = "home";
+  static const String bookings = "bookings";
   static const String editProfile = "editProfile";
   static const String saveChanges = "saveChanges";
   static const String changePassword = "changePassword";

@@ -11,6 +11,7 @@ import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/cards/lounge_card.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'favorites_cubit.dart';
 import 'favorites_state.dart';
@@ -37,13 +38,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButtonWidget(),
-        title: const Text(
-          "My Favorites",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Orbitron',
-          ),
+        title: const AppText(
+          text: "My Favorites",
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
         ),
       ),
       body: AppRefreshIndicator(

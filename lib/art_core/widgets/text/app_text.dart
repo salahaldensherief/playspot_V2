@@ -71,21 +71,18 @@ class _AppTextState extends State<AppText> {
   }
 
   TextStyle _getTextStyle() {
-    final defaultColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.primary;
-    final defaultFontFamily = FontsManager.getFontFamily(context);
-
-    return widget.style ??
-        TextStyle(
-          fontSize: widget.fontSize ?? 14.sp,
-          decorationColor: widget.color ?? defaultColor,
-          color: widget.color ?? defaultColor,
-          fontWeight: widget.fontWeight ?? FontWeight.w400,
-          height: widget.height ?? 1.4.h,
-          fontFamily: widget.fontFamily ?? defaultFontFamily,
-          decoration: widget.textDecoration,
-          shadows: widget.shadows,
-          letterSpacing: widget.letterSpacing,
-        );
+    return FontsManager.getStyle(
+      context: context,
+      fontSize: widget.fontSize,
+      color: widget.color,
+      fontWeight: widget.fontWeight,
+      height: widget.height,
+      fontFamily: widget.fontFamily,
+      letterSpacing: widget.letterSpacing,
+      textDecoration: widget.textDecoration,
+      shadows: widget.shadows,
+      baseStyle: widget.style,
+    );
   }
 
   bool _isTextOverflowing(String text, TextStyle style, int maxLines, double maxWidth) {

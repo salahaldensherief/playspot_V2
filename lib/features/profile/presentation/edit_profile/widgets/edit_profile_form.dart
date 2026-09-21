@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/features/profile/presentation/edit_profile/edit_profile_state.dart';
@@ -82,26 +86,27 @@ class EditProfileForm extends StatelessWidget {
                 readOnly: true,
                 suffixIcon: Container(
                   margin: EdgeInsets.only(left: 8.w, right: 8.w, top: 4.h, bottom: 4.h),
-                  child: ElevatedButton.icon(
-                    onPressed: isLoading ? null : () => cubit.updateLocation(),
-                    style: ElevatedButton.styleFrom(
+                  child: AppButton(
+                    buttonConfig: ButtonConfig(
                       backgroundColor: const Color(0xFF00E5FF),
-                      foregroundColor: Colors.black,
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
+                      textStyle: TextStyle(color: Colors.black, fontSize: 11.sp, fontWeight: FontWeight.bold),
+                      borderRadius: 8.r,
+                      height: 32.h,
                     ),
-                    icon: isLoading
-                        ? const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: AppLoader(size: 14, strokeWidth: 2, color: Colors.black),
-                          )
-                        : const Icon(Icons.my_location, size: 14),
-                    label: Text(
-                      isArabic ? 'تحديث' : 'Update',
-                      style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold),
+                    content: ButtonContent(
+                      label: isArabic ? 'تحديث' : 'Update',
+                      icon: isLoading ? null : const Icon(Icons.my_location, size: 14, color: Colors.black),
+                      body: isLoading
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: AppLoader(size: 14, strokeWidth: 2, color: Colors.black),
+                            )
+                          : null,
+                    ),
+                    behavior: TapBehavior(
+                      isEnabled: !isLoading,
+                      onTap: isLoading ? null : () => cubit.updateLocation(),
                     ),
                   ),
                 ),
