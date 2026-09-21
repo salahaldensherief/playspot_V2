@@ -27,8 +27,10 @@ class HomeCubit extends Cubit<HomeState> {
   final GetHomeTournamentUseCase _getHomeTournamentUseCase;
   final GetMyActiveTournamentUseCase _getMyActiveTournamentUseCase;
 
+  final PreferenceManager _pref;
+  final ProfileRepository? _profileRepository;
+
   StreamSubscription<Position>? _positionSubscription;
-  final _pref = sl<PreferenceManager>();
 
   // Token to handle race conditions for getHomeData calls
   int _homeDataFetchToken = 0;
@@ -41,8 +43,12 @@ class HomeCubit extends Cubit<HomeState> {
     this._locationService,
     this._getTournamentsUseCase,
     this._getHomeTournamentUseCase,
-    this._getMyActiveTournamentUseCase,
-  ) : super(const HomeState());
+    this._getMyActiveTournamentUseCase, {
+    PreferenceManager? preferenceManager,
+    ProfileRepository? profileRepository,
+  })  : _pref = preferenceManager ?? sl<PreferenceManager>(),
+        _profileRepository = profileRepository ?? (sl.isRegistered<ProfileRepository>() ? sl<ProfileRepository>() : null),
+        super(const HomeState());
 
   void _safeEmit(HomeState s) {
     if (!isClosed) emit(s);
@@ -347,13 +353,14 @@ class HomeCubit extends Cubit<HomeState> {
       return;
     }
 
-    final pref = sl<PreferenceManager>();
-    await pref.saveLatitude(pos.latitude);
-    await pref.saveLongitude(pos.longitude);
+    await _pref.saveLatitude(pos.latitude);
+    await _pref.saveLongitude(pos.longitude);
 
     // Invoke update-user-location Edge Function in background
     try {
-      unawaited(sl<ProfileRepository>().updateUserLocation());
+      if (_profileRepository != null) {
+        unawaited(_profileRepository.updateUserLocation());
+      }
     } catch (_) {}
 
     final movedSignificantly = _hasMovedSignificantly(pos.latitude, pos.longitude);
@@ -367,7 +374,7 @@ class HomeCubit extends Cubit<HomeState> {
 
     final isInEgypt = address.toLowerCase().contains("egypt") || address.toLowerCase().contains("مصر");
 
-    await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
+    await _pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
 
     String displayLocation = address;
     if (isInEgypt) {
@@ -397,9 +404,8 @@ class HomeCubit extends Cubit<HomeState> {
     _positionSubscription = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, distanceFilter: 500),
     ).listen((p) async {
-      final pref = sl<PreferenceManager>();
-      await pref.saveLatitude(p.latitude);
-      await pref.saveLongitude(p.longitude);
+      await _pref.saveLatitude(p.latitude);
+      await _pref.saveLongitude(p.longitude);
 
       await getHomeData();
     });

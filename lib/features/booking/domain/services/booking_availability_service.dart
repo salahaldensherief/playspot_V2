@@ -147,8 +147,9 @@ class BookingAvailabilityService {
         minutes: int.parse(closeParts[1]),
       );
 
-      if (closeDuration <= openDuration)
+      if (closeDuration <= openDuration) {
         closeDuration += const Duration(days: 1);
+      }
 
       return (closeDuration - openDuration).inMinutes / 60.0;
     } catch (_) {

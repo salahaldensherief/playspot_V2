@@ -378,21 +378,6 @@ class _BookingScreenState extends State<BookingScreen> {
                             final lounge = params.lounge;
 
                             final startTime = currentState.startTime!;
-                            final startDateTime = (startTime.hour >= 10)
-                                ? DateTime(
-                                    currentState.selectedDate.year,
-                                    currentState.selectedDate.month,
-                                    currentState.selectedDate.day,
-                                    startTime.hour,
-                                    startTime.minute,
-                                  )
-                                : DateTime(
-                                    currentState.selectedDate.year,
-                                    currentState.selectedDate.month,
-                                    currentState.selectedDate.day + 1,
-                                    startTime.hour,
-                                    startTime.minute,
-                                  );
 
                             final checkoutParams = CheckoutParams(
                               lounge: lounge,

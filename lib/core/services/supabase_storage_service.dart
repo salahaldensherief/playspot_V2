@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

@@ -38,6 +38,11 @@ void initBookingModule() {
   );
 
   sl.registerFactory<CheckoutCubit>(
-    () => CheckoutCubit(sl(), sl()),
+    () => CheckoutCubit(
+      sl(),
+      sl(),
+      preferenceManager: sl(),
+      storageService: sl(),
+    ),
   );
 }

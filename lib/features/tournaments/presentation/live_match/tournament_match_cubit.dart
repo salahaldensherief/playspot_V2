@@ -175,8 +175,9 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
   Future<void> disputeResult(String reason) async {
     if (state.match == null ||
         state.isSubmittingDispute ||
-        reason.trim().isEmpty)
+        reason.trim().isEmpty) {
       return;
+    }
 
     emit(state.copyWith(isSubmittingDispute: true));
 

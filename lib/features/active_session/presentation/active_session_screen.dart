@@ -6,8 +6,6 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import '../../../art_core/widgets/layout/app_bottom_sheet.dart';
-import '../data/models/active_session_model.dart';
 import 'active_session_cubit.dart';
 import 'active_session_state.dart';
 import 'widgets/active_session_body.dart';

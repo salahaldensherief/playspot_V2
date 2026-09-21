@@ -470,11 +470,11 @@ class AppRouter {
             builder: (context, state, child) {
               return AppProviderScope(
                 providers: [
-                  BlocProvider(create: (context) => sl<FavoritesCubit>()..getFavoriteIds()),
-                  BlocProvider(create: (context) => sl<ProfileCubit>()..getUserData()),
+                  BlocProvider(create: (context) => sl<FavoritesCubit>()),
+                  BlocProvider(create: (context) => sl<ProfileCubit>()),
                   BlocProvider(create: (context) => sl<NotificationsCubit>()),
-                  BlocProvider(create: (context) => sl<ActiveSessionCubit>()..loadActiveSession()),
-                  BlocProvider(create: (context) => sl<MyBookingsCubit>()..getMyBookings()),
+                  BlocProvider(create: (context) => sl<ActiveSessionCubit>()),
+                  BlocProvider(create: (context) => sl<MyBookingsCubit>()),
                 ],
                 child: child,
               );

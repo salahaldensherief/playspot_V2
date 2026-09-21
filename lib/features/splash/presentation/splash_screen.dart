@@ -14,6 +14,7 @@ import 'package:playspot/features/app_status/domain/entities/app_status_type.dar
 import 'package:playspot/features/app_status/presentation/widgets/soft_update_dialog.dart';
 
 import '../../../art_core/theme/app_colors.dart';
+import '../../../core/cache/caching_key.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/services/location_service.dart';
 
@@ -57,10 +58,10 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _handleInitialization() async {
     final locationFuture = _fetchUserLocation().timeout(
-      const Duration(milliseconds: 2500),
+      const Duration(milliseconds: 1500),
       onTimeout: () {},
     );
-    final minDisplayFuture = Future.delayed(const Duration(milliseconds: 2500));
+    final minDisplayFuture = Future.delayed(const Duration(milliseconds: 800));
 
     final appStatusCubit = sl<AppStatusCubit>();
     final statusTypeFuture = appStatusCubit.checkAndListen();
@@ -120,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
           position.longitude,
         );
         if (address != null) {
-          await pref.saveValue('CURRENT_ADDRESS', address);
+          await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
         }
       }
     } catch (_) {}

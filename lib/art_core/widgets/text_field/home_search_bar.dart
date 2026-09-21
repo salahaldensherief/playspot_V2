@@ -1,9 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:playspot/art_core/assets_manager.dart';
-import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
-
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 
 class HomeSearchBar extends StatelessWidget {
@@ -30,7 +27,7 @@ class HomeSearchBar extends StatelessWidget {
       onChanged: onChanged,
       readOnly: readOnly,
       onTap: onTap,
-      hint: hint ?? "Search lounges near you...",
+      hint: hint ?? "search".tr(),
       // hintIcon: AssetsManager.search,
       borderRadius: 25.r,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),

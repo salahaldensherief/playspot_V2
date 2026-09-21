@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
-import '../entities/user_entity.dart';
 import '../../data/models/user_model.dart';
 import '../../data/models/auth_params.dart';
 

@@ -197,34 +197,6 @@ class _LoungeCardState extends State<LoungeCard> {
     );
   }
 
-  Widget _buildDiscountBadge(BuildContext context) {
-    final lounge = widget.lounge;
-    final isArabic = context.locale.languageCode == 'ar';
-    final text =
-        lounge.getDiscountTitle(isArabic) ?? "-${lounge.discountPercentage}%";
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 3.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF3B30),
-        borderRadius: BorderRadius.circular(AppSizes.r8),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.withOpacity(Colors.black, 0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: AppText(
-        text: text,
-        fontSize: 8.sp,
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-      ),
-    );
-  }
-
   Widget _buildRatingAndLocation() {
     final lounge = widget.lounge;
     final isArabic = context.locale.languageCode == 'ar';

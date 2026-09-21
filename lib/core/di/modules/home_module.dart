@@ -16,6 +16,14 @@ void initHomeModule() {
   );
 
   sl.registerFactory<HomeCubit>(
-    () => HomeCubit(sl(), sl(), sl(), sl(), sl()),
+    () => HomeCubit(
+      sl(),
+      sl(),
+      sl(),
+      sl(),
+      sl(),
+      preferenceManager: sl(),
+      profileRepository: sl(),
+    ),
   );
 }

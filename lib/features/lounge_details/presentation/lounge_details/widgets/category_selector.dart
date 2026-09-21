@@ -5,8 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/shimmer/category_shimmer.dart';
-import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
-import 'package:playspot/art_core/utils/category_helper.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/category_model.dart';
 import '../lounge_details_cubit.dart';

@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:playspot/features/auth/presentation/forgot_password/forgot_password_bottom_sheet.dart';
 import 'package:playspot/core/utils/app_validators.dart';
 

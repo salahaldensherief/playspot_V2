@@ -13,9 +13,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
-import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../../../../art_core/widgets/notifications/game_hud_toast.dart';
-import '../../../../art_core/widgets/text/app_text.dart';
 import '../../domain/entities/tournament_entity.dart';
 import '../widgets/match_countdown_timer.dart';
 import 'tournament_match_cubit.dart';
@@ -184,7 +182,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
         if (state.status == MatchScreenStatus.loading && state.match == null) {
           return const Scaffold(
             backgroundColor: AppColors.scaffoldBackground,
-            body: AppLoader(size: 40),
+            body: Center(child: AppLoader(size: 40)),
           );
         }
 

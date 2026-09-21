@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../theme/app_colors.dart';
-import '../../text/font_manager.dart';
 abstract class ButtonStyleConfig {
   Color get backgroundColor;
   Color get disabledColor;

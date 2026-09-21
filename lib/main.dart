@@ -26,7 +26,7 @@ import 'package:playspot/features/profile/domain/repositories/profile_repository
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -37,37 +37,27 @@ void main() async {
     ),
   );
 
-  // Set up BlocObserver to track all actions and state changes
   Bloc.observer = AppBlocObserver();
 
-  // Handle Flutter errors
   FlutterError.onError = (details) {
     dev.log("FLUTTER ERROR: ${details.exception}", stackTrace: details.stack);
   };
 
-  // Handle Platform errors (asynchronous)
   PlatformDispatcher.instance.onError = (error, stack) {
     dev.log("PLATFORM ERROR: $error", stackTrace: stack);
     return true;
   };
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await EasyLocalization.ensureInitialized();
   await init();
   await initSupabase();
 
-  // Initialize Network Connectivity Monitoring
   NetworkConnectivityService().initialize();
 
-  // Initialize Deep Link Service
   sl<DeepLinkService>().initialize();
 
-  // Register Firebase background handler
   FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);
-
-  // Initialize Notifications
   await LocalNotificationService.instance.initialize();
   await PushNotificationService.instance.initialize(
     localNotifications: LocalNotificationService.instance,
@@ -76,17 +66,13 @@ void main() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ar'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('ar')],
       path: 'assets/lang',
       fallbackLocale: const Locale('en'),
       child: const MyApp(),
     ),
   );
 
-  // Handle pending initial notification if any
   LocalNotificationService.instance.handlePendingInitialNotification();
 }
 

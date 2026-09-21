@@ -1,5 +1,3 @@
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_animator.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -138,7 +136,7 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
               key: const ValueKey('loading'),
               size: 22,
               strokeWidth: 2.5,
-              color: widget.buttonConfig.loadingColor ?? (widget.buttonConfig.gradient != null ? Colors.black : Colors.white),
+              color: widget.buttonConfig.loadingColor,
             )
           : ButtonContentWidget(
               key: const ValueKey('content'),

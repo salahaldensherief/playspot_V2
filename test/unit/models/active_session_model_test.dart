@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:playspot/features/active_session/data/models/active_session_model.dart';
-import 'package:playspot/features/active_session/data/models/order_item_model.dart';
 
 void main() {
   group('ActiveSessionModel Unit Tests', () {

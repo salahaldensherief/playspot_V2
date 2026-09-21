@@ -3,7 +3,6 @@ import '../../../features/lounge_details/data/datasources/remote/lounge_details_
 import '../../../features/lounge_details/domain/repositories/lounge_details_repository.dart';
 import '../../../features/lounge_details/data/repositories/lounge_details_repository_impl.dart';
 import '../../../features/lounge_details/presentation/lounge_details/lounge_details_cubit.dart';
-import '../../../features/tournaments/domain/usecases/get_tournaments_usecase.dart';
 
 final sl = GetIt.instance;
 

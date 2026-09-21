@@ -14,8 +14,17 @@ import 'checkout_state.dart';
 class CheckoutCubit extends Cubit<CheckoutState> {
   final BookingRepository _bookingRepository;
   final ProfileRepository _profileRepository;
+  final PreferenceManager _preferenceManager;
+  final StorageService _storageService;
 
-  CheckoutCubit(this._bookingRepository, this._profileRepository) : super(const CheckoutState());
+  CheckoutCubit(
+    this._bookingRepository,
+    this._profileRepository, {
+    PreferenceManager? preferenceManager,
+    StorageService? storageService,
+  })  : _preferenceManager = preferenceManager ?? sl<PreferenceManager>(),
+        _storageService = storageService ?? sl<StorageService>(),
+        super(const CheckoutState());
 
   Future<void> initCheckout(LoungeModel lounge, {int? completedBookingsCount}) async {
     int userBookingsCount = completedBookingsCount ?? 0;
@@ -148,16 +157,14 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     );
     final endDateTime = startDateTime.add(Duration(minutes: checkoutParams.duration));
 
-    final pref = sl<PreferenceManager>();
-    final userName = pref.fullName() ?? "";
-    final userPhone = pref.phoneNumber() ?? "";
+    final userName = _preferenceManager.fullName() ?? "";
+    final userPhone = _preferenceManager.phoneNumber() ?? "";
 
     String? receiptUrl;
     if (receiptFile != null) {
       try {
-        final storageService = sl<StorageService>();
         final fileName = 'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        receiptUrl = await storageService.uploadFile(
+        receiptUrl = await _storageService.uploadFile(
           bucket: 'receipts',
           path: fileName,
           file: receiptFile,

@@ -5,7 +5,9 @@ import 'favorites_state.dart';
 class FavoritesCubit extends Cubit<FavoritesState> {
   final FavoritesRepository _repository;
 
-  FavoritesCubit(this._repository) : super(const FavoritesState());
+  FavoritesCubit(this._repository) : super(const FavoritesState()) {
+    getFavoriteIds();
+  }
 
   Future<void> getFavoriteIds() async {
     final result = await _repository.getFavoriteIds();

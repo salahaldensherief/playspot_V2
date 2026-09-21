@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/features/booking/presentation/widgets/date_selector.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
