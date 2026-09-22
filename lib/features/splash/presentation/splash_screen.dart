@@ -99,13 +99,17 @@ class _SplashScreenState extends State<SplashScreen>
 
     final authRepo = sl<AuthRepository>();
     final user = authRepo.getCurrentUser();
+    final pref = sl<PreferenceManager>();
 
     if (user != null) {
       context.goNamed(RouterKeys.home);
-    } else {
+    } else if (pref.isFirstTime()) {
       context.goNamed(RouterKeys.onboarding);
+    } else {
+      context.goNamed(RouterKeys.signIn);
     }
   }
+
 
   Future<void> _fetchUserLocation() async {
     try {

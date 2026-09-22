@@ -10,6 +10,8 @@ import 'package:playspot/art_core/widgets/buttons/language_toggle_widget.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 
 import '../../../art_core/app_strings.dart';
+import '../../../core/cache/preference_manager.dart';
+import '../../../core/di.dart';
 import '../../../art_core/theme/app_colors.dart';
 import '../../../art_core/widgets/buttons/app_button.dart';
 import '../../../art_core/widgets/buttons/res/button_behavior.dart';
@@ -38,9 +40,45 @@ class OnBoardingPage extends StatefulWidget {
   State<OnBoardingPage> createState() => _OnBoardingPageState();
 }
 
+
 class _OnBoardingPageState extends State<OnBoardingPage> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
+  Locale? _lastLocale;
+  List<_OnboardingItem> _boardingData = const [];
+
+  void _updateBoardingDataIfNeeded(Locale locale) {
+    if (_lastLocale != locale || _boardingData.isEmpty) {
+      _lastLocale = locale;
+      _boardingData = [
+        _OnboardingItem(
+          image: AssetsManager.onboarding1,
+          title: AppStrings.onboardingTitle1.tr(),
+          desc: AppStrings.onboardingDesc1.tr(),
+          accentColor: AppColors.primary,
+        ),
+        _OnboardingItem(
+          image: AssetsManager.onboarding2,
+          title: AppStrings.onboardingTitle2.tr(),
+          desc: AppStrings.onboardingDesc2.tr(),
+          accentColor: AppColors.purple,
+        ),
+        _OnboardingItem(
+          image: AssetsManager.onboarding3,
+          title: AppStrings.onboardingTitle3.tr(),
+          desc: AppStrings.onboardingDesc3.tr(),
+          accentColor: AppColors.neonBlueAlt,
+        ),
+      ];
+    }
+  }
+
+  Future<void> _completeOnboarding() async {
+    await sl<PreferenceManager>().saveIsFirstTime(false);
+    if (mounted) {
+      context.goNamed(RouterKeys.signIn);
+    }
+  }
 
   @override
   void dispose() {
@@ -52,27 +90,8 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<LocaleCubit, Locale>(
       builder: (context, locale) {
-        final List<_OnboardingItem> boardingData = [
-          _OnboardingItem(
-            image: AssetsManager.onboarding1,
-            title: AppStrings.onboardingTitle1.tr(),
-            desc: AppStrings.onboardingDesc1.tr(),
-            accentColor: AppColors.primary,
-          ),
-          _OnboardingItem(
-            image: AssetsManager.onboarding2,
-            title: AppStrings.onboardingTitle2.tr(),
-            desc: AppStrings.onboardingDesc2.tr(),
-            accentColor: AppColors.purple,
-          ),
-          _OnboardingItem(
-            image: AssetsManager.onboarding3,
-            title: AppStrings.onboardingTitle3.tr(),
-            desc: AppStrings.onboardingDesc3.tr(),
-            accentColor: AppColors.neonBlueAlt,
-          ),
-        ];
-
+        _updateBoardingDataIfNeeded(locale);
+        final boardingData = _boardingData;
         final Color currentAccent = boardingData[_currentIndex].accentColor;
 
         return Scaffold(
@@ -102,7 +121,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                           if (_currentIndex < boardingData.length - 1) ...[
                             SizedBox(width: 10.w),
                             GestureDetector(
-                              onTap: () => context.goNamed(RouterKeys.signIn),
+                              onTap: _completeOnboarding,
                               child: Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 14.w,
@@ -306,7 +325,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     behavior: TapBehavior(
                       onTap: () {
                         if (_currentIndex == boardingData.length - 1) {
-                          context.goNamed(RouterKeys.signIn);
+                          _completeOnboarding();
                         } else {
                           _pageController.nextPage(
                             duration: const Duration(milliseconds: 400),

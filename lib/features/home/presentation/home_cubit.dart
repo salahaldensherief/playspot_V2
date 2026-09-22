@@ -62,6 +62,9 @@ class HomeCubit extends Cubit<HomeState> {
 
     _safeEmit(state.copyWith(
       status: hasCachedData ? HomeStatus.refreshing : HomeStatus.loading,
+      isLoungesLoading: !hasCachedData,
+      isPromosLoading: state.promotions.isEmpty,
+      isCategoriesLoading: state.categories.isEmpty,
     ));
 
     final savedLat = double.tryParse(_pref.latitude());
@@ -155,30 +158,42 @@ class HomeCubit extends Cubit<HomeState> {
     if (_isCacheValid(_categoriesCacheTimeKey)) {
       final cached = _getCachedCategories();
       if (cached.isNotEmpty) {
-        _safeEmit(state.copyWith(categories: cached));
+        _safeEmit(state.copyWith(categories: cached, isCategoriesLoading: false));
         return;
       }
     }
     final res = await _homeRepository.getCategories();
-    res.fold((_) {}, (cats) {
-      if (cats.isEmpty) return;
-      _safeEmit(state.copyWith(categories: cats));
-      _pref.saveValue(CachingKey.CATEGORIES_CACHE,
-          jsonEncode(cats.map((e) => e.toJson()).toList()));
-      _pref.saveValue(_categoriesCacheTimeKey,
-          DateTime.now().millisecondsSinceEpoch.toString());
-    });
+    res.fold(
+      (_) => _safeEmit(state.copyWith(isCategoriesLoading: false)),
+      (cats) {
+        if (cats.isEmpty) {
+          _safeEmit(state.copyWith(isCategoriesLoading: false));
+          return;
+        }
+        _safeEmit(state.copyWith(categories: cats, isCategoriesLoading: false));
+        _pref.saveValue(CachingKey.CATEGORIES_CACHE,
+            jsonEncode(cats.map((e) => e.toJson()).toList()));
+        _pref.saveValue(_categoriesCacheTimeKey,
+            DateTime.now().millisecondsSinceEpoch.toString());
+      },
+    );
   }
 
   Future<void> _loadPromotions() async {
     final res = await _homeRepository.getPromotions(loungeId: null);
-    res.fold((_) {}, (promos) {
-      if (promos.isNotEmpty) {
-        _safeEmit(state.copyWith(promotions: promos));
-        _pref.saveValue(CachingKey.PROMOTIONS_CACHE,
-            jsonEncode(promos.map((e) => e.toJson()).toList()));
-      }
-    });
+    res.fold(
+      (_) => _safeEmit(state.copyWith(isPromosLoading: false)),
+      (promos) {
+        _safeEmit(state.copyWith(
+          promotions: promos,
+          isPromosLoading: false,
+        ));
+        if (promos.isNotEmpty) {
+          _pref.saveValue(CachingKey.PROMOTIONS_CACHE,
+              jsonEncode(promos.map((e) => e.toJson()).toList()));
+        }
+      },
+    );
   }
 
   Future<void> _loadPoints(String? userId) async {
@@ -287,15 +302,16 @@ class HomeCubit extends Cubit<HomeState> {
     final nextPage = isLoadMore ? state.currentPage + 1 : 0;
     const pageSize = 10;
 
-    final isBackgroundRefresh = state.nearestLounges.isNotEmpty && !isLoadMore && !forceLoading;
+    final isBackgroundRefresh = state.nearestLounges.isNotEmpty && !isLoadMore && !forceLoading && !state.isLoungesLoading;
     
     _safeEmit(state.copyWith(
       status: isLoadMore 
           ? HomeStatus.loadingMore
           : (isBackgroundRefresh ? HomeStatus.refreshing : HomeStatus.loading),
+      isLoungesLoading: !isLoadMore && !isBackgroundRefresh,
       currentPage: nextPage,
       hasReachedMax: isLoadMore ? state.hasReachedMax : false,
-      nearestLounges: forceLoading ? [] : state.nearestLounges,
+      nearestLounges: (forceLoading || (!isLoadMore && !isBackgroundRefresh && state.nearestLounges.isEmpty)) ? [] : state.nearestLounges,
     ));
 
     final result = await _homeRepository.getLounges(
@@ -314,7 +330,10 @@ class HomeCubit extends Cubit<HomeState> {
     if (currentFetchToken != _homeDataFetchToken) return;
 
     result.fold(
-      (f) => _safeEmit(state.copyWith(status: HomeStatus.failure)),
+      (f) => _safeEmit(state.copyWith(
+        status: HomeStatus.failure,
+        isLoungesLoading: false,
+      )),
       (newLounges) {
         final List<LoungeModel> updatedLounges = isLoadMore 
             ? [...state.nearestLounges, ...newLounges]
@@ -322,6 +341,7 @@ class HomeCubit extends Cubit<HomeState> {
 
         _safeEmit(state.copyWith(
           status: HomeStatus.success,
+          isLoungesLoading: false,
           nearestLounges: updatedLounges,
           hasReachedMax: newLounges.length < pageSize,
         ));
@@ -335,7 +355,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   void changeSortType(LoungeSortType type) {
     if (state.sortType == type) return;
-    _safeEmit(state.copyWith(sortType: type));
+    _safeEmit(state.copyWith(sortType: type, isLoungesLoading: true));
     getHomeData();
   }
 
@@ -414,8 +434,8 @@ class HomeCubit extends Cubit<HomeState> {
   Future<void> selectCity(String? city) async {
     if (city == state.selectedCity) return;
     _safeEmit(city == null || city.isEmpty
-        ? state.copyWith(clearCity: true, status: HomeStatus.loading)
-        : state.copyWith(selectedCity: city, status: HomeStatus.loading));
+        ? state.copyWith(clearCity: true, isLoungesLoading: true)
+        : state.copyWith(selectedCity: city, isLoungesLoading: true));
     await getHomeData();
   }
 
@@ -429,9 +449,10 @@ class HomeCubit extends Cubit<HomeState> {
 
     _safeEmit(state.copyWith(
       selectedCategoryIds: currentSelected,
+      isLoungesLoading: true,
     ));
 
-    await getHomeData(forceLoading: true);
+    await getHomeData();
   }
 
   @override

@@ -2,32 +2,24 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
-import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
-import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
-import 'package:playspot/art_core/widgets/buttons/app_button.dart';
-import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
-import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
-import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
-import 'package:playspot/art_core/widgets/layout/sliver_section_header.dart';
-import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
-import 'package:playspot/features/home/presentation/home_cubit.dart';
-import 'package:playspot/features/home/presentation/widgets/home_header.dart';
-import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart';
-import 'package:playspot/features/home/presentation/widgets/activity_categories.dart';
-import 'package:playspot/features/home/presentation/widgets/active_session_banner.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
-import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
-import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
-import '../../../art_core/widgets/cards/lounge_card.dart';
-import '../../../art_core/widgets/text/app_text.dart';
-import '../../../core/cache/preference_manager.dart';
-import '../../../core/di.dart';
-import 'home_state.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
+import 'package:playspot/core/di.dart';
+import 'package:playspot/features/home/presentation/home_cubit.dart';
+import 'package:playspot/features/home/presentation/home_state.dart';
+import 'package:playspot/features/home/presentation/widgets/active_session_banner.dart';
+import 'package:playspot/features/home/presentation/widgets/home_background.dart';
+import 'package:playspot/features/home/presentation/widgets/home_browse_by_category_section.dart';
+import 'package:playspot/features/home/presentation/widgets/home_lounge_list.dart';
+import 'package:playspot/features/home/presentation/widgets/home_lounge_section_header.dart';
+import 'package:playspot/features/home/presentation/widgets/home_sliver_app_bar.dart';
+import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart';
+import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -82,12 +74,21 @@ class _HomeViewState extends State<_HomeView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentPixels = _scrollController.position.pixels;
+
+    if (maxScroll > 100 && currentPixels >= maxScroll - 200) {
       final state = context.read<HomeCubit>().state;
-      if (!_isLoadingMoreTriggered &&
+      final canLoadMore = !_isLoadingMoreTriggered &&
+          !state.isLoungesLoading &&
+          state.status != HomeStatus.loading &&
+          state.status != HomeStatus.refreshing &&
           state.status != HomeStatus.loadingMore &&
-          !state.hasReachedMax) {
+          !state.hasReachedMax &&
+          state.nearestLounges.isNotEmpty;
+
+      if (canLoadMore) {
         _isLoadingMoreTriggered = true;
         context.read<HomeCubit>().loadMore();
       }
@@ -98,7 +99,9 @@ class _HomeViewState extends State<_HomeView> {
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     return BlocListener<HomeCubit, HomeState>(
-      listenWhen: (previous, current) => previous.status != current.status,
+      listenWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.isLoungesLoading != current.isLoungesLoading,
       listener: (context, state) {
         if (state.status != HomeStatus.loadingMore) {
           _isLoadingMoreTriggered = false;
@@ -108,8 +111,7 @@ class _HomeViewState extends State<_HomeView> {
         backgroundColor: AppColors.scaffoldBackground,
         body: Stack(
           children: [
-            // Background decoration - wrapped in RepaintBoundary to avoid repainting on scroll
-            const RepaintBoundary(child: _HomeBackground()),
+            const RepaintBoundary(child: HomeBackground()),
             SafeArea(
               child: AppRefreshIndicator(
                 onRefresh: () => context.read<HomeCubit>().refreshHome(),
@@ -117,15 +119,15 @@ class _HomeViewState extends State<_HomeView> {
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    _HomeSliverAppBar(
+                    HomeSliverAppBar(
                       userName: userName,
                       currentLocation: currentLocation,
                     ),
                     const SliverToBoxAdapter(child: ActiveSessionBanner()),
                     const SliverToBoxAdapter(child: PromoCarousel()),
-                    const _BrowseByCategorySection(),
-                    const _LoungeSectionHeader(),
-                    _LoungeList(),
+                    const HomeBrowseByCategorySection(),
+                    const HomeLoungeSectionHeader(),
+                    const HomeLoungeList(),
                     BlocBuilder<HomeCubit, HomeState>(
                       buildWhen: (previous, current) =>
                           previous.status != current.status,
@@ -152,308 +154,6 @@ class _HomeViewState extends State<_HomeView> {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoungeSectionHeader extends StatelessWidget {
-  const _LoungeSectionHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<LocaleCubit>();
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            AppText(
-              text: AppStrings.allLounges.tr(),
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            const _SortToggle(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SortToggle extends StatelessWidget {
-  const _SortToggle();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) => previous.sortType != current.sortType,
-      builder: (context, state) {
-        return Container(
-          padding: EdgeInsets.all(2.w),
-          decoration: BoxDecoration(
-            color: AppColors.withOpacity(AppColors.backgroundAlt, 0.5),
-            borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: AppColors.withOpacity(Colors.white, 0.05)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _SortItem(
-                label: AppStrings.nearest.tr(),
-                isSelected: state.sortType == LoungeSortType.nearest,
-                onTap: () => context.read<HomeCubit>().changeSortType(
-                  LoungeSortType.nearest,
-                ),
-              ),
-              _SortItem(
-                label: AppStrings.topRated.tr(),
-                isSelected: state.sortType == LoungeSortType.topRated,
-                onTap: () => context.read<HomeCubit>().changeSortType(
-                  LoungeSortType.topRated,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SortItem extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _SortItem({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 12.w),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.neonBlue : Colors.transparent,
-          borderRadius: BorderRadius.circular(8.r),
-        ),
-        child: AppText(
-          text: label,
-          fontSize: 10.sp,
-          fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-          color: isSelected ? AppColors.black : AppColors.textSecondary,
-        ),
-      ),
-    );
-  }
-}
-
-class _LoungeList extends StatelessWidget {
-  const _LoungeList();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) =>
-          previous.status != current.status ||
-          previous.nearestLounges != current.nearestLounges ||
-          previous.sortType != current.sortType,
-      builder: (context, state) {
-        if (state.status == HomeStatus.loading &&
-            state.nearestLounges.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 40),
-              child: AppLoader(size: 40),
-            ),
-          );
-        }
-
-        final lounges = state.nearestLounges;
-
-        if (lounges.isEmpty) {
-          final hasFilter = state.selectedCity != null || state.selectedCategoryIds.isNotEmpty;
-          return SliverToBoxAdapter(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                60.verticalSpace,
-                Icon(
-                  Icons.search_off_rounded,
-                  size: 80.sp,
-                  color: Colors.white10,
-                ),
-                20.verticalSpace,
-                AppText(
-                  text: AppStrings.noLoungesFound.tr(),
-                  color: AppColors.textSecondary,
-                  fontSize: 16.sp,
-                ),
-                16.verticalSpace,
-                if (hasFilter)
-                  AppButton(
-                    content: ButtonContent(label: AppStrings.allLounges.tr()),
-                    behavior: ButtonBehavior.tap(
-                      onTap: () {
-                        context.read<HomeCubit>().selectCity(null);
-                      },
-                    ),
-                    buttonConfig: ButtonConfig(
-                      height: 40.h,
-                      width: 160.w,
-                      backgroundColor: Colors.transparent,
-                      borderColor: AppColors.neonBlue,
-                      isOutlined: true,
-                      borderRadius: 12.r,
-                    ),
-                  )
-                else
-                  AppButton(
-                    content: ButtonContent(label: AppStrings.retry.tr()),
-                    behavior: ButtonBehavior.tap(
-                      onTap: () => context.read<HomeCubit>().getHomeData(),
-                    ),
-                    buttonConfig: ButtonConfig(
-                      height: 40.h,
-                      width: 120.w,
-                      backgroundColor: Colors.transparent,
-                      borderRadius: 12.r,
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }
-
-        return SliverPadding(
-          padding: 16.horizontalPadding,
-          sliver: SliverGrid(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8.w,
-              mainAxisSpacing: 8.h,
-              mainAxisExtent: 215.h,
-            ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final lounge = lounges[index];
-              final heroTag = 'lounge_${lounge.id}_main';
-              return LoungeCard(
-                key: ValueKey(lounge.id),
-                lounge: lounge,
-                heroTag: heroTag,
-                onTap: () {
-                  context.pushNamed(
-                    RouterKeys.loungeDetails,
-                    extra: {'lounge': lounge, 'heroTag': heroTag},
-                  );
-                },
-              );
-            }, childCount: lounges.length),
-          ),
-        );
-      },
-    );
-  }
-}
-
-extension on Widget {
-  SliverToBoxAdapter get toSliver => SliverToBoxAdapter(child: this);
-}
-
-class _HomeSliverAppBar extends StatelessWidget {
-  final String userName;
-  final String currentLocation;
-
-  const _HomeSliverAppBar({
-    required this.userName,
-    required this.currentLocation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) =>
-          previous.availableCities != current.availableCities ||
-          previous.selectedCity != current.selectedCity ||
-          previous.currentAddress != current.currentAddress ||
-          previous.pointsBalance != current.pointsBalance ||
-          (previous.status == HomeStatus.initial &&
-              current.status == HomeStatus.loading),
-      builder: (context, state) {
-        final hasCities = state.availableCities.isNotEmpty;
-        return SliverAppBar(
-          backgroundColor: Colors.transparent,
-          expandedHeight: hasCities ? 165.h : 120.h,
-          pinned: true,
-          elevation: 0,
-          flexibleSpace: FlexibleSpaceBar(
-            background: HomeHeader(
-              userName: userName,
-              currentLocation: state.currentAddress ?? currentLocation,
-              cities: state.availableCities,
-              selectedCity: state.selectedCity,
-              pointsBalance: state.pointsBalance,
-              onCitySelected: (city) =>
-                  context.read<HomeCubit>().selectCity(city),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _BrowseByCategorySection extends StatelessWidget {
-  const _BrowseByCategorySection();
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<LocaleCubit>();
-    return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) =>
-          previous.categories != current.categories ||
-          previous.status != current.status,
-      builder: (context, state) {
-        if (state.categories.isEmpty && state.status != HomeStatus.loading) {
-          return const SliverToBoxAdapter(child: SizedBox.shrink());
-        }
-
-        return SliverMainAxisGroup(
-          slivers: [
-            SliverSectionHeader(title: AppStrings.browseByCategory),
-            const SliverToBoxAdapter(child: ActivityCategories()),
-            8.verticalSpace.toSliver,
-          ],
-        );
-      },
-    );
-  }
-}
-
-
-class _HomeBackground extends StatelessWidget {
-  const _HomeBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(-0.8, -0.8),
-          radius: 1.5,
-          colors: [
-            AppColors.neonBlue.withValues(alpha: 0.03),
-            AppColors.scaffoldBackground,
           ],
         ),
       ),

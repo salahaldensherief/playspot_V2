@@ -23,6 +23,7 @@ import 'core/notifications/local_notification_service.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/utils/app_bloc_observer.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+import 'core/services/play_spot_live_activity_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +64,7 @@ void main() async {
     localNotifications: LocalNotificationService.instance,
     profileRepository: sl<ProfileRepository>(),
   );
+  await PlaySpotLiveActivityService.instance.init();
 
   runApp(
     EasyLocalization(

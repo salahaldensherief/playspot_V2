@@ -49,6 +49,11 @@
 		<string>We need your location to show nearby gaming lounges.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
 		<string>We need your location to show nearby gaming lounges.</string>
+		<!-- Photo & Camera Permissions -->
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need access to your photo library to select and upload payment receipts and profile pictures.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>We need access to your camera to capture payment receipts and profile pictures.</string>
 		<!-- Map Launcher Schemes -->
 		<key>LSApplicationQueriesSchemes</key>
 		<array>

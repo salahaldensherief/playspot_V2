@@ -99,10 +99,11 @@ class _SearchScreenState extends State<SearchScreen> {
             Expanded(
               child: BlocBuilder<HomeCubit, HomeState>(
                 buildWhen: (previous, current) =>
+                    previous.isLoungesLoading != current.isLoungesLoading ||
                     previous.status != current.status ||
                     previous.nearestLounges != current.nearestLounges,
                 builder: (context, state) {
-                  if (state.status == HomeStatus.loading) {
+                  if (state.isLoungesLoading || state.status == HomeStatus.loading) {
                     return const AppLoader(size: 40);
                   }
 

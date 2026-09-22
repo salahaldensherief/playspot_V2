@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'constants/app_config.dart';
 import 'di/modules/core_module.dart';
 import 'di/modules/auth_module.dart';
 import 'di/modules/home_module.dart';
@@ -36,7 +37,8 @@ Future<void> init() async {
 
 Future<void> initSupabase() async {
   await Supabase.initialize(
-    url: 'https://tgpdexoitemmpruepgyt.supabase.co',
-    publishableKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRncGRleG9pdGVtbXBydWVwZ3l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjYyNzYsImV4cCI6MjA5NDI0MjI3Nn0.i5ekdw4CkWh97-BGWzCRQZ4c9bIKWIo2vD-Ev58BVC4',
+    url: AppConfig.supabaseUrl,
+    publishableKey: AppConfig.supabaseAnonKey,
   );
 }
+

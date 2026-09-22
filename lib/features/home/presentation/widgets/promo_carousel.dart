@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
-import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../home_cubit.dart';
 import '../home_state.dart';
 import 'promo_card.dart';
@@ -16,22 +15,12 @@ class PromoCarousel extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) => 
-        previous.status != current.status ||
+        previous.isPromosLoading != current.isPromosLoading ||
         previous.promotions != current.promotions ||
         previous.nearbyTournament != current.nearbyTournament ||
         previous.activeRegisteredTournament != current.activeRegisteredTournament ||
         previous.activeUserParticipant != current.activeUserParticipant,
       builder: (context, state) {
-        if (state.status == HomeStatus.loading && state.promotions.isEmpty && state.nearbyTournament == null) {
-          return Padding(
-            padding: EdgeInsets.only(bottom: 16.h),
-            child: SizedBox(
-              height: 120.h,
-              child: const AppLoader(size: 32),
-            ),
-          );
-        }
-
         final hasTournament = state.nearbyTournament != null;
         final totalCount = (hasTournament ? 1 : 0) + state.promotions.length;
 

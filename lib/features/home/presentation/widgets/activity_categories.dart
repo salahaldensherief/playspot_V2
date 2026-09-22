@@ -17,13 +17,14 @@ class ActivityCategories extends StatelessWidget {
     final isArabic = context.locale.languageCode == 'ar';
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) =>
+        previous.isCategoriesLoading != current.isCategoriesLoading ||
         previous.categories != current.categories ||
         previous.selectedCategoryIds != current.selectedCategoryIds,
       builder: (context, state) {
-        if (state.categories.isEmpty && state.status == HomeStatus.loading) {
+        if (state.categories.isEmpty && state.isCategoriesLoading) {
           return SizedBox(
             height: 60.h,
-            child: const AppLoader(size: 28),
+            child: const Center(child: AppLoader(size: 28)),
           );
         }
 

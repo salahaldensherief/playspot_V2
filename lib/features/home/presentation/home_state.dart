@@ -27,8 +27,15 @@ class HomeState extends Equatable {
   final TournamentEntity? activeRegisteredTournament;
   final TournamentParticipantEntity? activeUserParticipant;
 
+  final bool isLoungesLoading;
+  final bool isPromosLoading;
+  final bool isCategoriesLoading;
+
   const HomeState({
     this.status = HomeStatus.initial,
+    this.isLoungesLoading = false,
+    this.isPromosLoading = false,
+    this.isCategoriesLoading = false,
     this.nearestLounges = const [],
     this.topRatedLounges = const [],
     this.promotions = const [],
@@ -49,6 +56,9 @@ class HomeState extends Equatable {
 
   HomeState copyWith({
     HomeStatus? status,
+    bool? isLoungesLoading,
+    bool? isPromosLoading,
+    bool? isCategoriesLoading,
     List<LoungeModel>? nearestLounges,
     List<LoungeModel>? topRatedLounges,
     List<PromoModel>? promotions,
@@ -72,6 +82,9 @@ class HomeState extends Equatable {
   }) {
     return HomeState(
       status: status ?? this.status,
+      isLoungesLoading: isLoungesLoading ?? this.isLoungesLoading,
+      isPromosLoading: isPromosLoading ?? this.isPromosLoading,
+      isCategoriesLoading: isCategoriesLoading ?? this.isCategoriesLoading,
       nearestLounges: nearestLounges ?? this.nearestLounges,
       topRatedLounges: topRatedLounges ?? this.topRatedLounges,
       promotions: promotions ?? this.promotions,
@@ -98,6 +111,9 @@ class HomeState extends Equatable {
   @override
   List<Object?> get props => [
     status,
+    isLoungesLoading,
+    isPromosLoading,
+    isCategoriesLoading,
     nearestLounges,
     topRatedLounges,
     promotions,
