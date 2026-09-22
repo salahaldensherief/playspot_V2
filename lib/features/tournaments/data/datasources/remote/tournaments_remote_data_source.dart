@@ -603,9 +603,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     }
   }
 
-  final Map<String, ParticipantStatus> _demoParticipantStatuses = {};
-
-  @override
   @override
   Future<TournamentParticipantModel?> withdrawFromTournament(
     String participantId, {

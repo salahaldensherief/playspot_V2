@@ -541,5 +541,4 @@ class AppStrings {
   static const String maintenanceActiveSessionNotice = "maintenanceActiveSessionNotice";
   static const String noMatchesFound = "noMatchesFound";
   static const String bracketPendingMessage = "bracketPendingMessage";
-  static const String userNotLoggedIn = "userNotLoggedIn";
 }
