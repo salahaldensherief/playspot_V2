@@ -47,7 +47,7 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
           emit(
             state.copyWith(
               status: MatchScreenStatus.failure,
-              errorMessage: 'No matches found',
+              errorMessage: AppStrings.noMatchesFound.tr(),
             ),
           );
           return;
@@ -78,7 +78,8 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
   }
 
   Future<void> submitResult() async {
-    if (state.match == null || state.isSubmittingResult) return;
+    final match = state.match;
+    if (match == null || state.isSubmittingResult) return;
 
     if (state.player1Score == state.player2Score) {
       emit(
@@ -94,8 +95,8 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
     try {
       final result =
           await _submitMatchResultUseCase(
-            matchId: state.match!.id,
-            tournamentId: state.match!.tournamentId,
+            matchId: match.id,
+            tournamentId: match.tournamentId,
             player1Score: state.player1Score,
             player2Score: state.player2Score,
             proofFile: state.proofFile,
@@ -125,8 +126,8 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
             ),
           );
           loadMatch(
-            tournamentId: state.match!.tournamentId,
-            matchId: state.match!.id,
+            tournamentId: match.tournamentId,
+            matchId: match.id,
           );
         },
       );
@@ -142,11 +143,12 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
   }
 
   Future<void> confirmResult() async {
-    if (state.match == null || state.isConfirmingResult) return;
+    final match = state.match;
+    if (match == null || state.isConfirmingResult) return;
 
     emit(state.copyWith(isConfirmingResult: true));
 
-    final result = await _repository.confirmMatchResult(state.match!.id);
+    final result = await _repository.confirmMatchResult(match.id);
 
     result.fold(
       (failure) {
@@ -165,15 +167,16 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
           ),
         );
         loadMatch(
-          tournamentId: state.match!.tournamentId,
-          matchId: state.match!.id,
+          tournamentId: match.tournamentId,
+          matchId: match.id,
         );
       },
     );
   }
 
   Future<void> disputeResult(String reason) async {
-    if (state.match == null ||
+    final match = state.match;
+    if (match == null ||
         state.isSubmittingDispute ||
         reason.trim().isEmpty) {
       return;
@@ -182,7 +185,7 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
     emit(state.copyWith(isSubmittingDispute: true));
 
     final result = await _repository.disputeMatchResult(
-      matchId: state.match!.id,
+      matchId: match.id,
       disputeReason: reason.trim(),
     );
 
@@ -203,8 +206,8 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
           ),
         );
         loadMatch(
-          tournamentId: state.match!.tournamentId,
-          matchId: state.match!.id,
+          tournamentId: match.tournamentId,
+          matchId: match.id,
         );
       },
     );

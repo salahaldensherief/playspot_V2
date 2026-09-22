@@ -55,12 +55,14 @@ class NotificationSettingsScreen extends StatelessWidget {
                           title: AppStrings.general.tr(),
                           children: [
                             _buildActionTile(
+                              context: context,
                               icon: TablerIcons.world,
                               title: AppStrings.language.tr(),
                               subtitle: context.locale.languageCode == 'ar' ? 'العربية' : 'English',
                               onTap: () => _showLanguagePicker(context),
                             ),
                             _buildActionTile(
+                              context: context,
                               icon: TablerIcons.credit_card,
                               title: AppStrings.paymentMethods.tr(),
                               showBorder: true,
@@ -203,53 +205,63 @@ class NotificationSettingsScreen extends StatelessWidget {
   }
 
   Widget _buildActionTile({
+    required BuildContext context,
     required IconData icon,
     required String title,
     String? subtitle,
     required VoidCallback onTap,
     bool showBorder = false,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          border: showBorder ? const Border(top: BorderSide(color: AppColors.borderDefault)) : null,
-        ),
-        padding: 20.horizontalPadding + 16.verticalPadding,
-        child: Row(
-          children: [
-            Container(
-              padding: 10.allPadding,
-              decoration: BoxDecoration(
-                color: AppColors.whiteOverlay,
-                borderRadius: BorderRadius.circular(AppSizes.r12),
+    final isRtl = context.locale.languageCode == 'ar';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            border: showBorder ? const Border(top: BorderSide(color: AppColors.borderDefault)) : null,
+          ),
+          padding: 20.horizontalPadding + 16.verticalPadding,
+          child: Row(
+            children: [
+              Container(
+                padding: 10.allPadding,
+                decoration: BoxDecoration(
+                  color: AppColors.whiteOverlay,
+                  borderRadius: BorderRadius.circular(AppSizes.r12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 20.sp),
               ),
-              child: Icon(icon, color: Colors.white, size: 20.sp),
-            ),
-            16.horizontalSpace,
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText(
-                    text: title,
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                  if (subtitle != null) ...[
-                    2.verticalSpace,
+              16.horizontalSpace,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     AppText(
-                      text: subtitle,
-                      fontSize: 12.sp,
-                      color: AppColors.textSecondary,
+                      text: title,
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
+                    if (subtitle != null) ...[
+                      2.verticalSpace,
+                      AppText(
+                        text: subtitle,
+                        fontSize: 12.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            Icon(TablerIcons.chevron_right, color: AppColors.textSecondary, size: 18.sp),
-          ],
+              Icon(
+                isRtl ? TablerIcons.chevron_left : TablerIcons.chevron_right,
+                color: AppColors.textSecondary,
+                size: 18.sp,
+              ),
+            ],
+          ),
         ),
       ),
     );

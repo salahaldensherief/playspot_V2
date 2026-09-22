@@ -290,6 +290,11 @@ class AppStrings {
   static const String cleaning = "cleaning";
   static const String controllerIssue = "controllerIssue";
   static const String rateExperience = "rateExperience";
+  static const String ratingExcellent = "ratingExcellent";
+  static const String ratingVeryGood = "ratingVeryGood";
+  static const String ratingGood = "ratingGood";
+  static const String ratingFair = "ratingFair";
+  static const String ratingPoor = "ratingPoor";
   static const String submitReview = "submitReview";
   static const String reviewSubmittedSuccess = "reviewSubmittedSuccess";
   static const String noReviewsYet = "noReviewsYet";
@@ -310,6 +315,7 @@ class AppStrings {
   static const String extendTime = "extendTime";
   static const String confirmExtensionTitle = "confirmExtensionTitle";
   static const String confirmExtensionSubtitle = "confirmExtensionSubtitle";
+  static const String sessionExpiringPromptSubtitle = "sessionExpiringPromptSubtitle";
   static const String extensionPendingTitle = "extensionPendingTitle";
   static const String extensionPendingSubtitle = "extensionPendingSubtitle";
   static const String extensionDeclinedTitle = "extensionDeclinedTitle";
@@ -533,4 +539,7 @@ class AppStrings {
   static const String newUpdateAvailableDesc = "newUpdateAvailableDesc";
   static const String later = "later";
   static const String maintenanceActiveSessionNotice = "maintenanceActiveSessionNotice";
+  static const String noMatchesFound = "noMatchesFound";
+  static const String bracketPendingMessage = "bracketPendingMessage";
+  static const String userNotLoggedIn = "userNotLoggedIn";
 }

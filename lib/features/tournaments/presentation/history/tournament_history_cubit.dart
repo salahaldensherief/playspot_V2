@@ -1,4 +1,6 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/usecases/get_user_tournament_history_usecase.dart';
 import 'tournament_history_state.dart';
@@ -16,7 +18,7 @@ class TournamentHistoryCubit extends Cubit<TournamentHistoryState> {
     if (userId == null) {
       emit(state.copyWith(
         status: TournamentHistoryStatus.failure,
-        errorMessage: 'User not logged in',
+        errorMessage: AppStrings.userNotLoggedIn.tr(),
       ));
       return;
     }

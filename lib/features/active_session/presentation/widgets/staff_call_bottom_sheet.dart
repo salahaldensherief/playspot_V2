@@ -10,6 +10,18 @@ import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 
+class _StaffOption {
+  final String id;
+  final String label;
+  final IconData icon;
+
+  const _StaffOption({
+    required this.id,
+    required this.label,
+    required this.icon,
+  });
+}
+
 class StaffCallBottomSheet extends StatefulWidget {
   final Function(String type, String? notes) onSubmit;
 
@@ -21,102 +33,185 @@ class StaffCallBottomSheet extends StatefulWidget {
 
 class _StaffCallBottomSheetState extends State<StaffCallBottomSheet> {
   String _selectedType = 'assistance';
-  final _notesController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
 
-  final List<Map<String, dynamic>> _types = [
-    {'id': 'assistance', 'label': AppStrings.assistance},
-    {'id': 'cleaning', 'label': AppStrings.cleaning},
-    {'id': 'controller_issue', 'label': AppStrings.controllerIssue},
+  static const List<_StaffOption> _types = [
+    _StaffOption(
+      id: 'assistance',
+      label: AppStrings.assistance,
+      icon: Icons.support_agent_rounded,
+    ),
+    _StaffOption(
+      id: 'cleaning',
+      label: AppStrings.cleaning,
+      icon: Icons.cleaning_services_rounded,
+    ),
+    _StaffOption(
+      id: 'controller_issue',
+      label: AppStrings.controllerIssue,
+      icon: Icons.sports_esports_rounded,
+    ),
   ];
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(24.w),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(24.r), // Standardize with top only if needed, but here it's fine
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40.w,
-              height: 4.h,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(2.r),
+      padding: EdgeInsets.only(
+        left: 24.w,
+        right: 24.w,
+        top: 16.h,
+        bottom: 24.h + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
               ),
             ),
-          ),
-          24.verticalSpace,
-          AppText(
-            text: AppStrings.callStaff.tr(),
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          24.verticalSpace,
-          ..._types.map((type) => _buildTypeOption(type)),
-          24.verticalSpace,
-          AppTextField(
-            controller: _notesController,
-            hint: AppStrings.addNote.tr(),
-            maxLines: 2,
-            borderRadius: 16.r,
-          ),
-          32.verticalSpace,
-          AppButton(
-            content: ButtonContent(label: AppStrings.continueText.tr()),
-            behavior: TapBehavior(
-              isEnabled: true,
-              onTap: () {
-                widget.onSubmit(_selectedType, _notesController.text.trim().isEmpty ? null : _notesController.text.trim());
-                Navigator.pop(context);
-              },
+            20.verticalSpace,
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.neonBlue.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.room_service_rounded,
+                    color: AppColors.neonBlue,
+                    size: 22.sp,
+                  ),
+                ),
+                12.horizontalSpace,
+                AppText(
+                  text: AppStrings.callStaff.tr(),
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ],
             ),
-            buttonConfig: ButtonConfig(
-              width: double.infinity,
-              gradient: AppColors.primaryGradient,
+            20.verticalSpace,
+            ..._types.map((type) => _buildTypeOption(type)),
+            16.verticalSpace,
+            AppTextField(
+              controller: _notesController,
+              hint: AppStrings.addNote.tr(),
+              maxLines: 2,
+              borderRadius: 16.r,
             ),
-          ),
-          MediaQuery.of(context).viewInsets.bottom.verticalSpace,
-        ],
+            24.verticalSpace,
+            AppButton(
+              content: ButtonContent(label: AppStrings.continueText.tr()),
+              behavior: TapBehavior(
+                isEnabled: true,
+                onTap: () {
+                  final noteText = _notesController.text.trim();
+                  widget.onSubmit(
+                    _selectedType,
+                    noteText.isEmpty ? null : noteText,
+                  );
+                  Navigator.pop(context);
+                },
+              ),
+              buttonConfig: ButtonConfig(
+                width: double.infinity,
+                gradient: AppColors.primaryGradient,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildTypeOption(Map<String, dynamic> type) {
-    final isSelected = _selectedType == type['id'];
-    return GestureDetector(
-      onTap: () => setState(() => _selectedType = type['id']!),
-      child: Container(
-        margin: EdgeInsets.only(bottom: 12.h),
-        padding: EdgeInsets.all(16.w),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.neonBlue.withOpacity(0.1) : Colors.transparent,
+  Widget _buildTypeOption(_StaffOption type) {
+    final isSelected = _selectedType == type.id;
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            setState(() => _selectedType = type.id);
+          },
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.neonBlue.withValues(alpha: 0.12)
+                  : Colors.white.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(
+                color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+                width: isSelected ? 1.5 : 1.0,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.neonBlue.withValues(alpha: 0.15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.neonBlue.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    type.icon,
+                    color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                    size: 20.sp,
+                  ),
+                ),
+                14.horizontalSpace,
+                Expanded(
+                  child: AppText(
+                    text: type.label.tr(),
+                    fontSize: 15.sp,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
+                Icon(
+                  isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                  color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                  size: 20.sp,
+                ),
+              ],
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
-              size: 20.sp,
-            ),
-            SizedBox(width: 16.w),
-            AppText(
-              text: (type['label'] as String).tr(),
-              fontSize: 16.sp,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
-            ),
-          ],
         ),
       ),
     );

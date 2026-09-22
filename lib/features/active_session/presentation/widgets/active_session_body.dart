@@ -12,6 +12,7 @@ import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../domain/entities/active_session.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
 import 'active_session_action_bar.dart';
@@ -25,7 +26,7 @@ import 'timer_section.dart';
 class ActiveSessionBody extends StatelessWidget {
   const ActiveSessionBody({super.key});
 
-  void _showReviewBottomSheet(BuildContext context, dynamic session) {
+  void _showReviewBottomSheet(BuildContext context, ActiveSession session) {
     final cubit = context.read<ActiveSessionCubit>();
     showModalBottomSheet(
       context: context,
@@ -67,9 +68,7 @@ class ActiveSessionBody extends StatelessWidget {
                   ),
                   SizedBox(height: 16.h),
                   AppText(
-                    text:
-                        state.errorMessage ??
-                        AppStrings.somethingWentWrong.tr(),
+                    text: state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 16.h),
@@ -93,17 +92,16 @@ class ActiveSessionBody extends StatelessWidget {
           );
         }
 
-        if (state.status == ActiveSessionStatus.empty &&
-            state.completedSession != null) {
+        final completed = state.completedSession;
+        if (state.status == ActiveSessionStatus.empty && completed != null) {
           return SessionSummaryCard(
-            session: state.completedSession!,
-            onRateExperience: () =>
-                _showReviewBottomSheet(context, state.completedSession!),
+            session: completed,
+            onRateExperience: () => _showReviewBottomSheet(context, completed),
           );
         }
 
-        if (state.status == ActiveSessionStatus.empty ||
-            state.session == null) {
+        final session = state.session;
+        if (state.status == ActiveSessionStatus.empty || session == null) {
           return AppRefreshIndicator(
             onRefresh: () =>
                 context.read<ActiveSessionCubit>().loadActiveSession(),
@@ -153,8 +151,6 @@ class ActiveSessionBody extends StatelessWidget {
           );
         }
 
-        final session = state.session!;
-
         return AppRefreshIndicator(
           onRefresh: () =>
               context.read<ActiveSessionCubit>().loadActiveSession(),
@@ -182,15 +178,14 @@ class ActiveSessionBody extends StatelessWidget {
     );
   }
 
-  Widget _buildPendingExtensionBanner(BuildContext context, dynamic session) {
-    final status = session.extensionStatus?.toString().toLowerCase();
+  Widget _buildPendingExtensionBanner(BuildContext context, ActiveSession session) {
+    final status = session.extensionStatus?.toLowerCase();
     final mins = session.requestedExtensionMinutes ?? 0;
 
     if (status != 'pending' && mins <= 0) {
       return const SizedBox.shrink();
     }
 
-    final isArabic = context.locale.languageCode == 'ar';
     final displayMins = mins > 0 ? mins : 30;
 
     return Container(
@@ -221,16 +216,14 @@ class ActiveSessionBody extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AppText(
-                  text: isArabic ? "طلب التمديد قيد المراجعة ⏳" : "Extension Request Pending ⏳",
+                  text: "${AppStrings.extensionPendingTitle.tr()} ⏳",
                   fontSize: 13.5.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.warning,
                 ),
                 SizedBox(height: 3.h),
                 AppText(
-                  text: isArabic
-                      ? "تم إرسال طلب تمديد الجلسة (+$displayMins دقيقة) لكاشير الصالة وجاري اعتماده الآن."
-                      : "Session extension request (+$displayMins mins) sent to lounge staff and is being processed.",
+                  text: AppStrings.extensionPendingSubtitle.tr(args: [displayMins.toString()]),
                   fontSize: 11.5.sp,
                   color: Colors.white.withValues(alpha: 0.9),
                   height: 1.3,

@@ -100,6 +100,7 @@
   "nearestToYou": "الأقرب ليك",
   "topRated": "الأعلى تقييماً",
   "seeAll": "عرض الكل",
+  "all": "الكل",
   "availableRooms": "الغرف المتاحة",
   "extras": "مشروبات وسناكس",
   "drinks": "المشروبات",
@@ -333,6 +334,11 @@
   "cleaning": "تنظيف المكان",
   "controllerIssue": "مشكلة في الدراعات",
   "rateExperience": "قيم تجربتك",
+  "ratingExcellent": "ممتاز",
+  "ratingVeryGood": "جيد جداً",
+  "ratingGood": "جيد",
+  "ratingFair": "مقبول",
+  "ratingPoor": "سيء",
   "submitReview": "إرسال التقييم",
   "reviewSubmittedSuccess": "شكراً ليك! تقييمك وصلنا بنجاح ⭐",
   "howWasYourSession": "إيه رأيك في قعدتك في {}؟",
@@ -340,6 +346,7 @@
   "sessionExtendedSuccess": "تم تمديد الوقت بنجاح، كمل لعبك!",
   "confirmExtensionTitle": "تأكيد طلب التمديد",
   "confirmExtensionSubtitle": "حابب تبعت طلب تمديد للجلسة بمقدار {} بتكلفة {} ج.م للكاشير؟",
+  "sessionExpiringPromptSubtitle": "متبقي دقائق قليلة على انتهاء حجزك. حدد مدة التمديد:",
   "extensionPendingTitle": "طلب التمديد قيد الانتظار",
   "extensionPendingSubtitle": "طلب إضافة +{} دقيقة راح للكاشير، ثواني للموافقة...",
   "extensionDeclinedTitle": "تم رفض طلب التمديد",
@@ -537,5 +544,8 @@
   "newUpdateAvailableTitle": "في تحديث جديد متوفر",
   "newUpdateAvailableDesc": "نزلنا إصدار جديد فيه تحسينات مهمة ومميزات إضافية.",
   "later": "بعدين",
-  "maintenanceActiveSessionNotice": "التطبيق في فترة صيانة خفيفة. تقدر تكمل جلستك الحالية عادي، لكن الحجز الجديد أو التمديد موقوف مؤقتاً."
-}
+  "maintenanceActiveSessionNotice": "التطبيق في فترة صيانة خفيفة. تقدر تكمل جلستك الحالية عادي، لكن الحجز الجديد أو التمديد موقوف مؤقتاً.",
+  "noMatchesFound": "لا توجد مباريات",
+  "bracketPendingMessage": "ستظهر المباريات والجدول بمجرد بدء البطولة",
+  "userNotLoggedIn": "يرجى تسجيل الدخول لعرض سجل بطولاتك"
+}

@@ -10,34 +10,71 @@ import 'package:playspot/core/mixins/realtime_watcher_mixin.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../../../core/notifications/local_notification_service.dart';
 import '../../../../core/notifications/native_notification_service.dart';
-import '../domain/repositories/active_session_repository.dart';
-import '../data/models/order_item_model.dart';
+import '../domain/entities/active_session.dart';
+import '../domain/entities/order_item.dart';
+import '../domain/usecases/extend_session_time_usecase.dart';
+import '../domain/usecases/get_active_session_usecase.dart';
+import '../domain/usecases/get_lounge_menu_usecase.dart';
+import '../domain/usecases/place_session_order_usecase.dart';
+import '../domain/usecases/request_session_extension_usecase.dart';
+import '../domain/usecases/request_staff_assistance_usecase.dart';
+import '../domain/usecases/stream_active_session_usecase.dart';
+import '../domain/usecases/submit_lounge_review_usecase.dart';
+import '../domain/usecases/watch_user_active_session_usecase.dart';
 import 'active_session_state.dart';
 import 'widgets/lounge_review_bottom_sheet.dart';
 import '../../../../art_core/router/app_router.dart';
 import '../../../../art_core/widgets/layout/app_bottom_sheet.dart';
-import '../data/models/active_session_model.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../../core/cache/caching_key.dart';
 
 class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherMixin {
-  final ActiveSessionRepository _repo;
+  final GetActiveSessionUseCase _getActiveSessionUseCase;
+  final WatchUserActiveSessionUseCase _watchUserActiveSessionUseCase;
+  final StreamActiveSessionUseCase _streamActiveSessionUseCase;
+  final ExtendSessionTimeUseCase _extendSessionTimeUseCase;
+  final RequestSessionExtensionUseCase _requestSessionExtensionUseCase;
+  final PlaceSessionOrderUseCase _placeSessionOrderUseCase;
+  final GetLoungeMenuUseCase _getLoungeMenuUseCase;
+  final RequestStaffAssistanceUseCase _requestStaffAssistanceUseCase;
+  final SubmitLoungeReviewUseCase _submitLoungeReviewUseCase;
+
   StreamSubscription? _realtimeSubscription;
   StreamSubscription? _userSessionsSubscription;
   String? _subscribedBookingId;
 
-  ActiveSessionCubit(this._repo) : super(const ActiveSessionState()) {
+  ActiveSessionCubit({
+    required GetActiveSessionUseCase getActiveSessionUseCase,
+    required WatchUserActiveSessionUseCase watchUserActiveSessionUseCase,
+    required StreamActiveSessionUseCase streamActiveSessionUseCase,
+    required ExtendSessionTimeUseCase extendSessionTimeUseCase,
+    required RequestSessionExtensionUseCase requestSessionExtensionUseCase,
+    required PlaceSessionOrderUseCase placeSessionOrderUseCase,
+    required GetLoungeMenuUseCase getLoungeMenuUseCase,
+    required RequestStaffAssistanceUseCase requestStaffAssistanceUseCase,
+    required SubmitLoungeReviewUseCase submitLoungeReviewUseCase,
+  })  : _getActiveSessionUseCase = getActiveSessionUseCase,
+        _watchUserActiveSessionUseCase = watchUserActiveSessionUseCase,
+        _streamActiveSessionUseCase = streamActiveSessionUseCase,
+        _extendSessionTimeUseCase = extendSessionTimeUseCase,
+        _requestSessionExtensionUseCase = requestSessionExtensionUseCase,
+        _placeSessionOrderUseCase = placeSessionOrderUseCase,
+        _getLoungeMenuUseCase = getLoungeMenuUseCase,
+        _requestStaffAssistanceUseCase = requestStaffAssistanceUseCase,
+        _submitLoungeReviewUseCase = submitLoungeReviewUseCase,
+        super(const ActiveSessionState()) {
     _watchUserSessions();
   }
 
   void _watchUserSessions() {
     _userSessionsSubscription?.cancel();
     _userSessionsSubscription = subscribeWithRetry(
-      streamFactory: () => _repo.watchUserActiveSession(),
+      streamFactory: () => _watchUserActiveSessionUseCase(),
       onData: (activeSession) {
         if (activeSession != null) {
           dev.log("[LIVESESSION_CUBIT] Watch Stream detected active session: ${activeSession.bookingId}");
-          if (state.session == null || state.session!.bookingId != activeSession.bookingId || state.status != ActiveSessionStatus.loaded) {
+          final currentSession = state.session;
+          if (currentSession == null || currentSession.bookingId != activeSession.bookingId || state.status != ActiveSessionStatus.loaded) {
             loadActiveSession(bookingId: activeSession.bookingId);
           }
         }
@@ -71,7 +108,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     }
   }
 
-  void _showGlobalReviewBottomSheet(ActiveSessionModel session) {
+  void _showGlobalReviewBottomSheet(ActiveSession session) {
     if (_hasBeenReviewedOrPrompted(session.bookingId)) return;
     _markAsReviewedOrPrompted(session.bookingId);
 
@@ -98,7 +135,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
       emit(state.copyWith(status: ActiveSessionStatus.loading));
     }
 
-    final result = await _repo.getActiveSession(bookingId: bookingId);
+    final result = await _getActiveSessionUseCase(bookingId: bookingId);
 
     if (isClosed) return;
 
@@ -179,7 +216,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     _realtimeSubscription?.cancel();
 
     _realtimeSubscription = subscribeWithRetry(
-      streamFactory: () => _repo.streamActiveSession(bookingId),
+      streamFactory: () => _streamActiveSessionUseCase(bookingId),
       onData: (updatedSession) {
         dev.log("[LIVESESSION_CUBIT] REALTIME EVENT for $bookingId: status=${updatedSession.status}, end_time=${updatedSession.endTime}");
         final status = BookingStatus.fromString(updatedSession.status);
@@ -250,7 +287,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
   Future<void> loadMenu(String loungeId) async {
     if (loungeId.isEmpty || isClosed) return;
     dev.log("[LIVESESSION_CUBIT] LOAD_MENU for lounge: $loungeId");
-    final result = await _repo.getLoungeMenu(loungeId);
+    final result = await _getLoungeMenuUseCase(loungeId: loungeId);
     if (isClosed) return;
     result.fold(
       (f) => dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}"),
@@ -273,7 +310,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
 
     emit(state.copyWith(extendStatus: ActionStatus.loading));
 
-    final result = await _repo.extendTime(bookingId, additionalMinutes, cost);
+    final result = await _extendSessionTimeUseCase(
+      bookingId: bookingId,
+      additionalMinutes: additionalMinutes,
+      additionalCost: cost,
+    );
 
     result.fold(
       (failure) {
@@ -291,17 +332,50 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     );
   }
 
-  Future<void> requestStaffAssistance(String type, String? notes) async {
-    if (state.session == null) return;
+  Future<void> requestExtension(int requestedMinutes) async {
+    final active = state.session;
+    if (active == null) return;
 
     HapticFeedback.mediumImpact();
 
-    final bookingId = state.session!.bookingId;
+    final bookingId = active.bookingId;
+    dev.log("[LIVESESSION_CUBIT] REQUEST_EXTENSION: bookingId=$bookingId, minutes=$requestedMinutes");
+
+    emit(state.copyWith(extendStatus: ActionStatus.loading));
+
+    final result = await _requestSessionExtensionUseCase(
+      bookingId: bookingId,
+      requestedMinutes: requestedMinutes,
+    );
+
+    result.fold(
+      (failure) {
+        dev.log("[LIVESESSION_CUBIT] REQUEST_EXTENSION FAILURE: ${failure.message}");
+        emit(state.copyWith(
+          extendStatus: ActionStatus.error,
+          errorMessage: failure.message,
+        ));
+      },
+      (_) {
+        dev.log("[LIVESESSION_CUBIT] REQUEST_EXTENSION SUCCESS");
+        emit(state.copyWith(extendStatus: ActionStatus.success));
+        loadActiveSession(bookingId: bookingId);
+      },
+    );
+  }
+
+  Future<void> requestStaffAssistance(String type, String? notes) async {
+    final session = state.session;
+    if (session == null) return;
+
+    HapticFeedback.mediumImpact();
+
+    final bookingId = session.bookingId;
     dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE: bookingId=$bookingId, type=$type");
 
     emit(state.copyWith(staffRequestStatus: ActionStatus.loading));
 
-    final result = await _repo.requestStaffAssistance(
+    final result = await _requestStaffAssistanceUseCase(
       bookingId: bookingId,
       callType: type,
       notes: notes,
@@ -334,7 +408,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     final bookingId = session.bookingId;
     dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW: bookingId=$bookingId, rating=$rating");
 
-    final result = await _repo.submitLoungeReview(
+    final result = await _submitLoungeReviewUseCase(
       loungeId: session.loungeId,
       bookingId: bookingId,
       rating: rating,
@@ -360,17 +434,18 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     );
   }
 
-  Future<void> placeOrder(List<OrderItemModel> items) async {
-    if (state.session == null) return;
+  Future<void> placeOrder(List<OrderItem> items) async {
+    final session = state.session;
+    if (session == null) return;
 
     HapticFeedback.mediumImpact();
 
-    final bookingId = state.session!.bookingId;
+    final bookingId = session.bookingId;
     dev.log("[LIVESESSION_CUBIT] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}");
 
     emit(state.copyWith(orderStatus: ActionStatus.loading));
 
-    final result = await _repo.placeOrder(bookingId, items);
+    final result = await _placeSessionOrderUseCase(bookingId: bookingId, items: items);
 
     result.fold(
       (failure) {

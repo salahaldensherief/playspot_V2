@@ -3,9 +3,10 @@ import '../../../../core/datasources/local/app_cache_local_data_source.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/models/paginated_response.dart';
 import '../../../../core/utils/repository_helper.dart';
+import '../../domain/entities/active_session.dart';
+import '../../domain/entities/order_item.dart';
 import '../../domain/repositories/active_session_repository.dart';
 import '../datasources/remote/active_session_remote_data_source.dart';
-import '../models/active_session_model.dart';
 import '../models/order_item_model.dart';
 import '../../../lounge_details/data/models/extra_model.dart';
 
@@ -19,17 +20,17 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
   );
 
   @override
-  Future<Either<Failure, ActiveSessionModel?>> getActiveSession({String? bookingId}) async {
+  Future<Either<Failure, ActiveSession?>> getActiveSession({String? bookingId}) async {
     return await callRepository(() => _remoteDataSource.getActiveSession(bookingId: bookingId));
   }
 
   @override
-  Stream<ActiveSessionModel> streamActiveSession(String bookingId) {
+  Stream<ActiveSession> streamActiveSession(String bookingId) {
     return _remoteDataSource.streamActiveSession(bookingId);
   }
 
   @override
-  Stream<ActiveSessionModel?> watchUserActiveSession() {
+  Stream<ActiveSession?> watchUserActiveSession() {
     return _remoteDataSource.watchUserActiveSession();
   }
 
@@ -50,8 +51,9 @@ class ActiveSessionRepositoryImpl with RepositoryHelper implements ActiveSession
   }
 
   @override
-  Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItemModel> items) async {
-    return await callRepository(() => _remoteDataSource.placeOrder(bookingId, items));
+  Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItem> items) async {
+    final modelItems = items.map((i) => i is OrderItemModel ? i : OrderItemModel.fromEntity(i)).toList();
+    return await callRepository(() => _remoteDataSource.placeOrder(bookingId, modelItems));
   }
 
   @override

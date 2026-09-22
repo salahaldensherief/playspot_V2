@@ -237,13 +237,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
 
   @override
   Future<TournamentModel> getTournamentById(String tournamentId) async {
-    if (tournamentId.startsWith('demo_')) {
-      final demoList = _getDemoTournaments();
-      return demoList.firstWhere(
-        (t) => t.id == tournamentId,
-        orElse: () => demoList.first,
-      );
-    }
     try {
       final response = await _client
           .from('tournaments')
@@ -261,9 +254,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   Future<List<TournamentPrizeModel>> getTournamentPrizes(
     String tournamentId,
   ) async {
-    if (tournamentId.startsWith('demo_')) {
-      return _getDemoPrizes(tournamentId);
-    }
     try {
       final response = await _client
           .from('tournament_prizes')
@@ -272,14 +262,12 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .order('placement', ascending: true);
 
       final list = (response as List).cast<Map<String, dynamic>>();
-      final prizes = list
+      return list
           .map((json) => TournamentPrizeModel.fromJson(json))
           .toList();
-      if (prizes.isNotEmpty) return prizes;
-      return _getDemoPrizes(tournamentId);
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error fetching prizes: $e');
-      return _getDemoPrizes(tournamentId);
+      return [];
     }
   }
 
@@ -287,9 +275,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   Future<List<TournamentMatchModel>> getTournamentMatches(
     String tournamentId,
   ) async {
-    if (tournamentId.startsWith('demo_')) {
-      return _getDemoMatches(tournamentId);
-    }
     try {
       final response = await _client
           .from('tournament_matches')
@@ -299,14 +284,12 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .order('match_order', ascending: true);
 
       final list = (response as List).cast<Map<String, dynamic>>();
-      final matches = list
+      return list
           .map((json) => TournamentMatchModel.fromJson(json))
           .toList();
-      if (matches.isNotEmpty) return matches;
-      return _getDemoMatches(tournamentId);
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentMatches: $e');
-      return _getDemoMatches(tournamentId);
+      return [];
     }
   }
 
@@ -315,14 +298,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String tournamentId,
     String matchId,
   ) async {
-    if (tournamentId.startsWith('demo_')) {
-      final demoMatches = _getDemoMatches(tournamentId);
-      final safeMatches = List<TournamentMatchModel>.from(demoMatches);
-      return safeMatches.firstWhere(
-        (m) => m.id == matchId,
-        orElse: () => safeMatches.first,
-      );
-    }
     try {
       final response = await _client
           .from('tournament_matches')
@@ -333,22 +308,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       if (response != null) {
         return TournamentMatchModel.fromJson(response);
       }
-      final demoMatches = _getDemoMatches(tournamentId);
-      if (demoMatches.isEmpty) return null;
-      final safeMatches = List<TournamentMatchModel>.from(demoMatches);
-      return safeMatches.firstWhere(
-        (m) => m.id == matchId,
-        orElse: () => safeMatches.first,
-      );
+      return null;
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error in getMatchById: $e');
-      final demoMatches = _getDemoMatches(tournamentId);
-      if (demoMatches.isEmpty) return null;
-      final safeMatches = List<TournamentMatchModel>.from(demoMatches);
-      return safeMatches.firstWhere(
-        (m) => m.id == matchId,
-        orElse: () => safeMatches.first,
-      );
+      return null;
     }
   }
 
@@ -357,9 +320,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String tournamentId,
     String userId,
   ) async {
-    if (tournamentId.startsWith('demo_')) {
-      return _getDemoParticipant(tournamentId, userId);
-    }
     try {
       final response = await _client
           .from('tournament_participants')
@@ -371,10 +331,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       if (response != null) {
         return TournamentParticipantModel.fromJson(response);
       }
-      return _getDemoParticipant(tournamentId, userId);
+      return null;
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error fetching user participant: $e');
-      return _getDemoParticipant(tournamentId, userId);
+      return null;
     }
   }
 
@@ -403,11 +363,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   Future<TournamentParticipantModel?> registerForTournament(
     String tournamentId,
   ) async {
-    if (tournamentId.startsWith('demo_')) {
-      _demoParticipantStatuses[tournamentId] = ParticipantStatus.confirmed;
-      return _getDemoParticipant(tournamentId, 'demo_user');
-    }
-
     final currentUser = _client.auth.currentUser;
     if (currentUser == null) {
       throw Exception('User not logged in');
@@ -438,12 +393,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     required String paymentMethod,
     required File receiptFile,
   }) async {
-    if (participantId.startsWith('p_demo') ||
-        tournamentId.startsWith('demo_')) {
-      _demoParticipantStatuses[tournamentId] = ParticipantStatus.pendingPayment;
-      return _getDemoParticipant(tournamentId, userId);
-    }
-
     final fileExt = receiptFile.path.split('.').last;
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
     final storagePath = 'tournament-receipts/$tournamentId/$userId/$fileName';
@@ -486,13 +435,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   Future<TournamentParticipantModel?> checkInParticipant(
     String participantId,
   ) async {
-    if (participantId.startsWith('p_demo')) {
-      _demoParticipantStatuses.forEach((key, value) {
-        _demoParticipantStatuses[key] = ParticipantStatus.checkedIn;
-      });
-      return _getDemoParticipant('demo_fc24', 'demo_user');
-    }
-
     try {
       final res = await _client.rpc(
         'check_in_tournament_participant',
@@ -669,18 +611,6 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String participantId, {
     String? tournamentId,
   }) async {
-    if (participantId.startsWith('p_demo') ||
-        (tournamentId != null && tournamentId.startsWith('demo_'))) {
-      dev.log(
-        '[TOURNAMENTS_REMOTE] Withdraw demo tournament $tournamentId for participant $participantId',
-      );
-      if (tournamentId != null) {
-        _demoParticipantStatuses[tournamentId] = ParticipantStatus.withdrawn;
-      } else {
-        _demoParticipantStatuses['demo_fc24'] = ParticipantStatus.withdrawn;
-      }
-      return _getDemoParticipant(tournamentId ?? 'demo_fc24', 'demo_user');
-    }
     try {
       final res = await _client.rpc(
         'withdraw_from_tournament',
@@ -723,14 +653,12 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .eq('user_id', userId)
           .order('created_at', ascending: false);
 
-      final list = (response as List).cast<Map<String, dynamic>>();
-      if (list.isNotEmpty) return list;
-      return _getDemoHistory(userId);
+      return (response as List).cast<Map<String, dynamic>>();
     } catch (e) {
       dev.log(
         '[TOURNAMENTS_REMOTE] Error fetching user tournament history: $e',
       );
-      return _getDemoHistory(userId);
+      return [];
     }
   }
 
@@ -738,9 +666,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   Future<TournamentModel?> getHomeTournament() async {
     try {
       final response = await _client.rpc('get_home_tournament');
-      if (response == null) return _getDemoTournaments().first;
+      if (response == null) return null;
       if (response is List) {
-        if (response.isEmpty) return _getDemoTournaments().first;
+        if (response.isEmpty) return null;
         return TournamentModel.fromJson(
           (response.first as Map).cast<String, dynamic>(),
         );
@@ -748,338 +676,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
       if (response is Map) {
         return TournamentModel.fromJson(response.cast<String, dynamic>());
       }
-      return _getDemoTournaments().first;
+      return null;
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC get_home_tournament error: $e');
-      return _getDemoTournaments().first;
+      return null;
     }
-  }
-
-  List<TournamentModel> _getDemoTournaments() {
-    final now = DateTime.now();
-    return [
-      TournamentModel(
-        id: 'demo_fc24',
-        title: 'بطولة EA FC 24 الأسبوعية',
-        titleAr: 'بطولة EA FC 24 الأسبوعية',
-        titleEn: 'EA FC 24 Weekly Cup',
-        description:
-            'بطولة حماسية لأفضل لاعبي بلايستيشن في المنصورة. التحدي على جوائز كاش ونقاط ولاء.',
-        descriptionAr:
-            'بطولة حماسية لأفضل لاعبي بلايستيشن في المنصورة. التحدي على جوائز كاش ونقاط ولاء.',
-        descriptionEn:
-            'Exciting FC 24 tournament for PlayStation gamers in Mansoura with cash prizes and loyalty points.',
-        game: 'FC 24',
-        cityId: '1',
-        cityName: 'المنصورة',
-        loungeId: 'bdc97209-63fa-4693-9ced-80f9c08f8e12',
-        loungeName: 'Sybar Gaming Lounge',
-        bannerUrl:
-            'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
-        imageUrl:
-            'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80',
-        status: TournamentStatus.registrationOpen,
-        maxParticipants: 16,
-        registeredParticipantsCount: 12,
-        bracketSize: 16,
-        entryFee: 50.0,
-        rulesAr:
-            '1. نظام خروج المغلوب.\n2. مدة الشوط 6 دقائق.\n3. السرعة عادية والكاميرا الكلاسيكية.\n4. يمنع اختيار الفرق الخارقة (All-Stars).',
-        rulesEn:
-            '1. Single elimination knockout.\n2. Half length 6 minutes.\n3. Normal speed, Tactical camera.\n4. All-Star teams forbidden.',
-        startDate: now.add(const Duration(days: 2)),
-        endDate: now.add(const Duration(days: 2, hours: 5)),
-        registrationOpensAt: now.subtract(const Duration(days: 3)),
-        registrationClosesAt: now.add(const Duration(days: 1)),
-        checkInOpensAt: now.add(const Duration(days: 2, minutes: -60)),
-        checkInClosesAt: now.add(const Duration(days: 2, minutes: -10)),
-        checkInDeadline: now.add(const Duration(days: 2, minutes: -10)),
-        allowWaitlist: true,
-        currency: 'EGP',
-      ),
-      TournamentModel(
-        id: 'demo_tekken8',
-        title: 'بطولة Tekken 8 الكبرى',
-        titleAr: 'بطولة Tekken 8 الكبرى',
-        titleEn: 'Tekken 8 Ultimate Showdown',
-        description:
-            'تحدي القتال الأقوى في الصالة، مواجهات حماسية 1v1 بنظام Best of 3.',
-        descriptionAr:
-            'تحدي القتال الأقوى في الصالة، مواجهات حماسية 1v1 بنظام Best of 3.',
-        descriptionEn:
-            'The ultimate fighting tournament, intense 1v1 matches in Best of 3 format.',
-        game: 'Tekken 8',
-        cityId: '1',
-        cityName: 'المنصورة',
-        loungeId: 'bdc97209-63fa-4693-9ced-80f9c08f8e12',
-        loungeName: 'Sybar Gaming Lounge',
-        bannerUrl:
-            'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
-        imageUrl:
-            'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80',
-        status: TournamentStatus.inProgress,
-        maxParticipants: 8,
-        registeredParticipantsCount: 8,
-        bracketSize: 8,
-        entryFee: 75.0,
-        rulesAr:
-            '1. نظام Best of 3.\n2. الجولات 3 جولات لكل ماكينة.\n3. اختيار المرحلة العشوائي.',
-        rulesEn:
-            '1. Best of 3 matches.\n2. 3 rounds per game.\n3. Random stage select.',
-        startDate: now.subtract(const Duration(hours: 1)),
-        endDate: now.add(const Duration(hours: 3)),
-        allowWaitlist: false,
-        currency: 'EGP',
-      ),
-      TournamentModel(
-        id: 'demo_valorant',
-        title: 'دوري Valorant الأبطال',
-        titleAr: 'دوري Valorant الأبطال',
-        titleEn: 'Valorant Masters Cyber League',
-        description:
-            'بطولة الفرق لخمسة ضد خمسة على سيرفرات سريعة وشاشات 240Hz.',
-        descriptionAr:
-            'بطولة الفرق لخمسة ضد خمسة على سيرفرات سريعة وشاشات 240Hz.',
-        descriptionEn: '5v5 team tournament on high refresh rate PCs.',
-        game: 'Valorant',
-        cityId: '1',
-        cityName: 'المنصورة',
-        loungeId: 'bdc97209-63fa-4693-9ced-80f9c08f8e12',
-        loungeName: 'Sybar Gaming Lounge',
-        bannerUrl:
-            'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
-        imageUrl:
-            'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=1200&q=80',
-        status: TournamentStatus.published,
-        maxParticipants: 16,
-        registeredParticipantsCount: 14,
-        bracketSize: 16,
-        entryFee: 150.0,
-        rulesAr: '1. نظام خروج المغلوب المزدوج Double Elimination.',
-        rulesEn: '1. Double elimination bracket.',
-        startDate: now.add(const Duration(days: 5)),
-        endDate: now.add(const Duration(days: 5, hours: 6)),
-        allowWaitlist: true,
-        currency: 'EGP',
-      ),
-    ];
-  }
-
-  List<TournamentPrizeModel> _getDemoPrizes(String tournamentId) {
-    return const [
-      TournamentPrizeModel(
-        id: 'p1',
-        tournamentId: 'demo',
-        placement: 1,
-        title: 'المركز الأول',
-        prizeTitleAr: 'المركز الأول',
-        prizeTitleEn: '1st Place',
-        prizeType: PrizeType.cash,
-        amount: 2500.0,
-        cashAmount: 2500.0,
-        points: 500,
-        description: '2500 جنيه كاش + 500 نقطة ولاء + درع البطولة',
-      ),
-      TournamentPrizeModel(
-        id: 'p2',
-        tournamentId: 'demo',
-        placement: 2,
-        title: 'المركز الثاني',
-        prizeTitleAr: 'المركز الثاني',
-        prizeTitleEn: '2nd Place',
-        prizeType: PrizeType.cash,
-        amount: 1200.0,
-        cashAmount: 1200.0,
-        points: 250,
-        description: '1200 جنيه كاش + 250 نقطة ولاء',
-      ),
-      TournamentPrizeModel(
-        id: 'p3',
-        tournamentId: 'demo',
-        placement: 3,
-        title: 'المركز الثالث',
-        prizeTitleAr: 'المركز الثالث',
-        prizeTitleEn: '3rd Place',
-        prizeType: PrizeType.cash,
-        amount: 500.0,
-        cashAmount: 500.0,
-        points: 100,
-        description: '500 جنيه كاش + 100 نقطة ولاء',
-      ),
-    ];
-  }
-
-  List<TournamentMatchModel> _getDemoMatches(String tournamentId) {
-    final now = DateTime.now();
-    return [
-      TournamentMatchModel(
-        id: 'm1',
-        tournamentId: tournamentId,
-        roundNumber: 1,
-        matchOrder: 1,
-        player1Id: 'u1',
-        player1Name: 'أحمد علي (ProGamer)',
-        player1Score: 2,
-        player2Id: 'u2',
-        player2Name: 'عمر خالد (SniperX)',
-        player2Score: 1,
-        winnerId: 'u1',
-        status: MatchStatus.completed,
-        stationNumber: 'الجهاز 1',
-        startedAt: now.subtract(const Duration(minutes: 40)),
-        completedAt: now.subtract(const Duration(minutes: 10)),
-      ),
-      TournamentMatchModel(
-        id: 'm2',
-        tournamentId: tournamentId,
-        roundNumber: 1,
-        matchOrder: 2,
-        player1Id: 'u3',
-        player1Name: 'محمد صلاح (King_07)',
-        player1Score: 3,
-        player2Id: 'u4',
-        player2Name: 'كريم محمود (DarkKnight)',
-        player2Score: 0,
-        winnerId: 'u3',
-        status: MatchStatus.completed,
-        stationNumber: 'الجهاز 2',
-        startedAt: now.subtract(const Duration(minutes: 30)),
-        completedAt: now.subtract(const Duration(minutes: 5)),
-      ),
-      TournamentMatchModel(
-        id: 'm3',
-        tournamentId: tournamentId,
-        roundNumber: 1,
-        matchOrder: 3,
-        player1Id: 'u5',
-        player1Name: 'محمود حسن (Shadow)',
-        player1Score: 1,
-        player2Id: 'u6',
-        player2Name: 'يوسف أحمد (Viper)',
-        player2Score: 2,
-        winnerId: 'u6',
-        status: MatchStatus.completed,
-        stationNumber: 'الجهاز 3',
-      ),
-      TournamentMatchModel(
-        id: 'm4',
-        tournamentId: tournamentId,
-        roundNumber: 1,
-        matchOrder: 4,
-        player1Id: 'u7',
-        player1Name: 'سارة إبراهيم (Queen_PS)',
-        player1Score: 2,
-        player2Id: 'u8',
-        player2Name: 'طارق زكي (Master99)',
-        player2Score: 0,
-        winnerId: 'u7',
-        status: MatchStatus.completed,
-        stationNumber: 'الجهاز 4',
-      ),
-      TournamentMatchModel(
-        id: 'm5',
-        tournamentId: tournamentId,
-        roundNumber: 2,
-        matchOrder: 1,
-        player1Id: 'u1',
-        player1Name: 'أحمد علي (ProGamer)',
-        player1Score: 1,
-        player2Id: 'u3',
-        player2Name: 'محمد صلاح (King_07)',
-        player2Score: 1,
-        status: MatchStatus.inProgress,
-        stationNumber: 'جهاز الـ VIP 1',
-        startedAt: now.subtract(const Duration(minutes: 15)),
-      ),
-      TournamentMatchModel(
-        id: 'm6',
-        tournamentId: tournamentId,
-        roundNumber: 2,
-        matchOrder: 2,
-        player1Id: 'u6',
-        player1Name: 'يوسف أحمد (Viper)',
-        player1Score: 0,
-        player2Id: 'u7',
-        player2Name: 'سارة إبراهيم (Queen_PS)',
-        player2Score: 0,
-        status: MatchStatus.scheduled,
-        stationNumber: 'جهاز الـ VIP 2',
-        scheduledAt: now.add(const Duration(minutes: 20)),
-      ),
-      TournamentMatchModel(
-        id: 'm7',
-        tournamentId: tournamentId,
-        roundNumber: 3,
-        matchOrder: 1,
-        player1Name: 'فائز شبه النهائي 1',
-        player2Name: 'فائز شبه النهائي 2',
-        status: MatchStatus.scheduled,
-        stationNumber: 'الشاشة الرئيسية',
-        scheduledAt: now.add(const Duration(minutes: 60)),
-      ),
-    ];
-  }
-
-  TournamentParticipantModel _getDemoParticipant(
-    String tournamentId,
-    String userId,
-  ) {
-    final status =
-        _demoParticipantStatuses[tournamentId] ?? ParticipantStatus.checkedIn;
-    return TournamentParticipantModel(
-      id: 'p_demo',
-      tournamentId: tournamentId,
-      userId: userId,
-      userName: 'أنت (المستخدم الحالي)',
-      status: status,
-      paymentStatus: PaymentStatus.approved,
-      checkedIn: status == ParticipantStatus.checkedIn,
-      checkedInAt: status == ParticipantStatus.checkedIn
-          ? DateTime.now().subtract(const Duration(minutes: 30))
-          : null,
-    );
-  }
-
-  List<Map<String, dynamic>> _getDemoHistory(String userId) {
-    return [
-      {
-        'id': 'p_history_1',
-        'tournament_id': 'demo_fc24',
-        'user_id': userId,
-        'registration_status': 'confirmed',
-        'payment_status': 'approved',
-        'created_at': DateTime.now()
-            .subtract(const Duration(days: 1))
-            .toIso8601String(),
-        'tournaments': {
-          'id': 'demo_fc24',
-          'title': 'بطولة EA FC 24 الأسبوعية',
-          'game_name': 'FC 24',
-          'status': 'registration_open',
-          'entry_fee': 50,
-          'max_participants': 16,
-          'registered_participants_count': 12,
-        },
-      },
-      {
-        'id': 'p_history_2',
-        'tournament_id': 'demo_tekken8',
-        'user_id': userId,
-        'registration_status': 'confirmed',
-        'payment_status': 'approved',
-        'created_at': DateTime.now()
-            .subtract(const Duration(days: 10))
-            .toIso8601String(),
-        'tournaments': {
-          'id': 'demo_tekken8',
-          'title': 'بطولة Tekken 8 الكبرى',
-          'game_name': 'Tekken 8',
-          'status': 'completed',
-          'entry_fee': 75,
-          'max_participants': 8,
-          'registered_participants_count': 8,
-        },
-      },
-    ];
   }
 }

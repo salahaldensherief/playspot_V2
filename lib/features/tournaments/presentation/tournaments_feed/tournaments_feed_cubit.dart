@@ -56,10 +56,18 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
         ));
       },
       (tournaments) {
+        final availableGames = tournaments
+            .map((t) => t.game)
+            .where((g) => g.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
+
         emit(state.copyWith(
           status: TournamentsFeedStatus.success,
           isLocationDisabled: locationDisabled,
           tournaments: tournaments,
+          availableGames: availableGames,
         ));
       },
     );

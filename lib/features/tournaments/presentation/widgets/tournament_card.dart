@@ -54,7 +54,7 @@ class TournamentCard extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-                      child: tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty
+                      child: tournament.imageUrl?.isNotEmpty == true
                           ? CachedNetworkImage(
                               imageUrl: tournament.imageUrl!,
                               height: 165.h,
@@ -95,20 +95,20 @@ class TournamentCard extends StatelessWidget {
                       ),
                     ),
 
-                    // Status Badge (Top Left)
-                    Positioned(
+                    // Status Badge (Top Start)
+                    PositionedDirectional(
                       top: 12.h,
-                      left: 12.w,
+                      start: 12.w,
                       child: TournamentStatusBadge(
                         status: tournament.status,
                         compact: true,
                       ),
                     ),
 
-                    // Entry Fee / Prize Badge (Top Right)
-                    Positioned(
+                    // Entry Fee / Prize Badge (Top End)
+                    PositionedDirectional(
                       top: 12.h,
-                      right: 12.w,
+                      end: 12.w,
                       child: GlassContainer(
                         borderRadius: 10.r,
                         blur: 8,
@@ -138,10 +138,10 @@ class TournamentCard extends StatelessWidget {
                       ),
                     ),
 
-                    // Game Name Tag (Bottom Left)
-                    Positioned(
+                    // Game Name Tag (Bottom Start)
+                    PositionedDirectional(
                       bottom: 12.h,
-                      left: 12.w,
+                      start: 12.w,
                       child: GlassContainer(
                         borderRadius: 8.r,
                         blur: 8,

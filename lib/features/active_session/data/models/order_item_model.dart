@@ -1,24 +1,25 @@
-import 'package:equatable/equatable.dart';
+import '../../domain/entities/order_item.dart';
 
-class OrderItemModel extends Equatable {
-  final String id;
-  final String name;
-  final double price;
-  final int quantity;
-  final double? totalPriceOverride;
-  final String? note;
-
+class OrderItemModel extends OrderItem {
   const OrderItemModel({
-    required this.id,
-    required this.name,
-    required this.price,
-    required this.quantity,
-    this.totalPriceOverride,
-    this.note,
+    required super.id,
+    required super.name,
+    required super.price,
+    required super.quantity,
+    super.totalPriceOverride,
+    super.note,
   });
 
-  @override
-  List<Object?> get props => [id, name, price, quantity, totalPriceOverride, note];
+  factory OrderItemModel.fromEntity(OrderItem entity) {
+    return OrderItemModel(
+      id: entity.id,
+      name: entity.name,
+      price: entity.price,
+      quantity: entity.quantity,
+      totalPriceOverride: entity.totalPriceOverride,
+      note: entity.note,
+    );
+  }
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
     final extraData = json['extras'] as Map<String, dynamic>? ??
@@ -57,7 +58,11 @@ class OrderItemModel extends Equatable {
     }
 
     return OrderItemModel(
-      id: json['id']?.toString() ?? json['extra_id']?.toString() ?? json['product_id']?.toString() ?? extraData?['id']?.toString() ?? '',
+      id: json['id']?.toString() ??
+          json['extra_id']?.toString() ??
+          json['product_id']?.toString() ??
+          extraData?['id']?.toString() ??
+          '',
       name: finalName,
       price: parsedPrice,
       quantity: parsedQty,
@@ -71,13 +76,6 @@ class OrderItemModel extends Equatable {
         'name': name,
         'price': price,
         'quantity': quantity,
-        'note': note,
+        if (note != null) 'note': note,
       };
-
-  double get total {
-    if (totalPriceOverride != null && totalPriceOverride! > 0) {
-      return totalPriceOverride!;
-    }
-    return price * quantity;
-  }
 }

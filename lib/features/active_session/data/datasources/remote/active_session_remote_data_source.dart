@@ -329,6 +329,16 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     dev.log("[LIVESESSION_DS] REQUEST_STAFF_ASSISTANCE: bookingId=$bookingId, callType=$callType, notes=$notes");
     final userId = _client.auth.currentUser?.id;
 
+    final bookingData = await _client
+        .from('bookings')
+        .select('lounge_id, room_id, user_id')
+        .eq('id', bookingId)
+        .maybeSingle();
+
+    final String? loungeId = bookingData?['lounge_id']?.toString();
+    final String? roomId = bookingData?['room_id']?.toString();
+    final String? bookingUserId = bookingData?['user_id']?.toString() ?? userId;
+
     try {
       await _client.rpc('request_staff_assistance', params: {
         'p_booking_id': bookingId,
@@ -345,6 +355,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     try {
       await _client.rpc('call_staff_request', params: {
         'p_booking_id': bookingId,
+        if (loungeId != null && loungeId.isNotEmpty) 'p_lounge_id': loungeId,
         'p_reason': callType,
         'p_note': notes ?? '',
       });
@@ -355,17 +366,6 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     }
 
     try {
-      // Fetch booking details to populate lounge_id, room_id, and user_id securely from booking record
-      final bookingData = await _client
-          .from('bookings')
-          .select('lounge_id, room_id, user_id')
-          .eq('id', bookingId)
-          .maybeSingle();
-
-      final String? loungeId = bookingData?['lounge_id']?.toString();
-      final String? roomId = bookingData?['room_id']?.toString();
-      final String? bookingUserId = bookingData?['user_id']?.toString() ?? userId;
-
       await _client.from('service_calls').insert({
         'booking_id': bookingId,
         if (loungeId != null && loungeId.isNotEmpty) 'lounge_id': loungeId,

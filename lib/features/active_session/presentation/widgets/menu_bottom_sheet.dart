@@ -10,9 +10,9 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import '../../domain/entities/order_item.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
-import '../../data/models/order_item_model.dart';
 import '../../../lounge_details/data/models/extra_model.dart';
 
 class MenuBottomSheet extends StatefulWidget {
@@ -59,7 +59,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
               SizedBox(height: 20.h),
               AppText(
                 text: AppStrings.orderExtras.tr(),
-                fontSize: 20.sp,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.white,
               ),
@@ -67,7 +67,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
               Expanded(
                 child: ListView.separated(
                   itemCount: state.menu.length,
-                  separatorBuilder: (_, _) => Divider(color: AppColors.divider),
+                  separatorBuilder: (context, index) => const Divider(color: AppColors.divider),
                   itemBuilder: (context, index) {
                     final item = state.menu[index];
                     final qty = _quantities[item.id] ?? 0;
@@ -77,32 +77,29 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
               ),
               SizedBox(height: 16.h),
               TextField(
-                onChanged: (v) => _note = v,
-                style: const TextStyle(color: AppColors.white),
+                onChanged: (val) => _note = val,
                 decoration: InputDecoration(
                   hintText: AppStrings.addNote.tr(),
-                  hintStyle: const TextStyle(color: AppColors.textSecondary),
+                  hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
                   filled: true,
                   fillColor: AppColors.cardBackground,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: AppColors.borderDefault),
                   ),
                 ),
+                style: const TextStyle(color: AppColors.white),
               ),
-              SizedBox(height: 20.h),
+              SizedBox(height: 16.h),
               AppButton(
-                content: ButtonContent(
-                  label: AppStrings.placeOrder.tr(),
+                content: ButtonContent(label: AppStrings.placeOrder.tr()),
+                behavior: ButtonBehavior.tap(
+                  onTap: () => _placeOrder(context, state.menu),
                 ),
                 buttonConfig: ButtonConfig(
-                  width: double.infinity,
-                  backgroundColor: AppColors.primary,
-                ),
-                behavior: TapBehavior(
-                  isEnabled: _quantities.values.any((q) => q > 0),
-                  isLoading: state.orderStatus == ActionStatus.loading,
-                  onTap: () => _placeOrder(context, state.menu),
+                  height: 48.h,
+                  backgroundColor: AppColors.neonBlue,
+                  borderRadius: 12.r,
                 ),
               ),
             ],
@@ -114,13 +111,15 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
 
   Widget _buildMenuItem(ExtraModel item, int qty) {
     final displayName = item.name.isNotEmpty ? item.name : 'Item';
+    final icon = item.icon?.trim();
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(
         children: [
-          if (item.icon != null && item.icon!.trim().isNotEmpty) ...[
+          if (icon != null && icon.isNotEmpty) ...[
             AppImage(
-              urlImg: item.icon!.trim(),
+              urlImg: icon,
               width: 40.w,
               height: 40.h,
               fit: BoxFit.cover,
@@ -140,30 +139,35 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 ),
                 SizedBox(height: 4.h),
                 AppText(
-                  text: "${item.price} ${AppStrings.egpSymbol.tr()}",
-                  fontSize: 12.sp,
-                  color: AppColors.neonPurple,
-                  fontWeight: FontWeight.w600,
+                  text: "${item.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                  fontSize: 13.sp,
+                  color: AppColors.neonBlue,
                 ),
               ],
             ),
           ),
           Row(
             children: [
-              _buildQtyBtn(Icons.remove, () {
-                if (qty > 0) {
-                  setState(() => _quantities[item.id] = qty - 1);
-                }
-              }),
-              SizedBox(width: 12.w),
-              AppText(
-                text: qty.toString(),
-                fontWeight: FontWeight.bold,
-                color: AppColors.white,
-              ),
-              SizedBox(width: 12.w),
+              if (qty > 0) ...[
+                _buildQtyBtn(Icons.remove, () {
+                  setState(() {
+                    _quantities[item.id] = qty - 1;
+                  });
+                }),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  child: AppText(
+                    text: '$qty',
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                ),
+              ],
               _buildQtyBtn(Icons.add, () {
-                setState(() => _quantities[item.id] = qty + 1);
+                setState(() {
+                  _quantities[item.id] = qty + 1;
+                });
               }),
             ],
           ),
@@ -187,11 +191,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
   }
 
   void _placeOrder(BuildContext context, List<ExtraModel> menu) {
-    final List<OrderItemModel> items = [];
+    final List<OrderItem> items = [];
     _quantities.forEach((id, qty) {
       if (qty > 0) {
         final item = menu.firstWhere((m) => m.id == id);
-        items.add(OrderItemModel(
+        items.add(OrderItem(
           id: item.id,
           name: item.name,
           price: item.price,

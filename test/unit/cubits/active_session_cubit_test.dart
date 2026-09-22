@@ -5,7 +5,16 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/active_session/domain/repositories/active_session_repository.dart';
-import 'package:playspot/features/active_session/data/models/active_session_model.dart';
+import 'package:playspot/features/active_session/domain/entities/active_session.dart';
+import 'package:playspot/features/active_session/domain/usecases/extend_session_time_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/get_active_session_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/get_lounge_menu_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/place_session_order_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/request_session_extension_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/request_staff_assistance_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/stream_active_session_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/submit_lounge_review_usecase.dart';
+import 'package:playspot/features/active_session/domain/usecases/watch_user_active_session_usecase.dart';
 import 'package:playspot/features/active_session/presentation/active_session_cubit.dart';
 import 'package:playspot/features/active_session/presentation/active_session_state.dart';
 
@@ -21,7 +30,7 @@ void main() {
   late MockActiveSessionRepository mockRepository;
   late ActiveSessionCubit cubit;
 
-  final testSession = ActiveSessionModel(
+  final testSession = ActiveSession(
     bookingId: 'b_100',
     loungeId: 'l_200',
     loungeName: 'Test Lounge',
@@ -44,7 +53,17 @@ void main() {
     when(() => mockRepository.getLoungeMenu(any()))
         .thenAnswer((_) async => const Right([]));
 
-    cubit = ActiveSessionCubit(mockRepository);
+    cubit = ActiveSessionCubit(
+      getActiveSessionUseCase: GetActiveSessionUseCase(mockRepository),
+      watchUserActiveSessionUseCase: WatchUserActiveSessionUseCase(mockRepository),
+      streamActiveSessionUseCase: StreamActiveSessionUseCase(mockRepository),
+      extendSessionTimeUseCase: ExtendSessionTimeUseCase(mockRepository),
+      requestSessionExtensionUseCase: RequestSessionExtensionUseCase(mockRepository),
+      placeSessionOrderUseCase: PlaceSessionOrderUseCase(mockRepository),
+      getLoungeMenuUseCase: GetLoungeMenuUseCase(mockRepository),
+      requestStaffAssistanceUseCase: RequestStaffAssistanceUseCase(mockRepository),
+      submitLoungeReviewUseCase: SubmitLoungeReviewUseCase(mockRepository),
+    );
   });
 
   tearDown(() {

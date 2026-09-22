@@ -6,10 +6,10 @@ import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
-import '../../data/models/active_session_model.dart';
+import '../../domain/entities/active_session.dart';
 
 class StationInfo extends StatelessWidget {
-  final ActiveSessionModel session;
+  final ActiveSession session;
   const StationInfo({super.key, required this.session});
 
   @override

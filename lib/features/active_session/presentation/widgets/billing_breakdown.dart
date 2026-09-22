@@ -1,19 +1,17 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:playspot/features/active_session/data/models/active_session_model.dart';
-import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/widgets/cards/order_summary_card.dart';
+import '../../domain/entities/active_session.dart';
+import '../../../../art_core/app_strings.dart';
+import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/cards/order_summary_card.dart';
 
 class BillingBreakdownWidget extends StatelessWidget {
-  final ActiveSessionModel session;
+  final ActiveSession session;
 
   const BillingBreakdownWidget({super.key, required this.session});
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
-
     final List<Map<String, dynamic>> sessionRows = [];
     if (session.extensionsPrice > 0) {
       sessionRows.add({
@@ -35,8 +33,8 @@ class BillingBreakdownWidget extends StatelessWidget {
       title: AppStrings.billingBreakdown.tr(),
       subtitle: "${session.loungeName} • ${session.roomName} (${session.deviceName})",
       statusText: session.status == 'active'
-          ? (isArabic ? "نشطة" : "Active")
-          : (isArabic ? "مكتملة" : "Completed"),
+          ? AppStrings.statusActive.tr()
+          : AppStrings.completed.tr(),
       statusColor: session.status == 'active' ? AppColors.neonBlue : AppColors.success,
       baseCostLabel: AppStrings.baseCost.tr(),
       baseCostAmount: session.basePrice,

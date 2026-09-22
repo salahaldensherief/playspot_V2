@@ -11,12 +11,12 @@ import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/features/active_session/data/models/active_session_model.dart';
+import '../../domain/entities/active_session.dart';
 
 import 'billing_breakdown.dart';
 
 class SessionSummaryCard extends StatelessWidget {
-  final ActiveSessionModel session;
+  final ActiveSession session;
   final VoidCallback onRateExperience;
 
   const SessionSummaryCard({
@@ -104,7 +104,7 @@ class SessionSummaryCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: AppText(
-                        text: 'مكتملة',
+                        text: AppStrings.completed.tr(),
                         fontSize: 11.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.success,

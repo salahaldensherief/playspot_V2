@@ -87,7 +87,6 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
 
   void _copyDestination() {
     Clipboard.setData(ClipboardData(text: _activeDestination));
-    HapticFeedback.lightImpact();
     GameHudToast.show(
       context,
       AppStrings.codeCopied.tr(),
@@ -123,9 +122,9 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.only(
-        left: 24.w,
-        right: 24.w,
+      padding: EdgeInsetsDirectional.only(
+        start: 24.w,
+        end: 24.w,
         top: 24.w,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24.w,
       ),

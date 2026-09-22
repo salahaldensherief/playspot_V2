@@ -124,7 +124,7 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                         ),
                         SizedBox(height: 2.h),
                         AppText(
-                          text: 'متبقي دقائق قليلة على انتهاء حجزك. حدد مدة التمديد:',
+                          text: AppStrings.sessionExpiringPromptSubtitle.tr(),
                           fontSize: 11.5.sp,
                           color: AppColors.textSecondary,
                         ),

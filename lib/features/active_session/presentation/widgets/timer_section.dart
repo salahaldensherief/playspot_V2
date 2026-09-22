@@ -70,9 +70,10 @@ class _TimerSectionState extends State<TimerSection> {
           prev.session?.startTime != curr.session?.startTime ||
           prev.session?.endTime != curr.session?.endTime,
       listener: (context, state) {
-        if (state.session != null) {
-          _startTime = state.session!.startTime;
-          _endTime = state.session!.endTime;
+        final session = state.session;
+        if (session != null) {
+          _startTime = session.startTime;
+          _endTime = session.endTime;
           _updateRemaining();
         }
       },
@@ -82,9 +83,9 @@ class _TimerSectionState extends State<TimerSection> {
           prev.session?.startTime != curr.session?.startTime ||
           prev.session?.extensionStatus != curr.session?.extensionStatus,
       builder: (context, state) {
-        if (state.session == null) return const SizedBox.shrink();
+        final session = state.session;
+        if (session == null) return const SizedBox.shrink();
 
-        final session = state.session!;
         _startTime = session.startTime;
         _endTime = session.endTime;
 

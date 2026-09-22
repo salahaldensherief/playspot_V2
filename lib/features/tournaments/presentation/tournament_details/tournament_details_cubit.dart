@@ -43,19 +43,27 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     _activeTournamentId = tournamentId;
     emit(state.copyWith(status: TournamentDetailsStatus.loading));
 
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id ?? 'demo_user';
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
 
-    final results = await Future.wait([
+    final coreFutures = await Future.wait([
       _getTournamentDetailsUseCase.getTournamentById(tournamentId),
       _getTournamentDetailsUseCase.getPrizes(tournamentId),
       _getTournamentDetailsUseCase.getMatches(tournamentId),
-      _getTournamentDetailsUseCase.getUserParticipant(tournamentId, currentUserId),
     ]);
 
-    final tournamentRes = results[0] as Either<Failure, TournamentEntity>;
-    final prizesRes = results[1] as Either<Failure, List<TournamentPrizeEntity>>;
-    final matchesRes = results[2] as Either<Failure, List<TournamentMatchEntity>>;
-    final participantRes = results[3] as Either<Failure, TournamentParticipantEntity?>;
+    final tournamentRes = coreFutures[0] as Either<Failure, TournamentEntity>;
+    final prizesRes = coreFutures[1] as Either<Failure, List<TournamentPrizeEntity>>;
+    final matchesRes = coreFutures[2] as Either<Failure, List<TournamentMatchEntity>>;
+
+    // Only fetch participant if the user is authenticated.
+    TournamentParticipantEntity? participant;
+    if (currentUserId != null) {
+      final participantRes = await _getTournamentDetailsUseCase.getUserParticipant(
+        tournamentId,
+        currentUserId,
+      );
+      participant = participantRes.fold((_) => null, (p) => p);
+    }
 
     tournamentRes.fold(
       (failure) => emit(state.copyWith(
@@ -65,8 +73,6 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
       (tournament) {
         prizesRes.fold((_) {}, (prizes) {
           matchesRes.fold((_) {}, (matches) {
-            final participant = participantRes.fold((_) => null, (p) => p);
-
             emit(state.copyWith(
               status: TournamentDetailsStatus.success,
               tournament: tournament,
@@ -95,11 +101,12 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
   }
 
   Future<void> registerForTournament() async {
-    if (state.tournament == null || state.isRegistering) return;
+    final tournament = state.tournament;
+    if (tournament == null || state.isRegistering) return;
 
     emit(state.copyWith(isRegistering: true));
 
-    final result = await _registerTournamentUseCase(state.tournament!.id);
+    final result = await _registerTournamentUseCase(tournament.id);
 
     result.fold(
       (failure) {
@@ -122,7 +129,9 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     required String paymentMethod,
     required File receiptFile,
   }) async {
-    if (state.tournament == null || state.userParticipant == null) return;
+    final tournament = state.tournament;
+    final userParticipant = state.userParticipant;
+    if (tournament == null || userParticipant == null) return;
 
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser == null) return;
@@ -131,10 +140,10 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     try {
       final result = await _submitTournamentPaymentUseCase(
-        participantId: state.userParticipant!.id,
-        tournamentId: state.tournament!.id,
+        participantId: userParticipant.id,
+        tournamentId: tournament.id,
         userId: currentUser.id,
-        amount: state.tournament!.entryFee,
+        amount: tournament.entryFee,
         paymentMethod: paymentMethod,
         receiptFile: receiptFile,
       ).timeout(
@@ -166,11 +175,12 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
   }
 
   Future<void> checkIn() async {
-    if (state.userParticipant == null || !state.canCheckIn) return;
+    final userParticipant = state.userParticipant;
+    if (userParticipant == null || !state.canCheckIn) return;
 
     emit(state.copyWith(isCheckingIn: true));
 
-    final result = await _checkInParticipantUseCase(state.userParticipant!.id);
+    final result = await _checkInParticipantUseCase(userParticipant.id);
 
     result.fold(
       (failure) {
@@ -190,12 +200,13 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
   }
 
   Future<void> withdrawFromTournament() async {
-    if (state.userParticipant == null || state.isWithdrawing) return;
+    final userParticipant = state.userParticipant;
+    if (userParticipant == null || state.isWithdrawing) return;
 
     emit(state.copyWith(isWithdrawing: true));
 
     final result = await _withdrawTournamentUseCase(
-      state.userParticipant!.id,
+      userParticipant.id,
       tournamentId: state.tournament?.id ?? _activeTournamentId,
     );
 

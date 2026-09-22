@@ -61,21 +61,23 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
   Widget build(BuildContext context) {
     return BlocConsumer<TournamentDetailsCubit, TournamentDetailsState>(
       listener: (context, state) {
-        if (state.errorMessage != null) {
+        final errorMsg = state.errorMessage;
+        if (errorMsg != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: AppText(text: state.errorMessage!, color: Colors.white),
+              content: AppText(text: errorMsg, color: Colors.white),
               backgroundColor: AppColors.danger,
             ),
           );
         }
-        if (state.successMessage != null) {
-          if (state.successMessage == 'registeredSuccessfully' && state.tournament != null) {
+        final successMsg = state.successMessage;
+        if (successMsg != null) {
+          if (successMsg == 'registeredSuccessfully' && state.tournament != null) {
             _showRegistrationSuccessDialog(context, state.tournament!);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: AppText(text: state.successMessage!.tr(), color: Colors.white),
+                content: AppText(text: successMsg.tr(), color: Colors.white),
                 backgroundColor: AppColors.success,
               ),
             );
@@ -139,9 +141,9 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                 leading: const BackButtonWidget(),
                 actions: [
                   if (state.userParticipant != null &&
-                      state.userParticipant!.status != ParticipantStatus.withdrawn &&
-                      state.userParticipant!.status != ParticipantStatus.cancelled &&
-                      state.userParticipant!.status != ParticipantStatus.eliminated)
+                      state.userParticipant?.status != ParticipantStatus.withdrawn &&
+                      state.userParticipant?.status != ParticipantStatus.cancelled &&
+                      state.userParticipant?.status != ParticipantStatus.eliminated)
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
                       child: GlassContainer(
@@ -156,7 +158,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                             Icon(TablerIcons.circle_check, color: AppColors.success, size: 14.sp),
                             SizedBox(width: 4.w),
                             AppText(
-                              text: state.userParticipant!.checkedIn
+                              text: state.userParticipant?.checkedIn == true
                                   ? AppStrings.checkedIn.tr()
                                   : AppStrings.confirmed.tr(),
                               color: AppColors.success,
@@ -172,7 +174,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                   background: Stack(
                     fit: StackFit.expand,
                     children: [
-                      if (tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty)
+                      if (tournament.imageUrl?.isNotEmpty == true)
                         CachedNetworkImage(
                           imageUrl: tournament.imageUrl!,
                           fit: BoxFit.cover,
@@ -195,10 +197,10 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                           ),
                         ),
                       ),
-                      Positioned(
+                      PositionedDirectional(
                         bottom: 16.h,
-                        left: 16.w,
-                        right: 16.w,
+                        start: 16.w,
+                        end: 16.w,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -326,7 +328,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                     SizedBox(width: 8.w),
                     AppText(
                       text: participant.status == ParticipantStatus.withdrawn
-                          ? 'تم إلغاء الاشتراك من البطولة'
+                          ? AppStrings.withdrawSuccess.tr()
                           : participant.status.name.tr(),
                       color: AppColors.danger,
                       fontWeight: FontWeight.bold,
@@ -360,7 +362,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           child: Center(
             child: AppText(
               text: participant.status == ParticipantStatus.withdrawn
-                  ? 'تم إلغاء الاشتراك من البطولة'
+                  ? AppStrings.withdrawSuccess.tr()
                   : participant.status.name.tr(),
               color: AppColors.danger,
               fontWeight: FontWeight.bold,

@@ -15,7 +15,8 @@ void main() {
       'device_name': 'PlayStation 5',
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
-      'total_price': 150.0,
+      'base_price': 150.0,
+      'total_price': 280.0,
       'extensions_price': 50.0,
       'status': 'in_progress',
       'booking_items': [

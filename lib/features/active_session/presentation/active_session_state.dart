@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../data/models/active_session_model.dart';
+import '../domain/entities/active_session.dart';
 import '../../lounge_details/data/models/extra_model.dart';
 
 enum ActiveSessionStatus { initial, loading, loaded, empty, error }
@@ -7,8 +7,8 @@ enum ActionStatus { initial, loading, success, error }
 
 class ActiveSessionState extends Equatable {
   final ActiveSessionStatus status;
-  final ActiveSessionModel? session;
-  final ActiveSessionModel? completedSession;
+  final ActiveSession? session;
+  final ActiveSession? completedSession;
   final List<ExtraModel> menu;
   final ActionStatus extendStatus;
   final ActionStatus orderStatus;
@@ -28,8 +28,8 @@ class ActiveSessionState extends Equatable {
 
   ActiveSessionState copyWith({
     ActiveSessionStatus? status,
-    ActiveSessionModel? session,
-    ActiveSessionModel? completedSession,
+    ActiveSession? session,
+    ActiveSession? completedSession,
     List<ExtraModel>? menu,
     ActionStatus? extendStatus,
     ActionStatus? orderStatus,

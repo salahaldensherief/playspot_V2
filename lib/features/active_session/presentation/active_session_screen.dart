@@ -27,116 +27,125 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.extensionMinutes != null) {
-      _extensionBannerMinutes = widget.extensionMinutes!;
+    final minutes = widget.extensionMinutes;
+    if (minutes != null) {
+      _extensionBannerMinutes = minutes;
       _showExtensionBanner = true;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ActiveSessionCubit>().loadActiveSession(bookingId: widget.bookingId);
+      if (mounted) {
+        context.read<ActiveSessionCubit>().loadActiveSession(bookingId: widget.bookingId);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ActiveSessionCubit, ActiveSessionState>(
-      listenWhen: (prev, curr) =>
-          prev.extendStatus != curr.extendStatus ||
-          prev.orderStatus != curr.orderStatus ||
-          prev.staffRequestStatus != curr.staffRequestStatus ||
-          prev.session?.extensionStatus != curr.session?.extensionStatus ||
-          prev.session?.endTime != curr.session?.endTime ||
-          (prev.status != curr.status && (curr.status == ActiveSessionStatus.empty || curr.status == ActiveSessionStatus.loaded)),
-      listener: (context, state) {
-        if (state.status == ActiveSessionStatus.loaded &&
-            state.session != null &&
-            state.session!.isExpiringSoon &&
-            !_showExtensionBanner &&
-            !state.session!.isExtensionPending) {
-          setState(() {
-            _showExtensionBanner = true;
-          });
-        }
+    return PopScope(
+      canPop: true,
+      child: SafeArea(
+        child: BlocListener<ActiveSessionCubit, ActiveSessionState>(
+          listenWhen: (prev, curr) =>
+              prev.extendStatus != curr.extendStatus ||
+              prev.orderStatus != curr.orderStatus ||
+              prev.staffRequestStatus != curr.staffRequestStatus ||
+              prev.session?.extensionStatus != curr.session?.extensionStatus ||
+              prev.session?.endTime != curr.session?.endTime ||
+              (prev.status != curr.status &&
+                  (curr.status == ActiveSessionStatus.empty || curr.status == ActiveSessionStatus.loaded)),
+          listener: (context, state) {
+            final session = state.session;
+            if (state.status == ActiveSessionStatus.loaded &&
+                session != null &&
+                session.isExpiringSoon &&
+                !_showExtensionBanner &&
+                !session.isExtensionPending) {
+              setState(() {
+                _showExtensionBanner = true;
+              });
+            }
 
-        if (state.extendStatus == ActionStatus.success) {
-          GameHudToast.show(
-            context,
-            AppStrings.extensionSentMsg.tr(),
-            type: ToastType.info,
-          );
-        }
-        if (state.session != null) {
-          final session = state.session!;
-          if (session.extensionStatus == 'approved') {
-            GameHudToast.show(
-              context,
-              AppStrings.extensionApprovedMsg.tr(),
-              type: ToastType.success,
-            );
-          } else if (session.extensionStatus == 'rejected') {
-            GameHudToast.show(
-              context,
-              AppStrings.extensionDeclinedMsg.tr(),
-              type: ToastType.warning,
-            );
-          }
-        }
-        if (state.orderStatus == ActionStatus.success) {
-          GameHudToast.show(
-            context,
-            AppStrings.orderPlacedSuccess.tr(),
-            type: ToastType.success,
-          );
-        }
-        if (state.staffRequestStatus == ActionStatus.success) {
-          GameHudToast.show(
-            context,
-            AppStrings.staffNotifiedSuccess.tr(),
-            type: ToastType.success,
-          );
-        }
-        if (state.errorMessage != null &&
-            (state.extendStatus == ActionStatus.error ||
-                state.orderStatus == ActionStatus.error ||
-                state.staffRequestStatus == ActionStatus.error)) {
-          GameHudToast.show(
-            context,
-            state.errorMessage!,
-            type: ToastType.error,
-          );
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: AppText(
-            text: AppStrings.activeSession.tr(),
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          leading: const BackButtonWidget(),
-        ),
-        body: Stack(
-          children: [
-            const ActiveSessionBody(),
-
-            if (_showExtensionBanner)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: ExtensionPromptCard(
-                  initialMinutes: _extensionBannerMinutes,
-                  onDismiss: () {
-                    setState(() {
-                      _showExtensionBanner = false;
-                    });
-                  },
-                ),
+            if (state.extendStatus == ActionStatus.success) {
+              GameHudToast.show(
+                context,
+                AppStrings.extensionSentMsg.tr(),
+                type: ToastType.info,
+              );
+            }
+            if (session != null) {
+              if (session.extensionStatus == 'approved') {
+                GameHudToast.show(
+                  context,
+                  AppStrings.extensionApprovedMsg.tr(),
+                  type: ToastType.success,
+                );
+              } else if (session.extensionStatus == 'rejected') {
+                GameHudToast.show(
+                  context,
+                  AppStrings.extensionDeclinedMsg.tr(),
+                  type: ToastType.warning,
+                );
+              }
+            }
+            if (state.orderStatus == ActionStatus.success) {
+              GameHudToast.show(
+                context,
+                AppStrings.orderPlacedSuccess.tr(),
+                type: ToastType.success,
+              );
+            }
+            if (state.staffRequestStatus == ActionStatus.success) {
+              GameHudToast.show(
+                context,
+                AppStrings.staffNotifiedSuccess.tr(),
+                type: ToastType.success,
+              );
+            }
+            final errorMsg = state.errorMessage;
+            if (errorMsg != null &&
+                (state.extendStatus == ActionStatus.error ||
+                    state.orderStatus == ActionStatus.error ||
+                    state.staffRequestStatus == ActionStatus.error)) {
+              GameHudToast.show(
+                context,
+                errorMsg,
+                type: ToastType.error,
+              );
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: AppText(
+                text: AppStrings.activeSession.tr(),
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-          ],
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              leading: const BackButtonWidget(),
+            ),
+            body: Stack(
+              children: [
+                const ActiveSessionBody(),
+                if (_showExtensionBanner)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: ExtensionPromptCard(
+                      initialMinutes: _extensionBannerMinutes,
+                      onDismiss: () {
+                        setState(() {
+                          _showExtensionBanner = false;
+                        });
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
