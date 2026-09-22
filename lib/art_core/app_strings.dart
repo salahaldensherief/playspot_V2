@@ -138,6 +138,11 @@ class AppStrings {
   static const String noRewardsAvailable = "noRewardsAvailable";
   static const String redeem = "redeem";
   static const String yourBalance = "yourBalance";
+  static const String selectRoomsPrompt = "selectRoomsPrompt";
+  static const String bookRoomsCount = "bookRoomsCount";
+  static const String selectedRooms = "selectedRooms";
+  static const String roomSelected = "roomSelected";
+  static const String roomUnavailableForSlot = "roomUnavailableForSlot";
   static const String points = "points";
   static const String referralCodeOptional = "referralCodeOptional";
   static const String referralCodeHint = "referralCodeHint";
@@ -344,6 +349,7 @@ class AppStrings {
   static const String orderExtras = "orderExtras";
   static const String comingSoon = "comingSoon";
   static const String pointsHistory = "pointsHistory";
+  static const String noPointsHistory = "noPointsHistory";
   static const String settings = "settings";
   static const String directDiscountAvailable = "directDiscountAvailable";
   static const String getDiscountNow = "getDiscountNow";

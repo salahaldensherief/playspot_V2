@@ -38,31 +38,21 @@ class RoomActionArea extends StatelessWidget {
         final playMode = state.roomPlayModes[room.id] ?? 'single';
         final extraControllers = state.roomExtraControllers[room.id] ?? 0;
         final lounge = state.lounge;
-        final bool hasLoungeOffer = lounge != null && lounge.isDiscountActive && lounge.discountPercentage > 0;
-        final bool hasOffer = (room.hasActivePromo && room.promoDiscountValue > 0) || hasLoungeOffer;
+        final double loungeDiscount = (lounge != null && lounge.isDiscountActive)
+            ? lounge.discountPercentage.toDouble()
+            : 0.0;
+        final bool hasOffer = (room.hasActivePromo && room.promoDiscountValue > 0) ||
+            loungeDiscount > 0;
 
-        double originalBase = room.hourlyRateSingle;
-        if (room.isOpenArea) {
-          originalBase =
-              playMode == 'single' ? room.hourlyRateSingle : room.hourlyRateMulti;
-        }
-
-        double effectiveBase = originalBase;
-        if (room.hasActivePromo && room.promoDiscountValue > 0) {
-          if (room.promoDiscountType == 'percentage') {
-            effectiveBase = originalBase * (1 - (room.promoDiscountValue / 100));
-          } else if (room.promoDiscountType == 'fixed') {
-            effectiveBase =
-                (originalBase - room.promoDiscountValue).clamp(0.0, double.infinity);
-          }
-        } else if (hasLoungeOffer) {
-          effectiveBase = originalBase * (1 - (lounge.discountPercentage / 100));
-        }
-
-        final double finalEffectivePrice =
-            effectiveBase + (extraControllers * room.extraControllerPrice);
-        final double finalOriginalPrice =
-            originalBase + (extraControllers * room.extraControllerPrice);
+        final double finalEffectivePrice = room.calculateEffectiveRate(
+          playMode: playMode,
+          extraControllers: extraControllers,
+          loungeDiscountPercentage: loungeDiscount,
+        );
+        final double finalOriginalPrice = room.calculateOriginalRate(
+          playMode: playMode,
+          extraControllers: extraControllers,
+        );
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 14.w),

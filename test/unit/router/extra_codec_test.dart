@@ -95,5 +95,62 @@ void main() {
       expect(decodedParams.startTime.minute, 30);
       expect(decodedParams.totalPrice, 200.0);
     });
+
+    test('Multi-room BookingDetailsParams and CheckoutParams encode & decode', () {
+      const room2 = RoomModel(
+        id: 'room_2',
+        loungeId: 'lounge_1',
+        nameAr: 'غرفة عادية',
+        nameEn: 'Standard Room',
+        activityNames: ['PlayStation 4'],
+        maxCapacity: 2,
+        hourlyRateSingle: 60.0,
+        hourlyRateMulti: 90.0,
+        isAvailable: true,
+        images: [],
+        featuresAr: [],
+        featuresEn: [],
+      );
+
+      final bookingParams = BookingDetailsParams(
+        lounge: lounge,
+        rooms: const [room, room2],
+        selectedDate: DateTime(2025, 5, 1, 14, 0),
+        extras: const [],
+      );
+
+      final encodedBooking = codec.encoder.convert(bookingParams);
+      final decodedBooking = codec.decoder.convert(encodedBooking) as BookingDetailsParams;
+      expect(decodedBooking.rooms.length, 2);
+      expect(decodedBooking.rooms[0].id, 'room_1');
+      expect(decodedBooking.rooms[1].id, 'room_2');
+
+      final checkoutParams = CheckoutParams(
+        lounge: lounge,
+        rooms: const [room, room2],
+        roomsBreakdown: const [
+          {'roomId': 'room_1', 'discountedSubtotal': 100.0},
+          {'roomId': 'room_2', 'discountedSubtotal': 60.0},
+        ],
+        date: DateTime(2025, 5, 1),
+        startTime: const TimeOfDay(hour: 15, minute: 30),
+        duration: 60,
+        originalRoomSubtotal: 160.0,
+        discountedRoomSubtotal: 160.0,
+        discountAmount: 0.0,
+        discountPercentage: 0.0,
+        addonsTotal: 0.0,
+        totalPrice: 160.0,
+        originalTotalPrice: 160.0,
+        addOns: const [],
+      );
+
+      final encodedCheckout = codec.encoder.convert(checkoutParams);
+      final decodedCheckout = codec.decoder.convert(encodedCheckout) as CheckoutParams;
+      expect(decodedCheckout.rooms.length, 2);
+      expect(decodedCheckout.roomsBreakdown.length, 2);
+      expect(decodedCheckout.roomsBreakdown[0]['roomId'], 'room_1');
+      expect(decodedCheckout.roomsBreakdown[1]['roomId'], 'room_2');
+    });
   });
 }

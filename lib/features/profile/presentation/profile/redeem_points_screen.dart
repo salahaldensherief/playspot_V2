@@ -77,6 +77,11 @@ class RedeemPointsScreen extends StatelessWidget {
           ),
         ),
         body: BlocBuilder<ProfileCubit, ProfileState>(
+          buildWhen: (previous, current) =>
+              previous.status != current.status ||
+              previous.user != current.user ||
+              previous.redemptionOptions != current.redemptionOptions ||
+              previous.pointsBalance != current.pointsBalance,
           builder: (context, state) {
             if (state.status == ProfileStatus.loading && state.user == null) {
               return const Center(child: AppLoader(size: 50));

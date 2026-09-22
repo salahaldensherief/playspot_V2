@@ -11,7 +11,6 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
-import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/rating/rating_display_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
@@ -83,13 +82,15 @@ class ReviewsSection extends StatelessWidget {
   Widget _buildReviewCard(ReviewModel review) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
-      child: GlassContainer(
-        borderRadius: 16,
-        child: Padding(
-          padding: EdgeInsets.all(12.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: AppColors.borderDefault),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
               Row(
                 children: [
                   CircleAvatar(
@@ -143,8 +144,6 @@ class ReviewsSection extends StatelessWidget {
               ],
             ],
           ),
-        ),
-      ),
     );
   }
 

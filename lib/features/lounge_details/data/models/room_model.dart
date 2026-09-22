@@ -110,6 +110,39 @@ class RoomModel extends Equatable {
     return hourlyRateMulti;
   }
 
+  double calculateEffectiveRate({
+    required String playMode,
+    int extraControllers = 0,
+    double loungeDiscountPercentage = 0,
+  }) {
+    final base = (isOpenArea && playMode == 'multi')
+        ? hourlyRateMulti
+        : hourlyRateSingle;
+
+    double discounted = base;
+    if (hasActivePromo && promoDiscountValue > 0) {
+      if (promoDiscountType == 'percentage') {
+        discounted = base * (1 - (promoDiscountValue / 100));
+      } else if (promoDiscountType == 'fixed') {
+        discounted = (base - promoDiscountValue).clamp(0.0, double.infinity);
+      }
+    } else if (loungeDiscountPercentage > 0) {
+      discounted = base * (1 - (loungeDiscountPercentage / 100));
+    }
+
+    return discounted + (extraControllers * extraControllerPrice);
+  }
+
+  double calculateOriginalRate({
+    required String playMode,
+    int extraControllers = 0,
+  }) {
+    final base = (isOpenArea && playMode == 'multi')
+        ? hourlyRateMulti
+        : hourlyRateSingle;
+    return base + (extraControllers * extraControllerPrice);
+  }
+
   bool get isVR => activityNames.any((a) => a.toLowerCase().contains('vr'));
   bool get isSimulator => activityNames.any((a) => a.toLowerCase().contains('simulator'));
   bool get isOpenArea => spaceTypeName == 'open_area';

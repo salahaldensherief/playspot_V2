@@ -37,6 +37,14 @@ class CheckoutSummaryCard extends StatelessWidget {
           },
         ];
 
+        if (params.rooms.length > 1) {
+          sessionRows.add({
+            'label': AppStrings.selectedRooms.tr(),
+            'value': params.rooms.map((r) => r.getName(isArabic)).join(' + '),
+            'color': AppColors.neonBlue,
+          });
+        }
+
         if (params.playMode != null) {
           sessionRows.add({
             'label': AppStrings.playMode.tr(),
@@ -48,7 +56,7 @@ class CheckoutSummaryCard extends StatelessWidget {
         if (params.extraControllers != null && params.extraControllers! > 0) {
           sessionRows.add({
             'label': AppStrings.extraControllers.tr(),
-            'value': "${params.extraControllers}x (+${(params.extraControllers! * (params.extraControllerPrice ?? 0)).toStringAsFixed(2)} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
+            'value': "${params.extraControllers}x (+${params.extraControllersChargePerHour.toStringAsFixed(2)} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
             'color': AppColors.warning,
           });
         }
@@ -83,7 +91,9 @@ class CheckoutSummaryCard extends StatelessWidget {
           ));
         }
 
-        final roomSubtitle = "${params.room.spaceTypeLabel(isArabic)} - ${params.room.getName(isArabic)} · ${params.room.controllersCount} ${AppStrings.controllers.tr()} · ${params.room.screenSize} ${AppStrings.screen.tr()}";
+        final roomSubtitle = params.rooms.length > 1
+            ? "${AppStrings.bookRoomsCount.tr(args: [params.rooms.length.toString()])}: ${params.rooms.map((r) => r.getName(isArabic)).join(', ')}"
+            : "${params.room.spaceTypeLabel(isArabic)} - ${params.room.getName(isArabic)} · ${params.room.controllersCount} ${AppStrings.controllers.tr()} · ${params.room.screenSize} ${AppStrings.screen.tr()}";
 
         return OrderSummaryCard(
           title: params.lounge.name,

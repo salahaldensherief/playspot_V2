@@ -56,9 +56,7 @@ class PointsHistoryScreen extends StatelessWidget {
 
                 if (state.pointsHistory.isEmpty) {
                   return AppStateView.empty(
-                    title: context.locale.languageCode == 'ar'
-                        ? "لا يوجد سجل معاملة نقاط حتى الآن"
-                        : "No points transactions found yet",
+                    title: AppStrings.noPointsHistory.tr(),
                   );
                 }
 

@@ -61,7 +61,10 @@ class RoomsGrid extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => RoomCard(room: filteredRooms[index]),
+              (context, index) => RoomCard(
+                key: ValueKey(filteredRooms[index].id),
+                room: filteredRooms[index],
+              ),
               childCount: filteredRooms.length,
             ),
           ),

@@ -63,69 +63,64 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CheckoutCubit, CheckoutState>(
-      buildWhen: (previous, current) => previous.status != current.status,
-      builder: (context, state) {
-        return BlocListener<CheckoutCubit, CheckoutState>(
-          listenWhen: (previous, current) => previous.status != current.status,
-          listener: (context, state) {
-            if (state.status == CheckoutStatus.success) {
-              _showSuccessDialog(context);
-            } else if (state.status == CheckoutStatus.failure) {
-              final isEnglish = context.locale.languageCode == 'en';
-              final errorMsg = getBookingErrorMessage(
-                state.errorMessage ?? '',
-                isEnglish,
-              );
-              GameHudToast.show(
-                context,
-                errorMsg,
-                type: ToastType.error,
-              );
-            }
-          },
-          child: Scaffold(
-            backgroundColor: AppColors.scaffoldBackground,
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              leading: const BackButtonWidget(),
-              title: AppText(
-                text: AppStrings.orderSummary.tr(),
-                fontSize: 20.sp,
+    return BlocListener<CheckoutCubit, CheckoutState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: (context, state) {
+        if (state.status == CheckoutStatus.success) {
+          _showSuccessDialog(context);
+        } else if (state.status == CheckoutStatus.failure) {
+          final isEnglish = context.locale.languageCode == 'en';
+          final errorMsg = getBookingErrorMessage(
+            state.errorMessage ?? '',
+            isEnglish,
+          );
+          GameHudToast.show(
+            context,
+            errorMsg,
+            type: ToastType.error,
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: const BackButtonWidget(),
+          title: AppText(
+            text: AppStrings.orderSummary.tr(),
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.white,
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CheckoutSummaryCard(params: widget.params),
+              SizedBox(height: 20.h),
+              _buildVoucherSection(),
+              SizedBox(height: 24.h),
+              AppText(
+                text: AppStrings.paymentMethod.tr(),
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.white,
               ),
-            ),
-            body: SingleChildScrollView(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CheckoutSummaryCard(params: widget.params),
-                  SizedBox(height: 20.h),
-                  _buildVoucherSection(),
-                  SizedBox(height: 24.h),
-                  AppText(
-                    text: AppStrings.paymentMethod.tr(),
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.white,
-                  ),
-                  SizedBox(height: 12.h),
-                  _buildPaymentMethodsSection(),
-                  SizedBox(height: 14.h),
-                  _buildLateArrivalPolicyBanner(),
-                  SizedBox(height: 24.h),
-                  _buildSecuredPaymentNote(),
-                  const SafeBottomSpacer(extraPadding: 140, androidOnly: false),
-                ],
-              ),
-            ),
-            bottomSheet: _buildPayButton(),
+              SizedBox(height: 12.h),
+              _buildPaymentMethodsSection(),
+              SizedBox(height: 14.h),
+              _buildLateArrivalPolicyBanner(),
+              SizedBox(height: 24.h),
+              _buildSecuredPaymentNote(),
+              const SafeBottomSpacer(extraPadding: 140, androidOnly: false),
+            ],
           ),
-        );
-      },
+        ),
+        bottomSheet: _buildPayButton(),
+      ),
     );
   }
 

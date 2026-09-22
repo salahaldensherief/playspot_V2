@@ -7,32 +7,73 @@ import '../../../lounge_details/data/models/room_model.dart';
 /// Parameters for navigating to the Booking Screen from Lounge Details
 class BookingDetailsParams extends Equatable {
   final LoungeModel lounge;
-  final RoomModel room;
+  final List<RoomModel> rooms;
   final DateTime selectedDate;
   final List<Map<String, dynamic>> extras;
   final String playMode;
   final int extraControllers;
+  final Map<String, String> roomPlayModes;
+  final Map<String, int> roomExtraControllers;
 
-  const BookingDetailsParams({
+  RoomModel get room =>
+      rooms.isNotEmpty ? rooms.first : throw StateError('No room in BookingDetailsParams');
+
+  BookingDetailsParams({
     required this.lounge,
-    required this.room,
+    List<RoomModel>? rooms,
+    RoomModel? room,
     required this.selectedDate,
     required this.extras,
-    required this.playMode,
-    required this.extraControllers,
-  });
+    this.playMode = 'single',
+    this.extraControllers = 0,
+    this.roomPlayModes = const {},
+    this.roomExtraControllers = const {},
+  }) : rooms = rooms ?? (room != null ? [room] : const []);
 
   @override
-  List<Object?> get props => [lounge, room, selectedDate, extras, playMode, extraControllers];
+  List<Object?> get props => [
+        lounge,
+        rooms,
+        selectedDate,
+        extras,
+        playMode,
+        extraControllers,
+        roomPlayModes,
+        roomExtraControllers,
+      ];
 
   factory BookingDetailsParams.fromMap(Map<String, dynamic> map) {
+    List<RoomModel> parsedRooms = [];
+    if (map['rooms'] is List) {
+      parsedRooms = (map['rooms'] as List)
+          .map((e) => e is RoomModel
+              ? e
+              : RoomModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    } else if (map['room'] != null) {
+      final r = map['room'] is RoomModel
+          ? map['room'] as RoomModel
+          : RoomModel.fromJson(Map<String, dynamic>.from(map['room'] as Map));
+      parsedRooms = [r];
+    }
+
+    final rawModes = map['roomPlayModes'];
+    final Map<String, String> modes = {};
+    if (rawModes is Map) {
+      rawModes.forEach((k, v) => modes[k.toString()] = v.toString());
+    }
+
+    final rawControllers = map['roomExtraControllers'];
+    final Map<String, int> controllers = {};
+    if (rawControllers is Map) {
+      rawControllers.forEach((k, v) => controllers[k.toString()] = (v as num).toInt());
+    }
+
     return BookingDetailsParams(
       lounge: map['lounge'] is LoungeModel
           ? map['lounge'] as LoungeModel
           : LoungeModel.fromJson(Map<String, dynamic>.from(map['lounge'] as Map)),
-      room: map['room'] is RoomModel
-          ? map['room'] as RoomModel
-          : RoomModel.fromJson(Map<String, dynamic>.from(map['room'] as Map)),
+      rooms: parsedRooms,
       selectedDate: map['selectedDate'] is DateTime
           ? map['selectedDate'] as DateTime
           : DateTime.parse(map['selectedDate'].toString()),
@@ -41,17 +82,22 @@ class BookingDetailsParams extends Equatable {
           : [],
       playMode: map['playMode']?.toString() ?? 'single',
       extraControllers: (map['extraControllers'] as num?)?.toInt() ?? 0,
+      roomPlayModes: modes,
+      roomExtraControllers: controllers,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'lounge': lounge.toJson(),
-      'room': room.toJson(),
+      'rooms': rooms.map((r) => r.toJson()).toList(),
+      if (rooms.isNotEmpty) 'room': rooms.first.toJson(),
       'selectedDate': selectedDate.toIso8601String(),
       'extras': extras,
       'playMode': playMode,
       'extraControllers': extraControllers,
+      'roomPlayModes': roomPlayModes,
+      'roomExtraControllers': roomExtraControllers,
     };
   }
 
@@ -184,7 +230,8 @@ class CreateBookingParams extends Equatable {
 /// Parameters for navigating to and initializing the Checkout Screen
 class CheckoutParams extends Equatable {
   final LoungeModel lounge;
-  final RoomModel room;
+  final List<RoomModel> rooms;
+  final List<Map<String, dynamic>> roomsBreakdown;
   final DateTime date;
   final TimeOfDay startTime;
   final int duration;
@@ -203,9 +250,17 @@ class CheckoutParams extends Equatable {
   final int? extraControllers;
   final double? extraControllerPrice;
 
-  const CheckoutParams({
+  RoomModel get room =>
+      rooms.isNotEmpty ? rooms.first : throw StateError('No room in CheckoutParams');
+
+  double get extraControllersChargePerHour =>
+      (extraControllers ?? 0) * (extraControllerPrice ?? 0.0);
+
+  CheckoutParams({
     required this.lounge,
-    required this.room,
+    List<RoomModel>? rooms,
+    RoomModel? room,
+    this.roomsBreakdown = const [],
     required this.date,
     required this.startTime,
     required this.duration,
@@ -223,12 +278,13 @@ class CheckoutParams extends Equatable {
     this.appliedHourlyRate,
     this.extraControllers,
     this.extraControllerPrice,
-  });
+  }) : rooms = rooms ?? (room != null ? [room] : const []);
 
   @override
   List<Object?> get props => [
         lounge,
-        room,
+        rooms,
+        roomsBreakdown,
         date,
         startTime,
         duration,
@@ -271,13 +327,32 @@ class CheckoutParams extends Equatable {
     final double totPrice = (map['totalPrice'] as num?)?.toDouble() ?? 0.0;
     final double origTotPrice = (map['originalTotalPrice'] as num?)?.toDouble() ?? totPrice;
 
+    List<RoomModel> parsedRooms = [];
+    if (map['rooms'] is List) {
+      parsedRooms = (map['rooms'] as List)
+          .map((e) => e is RoomModel
+              ? e
+              : RoomModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    } else if (map['room'] != null) {
+      final r = map['room'] is RoomModel
+          ? map['room'] as RoomModel
+          : RoomModel.fromJson(Map<String, dynamic>.from(map['room'] as Map));
+      parsedRooms = [r];
+    }
+
+    final List<Map<String, dynamic>> breakdown = map['roomsBreakdown'] != null
+        ? (map['roomsBreakdown'] as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList()
+        : [];
+
     return CheckoutParams(
       lounge: map['lounge'] is LoungeModel
           ? map['lounge'] as LoungeModel
           : LoungeModel.fromJson(Map<String, dynamic>.from(map['lounge'] as Map)),
-      room: map['room'] is RoomModel
-          ? map['room'] as RoomModel
-          : RoomModel.fromJson(Map<String, dynamic>.from(map['room'] as Map)),
+      rooms: parsedRooms,
+      roomsBreakdown: breakdown,
       date: map['date'] is DateTime
           ? map['date'] as DateTime
           : DateTime.parse(map['date'].toString()),
@@ -305,7 +380,9 @@ class CheckoutParams extends Equatable {
   Map<String, dynamic> toJson() {
     return {
       'lounge': lounge.toJson(),
-      'room': room.toJson(),
+      'rooms': rooms.map((r) => r.toJson()).toList(),
+      if (rooms.isNotEmpty) 'room': rooms.first.toJson(),
+      'roomsBreakdown': roomsBreakdown,
       'date': date.toIso8601String(),
       'startTime': {'hour': startTime.hour, 'minute': startTime.minute},
       'duration': duration,

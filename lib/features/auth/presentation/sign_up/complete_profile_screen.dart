@@ -17,13 +17,30 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text_field/app_text_field.dart';
 import 'signup_cubit.dart';
+import '../../data/models/user_model.dart';
 import 'signup_state.dart';
 import '../widgets/auth_app_bar.dart';
 
-class CompleteProfileScreen extends StatelessWidget {
+class CompleteProfileScreen extends StatefulWidget {
   final String userId;
+  final UserModel? initialUser;
 
-  const CompleteProfileScreen({super.key, required this.userId});
+  const CompleteProfileScreen({
+    super.key,
+    required this.userId,
+    this.initialUser,
+  });
+
+  @override
+  State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
+}
+
+class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<SignupCubit>().initWithUser(widget.initialUser, userId: widget.userId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +109,7 @@ class CompleteProfileScreen extends StatelessWidget {
                         isLoading: isLoading,
                         onTap: () {
                           if (cubit.formKey.currentState?.validate() ?? false) {
-                            cubit.completeProfile(userId: userId);
+                            cubit.completeProfile(userId: widget.userId);
                           }
                         },
                       ),

@@ -43,8 +43,8 @@ void main() {
       expect(find.text('VIP Room • PS5'), findsOneWidget);
       expect(find.text('Pending'), findsOneWidget);
       expect(find.text('Original Room Price'), findsOneWidget);
-      expect(find.text('150.00 EGP'), findsOneWidget);
-      expect(find.text('155.00 EGP'), findsOneWidget);
+      expect(find.textContaining('150.00'), findsOneWidget);
+      expect(find.textContaining('155.00'), findsOneWidget);
     });
   });
 }

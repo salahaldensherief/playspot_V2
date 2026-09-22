@@ -95,9 +95,8 @@ class ActionCard extends StatelessWidget {
                       behavior: ButtonBehavior.tap(
                         onTap: () {
                           Navigator.pop(dialogContext);
-                          context.read<ActiveSessionCubit>().extendTime(
+                          context.read<ActiveSessionCubit>().requestExtension(
                             mins,
-                            cost,
                           );
                         },
                       ),

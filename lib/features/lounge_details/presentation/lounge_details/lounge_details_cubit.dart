@@ -139,7 +139,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       );
 
       if (rooms == null) {
-        throw Exception('Critical room data loading failed');
+        if (state.rooms.isNotEmpty) {
+          rooms = state.rooms;
+        } else {
+          throw Exception('Critical room data loading failed');
+        }
       }
 
       final date = state.selectedDate ?? DateTime.now();
@@ -202,10 +206,14 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     bookingsResult.fold(
       (failure) {
         log("CRITICAL BOOKINGS ERROR: ${failure.message}");
+        final currentRooms = state.rooms.isNotEmpty ? state.rooms : params.rooms;
         emit(
           state.copyWith(
             isDateLoading: false,
-            status: LoungeDetailsStatus.error,
+            status: currentRooms.isNotEmpty ? LoungeDetailsStatus.success : LoungeDetailsStatus.error,
+            rooms: currentRooms,
+            extras: state.extras.isNotEmpty ? state.extras : params.extras,
+            lounge: params.lounge,
           ),
         );
       },
@@ -243,9 +251,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           return a.compareTo(b);
         });
 
-        bool shouldClearRoom =
-            state.selectedRoomId != null &&
-            fullyBookedIds.contains(state.selectedRoomId);
+        final Set<String> updatedSelectedRooms = Set<String>.from(state.selectedRoomIds)
+          ..removeWhere((id) => fullyBookedIds.contains(id));
 
         emit(
           state.copyWith(
@@ -262,7 +269,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
             selectedDate: params.date,
             availableRoomsCount: params.rooms.length - fullyBookedIds.length,
             selectedCategory: state.selectedCategory,
-            clearRoom: shouldClearRoom,
+            selectedRoomIds: updatedSelectedRooms,
             lounge: params.lounge,
           ),
         );
@@ -272,11 +279,17 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
   void toggleRoomSelection(String roomId) {
     HapticFeedback.selectionClick();
-    emit(
-      state.selectedRoomId == roomId
-          ? state.copyWith(clearRoom: true)
-          : state.copyWith(selectedRoomId: roomId),
-    );
+    final updated = Set<String>.from(state.selectedRoomIds);
+    if (updated.contains(roomId)) {
+      updated.remove(roomId);
+    } else {
+      updated.add(roomId);
+    }
+    emit(state.copyWith(selectedRoomIds: updated));
+  }
+
+  void clearSelectedRooms() {
+    emit(state.copyWith(selectedRoomIds: const {}));
   }
 
   void setSpaceType(String spaceType) {

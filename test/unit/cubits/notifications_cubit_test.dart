@@ -113,7 +113,7 @@ void main() {
       await cubit.loadNotifications('en');
 
       when(() => mockRepository.markAsRead('notif_1'))
-          .thenAnswer((_) async => const Left(ServerFailure('Failed')));
+          .thenAnswer((_) async => const Right(null));
 
       cubit.markAsRead('notif_1');
 

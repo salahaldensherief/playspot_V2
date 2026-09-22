@@ -11,7 +11,6 @@ import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
-import 'package:playspot/core/di.dart';
 import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
@@ -22,7 +21,7 @@ import '../../../../art_core/widgets/layout/app_dialog.dart';
 import 'my_bookings_cubit.dart';
 import 'my_bookings_state.dart';
 
-class MyBookingsScreen extends StatelessWidget {
+class MyBookingsScreen extends StatefulWidget {
   final bool isTab;
   final String? highlightedBookingId;
 
@@ -33,45 +32,10 @@ class MyBookingsScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    bool hasCubit = false;
-    try {
-      BlocProvider.of<MyBookingsCubit>(context, listen: false);
-      hasCubit = true;
-    } catch (_) {}
-
-    if (hasCubit) {
-      return _MyBookingsScreenContent(
-        isTab: isTab,
-        highlightedBookingId: highlightedBookingId,
-      );
-    }
-
-    return BlocProvider(
-      create: (context) => sl<MyBookingsCubit>()..getMyBookings(),
-      child: _MyBookingsScreenContent(
-        isTab: isTab,
-        highlightedBookingId: highlightedBookingId,
-      ),
-    );
-  }
+  State<MyBookingsScreen> createState() => _MyBookingsScreenState();
 }
 
-class _MyBookingsScreenContent extends StatefulWidget {
-  final bool isTab;
-  final String? highlightedBookingId;
-
-  const _MyBookingsScreenContent({
-    required this.isTab,
-    this.highlightedBookingId,
-  });
-
-  @override
-  State<_MyBookingsScreenContent> createState() =>
-      _MyBookingsScreenContentState();
-}
-
-class _MyBookingsScreenContentState extends State<_MyBookingsScreenContent>
+class _MyBookingsScreenState extends State<MyBookingsScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final Map<String, GlobalKey> _cardKeys = {};

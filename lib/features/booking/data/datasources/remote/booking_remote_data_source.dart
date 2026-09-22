@@ -175,34 +175,32 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
     final bookingId = response['id']?.toString();
 
-    // Directly insert canteen/extras items into booking_items table
+    // Call place_canteen_order RPC for canteen/extras items
     if (bookingId != null && params.addOns.isNotEmpty) {
       try {
-        final itemsToInsert = params.addOns.map((e) {
-          final id = e['id']?.toString() ?? e['extra_id']?.toString() ?? e['item_id']?.toString() ?? e['product_id']?.toString();
+        final formattedItems = params.addOns.map((e) {
+          final id = e['id']?.toString() ?? e['extra_id']?.toString() ?? e['item_id']?.toString() ?? e['product_id']?.toString() ?? '';
           final name = e['name']?.toString() ?? e['title']?.toString() ?? 'Extra';
-          final p = (e['price'] as num?)?.toDouble() ?? 0.0;
+          final nameAr = e['name_ar']?.toString() ?? name;
+          final nameEn = e['name_en']?.toString() ?? name;
+          final p = (e['unit_price'] as num?)?.toDouble() ?? (e['price'] as num?)?.toDouble() ?? 0.0;
           final q = (e['quantity'] as num?)?.toInt() ?? 1;
-          final totalP = p * q;
-          final note = e['note']?.toString();
 
           return {
-            'booking_id': bookingId,
-            if (id != null && id.isNotEmpty) 'product_id': id,
-            if (id != null && id.isNotEmpty) 'item_id': id,
-            if (id != null && id.isNotEmpty) 'extra_id': id,
-            'name': name,
-            'quantity': q,
-            'price': p,
+            'id': id,
+            'name_ar': nameAr,
+            'name_en': nameEn,
             'unit_price': p,
-            'total_price': totalP,
-            if (note != null && note.isNotEmpty) 'note': note,
+            'quantity': q,
           };
         }).toList();
 
-        await _client.from('booking_items').insert(itemsToInsert);
+        await _client.rpc('place_canteen_order', params: {
+          'p_booking_id': bookingId,
+          'p_items': formattedItems,
+        });
       } catch (e) {
-        dev.log("Error inserting booking_items: $e");
+        dev.log("place_canteen_order RPC in createBooking failed: $e");
       }
     }
 
@@ -372,10 +370,18 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final validUserId = _client.auth.currentUser?.id ?? userId;
     
     final formattedItems = items.map((item) {
-      final id = item['extra_id']?.toString() ?? item['id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString() ?? '';
+      final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString() ?? '';
+      final name = item['name']?.toString() ?? item['title']?.toString() ?? 'Extra';
+      final nameAr = item['name_ar']?.toString() ?? name;
+      final nameEn = item['name_en']?.toString() ?? name;
+      final p = (item['unit_price'] as num?)?.toDouble() ?? (item['price'] as num?)?.toDouble() ?? 0.0;
       final q = (item['quantity'] as num?)?.toInt() ?? 1;
+
       return {
-        'extra_id': id,
+        'id': id,
+        'name_ar': nameAr,
+        'name_en': nameEn,
+        'unit_price': p,
         'quantity': q,
       };
     }).toList();
@@ -383,36 +389,25 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     try {
       final response = await _client.rpc('place_canteen_order', params: {
         'p_booking_id': bookingId,
-        'p_lounge_id': loungeId,
-        'p_user_id': validUserId,
         'p_items': formattedItems,
-        'p_total_price': totalPrice > 0 ? totalPrice : null,
-        'p_note': note.isNotEmpty ? note : null,
       });
       dev.log("place_canteen_order RPC SUCCESS: $response");
     } catch (e) {
-      dev.log("place_canteen_order RPC failed: $e, falling back to booking_items insert");
-      final itemsToInsert = items.map((item) {
-        final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString();
-        final name = item['name']?.toString() ?? item['title']?.toString() ?? 'Extra';
-        final p = (item['price'] as num?)?.toDouble() ?? 0.0;
-        final q = (item['quantity'] as num?)?.toInt() ?? 1;
-        final totalP = p * q;
-
-        return {
-          'booking_id': bookingId,
-          if (id != null && id.isNotEmpty) 'product_id': id,
-          if (id != null && id.isNotEmpty) 'item_id': id,
-          if (id != null && id.isNotEmpty) 'extra_id': id,
-          'name': name,
-          'quantity': q,
-          'price': p,
-          'unit_price': p,
-          'total_price': totalP,
-          if (note.isNotEmpty) 'note': note,
-        };
-      }).toList();
-      await _client.from('booking_items').insert(itemsToInsert);
+      dev.log("place_canteen_order RPC failed: $e, trying full params...");
+      try {
+        final response = await _client.rpc('place_canteen_order', params: {
+          'p_booking_id': bookingId,
+          'p_lounge_id': loungeId,
+          'p_user_id': validUserId,
+          'p_items': formattedItems,
+          'p_total_price': totalPrice > 0 ? totalPrice : null,
+          'p_note': note.isNotEmpty ? note : null,
+        });
+        dev.log("place_canteen_order RPC with full params SUCCESS: $response");
+      } catch (e2) {
+        dev.log("place_canteen_order RPC with full params failed: $e2");
+        rethrow;
+      }
     }
   }
 }

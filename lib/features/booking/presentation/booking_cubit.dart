@@ -9,14 +9,16 @@ import 'booking_state.dart';
 class BookingCubit extends Cubit<BookingState> {
   final BookingRepository _bookingRepository;
   final BookingSlotStrategy _slotStrategy;
-  final String roomId;
+  final List<String> roomIds;
   final String loungeId;
+
+  String get roomId => roomIds.isNotEmpty ? roomIds.first : '';
 
   BookingCubit(
     this._bookingRepository,
     this._slotStrategy,
     BookingDetailsParams params,
-  )   : roomId = params.room.id,
+  )   : roomIds = params.rooms.map((r) => r.id).toList(),
         loungeId = params.lounge.id,
         super(BookingState(
           selectedDate: params.selectedDate,
@@ -29,27 +31,37 @@ class BookingCubit extends Cubit<BookingState> {
   Future<void> fetchBookedSlots(DateTime date) async {
     emit(state.copyWith(status: BookingStatus.loading, selectedDate: date));
 
-    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date, roomId: roomId);
+    final Set<TimeOfDay> allBookedSlots = {};
+    String? failureMsg;
 
-    result.fold(
-      (failure) => emit(state.copyWith(
+    for (final rid in roomIds) {
+      final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date, roomId: rid);
+      result.fold(
+        (failure) => failureMsg = failure.message,
+        (rawBookings) {
+          final slots = _slotStrategy.calculateBookedSlots(
+            rawBookings: rawBookings,
+            roomId: rid,
+            date: date,
+          );
+          allBookedSlots.addAll(slots);
+        },
+      );
+    }
+
+    if (failureMsg != null && allBookedSlots.isEmpty) {
+      emit(state.copyWith(
         status: BookingStatus.error,
-        errorMessage: failure.message,
-      )),
-      (rawBookings) {
-        final bookedSlots = _slotStrategy.calculateBookedSlots(
-          rawBookings: rawBookings,
-          roomId: roomId,
-          date: date,
-        );
+        errorMessage: failureMsg,
+      ));
+      return;
+    }
 
-        emit(state.copyWith(
-          status: BookingStatus.success,
-          selectedDate: date,
-          bookedTimeSlots: bookedSlots,
-        ));
-      },
-    );
+    emit(state.copyWith(
+      status: BookingStatus.success,
+      selectedDate: date,
+      bookedTimeSlots: allBookedSlots.toList(),
+    ));
   }
 
   /// Re-verifies slot availability against Supabase right before proceeding to checkout.
@@ -59,48 +71,56 @@ class BookingCubit extends Cubit<BookingState> {
 
     emit(state.copyWith(status: BookingStatus.loading));
 
-    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, state.selectedDate, roomId: roomId);
+    final Set<TimeOfDay> allBookedSlots = {};
+    bool hasConflict = false;
 
-    return result.fold(
-      (failure) {
-        emit(state.copyWith(
-          status: BookingStatus.error,
-          errorMessage: failure.message,
-        ));
-        return false;
-      },
-      (rawBookings) {
-        final bookedSlots = _slotStrategy.calculateBookedSlots(
-          rawBookings: rawBookings,
-          roomId: roomId,
-          date: state.selectedDate,
-        );
-
-        final isConflict = _slotStrategy.isBookingConflicting(
-          rawBookings: rawBookings,
-          roomId: roomId,
-          date: state.selectedDate,
-          startTime: state.startTime!,
-          durationMinutes: state.durationMinutes,
-        );
-
-        if (isConflict) {
+    for (final rid in roomIds) {
+      final result = await _bookingRepository.getRoomBookingsForDate(loungeId, state.selectedDate, roomId: rid);
+      final isFailed = result.fold(
+        (failure) {
           emit(state.copyWith(
             status: BookingStatus.error,
-            bookedTimeSlots: bookedSlots,
-            clearStartTime: true,
-            errorMessage: "overlappingBookingError",
+            errorMessage: failure.message,
           ));
-          return false;
-        }
+          return true;
+        },
+        (rawBookings) {
+          final slots = _slotStrategy.calculateBookedSlots(
+            rawBookings: rawBookings,
+            roomId: rid,
+            date: state.selectedDate,
+          );
+          allBookedSlots.addAll(slots);
 
-        emit(state.copyWith(
-          status: BookingStatus.success,
-          bookedTimeSlots: bookedSlots,
-        ));
-        return true;
-      },
-    );
+          final conflict = _slotStrategy.isBookingConflicting(
+            rawBookings: rawBookings,
+            roomId: rid,
+            date: state.selectedDate,
+            startTime: state.startTime!,
+            durationMinutes: state.durationMinutes,
+          );
+          if (conflict) hasConflict = true;
+          return false;
+        },
+      );
+      if (isFailed) return false;
+    }
+
+    if (hasConflict) {
+      emit(state.copyWith(
+        status: BookingStatus.error,
+        bookedTimeSlots: allBookedSlots.toList(),
+        clearStartTime: true,
+        errorMessage: "overlappingBookingError",
+      ));
+      return false;
+    }
+
+    emit(state.copyWith(
+      status: BookingStatus.success,
+      bookedTimeSlots: allBookedSlots.toList(),
+    ));
+    return true;
   }
 
   void selectDate(DateTime date) {

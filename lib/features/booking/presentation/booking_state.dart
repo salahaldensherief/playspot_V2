@@ -60,14 +60,91 @@ class BookingState extends Equatable {
     );
   }
 
-  Map<String, double> getCalculatedSubtotals(BookingDetailsParams params, bool isArabic) {
-    final offerInfo = getOfferInfo(params, isArabic);
-    return offerInfo.calculateSubtotals(
-      durationMinutes: durationMinutes,
-      extraControllersCount: extraControllersCount,
-      extraControllerPrice: params.room.extraControllerPrice,
-      extras: params.extras,
-    );
+  Map<String, dynamic> getCalculatedSubtotals(BookingDetailsParams params, bool isArabic) {
+    if (params.rooms.length <= 1) {
+      final offerInfo = getOfferInfo(params, isArabic);
+      final singleSub = Map<String, dynamic>.from(offerInfo.calculateSubtotals(
+        durationMinutes: durationMinutes,
+        extraControllersCount: extraControllersCount,
+        extraControllerPrice: params.room.extraControllerPrice,
+        extras: params.extras,
+      ));
+      singleSub['roomsBreakdown'] = <Map<String, dynamic>>[
+        {
+          'room': params.room,
+          'roomId': params.room.id,
+          'roomName': params.room.getDisplayTitle(isArabic),
+          'playMode': playMode == PlayMode.single ? 'single' : 'multi',
+          'extraControllers': extraControllersCount,
+          'extraControllerPrice': params.room.extraControllerPrice,
+          'originalRate': offerInfo.originalHourlyRate,
+          'appliedRate': offerInfo.discountedHourlyRate,
+          'originalSubtotal': singleSub['originalRoomSubtotal'] ?? 0.0,
+          'discountedSubtotal': singleSub['discountedRoomSubtotal'] ?? 0.0,
+          'discountAmount': singleSub['roomDiscountAmount'] ?? 0.0,
+        }
+      ];
+      return singleSub;
+    }
+
+    double originalRoomsSubtotal = 0.0;
+    double discountedRoomsSubtotal = 0.0;
+    double roomDiscountsAmount = 0.0;
+    final durationHours = durationMinutes / 60.0;
+
+    final List<Map<String, dynamic>> roomsBreakdown = [];
+    for (final r in params.rooms) {
+      final mode = params.roomPlayModes[r.id] ??
+          (r.isOpenArea ? (playMode == PlayMode.single ? 'single' : 'multi') : 'single');
+      final controllers = params.roomExtraControllers[r.id] ?? 0;
+
+      final roomOffer = BookingOfferInfo.resolve(
+        room: r,
+        lounge: params.lounge,
+        isSinglePlay: mode == 'single',
+        isArabic: isArabic,
+      );
+
+      final sub = roomOffer.calculateSubtotals(
+        durationMinutes: durationMinutes,
+        extraControllersCount: controllers,
+        extraControllerPrice: r.extraControllerPrice,
+        extras: const [],
+      );
+
+      originalRoomsSubtotal += sub['originalRoomSubtotal'] ?? 0.0;
+      discountedRoomsSubtotal += sub['discountedRoomSubtotal'] ?? 0.0;
+      roomDiscountsAmount += sub['roomDiscountAmount'] ?? 0.0;
+
+      roomsBreakdown.add({
+        'room': r,
+        'roomId': r.id,
+        'roomName': r.getDisplayTitle(isArabic),
+        'playMode': mode,
+        'extraControllers': controllers,
+        'extraControllerPrice': r.extraControllerPrice,
+        'originalRate': roomOffer.originalHourlyRate,
+        'appliedRate': roomOffer.discountedHourlyRate,
+        'originalSubtotal': sub['originalRoomSubtotal'] ?? 0.0,
+        'discountedSubtotal': sub['discountedRoomSubtotal'] ?? 0.0,
+        'discountAmount': sub['roomDiscountAmount'] ?? 0.0,
+      });
+    }
+
+    final addonsTotal = calculateExtrasPrice(params);
+    final totalPrice = discountedRoomsSubtotal + addonsTotal;
+    final originalTotalPrice = originalRoomsSubtotal + addonsTotal;
+
+    return {
+      'originalRoomSubtotal': originalRoomsSubtotal,
+      'discountedRoomSubtotal': discountedRoomsSubtotal,
+      'roomDiscountAmount': roomDiscountsAmount,
+      'addonsTotal': addonsTotal,
+      'totalPrice': totalPrice,
+      'originalTotalPrice': originalTotalPrice,
+      'durationHours': durationHours,
+      'roomsBreakdown': roomsBreakdown,
+    };
   }
 
   double calculateExtrasPrice(BookingDetailsParams params) {

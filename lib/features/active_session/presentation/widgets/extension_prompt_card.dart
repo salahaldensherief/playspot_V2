@@ -234,7 +234,7 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                         behavior: ButtonBehavior.tap(
                           onTap: () {
                             HapticFeedback.mediumImpact();
-                            cubit.extendTime(_selectedMinutes, expectedCost);
+                            cubit.requestExtension(_selectedMinutes);
                             _handleDismiss();
                           },
                         ),

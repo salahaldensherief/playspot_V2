@@ -4,6 +4,8 @@ class OrderItemModel extends OrderItem {
   const OrderItemModel({
     required super.id,
     required super.name,
+    super.nameAr,
+    super.nameEn,
     required super.price,
     required super.quantity,
     super.totalPriceOverride,
@@ -14,6 +16,8 @@ class OrderItemModel extends OrderItem {
     return OrderItemModel(
       id: entity.id,
       name: entity.name,
+      nameAr: entity.nameAr,
+      nameEn: entity.nameEn,
       price: entity.price,
       quantity: entity.quantity,
       totalPriceOverride: entity.totalPriceOverride,
@@ -26,15 +30,16 @@ class OrderItemModel extends OrderItem {
         json['products'] as Map<String, dynamic>? ??
         json['item'] as Map<String, dynamic>?;
 
-    final String rawName = json['name_ar']?.toString() ??
-        json['name_en']?.toString() ??
+    final String? parsedNameAr = json['name_ar']?.toString() ?? extraData?['name_ar']?.toString();
+    final String? parsedNameEn = json['name_en']?.toString() ?? extraData?['name_en']?.toString();
+
+    final String rawName = parsedNameAr ??
+        parsedNameEn ??
         json['name']?.toString() ??
         json['product_name']?.toString() ??
         json['extra_name']?.toString() ??
         json['item_name']?.toString() ??
         json['title']?.toString() ??
-        extraData?['name_ar']?.toString() ??
-        extraData?['name_en']?.toString() ??
         extraData?['name']?.toString() ??
         json['description']?.toString() ??
         '';
@@ -64,6 +69,8 @@ class OrderItemModel extends OrderItem {
           extraData?['id']?.toString() ??
           '',
       name: finalName,
+      nameAr: parsedNameAr ?? finalName,
+      nameEn: parsedNameEn ?? finalName,
       price: parsedPrice,
       quantity: parsedQty,
       totalPriceOverride: rawTotal,
@@ -74,6 +81,9 @@ class OrderItemModel extends OrderItem {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        if (nameAr != null) 'name_ar': nameAr,
+        if (nameEn != null) 'name_en': nameEn,
+        'unit_price': price,
         'price': price,
         'quantity': quantity,
         if (note != null) 'note': note,

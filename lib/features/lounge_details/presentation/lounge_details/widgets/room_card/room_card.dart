@@ -30,8 +30,8 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
 
     return BlocListener<LoungeDetailsCubit, LoungeDetailsState>(
       listenWhen: (prev, curr) =>
-      (prev.selectedRoomId != widget.room.id &&
-          curr.selectedRoomId == widget.room.id),
+          !prev.isRoomSelected(widget.room.id) &&
+          curr.isRoomSelected(widget.room.id),
       listener: (context, state) {
         if (!_isExpanded) {
           setState(() => _isExpanded = true);
@@ -39,13 +39,13 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
       },
       child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
         buildWhen: (prev, curr) =>
-            prev.selectedRoomId != curr.selectedRoomId ||
+            prev.isRoomSelected(widget.room.id) != curr.isRoomSelected(widget.room.id) ||
             prev.bookedRoomIds.contains(widget.room.id) !=
                 curr.bookedRoomIds.contains(widget.room.id) ||
             prev.lounge?.isOpen != curr.lounge?.isOpen ||
             prev.lounge?.isDiscountActive != curr.lounge?.isDiscountActive,
         builder: (context, state) {
-          final isSelected = state.selectedRoomId == widget.room.id;
+          final isSelected = state.isRoomSelected(widget.room.id);
           final isBooked = state.bookedRoomIds.contains(widget.room.id);
           final isLoungeOpen = state.lounge?.isOpen ?? true;
           final isAvailable = widget.room.isAvailable &&

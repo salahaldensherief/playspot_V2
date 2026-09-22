@@ -28,12 +28,31 @@ class AllReviewsScreen extends StatelessWidget {
           children: [
             _buildAppBar(context),
             Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  ReviewsSection(reviews: reviews),
-                  const SliverSafeBottomSpacer(),
-                ],
-              ),
+              child: reviews.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.rate_review_outlined,
+                            size: 48.sp,
+                            color: AppColors.textSecondary,
+                          ),
+                          16.verticalSpace,
+                          AppText(
+                            text: AppStrings.noReviewsYet.tr(),
+                            fontSize: 14.sp,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
+                      ),
+                    )
+                  : CustomScrollView(
+                      slivers: [
+                        ReviewsSection(reviews: reviews),
+                        const SliverSafeBottomSpacer(),
+                      ],
+                    ),
             ),
           ],
         ),

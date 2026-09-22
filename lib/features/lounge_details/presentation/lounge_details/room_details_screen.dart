@@ -57,6 +57,11 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                 _roomIdToSelect = room.id;
                 _isLoading = false;
               });
+              final cubit = context.read<LoungeDetailsCubit>();
+              cubit.init(lounge);
+              if (_roomIdToSelect != null) {
+                cubit.toggleRoomSelection(_roomIdToSelect!);
+              }
             }
           }
         );
@@ -81,16 +86,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
     }
 
     if (_lounge != null) {
-      return BlocProvider(
-        create: (context) {
-          final cubit = sl<LoungeDetailsCubit>()..init(_lounge!);
-          if (_roomIdToSelect != null) {
-            cubit.toggleRoomSelection(_roomIdToSelect!);
-          }
-          return cubit;
-        },
-        child: LoungeDetailsScreen(lounge: _lounge!),
-      );
+      return LoungeDetailsScreen(lounge: _lounge!);
     }
 
     return const SizedBox.shrink();

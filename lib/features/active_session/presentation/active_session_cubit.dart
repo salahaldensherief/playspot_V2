@@ -284,8 +284,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     );
   }
 
-  Future<void> loadMenu(String loungeId) async {
+  Future<void> loadMenu(String loungeId, {bool forceRefresh = false}) async {
     if (loungeId.isEmpty || isClosed) return;
+    if (!forceRefresh && state.menu.isNotEmpty && state.session?.loungeId == loungeId) {
+      return;
+    }
     dev.log("[LIVESESSION_CUBIT] LOAD_MENU for lounge: $loungeId");
     final result = await _getLoungeMenuUseCase(loungeId: loungeId);
     if (isClosed) return;

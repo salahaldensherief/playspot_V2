@@ -117,110 +117,169 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   }
 
   @override
-  Stream<ActiveSessionModel> streamActiveSession(String bookingId) async* {
+  Stream<ActiveSessionModel> streamActiveSession(String bookingId) {
     dev.log("[LIVESESSION_DS] STREAM_ACTIVE_SESSION: bookingId=$bookingId");
-    int retryCount = 0;
-    while (true) {
+    final controller = StreamController<ActiveSessionModel>.broadcast();
+    RealtimeChannel? channel;
+
+    Future<void> fetchAndEmit() async {
       try {
-        final stream = _client
-            .from('bookings')
-            .stream(primaryKey: ['id'])
-            .eq('id', bookingId);
-
-        await for (final data in stream) {
-          retryCount = 0; // Reset error count on successful event
-          dev.log("[LIVESESSION_DS] REALTIME_EVENT received for booking $bookingId, rows: ${data.length}");
-          if (data.isNotEmpty) {
-            final fullSession = await getActiveSession(bookingId: bookingId);
-            if (fullSession != null) {
-              yield fullSession;
-            } else {
-              yield ActiveSessionModel.fromJson(data.first);
-            }
-          }
+        final fullSession = await getActiveSession(bookingId: bookingId);
+        if (fullSession != null && !controller.isClosed) {
+          controller.add(fullSession);
         }
-        dev.log("[LIVESESSION_DS] Realtime stream for booking $bookingId completed normally.");
-        break;
-      } catch (e, st) {
-        retryCount++;
-        dev.log(
-          "[LIVESESSION_DS] REALTIME_STREAM_ERROR (Attempt $retryCount, code 1002 / channelError) for booking $bookingId: $e",
-          error: e,
-          stackTrace: st,
-        );
-
-        final backoffSeconds = (1 << (retryCount > 4 ? 4 : retryCount)).clamp(1, 10);
-        dev.log("[LIVESESSION_DS] Unsubscribed failed channel. Re-subscribing in ${backoffSeconds}s...");
-        await Future.delayed(Duration(seconds: backoffSeconds));
+      } catch (e) {
+        dev.log("[LIVESESSION_DS] Error fetching active session in stream for $bookingId: $e");
       }
     }
+
+    fetchAndEmit();
+
+    try {
+      channel = _client.channel('booking_$bookingId');
+
+      channel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'bookings',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: bookingId,
+          ),
+          callback: (payload) {
+            dev.log("[LIVESESSION_DS] Realtime change on 'bookings' for $bookingId: ${payload.eventType}");
+            fetchAndEmit();
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'canteen_orders',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'booking_id',
+            value: bookingId,
+          ),
+          callback: (payload) {
+            dev.log("[LIVESESSION_DS] Realtime change on 'canteen_orders' for $bookingId: ${payload.eventType}");
+            fetchAndEmit();
+          },
+        )
+        .subscribe((status, [error]) {
+          dev.log("[LIVESESSION_DS] Realtime channel booking_$bookingId status: $status ${error ?? ''}");
+        });
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] Error initializing channel booking_$bookingId: $e");
+    }
+
+    controller.onCancel = () {
+      dev.log("[LIVESESSION_DS] Closing channel booking_$bookingId");
+      if (channel != null) {
+        _client.removeChannel(channel);
+      }
+      controller.close();
+    };
+
+    return controller.stream;
   }
 
   @override
-  Stream<ActiveSessionModel?> watchUserActiveSession() async* {
+  Stream<ActiveSessionModel?> watchUserActiveSession() {
     dev.log("[LIVESESSION_DS] WATCH_USER_ACTIVE_SESSION");
-    int retryCount = 0;
-    while (true) {
-      final currentUserId = _client.auth.currentUser?.id;
-      if (currentUserId == null) {
-        dev.log("[LIVESESSION_DS] No authenticated user, ending watchUserActiveSession");
-        yield null;
-        return;
-      }
+    final controller = StreamController<ActiveSessionModel?>.broadcast();
+    RealtimeChannel? bookingChannel;
+    RealtimeChannel? userBookingsChannel;
+    String? currentBookingId;
 
+    Future<void> syncSession() async {
       try {
-        final stream = _client
-            .from('bookings')
-            .stream(primaryKey: ['id'])
-            .eq('user_id', currentUserId);
+        final session = await getActiveSession();
+        if (controller.isClosed) return;
+        controller.add(session);
 
-        await for (final list in stream) {
-          if (_client.auth.currentUser == null) {
-            yield null;
-            return;
+        if (session != null && session.bookingId != currentBookingId) {
+          currentBookingId = session.bookingId;
+          if (bookingChannel != null) {
+            _client.removeChannel(bookingChannel!);
+            bookingChannel = null;
           }
-          retryCount = 0;
-          try {
-            final now = DateTime.now();
-            final active = list.firstWhere(
-              (e) => e['status'] == 'in_progress',
-              orElse: () => <String, dynamic>{},
-            );
-            if (active.isEmpty) {
-              yield null;
-            } else {
-              final model = ActiveSessionModel.fromJson(active);
-              if (now.isBefore(model.startTime) || now.isAfter(model.endTime.add(const Duration(minutes: 5)))) {
-                yield null;
-              } else {
-                dev.log("[LIVESESSION_DS] User active session updated via watch stream: ${model.bookingId}");
-                yield model;
-              }
-            }
-          } catch (e) {
-            dev.log("[LIVESESSION_DS] Error parsing watch user session item: $e");
-            yield null;
-          }
-        }
-        break;
-      } catch (e, st) {
-        if (_client.auth.currentUser == null || e.toString().contains('permission denied') || e.toString().contains('Unauthorized') || retryCount >= 3) {
-          dev.log("[LIVESESSION_DS] Unauthenticated or permission error on stream, stopping watchUserActiveSession: $e");
-          yield null;
-          return;
-        }
-        retryCount++;
-        dev.log(
-          "[LIVESESSION_DS] WATCH_USER_ACTIVE_SESSION STREAM_ERROR (Attempt $retryCount, code 1002 / channelError): $e",
-          error: e,
-          stackTrace: st,
-        );
 
-        final backoffSeconds = (1 << (retryCount > 4 ? 4 : retryCount)).clamp(1, 10);
-        dev.log("[LIVESESSION_DS] Unsubscribed failed channel. Re-subscribing in ${backoffSeconds}s...");
-        await Future.delayed(Duration(seconds: backoffSeconds));
+          bookingChannel = _client.channel('booking_${session.bookingId}');
+          bookingChannel!
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: 'bookings',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'id',
+                value: session.bookingId,
+              ),
+              callback: (payload) {
+                dev.log("[LIVESESSION_DS] Realtime user booking update for ${session.bookingId}: ${payload.eventType}");
+                syncSession();
+              },
+            )
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: 'canteen_orders',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'booking_id',
+                value: session.bookingId,
+              ),
+              callback: (payload) {
+                dev.log("[LIVESESSION_DS] Realtime user canteen_orders update for ${session.bookingId}: ${payload.eventType}");
+                syncSession();
+              },
+            )
+            .subscribe();
+        } else if (session == null && bookingChannel != null) {
+          currentBookingId = null;
+          _client.removeChannel(bookingChannel!);
+          bookingChannel = null;
+        }
+      } catch (e) {
+        dev.log("[LIVESESSION_DS] Error in watchUserActiveSession sync: $e");
       }
     }
+
+    final userId = _client.auth.currentUser?.id;
+    if (userId != null) {
+      userBookingsChannel = _client.channel('user_bookings_$userId');
+      userBookingsChannel
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'bookings',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (_) => syncSession(),
+        )
+        .subscribe();
+    }
+
+    syncSession();
+
+    controller.onCancel = () {
+      final bChannel = bookingChannel;
+      if (bChannel != null) {
+        _client.removeChannel(bChannel);
+      }
+      final uChannel = userBookingsChannel;
+      if (uChannel != null) {
+        _client.removeChannel(uChannel);
+      }
+      controller.close();
+    };
+
+    return controller.stream;
   }
 
   @override
@@ -252,11 +311,28 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     required int requestedMinutes,
   }) async {
     dev.log("[LIVESESSION_DS] REQUEST_EXTENSION: bookingId=$bookingId, requestedMinutes=$requestedMinutes");
-    await _client.from('bookings').update({
-      'extension_status': 'pending',
-      'requested_extension_minutes': requestedMinutes,
-    }).eq('id', bookingId);
-    dev.log("[LIVESESSION_DS] REQUEST_EXTENSION SUCCESS");
+    try {
+      await _client.rpc('request_booking_extension', params: {
+        'p_booking_id': bookingId,
+        'p_requested_minutes': requestedMinutes,
+      });
+      dev.log("[LIVESESSION_DS] REQUEST_BOOKING_EXTENSION RPC SUCCESS");
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] request_booking_extension RPC failed: $e, checking error or fallback...");
+      final errorStr = e.toString();
+      if (errorStr.contains('BOOKING_CONFLICT') ||
+          errorStr.contains('conflict') ||
+          errorStr.contains('محجوزة')) {
+        throw Exception("لا يمكن تمديد الوقت لأن الغرفة محجوزة لحجز قادم بعد وقتك مباشرة.");
+      }
+
+      await _client.from('bookings').update({
+        'extension_status': 'pending',
+        'requested_extension_minutes': requestedMinutes,
+        'extension_minutes': requestedMinutes,
+      }).eq('id', bookingId);
+      dev.log("[LIVESESSION_DS] Fallback update to bookings SUCCESS");
+    }
   }
 
   @override
@@ -268,34 +344,45 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       final currentUserId = _client.auth.currentUser?.id;
       if (currentUserId == null) throw Exception('User not authenticated');
 
-      // Fetch lounge_id from booking
-      final bookingRes = await _client
-          .from('bookings')
-          .select('lounge_id')
-          .eq('id', bookingId)
-          .single();
-      
-      final loungeId = bookingRes['lounge_id'] as String;
-
       final formattedItems = items.map((item) {
         return {
-          'extra_id': item.id,
+          'id': item.id,
+          'name_ar': item.nameAr ?? item.name,
+          'name_en': item.nameEn ?? item.name,
+          'unit_price': item.price,
           'quantity': item.quantity,
+          if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
         };
       }).toList();
 
       final notes = items.where((i) => i.note != null && i.note!.isNotEmpty).map((i) => i.note).join(', ');
 
-      final response = await _client.rpc('place_canteen_order', params: {
-        'p_booking_id': bookingId,
-        'p_lounge_id': loungeId,
-        'p_user_id': currentUserId,
-        'p_items': formattedItems,
-        'p_total_price': null,
-        'p_note': notes.isNotEmpty ? notes : null,
-      });
+      try {
+        final response = await _client.rpc('place_canteen_order', params: {
+          'p_booking_id': bookingId,
+          'p_items': formattedItems,
+          if (notes.isNotEmpty) 'p_note': notes,
+        });
+        dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC SUCCESS: $response");
+      } catch (e) {
+        dev.log("[LIVESESSION_DS] place_canteen_order with p_booking_id and p_items failed: $e, trying full params...");
+        final bookingRes = await _client
+            .from('bookings')
+            .select('lounge_id')
+            .eq('id', bookingId)
+            .maybeSingle();
+        final loungeId = bookingRes?['lounge_id']?.toString() ?? '';
 
-      dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC SUCCESS: $response");
+        final response = await _client.rpc('place_canteen_order', params: {
+          'p_booking_id': bookingId,
+          'p_lounge_id': loungeId.isNotEmpty ? loungeId : null,
+          'p_user_id': currentUserId,
+          'p_items': formattedItems,
+          'p_total_price': null,
+          'p_note': notes.isNotEmpty ? notes : null,
+        });
+        dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC with full params SUCCESS: $response");
+      }
     } catch (e, st) {
       dev.log("[LIVESESSION_DS] PLACE_ORDER FAILED: $e", error: e, stackTrace: st);
       rethrow;
@@ -345,6 +432,8 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         'p_user_id': userId,
         'p_call_type': callType,
         'p_notes': notes,
+        if (loungeId != null && loungeId.isNotEmpty) 'p_lounge_id': loungeId,
+        if (roomId != null && roomId.isNotEmpty) 'p_room_id': roomId,
       });
       dev.log("[LIVESESSION_DS] REQUEST_STAFF_ASSISTANCE via RPC success");
       return;
@@ -372,7 +461,10 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         if (roomId != null && roomId.isNotEmpty) 'room_id': roomId,
         if (bookingUserId != null && bookingUserId.isNotEmpty) 'user_id': bookingUserId,
         'call_type': callType,
+        'request_type': callType,
         'status': 'pending',
+        'is_attended': false,
+        if (notes != null && notes.isNotEmpty) 'note': notes,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
       });
       dev.log("[LIVESESSION_DS] Inserted directly into service_calls SUCCESS");

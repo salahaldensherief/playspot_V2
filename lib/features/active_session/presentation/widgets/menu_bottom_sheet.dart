@@ -198,6 +198,8 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
         items.add(OrderItem(
           id: item.id,
           name: item.name,
+          nameAr: item.nameAr,
+          nameEn: item.nameEn,
           price: item.price,
           quantity: qty,
           note: _note,

@@ -12,7 +12,11 @@ class FontsManager {
 
   /// Helper to check if current locale is Arabic
   static bool isArabic(BuildContext context) {
-    return context.locale.languageCode == 'ar';
+    try {
+      return context.locale.languageCode == 'ar';
+    } catch (_) {
+      return false;
+    }
   }
 
   /// Returns font family based on current language

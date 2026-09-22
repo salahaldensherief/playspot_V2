@@ -17,6 +17,7 @@ import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'lounge_details_cubit.dart';
 import 'lounge_details_state.dart';
 import 'widgets/lounge_details_app_bar.dart';
@@ -30,10 +31,16 @@ import 'widgets/lounge_details_bottom_bar.dart';
 import 'widgets/space_type_selector.dart';
 
 class LoungeDetailsScreen extends StatefulWidget {
-  final LoungeModel lounge;
+  final LoungeModel? lounge;
+  final String? loungeId;
   final String? heroTag;
 
-  const LoungeDetailsScreen({super.key, required this.lounge, this.heroTag});
+  const LoungeDetailsScreen({
+    super.key,
+    this.lounge,
+    this.loungeId,
+    this.heroTag,
+  });
 
   @override
   State<LoungeDetailsScreen> createState() => _LoungeDetailsScreenState();
@@ -43,25 +50,49 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
   final ScrollController _scrollController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+    final cubit = context.read<LoungeDetailsCubit>();
+    if (widget.lounge != null) {
+      cubit.init(widget.lounge!);
+    } else if (widget.loungeId != null && widget.loungeId!.isNotEmpty) {
+      cubit.initById(widget.loungeId!);
+    }
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
 
-  LoungeModel _displayLounge(LoungeDetailsState state) => state.lounge ?? widget.lounge;
+  LoungeModel? _displayLounge(LoungeDetailsState state) => state.lounge ?? widget.lounge;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: AppColors.scaffoldBackground,
-        body: Stack(
-          children: [
-            AppRefreshIndicator(
-              onRefresh: () async {
-                await context
-                    .read<LoungeDetailsCubit>()
-                    .getLoungeDetails(widget.lounge.id);
-              },
+    return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+      buildWhen: (previous, current) =>
+          (previous.lounge == null) != (current.lounge == null) ||
+          previous.status != current.status,
+      builder: (context, state) {
+        final lounge = _displayLounge(state);
+        if (lounge == null) {
+          return const Scaffold(
+            backgroundColor: AppColors.scaffoldBackground,
+            body: AppLoader(size: 40),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: AppColors.scaffoldBackground,
+          body: Stack(
+            children: [
+              AppRefreshIndicator(
+                onRefresh: () async {
+                  await context
+                      .read<LoungeDetailsCubit>()
+                      .getLoungeDetails(lounge.id);
+                },
               child: CustomScrollView(
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -70,7 +101,7 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
                     buildWhen: (previous, current) => previous.lounge != current.lounge,
                     builder: (context, state) {
                       return LoungeDetailsAppBar(
-                          lounge: _displayLounge(state), heroTag: widget.heroTag);
+                          lounge: _displayLounge(state) ?? lounge, heroTag: widget.heroTag);
                     },
                   ),
                   BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
@@ -78,7 +109,7 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
                         previous.lounge?.isOpen != current.lounge?.isOpen ||
                         previous.lounge?.isDiscountActive != current.lounge?.isDiscountActive,
                     builder: (context, state) {
-                      final displayLounge = _displayLounge(state);
+                      final displayLounge = _displayLounge(state) ?? lounge;
 
                       return SliverToBoxAdapter(
                         child: Column(
@@ -94,7 +125,7 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
                   BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
                     buildWhen: (previous, current) => previous.lounge != current.lounge,
                     builder: (context, state) {
-                      return LoungeInfoSection(lounge: _displayLounge(state));
+                      return LoungeInfoSection(lounge: _displayLounge(state) ?? lounge);
                     },
                   ),
                   BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
@@ -156,7 +187,7 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
                             RouterKeys.allReviews,
                             extra: {
                               'reviews': state.reviews,
-                              'loungeName': _displayLounge(state).name,
+                              'loungeName': (_displayLounge(state) ?? lounge).name,
                             },
                           );
                         },
@@ -169,10 +200,12 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
                 ],
               ),
             ),
-            LoungeDetailsBottomBar(lounge: widget.lounge),
+            LoungeDetailsBottomBar(lounge: lounge),
           ],
         ),
       );
+      },
+    );
   }
 }
 

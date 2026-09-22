@@ -70,6 +70,20 @@ class ReviewModel extends Equatable {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'lounge_id': loungeId,
+      'booking_id': bookingId,
+      'user_id': userId,
+      'user_name': userName,
+      'user_avatar': userAvatar,
+      'rating': rating,
+      'comment': comment,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
   static DateTime _parseDate(dynamic dateRaw) {
     if (dateRaw == null) return DateTime.now();
     try {

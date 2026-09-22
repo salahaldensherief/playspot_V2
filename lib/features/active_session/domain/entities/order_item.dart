@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 class OrderItem extends Equatable {
   final String id;
   final String name;
+  final String? nameAr;
+  final String? nameEn;
   final double price;
   final int quantity;
   final double? totalPriceOverride;
@@ -11,6 +13,8 @@ class OrderItem extends Equatable {
   const OrderItem({
     required this.id,
     required this.name,
+    this.nameAr,
+    this.nameEn,
     required this.price,
     required this.quantity,
     this.totalPriceOverride,
@@ -18,7 +22,7 @@ class OrderItem extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, name, price, quantity, totalPriceOverride, note];
+  List<Object?> get props => [id, name, nameAr, nameEn, price, quantity, totalPriceOverride, note];
 
   double get total {
     final override = totalPriceOverride;

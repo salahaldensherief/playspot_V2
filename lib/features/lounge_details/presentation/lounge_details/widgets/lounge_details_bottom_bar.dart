@@ -26,14 +26,26 @@ class LoungeDetailsBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       buildWhen: (previous, current) =>
-          previous.selectedRoomId != current.selectedRoomId ||
+          previous.selectedRoomIds != current.selectedRoomIds ||
           previous.selectedExtras != current.selectedExtras ||
           previous.rooms != current.rooms ||
           previous.extras != current.extras ||
           previous.lounge != current.lounge,
       builder: (context, state) {
-        final isRoomSelected = state.selectedRoomId != null;
+        final isRoomSelected = state.selectedRoomIds.isNotEmpty;
+        final selectedCount = state.selectedRoomIds.length;
         final isOpen = lounge.isOpen;
+
+        String buttonText;
+        if (!isOpen) {
+          buttonText = AppStrings.closed.tr().toUpperCase();
+        } else if (!isRoomSelected) {
+          buttonText = AppStrings.selectRoomsPrompt.tr();
+        } else if (selectedCount == 1) {
+          buttonText = AppStrings.bookARoom.tr();
+        } else {
+          buttonText = "${AppStrings.bookRoomsCount.tr()} ($selectedCount)";
+        }
 
         return StickyBottomBar(
           child: AppButton(
@@ -41,8 +53,8 @@ class LoungeDetailsBottomBar extends StatelessWidget {
               body: AppText(
                 fontFamily: 'Orbitron',
                 textAlign: TextAlign.center,
-                text: isOpen ? AppStrings.bookARoom.tr() : AppStrings.closed.tr().toUpperCase(),
-                fontSize: 16.sp,
+                text: buttonText,
+                fontSize: 15.sp,
                 fontWeight: FontWeight.bold,
                 color: (isRoomSelected && isOpen) ? AppColors.black : AppColors.white,
               ),
@@ -51,42 +63,46 @@ class LoungeDetailsBottomBar extends StatelessWidget {
               isEnabled: isRoomSelected && isOpen,
               onTap: (isRoomSelected && isOpen)
                   ? () {
-                      final selectedRoom = state.rooms.firstWhere(
-                        (r) => r.id == state.selectedRoomId,
-                      );
-                      
-                      final playMode = state.roomPlayModes[selectedRoom.id] ?? (selectedRoom.isOpenArea ? 'single' : 'multi');
-                      final extraControllers = state.roomExtraControllers[selectedRoom.id] ?? 0;
+                      final selectedRooms = state.selectedRooms;
+                      if (selectedRooms.isEmpty) return;
 
                       final selectedExtras =
                           state.selectedExtras.entries.map((entry) {
                         final extra =
-                            state.extras.firstWhere((e) => e.id == entry.key);
+                            state.extras.where((e) => e.id == entry.key).firstOrNull;
                         return {
-                          'id': extra.id,
-                          'name': extra.name,
-                          'price': extra.price,
+                          'id': entry.key,
+                          'name': extra?.name ?? 'Extra',
+                          'price': extra?.price ?? 0.0,
                           'quantity': entry.value,
                         };
                       }).toList();
+
+                      final firstRoom = selectedRooms.first;
+                      final primaryPlayMode = state.roomPlayModes[firstRoom.id] ??
+                          (firstRoom.isOpenArea ? 'single' : 'multi');
+                      final primaryExtraControllers =
+                          state.roomExtraControllers[firstRoom.id] ?? 0;
 
                       context.pushNamed(
                         RouterKeys.booking,
                         extra: BookingDetailsParams(
                           lounge: lounge,
-                          room: selectedRoom,
+                          rooms: selectedRooms,
                           selectedDate: state.selectedDate ?? DateTime.now(),
                           extras: selectedExtras,
-                          playMode: playMode,
-                          extraControllers: extraControllers,
+                          playMode: primaryPlayMode,
+                          extraControllers: primaryExtraControllers,
+                          roomPlayModes: state.roomPlayModes,
+                          roomExtraControllers: state.roomExtraControllers,
                         ),
                       );
                     }
                   : null,
             ),
             buttonConfig: ButtonConfig(
-              gradient: isOpen ? AppColors.primaryGradient : null,
-              glowColor: isOpen ? AppColors.neonBlueAlt : Colors.transparent,
+              gradient: (isRoomSelected && isOpen) ? AppColors.primaryGradient : null,
+              glowColor: (isRoomSelected && isOpen) ? AppColors.neonBlueAlt : Colors.transparent,
               borderRadius: 15.r,
               width: 340.w,
               height: 50.h,

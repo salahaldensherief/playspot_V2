@@ -12,12 +12,10 @@ import 'package:playspot/features/auth/presentation/sign_in/signin_screen.dart';
 import 'package:playspot/features/auth/presentation/sign_up/signup_screen.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
-import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/profile/presentation/settings/notification_settings_cubit.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
-import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/layout/swipe_back_wrapper.dart';
 import '../../core/di.dart';
 import '../../core/services/deep_link_service.dart';
@@ -458,8 +456,8 @@ class AppRouter {
                 context: context,
                 state: state,
                 child: BlocProvider(
-                  create: (context) => sl<SignupCubit>()..initWithUser(userToUse, userId: userId),
-                  child: CompleteProfileScreen(userId: userId),
+                  create: (context) => sl<SignupCubit>(),
+                  child: CompleteProfileScreen(userId: userId, initialUser: userToUse),
                 ),
               );
             },
@@ -546,28 +544,12 @@ class AppRouter {
                     context: context,
                     state: state,
                     child: BlocProvider(
-                      create: (context) {
-                        final cubit = sl<LoungeDetailsCubit>();
-                        if (lounge != null) {
-                          cubit.init(lounge);
-                        } else if (loungeId != null) {
-                          cubit.initById(loungeId);
-                        }
-                        return cubit;
-                      },
-                      child: lounge != null 
-                        ? LoungeDetailsScreen(lounge: lounge, heroTag: heroTag)
-                        : BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                            builder: (context, state) {
-                              if (state.lounge != null) {
-                                return LoungeDetailsScreen(lounge: state.lounge!, heroTag: heroTag);
-                              }
-                              return const Scaffold(
-                                backgroundColor: AppColors.scaffoldBackground,
-                                body: AppLoader(size: 40),
-                              );
-                            },
-                          ),
+                      create: (context) => sl<LoungeDetailsCubit>(),
+                      child: LoungeDetailsScreen(
+                        lounge: lounge,
+                        loungeId: loungeId,
+                        heroTag: heroTag,
+                      ),
                     ),
                   );
                 },
@@ -580,7 +562,10 @@ class AppRouter {
                   return _buildPage(
                     context: context,
                     state: state,
-                    child: RoomDetailsScreen(roomId: roomId),
+                    child: BlocProvider(
+                      create: (context) => sl<LoungeDetailsCubit>(),
+                      child: RoomDetailsScreen(roomId: roomId),
+                    ),
                   );
                 },
               ),
@@ -679,7 +664,7 @@ class AppRouter {
                   context: context,
                   state: state,
                   child: BlocProvider(
-                    create: (context) => sl<EditProfileCubit>()..init(),
+                    create: (context) => sl<EditProfileCubit>(),
                     child: const EditProfileScreen(),
                   ),
                 ),
@@ -744,19 +729,18 @@ class AppRouter {
               GoRoute(
                 path: RouterKeys.allReviews,
                 name: RouterKeys.allReviews,
-                redirect: (context, state) {
-                  if (state.extra is Map<String, dynamic>) {
-                    final map = state.extra as Map<String, dynamic>;
-                    if (map['reviews'] is List<ReviewModel> && map['loungeName'] is String) {
-                      return null;
-                    }
-                  }
-                  return RouterKeys.home;
-                },
                 pageBuilder: (context, state) {
-                  final extra = state.extra as Map<String, dynamic>? ?? {};
-                  final reviews = (extra['reviews'] as List<ReviewModel>?) ?? [];
-                  final loungeName = (extra['loungeName'] as String?) ?? '';
+                  final extra = state.extra is Map ? (state.extra as Map) : const {};
+                  final rawReviews = extra['reviews'];
+                  final List<ReviewModel> reviews = rawReviews is List
+                      ? rawReviews.map((e) {
+                          if (e is ReviewModel) return e;
+                          if (e is Map<String, dynamic>) return ReviewModel.fromJson(e);
+                          if (e is Map) return ReviewModel.fromJson(Map<String, dynamic>.from(e));
+                          return null;
+                        }).whereType<ReviewModel>().toList()
+                      : <ReviewModel>[];
+                  final loungeName = extra['loungeName']?.toString() ?? '';
 
                   return _buildPage(
                     context: context,
@@ -914,6 +898,9 @@ class _MyExtraEncoder extends Converter<Object?, Object?> {
     if (input is RoomModel) {
       return {'__type': 'RoomModel', ...input.toJson()};
     }
+    if (input is ReviewModel) {
+      return {'__type': 'ReviewModel', ...input.toJson()};
+    }
     if (input is DateTime) {
       return {'__type': 'DateTime', 'value': input.toIso8601String()};
     }
@@ -947,6 +934,8 @@ class _MyExtraDecoder extends Converter<Object?, Object?> {
             return LoungeModel.fromJson(map);
           case 'RoomModel':
             return RoomModel.fromJson(map);
+          case 'ReviewModel':
+            return ReviewModel.fromJson(map);
           case 'DateTime':
             return DateTime.parse(map['value']);
           case 'TimeOfDay':

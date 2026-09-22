@@ -92,8 +92,10 @@ class _BookingScreenState extends State<BookingScreen> {
           elevation: 0,
           leading: const BackButtonWidget(),
           title: AppText(
-            text:
-                "${AppStrings.book.tr()} ${widget.params.room.getDisplayTitle(context.locale.languageCode == 'ar')}",
+            text: widget.params.rooms.length > 1
+                ? AppStrings.bookRoomsCount
+                    .tr(args: [widget.params.rooms.length.toString()])
+                : "${AppStrings.book.tr()} ${widget.params.room.getDisplayTitle(context.locale.languageCode == 'ar')}",
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.white,
@@ -108,6 +110,58 @@ class _BookingScreenState extends State<BookingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (widget.params.rooms.length > 1) ...[
+                      AppText(
+                        text: AppStrings.selectedRooms.tr(),
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
+                      12.verticalSpace,
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: widget.params.rooms.map((r) {
+                            return Container(
+                              margin: EdgeInsetsDirectional.only(end: 8.w),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 8.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.cardBackground,
+                                borderRadius:
+                                    BorderRadius.circular(AppSizes.r12),
+                                border: Border.all(
+                                  color: AppColors.neonBlue
+                                      .withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.meeting_room_outlined,
+                                    size: 16.sp,
+                                    color: AppColors.neonBlue,
+                                  ),
+                                  6.horizontalSpace,
+                                  AppText(
+                                    text: r.getDisplayTitle(
+                                      context.locale.languageCode == 'ar',
+                                    ),
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.white,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      20.verticalSpace,
+                    ],
                     AppText(
                       text: AppStrings.selectTime.tr(),
                       fontSize: 18.sp,
@@ -379,9 +433,15 @@ class _BookingScreenState extends State<BookingScreen> {
 
                             final startTime = currentState.startTime!;
 
+                            final rawBreakdown = subtotals['roomsBreakdown'];
+                            final List<Map<String, dynamic>> roomsBreakdown = (rawBreakdown is List)
+                                ? rawBreakdown.whereType<Map<String, dynamic>>().toList()
+                                : <Map<String, dynamic>>[];
+
                             final checkoutParams = CheckoutParams(
                               lounge: lounge,
-                              room: room,
+                              rooms: params.rooms,
+                              roomsBreakdown: roomsBreakdown,
                               date: currentState.selectedDate,
                               startTime: startTime,
                               duration: currentState.durationMinutes,

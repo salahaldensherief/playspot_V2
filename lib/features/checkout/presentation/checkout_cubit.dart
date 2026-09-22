@@ -172,69 +172,115 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       } catch (_) {}
     }
 
-    final totalDiscount = checkoutParams.discountAmount + state.discountAmount;
-    final finalPrice = checkoutParams.totalPrice - state.discountAmount;
-
-    final targetLoungeId = checkoutParams.room.loungeId.isNotEmpty
-        ? checkoutParams.room.loungeId
-        : checkoutParams.lounge.id;
 
     final String methodStr = (paymentMethod?.toLowerCase() == 'cash' || state.selectedMethod == PaymentMethod.cash)
         ? 'cash'
         : 'manual_transfer';
 
-    final params = CreateBookingParams(
-      roomId: checkoutParams.room.id,
-      roomName: checkoutParams.room.getName(isArabic),
-      loungeId: targetLoungeId,
-      userName: userName,
-      userPhone: userPhone,
-      startTime: startDateTime,
-      endTime: endDateTime,
-      originalRoomPrice: checkoutParams.originalRoomSubtotal,
-      discountedRoomPrice: checkoutParams.discountedRoomSubtotal,
-      roomPrice: checkoutParams.discountedRoomSubtotal,
-      discountAmount: totalDiscount,
-      discountPercentage: checkoutParams.discountPercentage,
-      discountLabel: checkoutParams.discountLabel,
-      discountReason: checkoutParams.discountLabel,
-      discountSource: checkoutParams.discountSource,
-      durationHours: checkoutParams.duration / 60.0,
-      roomSubtotal: checkoutParams.discountedRoomSubtotal,
-      addonsTotal: checkoutParams.addonsTotal,
-      totalPrice: finalPrice,
-      addOns: checkoutParams.addOns,
-      playMode: checkoutParams.playMode,
-      receiptUrl: receiptUrl,
-      paymentMethod: methodStr,
-      senderWalletPhone: methodStr == 'manual_transfer'
-          ? (senderWalletPhone ?? state.senderWalletNumber)
-          : null,
-    );
+    final roomsToBook = checkoutParams.rooms.isNotEmpty
+        ? checkoutParams.rooms
+        : [checkoutParams.room];
 
-    final result = await _bookingRepository.createBooking(params);
+    String? primaryBookingId;
 
-    result.fold(
-      (failure) => emit(state.copyWith(
-        status: CheckoutStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (bookingData) async {
-        if (state.selectedVoucher != null) {
-          final bookingId = bookingData['id'].toString();
-          final voucherCode = (state.selectedVoucher!['code'] ?? state.selectedVoucher!['id'])?.toString().trim().toUpperCase() ?? '';
-          if (voucherCode.isNotEmpty) {
-            await _profileRepository.consumeVoucherByCode(
-              code: voucherCode,
-              bookingId: bookingId,
-            );
+    for (int i = 0; i < roomsToBook.length; i++) {
+      final currentRoom = roomsToBook[i];
+      final targetLoungeId = currentRoom.loungeId.isNotEmpty
+          ? currentRoom.loungeId
+          : checkoutParams.lounge.id;
+
+      final breakdown = checkoutParams.roomsBreakdown.firstWhere(
+        (b) => b['roomId'] == currentRoom.id,
+        orElse: () => <String, dynamic>{},
+      );
+
+      final double origRoomPrice = (breakdown['originalSubtotal'] as num?)?.toDouble() ??
+          (checkoutParams.rooms.length == 1
+              ? checkoutParams.originalRoomSubtotal
+              : (currentRoom.hourlyRateSingle * (checkoutParams.duration / 60.0)));
+
+      final double discRoomPrice = (breakdown['discountedSubtotal'] as num?)?.toDouble() ??
+          (checkoutParams.rooms.length == 1
+              ? checkoutParams.discountedRoomSubtotal
+              : origRoomPrice);
+
+      final double roomDiscount = (breakdown['discountAmount'] as num?)?.toDouble() ??
+          (checkoutParams.rooms.length == 1 ? checkoutParams.discountAmount : 0.0);
+
+      final isFirst = i == 0;
+      final double totalDiscount = roomDiscount + (isFirst ? state.discountAmount : 0.0);
+      final double roomAddonsTotal = isFirst ? checkoutParams.addonsTotal : 0.0;
+      final double roomTotalPrice = discRoomPrice + roomAddonsTotal - (isFirst ? state.discountAmount : 0.0);
+      final List<Map<String, dynamic>> roomAddons = isFirst ? checkoutParams.addOns : const [];
+      final String? roomMode = breakdown['playMode']?.toString() ??
+          (checkoutParams.rooms.length == 1 ? checkoutParams.playMode : 'single');
+
+      final params = CreateBookingParams(
+        roomId: currentRoom.id,
+        roomName: currentRoom.getName(isArabic),
+        loungeId: targetLoungeId,
+        userName: userName,
+        userPhone: userPhone,
+        startTime: startDateTime,
+        endTime: endDateTime,
+        originalRoomPrice: origRoomPrice,
+        discountedRoomPrice: discRoomPrice,
+        roomPrice: discRoomPrice,
+        discountAmount: totalDiscount,
+        discountPercentage: checkoutParams.discountPercentage,
+        discountLabel: checkoutParams.discountLabel,
+        discountReason: checkoutParams.discountLabel,
+        discountSource: checkoutParams.discountSource,
+        durationHours: checkoutParams.duration / 60.0,
+        roomSubtotal: discRoomPrice,
+        addonsTotal: roomAddonsTotal,
+        totalPrice: roomTotalPrice,
+        addOns: roomAddons,
+        playMode: roomMode,
+        receiptUrl: receiptUrl,
+        paymentMethod: methodStr,
+        senderWalletPhone: methodStr == 'manual_transfer'
+            ? (senderWalletPhone ?? state.senderWalletNumber)
+            : null,
+      );
+
+      final result = await _bookingRepository.createBooking(params);
+
+      bool hasFailed = false;
+      result.fold(
+        (failure) {
+          hasFailed = true;
+          emit(state.copyWith(
+            status: CheckoutStatus.failure,
+            errorMessage: failure.message,
+          ));
+        },
+        (bookingData) {
+          if (isFirst) {
+            primaryBookingId = bookingData['id']?.toString();
           }
-        }
-        try {
-          sl<ProfileCubit>().getUserData();
-        } catch (_) {}
-        emit(state.copyWith(status: CheckoutStatus.success));
-      },
-    );
+        },
+      );
+
+      if (hasFailed) return;
+    }
+
+    if (state.selectedVoucher != null && primaryBookingId != null) {
+      final voucherCode = (state.selectedVoucher!['code'] ?? state.selectedVoucher!['id'])
+          ?.toString()
+          .trim()
+          .toUpperCase() ?? '';
+      if (voucherCode.isNotEmpty) {
+        await _profileRepository.consumeVoucherByCode(
+          code: voucherCode,
+          bookingId: primaryBookingId!,
+        );
+      }
+    }
+
+    try {
+      sl<ProfileCubit>().getUserData();
+    } catch (_) {}
+    emit(state.copyWith(status: CheckoutStatus.success));
   }
 }
