@@ -80,6 +80,16 @@ class PushNotificationService {
 
   Future<void> toggleTopicSubscription({required String topic, required bool enable}) async {
     try {
+      // 1. التحقق من جاهزية APNs Token لنظام iOS لتفادي الخطأ
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        final apnsToken = await _messaging.getAPNSToken();
+        if (apnsToken == null) {
+          AppLogger.warning('[FCM] APNS token is not ready yet, skipping topic: $topic');
+          return;
+        }
+      }
+
+      // 2. تنفيذ الاشتراك أو الإلغاء بأمان
       if (enable) {
         await _messaging.subscribeToTopic(topic);
         AppLogger.debug('[FCM] Subscribed to topic: $topic');
@@ -88,7 +98,7 @@ class PushNotificationService {
         AppLogger.debug('[FCM] Unsubscribed from topic: $topic');
       }
     } catch (e, st) {
-      AppLogger.error('[FCM] Error toggling topic $topic', e, st);
+      AppLogger.error('⛔ [FCM] Error toggling topic $topic', e, st);
     }
   }
 
