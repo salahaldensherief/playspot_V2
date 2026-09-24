@@ -19,12 +19,12 @@ class EditProfileCubit extends Cubit<EditProfileState> {
 
   EditProfileCubit(this._profileRepository, this._authRepository) : super(const EditProfileState());
 
-  Future<void> init() async {
+  Future<void> init({bool isArabic = false}) async {
     final currentUser = _profileRepository.getCurrentUser();
     nameController.text = currentUser?.name ?? '';
     phoneController.text = currentUser?.phone ?? '';
     emailController.text = currentUser?.email ?? '';
-    locationController.text = currentUser?.getCityName(true) ?? (currentUser?.getCityName(false) ?? '');
+    locationController.text = currentUser?.getCityName(isArabic) ?? '';
 
     emit(state.copyWith(user: currentUser));
 
@@ -36,7 +36,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
         nameController.text = user.name ?? nameController.text;
         phoneController.text = user.phone ?? phoneController.text;
         emailController.text = user.email ?? emailController.text;
-        locationController.text = user.getCityName(true) ?? (user.getCityName(false) ?? locationController.text);
+        locationController.text = user.getCityName(isArabic) ?? locationController.text;
         if (!isClosed) {
           emit(state.copyWith(user: user));
         }
@@ -44,7 +44,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     );
   }
 
-  Future<void> updateLocation() async {
+  Future<void> updateLocation({bool isArabic = false}) async {
     emit(state.copyWith(status: EditProfileStatus.loading));
     final result = await _profileRepository.updateUserLocation();
     result.fold(
@@ -65,7 +65,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
             }
           },
           (user) {
-            locationController.text = user.getCityName(true) ?? (user.getCityName(false) ?? locationController.text);
+            locationController.text = user.getCityName(isArabic) ?? locationController.text;
             if (!isClosed) {
               emit(state.copyWith(
                 status: EditProfileStatus.locationUpdated,

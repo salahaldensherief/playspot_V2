@@ -503,6 +503,11 @@
   "city": "City",
   "tournamentDate": "Tournament Date",
   "unpaid": "Unpaid",
+  "paid": "Paid",
+  "verificationPending": "Verification Pending",
+  "partiallyPaid": "Partially Paid",
+  "rebook": "Book Again",
+  "rejectionReason": "Rejection Reason",
   "rejected": "Rejected",
   "refunded": "Refunded",
   "eliminated": "Eliminated",
@@ -552,5 +557,11 @@
   "maintenanceActiveSessionNotice": "The system is currently under maintenance. You can complete your active session, but new bookings or extensions are disabled.",
   "noMatchesFound": "No matches found",
   "bracketPendingMessage": "Matches and bracket will appear once the tournament begins",
-  "userNotLoggedIn": "Please sign in to view your tournament history"
+  "profileUpdatedSuccessfully": "Profile updated successfully",
+  "accountDeletedSuccessfully": "Account deleted successfully",
+  "locationUpdatedSuccessfully": "Location updated successfully",
+  "errorUpdatingProfile": "Error updating profile",
+  "cityGpsLabel": "City (Auto via GPS)",
+  "tapUpdateLocation": "Tap update location...",
+  "update": "Update"
 }

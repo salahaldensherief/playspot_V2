@@ -320,7 +320,8 @@ class AppStrings {
   static const String extendTime = "extendTime";
   static const String confirmExtensionTitle = "confirmExtensionTitle";
   static const String confirmExtensionSubtitle = "confirmExtensionSubtitle";
-  static const String sessionExpiringPromptSubtitle = "sessionExpiringPromptSubtitle";
+  static const String sessionExpiringPromptSubtitle =
+      "sessionExpiringPromptSubtitle";
   static const String extensionPendingTitle = "extensionPendingTitle";
   static const String extensionPendingSubtitle = "extensionPendingSubtitle";
   static const String extensionDeclinedTitle = "extensionDeclinedTitle";
@@ -444,7 +445,8 @@ class AppStrings {
   static const String vs = "vs";
   static const String prize = "prize";
   static const String player = "player";
-  static const String enableLocationForNearbyTournaments = "enableLocationForNearbyTournaments";
+  static const String enableLocationForNearbyTournaments =
+      "enableLocationForNearbyTournaments";
   static const String remainingSeats = "remainingSeats";
   static const String registrationClosesAt = "registrationClosesAt";
   static const String registrationOpensAt = "registrationOpensAt";
@@ -494,6 +496,11 @@ class AppStrings {
   static const String withdrawn = "withdrawn";
   static const String noShow = "noShow";
   static const String unpaid = "unpaid";
+  static const String paid = "paid";
+  static const String verificationPending = "verificationPending";
+  static const String partiallyPaid = "partiallyPaid";
+  static const String rebook = "rebook";
+  static const String rejectionReason = "rejectionReason";
   static const String rejected = "rejected";
   static const String refunded = "refunded";
   static const String tournamentFinal = "tournamentFinal";
@@ -544,7 +551,16 @@ class AppStrings {
   static const String newUpdateAvailableTitle = "newUpdateAvailableTitle";
   static const String newUpdateAvailableDesc = "newUpdateAvailableDesc";
   static const String later = "later";
-  static const String maintenanceActiveSessionNotice = "maintenanceActiveSessionNotice";
+  static const String maintenanceActiveSessionNotice =
+      "maintenanceActiveSessionNotice";
   static const String noMatchesFound = "noMatchesFound";
   static const String bracketPendingMessage = "bracketPendingMessage";
+  static const String profileUpdatedSuccessfully = "profileUpdatedSuccessfully";
+  static const String accountDeletedSuccessfully = "accountDeletedSuccessfully";
+  static const String locationUpdatedSuccessfully =
+      "locationUpdatedSuccessfully";
+  static const String errorUpdatingProfile = "errorUpdatingProfile";
+  static const String cityGpsLabel = "cityGpsLabel";
+  static const String tapUpdateLocation = "tapUpdateLocation";
+  static const String update = "update";
 }

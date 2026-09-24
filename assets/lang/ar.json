@@ -504,6 +504,11 @@
   "city": "المدينة",
   "tournamentDate": "موعد البطولة",
   "unpaid": "غير مدفوع",
+  "paid": "مدفوع",
+  "verificationPending": "قيد التحقق",
+  "partiallyPaid": "مدفوع جزئياً",
+  "rebook": "احجز مرة أخرى",
+  "rejectionReason": "سبب الرفض",
   "rejected": "مرفوض",
   "refunded": "تم استرجاع المبلغ",
   "eliminated": "خرج من البطولة",
@@ -553,5 +558,11 @@
   "maintenanceActiveSessionNotice": "التطبيق في فترة صيانة خفيفة. تقدر تكمل جلستك الحالية عادي، لكن الحجز الجديد أو التمديد موقوف مؤقتاً.",
   "noMatchesFound": "لا توجد مباريات",
   "bracketPendingMessage": "ستظهر المباريات والجدول بمجرد بدء البطولة",
-  "userNotLoggedIn": "يرجى تسجيل الدخول لعرض سجل بطولاتك"
-}
+  "profileUpdatedSuccessfully": "تم تحديث البيانات بنجاح",
+  "accountDeletedSuccessfully": "تم حذف الحساب بنجاح",
+  "locationUpdatedSuccessfully": "تم تحديث موقعك بنجاح",
+  "errorUpdatingProfile": "حدث خطأ أثناء تحديث البيانات",
+  "cityGpsLabel": "المدينة (تلقائي عبر GPS)",
+  "tapUpdateLocation": "اضغط تحديث موقعي...",
+  "update": "تحديث"
+}

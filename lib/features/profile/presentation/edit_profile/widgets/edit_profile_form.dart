@@ -9,6 +9,7 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
+import 'package:playspot/core/utils/app_validators.dart';
 import 'package:playspot/features/profile/presentation/edit_profile/edit_profile_state.dart';
 import '../edit_profile_cubit.dart';
 
@@ -28,12 +29,7 @@ class EditProfileForm extends StatelessWidget {
             label: AppStrings.name.tr(),
             hint: AppStrings.name.tr(),
             isRequired: true,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return AppStrings.pleaseEnterUsername.tr();
-              }
-              return null;
-            },
+            validator: AppValidators.validateName,
           ),
           SizedBox(height: 20.h),
           AppTextField(
@@ -42,15 +38,7 @@ class EditProfileForm extends StatelessWidget {
             hint: AppStrings.email.tr(),
             isRequired: true,
             textInputType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return AppStrings.pleaseEnterEmail.tr();
-              }
-              if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                return AppStrings.pleaseEnterValidEmail.tr();
-              }
-              return null;
-            },
+            validator: AppValidators.validateEmail,
           ),
           SizedBox(height: 20.h),
           AppTextField(
@@ -59,12 +47,7 @@ class EditProfileForm extends StatelessWidget {
             hint: AppStrings.phone.tr(),
             isRequired: true,
             textInputType: TextInputType.phone,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return AppStrings.pleaseEnterPhoneNum.tr();
-              }
-              return null;
-            },
+            validator: AppValidators.validatePhone,
           ),
           SizedBox(height: 20.h),
           BlocBuilder<EditProfileCubit, EditProfileState>(
@@ -74,18 +57,13 @@ class EditProfileForm extends StatelessWidget {
               final isArabic = context.locale.languageCode == 'ar';
               final isLoading = state.status == EditProfileStatus.loading;
 
-              final currentCity = state.user?.getCityName(isArabic);
-              if (currentCity != null && currentCity.isNotEmpty) {
-                cubit.locationController.text = currentCity;
-              }
-
               return AppTextField(
                 controller: cubit.locationController,
-                label: isArabic ? 'المدينة (تلقائي عبر GPS)' : 'City (Auto via GPS)',
-                hint: isArabic ? 'اضغط تحديث موقعي...' : 'Tap update location...',
+                label: AppStrings.cityGpsLabel.tr(),
+                hint: AppStrings.tapUpdateLocation.tr(),
                 readOnly: true,
                 suffixIcon: Container(
-                  margin: EdgeInsets.only(left: 8.w, right: 8.w, top: 4.h, bottom: 4.h),
+                  margin: EdgeInsetsDirectional.only(start: 8.w, end: 8.w, top: 4.h, bottom: 4.h),
                   child: AppButton(
                     buttonConfig: ButtonConfig(
                       backgroundColor: const Color(0xFF00E5FF),
@@ -94,7 +72,7 @@ class EditProfileForm extends StatelessWidget {
                       height: 32.h,
                     ),
                     content: ButtonContent(
-                      label: isArabic ? 'تحديث' : 'Update',
+                      label: AppStrings.update.tr(),
                       icon: isLoading ? null : const Icon(Icons.my_location, size: 14, color: Colors.black),
                       body: isLoading
                           ? const SizedBox(
@@ -106,7 +84,7 @@ class EditProfileForm extends StatelessWidget {
                     ),
                     behavior: TapBehavior(
                       isEnabled: !isLoading,
-                      onTap: isLoading ? null : () => cubit.updateLocation(),
+                      onTap: isLoading ? null : () => cubit.updateLocation(isArabic: isArabic),
                     ),
                   ),
                 ),

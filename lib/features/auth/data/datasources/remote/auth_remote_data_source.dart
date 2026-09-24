@@ -118,10 +118,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       String? avatarUrl;
       if (params.avatarFile != null) {
-        final fileExt = params.avatarFile!.path.split('.').last;
-        avatarUrl = await _storageService.uploadFile(
-          bucket: 'avatars',
-          path: 'avatars/$userId.$fileExt',
+        avatarUrl = await _storageService.uploadAvatar(
+          userId: userId,
           file: params.avatarFile!,
         );
       }
@@ -197,10 +195,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       final userId = user.id;
       String? avatarUrl;
       if (params.avatarFile != null) {
-        final fileExt = params.avatarFile!.path.split('.').last;
-        avatarUrl = await _storageService.uploadFile(
-          bucket: 'avatars',
-          path: 'avatars/$userId.$fileExt',
+        avatarUrl = await _storageService.uploadAvatar(
+          userId: userId,
           file: params.avatarFile!,
         );
       }
@@ -284,10 +280,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
 
       String? avatarUrl;
       if (params.avatarFile != null) {
-        final fileExt = params.avatarFile!.path.split('.').last;
-        avatarUrl = await _storageService.uploadFile(
-          bucket: 'avatars',
-          path: 'avatars/$userId.$fileExt',
+        avatarUrl = await _storageService.uploadAvatar(
+          userId: userId,
           file: params.avatarFile!,
         );
       }

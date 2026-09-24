@@ -1,3 +1,5 @@
+import 'app_validators.dart';
+
 /// Form validation utilities for manual payment and payment proof submission
 class PaymentFormValidators {
   PaymentFormValidators._();
@@ -8,15 +10,27 @@ class PaymentFormValidators {
     final clean = value.trim();
     if (clean.isEmpty) return false;
 
-    // Egyptian 11-digit phone number (starts with 010, 011, 012, 015)
+    // Check Egyptian 11-digit phone number with normalization (handles +20, spaces, Arabic numerals)
+    final normalizedPhone = AppValidators.normalizePhone(clean);
     final egPhoneRegExp = RegExp(r'^01[0125][0-9]{8}$');
-    if (egPhoneRegExp.hasMatch(clean)) return true;
+    if (egPhoneRegExp.hasMatch(normalizedPhone)) return true;
 
     // InstaPay handle (e.g. name@instapay, name@bank or handle >= 3 chars without spaces)
     final instaPayRegExp = RegExp(r'^[a-zA-Z0-9._-]+(@[a-zA-Z0-9.-]+)?$');
     if (clean.length >= 3 && instaPayRegExp.hasMatch(clean)) return true;
 
     return false;
+  }
+
+  /// Cleans and formats sender account for backend submission
+  static String cleanSenderAccount(String value) {
+    final clean = value.trim();
+    final normalized = AppValidators.normalizePhone(clean);
+    final egPhoneRegExp = RegExp(r'^01[0125][0-9]{8}$');
+    if (egPhoneRegExp.hasMatch(normalized)) {
+      return normalized;
+    }
+    return clean;
   }
 
   /// Returns error string for sender account if invalid, or null if valid.
@@ -32,7 +46,7 @@ class PaymentFormValidators {
   /// Validates transaction reference number (mandatory, min 6 characters, rejects trivial inputs)
   static bool isValidTransactionReference(String? value) {
     if (value == null) return false;
-    final clean = value.trim().toLowerCase();
+    final clean = AppValidators.normalizeNumerals(value.trim()).toLowerCase();
     if (clean.length < 6) return false;
 
     // List of known trivial/dummy reference inputs to reject

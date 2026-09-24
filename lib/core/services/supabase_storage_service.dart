@@ -9,6 +9,11 @@ abstract class StorageService {
     required File file,
   });
 
+  Future<String?> uploadAvatar({
+    required String userId,
+    required File file,
+  });
+
   Future<String?> uploadPaymentProof({
     required String userId,
     required String bookingId,
@@ -38,6 +43,20 @@ class SupabaseStorageServiceImpl implements StorageService {
       AppLogger.error('[StorageService] Upload failed', e, st);
       return null;
     }
+  }
+
+  @override
+  Future<String?> uploadAvatar({
+    required String userId,
+    required File file,
+  }) async {
+    final fileExt = file.path.split('.').last;
+    final path = '$userId/avatar.$fileExt';
+    return uploadFile(
+      bucket: 'avatars',
+      path: path,
+      file: file,
+    );
   }
 
   @override

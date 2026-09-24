@@ -28,10 +28,16 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  bool _isInitialized = false;
+
   @override
-  void initState() {
-    super.initState();
-    context.read<EditProfileCubit>().init();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      final isArabic = context.locale.languageCode == 'ar';
+      context.read<EditProfileCubit>().init(isArabic: isArabic);
+    }
   }
 
   @override
@@ -78,27 +84,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (state.status == EditProfileStatus.locationUpdated) {
       GameHudToast.show(
         context,
-        'تم تحديث موقعك بنجاح',
+        AppStrings.locationUpdatedSuccessfully.tr(),
         type: ToastType.success,
       );
     } else if (state.status == EditProfileStatus.success) {
       GameHudToast.show(
-        context,
-        'Profile updated successfully',
+        null,
+        AppStrings.profileUpdatedSuccessfully.tr(),
         type: ToastType.success,
       );
-      Navigator.pop(context, true);
+      if (context.mounted) {
+        Navigator.pop(context, true);
+      }
     } else if (state.status == EditProfileStatus.accountDeleted) {
       GameHudToast.show(
-        context,
-        'Account deleted successfully',
+        null,
+        AppStrings.accountDeletedSuccessfully.tr(),
         type: ToastType.success,
       );
-      context.goNamed(RouterKeys.signIn);
+      if (context.mounted) {
+        context.goNamed(RouterKeys.signIn);
+      }
     } else if (state.status == EditProfileStatus.error) {
       GameHudToast.show(
         context,
-        state.errorMessage ?? 'Error updating profile',
+        state.errorMessage ?? AppStrings.errorUpdatingProfile.tr(),
         type: ToastType.error,
       );
     }

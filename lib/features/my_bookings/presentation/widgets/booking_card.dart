@@ -14,6 +14,8 @@ import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/router/router_keys.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../data/models/booking_model.dart';
 
@@ -252,6 +254,51 @@ class _BookingCardState extends State<BookingCard> {
                 ),
               ],
             ),
+          ] else ...[
+            SizedBox(height: 16.h),
+            Row(
+              children: [
+                if (widget.booking.mapsLink != null || widget.booking.lat != null) ...[
+                  Expanded(
+                    child: DirectionsButton(
+                      lat: widget.booking.lat,
+                      lng: widget.booking.lng,
+                      loungeName: widget.booking.loungeName,
+                      loungeLocation: widget.booking.loungeLocation,
+                      mapsLink: widget.booking.mapsLink,
+                      height: 44.h,
+                      isPrimary: false,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                ],
+                Expanded(
+                  child: AppButton(
+                    content: ButtonContent(
+                      label: AppStrings.rebook.tr(),
+                      icon: Icon(Icons.refresh_rounded, size: 16.sp, color: Colors.white),
+                    ),
+                    behavior: ButtonBehavior.tap(
+                      onTap: () {
+                        if (widget.booking.loungeId != null && widget.booking.loungeId!.isNotEmpty) {
+                          context.pushNamed(
+                            RouterKeys.loungeDetails,
+                            extra: {'loungeId': widget.booking.loungeId},
+                          );
+                        } else {
+                          context.goNamed(RouterKeys.home);
+                        }
+                      },
+                    ),
+                    buttonConfig: ButtonConfig(
+                      height: 44.h,
+                      gradient: AppColors.primaryGradient,
+                      borderRadius: 12.r,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ],
       ),
@@ -264,8 +311,11 @@ class _BookingCardState extends State<BookingCard> {
         ? AppStrings.cashAtLounge.tr()
         : AppStrings.manualTransfer.tr();
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Wrap(
+      spacing: 6.w,
+      runSpacing: 4.h,
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (widget.booking.isFirstBooking == true) ...[
           Container(
@@ -282,7 +332,6 @@ class _BookingCardState extends State<BookingCard> {
               color: AppColors.neonPurple,
             ),
           ),
-          SizedBox(width: 6.w),
         ],
         Container(
           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -297,17 +346,76 @@ class _BookingCardState extends State<BookingCard> {
             color: AppColors.textSecondary,
           ),
         ),
-        SizedBox(width: 6.w),
+        _buildPaymentStatusBadge(),
         _buildStatusBadge(),
       ],
     );
   }
 
+  Widget _buildPaymentStatusBadge() {
+    final paymentStatus = widget.booking.paymentStatus.toLowerCase();
+    Color color;
+    String text;
+    IconData? icon;
+
+    switch (paymentStatus) {
+      case 'paid':
+        color = AppColors.success;
+        text = AppStrings.paid.tr();
+        icon = Icons.check_circle_outline;
+        break;
+      case 'partially_paid':
+        color = AppColors.neonBlue;
+        text = AppStrings.partiallyPaid.tr();
+        icon = Icons.timelapse;
+        break;
+      case 'refunded':
+        color = AppColors.neonPurple;
+        text = AppStrings.refunded.tr();
+        icon = Icons.replay;
+        break;
+      case 'pending':
+        color = AppColors.warning;
+        text = AppStrings.verificationPending.tr();
+        icon = Icons.hourglass_top_rounded;
+        break;
+      case 'unpaid':
+      default:
+        color = AppColors.warning;
+        text = AppStrings.unpaid.tr();
+        icon = Icons.pending_outlined;
+        break;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11.sp, color: color),
+          SizedBox(width: 4.w),
+          AppText(
+            text: text,
+            fontSize: 10.sp,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCancellationReasonBanner() {
-    final reason = widget.booking.cancellationReason;
+    final reason = widget.booking.rejectionReason ?? widget.booking.cancellationReason;
     if (reason == null || reason.trim().isEmpty) {
       return const SizedBox.shrink();
     }
+    final isRejection = widget.booking.rejectionReason != null && widget.booking.rejectionReason!.trim().isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -322,7 +430,7 @@ class _BookingCardState extends State<BookingCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
-            text: AppStrings.cancellationReason.tr(),
+            text: isRejection ? AppStrings.rejectionReason.tr() : AppStrings.cancellationReason.tr(),
             fontSize: 12.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.danger,

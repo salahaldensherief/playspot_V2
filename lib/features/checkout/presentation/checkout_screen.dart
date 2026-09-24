@@ -29,10 +29,7 @@ import 'widgets/checkout_voucher_section.dart';
 class CheckoutScreen extends StatefulWidget {
   final CheckoutParams params;
 
-  const CheckoutScreen({
-    super.key,
-    required this.params,
-  });
+  const CheckoutScreen({super.key, required this.params});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -65,12 +62,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           previous.liveBookingStatus != current.liveBookingStatus ||
           previous.isHoldExpired != current.isHoldExpired,
       listener: (context, state) {
-        if (state.liveBookingStatus == BookingStatus.upcoming && state.confirmedBooking != null) {
+        if (state.liveBookingStatus == BookingStatus.upcoming &&
+            state.confirmedBooking != null) {
           BookingConfirmedDialog.show(context, state.confirmedBooking!);
           return;
         }
 
-        if (state.liveBookingStatus == BookingStatus.cancelled && state.rejectionReason != null) {
+        if (state.liveBookingStatus == BookingStatus.cancelled &&
+            state.rejectionReason != null) {
           BookingRejectedDialog.show(
             context: context,
             rejectionReason: state.rejectionReason!,
@@ -88,11 +87,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             state.errorMessage ?? '',
             isEnglish,
           );
-          GameHudToast.show(
-            context,
-            errorMsg,
-            type: ToastType.error,
-          );
+          GameHudToast.show(context, errorMsg, type: ToastType.error);
         }
       },
       child: Scaffold(
@@ -149,9 +144,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       barrierDismissible: false,
       type: AppDialogType.success,
       title: AppStrings.bookingRequestedTitle,
-      description: "${AppStrings.bookingPendingReview.tr()}\n\n${AppStrings.multiRoomAllowedNote.tr()}",
+      description:
+          "${AppStrings.bookingPendingReview.tr()}\n\n${AppStrings.multiRoomAllowedNote.tr()}",
       confirmText: AppStrings.viewMyBookings,
-      onConfirm: () => context.goNamed(RouterKeys.home, extra: 1),
+      onConfirm: () => context.goNamed(RouterKeys.home),
     );
   }
 }

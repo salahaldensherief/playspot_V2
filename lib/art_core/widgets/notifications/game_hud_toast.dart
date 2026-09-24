@@ -30,11 +30,16 @@ class GameHudToast extends StatefulWidget {
     if (message.trim().isEmpty) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final targetContext = context ?? AppRouter.navigatorKey.currentContext;
-      final overlayState = AppRouter.navigatorKey.currentState?.overlay ??
-          (targetContext != null && targetContext.mounted ? Overlay.maybeOf(targetContext) : null);
+      OverlayState? overlayState = AppRouter.navigatorKey.currentState?.overlay;
+      if (overlayState == null && context != null && context.mounted) {
+        try {
+          overlayState = Overlay.maybeOf(context);
+        } catch (_) {
+          overlayState = null;
+        }
+      }
 
-      if (overlayState == null) return;
+      if (overlayState == null || !overlayState.mounted) return;
 
       late OverlayEntry overlayEntry;
 

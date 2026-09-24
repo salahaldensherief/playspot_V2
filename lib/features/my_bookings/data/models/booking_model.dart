@@ -1,8 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/core/constants/booking_status.dart';
+import 'package:playspot/core/models/payment_model.dart';
 
 class BookingModel extends Equatable {
   final String id;
+  final String? loungeId;
   final String loungeName;
   final String loungeLocation;
   final String roomName;
@@ -31,9 +33,12 @@ class BookingModel extends Equatable {
   final String? proofImageUrl;
   final DateTime? holdExpiresAt;
   final String? rejectionReason;
+  final DateTime? paidAt;
+  final PaymentModel? payment;
 
   const BookingModel({
     required this.id,
+    this.loungeId,
     required this.loungeName,
     required this.loungeLocation,
     required this.roomName,
@@ -62,6 +67,8 @@ class BookingModel extends Equatable {
     this.proofImageUrl,
     this.holdExpiresAt,
     this.rejectionReason,
+    this.paidAt,
+    this.payment,
   });
 
   bool get isUpcoming => status == BookingStatus.upcoming || status == BookingStatus.pending;
@@ -70,6 +77,7 @@ class BookingModel extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        loungeId,
         loungeName,
         loungeLocation,
         roomName,
@@ -98,6 +106,8 @@ class BookingModel extends Equatable {
         proofImageUrl,
         holdExpiresAt,
         rejectionReason,
+        paidAt,
+        payment,
       ];
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -229,8 +239,28 @@ class BookingModel extends Equatable {
 
     final parsedRejection = json['rejection_reason']?.toString() ?? json['cancellation_reason']?.toString();
 
+    final rawPaidAt = json['paid_at'] ??
+        (json['payments'] is Map ? json['payments']['paid_at'] : null) ??
+        (json['payments'] is List && (json['payments'] as List).isNotEmpty ? json['payments'][0]['paid_at'] : null);
+    DateTime? parsedPaidAt;
+    if (rawPaidAt != null) {
+      try {
+        parsedPaidAt = DateTime.parse(rawPaidAt.toString());
+      } catch (_) {
+        parsedPaidAt = DateTime.tryParse(rawPaidAt.toString());
+      }
+    }
+
+    PaymentModel? parsedPayment;
+    if (json['payments'] is Map<String, dynamic>) {
+      parsedPayment = PaymentModel.fromJson(json['payments'] as Map<String, dynamic>);
+    } else if (json['payments'] is List && (json['payments'] as List).isNotEmpty && (json['payments'] as List).first is Map<String, dynamic>) {
+      parsedPayment = PaymentModel.fromJson((json['payments'] as List).first as Map<String, dynamic>);
+    }
+
     return BookingModel(
       id: json['id'].toString(),
+      loungeId: json['lounge_id']?.toString() ?? loungeData?['id']?.toString(),
       loungeName: loungeData?['name'] ?? '',
       loungeLocation: loungeData?['location'] ?? '',
       roomName: roomData?['name_en'] ?? roomData?['name'] ?? '',
@@ -259,6 +289,8 @@ class BookingModel extends Equatable {
       proofImageUrl: json['proof_image_url']?.toString() ?? json['receipt_url']?.toString(),
       holdExpiresAt: parsedHoldExpires,
       rejectionReason: parsedRejection,
+      paidAt: parsedPaidAt,
+      payment: parsedPayment,
     );
   }
 
