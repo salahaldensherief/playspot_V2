@@ -409,10 +409,12 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   bool _hasMovedSignificantly(double newLat, double newLng) {
-    if (_lastUsedLat == null || _lastUsedLng == null) return true;
+    final lastLat = _lastUsedLat;
+    final lastLng = _lastUsedLng;
+    if (lastLat == null || lastLng == null) return true;
     final distanceInMeters = Geolocator.distanceBetween(
-      _lastUsedLat!,
-      _lastUsedLng!,
+      lastLat,
+      lastLng,
       newLat,
       newLng,
     );
@@ -420,15 +422,26 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   void startLocationListening() {
-    _positionSubscription?.cancel();
+    if (_positionSubscription != null) return;
     _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, distanceFilter: 500),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: 500,
+      ),
     ).listen((p) async {
+      final moved = _hasMovedSignificantly(p.latitude, p.longitude);
       await _pref.saveLatitude(p.latitude);
       await _pref.saveLongitude(p.longitude);
 
-      await getHomeData();
+      if (moved) {
+        await getHomeData();
+      }
     });
+  }
+
+  void stopLocationListening() {
+    _positionSubscription?.cancel();
+    _positionSubscription = null;
   }
 
   Future<void> selectCity(String? city) async {
@@ -457,7 +470,7 @@ class HomeCubit extends Cubit<HomeState> {
 
   @override
   Future<void> close() {
-    _positionSubscription?.cancel();
+    stopLocationListening();
     return super.close();
   }
 }

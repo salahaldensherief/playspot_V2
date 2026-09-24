@@ -132,7 +132,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'email': params.email,
         'phone': params.phone,
         'avatar_url': avatarUrl,
-        'is_banned': false,
       });
 
       if (params.referralCode != null &&
@@ -212,7 +211,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'email': params.email,
         'phone': params.phone,
         'avatar_url': avatarUrl,
-        'is_banned': false,
       });
 
       if (params.referralCode != null &&
@@ -312,7 +310,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'email': user.email,
         'phone': params.phone,
         if (finalAvatarUrl != null) 'avatar_url': finalAvatarUrl,
-        'is_banned': false,
       });
 
       try {

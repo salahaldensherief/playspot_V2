@@ -34,6 +34,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   late int _selectedIndex;
+  int? _previousPointsBalance;
   
   final Map<int, DateTime> _lastRefreshTime = {};
   static const Duration _refreshThreshold = Duration(seconds: 10);
@@ -42,6 +43,7 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
+    _previousPointsBalance = context.read<ProfileCubit>().state.pointsBalance;
     
     // 🚀 تنفيذ التحديث الأول عند دخول الشاشة
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -139,22 +141,22 @@ class _MainScreenState extends State<MainScreen> {
           },
         ),
         BlocListener<ProfileCubit, ProfileState>(
-          listenWhen: (prev, curr) {
-            if (prev.pointsBalance > 0 && curr.pointsBalance > prev.pointsBalance) {
-              final gainedPoints = curr.pointsBalance - prev.pointsBalance;
+          listenWhen: (prev, curr) => curr.pointsBalance != prev.pointsBalance,
+          listener: (context, state) {
+            final prev = _previousPointsBalance ?? state.pointsBalance;
+            if (prev > 0 && state.pointsBalance > prev) {
+              final gainedPoints = state.pointsBalance - prev;
               GameHudToast.show(
                 context,
                 AppStrings.pointsEarnedToast.tr(args: [
                   gainedPoints.toString(),
-                  curr.pointsBalance.toString(),
+                  state.pointsBalance.toString(),
                 ]),
                 type: ToastType.success,
               );
-              return true;
             }
-            return false;
+            _previousPointsBalance = state.pointsBalance;
           },
-          listener: (context, state) {},
         ),
       ],
       child: Scaffold(
@@ -172,7 +174,9 @@ class _MainScreenState extends State<MainScreen> {
             left: 0,
             right: 0,
             bottom: navBarBottom,
-            child: _buildGlassNavBar(),
+            child: RepaintBoundary(
+              child: _buildGlassNavBar(),
+            ),
           ),
         ],
       ),

@@ -70,22 +70,19 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-      buildWhen: (previous, current) =>
-          (previous.lounge == null) != (current.lounge == null) ||
-          previous.status != current.status,
-      builder: (context, state) {
-        final lounge = _displayLounge(state);
-        if (lounge == null) {
-          return const Scaffold(
-            backgroundColor: AppColors.scaffoldBackground,
-            body: AppLoader(size: 40),
-          );
-        }
+    return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
+      body: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+        buildWhen: (previous, current) =>
+            (previous.lounge == null) != (current.lounge == null) ||
+            previous.status != current.status,
+        builder: (context, state) {
+          final lounge = _displayLounge(state);
+          if (lounge == null) {
+            return const AppLoader(size: 40);
+          }
 
-        return Scaffold(
-          backgroundColor: AppColors.scaffoldBackground,
-          body: Stack(
+          return Stack(
             children: [
               AppRefreshIndicator(
                 onRefresh: () async {
@@ -202,11 +199,11 @@ class _LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
             ),
             LoungeDetailsBottomBar(lounge: lounge),
           ],
-        ),
-      );
+        );
       },
-    );
-  }
+    ),
+  );
+}
 }
 
 class SliverConditionalSection extends StatelessWidget {

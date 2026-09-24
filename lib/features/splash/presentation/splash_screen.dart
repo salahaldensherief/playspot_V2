@@ -57,17 +57,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _handleInitialization() async {
-    final locationFuture = _fetchUserLocation().timeout(
-      const Duration(milliseconds: 1500),
-      onTimeout: () {},
-    );
-    final minDisplayFuture = Future.delayed(const Duration(milliseconds: 800));
+    unawaited(_fetchUserLocation());
+    final minDisplayFuture = Future.delayed(const Duration(milliseconds: 300));
 
     final appStatusCubit = sl<AppStatusCubit>();
     final statusTypeFuture = appStatusCubit.checkAndListen();
 
-    final results = await Future.wait([locationFuture, minDisplayFuture, statusTypeFuture]);
-    final statusType = results[2] as AppStatusType;
+    final results = await Future.wait([minDisplayFuture, statusTypeFuture]);
+    final statusType = results[1] as AppStatusType;
 
     if (!mounted) return;
 

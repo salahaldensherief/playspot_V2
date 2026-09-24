@@ -11,9 +11,9 @@ class LoungeFavoriteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FavoritesCubit, FavoritesState>(
-      builder: (context, state) {
-        final isFavorite = context.read<FavoritesCubit>().isFavorite(loungeId);
+    return BlocSelector<FavoritesCubit, FavoritesState, bool>(
+      selector: (state) => state.favoriteIds.contains(loungeId),
+      builder: (context, isFavorite) {
         return GestureDetector(
           onTap: () => context.read<FavoritesCubit>().toggleFavorite(loungeId),
           child: Container(

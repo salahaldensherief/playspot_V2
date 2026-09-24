@@ -30,7 +30,7 @@ class GoogleAuthStrategy implements AuthStrategy {
 
       final user = response.user!;
       final isNewUser = await _checkIsNewUser(user.id);
-      await _upsertUser(user);
+      await _upsertUser(user, isNewUser: isNewUser);
 
       return UserModel.fromSupabaseUser(
         user.toJson(),
@@ -60,7 +60,7 @@ class GoogleAuthStrategy implements AuthStrategy {
         if (data.event == AuthChangeEvent.signedIn && data.session != null) {
           final user = data.session!.user;
           final isNewUser = await _checkIsNewUser(user.id);
-          await _upsertUser(user);
+          await _upsertUser(user, isNewUser: isNewUser);
           subscription.cancel();
           if (!completer.isCompleted) {
             completer.complete(UserModel.fromSupabaseUser(
@@ -99,14 +99,32 @@ class GoogleAuthStrategy implements AuthStrategy {
     }
   }
 
-  Future<void> _upsertUser(User user) async {
+  Future<void> _upsertUser(User user, {required bool isNewUser}) async {
     final meta = user.userMetadata ?? {};
-    await _supabase.from('profiles').upsert({
-      'id': user.id,
-      'email': user.email,
-      'full_name': meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'User',
-      'avatar_url': meta['avatar_url'] ?? meta['picture'],
-      'is_banned': false,
-    });
+    try {
+      if (isNewUser) {
+        await _supabase.from('profiles').upsert({
+          'id': user.id,
+          'email': user.email,
+          'full_name': meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'User',
+          'avatar_url': meta['avatar_url'] ?? meta['picture'],
+        });
+      } else {
+        final updateData = <String, dynamic>{
+          'email': user.email,
+          'full_name': meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'User',
+        };
+        final avatar = meta['avatar_url'] ?? meta['picture'];
+        if (avatar != null) {
+          updateData['avatar_url'] = avatar;
+        }
+        await _supabase.from('profiles').update(updateData).eq('id', user.id);
+      }
+    } catch (e) {
+      debugPrint('[Auth] Profile sync notice: $e');
+      if (isNewUser) {
+        rethrow;
+      }
+    }
   }
 }

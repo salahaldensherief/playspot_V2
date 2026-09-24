@@ -43,6 +43,8 @@ class _HomeViewState extends State<_HomeView> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoadingMoreTriggered = false;
 
+  late final AppLifecycleListener _lifecycleListener;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +58,19 @@ class _HomeViewState extends State<_HomeView> {
 
     _scrollController.addListener(_onScroll);
 
+    _lifecycleListener = AppLifecycleListener(
+      onResume: () {
+        if (mounted) {
+          context.read<HomeCubit>().startLocationListening();
+        }
+      },
+      onPause: () {
+        if (mounted) {
+          context.read<HomeCubit>().stopLocationListening();
+        }
+      },
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<HomeCubit>().init();
@@ -68,6 +83,7 @@ class _HomeViewState extends State<_HomeView> {
 
   @override
   void dispose() {
+    _lifecycleListener.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();

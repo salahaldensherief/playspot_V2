@@ -8,8 +8,27 @@ import '../home_state.dart';
 import 'promo_card.dart';
 import 'tournament_promo_card.dart';
 
-class PromoCarousel extends StatelessWidget {
+class PromoCarousel extends StatefulWidget {
   const PromoCarousel({super.key});
+
+  @override
+  State<PromoCarousel> createState() => _PromoCarouselState();
+}
+
+class _PromoCarouselState extends State<PromoCarousel> {
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.9);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +53,11 @@ class PromoCarousel extends StatelessWidget {
             height: 160.h,
             child: PageView.builder(
               itemCount: totalCount,
-              controller: PageController(viewportFraction: 0.9),
+              controller: _pageController,
               itemBuilder: (context, index) {
                 if (hasTournament && index == 0) {
-                  final tournament = state.nearbyTournament!;
+                  final tournament = state.nearbyTournament;
+                  if (tournament == null) return const SizedBox.shrink();
                   final isRegistered = state.activeRegisteredTournament?.id == tournament.id;
                   final participant = isRegistered ? state.activeUserParticipant : null;
                   return TournamentPromoCard(
@@ -58,10 +78,11 @@ class PromoCarousel extends StatelessWidget {
                 return PromoCard(
                   promo: promo,
                   onTap: () {
-                    if (promo.roomId != null && promo.roomId!.isNotEmpty) {
+                    final roomId = promo.roomId;
+                    if (roomId != null && roomId.isNotEmpty) {
                       context.pushNamed(
                         RouterKeys.roomDetails,
-                        pathParameters: {'roomId': promo.roomId!},
+                        pathParameters: {'roomId': roomId},
                       );
                     } else if (promo.deepLink != null && promo.deepLink!.contains('/room/')) {
                       final parts = promo.deepLink!.split('/room/');

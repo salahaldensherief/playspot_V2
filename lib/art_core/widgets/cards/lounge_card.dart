@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/lounge_helper.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
@@ -37,7 +35,6 @@ class _LoungeCardState extends State<LoungeCard> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<LocaleCubit>();
     final lounge = widget.lounge;
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),

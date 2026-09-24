@@ -49,22 +49,18 @@ void main() async {
     return true;
   };
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await EasyLocalization.ensureInitialized();
-  await init();
-  await initSupabase();
+  await Future.wait([
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    EasyLocalization.ensureInitialized(),
+    init(),
+    initSupabase(),
+  ]);
 
   NetworkConnectivityService().initialize();
 
   sl<DeepLinkService>().initialize();
 
   FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);
-  await LocalNotificationService.instance.initialize();
-  await PushNotificationService.instance.initialize(
-    localNotifications: LocalNotificationService.instance,
-    profileRepository: sl<ProfileRepository>(),
-  );
-  await PlaySpotLiveActivityService.instance.init();
 
   runApp(
     EasyLocalization(
@@ -75,7 +71,22 @@ void main() async {
     ),
   );
 
-  LocalNotificationService.instance.handlePendingInitialNotification();
+  _initPostAppServices();
+}
+
+void _initPostAppServices() {
+  LocalNotificationService.instance.initialize().then((_) {
+    PushNotificationService.instance.initialize(
+      localNotifications: LocalNotificationService.instance,
+      profileRepository: sl<ProfileRepository>(),
+    );
+    LocalNotificationService.instance.handlePendingInitialNotification();
+  }).catchError((e) {
+    dev.log("NOTIFICATION INIT ERROR: $e");
+  });
+  PlaySpotLiveActivityService.instance.init().catchError((e) {
+    dev.log("LIVE ACTIVITY INIT ERROR: $e");
+  });
 }
 
 class MyApp extends StatefulWidget {
@@ -86,6 +97,20 @@ class MyApp extends StatefulWidget {
 }
 
 final _appRouter = AppRouter();
+
+final _arTheme = ThemeData(
+  useMaterial3: false,
+  scaffoldBackgroundColor: AppColors.scaffoldBackground,
+  fontFamily: GoogleFonts.tajawal().fontFamily,
+  textTheme: GoogleFonts.tajawalTextTheme(ThemeData.dark().textTheme),
+);
+
+final _enTheme = ThemeData(
+  useMaterial3: false,
+  scaffoldBackgroundColor: AppColors.scaffoldBackground,
+  fontFamily: 'Orbitron',
+  textTheme: GoogleFonts.orbitronTextTheme(ThemeData.dark().textTheme),
+);
 
 class _MyAppState extends State<MyApp> {
   @override
@@ -106,16 +131,7 @@ class _MyAppState extends State<MyApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          theme: ThemeData(
-            useMaterial3: false,
-            scaffoldBackgroundColor: AppColors.scaffoldBackground,
-            fontFamily: context.locale.languageCode == 'ar'
-                ? GoogleFonts.tajawal().fontFamily
-                : 'Orbitron',
-            textTheme: context.locale.languageCode == 'ar'
-                ? GoogleFonts.tajawalTextTheme(ThemeData.dark().textTheme)
-                : GoogleFonts.orbitronTextTheme(ThemeData.dark().textTheme),
-          ),
+          theme: context.locale.languageCode == 'ar' ? _arTheme : _enTheme,
           scrollBehavior: const MaterialScrollBehavior().copyWith(
             physics: const BouncingScrollPhysics(),
           ),

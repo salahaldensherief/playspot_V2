@@ -69,7 +69,6 @@ class EmailAuthStrategy implements AuthStrategy {
       'email': user.email,
       'full_name': meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'User',
       'avatar_url': meta['avatar_url'] ?? meta['picture'],
-      'is_banned': false,
     });
   }
 

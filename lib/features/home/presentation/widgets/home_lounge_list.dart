@@ -107,21 +107,31 @@ class HomeLoungeList extends StatelessWidget {
               mainAxisSpacing: 8.h,
               mainAxisExtent: 215.h,
             ),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              final lounge = lounges[index];
-              final heroTag = 'lounge_${lounge.id}_main';
-              return LoungeCard(
-                key: ValueKey(lounge.id),
-                lounge: lounge,
-                heroTag: heroTag,
-                onTap: () {
-                  context.pushNamed(
-                    RouterKeys.loungeDetails,
-                    extra: {'lounge': lounge, 'heroTag': heroTag},
-                  );
-                },
-              );
-            }, childCount: lounges.length),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final lounge = lounges[index];
+                final heroTag = 'lounge_${lounge.id}_main';
+                return LoungeCard(
+                  key: ValueKey(lounge.id),
+                  lounge: lounge,
+                  heroTag: heroTag,
+                  onTap: () {
+                    context.pushNamed(
+                      RouterKeys.loungeDetails,
+                      extra: {'lounge': lounge, 'heroTag': heroTag},
+                    );
+                  },
+                );
+              },
+              childCount: lounges.length,
+              findChildIndexCallback: (Key key) {
+                if (key is ValueKey<String>) {
+                  final index = lounges.indexWhere((l) => l.id == key.value);
+                  return index != -1 ? index : null;
+                }
+                return null;
+              },
+            ),
           ),
         );
       },

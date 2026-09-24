@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDmM1rXwj252NZL-ff1lNz-PuvZu1h7MeM',
-    appId: '1:1070210806389:android:d7d5a3b1db6f74cecb3e3c',
+    appId: '1:1070210806389:android:6bfab75d31cb811dcb3e3c',
     messagingSenderId: '1070210806389',
     projectId: 'playspot-83bcb',
     storageBucket: 'playspot-83bcb.firebasestorage.app',
