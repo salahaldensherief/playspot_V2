@@ -1,11 +1,13 @@
 import 'dart:developer' as dev;
 import 'package:playspot/core/constants/booking_status.dart';
+import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/booking_params.dart';
 
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId});
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
+  Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
   Future<void> extendSession({
     required String bookingId,
@@ -54,6 +56,20 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     final response = await query;
 
     return List<Map<String, dynamic>>.from(response);
+  }
+
+  @override
+  Stream<BookingModel> streamBookingStatus(String bookingId) {
+    return _client
+        .from('bookings')
+        .stream(primaryKey: ['id'])
+        .eq('id', bookingId)
+        .map((list) {
+          if (list.isNotEmpty) {
+            return BookingModel.fromJson(list.first);
+          }
+          throw Exception('Booking record not found');
+        });
   }
 
   @override

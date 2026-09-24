@@ -20,23 +20,10 @@ class ProfileStatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
       buildWhen: (previous, current) =>
-          previous.pointsBalance != current.pointsBalance ||
-          previous.totalBookingsCount != current.totalBookingsCount,
+          previous.pointsBalance != current.pointsBalance,
       builder: (context, state) {
         return Row(
           children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => context.pushNamed(RouterKeys.myBookings),
-                child: _buildStatCard(
-                  TablerIcons.calendar,
-                  state.totalBookingsCount.toString(),
-                  AppStrings.totalBookings.tr(),
-                  AppColors.neonBlue,
-                ),
-              ),
-            ),
-            SizedBox(width: 10.w),
             Expanded(
               child: GestureDetector(
                 onTap: () => context.pushNamed(RouterKeys.loyaltyDashboard),

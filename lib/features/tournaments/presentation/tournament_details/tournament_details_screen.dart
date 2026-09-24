@@ -605,7 +605,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
       builder: (modalContext) => ManualPaymentBottomSheet(
         amount: tournament.entryFee,
         loungeName: tournament.loungeName ?? 'PlaySpot',
-        onConfirm: (method, receiptFile, senderPhone) {
+        onConfirm: (method, receiptFile, senderAccount, transactionReference) {
           context.read<TournamentDetailsCubit>().submitPayment(
             paymentMethod: method,
             receiptFile: receiptFile,

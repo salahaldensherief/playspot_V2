@@ -8,6 +8,12 @@ abstract class StorageService {
     required String path,
     required File file,
   });
+
+  Future<String?> uploadPaymentProof({
+    required String userId,
+    required String bookingId,
+    required File file,
+  });
 }
 
 class SupabaseStorageServiceImpl implements StorageService {
@@ -32,5 +38,21 @@ class SupabaseStorageServiceImpl implements StorageService {
       AppLogger.error('[StorageService] Upload failed', e, st);
       return null;
     }
+  }
+
+  @override
+  Future<String?> uploadPaymentProof({
+    required String userId,
+    required String bookingId,
+    required File file,
+  }) async {
+    final path = bookingId.endsWith('.jpg') || bookingId.endsWith('.jpeg') || bookingId.endsWith('.png')
+        ? '$userId/$bookingId'
+        : '$userId/$bookingId/receipt.jpg';
+    return uploadFile(
+      bucket: 'payment-proofs',
+      path: path,
+      file: file,
+    );
   }
 }

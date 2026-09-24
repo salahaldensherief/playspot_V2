@@ -4,6 +4,7 @@ import 'package:playspot/core/utils/repository_helper.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/booking/data/datasources/remote/booking_remote_data_source.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
+import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 
 class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   final BookingRemoteDataSource _remoteDataSource;
@@ -18,6 +19,11 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   @override
   Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params) async {
     return await callRepository(() => _remoteDataSource.createBooking(params));
+  }
+
+  @override
+  Stream<BookingModel> watchBookingStatus(String bookingId) {
+    return _remoteDataSource.streamBookingStatus(bookingId);
   }
 
   @override

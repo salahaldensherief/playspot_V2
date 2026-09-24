@@ -29,7 +29,8 @@ class CheckoutBottomPayBar extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.status != current.status ||
           previous.discountAmount != current.discountAmount ||
-          previous.selectedMethod != current.selectedMethod,
+          previous.selectedMethod != current.selectedMethod ||
+          previous.isHoldExpired != current.isHoldExpired,
       builder: (context, state) {
         final finalPrice = params.totalPrice - state.discountAmount;
         final buttonText = state.status == CheckoutStatus.loading
@@ -37,6 +38,8 @@ class CheckoutBottomPayBar extends StatelessWidget {
             : (state.selectedMethod == PaymentMethod.cash
                 ? AppStrings.confirmBookingWithPrice.tr(args: [finalPrice.toStringAsFixed(2)])
                 : AppStrings.payNowWithPrice.tr(args: [finalPrice.toStringAsFixed(2)]));
+
+        final bool isButtonEnabled = state.status != CheckoutStatus.loading && !state.isHoldExpired;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -46,11 +49,17 @@ class CheckoutBottomPayBar extends StatelessWidget {
             children: [
               AppButton(
                 content: ButtonContent(
-                  label: buttonText,
+                  label: state.isHoldExpired
+                      ? (context.locale.languageCode == 'ar'
+                          ? 'انتهت فترة حجز الموعد'
+                          : 'Hold Expired')
+                      : buttonText,
                 ),
                 behavior: ButtonBehavior.tap(
-                  isEnabled: state.status != CheckoutStatus.loading,
+                  isEnabled: isButtonEnabled,
                   onTap: () {
+                    if (state.isHoldExpired) return;
+
                     if (state.selectedMethod == PaymentMethod.cash) {
                       context.read<CheckoutCubit>().processPayment(
                         params,
@@ -68,13 +77,15 @@ class CheckoutBottomPayBar extends StatelessWidget {
                         walletNumber: params.lounge.effectiveWalletNumber ?? '',
                         instaPayAccount: params.lounge.effectiveInstapayHandle,
                         initialMethod: initialMethod,
-                        onConfirm: (method, receiptFile, senderPhone) {
+                        onConfirm: (method, receiptFile, senderAccount, transactionRef) {
                           context.read<CheckoutCubit>().processPayment(
                             params,
                             isArabic: context.locale.languageCode == 'ar',
                             receiptFile: receiptFile,
                             paymentMethod: 'manual_transfer',
-                            senderWalletPhone: senderPhone,
+                            senderAccount: senderAccount,
+                            senderWalletPhone: senderAccount,
+                            transactionReference: transactionRef,
                           );
                         },
                       );
@@ -84,9 +95,14 @@ class CheckoutBottomPayBar extends StatelessWidget {
                 buttonConfig: ButtonConfig(
                   height: 55.h,
                   borderRadius: 15.r,
-                  gradient: const LinearGradient(
-                    colors: [AppColors.neonBlue, AppColors.neonPurple],
-                  ),
+                  gradient: state.isHoldExpired
+                      ? null
+                      : const LinearGradient(
+                          colors: [AppColors.neonBlue, AppColors.neonPurple],
+                        ),
+                  backgroundColor: state.isHoldExpired
+                      ? AppColors.textSecondary.withValues(alpha: 0.3)
+                      : AppColors.transparent,
                 ),
               ),
               const SafeBottomSpacer(extraPadding: 40),

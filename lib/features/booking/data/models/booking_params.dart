@@ -134,7 +134,15 @@ class CreateBookingParams extends Equatable {
   final String? receiptUrl;
   final String? paymentMethod;
   final String? senderWalletPhone;
+  final String? senderAccount;
+  final String? transactionReference;
+  final String? proofImageUrl;
   final DateTime? expiresAt;
+  final DateTime? holdExpiresAt;
+
+  String? get effectiveSenderAccount => senderAccount ?? senderWalletPhone;
+  String? get effectiveProofImageUrl => proofImageUrl ?? receiptUrl;
+  DateTime? get effectiveHoldExpiresAt => holdExpiresAt ?? expiresAt;
 
   const CreateBookingParams({
     required this.roomId,
@@ -163,7 +171,11 @@ class CreateBookingParams extends Equatable {
     this.receiptUrl,
     this.paymentMethod,
     this.senderWalletPhone,
+    this.senderAccount,
+    this.transactionReference,
+    this.proofImageUrl,
     this.expiresAt,
+    this.holdExpiresAt,
   });
 
   @override
@@ -194,7 +206,11 @@ class CreateBookingParams extends Equatable {
         receiptUrl,
         paymentMethod,
         senderWalletPhone,
+        senderAccount,
+        transactionReference,
+        proofImageUrl,
         expiresAt,
+        holdExpiresAt,
       ];
 
   Map<String, dynamic> toJson() {
@@ -223,6 +239,13 @@ class CreateBookingParams extends Equatable {
       'play_mode': playMode,
       'status': BookingStatus.mapToDbStatus(status),
       'payment_status': paymentStatus,
+      if (effectiveSenderAccount != null) 'sender_account': effectiveSenderAccount,
+      if (effectiveSenderAccount != null) 'sender_wallet_phone': effectiveSenderAccount,
+      if (transactionReference != null) 'transaction_reference': transactionReference,
+      if (effectiveProofImageUrl != null) 'proof_image_url': effectiveProofImageUrl,
+      if (effectiveProofImageUrl != null) 'receipt_url': effectiveProofImageUrl,
+      if (effectiveHoldExpiresAt != null) 'hold_expires_at': effectiveHoldExpiresAt!.toIso8601String(),
+      if (effectiveHoldExpiresAt != null) 'expires_at': effectiveHoldExpiresAt!.toIso8601String(),
     };
   }
 }

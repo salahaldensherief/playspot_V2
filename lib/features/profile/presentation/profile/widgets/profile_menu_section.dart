@@ -24,13 +24,6 @@ class ProfileMenuSection extends StatelessWidget {
         children: [
           _buildMenuItem(
             context: context,
-            icon: TablerIcons.calendar,
-            title: AppStrings.myBookings.tr(),
-            onTap: () => context.goNamed(RouterKeys.home, extra: 1),
-            showBorder: true,
-          ),
-          _buildMenuItem(
-            context: context,
             icon: TablerIcons.heart,
             title: AppStrings.favorite.tr(),
             onTap: () => context.pushNamed(RouterKeys.favorites),

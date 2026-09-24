@@ -17,6 +17,8 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/contact_launcher_service.dart';
+import 'package:playspot/core/utils/image_picker_utils.dart';
+import 'package:playspot/core/utils/payment_form_validators.dart';
 import 'package:playspot/features/profile/data/datasources/remote/support_remote_data_source.dart';
 
 class ManualPaymentBottomSheet extends StatefulWidget {
@@ -24,7 +26,12 @@ class ManualPaymentBottomSheet extends StatefulWidget {
   final String? walletNumber;
   final String? instaPayAccount;
   final String loungeName;
-  final Function(String paymentMethod, File receiptFile, String senderPhone) onConfirm;
+  final Function(
+    String paymentMethod,
+    File receiptFile,
+    String senderAccount,
+    String transactionReference,
+  ) onConfirm;
 
   const ManualPaymentBottomSheet({
     super.key,
@@ -41,7 +48,12 @@ class ManualPaymentBottomSheet extends StatefulWidget {
     required String loungeName,
     String? walletNumber,
     String? instaPayAccount,
-    required Function(String paymentMethod, File receiptFile, String senderPhone) onConfirm,
+    required Function(
+      String paymentMethod,
+      File receiptFile,
+      String senderAccount,
+      String transactionReference,
+    ) onConfirm,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -65,7 +77,9 @@ class ManualPaymentBottomSheet extends StatefulWidget {
 }
 
 class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
-  final _senderPhoneController = TextEditingController();
+  final _senderAccountController = TextEditingController();
+  final _transactionRefController = TextEditingController();
+
   String _selectedMethod = 'Vodafone Cash';
   String _vodafoneCashNumber = '';
   String _instaPayAccount = '';
@@ -73,7 +87,6 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
   bool _hasInstaPay = false;
   File? _receiptFile;
   bool _isUploading = false;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -122,13 +135,15 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
 
   @override
   void dispose() {
-    _senderPhoneController.dispose();
+    _senderAccountController.dispose();
+    _transactionRefController.dispose();
     super.dispose();
   }
 
   String get _activeDestination => _selectedMethod == 'Vodafone Cash' ? _vodafoneCashNumber : _instaPayAccount;
 
   void _copyDestination() {
+    if (_activeDestination.isEmpty) return;
     Clipboard.setData(ClipboardData(text: _activeDestination));
     HapticFeedback.lightImpact();
     GameHudToast.show(
@@ -140,18 +155,14 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
 
   Future<void> _pickReceipt(ImageSource source) async {
     try {
-      final XFile? picked = await _picker.pickImage(
-        source: source,
-        imageQuality: 80,
-        maxWidth: 1200,
-      );
-
-      if (picked != null) {
+      final compressedFile = await ImagePickerUtils.pickAndCompressImage(source);
+      if (compressedFile != null && mounted) {
         setState(() {
-          _receiptFile = File(picked.path);
+          _receiptFile = compressedFile;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       GameHudToast.show(
         context,
         AppStrings.somethingWentWrong.tr(),
@@ -161,11 +172,13 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
   }
 
   Future<void> _launchWhatsApp() async {
-    final senderPhone = _senderPhoneController.text.trim();
+    final senderAccount = _senderAccountController.text.trim();
+    final transRef = _transactionRefController.text.trim();
     final message = "أهلاً PlaySpot 👋\n"
-        "أود تأكيد تحويل ${_selectedMethod} بقيمة ${widget.amount.toStringAsFixed(0)} ج.م "
+        "أود تأكيد تحويل $_selectedMethod بقيمة ${widget.amount.toStringAsFixed(0)} ج.م "
         "لصالة ${widget.loungeName}.\n"
-        "${senderPhone.isNotEmpty ? 'رقم المحفظة / الحساب المحول منها: $senderPhone' : ''}";
+        "${senderAccount.isNotEmpty ? 'حساب / رقم التحويل: $senderAccount\n' : ''}"
+        "${transRef.isNotEmpty ? 'الرقم المرجعي: $transRef' : ''}";
 
     await ContactLauncherService.launchWhatsApp(
       phone: _vodafoneCashNumber.isNotEmpty ? _vodafoneCashNumber : '01012345678',
@@ -173,8 +186,48 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
     );
   }
 
+  void _handleSubmit() {
+    final isArabic = context.locale.languageCode == 'ar';
+    final senderAccount = _senderAccountController.text.trim();
+    final transRef = _transactionRefController.text.trim();
+
+    final accountError = PaymentFormValidators.validateSenderAccount(senderAccount, isArabic: isArabic);
+    if (accountError != null) {
+      GameHudToast.show(
+        context,
+        accountError,
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    final refError = PaymentFormValidators.validateTransactionReference(transRef, isArabic: isArabic);
+    if (refError != null) {
+      GameHudToast.show(
+        context,
+        refError,
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    if (_receiptFile == null) {
+      GameHudToast.show(
+        context,
+        AppStrings.uploadReceipt.tr(),
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    setState(() => _isUploading = true);
+    Navigator.pop(context);
+    widget.onConfirm(_selectedMethod, _receiptFile!, senderAccount, transRef);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
     final showMethodSelector = _hasVodafoneCash && _hasInstaPay;
 
     return SingleChildScrollView(
@@ -330,10 +383,18 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
           SizedBox(height: 16.h),
 
           AppTextField(
-            controller: _senderPhoneController,
-            label: AppStrings.userWalletPhone.tr(),
-            hint: AppStrings.userWalletPhoneHint.tr(),
-            textInputType: TextInputType.phone,
+            controller: _senderAccountController,
+            label: isArabic ? 'رقم المحفظة / حساب InstaPay المحول منه' : 'Sender Wallet / InstaPay Handle',
+            hint: isArabic ? 'مثال: 01012345678 أو username@instapay' : 'e.g., 01012345678 or username@instapay',
+            textInputType: TextInputType.text,
+          ),
+          SizedBox(height: 12.h),
+
+          AppTextField(
+            controller: _transactionRefController,
+            label: isArabic ? 'الرقم المرجعي للتحويل' : 'Transaction Reference Number',
+            hint: isArabic ? 'أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل' : 'Enter transaction reference (min 6 characters)',
+            textInputType: TextInputType.text,
           ),
           SizedBox(height: 16.h),
 
@@ -463,21 +524,8 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                     borderRadius: 12.r,
                   ),
                   behavior: ButtonBehavior.tap(
-                    isEnabled: _receiptFile != null && !_isUploading,
-                    onTap: () async {
-                      if (_receiptFile == null) {
-                        GameHudToast.show(
-                          context,
-                          AppStrings.uploadReceipt.tr(),
-                          type: ToastType.error,
-                        );
-                        return;
-                      }
-                      setState(() => _isUploading = true);
-                      final phone = _senderPhoneController.text.trim();
-                      Navigator.pop(context);
-                      widget.onConfirm(_selectedMethod, _receiptFile!, phone);
-                    },
+                    isEnabled: !_isUploading,
+                    onTap: _handleSubmit,
                   ),
                 ),
               ),

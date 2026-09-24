@@ -1,12 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
+import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/supabase_storage_service.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'checkout_state.dart';
@@ -17,6 +20,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   final PreferenceManager _preferenceManager;
   final StorageService _storageService;
 
+  Timer? _holdTimer;
+  StreamSubscription<BookingModel>? _realtimeSubscription;
+
   CheckoutCubit(
     this._bookingRepository,
     this._profileRepository, {
@@ -26,7 +32,46 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         _storageService = storageService ?? sl<StorageService>(),
         super(const CheckoutState());
 
+  @override
+  Future<void> close() {
+    _holdTimer?.cancel();
+    _realtimeSubscription?.cancel();
+    return super.close();
+  }
+
+  void startHoldTimer([int totalSeconds = 600]) {
+    _holdTimer?.cancel();
+    final expiresAt = DateTime.now().add(Duration(seconds: totalSeconds));
+    emit(state.copyWith(
+      remainingSeconds: totalSeconds,
+      isHoldExpired: false,
+      holdExpiresAt: expiresAt,
+    ));
+
+    _holdTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (isClosed) {
+        timer.cancel();
+        return;
+      }
+      final now = DateTime.now();
+      final diff = expiresAt.difference(now).inSeconds;
+      if (diff <= 0) {
+        timer.cancel();
+        emit(state.copyWith(
+          remainingSeconds: 0,
+          isHoldExpired: true,
+        ));
+      } else {
+        emit(state.copyWith(remainingSeconds: diff));
+      }
+    });
+  }
+
   Future<void> initCheckout(LoungeModel lounge, {int? completedBookingsCount}) async {
+    startHoldTimer(lounge.cashGracePeriodMinutes > 0
+        ? lounge.cashGracePeriodMinutes * 60
+        : 600);
+
     int userBookingsCount = completedBookingsCount ?? 0;
     if (completedBookingsCount == null) {
       final result = await _profileRepository.getTotalBookingsCount();
@@ -67,6 +112,34 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   void updateSenderWalletNumber(String value) {
     emit(state.copyWith(senderWalletNumber: value.trim()));
+  }
+
+  void listenToBookingStatus(String bookingId) {
+    _realtimeSubscription?.cancel();
+    emit(state.copyWith(createdBookingId: bookingId));
+
+    _realtimeSubscription = _bookingRepository.watchBookingStatus(bookingId).listen(
+      (updatedBooking) {
+        if (isClosed) return;
+
+        if (updatedBooking.status == BookingStatus.upcoming) {
+          emit(state.copyWith(
+            liveBookingStatus: BookingStatus.upcoming,
+            confirmedBooking: updatedBooking,
+          ));
+        } else if (updatedBooking.status == BookingStatus.cancelled) {
+          emit(state.copyWith(
+            liveBookingStatus: BookingStatus.cancelled,
+            rejectionReason: updatedBooking.rejectionReason ??
+                updatedBooking.cancellationReason ??
+                'تم رفض الطلب من قبل إدارة الصالة',
+          ));
+        } else {
+          emit(state.copyWith(liveBookingStatus: updatedBooking.status));
+        }
+      },
+      onError: (_) {},
+    );
   }
 
   Future<void> applyVoucher(String code) async {
@@ -138,14 +211,25 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     emit(state.copyWith(selectedVoucher: null, discountAmount: 0));
   }
 
-  /// Refactored: Moves user data extraction, date calculations, and discount math out of UI layer into Cubit
   Future<void> processPayment(
     CheckoutParams checkoutParams, {
     bool isArabic = false,
     File? receiptFile,
     String? paymentMethod,
     String? senderWalletPhone,
+    String? senderAccount,
+    String? transactionReference,
   }) async {
+    if (state.isHoldExpired) {
+      emit(state.copyWith(
+        status: CheckoutStatus.failure,
+        errorMessage: isArabic
+            ? 'انتهت المهلة الزمنية لحجز هذا الموعد المؤقت (10 دقائق). يرجى إعادة اختيار الموعد.'
+            : 'Hold time for this slot has expired (10 minutes). Please reselect a slot.',
+      ));
+      return;
+    }
+
     emit(state.copyWith(status: CheckoutStatus.loading));
 
     final startDateTime = DateTime(
@@ -159,29 +243,32 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
     final userName = _preferenceManager.fullName() ?? "";
     final userPhone = _preferenceManager.phoneNumber() ?? "";
-
-    String? receiptUrl;
-    if (receiptFile != null) {
-      try {
-        final fileName = 'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        receiptUrl = await _storageService.uploadFile(
-          bucket: 'receipts',
-          path: fileName,
-          file: receiptFile,
-        );
-      } catch (_) {}
-    }
-
+    final userId = _preferenceManager.userId() ?? "";
 
     final String methodStr = (paymentMethod?.toLowerCase() == 'cash' || state.selectedMethod == PaymentMethod.cash)
         ? 'cash'
         : 'manual_transfer';
+
+    final effectiveAccount = senderAccount ?? senderWalletPhone ?? state.senderWalletNumber;
 
     final roomsToBook = checkoutParams.rooms.isNotEmpty
         ? checkoutParams.rooms
         : [checkoutParams.room];
 
     String? primaryBookingId;
+
+    String? receiptUrl;
+    if (receiptFile != null) {
+      try {
+        final uId = userId.isNotEmpty ? userId : 'guest';
+        final tempId = 'proof_${DateTime.now().millisecondsSinceEpoch}';
+        receiptUrl = await _storageService.uploadPaymentProof(
+          userId: uId,
+          bookingId: tempId,
+          file: receiptFile,
+        );
+      } catch (_) {}
+    }
 
     for (int i = 0; i < roomsToBook.length; i++) {
       final currentRoom = roomsToBook[i];
@@ -238,10 +325,13 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         addOns: roomAddons,
         playMode: roomMode,
         receiptUrl: receiptUrl,
+        proofImageUrl: receiptUrl,
         paymentMethod: methodStr,
-        senderWalletPhone: methodStr == 'manual_transfer'
-            ? (senderWalletPhone ?? state.senderWalletNumber)
-            : null,
+        senderWalletPhone: methodStr == 'manual_transfer' ? effectiveAccount : null,
+        senderAccount: methodStr == 'manual_transfer' ? effectiveAccount : null,
+        transactionReference: transactionReference,
+        holdExpiresAt: state.holdExpiresAt,
+        expiresAt: state.holdExpiresAt,
       );
 
       final result = await _bookingRepository.createBooking(params);
@@ -265,6 +355,18 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       if (hasFailed) return;
     }
 
+    // Re-upload under final booking ID path: payment-proofs/{userId}/{bookingId}.jpg
+    if (receiptFile != null && primaryBookingId != null) {
+      try {
+        final uId = userId.isNotEmpty ? userId : 'guest';
+        await _storageService.uploadPaymentProof(
+          userId: uId,
+          bookingId: primaryBookingId!,
+          file: receiptFile,
+        );
+      } catch (_) {}
+    }
+
     if (state.selectedVoucher != null && primaryBookingId != null) {
       final voucherCode = (state.selectedVoucher!['code'] ?? state.selectedVoucher!['id'])
           ?.toString()
@@ -278,9 +380,16 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       }
     }
 
+    if (primaryBookingId != null) {
+      listenToBookingStatus(primaryBookingId!);
+    }
+
     try {
       sl<ProfileCubit>().getUserData();
     } catch (_) {}
-    emit(state.copyWith(status: CheckoutStatus.success));
+    emit(state.copyWith(
+      status: CheckoutStatus.success,
+      createdBookingId: primaryBookingId,
+    ));
   }
 }

@@ -26,6 +26,11 @@ class BookingModel extends Equatable {
   final bool? isFirstBooking;
   final DateTime? checkedInAt;
   final String? cancellationReason;
+  final String? senderAccount;
+  final String? transactionReference;
+  final String? proofImageUrl;
+  final DateTime? holdExpiresAt;
+  final String? rejectionReason;
 
   const BookingModel({
     required this.id,
@@ -52,6 +57,11 @@ class BookingModel extends Equatable {
     this.isFirstBooking,
     this.checkedInAt,
     this.cancellationReason,
+    this.senderAccount,
+    this.transactionReference,
+    this.proofImageUrl,
+    this.holdExpiresAt,
+    this.rejectionReason,
   });
 
   bool get isUpcoming => status == BookingStatus.upcoming || status == BookingStatus.pending;
@@ -83,6 +93,11 @@ class BookingModel extends Equatable {
         isFirstBooking,
         checkedInAt,
         cancellationReason,
+        senderAccount,
+        transactionReference,
+        proofImageUrl,
+        holdExpiresAt,
+        rejectionReason,
       ];
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -209,6 +224,11 @@ class BookingModel extends Equatable {
     final checkedInStr = json['checked_in_at']?.toString();
     final parsedCheckedIn = checkedInStr != null ? DateTime.tryParse(checkedInStr) : null;
 
+    final holdExpiresStr = (json['hold_expires_at'] ?? json['expires_at'])?.toString();
+    final parsedHoldExpires = holdExpiresStr != null ? DateTime.tryParse(holdExpiresStr) : null;
+
+    final parsedRejection = json['rejection_reason']?.toString() ?? json['cancellation_reason']?.toString();
+
     return BookingModel(
       id: json['id'].toString(),
       loungeName: loungeData?['name'] ?? '',
@@ -234,6 +254,11 @@ class BookingModel extends Equatable {
       isFirstBooking: json['is_first_booking'] as bool?,
       checkedInAt: parsedCheckedIn,
       cancellationReason: json['cancellation_reason']?.toString(),
+      senderAccount: json['sender_account']?.toString() ?? json['sender_wallet_phone']?.toString(),
+      transactionReference: json['transaction_reference']?.toString() ?? json['reference_number']?.toString(),
+      proofImageUrl: json['proof_image_url']?.toString() ?? json['receipt_url']?.toString(),
+      holdExpiresAt: parsedHoldExpires,
+      rejectionReason: parsedRejection,
     );
   }
 

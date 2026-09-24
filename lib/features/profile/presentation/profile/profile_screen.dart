@@ -12,7 +12,6 @@ import 'profile_state.dart';
 import 'widgets/logout_button.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/profile_menu_section.dart';
-import 'widgets/profile_stats_row.dart';
 import 'widgets/referral_card.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -35,8 +34,6 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               children: [
                 const ProfileHeader(),
-                24.verticalSpace,
-                const ProfileStatsRow(),
                 24.verticalSpace,
                 const ReferralCard(),
                 24.verticalSpace,

@@ -4,19 +4,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/core/constants/booking_status.dart';
+import 'package:playspot/core/utils/booking_error_formatter.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
-import 'package:playspot/art_core/router/router_keys.dart';
 
-import '../../../core/utils/booking_error_formatter.dart';
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
+import 'widgets/booking_confirmed_dialog.dart';
+import 'widgets/booking_rejected_dialog.dart';
 import 'widgets/checkout_bottom_pay_bar.dart';
+import 'widgets/checkout_countdown_timer_widget.dart';
 import 'widgets/checkout_late_arrival_banner.dart';
 import 'widgets/checkout_payment_methods_section.dart';
 import 'widgets/checkout_summary_card.dart';
@@ -56,8 +60,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<CheckoutCubit, CheckoutState>(
-      listenWhen: (previous, current) => previous.status != current.status,
+      listenWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.liveBookingStatus != current.liveBookingStatus ||
+          previous.isHoldExpired != current.isHoldExpired,
       listener: (context, state) {
+        if (state.liveBookingStatus == BookingStatus.upcoming && state.confirmedBooking != null) {
+          BookingConfirmedDialog.show(context, state.confirmedBooking!);
+          return;
+        }
+
+        if (state.liveBookingStatus == BookingStatus.cancelled && state.rejectionReason != null) {
+          BookingRejectedDialog.show(
+            context: context,
+            rejectionReason: state.rejectionReason!,
+            onRetry: () {},
+            onCancel: () => context.pop(),
+          );
+          return;
+        }
+
         if (state.status == CheckoutStatus.success) {
           _showSuccessDialog(context);
         } else if (state.status == CheckoutStatus.failure) {
@@ -91,6 +113,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const CheckoutCountdownTimerWidget(),
+              SizedBox(height: 16.h),
               CheckoutSummaryCard(params: widget.params),
               SizedBox(height: 20.h),
               CheckoutVoucherSection(
