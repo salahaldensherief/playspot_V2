@@ -76,40 +76,45 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     // 1. If specific booking ID requested
     if (bookingId != null && bookingId.isNotEmpty) {
       dev.log("[LIVESESSION_DS] Fetching specific booking: $bookingId");
-      final response = await _client
-          .from('bookings')
-          .select(selectQuery)
-          .eq('id', bookingId)
-          .maybeSingle();
+      try {
+        final response = await _client
+            .from('bookings')
+            .select(selectQuery)
+            .eq('id', bookingId)
+            .maybeSingle();
 
-      if (response == null) return null;
-      final model = ActiveSessionModel.fromJson(Map<String, dynamic>.from(response));
-      if (model.status != 'in_progress') {
-        dev.log("[LIVESESSION_DS] Booking is not active/in_progress (status=${model.status})");
+        if (response == null) return null;
+        final model = ActiveSessionModel.fromJson(Map<String, dynamic>.from(response));
+        dev.log("[LIVESESSION_DS] GET_ACTIVE_SESSION SUCCESS: bookingId=${model.bookingId}, status=${model.status}");
+        return model;
+      } catch (e) {
+        dev.log("[LIVESESSION_DS] Fetching specific booking $bookingId error: $e");
         return null;
       }
-      dev.log("[LIVESESSION_DS] GET_ACTIVE_SESSION SUCCESS: bookingId=${model.bookingId}");
-      return model;
     }
 
     // 2. Fetch active in_progress session ONLY
     dev.log("[LIVESESSION_DS] Fetching active in_progress session...");
-    final activeResponse = await _client
-        .from('bookings')
-        .select(selectQuery)
-        .eq('user_id', userId)
-        .eq('status', 'in_progress')
-        .order('created_at', ascending: false)
-        .limit(1)
-        .maybeSingle();
+    try {
+      final activeResponse = await _client
+          .from('bookings')
+          .select(selectQuery)
+          .eq('user_id', userId)
+          .eq('status', 'in_progress')
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
 
-    if (activeResponse != null) {
-      final activeModel = ActiveSessionModel.fromJson(Map<String, dynamic>.from(activeResponse));
-      final isExpired = now.isAfter(activeModel.endTime.add(const Duration(minutes: 5)));
-      if (!isExpired) {
-        dev.log("[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}");
-        return activeModel;
+      if (activeResponse != null) {
+        final activeModel = ActiveSessionModel.fromJson(Map<String, dynamic>.from(activeResponse));
+        final isExpired = now.isAfter(activeModel.endTime.add(const Duration(minutes: 5)));
+        if (!isExpired) {
+          dev.log("[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}");
+          return activeModel;
+        }
       }
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] Fetching active in_progress session error: $e");
     }
 
     dev.log("[LIVESESSION_DS] No active session found");
@@ -376,15 +381,48 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
             .maybeSingle();
         final loungeId = bookingRes?['lounge_id']?.toString() ?? '';
 
-        final response = await _client.rpc('place_canteen_order', params: {
-          'p_booking_id': bookingId,
-          'p_lounge_id': loungeId.isNotEmpty ? loungeId : null,
-          'p_user_id': currentUserId,
-          'p_items': formattedItems,
-          'p_total_price': null,
-          'p_note': notes.isNotEmpty ? notes : null,
-        });
-        dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC with full params SUCCESS: $response");
+        try {
+          final response = await _client.rpc('place_canteen_order', params: {
+            'p_booking_id': bookingId,
+            'p_lounge_id': loungeId.isNotEmpty ? loungeId : null,
+            'p_user_id': currentUserId,
+            'p_items': formattedItems,
+            'p_total_price': null,
+            'p_note': notes.isNotEmpty ? notes : null,
+          });
+          dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC with full params SUCCESS: $response");
+        } catch (e2) {
+          dev.log("[LIVESESSION_DS] Both RPCs failed: $e2, attempting direct insert into canteen_orders...");
+          final double total = items.fold(0.0, (sum, i) => sum + i.total);
+          final orderRes = await _client.from('canteen_orders').insert({
+            'booking_id': bookingId,
+            if (loungeId.isNotEmpty) 'lounge_id': loungeId,
+            'user_id': currentUserId,
+            'total_price': total,
+            'status': 'pending',
+            if (notes.isNotEmpty) 'note': notes,
+            'created_at': DateTime.now().toIso8601String(),
+          }).select('id').maybeSingle();
+
+          final orderId = orderRes?['id']?.toString();
+          if (orderId != null && orderId.isNotEmpty) {
+            for (var item in items) {
+              await _client.from('canteen_order_items').insert({
+                'canteen_order_id': orderId,
+                'extra_id': item.id,
+                'name_ar': item.nameAr ?? item.name,
+                'name_en': item.nameEn ?? item.name,
+                'unit_price': item.price,
+                'quantity': item.quantity,
+                'total_price': item.total,
+                if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
+              });
+            }
+            dev.log("[LIVESESSION_DS] Direct insert to canteen_orders & canteen_order_items SUCCESS");
+          } else {
+            rethrow;
+          }
+        }
       }
     } catch (e, st) {
       dev.log("[LIVESESSION_DS] PLACE_ORDER FAILED: $e", error: e, stackTrace: st);
@@ -497,6 +535,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         'p_comment': comment,
       });
       dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW RPC (p_ params) SUCCESS");
+      return;
     } catch (e1) {
       dev.log("[LIVESESSION_DS] submit_lounge_review RPC (p_ params) failed: $e1");
 
@@ -510,6 +549,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
           'comment': comment,
         });
         dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW RPC (standard params) SUCCESS");
+        return;
       } catch (e2) {
         dev.log("[LIVESESSION_DS] submit_lounge_review RPC (standard params) failed: $e2");
       }

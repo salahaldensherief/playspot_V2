@@ -28,6 +28,15 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
   String? _note;
 
   @override
+  void initState() {
+    super.initState();
+    final session = widget.cubit.state.session;
+    if (widget.cubit.state.menu.isEmpty && session != null && session.loungeId.isNotEmpty) {
+      widget.cubit.loadMenu(session.loungeId);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       height: 0.8.sh,

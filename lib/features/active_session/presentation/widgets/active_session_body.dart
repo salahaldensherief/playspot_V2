@@ -81,7 +81,7 @@ class ActiveSessionBody extends StatelessWidget {
                     ),
                     buttonConfig: ButtonConfig(
                       height: 44.h,
-                      width: 120.w,
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
                       backgroundColor: AppColors.neonBlue,
                       borderRadius: 12.r,
                     ),

@@ -108,11 +108,13 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
         });
       }
     } catch (e) {
-      GameHudToast.show(
-        context,
-        AppStrings.errorPickingImage.tr(args: ['$e']),
-        type: ToastType.error,
-      );
+      if (mounted) {
+        GameHudToast.show(
+          context,
+          AppStrings.errorPickingImage.tr(args: ['$e']),
+          type: ToastType.error,
+        );
+      }
     }
   }
 
@@ -389,10 +391,11 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                   return;
                 }
                 setState(() => _isUploading = true);
+                final nav = Navigator.of(context);
                 await widget.onSubmit(_selectedMethod, _receiptFile!);
                 if (mounted) {
                   setState(() => _isUploading = false);
-                  Navigator.pop(context);
+                  nav.pop();
                 }
               },
             ),

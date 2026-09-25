@@ -50,7 +50,8 @@ class SupabaseStorageServiceImpl implements StorageService {
     required String userId,
     required File file,
   }) async {
-    final fileExt = file.path.split('.').last;
+    final rawExt = file.path.split('.').last.toLowerCase();
+    final fileExt = rawExt.contains('/') || rawExt.length > 5 ? 'jpg' : rawExt;
     final path = '$userId/avatar.$fileExt';
     return uploadFile(
       bucket: 'avatars',
@@ -65,9 +66,10 @@ class SupabaseStorageServiceImpl implements StorageService {
     required String bookingId,
     required File file,
   }) async {
-    final path = bookingId.endsWith('.jpg') || bookingId.endsWith('.jpeg') || bookingId.endsWith('.png')
-        ? '$userId/$bookingId'
-        : '$userId/$bookingId/receipt.jpg';
+    final rawExt = file.path.split('.').last.toLowerCase();
+    final fileExt = rawExt.contains('/') || rawExt.length > 5 ? 'jpg' : rawExt;
+    final cleanBookingId = bookingId.replaceAll(RegExp(r'\.(jpg|jpeg|png)$', caseSensitive: false), '');
+    final path = '$userId/$cleanBookingId/receipt.$fileExt';
     return uploadFile(
       bucket: 'payment-proofs',
       path: path,
