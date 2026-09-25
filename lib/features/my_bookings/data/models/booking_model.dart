@@ -114,8 +114,14 @@ class BookingModel extends Equatable {
     final loungeData = json['lounges'] as Map<String, dynamic>?;
     final roomData = json['rooms'] as Map<String, dynamic>?;
 
-    double? parsedLat = (loungeData?['latitude'] as num?)?.toDouble() ?? (loungeData?['lat'] as num?)?.toDouble();
-    double? parsedLng = (loungeData?['longitude'] as num?)?.toDouble() ?? (loungeData?['lng'] as num?)?.toDouble();
+    double? parsedLat = (loungeData?['latitude'] as num?)?.toDouble() ??
+        (loungeData?['lat'] as num?)?.toDouble() ??
+        (json['latitude'] as num?)?.toDouble() ??
+        (json['lat'] as num?)?.toDouble();
+    double? parsedLng = (loungeData?['longitude'] as num?)?.toDouble() ??
+        (loungeData?['lng'] as num?)?.toDouble() ??
+        (json['longitude'] as num?)?.toDouble() ??
+        (json['lng'] as num?)?.toDouble();
 
     if (parsedLat == null && loungeData?['location_point'] != null) {
       final loc = loungeData!['location_point'];

@@ -138,13 +138,11 @@ class AppStatusCubit extends Cubit<AppStatusState> {
     required bool isSoftUpdateDismissed,
   }) {
     if (entity.maintenanceMode) {
-      // If maintenance mode is active, maintenance screen takes priority unless user has an active session
       if (hasActiveSession) {
-        // Return normal or softUpdate for UI navigation, but maintenance banner will be rendered!
         if (VersionUtils.isLowerThan(currentVersion, entity.minSupportedVersion)) {
           return AppStatusType.forceUpdate;
         }
-        return AppStatusType.normal;
+        return AppStatusType.maintenanceRestricted;
       }
       return AppStatusType.maintenance;
     }

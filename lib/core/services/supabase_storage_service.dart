@@ -50,8 +50,14 @@ class SupabaseStorageServiceImpl implements StorageService {
     required String userId,
     required File file,
   }) async {
+    final length = await file.length();
+    if (length > 2 * 1024 * 1024) {
+      AppLogger.error('[StorageService] Avatar size exceeds 2MB limit ($length bytes)');
+      return null;
+    }
     final rawExt = file.path.split('.').last.toLowerCase();
-    final fileExt = rawExt.contains('/') || rawExt.length > 5 ? 'jpg' : rawExt;
+    final allowedExts = {'jpg', 'jpeg', 'png', 'webp'};
+    final fileExt = allowedExts.contains(rawExt) ? rawExt : 'jpg';
     final path = '$userId/avatar.$fileExt';
     return uploadFile(
       bucket: 'avatars',
@@ -66,9 +72,15 @@ class SupabaseStorageServiceImpl implements StorageService {
     required String bookingId,
     required File file,
   }) async {
+    final length = await file.length();
+    if (length > 5 * 1024 * 1024) {
+      AppLogger.error('[StorageService] Payment proof size exceeds 5MB limit ($length bytes)');
+      return null;
+    }
     final rawExt = file.path.split('.').last.toLowerCase();
-    final fileExt = rawExt.contains('/') || rawExt.length > 5 ? 'jpg' : rawExt;
-    final cleanBookingId = bookingId.replaceAll(RegExp(r'\.(jpg|jpeg|png)$', caseSensitive: false), '');
+    final allowedExts = {'jpg', 'jpeg', 'png', 'webp', 'pdf'};
+    final fileExt = allowedExts.contains(rawExt) ? rawExt : 'jpg';
+    final cleanBookingId = bookingId.replaceAll(RegExp(r'\.(jpg|jpeg|png|pdf)$', caseSensitive: false), '');
     final path = '$userId/$cleanBookingId/receipt.$fileExt';
     return uploadFile(
       bucket: 'payment-proofs',

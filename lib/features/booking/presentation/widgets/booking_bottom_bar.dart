@@ -85,10 +85,26 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                           fontSize: 12.sp,
                           color: AppColors.textSecondary,
                         ),
-                        PriceWidget(
-                          price: totalPrice,
-                          fontSize: 20.sp,
-                          color: AppColors.neonBlue,
+                        Row(
+                          children: [
+                            if (offerInfo.hasOffer) ...[
+                              Text(
+                                "${(subtotals['originalRoomSubtotal'] ?? 0.0).toInt()} ${AppStrings.egp.tr()}",
+                                style: TextStyle(
+                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              6.horizontalSpace,
+                            ],
+                            PriceWidget(
+                              price: totalPrice,
+                              fontSize: 20.sp,
+                              color: offerInfo.hasOffer ? AppColors.success : AppColors.neonBlue,
+                            ),
+                          ],
                         ),
                       ],
                     ),

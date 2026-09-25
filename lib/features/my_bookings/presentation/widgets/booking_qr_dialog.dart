@@ -1,23 +1,21 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
+import '../../data/models/booking_model.dart';
 
-class BookingConfirmedDialog extends StatelessWidget {
+class BookingQrDialog extends StatelessWidget {
   final BookingModel booking;
 
-  const BookingConfirmedDialog({
+  const BookingQrDialog({
     super.key,
     required this.booking,
   });
@@ -25,8 +23,7 @@ class BookingConfirmedDialog extends StatelessWidget {
   static Future<void> show(BuildContext context, BookingModel booking) {
     return showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => BookingConfirmedDialog(booking: booking),
+      builder: (_) => BookingQrDialog(booking: booking),
     );
   }
 
@@ -44,36 +41,22 @@ class BookingConfirmedDialog extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.success,
-                  size: 48.sp,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AppText(
+                    text: isArabic ? "رمز QR للحجز" : "Booking QR Code",
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close_rounded, color: Colors.white70, size: 20.sp),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
               ),
-              SizedBox(height: 16.h),
-              AppText(
-                text: isArabic ? 'تم تأكيد حجزك بنجاح! 🎉' : 'Booking Confirmed!',
-                fontSize: 20.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 8.h),
-              AppText(
-                text: isArabic
-                    ? 'وافقت الصالة على تحويلك. يرجى إبراز رمز QR عند الوصول.'
-                    : 'The venue approved your payment. Show this QR code upon arrival.',
-                fontSize: 13.sp,
-                color: AppColors.textSecondary,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 20.h),
+              SizedBox(height: 12.h),
 
               // QR Code Container
               Container(
@@ -92,34 +75,39 @@ class BookingConfirmedDialog extends StatelessWidget {
               SizedBox(height: 16.h),
 
               AppText(
-                text: '${booking.loungeName} · ${booking.roomName}',
-                fontSize: 14.sp,
+                text: booking.loungeName.isNotEmpty ? booking.loungeName : "PlaySpot",
+                fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.neonBlue,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 4.h),
               AppText(
-                text: 'ID: #${booking.id}',
+                text: "${booking.roomName} • ${booking.date.toAppDateString()}",
                 fontSize: 12.sp,
                 color: AppColors.textSecondary,
+                textAlign: TextAlign.center,
               ),
-              SizedBox(height: 24.h),
+              SizedBox(height: 4.h),
+              AppText(
+                text: "ID: #${booking.id}",
+                fontSize: 11.sp,
+                color: AppColors.textSecondary.withValues(alpha: 0.7),
+              ),
+              SizedBox(height: 20.h),
 
               AppButton(
                 content: ButtonContent(
-                  label: AppStrings.viewMyBookings.tr(),
+                  label: isArabic ? "إغلاق" : "Close",
                 ),
                 buttonConfig: ButtonConfig(
-                  height: 48.h,
-                  gradient: AppColors.primaryGradient,
+                  height: 44.h,
+                  backgroundColor: AppColors.transparent,
+                  borderColor: AppColors.borderDefault,
                   borderRadius: 12.r,
                 ),
                 behavior: ButtonBehavior.tap(
-                  onTap: () {
-                    Navigator.pop(context);
-                    context.goNamed(RouterKeys.myBookings);
-                  },
+                  onTap: () => Navigator.pop(context),
                 ),
               ),
             ],

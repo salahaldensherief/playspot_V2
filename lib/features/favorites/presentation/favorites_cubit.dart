@@ -35,17 +35,29 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     );
   }
 
-  Future<void> toggleFavorite(String loungeId) async {
+  Future<void> toggleFavorite(String loungeId, [dynamic lounge]) async {
     final previousIds = List<String>.from(state.favoriteIds);
+    final previousLounges = List<dynamic>.from(state.favoriteLounges);
     final isFavorite = previousIds.contains(loungeId);
     
     final updatedIds = List<String>.from(previousIds);
+    final updatedLounges = List<dynamic>.from(previousLounges);
+
     if (isFavorite) {
       updatedIds.remove(loungeId);
+      updatedLounges.removeWhere((l) => l.id == loungeId);
     } else {
       updatedIds.add(loungeId);
+      if (lounge != null && !updatedLounges.any((l) => l.id == loungeId)) {
+        updatedLounges.add(lounge);
+      }
     }
-    if (!isClosed) emit(state.copyWith(favoriteIds: updatedIds));
+    if (!isClosed) {
+      emit(state.copyWith(
+        favoriteIds: updatedIds,
+        favoriteLounges: List.from(updatedLounges),
+      ));
+    }
 
     final result = isFavorite 
         ? await _repository.removeFavorite(loungeId)
@@ -55,7 +67,12 @@ class FavoritesCubit extends Cubit<FavoritesState> {
 
     result.fold(
       (failure) {
-        if (!isClosed) emit(state.copyWith(favoriteIds: previousIds));
+        if (!isClosed) {
+          emit(state.copyWith(
+            favoriteIds: previousIds,
+            favoriteLounges: List.from(previousLounges),
+          ));
+        }
       },
       (_) {
         if (!isClosed && state.status == FavoritesStatus.success) {

@@ -16,38 +16,83 @@ class DurationSelector extends StatelessWidget {
     final isArabic = context.locale.languageCode == 'ar';
 
     return BlocBuilder<BookingCubit, BookingState>(
-      buildWhen: (previous, current) => previous.durationMinutes != current.durationMinutes,
+      buildWhen: (previous, current) =>
+          previous.durationMinutes != current.durationMinutes ||
+          previous.startTime != current.startTime ||
+          previous.bookedTimeSlots != current.bookedTimeSlots,
       builder: (context, state) {
+        final maxDuration = bookingCubit.getMaxAvailableDurationMinutes();
+        final canIncrease = state.durationMinutes < maxDuration;
+        final canDecrease = state.durationMinutes > 15;
+
         return Container(
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(color: AppColors.borderDefault),
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(
+              color: !canIncrease && state.startTime != null
+                  ? AppColors.warning.withValues(alpha: 0.5)
+                  : AppColors.borderDefault,
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
             children: [
-              IconButton(
-                icon: Icon(Icons.remove_circle_outline, color: AppColors.textSecondary, size: 28.sp),
-                onPressed: () => bookingCubit.updateDuration(-30),
-              ),
-              SizedBox(width: 24.w),
-              Column(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AppText(
-                    text: state.getFormattedDuration(isArabic),
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.neonBlue,
+                  IconButton(
+                    icon: Icon(
+                      Icons.remove_circle_outline,
+                      color: canDecrease
+                          ? AppColors.textSecondary
+                          : AppColors.textSecondary.withValues(alpha: 0.2),
+                      size: 28.sp,
+                    ),
+                    onPressed: canDecrease ? () => bookingCubit.updateDuration(-30) : null,
+                  ),
+                  SizedBox(width: 20.w),
+                  Column(
+                    children: [
+                      AppText(
+                        text: state.getFormattedDuration(isArabic),
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.neonBlue,
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 20.w),
+                  IconButton(
+                    icon: Icon(
+                      Icons.add_circle_outline,
+                      color: canIncrease
+                          ? AppColors.neonBlue
+                          : AppColors.textSecondary.withValues(alpha: 0.2),
+                      size: 28.sp,
+                    ),
+                    onPressed: canIncrease ? () => bookingCubit.updateDuration(30) : null,
                   ),
                 ],
               ),
-              SizedBox(width: 24.w),
-              IconButton(
-                icon: Icon(Icons.add_circle_outline, color: AppColors.neonBlue, size: 28.sp),
-                onPressed: () => bookingCubit.updateDuration(30),
-              ),
+              if (!canIncrease && state.startTime != null) ...[
+                SizedBox(height: 8.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.info_outline, color: AppColors.warning, size: 12.sp),
+                    SizedBox(width: 4.w),
+                    AppText(
+                      text: isArabic
+                          ? "أقصى مدة مجهزة حتى الحجز التالي"
+                          : "Max duration reached before next booking",
+                      fontSize: 10.sp,
+                      color: AppColors.warning,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         );

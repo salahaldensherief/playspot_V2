@@ -1,17 +1,19 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/core/models/paginated_response.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
-import 'package:playspot/features/profile/data/models/redemption_option_model.dart';
-import 'package:playspot/features/profile/data/models/loyalty_status_model.dart';
-import 'package:playspot/features/profile/data/models/loyalty_mission_model.dart';
-import 'package:playspot/features/profile/data/models/user_referral_stats_model.dart';
 import 'package:playspot/features/profile/data/models/claim_referral_result.dart';
+import 'package:playspot/features/profile/data/models/loyalty_mission_model.dart';
+import 'package:playspot/features/profile/data/models/loyalty_status_model.dart';
+import 'package:playspot/features/profile/data/models/redemption_option_model.dart';
+import 'package:playspot/features/profile/data/models/user_referral_stats_model.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'package:playspot/features/auth/data/models/user_model.dart';
 import 'profile_state.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
@@ -25,15 +27,31 @@ class ProfileCubit extends Cubit<ProfileState> {
     this._preferenceManager,
   ) : super(const ProfileState());
 
+  void updateUser(UserModel updatedUser) {
+    if (!isClosed) {
+      emit(state.copyWith(user: updatedUser));
+    }
+  }
+
   void getUserData() async {
     if (isClosed) return;
-    emit(state.copyWith(status: ProfileStatus.loading));
+
+    // Cache-First Strategy: Instantly render cached user data for 0ms loading
+    final cachedUser = _profileRepository.getCurrentUser();
+    if (cachedUser != null && state.user == null) {
+      emit(state.copyWith(
+        status: ProfileStatus.success,
+        user: cachedUser,
+      ));
+    } else if (state.user == null) {
+      emit(state.copyWith(status: ProfileStatus.loading));
+    }
 
     final userProfileRes = await _profileRepository.getUserProfile();
     if (isClosed) return;
 
     final user = userProfileRes.fold(
-      (_) => _profileRepository.getCurrentUser(),
+      (_) => cachedUser ?? _profileRepository.getCurrentUser(),
       (userModel) => userModel,
     );
 
@@ -53,11 +71,16 @@ class ProfileCubit extends Cubit<ProfileState> {
         if (isClosed) return;
 
         final pointsRes = results[0] as Either<Failure, int>;
-        final optionsRes = results[1] as Either<Failure, List<RedemptionOptionModel>>;
-        final vouchersRes = results[2] as Either<Failure, List<Map<String, dynamic>>>;
-        final historyRes = results[3] as Either<Failure, PaginatedResponse<Map<String, dynamic>>>;
+        final optionsRes =
+            results[1] as Either<Failure, List<RedemptionOptionModel>>;
+        final vouchersRes =
+            results[2] as Either<Failure, List<Map<String, dynamic>>>;
+        final historyRes =
+            results[3]
+                as Either<Failure, PaginatedResponse<Map<String, dynamic>>>;
         final loyaltyRes = results[4] as Either<Failure, LoyaltyStatusModel>;
-        final missionsRes = results[5] as Either<Failure, List<LoyaltyMissionModel>>;
+        final missionsRes =
+            results[5] as Either<Failure, List<LoyaltyMissionModel>>;
         final statsRes = results[6] as Either<Failure, UserReferralStatsModel>;
         final bookingsCountRes = results[7] as Either<Failure, int>;
 
@@ -74,33 +97,42 @@ class ProfileCubit extends Cubit<ProfileState> {
         );
 
         if (!isClosed) {
-          emit(state.copyWith(
-            status: ProfileStatus.success,
-            user: user,
-            pointsBalance: points,
-            totalBookingsCount: totalBookings,
-            redemptionOptions: optionsRes.fold((l) => [], (r) => r),
-            myVouchers: vouchersRes.fold((l) => [], (r) => r),
-            pointsHistory: historyRes.fold((l) => [], (r) => r.items),
-            loyaltyStatus: loyaltyStatus,
-            loyaltyMissions: missionsRes.fold((l) => [], (r) => r),
-            referralStats: statsRes.fold((l) => null, (r) => r),
-          ));
+          emit(
+            state.copyWith(
+              status: ProfileStatus.success,
+              user: user,
+              pointsBalance: points,
+              totalBookingsCount: totalBookings,
+              redemptionOptions: optionsRes.fold((l) => [], (r) => r),
+              myVouchers: vouchersRes.fold((l) => [], (r) => r),
+              pointsHistory: historyRes.fold((l) => [], (r) => r.items),
+              loyaltyStatus: loyaltyStatus,
+              loyaltyMissions: missionsRes.fold((l) => [], (r) => r),
+              referralStats: statsRes.fold((l) => null, (r) => r),
+            ),
+          );
         }
 
         // Check if there is a pending referral code to claim after successful auth & email confirmation
         claimPendingReferralCode();
       } catch (e) {
         if (!isClosed) {
-          emit(state.copyWith(
-            status: ProfileStatus.error,
-            errorMessage: e.toString(),
-          ));
+          emit(
+            state.copyWith(
+              status: ProfileStatus.error,
+              errorMessage: e.toString(),
+            ),
+          );
         }
       }
     } else {
       if (!isClosed) {
-        emit(state.copyWith(status: ProfileStatus.error, errorMessage: AppStrings.userNotFound));
+        emit(
+          state.copyWith(
+            status: ProfileStatus.error,
+            errorMessage: AppStrings.userNotFound,
+          ),
+        );
       }
     }
   }
@@ -115,9 +147,11 @@ class ProfileCubit extends Cubit<ProfileState> {
     final supabaseUser = Supabase.instance.client.auth.currentUser;
     if (supabaseUser == null) return;
 
-    final isOAuth = supabaseUser.appMetadata['provider'] != 'email' &&
+    final isOAuth =
+        supabaseUser.appMetadata['provider'] != 'email' &&
         supabaseUser.appMetadata['provider'] != null;
-    final isEmailConfirmed = supabaseUser.emailConfirmedAt != null ||
+    final isEmailConfirmed =
+        supabaseUser.emailConfirmedAt != null ||
         isOAuth ||
         (supabaseUser.email == null || supabaseUser.email!.isEmpty);
 
@@ -127,27 +161,26 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
 
     final result = await _profileRepository.claimReferralCode(pendingCode);
-    result.fold(
-      (failure) {},
-      (claimRes) {
-        if (claimRes.status == ClaimReferralStatus.success ||
-            claimRes.status == ClaimReferralStatus.alreadyClaimed ||
-            claimRes.status == ClaimReferralStatus.invalidCode) {
-          _preferenceManager.clearPendingReferralCode();
-        }
+    result.fold((failure) {}, (claimRes) {
+      if (claimRes.status == ClaimReferralStatus.success ||
+          claimRes.status == ClaimReferralStatus.alreadyClaimed ||
+          claimRes.status == ClaimReferralStatus.invalidCode) {
+        _preferenceManager.clearPendingReferralCode();
+      }
 
-        if (!isClosed) {
-          emit(state.copyWith(
+      if (!isClosed) {
+        emit(
+          state.copyWith(
             status: ProfileStatus.claimReferralResult,
             claimResult: claimRes,
-          ));
-        }
+          ),
+        );
+      }
 
-        if (claimRes.status == ClaimReferralStatus.success) {
-          getUserData();
-        }
-      },
-    );
+      if (claimRes.status == ClaimReferralStatus.success) {
+        getUserData();
+      }
+    });
   }
 
   Future<void> redeemPoints(String optionId) async {
@@ -157,26 +190,40 @@ class ProfileCubit extends Cubit<ProfileState> {
     result.fold(
       (failure) {
         if (!isClosed) {
-          emit(state.copyWith(status: ProfileStatus.error, errorMessage: failure.message));
+          emit(
+            state.copyWith(
+              status: ProfileStatus.error,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (data) async {
         if (data['success'] == true) {
-          final newBalance = (data['new_balance'] as num?)?.toInt() ?? state.pointsBalance;
+          final newBalance =
+              (data['new_balance'] as num?)?.toInt() ?? state.pointsBalance;
           if (!isClosed) {
-            emit(state.copyWith(
-              status: ProfileStatus.redeemSuccess,
-              pointsBalance: newBalance,
-            ));
+            emit(
+              state.copyWith(
+                status: ProfileStatus.redeemSuccess,
+                pointsBalance: newBalance,
+              ),
+            );
           }
           await Future.delayed(const Duration(milliseconds: 200));
           if (!isClosed) {
             getUserData();
           }
         } else {
-          final errorMsg = data['error']?.toString() ?? AppStrings.failedToRedeemPoints;
+          final errorMsg =
+              data['error']?.toString() ?? AppStrings.failedToRedeemPoints;
           if (!isClosed) {
-            emit(state.copyWith(status: ProfileStatus.error, errorMessage: errorMsg));
+            emit(
+              state.copyWith(
+                status: ProfileStatus.error,
+                errorMessage: errorMsg,
+              ),
+            );
           }
         }
       },
@@ -190,10 +237,12 @@ class ProfileCubit extends Cubit<ProfileState> {
     result.fold(
       (failure) {
         if (!isClosed) {
-          emit(state.copyWith(
-            status: ProfileStatus.error,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: ProfileStatus.error,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (_) {

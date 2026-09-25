@@ -1,7 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:playspot/features/notifications/data/models/notification_model.dart';
 import 'strategies/active_session_notification_strategy.dart';
 import 'strategies/booking_notification_strategy.dart';
 import 'strategies/default_notification_strategy.dart';
+import 'strategies/loyalty_notification_strategy.dart';
 import 'strategies/notification_strategy_registry.dart';
+import 'strategies/offer_notification_strategy.dart';
+import 'strategies/tournament_notification_strategy.dart';
 
 typedef NotificationNavigationHandler = bool Function(Map<String, dynamic> data);
 
@@ -15,6 +20,9 @@ class NotificationRouter {
     strategies: [
       const BookingNotificationStrategy(),
       const ActiveSessionNotificationStrategy(),
+      const OfferNotificationStrategy(),
+      const LoyaltyNotificationStrategy(),
+      const TournamentNotificationStrategy(),
     ],
     fallbackStrategy: const DefaultNotificationStrategy(),
   );
@@ -38,6 +46,19 @@ class NotificationRouter {
     } else {
       _pendingData = null;
     }
+  }
+
+  /// Converts a [NotificationModel] into a normalized payload map and delegates routing to Strategy Registry.
+  static void navigateFromModel(NotificationModel notification, [BuildContext? context]) {
+    final Map<String, dynamic> payload = {
+      'type': notification.type.name,
+      'title': notification.title,
+      'body': notification.body,
+      'id': notification.id,
+      ...?notification.data,
+    };
+
+    navigate(payload);
   }
 
   static void handlePending() {

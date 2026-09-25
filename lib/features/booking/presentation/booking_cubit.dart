@@ -134,6 +134,31 @@ class BookingCubit extends Cubit<BookingState> {
     fetchBookedSlots(date);
   }
 
+  /// Calculates maximum continuous free duration in minutes before the next booked slot
+  int getMaxAvailableDurationMinutes([TimeOfDay? customStartTime, BookingState? customState]) {
+    final sState = customState ?? state;
+    final start = customStartTime ?? sState.startTime;
+    if (start == null) return 720;
+
+    final startDateTime = (start.hour >= 6)
+        ? DateTime(sState.selectedDate.year, sState.selectedDate.month, sState.selectedDate.day, start.hour, start.minute)
+        : DateTime(sState.selectedDate.year, sState.selectedDate.month, sState.selectedDate.day + 1, start.hour, start.minute);
+
+    int free15MinCount = 0;
+    // Check up to 12 hours (48 slots of 15 minutes)
+    for (int i = 0; i < 48; i++) {
+      final checkTime = startDateTime.add(Duration(minutes: i * 15));
+      final tod = TimeOfDay(hour: checkTime.hour, minute: checkTime.minute);
+      if (sState.bookedTimeSlots.any((slot) => slot.hour == tod.hour && slot.minute == tod.minute)) {
+        break; // Stop at the first booked slot!
+      }
+      free15MinCount++;
+    }
+
+    final maxMins = free15MinCount * 15;
+    return maxMins < 15 ? 15 : maxMins;
+  }
+
   void selectStartTime(TimeOfDay time) {
     if (isSlotBooked(time)) return;
 
@@ -151,7 +176,7 @@ class BookingCubit extends Cubit<BookingState> {
         time.minute,
       );
 
-      if (time.hour < 10) {
+      if (time.hour < 6) {
         slotDateTime = slotDateTime.add(const Duration(days: 1));
       }
 
@@ -161,18 +186,31 @@ class BookingCubit extends Cubit<BookingState> {
     }
 
     HapticFeedback.lightImpact();
-    emit(state.copyWith(startTime: time));
+
+    // Auto-cap duration if current duration extends past next booked slot!
+    final tempState = state.copyWith(startTime: time);
+    final maxAllowed = getMaxAvailableDurationMinutes(time, tempState);
+    final cappedDuration = state.durationMinutes.clamp(15, maxAllowed);
+
+    emit(tempState.copyWith(durationMinutes: cappedDuration));
   }
 
   void setDurationMinutes(int minutes) {
-    if (state.startTime != null && !isRangeAvailable(state.startTime!, minutes)) return;
+    final maxAllowed = getMaxAvailableDurationMinutes();
+    final cappedMinutes = minutes.clamp(15, maxAllowed);
     HapticFeedback.lightImpact();
-    emit(state.copyWith(durationMinutes: minutes));
+    emit(state.copyWith(durationMinutes: cappedMinutes));
   }
 
   void updateDuration(int deltaMinutes) {
-    final newDuration = (state.durationMinutes + deltaMinutes).clamp(30, 720);
-    if (state.startTime != null && !isRangeAvailable(state.startTime!, newDuration)) return;
+    final maxAllowed = getMaxAvailableDurationMinutes();
+    final newDuration = (state.durationMinutes + deltaMinutes).clamp(15, maxAllowed);
+
+    if (newDuration == state.durationMinutes && deltaMinutes > 0) {
+      HapticFeedback.vibrate();
+      return;
+    }
+
     HapticFeedback.lightImpact();
     emit(state.copyWith(durationMinutes: newDuration));
   }
@@ -182,17 +220,7 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   bool isRangeAvailable(TimeOfDay start, int durationMinutes) {
-    final startDateTime = (start.hour >= 10)
-        ? DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day, start.hour, start.minute)
-        : DateTime(state.selectedDate.year, state.selectedDate.month, state.selectedDate.day + 1, start.hour, start.minute);
-
-    for (int i = 0; i < durationMinutes; i += 30) {
-      final checkTime = startDateTime.add(Duration(minutes: i));
-      final tod = TimeOfDay(hour: checkTime.hour, minute: checkTime.minute);
-      if (state.bookedTimeSlots.any((slot) => slot.hour == tod.hour && slot.minute == tod.minute)) {
-        return false;
-      }
-    }
-    return true;
+    final maxAllowed = getMaxAvailableDurationMinutes(start);
+    return durationMinutes <= maxAllowed;
   }
 }

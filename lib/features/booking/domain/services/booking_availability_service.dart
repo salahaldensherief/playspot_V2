@@ -55,7 +55,7 @@ class BookingAvailabilityService {
     }
   }
 
-  /// Calculates all 30-minute booked [TimeOfDay] slots for a list of [TimeRange]s on a given date.
+  /// Calculates all 15-minute booked [TimeOfDay] slots for a list of [TimeRange]s on a given date.
   List<TimeOfDay> calculateBookedSlots(
     List<TimeRange> roomBookings,
     DateTime date,
@@ -63,11 +63,11 @@ class BookingAvailabilityService {
     final List<TimeOfDay> bookedSlots = [];
 
     for (int h = 0; h < 24; h++) {
-      for (int m in const [0, 30]) {
-        final slotDateTime = (h >= 10)
+      for (int m in const [0, 15, 30, 45]) {
+        final slotDateTime = (h >= 6)
             ? DateTime(date.year, date.month, date.day, h, m)
             : DateTime(date.year, date.month, date.day + 1, h, m);
-        final slotEnd = slotDateTime.add(const Duration(minutes: 30));
+        final slotEnd = slotDateTime.add(const Duration(minutes: 15));
 
         final isOccupied = roomBookings.any(
           (range) =>

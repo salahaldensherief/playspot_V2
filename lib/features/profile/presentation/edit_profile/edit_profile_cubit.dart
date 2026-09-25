@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 import 'package:playspot/features/profile/data/models/profile_params.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'edit_profile_state.dart';
 
 class EditProfileCubit extends Cubit<EditProfileState> {
@@ -113,6 +115,9 @@ class EditProfileCubit extends Cubit<EditProfileState> {
       },
       (user) {
         if (!isClosed) {
+          try {
+            sl<ProfileCubit>().updateUser(user);
+          } catch (_) {}
           emit(state.copyWith(
             status: EditProfileStatus.success,
             user: user,

@@ -103,8 +103,20 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
       );
 
       if (picked != null) {
+        final file = File(picked.path);
+        final length = await file.length();
+        if (length > 5 * 1024 * 1024) {
+          if (mounted) {
+            GameHudToast.show(
+              context,
+              'Receipt image must be under 5MB',
+              type: ToastType.error,
+            );
+          }
+          return;
+        }
         setState(() {
-          _receiptFile = File(picked.path);
+          _receiptFile = file;
         });
       }
     } catch (e) {

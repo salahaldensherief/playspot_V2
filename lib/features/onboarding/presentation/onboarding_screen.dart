@@ -74,7 +74,11 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
   }
 
   Future<void> _completeOnboarding() async {
-    await sl<PreferenceManager>().saveIsFirstTime(false);
+    try {
+      await sl<PreferenceManager>().saveIsFirstTime(false);
+    } catch (e) {
+      debugPrint("ONBOARDING_STORAGE_ERROR: Failed to save isFirstTime(false): $e");
+    }
     if (mounted) {
       context.goNamed(RouterKeys.signIn);
     }

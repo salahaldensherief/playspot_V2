@@ -136,6 +136,38 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     final currentUser = Supabase.instance.client.auth.currentUser;
     if (currentUser == null) return;
 
+    // Check if participant is already payment_submitted or paid
+    if (userParticipant.paymentStatus == PaymentStatus.pending ||
+        userParticipant.paymentStatus == PaymentStatus.approved ||
+        userParticipant.status == ParticipantStatus.confirmed) {
+      emit(state.copyWith(
+        isSubmittingPayment: false,
+        successMessage: 'paymentSubmittedSuccess',
+      ));
+      return;
+    }
+
+    // Server status re-check to handle previous timeout recovery
+    try {
+      final participantRes = await _getTournamentDetailsUseCase.getUserParticipant(
+        tournament.id,
+        currentUser.id,
+      );
+      final latestParticipant = participantRes.fold((_) => null, (p) => p);
+      if (latestParticipant != null) {
+        if (latestParticipant.paymentStatus == PaymentStatus.pending ||
+            latestParticipant.paymentStatus == PaymentStatus.approved ||
+            latestParticipant.status == ParticipantStatus.confirmed) {
+          emit(state.copyWith(
+            isSubmittingPayment: false,
+            userParticipant: latestParticipant,
+            successMessage: 'paymentSubmittedSuccess',
+          ));
+          return;
+        }
+      }
+    } catch (_) {}
+
     emit(state.copyWith(isSubmittingPayment: true));
 
     try {

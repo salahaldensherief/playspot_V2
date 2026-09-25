@@ -3,21 +3,21 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:playspot/art_core/widgets/layout/app_loader.dart';
-
-import '../../../../art_core/app_strings.dart';
-import '../../../../art_core/theme/app_colors.dart';
-import '../../../../art_core/utils/extensions/date_time_extensions.dart';
-import '../../../../art_core/widgets/buttons/app_button.dart';
-import '../../../../art_core/widgets/buttons/directions_button.dart';
-import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
-import '../../../../art_core/widgets/buttons/res/button_content.dart';
-import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
-import '../../../../art_core/widgets/text/app_text.dart';
-import '../../../../art_core/router/router_keys.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/booking_status.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/directions_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/core/constants/booking_status.dart';
 import '../../data/models/booking_model.dart';
+import 'booking_qr_dialog.dart';
 
 class BookingCard extends StatefulWidget {
   final BookingModel booking;
@@ -104,27 +104,27 @@ class _BookingCardState extends State<BookingCard> {
         : '';
     final spaceText =
         widget.booking.spaceType != null && widget.booking.spaceType!.isNotEmpty
-        ? '${widget.booking.spaceType} - '
-        : '';
+            ? '${widget.booking.spaceType} - '
+            : '';
     final roomSpecsText =
         "$spaceText${widget.booking.roomName}$playModeText · ${widget.booking.controllersCount} ${AppStrings.controllers.tr()} · ${widget.booking.screenSize}";
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeInOut,
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
           color: _showHighlight ? AppColors.neonBlue : AppColors.borderDefault,
-          width: _showHighlight ? 1.5.w : .5.w,
+          width: _showHighlight ? 1.5.w : 0.5.w,
         ),
         boxShadow: _showHighlight
             ? [
                 BoxShadow(
                   color: AppColors.neonBlue.withValues(alpha: 0.35),
-                  blurRadius: 5.r,
+                  blurRadius: 8.r,
                   spreadRadius: 1.r,
                 ),
               ]
@@ -133,30 +133,24 @@ class _BookingCardState extends State<BookingCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: AppText(
-                  text: widget.booking.loungeName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.white,
-                ),
-              ),
-              SizedBox(width: 8.w),
-              _buildBadgesRow(),
-            ],
+          // 1. Lounge Title Block (Full width, no truncation!)
+          AppText(
+            text: widget.booking.loungeName,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.white,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 8.h),
+          SizedBox(height: 4.h),
+
+          // Location Subtitle
           Row(
             children: [
               Icon(
                 Icons.location_on_outlined,
                 color: AppColors.textSecondary,
-                size: 16.sp,
+                size: 14.sp,
               ),
               SizedBox(width: 4.w),
               Expanded(
@@ -170,96 +164,146 @@ class _BookingCardState extends State<BookingCard> {
               ),
             ],
           ),
-          SizedBox(height: 8.h),
-          AppText(
-            text: roomSpecsText,
-            fontSize: 12.sp,
-            color: AppColors.textSecondary,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          SizedBox(height: 10.h),
+
+          // 2. Badges Row (Clean Wrap underneath title)
+          _buildBadgesRow(),
+          SizedBox(height: 12.h),
+
+          // 3. Room & Specs Card
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(color: AppColors.borderDefault.withValues(alpha: 0.5)),
+            ),
+            child: AppText(
+              text: roomSpecsText,
+              fontSize: 12.sp,
+              color: AppColors.white.withValues(alpha: 0.9),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          SizedBox(height: 16.h),
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                color: AppColors.neonBlue,
-                size: 16.sp,
-              ),
-              SizedBox(width: 8.w),
-              AppText(
-                text: widget.booking.date.toAppDateString(),
-                fontSize: 14.sp,
-                color: AppColors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ],
+          SizedBox(height: 12.h),
+
+          // 4. Date & Time Info Bar
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: AppColors.backgroundAlt,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.calendar_today_rounded, color: AppColors.neonBlue, size: 15.sp),
+                SizedBox(width: 6.w),
+                Flexible(
+                  child: AppText(
+                    text: widget.booking.date.toAppDateString(),
+                    fontSize: 12.sp,
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Icon(Icons.access_time_filled_rounded, color: AppColors.neonBlue, size: 15.sp),
+                SizedBox(width: 6.w),
+                AppText(
+                  text: widget.booking.startDateTime.toAppTimeString(),
+                  fontSize: 12.sp,
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              Icon(Icons.access_time, color: AppColors.neonBlue, size: 16.sp),
-              SizedBox(width: 8.w),
-              AppText(
-                text: widget.booking.startDateTime.toAppTimeString(),
-                fontSize: 14.sp,
-                color: AppColors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ],
-          ),
+
           _buildCancellationReasonBanner(),
+
           if (isUpcoming) ...[
-            SizedBox(height: 16.h),
-            _buildCountdownBanner(),
             SizedBox(height: 12.h),
+            _buildCountdownBanner(),
+            SizedBox(height: 10.h),
             _buildLatePolicyBanner(),
-            SizedBox(height: 16.h),
+            SizedBox(height: 14.h),
+
+            // Action Buttons Row (Upcoming)
             Row(
               children: [
                 Expanded(
+                  flex: 2,
                   child: DirectionsButton(
                     lat: widget.booking.lat,
                     lng: widget.booking.lng,
                     loungeName: widget.booking.loungeName,
                     loungeLocation: widget.booking.loungeLocation,
                     mapsLink: widget.booking.mapsLink,
-                    height: 45.h,
+                    height: 44.h,
                     isPrimary: true,
                   ),
                 ),
-                SizedBox(width: 12.w),
-                AppButton(
-                  content: ButtonContent(
-                    label: widget.isCancelling ? null : AppStrings.cancel.tr(),
-                    body: widget.isCancelling
-                        ? SizedBox(
-                            width: 16.w,
-                            height: 16.w,
-                            child: const AppLoader(strokeWidth: 2),
-                          )
-                        : null,
+                SizedBox(width: 8.w),
+                InkWell(
+                  onTap: () => BookingQrDialog.show(context, widget.booking),
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: Container(
+                    width: 44.w,
+                    height: 44.h,
+                    decoration: BoxDecoration(
+                      color: AppColors.neonBlue.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.qr_code_2_rounded,
+                        color: AppColors.neonBlue,
+                        size: 22.sp,
+                      ),
+                    ),
                   ),
-                  behavior: ButtonBehavior.tap(
-                    isEnabled: !widget.isCancelling,
-                    onTap: widget.isCancelling ? null : widget.onCancel,
-                  ),
-                  buttonConfig: ButtonConfig(
-                    height: 45.h,
-                    width: 100.w,
-                    borderRadius: 12.r,
-                    backgroundColor: AppColors.transparent,
-                    borderColor: AppColors.danger.withValues(alpha: 0.3),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  flex: 2,
+                  child: AppButton(
+                    content: ButtonContent(
+                      label: widget.isCancelling ? null : AppStrings.cancel.tr(),
+                      body: widget.isCancelling
+                          ? SizedBox(
+                              width: 16.w,
+                              height: 16.w,
+                              child: const AppLoader(strokeWidth: 2),
+                            )
+                          : null,
+                    ),
+                    behavior: ButtonBehavior.tap(
+                      isEnabled: !widget.isCancelling,
+                      onTap: widget.isCancelling ? null : widget.onCancel,
+                    ),
+                    buttonConfig: ButtonConfig(
+                      height: 44.h,
+                      borderRadius: 12.r,
+                      backgroundColor: AppColors.transparent,
+                      borderColor: AppColors.danger.withValues(alpha: 0.3),
+                    ),
                   ),
                 ),
               ],
             ),
           ] else ...[
-            SizedBox(height: 16.h),
+            SizedBox(height: 14.h),
             Row(
               children: [
                 if (widget.booking.mapsLink != null || widget.booking.lat != null) ...[
                   Expanded(
+                    flex: 2,
                     child: DirectionsButton(
                       lat: widget.booking.lat,
                       lng: widget.booking.lng,
@@ -270,9 +314,31 @@ class _BookingCardState extends State<BookingCard> {
                       isPrimary: false,
                     ),
                   ),
-                  SizedBox(width: 12.w),
+                  SizedBox(width: 8.w),
                 ],
+                InkWell(
+                  onTap: () => BookingQrDialog.show(context, widget.booking),
+                  borderRadius: BorderRadius.circular(12.r),
+                  child: Container(
+                    width: 44.w,
+                    height: 44.h,
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: AppColors.borderDefault),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.qr_code_2_rounded,
+                        color: AppColors.textSecondary,
+                        size: 22.sp,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.w),
                 Expanded(
+                  flex: 2,
                   child: AppButton(
                     content: ButtonContent(
                       label: AppStrings.rebook.tr(),
@@ -313,10 +379,24 @@ class _BookingCardState extends State<BookingCard> {
 
     return Wrap(
       spacing: 6.w,
-      runSpacing: 4.h,
-      alignment: WrapAlignment.end,
+      runSpacing: 6.h,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
+        _buildStatusBadge(),
+        _buildPaymentStatusBadge(),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: AppColors.borderDefault),
+          ),
+          child: AppText(
+            text: paymentMethodText,
+            fontSize: 10.sp,
+            color: AppColors.textSecondary,
+          ),
+        ),
         if (widget.booking.isFirstBooking == true) ...[
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -333,21 +413,6 @@ class _BookingCardState extends State<BookingCard> {
             ),
           ),
         ],
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: AppColors.borderDefault),
-          ),
-          child: AppText(
-            text: paymentMethodText,
-            fontSize: 10.sp,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        _buildPaymentStatusBadge(),
-        _buildStatusBadge(),
       ],
     );
   }
@@ -471,7 +536,7 @@ class _BookingCardState extends State<BookingCard> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8.r),

@@ -1,34 +1,37 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/auth/data/models/auth_params.dart';
 import 'package:playspot/features/auth/data/models/user_model.dart';
-import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
-import 'signup_state.dart';
-import '../../domain/repositories/auth_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/notifications/push_notification_service.dart';
+import '../../domain/repositories/auth_repository.dart';
+import 'signup_state.dart';
 
 class SignupCubit extends Cubit<SignupState> {
   final AuthRepository _authRepository;
   final ProfileRepository _profileRepository;
 
-  final TextEditingController nameController     = TextEditingController();
-  final TextEditingController emailController    = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController phoneController    = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   final TextEditingController referralCodeController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   File? avatarFile;
 
-  SignupCubit(this._authRepository, this._profileRepository) : super(SignupState.init()) {
+  SignupCubit(this._authRepository, this._profileRepository)
+    : super(SignupState.init()) {
     try {
       final pendingCode = sl<PreferenceManager>().getPendingReferralCode();
       if (pendingCode.isNotEmpty) {
@@ -72,9 +75,7 @@ class SignupCubit extends Cubit<SignupState> {
 
   void setUserId(String id) {
     if (isClosed) return;
-    emit(state.copyWith(
-      params: state.params.copyWith(id: id),
-    ));
+    emit(state.copyWith(params: state.params.copyWith(id: id)));
   }
 
   void initWithUser(UserModel? user, {String? userId}) {
@@ -87,32 +88,42 @@ class SignupCubit extends Cubit<SignupState> {
     if (phone != null && phone.isNotEmpty && phoneController.text.isEmpty) {
       phoneController.text = phone;
     }
-    emit(state.copyWith(
-      params: state.params.copyWith(
-        id: targetId,
-        avatarUrl: avatarUrl,
+    emit(
+      state.copyWith(
+        params: state.params.copyWith(id: targetId, avatarUrl: avatarUrl),
       ),
-    ));
+    );
   }
 
   Future<void> pickAvatar() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 100,
+      imageQuality: 85,
       maxWidth: 1024,
       maxHeight: 1024,
     );
     if (picked != null && !isClosed) {
-      avatarFile = File(picked.path);
-      emit(state.copyWith(
-        params: state.params.copyWith(avatarUrl: picked.path),
-      ));
+      final file = File(picked.path);
+      final length = await file.length();
+      if (length > 2 * 1024 * 1024) {
+        emit(
+          state.copyWith(
+            status: SignupStatus.failure,
+            errorMessage: 'Avatar image must be under 2MB',
+          ),
+        );
+        return;
+      }
+      avatarFile = file;
+      emit(
+        state.copyWith(params: state.params.copyWith(avatarUrl: picked.path)),
+      );
     }
   }
 
   Future<void> signUpWithEmail() async {
-    log("SIGNUP_CUBIT: Signing up with email: ${emailController.text}");
+    AppLogger.debug("SIGNUP_CUBIT: Signing up with email");
     if (isClosed) return;
 
     final enteredCode = referralCodeController.text.trim();
@@ -137,30 +148,30 @@ class SignupCubit extends Cubit<SignupState> {
 
     result.fold(
       (failure) {
-        log("SIGNUP_CUBIT_ERROR: ${failure.message}");
+        AppLogger.error("SIGNUP_CUBIT_ERROR: ${failure.message}");
         if (!isClosed) {
-          emit(state.copyWith(
-            status: SignupStatus.failure,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: SignupStatus.failure,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (user) async {
-        log("SIGNUP_CUBIT: Signup result for user: ${user.id}, isRequiresOtp: ${user.isRequiresOtp}");
+        AppLogger.debug(
+          "SIGNUP_CUBIT: Signup result for user, isRequiresOtp: ${user.isRequiresOtp}",
+        );
         if (user.isRequiresOtp) {
           if (!isClosed) {
-            emit(state.copyWith(
-              status: SignupStatus.requiresOtp,
-              params: user,
-            ));
+            emit(
+              state.copyWith(status: SignupStatus.requiresOtp, params: user),
+            );
           }
         } else {
           await _onSignupSuccess();
           if (!isClosed) {
-            emit(state.copyWith(
-              status: SignupStatus.success,
-              params: user,
-            ));
+            emit(state.copyWith(status: SignupStatus.success, params: user));
           }
         }
       },
@@ -168,7 +179,7 @@ class SignupCubit extends Cubit<SignupState> {
   }
 
   Future<void> verifySignupOTP(String otp) async {
-    log("SIGNUP_CUBIT: Verifying signup OTP for: ${emailController.text}");
+    AppLogger.debug("SIGNUP_CUBIT: Verifying signup OTP");
     if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
 
@@ -197,22 +208,21 @@ class SignupCubit extends Cubit<SignupState> {
 
     result.fold(
       (failure) {
-        log("SIGNUP_CUBIT_ERROR (OTP): ${failure.message}");
+        AppLogger.error("SIGNUP_CUBIT_ERROR (OTP): ${failure.message}");
         if (!isClosed) {
-          emit(state.copyWith(
-            status: SignupStatus.failure,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: SignupStatus.failure,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (user) async {
-        log("SIGNUP_CUBIT: OTP verification success for user: ${user.id}");
+        AppLogger.debug("SIGNUP_CUBIT: OTP verification success");
         await _onSignupSuccess();
         if (!isClosed) {
-          emit(state.copyWith(
-            status: SignupStatus.success,
-            params: user,
-          ));
+          emit(state.copyWith(status: SignupStatus.success, params: user));
         }
       },
     );
@@ -222,28 +232,30 @@ class SignupCubit extends Cubit<SignupState> {
     final email = emailController.text.trim().isNotEmpty
         ? emailController.text.trim()
         : (state.params.email ?? '');
-    log("SIGNUP_CUBIT: Resending signup OTP to: $email");
+    AppLogger.debug("SIGNUP_CUBIT: Resending signup OTP");
     if (email.isEmpty) return;
 
     final result = await _authRepository.resendSignupOTP(email);
     result.fold(
       (failure) {
-        log("SIGNUP_CUBIT_ERROR (Resend OTP): ${failure.message}");
+        AppLogger.error("SIGNUP_CUBIT_ERROR (Resend OTP): ${failure.message}");
         if (!isClosed) {
-          emit(state.copyWith(
-            status: SignupStatus.failure,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: SignupStatus.failure,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (_) {
-        log("SIGNUP_CUBIT: Resent signup OTP successfully");
+        AppLogger.debug("SIGNUP_CUBIT: Resent signup OTP successfully");
       },
     );
   }
 
   Future<void> signUpWithGoogle() async {
-    log("SIGNUP_CUBIT: Signing up with Google");
+    AppLogger.debug("SIGNUP_CUBIT: Signing up with Google");
     if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
 
@@ -258,30 +270,36 @@ class SignupCubit extends Cubit<SignupState> {
             failure.message.contains('GoogleSignInCancelledException')) {
           emit(state.copyWith(status: SignupStatus.initial));
         } else {
-          log("SIGNUP_CUBIT_ERROR (Google): ${failure.message}");
-          emit(state.copyWith(
-            status: SignupStatus.failure,
-            errorMessage: failure.message,
-          ));
+          AppLogger.error("SIGNUP_CUBIT_ERROR (Google): ${failure.message}");
+          emit(
+            state.copyWith(
+              status: SignupStatus.failure,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (user) async {
-        log("SIGNUP_CUBIT: Google sign-in success. isNewUser: ${user.isNewUser}");
+        AppLogger.debug(
+          "SIGNUP_CUBIT: Google sign-in success. isNewUser: ${user.isNewUser}",
+        );
         if (!user.isNewUser) await _onSignupSuccess();
         if (!isClosed) {
-          emit(state.copyWith(
-            status: user.isNewUser
-                ? SignupStatus.successSocial
-                : SignupStatus.success,
-            params: user,
-          ));
+          emit(
+            state.copyWith(
+              status: user.isNewUser
+                  ? SignupStatus.successSocial
+                  : SignupStatus.success,
+              params: user,
+            ),
+          );
         }
       },
     );
   }
 
   Future<void> signUpWithFacebook() async {
-    log("SIGNUP_CUBIT: Signing up with Facebook");
+    AppLogger.debug("SIGNUP_CUBIT: Signing up with Facebook");
     if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
 
@@ -292,22 +310,28 @@ class SignupCubit extends Cubit<SignupState> {
     result.fold(
       (failure) {
         if (isClosed) return;
-        log("SIGNUP_CUBIT_ERROR (Facebook): ${failure.message}");
-        emit(state.copyWith(
-          status: SignupStatus.failure,
-          errorMessage: failure.message,
-        ));
+        AppLogger.error("SIGNUP_CUBIT_ERROR (Facebook): ${failure.message}");
+        emit(
+          state.copyWith(
+            status: SignupStatus.failure,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (user) async {
-        log("SIGNUP_CUBIT: Facebook sign-in success. isNewUser: ${user.isNewUser}");
+        AppLogger.debug(
+          "SIGNUP_CUBIT: Facebook sign-in success. isNewUser: ${user.isNewUser}",
+        );
         if (!user.isNewUser) await _onSignupSuccess();
         if (!isClosed) {
-          emit(state.copyWith(
-            status: user.isNewUser
-                ? SignupStatus.successSocial
-                : SignupStatus.success,
-            params: user,
-          ));
+          emit(
+            state.copyWith(
+              status: user.isNewUser
+                  ? SignupStatus.successSocial
+                  : SignupStatus.success,
+              params: user,
+            ),
+          );
         }
       },
     );
@@ -317,7 +341,7 @@ class SignupCubit extends Cubit<SignupState> {
     final targetUserId = (userId != null && userId.isNotEmpty)
         ? userId
         : state.params.id;
-    log("SIGNUP_CUBIT: Completing profile for user: $targetUserId");
+    AppLogger.debug("SIGNUP_CUBIT: Completing profile for user: $targetUserId");
     if (isClosed) return;
     emit(state.copyWith(status: SignupStatus.loading));
     final result = await _authRepository.completeProfile(
@@ -333,20 +357,19 @@ class SignupCubit extends Cubit<SignupState> {
     result.fold(
       (failure) {
         if (isClosed) return;
-        log("SIGNUP_CUBIT_ERROR (Complete): ${failure.message}");
-        emit(state.copyWith(
-          status: SignupStatus.failure,
-          errorMessage: failure.message,
-        ));
+        AppLogger.error("SIGNUP_CUBIT_ERROR (Complete): ${failure.message}");
+        emit(
+          state.copyWith(
+            status: SignupStatus.failure,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (user) async {
-        log("SIGNUP_CUBIT: Profile completed successfully");
+        AppLogger.debug("SIGNUP_CUBIT: Profile completed successfully");
         await _onSignupSuccess();
         if (!isClosed) {
-          emit(state.copyWith(
-            status: SignupStatus.success,
-            params: user,
-          ));
+          emit(state.copyWith(status: SignupStatus.success, params: user));
         }
       },
     );

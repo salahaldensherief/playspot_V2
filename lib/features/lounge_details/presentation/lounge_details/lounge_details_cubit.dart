@@ -166,6 +166,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     }
   }
 
+  int _selectDateFetchToken = 0;
+
   /// Non-flickering date selection: Only sets `isDateLoading: true` without toggling global status to loading
   Future<void> selectDate(DateTime date) async {
     HapticFeedback.selectionClick();
@@ -174,6 +176,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       return;
     }
 
+    final currentToken = ++_selectDateFetchToken;
     emit(state.copyWith(selectedDate: date, isDateLoading: true));
 
     try {
@@ -187,21 +190,30 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           deviceCategories: state.deviceCategories,
           reviews: state.reviews,
         ),
+        requestToken: currentToken,
       );
     } catch (e) {
-      emit(state.copyWith(isDateLoading: false));
+      if (currentToken == _selectDateFetchToken) {
+        emit(state.copyWith(isDateLoading: false));
+      }
     }
   }
 
   Future<void> _updateBookings(
     UpdateBookingsParams params, {
     List<TournamentEntity>? tournaments,
+    int? requestToken,
   }) async {
     log("FETCHING BOOKINGS FOR DATE: ${params.date}");
     final bookingsResult = await _bookingRepository.getRoomBookingsForDate(
       params.loungeId,
       params.date,
     );
+
+    if (requestToken != null && requestToken != _selectDateFetchToken) {
+      log("STALE DATE FETCH DISCARDED for token: $requestToken");
+      return;
+    }
 
     bookingsResult.fold(
       (failure) {

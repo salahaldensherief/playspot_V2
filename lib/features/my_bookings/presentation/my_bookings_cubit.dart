@@ -8,6 +8,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   final MyBookingsRepository _repository;
   DateTime? _lastFetchTime;
   bool _isFetching = false;
+  bool _hasPendingFetch = false;
 
   MyBookingsCubit(this._repository) : super(const MyBookingsState());
 
@@ -28,7 +29,10 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   }
 
   Future<void> getMyBookings({bool force = true}) async {
-    if (_isFetching) return;
+    if (_isFetching) {
+      _hasPendingFetch = true;
+      return;
+    }
     _isFetching = true;
 
     try {
@@ -75,6 +79,10 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       ));
     } finally {
       _isFetching = false;
+      if (_hasPendingFetch) {
+        _hasPendingFetch = false;
+        getMyBookings(force: true);
+      }
     }
   }
 

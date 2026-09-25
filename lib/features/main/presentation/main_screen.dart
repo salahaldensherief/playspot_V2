@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -37,7 +38,11 @@ class _MainScreenState extends State<MainScreen> {
   int? _previousPointsBalance;
   
   final Map<int, DateTime> _lastRefreshTime = {};
+  final Map<int, bool> _hasPendingRefresh = {};
+  final Map<int, Timer?> _pendingRefreshTimers = {};
+
   static const Duration _refreshThreshold = Duration(seconds: 10);
+  static const Duration _floorWindow = Duration(milliseconds: 1500);
 
   @override
   void initState() {
@@ -45,26 +50,52 @@ class _MainScreenState extends State<MainScreen> {
     _selectedIndex = widget.initialIndex;
     _previousPointsBalance = context.read<ProfileCubit>().state.pointsBalance;
     
-    // 🚀 تنفيذ التحديث الأول عند دخول الشاشة
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshModuleData(_selectedIndex);
       _lastRefreshTime[_selectedIndex] = DateTime.now();
     });
   }
 
+  @override
+  void dispose() {
+    for (final timer in _pendingRefreshTimers.values) {
+      timer?.cancel();
+    }
+    debugPrint("CLEAN_UP: MainScreen and Home branch disposed successfully.");
+    super.dispose();
+  }
+
   void _onItemTapped(int index, {bool force = false}) {
     final now = DateTime.now();
     final lastRefresh = _lastRefreshTime[index];
 
-    // 🔄 تحقق هل التاب محتاج تحديث (أول مرة يدخله أو فات 10 ثواني) أو تحديث إجباري
-    final bool shouldRefresh = force || 
-                               lastRefresh == null || 
-                               now.difference(lastRefresh) > _refreshThreshold;
+    // 1.5s Floor Window: If triggered within 1.5s floor, queue a single pending refresh
+    if (lastRefresh != null) {
+      final elapsed = now.difference(lastRefresh);
+      if (elapsed < _floorWindow) {
+        if (!(_hasPendingRefresh[index] ?? false)) {
+          _hasPendingRefresh[index] = true;
+          final remainingFloor = _floorWindow - elapsed;
 
-    // حماية إضافية: منع التحديث المتتالي السريع في أقل من 3 ثواني إلا لو force: true
-    final bool recentlyRefreshed = !force && lastRefresh != null && now.difference(lastRefresh) < const Duration(seconds: 3);
+          _pendingRefreshTimers[index]?.cancel();
+          _pendingRefreshTimers[index] = Timer(remainingFloor, () {
+            if (mounted) {
+              _hasPendingRefresh[index] = false;
+              _onItemTapped(index, force: true);
+            }
+          });
+        }
 
-    if (shouldRefresh && !recentlyRefreshed) {
+        if (_selectedIndex != index) {
+          setState(() => _selectedIndex = index);
+        }
+        return;
+      }
+    }
+
+    final bool isStale = lastRefresh == null || now.difference(lastRefresh) > _refreshThreshold;
+
+    if (force || isStale) {
       _lastRefreshTime[index] = now;
       _refreshModuleData(index, force: force);
     }
@@ -95,11 +126,7 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    debugPrint("CLEAN_UP: MainScreen and Home branch disposed successfully.");
-    super.dispose();
-  }
+
 
   @override
   void didUpdateWidget(covariant MainScreen oldWidget) {

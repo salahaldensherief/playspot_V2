@@ -564,5 +564,9 @@
   "errorUpdatingProfile": "حدث خطأ أثناء تحديث البيانات",
   "cityGpsLabel": "المدينة (تلقائي عبر GPS)",
   "tapUpdateLocation": "اضغط تحديث موقعي...",
-  "update": "تحديث"
+  "update": "تحديث",
+  "morning": "صباحاً",
+  "afternoon": "عصراً",
+  "evening": "سهرة",
+  "start": "البداية"
 }

@@ -563,5 +563,9 @@
   "errorUpdatingProfile": "Error updating profile",
   "cityGpsLabel": "City (Auto via GPS)",
   "tapUpdateLocation": "Tap update location...",
-  "update": "Update"
+  "update": "Update",
+  "morning": "Morning",
+  "afternoon": "Afternoon",
+  "evening": "Evening",
+  "start": "Start"
 }

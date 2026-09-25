@@ -92,9 +92,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         );
       }
     } else if (type == NotificationType.loyalty) {
-      context.goNamed(RouterKeys.home, extra: 2);
+      context.goNamed(RouterKeys.redeemPoints);
     } else {
-      context.goNamed(RouterKeys.home);
+      context.goNamed(RouterKeys.myBookings);
     }
   }
 

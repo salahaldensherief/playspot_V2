@@ -111,7 +111,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       color: AppColors.white,
                     ),
                     16.verticalSpace,
-                    const TimeSlotGrid(),
+                    TimeSlotGrid(lounge: widget.params.lounge),
                     24.verticalSpace,
                     AppText(
                       text: AppStrings.duration.tr(),

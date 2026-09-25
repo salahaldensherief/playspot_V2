@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,6 +33,8 @@ class OTPVerificationScreen extends StatefulWidget {
 
 class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   late final TextEditingController _otpController;
+  int _cooldownSeconds = 0;
+  Timer? _cooldownTimer;
 
   @override
   void initState() {
@@ -39,8 +42,25 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     _otpController = TextEditingController();
   }
 
+  void _startCooldown() {
+    setState(() => _cooldownSeconds = 60);
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_cooldownSeconds > 0) {
+        setState(() => _cooldownSeconds--);
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _cooldownTimer?.cancel();
     _otpController.dispose();
     super.dispose();
   }
@@ -116,16 +136,21 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               ),
               20.verticalSpace,
               AppText(
-                text: AppStrings.resendOTP.tr(),
-                color: AppColors.white,
-                onTap: () {
-                  cubit.resendSignupOTP();
-                  GameHudToast.show(
-                    context,
-                    AppStrings.otpSentTo.tr(),
-                    type: ToastType.info,
-                  );
-                },
+                text: _cooldownSeconds > 0
+                    ? '${AppStrings.resendOTP.tr()} (${_cooldownSeconds}s)'
+                    : AppStrings.resendOTP.tr(),
+                color: _cooldownSeconds > 0 ? AppColors.textSecondary : AppColors.white,
+                onTap: _cooldownSeconds > 0
+                    ? null
+                    : () {
+                        cubit.resendSignupOTP();
+                        _startCooldown();
+                        GameHudToast.show(
+                          context,
+                          AppStrings.otpSentTo.tr(),
+                          type: ToastType.info,
+                        );
+                      },
               ),
               const SafeBottomSpacer(),
             ],

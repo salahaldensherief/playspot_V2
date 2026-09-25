@@ -65,6 +65,7 @@ import '../../features/app_status/presentation/screens/maintenance_screen.dart';
 import '../../features/app_status/presentation/screens/force_update_screen.dart';
 import '../../features/app_status/domain/entities/app_status_entity.dart';
 import '../../features/app_status/presentation/widgets/announcement_dialog.dart';
+import '../../features/app_status/presentation/cubit/app_status_cubit.dart';
 import 'package:flutter/services.dart';
 import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
@@ -322,6 +323,36 @@ class AppRouter {
         }
         return null;
       }
+
+      // Live System Maintenance Guard with fresh active session check
+      try {
+        final appStatusCubit = sl<AppStatusCubit>();
+        final statusEntity = appStatusCubit.state.statusEntity;
+
+        if (statusEntity != null && statusEntity.maintenanceMode) {
+          // Direct live session check at redirect time
+          final activeSession = sl<ActiveSessionCubit>().state.session;
+          final hasLiveActiveSession = activeSession != null && activeSession.status == 'in_progress';
+
+          if (!hasLiveActiveSession) {
+            // User has NO live active session -> send to Maintenance Screen
+            if (currentPath != RouterKeys.maintenance) {
+              return RouterKeys.maintenance;
+            }
+            return null;
+          } else {
+            // User HAS a live active session -> allow active session controls, block NEW booking creation
+            final isNewBookingAttempt = currentName == RouterKeys.booking ||
+                currentName == RouterKeys.checkout ||
+                currentPath.startsWith('/booking') ||
+                currentPath.startsWith('/checkout');
+
+            if (isNewBookingAttempt) {
+              return RouterKeys.home;
+            }
+          }
+        }
+      } catch (_) {}
 
       return null;
     },

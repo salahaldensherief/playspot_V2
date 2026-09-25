@@ -100,8 +100,10 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       },
       (PaginatedResponse<NotificationModel> paginatedRes) {
         if (!isClosed) {
+          final existingIds = state.notifications.map((n) => n.id).toSet();
+          final newItems = paginatedRes.items.where((n) => !existingIds.contains(n.id)).toList();
           final updatedList = List<NotificationModel>.from(state.notifications)
-            ..addAll(paginatedRes.items);
+            ..addAll(newItems);
 
           emit(state.copyWith(
             notifications: updatedList,

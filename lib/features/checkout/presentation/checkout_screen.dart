@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/router/app_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
@@ -147,7 +148,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       description:
           "${AppStrings.bookingPendingReview.tr()}\n\n${AppStrings.multiRoomAllowedNote.tr()}",
       confirmText: AppStrings.viewMyBookings,
-      onConfirm: () => context.goNamed(RouterKeys.home),
+      onConfirm: () {
+        final navContext = AppRouter.navigatorKey.currentContext ?? context;
+        if (Navigator.of(navContext).canPop()) {
+          Navigator.of(navContext).pop();
+        }
+        navContext.goNamed(RouterKeys.myBookings);
+      },
     );
   }
 }
