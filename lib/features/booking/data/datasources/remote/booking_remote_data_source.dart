@@ -204,9 +204,13 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
           return {
             'id': id,
+            'extra_id': id,
+            'item_id': id,
+            'product_id': id,
             'name_ar': nameAr,
             'name_en': nameEn,
             'unit_price': p,
+            'price': p,
             'quantity': q,
           };
         }).toList();
@@ -395,9 +399,13 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
       return {
         'id': id,
+        'extra_id': id,
+        'item_id': id,
+        'product_id': id,
         'name_ar': nameAr,
         'name_en': nameEn,
         'unit_price': p,
+        'price': p,
         'quantity': q,
       };
     }).toList();

@@ -329,7 +329,6 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       await _client.from('bookings').update({
         'extension_status': 'pending',
         'requested_extension_minutes': requestedMinutes,
-        'extension_minutes': requestedMinutes,
       }).eq('id', bookingId);
       dev.log("[LIVESESSION_DS] Fallback update to bookings SUCCESS");
     }
@@ -347,9 +346,13 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       final formattedItems = items.map((item) {
         return {
           'id': item.id,
+          'extra_id': item.id,
+          'item_id': item.id,
+          'product_id': item.id,
           'name_ar': item.nameAr ?? item.name,
           'name_en': item.nameEn ?? item.name,
           'unit_price': item.price,
+          'price': item.price,
           'quantity': item.quantity,
           if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
         };
