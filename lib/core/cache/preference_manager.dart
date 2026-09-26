@@ -44,7 +44,6 @@ class PreferenceManager {
 
   String token() => _box.read(CachingKey.TOKEN) as String? ?? "";
 
-  // bool get isSubscribed => (getUserData()?.isSubscribe ?? false);
 
   Future<void> saveFullName(String? fullName) => _box.write(CachingKey.FullName, fullName ?? '');
 
@@ -97,6 +96,13 @@ class PreferenceManager {
     await _box.remove(CachingKey.UserId);
     await _box.remove(CachingKey.FullName);
     await _box.remove(CachingKey.PhoneNumber);
+    await _box.remove(CachingKey.UserDataBackup);
+    await _box.remove(CachingKey.REVIEWED_BOOKINGS);
+    await _box.remove(CachingKey.CACHED_LOUNGES);
+    await _box.remove(CachingKey.CURRENT_ADDRESS);
+    await _box.remove(CachingKey.LATITUDE);
+    await _box.remove(CachingKey.LONGITUDE);
+    await _box.remove(CachingKey.PENDING_REFERRAL_CODE);
     await saveIsLoggedIn(false);
 
     // Session & Auth Cleanup: Clear local entity caches on logout
@@ -133,11 +139,6 @@ class PreferenceManager {
     return Map<String, dynamic>.from(data);
   }
 
-  // UserModel? getUserData() {
-  //   final data = _box.read(CachingKey.UserData);
-  //   if (data == null) return null;
-  //   return UserModel.fromJson(data);
-  // }
 
   bool? isDarkMode() => _box.read(CachingKey.IS_DARK_MODE) as bool?;
 

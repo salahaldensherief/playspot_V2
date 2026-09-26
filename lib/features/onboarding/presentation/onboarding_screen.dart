@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/assets_manager.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/buttons/language_toggle_widget.dart';
@@ -77,7 +78,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     try {
       await sl<PreferenceManager>().saveIsFirstTime(false);
     } catch (e) {
-      debugPrint("ONBOARDING_STORAGE_ERROR: Failed to save isFirstTime(false): $e");
+      AppLogger.debug("ONBOARDING_STORAGE_ERROR: Failed to save isFirstTime(false): $e");
     }
     if (mounted) {
       context.goNamed(RouterKeys.signIn);

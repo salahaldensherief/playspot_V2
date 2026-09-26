@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/di.dart';
@@ -10,13 +13,14 @@ import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
+import 'package:playspot/features/my_bookings/domain/repositories/my_bookings_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
-import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'checkout_state.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
   final BookingRepository _bookingRepository;
   final ProfileRepository _profileRepository;
+  final MyBookingsRepository _myBookingsRepository;
   final PreferenceManager _preferenceManager;
   final StorageService _storageService;
 
@@ -26,9 +30,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   CheckoutCubit(
     this._bookingRepository,
     this._profileRepository, {
+    required MyBookingsRepository myBookingsRepository,
     PreferenceManager? preferenceManager,
     StorageService? storageService,
-  })  : _preferenceManager = preferenceManager ?? sl<PreferenceManager>(),
+  })  : _myBookingsRepository = myBookingsRepository,
+        _preferenceManager = preferenceManager ?? sl<PreferenceManager>(),
         _storageService = storageService ?? sl<StorageService>(),
         super(const CheckoutState());
 
@@ -132,20 +138,36 @@ class CheckoutCubit extends Cubit<CheckoutState> {
             liveBookingStatus: BookingStatus.cancelled,
             rejectionReason: updatedBooking.rejectionReason ??
                 updatedBooking.cancellationReason ??
-                'تم رفض الطلب من قبل إدارة الصالة',
+                AppStrings.bookingRejectedByLounge.tr(),
           ));
         } else {
           emit(state.copyWith(liveBookingStatus: updatedBooking.status));
         }
       },
-      onError: (_) {},
+      onError: (e, st) {
+        AppLogger.error('Booking status realtime stream error', e, st);
+        if (isClosed) return;
+        emit(state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: AppStrings.realtimeConnectionLost.tr(),
+        ));
+      },
     );
   }
 
   Future<void> applyVoucher(String code) async {
     final cleanCode = code.trim().toUpperCase();
     if (cleanCode.isEmpty) return;
+    await _validateAndApplyVoucher(cleanCode);
+  }
 
+  Future<void> selectVoucher(Map<String, dynamic> voucher) async {
+    final code = (voucher['code'] ?? voucher['id'])?.toString().trim().toUpperCase() ?? '';
+    if (code.isEmpty) return;
+    await _validateAndApplyVoucher(code);
+  }
+
+  Future<void> _validateAndApplyVoucher(String cleanCode) async {
     HapticFeedback.mediumImpact();
     emit(state.copyWith(status: CheckoutStatus.loading));
     final result = await _profileRepository.validateVoucherByCode(cleanCode);
@@ -167,39 +189,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
             discountAmount: discount,
           ));
         } else {
-          final errorMsg = data['error']?.toString() ?? "Voucher invalid";
-          emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: errorMsg));
-        }
-      },
-    );
-  }
-
-  Future<void> selectVoucher(Map<String, dynamic> voucher) async {
-    final code = (voucher['code'] ?? voucher['id'])?.toString().trim().toUpperCase() ?? '';
-    if (code.isEmpty) return;
-
-    HapticFeedback.mediumImpact();
-    emit(state.copyWith(status: CheckoutStatus.loading));
-    final result = await _profileRepository.validateVoucherByCode(code);
-
-    result.fold(
-      (failure) => emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: failure.message)),
-      (data) {
-        if (data['valid'] == true) {
-          double discount = 0;
-          if (data['reward_type'] == 'discount_fixed') {
-            discount = (data['reward_value'] as num).toDouble();
-          } else if (data['reward_type'] == 'free_hour') {
-            discount = (data['reward_value'] as num?)?.toDouble() ?? 0;
-          }
-
-          emit(state.copyWith(
-            status: CheckoutStatus.initial,
-            selectedVoucher: Map<String, dynamic>.from(data),
-            discountAmount: discount,
-          ));
-        } else {
-          final errorMsg = data['error']?.toString() ?? "Voucher invalid";
+          final errorMsg = data['error']?.toString() ?? AppStrings.voucherInvalid.tr();
           emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: errorMsg));
         }
       },
@@ -223,9 +213,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     if (state.isHoldExpired) {
       emit(state.copyWith(
         status: CheckoutStatus.failure,
-        errorMessage: isArabic
-            ? 'انتهت المهلة الزمنية لحجز هذا الموعد المؤقت (10 دقائق). يرجى إعادة اختيار الموعد.'
-            : 'Hold time for this slot has expired (10 minutes). Please reselect a slot.',
+        errorMessage: AppStrings.holdExpiredMessage.tr(),
       ));
       return;
     }
@@ -256,6 +244,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         : [checkoutParams.room];
 
     String? primaryBookingId;
+    final List<String> createdBookingIds = [];
 
     String? receiptUrl;
     if (receiptFile != null) {
@@ -267,7 +256,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           bookingId: tempId,
           file: receiptFile,
         );
-      } catch (_) {}
+      } catch (e, st) {
+        AppLogger.error('Initial payment proof upload failed', e, st);
+      }
     }
 
     for (int i = 0; i < roomsToBook.length; i++) {
@@ -351,13 +342,20 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           ));
         },
         (bookingData) {
+          final createdId = bookingData['id']?.toString();
+          if (createdId != null) {
+            createdBookingIds.add(createdId);
+          }
           if (isFirst) {
-            primaryBookingId = bookingData['id']?.toString();
+            primaryBookingId = createdId;
           }
         },
       );
 
-      if (hasFailed) return;
+      if (hasFailed) {
+        await _rollbackCreatedBookings(createdBookingIds);
+        return;
+      }
     }
 
     // Re-upload under final booking ID path: payment-proofs/{userId}/{bookingId}.jpg
@@ -369,7 +367,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           bookingId: primaryBookingId!,
           file: receiptFile,
         );
-      } catch (_) {}
+      } catch (e, st) {
+        AppLogger.error('Payment proof upload under final booking id failed', e, st);
+      }
     }
 
     if (state.selectedVoucher != null && primaryBookingId != null) {
@@ -378,9 +378,15 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           .trim()
           .toUpperCase() ?? '';
       if (voucherCode.isNotEmpty) {
-        await _profileRepository.consumeVoucherByCode(
+        final consumeResult = await _profileRepository.consumeVoucherByCode(
           code: voucherCode,
           bookingId: primaryBookingId!,
+        );
+        consumeResult.fold(
+          (failure) => AppLogger.warning(
+            'Voucher $voucherCode was applied but consumption failed: ${failure.message}',
+          ),
+          (_) {},
         );
       }
     }
@@ -389,12 +395,23 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       listenToBookingStatus(primaryBookingId!);
     }
 
-    try {
-      sl<ProfileCubit>().getUserData();
-    } catch (_) {}
     emit(state.copyWith(
       status: CheckoutStatus.success,
       createdBookingId: primaryBookingId,
     ));
+  }
+
+  /// Compensates a partial multi-room booking failure by cancelling the rooms
+  /// that were already created, so a retry never produces duplicates.
+  Future<void> _rollbackCreatedBookings(List<String> createdBookingIds) async {
+    for (final bookingId in createdBookingIds) {
+      final result = await _myBookingsRepository.cancelBooking(bookingId);
+      result.fold(
+        (failure) => AppLogger.error(
+          'Failed to roll back booking $bookingId after partial checkout failure: ${failure.message}',
+        ),
+        (_) {},
+      );
+    }
   }
 }

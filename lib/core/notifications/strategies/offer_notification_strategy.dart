@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/app_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
@@ -25,32 +26,35 @@ class OfferNotificationStrategy implements NotificationActionStrategy {
       return true;
     }
 
-    context.pushNamed(RouterKeys.myVouchers);
+    final loungeId = NotificationStrategyHelper.getLoungeId(data);
+    if (loungeId != null) {
+      context.pushNamed(RouterKeys.loungeDetails, extra: {'loungeId': loungeId});
+    } else {
+      context.pushNamed(RouterKeys.myVouchers);
+    }
 
     final promoCode = _extractPromoCode(data);
     if (promoCode.isNotEmpty) {
       Clipboard.setData(ClipboardData(text: promoCode));
-      final isArabic = context.locale.languageCode == 'ar';
       GameHudToast.show(
         context,
-        isArabic ? "تم نسخ كود الخصم: $promoCode" : "Promo code copied: $promoCode",
+        AppStrings.promoCodeCopied.tr(args: [promoCode]),
         type: ToastType.success,
       );
     }
     return true;
   }
 
+  /// Only copies codes sent in an explicit payload key — guessing codes out of
+  /// the notification text used to copy arbitrary uppercase words.
   String _extractPromoCode(Map<String, dynamic> data) {
-    final possibleKeys = ['promo_code', 'code', 'promoCode', 'coupon'];
+    const possibleKeys = ['promo_code', 'code', 'promoCode', 'coupon'];
     for (final key in possibleKeys) {
       final val = NotificationStrategyHelper.cleanString(data[key]);
       if (val != null) {
         return val;
       }
     }
-    final textFallback = "${data['body'] ?? ''} ${data['title'] ?? ''}";
-    final codeMatch = RegExp(r'[A-Z0-9]{5,10}').firstMatch(textFallback);
-    return codeMatch?.group(0) ?? '';
+    return '';
   }
 }
-

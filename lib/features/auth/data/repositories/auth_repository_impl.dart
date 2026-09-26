@@ -95,18 +95,26 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
 
   @override
   UserModel? getCurrentUser() {
-    final cachedUser = _localDataSource.getCachedUser();
+    final remoteUser = _remoteSource.getCurrentUser();
 
-    final user = _remoteSource.getCurrentUser();
-    if (user != null) {
-      final phone = (user.phone != null && user.phone!.trim().isNotEmpty)
-          ? user.phone
-          : cachedUser?.phone;
-      final updated = user.copyWith(phone: phone);
-      _localDataSource.saveUserData(updated);
-      return updated;
+    // No live Supabase session -> the user is logged out, even if a stale
+    // cached profile exists; returning it made expired sessions look valid.
+    if (remoteUser == null) return null;
+
+    final cachedUser = _localDataSource.getCachedUser();
+    final phone = (remoteUser.phone != null && remoteUser.phone!.trim().isNotEmpty)
+        ? remoteUser.phone
+        : cachedUser?.phone;
+    final merged = remoteUser.copyWith(phone: phone);
+
+    // Persist only on an actual change: this getter runs on every router
+    // redirect, and the old unconditional write churned storage each time.
+    final phoneChanged = cachedUser == null || cachedUser.phone != merged.phone;
+    final nameChanged = cachedUser != null && cachedUser.name != merged.name;
+    if (cachedUser == null || phoneChanged || nameChanged) {
+      _localDataSource.saveUserData(merged);
     }
-    return cachedUser;
+    return merged;
   }
 
   @override

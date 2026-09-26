@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -206,8 +207,8 @@ class LocalNotificationService {
 
       await _plugin.zonedSchedule(
         id: id,
-        title: 'Session Expiring Soon!',
-        body: 'Your gaming session at $loungeName will expire in 5 minutes.',
+        title: _sessionExpiringTitle(),
+        body: _sessionExpiringBody(loungeName),
         scheduledDate: tz.TZDateTime.from(warningTime, tz.local),
         notificationDetails: notificationDetails,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
@@ -216,6 +217,29 @@ class LocalNotificationService {
     } catch (e, st) {
       AppLogger.error('Error scheduling session expiry notification', e, st);
     }
+  }
+
+  /// Local notifications are scheduled outside the widget tree, so the
+  /// language comes from stored preferences instead of the build context.
+  String _currentNotificationLang() {
+    try {
+      final lang = PreferenceManager().currentLang().toLowerCase().trim();
+      return lang.isEmpty ? 'ar' : lang;
+    } catch (_) {
+      return 'ar';
+    }
+  }
+
+  String _sessionExpiringTitle() {
+    return _currentNotificationLang() == 'ar'
+        ? 'جلستك هتخلص قريب!'
+        : 'Session Expiring Soon!';
+  }
+
+  String _sessionExpiringBody(String loungeName) {
+    return _currentNotificationLang() == 'ar'
+        ? 'جلستك في $loungeName هتخلص خلال 5 دقائق.'
+        : 'Your gaming session at $loungeName will expire in 5 minutes.';
   }
 
   static const int activeSessionNotificationId = 9999;

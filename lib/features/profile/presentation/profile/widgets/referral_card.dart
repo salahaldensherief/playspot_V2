@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -288,7 +289,7 @@ class ReferralCard extends StatelessWidget {
     try {
       await SharePlus.instance.share(ShareParams(text: message));
     } catch (e) {
-      debugPrint(" [Referral] Share error: $e");
+      AppLogger.debug(" [Referral] Share error: $e");
       if (context.mounted) {
         _copyCode(context, code);
       }

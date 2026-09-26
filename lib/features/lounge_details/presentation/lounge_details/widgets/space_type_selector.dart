@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
@@ -56,7 +57,7 @@ class SpaceTypeSelector extends StatelessWidget {
         return AppStrings.vr.tr();
       default:
         if (kDebugMode) {
-          debugPrint("⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.");
+          AppLogger.debug("⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.");
         }
         // Fallback: Format raw snake_case/slug into human-readable Title Case
         return key.replaceAll('_', ' ').toUpperCase();

@@ -199,28 +199,4 @@ class _AppTextState extends State<AppText> {
     // لو حرف واحد على الأقل عربي من أول 3
     return arabicCount > 0 ? TextDirection.rtl : TextDirection.ltr;
   }
-
-// TextDirection _getTextDirection() {
-//   if (widget.textDirection != null) {
-//     return widget.textDirection!;
-//   }
-//
-//   if (widget.text.isEmpty) {
-//     return TextDirection.ltr;
-//   }
-//
-//   for (final rune in widget.text.runes) {
-//     if (rune >= 0x0600 && rune <= 0x06FF) {
-//       print('Arabic detected in: ${widget.text}');
-//       return TextDirection.rtl;
-//     }
-//     if ((rune >= 0x0041 && rune <= 0x005A) || (rune >= 0x0061 && rune <= 0x007A)) {
-//       print('English detected in: ${widget.text}');
-//       return TextDirection.ltr;
-//     }
-//   }
-//
-//   return TextDirection.ltr;
-// }
-
 }

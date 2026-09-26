@@ -25,10 +25,18 @@ class TournamentNotificationStrategy implements NotificationActionStrategy {
 
     final tournamentId = NotificationStrategyHelper.getTournamentId(data);
     if (tournamentId != null) {
-      context.pushNamed(
-        RouterKeys.tournamentDetails,
-        pathParameters: {'id': tournamentId},
-      );
+      final matchId = NotificationStrategyHelper.getMatchId(data);
+      if (matchId != null) {
+        context.pushNamed(
+          RouterKeys.tournamentMatch,
+          pathParameters: {'id': tournamentId, 'matchId': matchId},
+        );
+      } else {
+        context.pushNamed(
+          RouterKeys.tournamentDetails,
+          pathParameters: {'id': tournamentId},
+        );
+      }
     } else {
       context.pushNamed(RouterKeys.tournaments);
     }

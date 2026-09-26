@@ -8,6 +8,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
@@ -61,7 +62,7 @@ class _MainScreenState extends State<MainScreen> {
     for (final timer in _pendingRefreshTimers.values) {
       timer?.cancel();
     }
-    debugPrint("CLEAN_UP: MainScreen and Home branch disposed successfully.");
+    AppLogger.debug("CLEAN_UP: MainScreen and Home branch disposed successfully.");
     super.dispose();
   }
 
@@ -106,7 +107,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _refreshModuleData(int index, {bool force = false}) {
-    debugPrint("AUTO_REFRESH: Refreshing data for module index $index (force=$force)");
+    AppLogger.debug("AUTO_REFRESH: Refreshing data for module index $index (force=$force)");
     try {
       switch (index) {
         case 0:
@@ -122,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
       // Always refresh active session check
       context.read<ActiveSessionCubit>().loadActiveSession();
     } catch (e) {
-      debugPrint("AUTO_REFRESH_ERROR: $e");
+      AppLogger.debug("AUTO_REFRESH_ERROR: $e");
     }
   }
 

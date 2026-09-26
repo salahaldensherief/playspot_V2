@@ -69,7 +69,7 @@ class SignupCubit extends Cubit<SignupState> {
         await Future.delayed(const Duration(seconds: 1));
       }
     } catch (e) {
-      debugPrint('Background location update error after signup: $e');
+      AppLogger.debug('Background location update error after signup: $e');
     }
   }
 

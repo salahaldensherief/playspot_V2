@@ -568,4 +568,14 @@ class AppStrings {
   static const String cityGpsLabel = "cityGpsLabel";
   static const String tapUpdateLocation = "tapUpdateLocation";
   static const String update = "update";
+
+  // Notifications & Router
+  static const String pageNotFound = "pageNotFound";
+  static const String promoCodeCopied = "promoCodeCopied";
+  static const String bookingRejectedByLounge = "bookingRejectedByLounge";
+  static const String voucherInvalid = "voucherInvalid";
+  static const String holdExpiredMessage = "holdExpiredMessage";
+  static const String sessionExpiringTitle = "sessionExpiringTitle";
+  static const String sessionExpiringBody = "sessionExpiringBody";
+  static const String realtimeConnectionLost = "realtimeConnectionLost";
 }

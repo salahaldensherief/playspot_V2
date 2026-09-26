@@ -10,6 +10,7 @@ class ActiveSessionState extends Equatable {
   final ActiveSession? session;
   final ActiveSession? completedSession;
   final List<ExtraModel> menu;
+  final ActionStatus menuStatus;
   final ActionStatus extendStatus;
   final ActionStatus orderStatus;
   final ActionStatus staffRequestStatus;
@@ -20,6 +21,7 @@ class ActiveSessionState extends Equatable {
     this.session,
     this.completedSession,
     this.menu = const [],
+    this.menuStatus = ActionStatus.initial,
     this.extendStatus = ActionStatus.initial,
     this.orderStatus = ActionStatus.initial,
     this.staffRequestStatus = ActionStatus.initial,
@@ -31,6 +33,7 @@ class ActiveSessionState extends Equatable {
     ActiveSession? session,
     ActiveSession? completedSession,
     List<ExtraModel>? menu,
+    ActionStatus? menuStatus,
     ActionStatus? extendStatus,
     ActionStatus? orderStatus,
     ActionStatus? staffRequestStatus,
@@ -41,6 +44,7 @@ class ActiveSessionState extends Equatable {
       session: session ?? this.session,
       completedSession: completedSession ?? this.completedSession,
       menu: menu ?? this.menu,
+      menuStatus: menuStatus ?? this.menuStatus,
       extendStatus: extendStatus ?? this.extendStatus,
       orderStatus: orderStatus ?? this.orderStatus,
       staffRequestStatus: staffRequestStatus ?? this.staffRequestStatus,
@@ -54,6 +58,7 @@ class ActiveSessionState extends Equatable {
         session,
         completedSession,
         menu,
+        menuStatus,
         extendStatus,
         orderStatus,
         staffRequestStatus,

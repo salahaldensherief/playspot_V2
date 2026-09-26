@@ -112,7 +112,6 @@
   "controllers": "دراعات",
   "screen": "شاشة",
   "searchLoungesHint": "دور على صالات قريبة منك...",
-  "all": "الكل",
   "openNow": "فاتح دلوقتي",
   "highestRated": "الأعلى تقييماً",
   "nearest": "الأقرب",
@@ -573,5 +572,13 @@
   "morning": "صباحاً",
   "afternoon": "عصراً",
   "evening": "سهرة",
-  "start": "البداية"
+  "start": "البداية",
+  "pageNotFound": "الصفحة مش موجودة",
+  "promoCodeCopied": "تم نسخ كود الخصم: {}",
+  "bookingRejectedByLounge": "تم رفض الطلب من قبل إدارة الصالة",
+  "voucherInvalid": "الكوبون غير صالح",
+  "holdExpiredMessage": "انتهت المهلة الزمنية لحجز هذا الموعد المؤقت (10 دقائق). يرجى إعادة اختيار الموعد.",
+  "sessionExpiringTitle": "جلستك هتخلص قريب!",
+  "sessionExpiringBody": "جلستك في {} هتخلص خلال 5 دقائق.",
+  "realtimeConnectionLost": "ضعف في الاتصال، بنحاول نرجع تاني"
 }

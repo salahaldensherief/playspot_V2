@@ -15,6 +15,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/utils/booking_error_formatter.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 
 import 'checkout_cubit.dart';
 import 'checkout_state.dart';
@@ -81,6 +82,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
 
         if (state.status == CheckoutStatus.success) {
+          context.read<ProfileCubit>().getUserData();
           _showSuccessDialog(context);
         } else if (state.status == CheckoutStatus.failure) {
           final isEnglish = context.locale.languageCode == 'en';

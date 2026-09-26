@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../../art_core/extension/globlX.dart';
@@ -13,6 +12,7 @@ import '../../tournaments/domain/usecases/get_home_tournament_usecase.dart';
 import '../../tournaments/domain/usecases/get_my_active_tournament_usecase.dart';
 import '../../tournaments/domain/entities/tournament_entity.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import '../domain/repositories/home_repository.dart';
 import 'home_state.dart';
 import '../data/models/lounge_model.dart';
@@ -270,7 +270,7 @@ class HomeCubit extends Cubit<HomeState> {
             ..sort((a, b) => b.rating.compareTo(a.rating)),
         ));
       } catch (e) {
-        debugPrint("CACHE_LOAD_ERROR: $e");
+        AppLogger.debug("CACHE_LOAD_ERROR: $e");
       }
     }
   }

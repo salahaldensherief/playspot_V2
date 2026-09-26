@@ -42,8 +42,9 @@ void initActiveSessionModule() {
   sl.registerLazySingleton(() => SubmitLoungeReviewUseCase(sl<ActiveSessionRepository>()));
   sl.registerLazySingleton(() => GetActiveLoungeRequestsPageUseCase(sl<ActiveSessionRepository>()));
 
-  // Cubit
-  sl.registerFactory(
+  // Cubit (LazySingleton: the router redirect reads its live-session state,
+  // and a factory would spawn an empty throwaway instance per navigation)
+  sl.registerLazySingleton(
     () => ActiveSessionCubit(
       getActiveSessionUseCase: sl<GetActiveSessionUseCase>(),
       watchUserActiveSessionUseCase: sl<WatchUserActiveSessionUseCase>(),

@@ -108,7 +108,6 @@
   "controllers": "Controllers",
   "screen": "Screen",
   "searchLoungesHint": "Search lounges near you...",
-  "all": "All",
   "openNow": "Open Now",
   "highestRated": "Highest Rated",
   "nearest": "Nearest",
@@ -572,5 +571,13 @@
   "morning": "Morning",
   "afternoon": "Afternoon",
   "evening": "Evening",
-  "start": "Start"
+  "start": "Start",
+  "pageNotFound": "Page not found",
+  "promoCodeCopied": "Promo code copied: {}",
+  "bookingRejectedByLounge": "The request was rejected by the lounge management",
+  "voucherInvalid": "Voucher is invalid",
+  "holdExpiredMessage": "The hold time for this slot has expired (10 minutes). Please reselect a slot.",
+  "sessionExpiringTitle": "Session Expiring Soon!",
+  "sessionExpiringBody": "Your gaming session at {} will expire in 5 minutes.",
+  "realtimeConnectionLost": "Weak connection, trying to reconnect"
 }

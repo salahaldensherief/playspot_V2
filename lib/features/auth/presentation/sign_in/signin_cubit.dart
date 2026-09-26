@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'signin_state.dart';
 
@@ -48,7 +49,7 @@ class SignInCubit extends Cubit<LoginState> {
         await Future.delayed(const Duration(seconds: 1));
       }
     } catch (e) {
-      debugPrint('Background location update error after login: $e');
+      AppLogger.debug('Background location update error after login: $e');
     }
   }
 

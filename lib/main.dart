@@ -15,7 +15,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:playspot/firebase_options.dart';
 import 'art_core/router/app_router.dart';
-import 'art_core/utils/app_logger.dart';
 import 'core/di.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/services/network_connectivity_service.dart';

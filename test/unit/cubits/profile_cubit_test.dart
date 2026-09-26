@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
-import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 import 'package:playspot/features/auth/data/models/user_model.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';

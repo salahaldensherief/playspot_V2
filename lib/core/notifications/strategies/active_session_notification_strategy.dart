@@ -10,7 +10,15 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
   bool canHandle(Map<String, dynamic> data) {
     final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase();
     final sessionId = NotificationStrategyHelper.getSessionId(data);
-    return type == 'session' || type == 'active_session' || type == 'active-session' || sessionId != null;
+    final reminderKey = NotificationStrategyHelper.extractFirst(
+      data,
+      const ['reminder_key', 'reminderKey'],
+    );
+    return type == 'session' ||
+        type == 'active_session' ||
+        type == 'active-session' ||
+        reminderKey == 'extension_offer' ||
+        sessionId != null;
   }
 
   @override
@@ -20,6 +28,31 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
 
     if (!NotificationStrategyHelper.isAuthenticated()) {
       context.goNamed(RouterKeys.signIn);
+      return true;
+    }
+
+    final reminderKey = NotificationStrategyHelper.extractFirst(
+      data,
+      const ['reminder_key', 'reminderKey'],
+    );
+    if (reminderKey == 'extension_offer') {
+      final bookingId = NotificationStrategyHelper.getBookingId(data) ?? '';
+      final extensionMinutes = int.tryParse(
+            NotificationStrategyHelper.extractFirst(
+              data,
+              const ['extension_minutes', 'extensionMinutes'],
+            ) ??
+            '',
+          ) ??
+          60;
+      if (bookingId.isNotEmpty) {
+        context.pushNamed(
+          RouterKeys.activeSession,
+          extra: {'booking_id': bookingId, 'extension_minutes': extensionMinutes},
+        );
+      } else {
+        context.pushNamed(RouterKeys.activeSession);
+      }
       return true;
     }
 

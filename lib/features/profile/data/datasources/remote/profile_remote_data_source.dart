@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/core/notifications/push_notification_service.dart';
 import 'package:playspot/core/services/location_service.dart';
 import '../../../../../art_core/app_strings.dart';
@@ -69,7 +69,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         'p_booking_id': bookingId,
       });
     } catch (e) {
-      debugPrint('[ProfileDS] consume_voucher_by_code error: $e');
+      AppLogger.debug('[ProfileDS] consume_voucher_by_code error: $e');
       try {
         await _supabase.rpc('consume_voucher', params: {
           'p_voucher_id': code,
@@ -242,7 +242,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         ),
       );
 
-      debugPrint(' [Profile] Profile updated');
+      AppLogger.debug(' [Profile] Profile updated');
 
       return UserModel.fromSupabaseUser(_supabase.auth.currentUser!.toJson())
           .copyWith(
@@ -253,7 +253,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     } on AppException {
       rethrow;
     } catch (e) {
-      debugPrint(' [Profile] Update profile error: $e');
+      AppLogger.debug(' [Profile] Update profile error: $e');
       throw AppException(e.toString());
     }
   }
@@ -296,7 +296,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', user.id);
     } catch (e) {
-      debugPrint('[Profile] Direct profiles location update error: $e');
+      AppLogger.debug('[Profile] Direct profiles location update error: $e');
     }
 
     // 3. Invoke update-user-location Edge Function to resolve city_id
@@ -310,12 +310,12 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
     } on FunctionException catch (e) {
       if (e.status == 422) {
-        debugPrint('[Profile] City not in cities table yet.');
+        AppLogger.debug('[Profile] City not in cities table yet.');
       } else if (e.status == 401 || e.status == 403) {
         throw const AppException('انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى');
       }
     } catch (e) {
-      debugPrint('[Profile] Edge function invoke exception: $e');
+      AppLogger.debug('[Profile] Edge function invoke exception: $e');
     }
   }
 
@@ -364,7 +364,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final user = _supabase.auth.currentUser;
       if (user == null) return;
       await _supabase.from('profiles').update({'fcm_token': token}).eq('id', user.id);
-      debugPrint('[ProfileDS] FCM token updated for user: ${user.id}');
+      AppLogger.debug('[ProfileDS] FCM token updated for user: ${user.id}');
 
       unawaited(PushNotificationService.instance.toggleTopicSubscription(
         topic: 'user_${user.id}',
@@ -375,7 +375,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         enable: true,
       ));
     } catch (e) {
-      debugPrint('[ProfileDS] Update FCM token error: $e');
+      AppLogger.debug('[ProfileDS] Update FCM token error: $e');
     }
   }
 
@@ -395,7 +395,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         return NotificationSettingsModel.fromJson(Map<String, dynamic>.from(response));
       }
     } catch (e) {
-      debugPrint(' [Profile] Error getting notification settings: $e');
+      AppLogger.debug(' [Profile] Error getting notification settings: $e');
     }
     return const NotificationSettingsModel();
   }
@@ -413,7 +413,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       await _supabase.from('notification_settings').upsert(data, onConflict: 'user_id');
     } catch (e) {
-      debugPrint(' [Profile] Error updating notification settings: $e');
+      AppLogger.debug(' [Profile] Error updating notification settings: $e');
     }
   }
 
@@ -442,7 +442,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         }
       }
     } catch (e) {
-      debugPrint('[Profile] get_loyalty_status RPC error: $e');
+      AppLogger.debug('[Profile] get_loyalty_status RPC error: $e');
     }
 
     final points = await getPointsBalance();
@@ -486,7 +486,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         return LoyaltyMissionModel.fromJson(mMap, progressJson: progressMap[mId]);
       }).toList();
     } catch (e) {
-      debugPrint('[Profile] Error fetching loyalty missions: $e');
+      AppLogger.debug('[Profile] Error fetching loyalty missions: $e');
     }
     return [];
   }
@@ -535,7 +535,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         }
       }
     } catch (e) {
-      debugPrint('[Profile] Error fetching referrals: $e');
+      AppLogger.debug('[Profile] Error fetching referrals: $e');
     }
 
     if (points == 0) {
@@ -630,7 +630,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
     } on PostgrestException catch (e) {
       final msg = e.message;
-      debugPrint('[Profile] claim_referral_code PostgrestException: $msg');
+      AppLogger.debug('[Profile] claim_referral_code PostgrestException: $msg');
       if (msg.contains('أكد الإيميل') || msg.contains('confirm email') || msg.contains('unconfirmed')) {
         return const ClaimReferralResult(
           status: ClaimReferralStatus.emailUnconfirmed,
@@ -653,7 +653,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       );
     } catch (e) {
       final msg = e.toString();
-      debugPrint('[Profile] claim_referral_code error: $msg');
+      AppLogger.debug('[Profile] claim_referral_code error: $msg');
       if (msg.contains('أكد الإيميل') || msg.contains('confirm email')) {
         return const ClaimReferralResult(
           status: ClaimReferralStatus.emailUnconfirmed,
@@ -683,7 +683,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .eq('user_id', user.id);
       return (res as List).length;
     } catch (e) {
-      debugPrint('[Profile] Error fetching total bookings count: $e');
+      AppLogger.debug('[Profile] Error fetching total bookings count: $e');
       return 0;
     }
   }

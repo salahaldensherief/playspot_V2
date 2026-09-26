@@ -201,8 +201,13 @@ class PushNotificationService {
 
     if (!content.hasVisibleContent) return;
 
-    // Prevent duplicate notification when FCM already presents the notification payload in foreground
-    if (message.notification == null) {
+    // iOS auto-presents notification payloads in the foreground via
+    // setForegroundNotificationPresentationOptions; Android does not, so a
+    // local notification is required there or the message is invisible.
+    final shouldShowLocal = !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? true
+        : message.notification == null;
+    if (shouldShowLocal) {
       await localNotifications.showNotification(
         id: content.id,
         title: content.title,

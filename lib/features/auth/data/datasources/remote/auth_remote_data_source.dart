@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:playspot/features/auth/domain/strategies/auth_context.dart';
 import 'package:playspot/features/auth/domain/strategies/auth_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../art_core/exceptions/app_exceptions.dart';
+import '../../../../../art_core/utils/app_logger.dart';
 import '../../../../../core/notifications/push_notification_service.dart';
 import '../../../../../core/services/social_auth_service.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
@@ -158,7 +158,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
               });
             }
           } catch (e) {
-            debugPrint(' [Referral] Error processing referral: $e');
+            AppLogger.debug(' [Referral] Error processing referral: $e');
           }
         }
       }
@@ -235,7 +235,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
               });
             }
           } catch (e) {
-            debugPrint(' [Referral] Error processing referral: $e');
+            AppLogger.debug(' [Referral] Error processing referral: $e');
           }
         }
       }
@@ -317,7 +317,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
           ),
         );
       } catch (e) {
-        debugPrint('[Auth] Error updating Auth user metadata: $e');
+        AppLogger.debug('[Auth] Error updating Auth user metadata: $e');
       }
 
       final updatedUser = UserModel.fromSupabaseUser(user.toJson()).copyWith(
@@ -359,17 +359,16 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       final cleanEmail = email.trim();
-      debugPrint(' [Auth] Sending reset email to: $cleanEmail');
       await _supabase.auth.resetPasswordForEmail(
         cleanEmail,
         redirectTo: 'com.playspot.client://login-callback',
       );
-      debugPrint(' [Auth] Password reset email request sent successfully');
+      AppLogger.debug(' [Auth] Password reset email request sent successfully');
     } on AuthException catch (e, stackTrace) {
-      debugPrint(
+      AppLogger.debug(
         ' [Auth] AuthException sending reset email: ${e.message} (code: ${e.code}, status: ${e.statusCode})',
       );
-      debugPrintStack(stackTrace: stackTrace);
+      AppLogger.debug('stack: $stackTrace');
       String msg = e.message;
       if (e.message.contains('unexpected_failure') ||
           e.message.contains('Error sending recovery email')) {
@@ -378,8 +377,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
       }
       throw AppException(msg, code: e.statusCode);
     } catch (e, stackTrace) {
-      debugPrint(' [Auth] Unexpected error sending reset email: $e');
-      debugPrintStack(stackTrace: stackTrace);
+      AppLogger.debug(' [Auth] Unexpected error sending reset email: $e');
+      AppLogger.debug('stack: $stackTrace');
       throw AppException(
         'An unexpected error occurred while sending the code.',
       );
@@ -392,17 +391,17 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     required String otp,
   }) async {
     try {
-      debugPrint(' [Auth] Verifying recovery OTP for: $email');
+      AppLogger.debug(' [Auth] Verifying recovery OTP for: $email');
       await _supabase.auth.verifyOTP(
         email: email,
         token: otp,
         type: OtpType.recovery,
       );
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException verifying OTP: ${e.message}');
+      AppLogger.debug(' [Auth] AuthException verifying OTP: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] Unexpected error verifying OTP: $e');
+      AppLogger.debug(' [Auth] Unexpected error verifying OTP: $e');
       throw AppException('Invalid or expired code.');
     }
   }
@@ -421,23 +420,23 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> deleteAccount() async {
     try {
-      debugPrint(' [Auth] Calling delete-account Edge Function...');
+      AppLogger.debug(' [Auth] Calling delete-account Edge Function...');
       try {
         await _supabase.functions.invoke('delete-account');
       } catch (e) {
-        debugPrint(
+        AppLogger.debug(
           ' [Auth] Edge Function delete-account error ($e), falling back to RPC...',
         );
         await _supabase.rpc('delete_user_account');
       }
-      debugPrint(' [Auth] Account deletion executed successfully.');
+      AppLogger.debug(' [Auth] Account deletion executed successfully.');
       await signOut();
-      debugPrint(' [Auth] Signed out after deletion.');
+      AppLogger.debug(' [Auth] Signed out after deletion.');
     } on AuthException catch (e) {
-      debugPrint(' [Auth] AuthException during deletion: ${e.message}');
+      AppLogger.debug(' [Auth] AuthException during deletion: ${e.message}');
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint(' [Auth] Unexpected error during deletion: $e');
+      AppLogger.debug(' [Auth] Unexpected error during deletion: $e');
       throw AppException(e.toString());
     }
   }

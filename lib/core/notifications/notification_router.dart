@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/features/notifications/data/models/notification_model.dart';
 import 'strategies/active_session_notification_strategy.dart';
+import 'strategies/announcement_notification_strategy.dart';
+import 'strategies/room_notification_strategy.dart';
 import 'strategies/booking_notification_strategy.dart';
 import 'strategies/default_notification_strategy.dart';
 import 'strategies/loyalty_notification_strategy.dart';
@@ -18,10 +20,15 @@ class NotificationRouter {
   static NotificationNavigationHandler? _handler;
   static Map<String, dynamic>? _pendingData;
 
+  /// Order matters: announcement payloads carry generic `title`/`body` keys,
+  /// and session payloads carry a `booking_id` — both must be matched before
+  /// the strategies with looser conditions below them.
   static final NotificationStrategyRegistry registry = NotificationStrategyRegistry(
     strategies: [
-      const BookingNotificationStrategy(),
+      const AnnouncementNotificationStrategy(),
       const ActiveSessionNotificationStrategy(),
+      const BookingNotificationStrategy(),
+      const RoomNotificationStrategy(),
       const OfferNotificationStrategy(),
       const LoyaltyNotificationStrategy(),
       const TournamentNotificationStrategy(),
@@ -99,4 +106,3 @@ class NotificationRouter {
     _pendingData = null;
   }
 }
-

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:map_launcher/map_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../cache/preference_manager.dart';
@@ -40,7 +40,7 @@ class DirectionsServiceImpl implements DirectionsService {
         ).show();
         return true;
       } catch (e) {
-        debugPrint('[DirectionsService] MapLauncher error: $e');
+        AppLogger.debug('[DirectionsService] MapLauncher error: $e');
       }
 
       final googleMapsUrl = Uri.parse(
@@ -55,7 +55,7 @@ class DirectionsServiceImpl implements DirectionsService {
           return true;
         }
       } catch (e) {
-        debugPrint('[DirectionsService] URL Launcher error: $e');
+        AppLogger.debug('[DirectionsService] URL Launcher error: $e');
       }
     }
 
@@ -69,7 +69,7 @@ class DirectionsServiceImpl implements DirectionsService {
             return true;
           }
         } catch (e) {
-          debugPrint('[DirectionsService] mapsLink launch error: $e');
+          AppLogger.debug('[DirectionsService] mapsLink launch error: $e');
         }
       }
     }
@@ -89,7 +89,7 @@ class DirectionsServiceImpl implements DirectionsService {
           return true;
         }
       } catch (e) {
-        debugPrint('[DirectionsService] Search URL Launcher error: $e');
+        AppLogger.debug('[DirectionsService] Search URL Launcher error: $e');
       }
     }
 

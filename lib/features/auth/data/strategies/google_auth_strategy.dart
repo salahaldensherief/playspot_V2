@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/strategies/auth_strategy.dart';
 import '../models/user_model.dart';
@@ -41,7 +41,7 @@ class GoogleAuthStrategy implements AuthStrategy {
     } on AuthException catch (e) {
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      debugPrint('[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...');
+      AppLogger.debug('[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...');
       return _signInWithSupabaseOAuth();
     }
   }
@@ -121,7 +121,7 @@ class GoogleAuthStrategy implements AuthStrategy {
         await _supabase.from('profiles').update(updateData).eq('id', user.id);
       }
     } catch (e) {
-      debugPrint('[Auth] Profile sync notice: $e');
+      AppLogger.debug('[Auth] Profile sync notice: $e');
       if (isNewUser) {
         rethrow;
       }

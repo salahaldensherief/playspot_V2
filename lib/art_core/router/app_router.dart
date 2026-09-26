@@ -1,9 +1,10 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../di/provider_scope.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
@@ -64,9 +65,7 @@ import '../../features/tournaments/presentation/history/tournament_history_scree
 import '../../features/app_status/presentation/screens/maintenance_screen.dart';
 import '../../features/app_status/presentation/screens/force_update_screen.dart';
 import '../../features/app_status/domain/entities/app_status_entity.dart';
-import '../../features/app_status/presentation/widgets/announcement_dialog.dart';
 import '../../features/app_status/presentation/cubit/app_status_cubit.dart';
-import 'package:flutter/services.dart';
 import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
 import '../theme/app_colors.dart';
@@ -86,168 +85,8 @@ class AppRouter {
         // Unauthenticated users cannot trigger private notification actions
         return false;
       }
-
-      final typeStr =
-          (data['type'] ?? data['notification_type'] ?? '').toString().toLowerCase();
-
-      if (typeStr.contains('announcement') || typeStr.contains('offer') || data.containsKey('announcement_id') || data.containsKey('announcement_title')) {
-        final annTitle = _extractKey(data, ['announcement_title', 'title', 'heading']);
-        final annBody = _extractKey(data, ['announcement_body', 'body', 'message']);
-        final annImg = _extractKey(data, ['announcement_image_url', 'image_url', 'image']);
-        final annAction = _extractKey(data, ['announcement_action_url', 'action_url', 'url']);
-
-        if (annTitle.isNotEmpty || annBody.isNotEmpty) {
-          final ctx = AppRouter.navigatorKey.currentContext;
-          if (ctx != null) {
-            AnnouncementDialog.show(
-              ctx,
-              title: annTitle.isNotEmpty ? annTitle : 'PlaySpot Announcement',
-              body: annBody,
-              imageUrl: annImg,
-              actionUrl: annAction,
-            );
-            return true;
-          }
-        }
-      }
-
-      final bookingId = _extractKey(data, [
-        'booking_id',
-        'bookingId',
-        'id',
-        'target_id',
-        'reference_id',
-        'entity_id',
-      ]);
-
-      final code = _extractKey(data, [
-        'code',
-        'promo_code',
-        'promoCode',
-        'coupon',
-      ]);
-
-      final tournamentId = _extractKey(data, [
-        'tournament_id',
-        'tournamentId',
-      ]);
-
-      final matchId = _extractKey(data, [
-        'match_id',
-        'matchId',
-      ]);
-
-      final roomId = _extractKey(data, [
-        'room_id',
-        'roomId',
-        'target_room_id',
-      ]);
-
-      final loungeId = _extractKey(data, [
-        'lounge_id',
-        'loungeId',
-        'target_lounge_id',
-      ]);
-
-      final reminderKey = _extractKey(data, ['reminder_key', 'reminderKey']);
-      final extensionMinutes = int.tryParse(_extractKey(data, ['extension_minutes', 'extensionMinutes'])) ?? 60;
-
-      if (roomId.isNotEmpty) {
-        router.pushNamed(
-          RouterKeys.roomDetails,
-          pathParameters: {'roomId': roomId},
-        );
-        return true;
-      }
-
-      if (reminderKey == 'extension_offer') {
-        if (bookingId.isNotEmpty) {
-          router.pushNamed(
-            RouterKeys.activeSession,
-            extra: {'booking_id': bookingId, 'extension_minutes': extensionMinutes},
-          );
-        } else {
-          router.pushNamed(RouterKeys.activeSession);
-        }
-        return true;
-      }
-
-      if (typeStr.contains('booking')) {
-        if (bookingId.isNotEmpty) {
-          router.pushNamed(
-            RouterKeys.bookingDetails,
-            pathParameters: {'id': bookingId},
-          );
-        } else {
-          router.goNamed(RouterKeys.myBookings);
-        }
-        return true;
-      }
-
-      if (typeStr.contains('offer') ||
-          typeStr.contains('promo') ||
-          typeStr.contains('voucher')) {
-        if (loungeId.isNotEmpty) {
-          router.pushNamed(
-            RouterKeys.loungeDetails,
-            extra: {'loungeId': loungeId},
-          );
-          return true;
-        }
-        router.pushNamed(RouterKeys.myVouchers);
-        if (code.isNotEmpty) {
-          Clipboard.setData(ClipboardData(text: code));
-        }
-        return true;
-      }
-
-      if (typeStr.contains('loyalty') || typeStr.contains('points')) {
-        router.goNamed(RouterKeys.home, extra: 2);
-        return true;
-      }
-
-      if (typeStr.contains('live_session') ||
-          typeStr.contains('active_session') ||
-          typeStr.contains('session') ||
-          typeStr.contains('canteen')) {
-        router.pushNamed(RouterKeys.activeSession);
-        return true;
-      }
-
-      if (typeStr.contains('tournament')) {
-        if (tournamentId.isNotEmpty) {
-          if (matchId.isNotEmpty) {
-            router.pushNamed(
-              RouterKeys.tournamentMatch,
-              pathParameters: {
-                'id': tournamentId,
-                'matchId': matchId,
-              },
-            );
-          } else {
-            router.pushNamed(
-              RouterKeys.tournamentDetails,
-              pathParameters: {'id': tournamentId},
-            );
-          }
-        } else {
-          router.pushNamed(RouterKeys.tournaments);
-        }
-        return true;
-      }
-
-      return false;
+      return NotificationRouter.registry.handleNotification(data);
     });
-  }
-
-  static String _extractKey(Map<String, dynamic> data, List<String> keys) {
-    for (final key in keys) {
-      final val = data[key]?.toString().trim();
-      if (val != null && val.isNotEmpty && val != 'null') {
-        return val;
-      }
-    }
-    return '';
   }
 
   static const Set<String> _protectedRoutes = {
@@ -358,7 +197,9 @@ class AppRouter {
             }
           }
         }
-      } catch (_) {}
+      } catch (e, stack) {
+        AppLogger.error('Maintenance guard check failed in router redirect', e, stack);
+      }
 
       return null;
     },
@@ -903,7 +744,7 @@ class AppRouter {
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text('Page not found: ${state.uri.path}')),
+      body: Center(child: Text(AppStrings.pageNotFound.tr())),
     ),
   );
 }

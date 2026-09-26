@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/services/play_spot_live_activity_service.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'package:playspot/core/mixins/realtime_watcher_mixin.dart';
@@ -193,7 +194,10 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
             final remaining = session.endTime.difference(now);
             final hours = remaining.inHours;
             final mins = remaining.inMinutes % 60;
-            final timeText = hours > 0 ? '$hours h $mins m remaining' : '$mins mins remaining';
+            final isArabic = PreferenceManager().currentLang() == 'ar';
+            final timeText = isArabic
+                ? (hours > 0 ? 'باقي $hours سا $mins د' : 'باقي $mins دقيقة')
+                : (hours > 0 ? '$hours h $mins m remaining' : '$mins mins remaining');
 
             NativeNotificationService.instance.showCustomNotification(
               loungeName: session.loungeName.isNotEmpty ? session.loungeName : 'Active Session',
@@ -290,13 +294,17 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
       return;
     }
     dev.log("[LIVESESSION_CUBIT] LOAD_MENU for lounge: $loungeId");
+    if (!isClosed) emit(state.copyWith(menuStatus: ActionStatus.loading));
     final result = await _getLoungeMenuUseCase(loungeId: loungeId);
     if (isClosed) return;
     result.fold(
-      (f) => dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}"),
+      (f) {
+        dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}");
+        emit(state.copyWith(menuStatus: ActionStatus.error));
+      },
       (menu) {
         dev.log("[LIVESESSION_CUBIT] LOAD_MENU SUCCESS: ${menu.length} items");
-        emit(state.copyWith(menu: menu));
+        emit(state.copyWith(menu: menu, menuStatus: ActionStatus.success));
       },
     );
   }

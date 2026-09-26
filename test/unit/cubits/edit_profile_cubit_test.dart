@@ -6,7 +6,6 @@ import 'package:playspot/features/auth/data/models/user_model.dart';
 import 'package:playspot/features/profile/data/models/profile_params.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import 'package:playspot/features/profile/presentation/edit_profile/edit_profile_cubit.dart';
-import 'package:playspot/features/profile/presentation/edit_profile/edit_profile_state.dart';
 
 class MockProfileRepository extends Mock implements ProfileRepository {}
 class MockAuthRepository extends Mock implements AuthRepository {}

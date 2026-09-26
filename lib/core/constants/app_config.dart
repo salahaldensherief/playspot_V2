@@ -39,15 +39,12 @@ class AppConfig {
     FocusManager.instance.primaryFocus?.unfocus();
   }
 
+  /// Injected at build time via --dart-define. The literal keys were removed
+  /// from source (they remain in git history — rotate them in Google Cloud
+  /// Console and restrict them to the app's bundle IDs).
   static String kGoogleApiKey = Platform.isIOS
-      ? const String.fromEnvironment(
-          'GOOGLE_API_KEY_IOS',
-          defaultValue: 'AIzaSyC67gDDTt0enFRQdH7ca1ex5FYIezlKqg4',
-        )
-      : const String.fromEnvironment(
-          'GOOGLE_API_KEY_ANDROID',
-          defaultValue: 'AIzaSyDmBCl0ScTRCDyoLdkphhr0JLYjDgGBry4',
-        );
+      ? const String.fromEnvironment('GOOGLE_API_KEY_IOS')
+      : const String.fromEnvironment('GOOGLE_API_KEY_ANDROID');
 
   /// Supabase Configuration
   static const String supabaseUrl = String.fromEnvironment(

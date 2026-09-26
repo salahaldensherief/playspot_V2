@@ -81,5 +81,69 @@ class NotificationStrategyHelper {
     }
     return null;
   }
+
+  /// Safely extracts match ID.
+  static String? getMatchId(Map<String, dynamic> data) {
+    final directMatchId = cleanString(data['match_id']) ?? cleanString(data['matchId']);
+    if (directMatchId != null) return directMatchId;
+
+    if (data['data'] is Map) {
+      final nested = Map<String, dynamic>.from(data['data'] as Map);
+      final nestedMatchId = cleanString(nested['match_id']) ?? cleanString(nested['matchId']);
+      if (nestedMatchId != null) return nestedMatchId;
+    }
+    return null;
+  }
+
+  /// Safely extracts room ID.
+  static String? getRoomId(Map<String, dynamic> data) {
+    final directRoomId = cleanString(data['room_id']) ??
+        cleanString(data['roomId']) ??
+        cleanString(data['target_room_id']);
+    if (directRoomId != null) return directRoomId;
+
+    if (data['data'] is Map) {
+      final nested = Map<String, dynamic>.from(data['data'] as Map);
+      final nestedRoomId = cleanString(nested['room_id']) ??
+          cleanString(nested['roomId']) ??
+          cleanString(nested['target_room_id']);
+      if (nestedRoomId != null) return nestedRoomId;
+    }
+    return null;
+  }
+
+  /// Safely extracts lounge ID.
+  static String? getLoungeId(Map<String, dynamic> data) {
+    final directLoungeId = cleanString(data['lounge_id']) ??
+        cleanString(data['loungeId']) ??
+        cleanString(data['target_lounge_id']);
+    if (directLoungeId != null) return directLoungeId;
+
+    if (data['data'] is Map) {
+      final nested = Map<String, dynamic>.from(data['data'] as Map);
+      final nestedLoungeId = cleanString(nested['lounge_id']) ??
+          cleanString(nested['loungeId']) ??
+          cleanString(nested['target_lounge_id']);
+      if (nestedLoungeId != null) return nestedLoungeId;
+    }
+    return null;
+  }
+
+  /// Returns the first non-empty value among [keys], checking the nested
+  /// `data` map as a fallback for each key before moving to the next one.
+  static String? extractFirst(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final direct = cleanString(data[key]);
+      if (direct != null) return direct;
+    }
+    if (data['data'] is Map) {
+      final nested = Map<String, dynamic>.from(data['data'] as Map);
+      for (final key in keys) {
+        final nestedValue = cleanString(nested[key]);
+        if (nestedValue != null) return nestedValue;
+      }
+    }
+    return null;
+  }
 }
 
