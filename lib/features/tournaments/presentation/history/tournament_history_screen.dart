@@ -111,7 +111,7 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                   final participant = item.participant;
                   final tournament = item.tournament;
 
-                  final String tournamentTitle = tournament?.title ?? 'Tournament';
+                  final String tournamentTitle = tournament?.title ?? AppStrings.tournaments.tr();
                   final String loungeName = tournament?.loungeName ?? '-';
                   final String gameName = tournament?.game ?? '-';
                   final DateTime? date = participant.createdAt ?? tournament?.startDate;

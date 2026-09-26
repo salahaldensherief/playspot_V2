@@ -53,9 +53,13 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
 
   @override
   Future<void> cancelBooking(String bookingId) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw const AuthException("User not logged in");
+
     await _client
         .from('bookings')
         .update({'status': 'cancelled'})
-        .eq('id', bookingId);
+        .eq('id', bookingId)
+        .eq('user_id', userId);
   }
 }

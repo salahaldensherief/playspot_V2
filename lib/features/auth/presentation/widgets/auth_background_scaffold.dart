@@ -11,6 +11,8 @@ class AuthBackgroundScaffold extends StatelessWidget {
   final Widget? footer;
   final EdgeInsetsGeometry? padding;
 
+  static final ImageFilter _neonOrbBlurFilter = ImageFilter.blur(sigmaX: 70, sigmaY: 70);
+
   const AuthBackgroundScaffold({
     super.key,
     required this.child,
@@ -106,7 +108,7 @@ class AuthBackgroundScaffold extends StatelessWidget {
         color: color,
       ),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
+        filter: _neonOrbBlurFilter,
         child: Container(
           decoration: const BoxDecoration(color: AppColors.transparent),
         ),

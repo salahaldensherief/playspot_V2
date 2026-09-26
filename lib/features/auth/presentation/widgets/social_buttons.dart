@@ -25,10 +25,10 @@ class SocialButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:  EdgeInsets.symmetric(horizontal: 16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Column(
         children: [
-          _space(),
+          const SizedBox(height: 20.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -56,7 +56,8 @@ class SocialButtons extends StatelessWidget {
                 ),
               ],
             ],
-          ),        _space(),
+          ),
+          const SizedBox(height: 20.0),
           Row(
             children: [
               Expanded(
@@ -65,10 +66,8 @@ class SocialButtons extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.transparent,
                     border: Border.all(
-
                       color: AppColors.borderDefault,
                       width: 0.5,
-
                     ),
                   ),
                 ),
@@ -79,7 +78,7 @@ class SocialButtons extends StatelessWidget {
                 color: AppColors.textSecondary,
                 fontSize: 12.0.sp,
               ),
-              const SizedBox(width: 6.0),
+              SizedBox(width: 6.0.w),
               Expanded(
                 child: Container(
                   height: 0.5,
@@ -93,14 +92,9 @@ class SocialButtons extends StatelessWidget {
               ),
             ],
           ),
-
         ],
       ),
     );
-  }
-
-  Widget _space({double? height}) {
-    return SizedBox(height: height ?? 20.0);
   }
 
   Widget _socialMediaContainer({String? image, void Function()? onTap}) {
@@ -127,4 +121,5 @@ class SocialButtons extends StatelessWidget {
         ),
       ),
     );
-  }}
+  }
+}

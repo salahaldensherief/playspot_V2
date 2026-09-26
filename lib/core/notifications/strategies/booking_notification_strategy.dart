@@ -8,8 +8,8 @@ class BookingNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = data['type']?.toString().toLowerCase();
-    final bookingId = data['booking_id'] ?? data['id'];
+    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase();
+    final bookingId = NotificationStrategyHelper.getBookingId(data);
     return (type != null && type.contains('booking')) || bookingId != null;
   }
 
@@ -18,8 +18,13 @@ class BookingNotificationStrategy implements NotificationActionStrategy {
     final context = AppRouter.navigatorKey.currentContext;
     if (context == null) return false;
 
-    final bookingId = data['booking_id']?.toString() ?? data['id']?.toString();
-    if (bookingId != null && bookingId.isNotEmpty) {
+    if (!NotificationStrategyHelper.isAuthenticated()) {
+      context.goNamed(RouterKeys.signIn);
+      return true;
+    }
+
+    final bookingId = NotificationStrategyHelper.getBookingId(data);
+    if (bookingId != null) {
       context.pushNamed(
         RouterKeys.bookingDetails,
         pathParameters: {'id': bookingId},
@@ -30,3 +35,4 @@ class BookingNotificationStrategy implements NotificationActionStrategy {
     return true;
   }
 }
+

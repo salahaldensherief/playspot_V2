@@ -21,7 +21,6 @@ class ActiveSessionBanner extends StatefulWidget {
 class _ActiveSessionBannerState extends State<ActiveSessionBanner>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
-  Timer? _timer;
 
   @override
   void initState() {
@@ -30,17 +29,11 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
       vsync: this,
       duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
-
-    // Refresh every second to update remaining time & progress
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
-    _timer?.cancel();
     super.dispose();
   }
 
@@ -56,32 +49,6 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
         }
 
         final session = state.session!;
-        final now = DateTime.now();
-        final totalDuration = session.endTime.difference(session.startTime).inSeconds;
-        final remaining = session.endTime.difference(now);
-        final remainingSeconds = remaining.inSeconds;
-        final isExpired = remainingSeconds <= 0;
-
-        double progress = 0.0;
-        if (totalDuration > 0) {
-          progress = (remainingSeconds / totalDuration).clamp(0.0, 1.0);
-        }
-
-        String timeText = '';
-        if (isExpired) {
-          timeText = 'Session ended';
-        } else {
-          final hours = remaining.inHours;
-          final mins = remaining.inMinutes % 60;
-          final secs = remaining.inSeconds % 60;
-          if (hours > 0) {
-            timeText = '$hours h $mins m remaining';
-          } else if (mins > 0) {
-            timeText = '$mins m ${secs}s remaining';
-          } else {
-            timeText = '${secs}s remaining';
-          }
-        }
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
@@ -113,25 +80,10 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
               ),
               child: Row(
                 children: [
-                  // Circular Progress Icon Container
-                  SizedBox(
-                    width: 48.w,
-                    height: 48.h,
-                    child: CustomPaint(
-                      painter: _CircularProgressPainter(
-                        progress: progress,
-                        progressColor: AppColors.neonBlue,
-                        backgroundColor: AppColors.neonBlue.withValues(alpha: 0.15),
-                        strokeWidth: 3.0,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          TablerIcons.device_gamepad_2,
-                          color: AppColors.neonBlue,
-                          size: 22.sp,
-                        ),
-                      ),
-                    ),
+                  // Isolated Ticking Progress Arc
+                  _SessionCircularProgress(
+                    startTime: session.startTime,
+                    endTime: session.endTime,
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
@@ -181,10 +133,10 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 2.h),
-                        AppText(
-                          text: timeText,
-                          fontSize: 11.sp,
-                          color: AppColors.textSecondary,
+                        // Isolated Ticking Text Subtree
+                        _SessionCountdownText(
+                          startTime: session.startTime,
+                          endTime: session.endTime,
                         ),
                       ],
                     ),
@@ -219,6 +171,133 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
           ),
         );
       },
+    );
+  }
+}
+
+/// Isolated sub-widget for 1-second ticker text (prevents rebuilding parent banner)
+class _SessionCountdownText extends StatefulWidget {
+  final DateTime startTime;
+  final DateTime endTime;
+
+  const _SessionCountdownText({
+    required this.startTime,
+    required this.endTime,
+  });
+
+  @override
+  State<_SessionCountdownText> createState() => _SessionCountdownTextState();
+}
+
+class _SessionCountdownTextState extends State<_SessionCountdownText> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final remaining = widget.endTime.difference(now);
+    final remainingSeconds = remaining.inSeconds;
+    final isExpired = remainingSeconds <= 0;
+
+    String timeText = '';
+    if (isExpired) {
+      timeText = 'Session ended';
+    } else {
+      final hours = remaining.inHours;
+      final mins = remaining.inMinutes % 60;
+      final secs = remaining.inSeconds % 60;
+      if (hours > 0) {
+        timeText = '$hours h $mins m remaining';
+      } else if (mins > 0) {
+        timeText = '$mins m ${secs}s remaining';
+      } else {
+        timeText = '${secs}s remaining';
+      }
+    }
+
+    return AppText(
+      text: timeText,
+      fontSize: 11.sp,
+      color: AppColors.textSecondary,
+    );
+  }
+}
+
+/// Isolated sub-widget for 1-second circular progress indicator
+class _SessionCircularProgress extends StatefulWidget {
+  final DateTime startTime;
+  final DateTime endTime;
+
+  const _SessionCircularProgress({
+    required this.startTime,
+    required this.endTime,
+  });
+
+  @override
+  State<_SessionCircularProgress> createState() => _SessionCircularProgressState();
+}
+
+class _SessionCircularProgressState extends State<_SessionCircularProgress> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final totalDuration = widget.endTime.difference(widget.startTime).inSeconds;
+    final remaining = widget.endTime.difference(now);
+    final remainingSeconds = remaining.inSeconds;
+
+    double progress = 0.0;
+    if (totalDuration > 0) {
+      progress = (remainingSeconds / totalDuration).clamp(0.0, 1.0);
+    }
+
+    return SizedBox(
+      width: 48.w,
+      height: 48.h,
+      child: CustomPaint(
+        painter: _CircularProgressPainter(
+          progress: progress,
+          progressColor: AppColors.neonBlue,
+          backgroundColor: AppColors.neonBlue.withValues(alpha: 0.15),
+          strokeWidth: 3.0,
+        ),
+        child: Center(
+          child: Icon(
+            TablerIcons.device_gamepad_2,
+            color: AppColors.neonBlue,
+            size: 22.sp,
+          ),
+        ),
+      ),
     );
   }
 }

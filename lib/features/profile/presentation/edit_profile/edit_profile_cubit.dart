@@ -92,6 +92,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
   }
 
   Future<void> updateProfile() async {
+    if (isClosed || state.status == EditProfileStatus.loading) return;
     if (!(formKey.currentState?.validate() ?? true)) return;
 
     emit(state.copyWith(status: EditProfileStatus.loading));
@@ -129,6 +130,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
   }
 
   Future<void> deleteAccount() async {
+    if (isClosed || state.status == EditProfileStatus.loading) return;
     emit(state.copyWith(status: EditProfileStatus.loading));
     final result = await _authRepository.deleteAccount();
 

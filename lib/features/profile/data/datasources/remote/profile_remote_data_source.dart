@@ -221,8 +221,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final updateData = <String, dynamic>{
         'full_name': params.name,
         'phone': params.phone,
-        if (params.email != null) 'email': params.email,
-        if (avatarUrl != null) 'avatar_url': avatarUrl,
+        'email':? params.email,
+        'avatar_url':? avatarUrl,
       };
 
       updateData.removeWhere((key, value) =>
@@ -237,7 +237,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           email: params.email,
           data: {
             'full_name': params.name,
-            if (avatarUrl != null) 'avatar_url': avatarUrl,
+            'avatar_url':? avatarUrl,
           },
         ),
       );

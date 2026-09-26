@@ -18,6 +18,7 @@ abstract class NotificationsRemoteDataSource {
 class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource {
   final SupabaseClient _client;
   RealtimeChannel? _channel;
+  StreamController<Map<String, dynamic>>? _activeController;
 
   NotificationsRemoteDataSourceImpl(this._client);
 
@@ -84,33 +85,57 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return const Stream.empty();
 
-    final controller = StreamController<Map<String, dynamic>>();
+    _cleanupRealtime();
 
-    _channel = _client.channel('public:notifications:user_$userId')
-        .onPostgresChanges(
-          event: PostgresChangeEvent.insert,
-          schema: 'public',
-          table: 'notifications',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'user_id',
-            value: userId,
-          ),
-          callback: (payload) {
-            if (payload.newRecord.isNotEmpty) {
-              controller.add(payload.newRecord);
+    final controller = StreamController<Map<String, dynamic>>();
+    _activeController = controller;
+
+    try {
+      _channel = _client
+          .channel('public:notifications:user_$userId')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.insert,
+            schema: 'public',
+            table: 'notifications',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: userId,
+            ),
+            callback: (payload) {
+              if (payload.newRecord.isNotEmpty && !controller.isClosed) {
+                controller.add(payload.newRecord);
+              }
+            },
+          )
+          .subscribe((status, [error]) {
+            if (status == RealtimeSubscribeStatus.timedOut ||
+                status == RealtimeSubscribeStatus.channelError) {
+              dev.log("Realtime subscription error/timeout: status=$status, error=$error");
             }
-          },
-        )
-        .subscribe();
+          });
+    } catch (e) {
+      dev.log("Realtime subscription exception: $e");
+    }
 
     controller.onCancel = () {
-      if (_channel != null) {
-        _client.removeChannel(_channel!);
-        _channel = null;
-      }
+      _cleanupRealtime();
     };
 
     return controller.stream;
   }
+
+  void _cleanupRealtime() {
+    if (_channel != null) {
+      try {
+        _client.removeChannel(_channel!);
+      } catch (_) {}
+      _channel = null;
+    }
+    if (_activeController != null && !_activeController!.isClosed) {
+      _activeController!.close();
+      _activeController = null;
+    }
+  }
 }
+

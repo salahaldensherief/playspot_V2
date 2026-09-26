@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'notification_action_strategy.dart';
 
 /// Registry / Context manager for Notification Action Strategies.
@@ -14,11 +15,17 @@ class NotificationStrategyRegistry {
 
   /// Routes and handles notification payload using the matching strategy
   bool handleNotification(Map<String, dynamic> data) {
-    for (final strategy in _strategies) {
-      if (strategy.canHandle(data)) {
-        return strategy.handle(data);
+    try {
+      for (final strategy in _strategies) {
+        if (strategy.canHandle(data)) {
+          return strategy.handle(data);
+        }
       }
+      return _fallbackStrategy.handle(data);
+    } catch (e, st) {
+      AppLogger.error('Error executing notification strategy in registry', e, st);
+      return false;
     }
-    return _fallbackStrategy.handle(data);
   }
 }
+

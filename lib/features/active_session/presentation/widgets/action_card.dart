@@ -43,10 +43,10 @@ class ActionCard extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(16.w),
                 decoration: BoxDecoration(
-                  color: AppColors.withOpacity(AppColors.neonBlue, 0.12),
+                  color: AppColors.neonBlue.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.withOpacity(AppColors.neonBlue, 0.3),
+                    color: AppColors.neonBlue.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Icon(
@@ -135,12 +135,12 @@ class ActionCard extends StatelessWidget {
               color: AppColors.cardBackground,
               borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
-                color: AppColors.withOpacity(AppColors.neonBlue, 0.15),
+                color: AppColors.neonBlue.withValues(alpha: 0.15),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.withOpacity(AppColors.black, 0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -159,7 +159,7 @@ class ActionCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                   decoration: BoxDecoration(
-                    color: AppColors.withOpacity(AppColors.neonBlue, 0.08),
+                    color: AppColors.neonBlue.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: AppText(

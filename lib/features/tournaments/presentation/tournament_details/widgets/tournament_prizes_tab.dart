@@ -136,11 +136,11 @@ class TournamentPrizesTab extends StatelessWidget {
                 : TablerIcons.trophy;
 
     final String rankLabel = isFirst
-        ? '1st'
+        ? AppStrings.firstPlace.tr()
         : isSecond
-            ? '2nd'
+            ? AppStrings.secondPlace.tr()
             : isThird
-                ? '3rd'
+                ? AppStrings.thirdPlace.tr()
                 : '#${prize.placement}';
 
     return GlassContainer(

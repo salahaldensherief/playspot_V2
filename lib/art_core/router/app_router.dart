@@ -81,6 +81,12 @@ class AppRouter {
 
   void _setupNotificationHandler() {
     NotificationRouter.configure((data) {
+      final user = sl<AuthRepository>().getCurrentUser();
+      if (user == null) {
+        // Unauthenticated users cannot trigger private notification actions
+        return false;
+      }
+
       final typeStr =
           (data['type'] ?? data['notification_type'] ?? '').toString().toLowerCase();
 

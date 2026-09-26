@@ -66,14 +66,14 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
                 borderRadius: RoomConstants.borderRadius,
                 borderOpacity: (isSelected || _isExpanded) ? 0.3 : 0.05,
                 useBorderColorForGradient: false,
-                color: Colors.white.withOpacity(0.02),
+                color: Colors.white.withValues(alpha: 0.02),
                 borderColor: isSelected
                     ? themeColor
                     : (hasOffer
-                        ? AppColors.warning.withOpacity(0.4)
+                        ? AppColors.warning.withValues(alpha: 0.4)
                         : (isAvailable
                             ? AppColors.borderDefault
-                            : AppColors.danger.withOpacity(0.15))),
+                            : AppColors.danger.withValues(alpha: 0.15))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

@@ -128,6 +128,7 @@ class AppStrings {
   static const String noExtrasAvailable = "noExtrasAvailable";
   static const String ps5Rooms = "ps5Rooms";
   static const String simulator = "simulator";
+  static const String vr = "vr";
   static const String billiard = "billiard";
   static const String browseByCategory = "browseByCategory";
   static const String nearestLounges = "nearestLounges";
@@ -388,6 +389,9 @@ class AppStrings {
   static const String tournamentDetails = "tournamentDetails";
   static const String tournamentRules = "tournamentRules";
   static const String tournamentPrizes = "tournamentPrizes";
+  static const String firstPlace = "firstPlace";
+  static const String secondPlace = "secondPlace";
+  static const String thirdPlace = "thirdPlace";
   static const String tournamentBracket = "tournamentBracket";
   static const String tournamentSchedule = "tournamentSchedule";
   static const String registerForTournament = "registerForTournament";
@@ -403,6 +407,7 @@ class AppStrings {
   static const String waitlist = "waitlist";
   static const String pendingPayment = "pendingPayment";
   static const String uploadReceipt = "uploadReceipt";
+  static const String receiptImageSizeLimit = "receiptImageSizeLimit";
   static const String paymentInstructions = "paymentInstructions";
   static const String instaPayDetails = "instaPayDetails";
   static const String vodafoneCashDetails = "vodafoneCashDetails";

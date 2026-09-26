@@ -120,13 +120,26 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
   }
 
   Future<void> _syncToSupabase(NotificationSettingsState s) async {
-    final model = NotificationSettingsModel(
-      pushEnabled: s.pushNotificationsEnabled,
-      bookingUpdates: s.bookingUpdates,
-      offersEnabled: s.offersPromotions,
-      eventsEnabled: s.tournamentsAndEvents,
-      systemNotifications: s.systemStatus,
-    );
-    await _profileRepository.updateNotificationSettings(model);
+    try {
+      final model = NotificationSettingsModel(
+        pushEnabled: s.pushNotificationsEnabled,
+        bookingUpdates: s.bookingUpdates,
+        offersEnabled: s.offersPromotions,
+        eventsEnabled: s.tournamentsAndEvents,
+        systemNotifications: s.systemStatus,
+      );
+      final result = await _profileRepository.updateNotificationSettings(model);
+      result.fold(
+        (failure) {
+          if (!isClosed) {
+            emit(state.copyWith(
+              status: NotificationSettingsStatus.failure,
+              errorMessage: failure.message,
+            ));
+          }
+        },
+        (_) {},
+      );
+    } catch (_) {}
   }
 }

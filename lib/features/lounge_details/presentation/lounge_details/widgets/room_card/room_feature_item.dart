@@ -12,13 +12,13 @@ class RoomFeatureItem extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.05),
+        color: AppColors.success.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(6.r),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star, size: 10.sp, color: AppColors.success.withOpacity(0.6)),
+          Icon(Icons.star, size: 10.sp, color: AppColors.success.withValues(alpha: 0.6)),
           6.horizontalSpace,
           AppText(
               text: feature,

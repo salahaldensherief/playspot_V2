@@ -14,7 +14,7 @@ import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../tournaments/domain/entities/tournament_entity.dart';
 
-class TournamentPromoCard extends StatefulWidget {
+class TournamentPromoCard extends StatelessWidget {
   final TournamentEntity tournament;
   final bool isRegistered;
   final TournamentParticipantEntity? participant;
@@ -29,81 +29,27 @@ class TournamentPromoCard extends StatefulWidget {
   });
 
   @override
-  State<TournamentPromoCard> createState() => _TournamentPromoCardState();
-}
-
-class _TournamentPromoCardState extends State<TournamentPromoCard> {
-  Timer? _timer;
-  Duration _timeLeft = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isRegistered) {
-      _initTimer();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant TournamentPromoCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isRegistered) {
-      _initTimer();
-    } else {
-      _timer?.cancel();
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _initTimer() {
-    final targetDate = widget.tournament.registrationClosesAt ?? widget.tournament.startDate ?? DateTime.now().add(const Duration(days: 1));
-    _updateTimeLeft(targetDate);
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateTimeLeft(targetDate);
-    });
-  }
-
-  void _updateTimeLeft(DateTime targetDate) {
-    final now = DateTime.now();
-    final difference = targetDate.difference(now);
-    if (mounted) {
-      setState(() {
-        _timeLeft = difference.isNegative ? Duration.zero : difference;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     final isArabic = context.locale.languageCode == 'ar';
-    final tournament = widget.tournament;
     final title = (isArabic ? (tournament.titleAr ?? tournament.title) : (tournament.titleEn ?? tournament.title)).isNotEmpty
         ? (isArabic ? (tournament.titleAr ?? tournament.title) : (tournament.titleEn ?? tournament.title))
         : tournament.title;
 
-    final hours = _timeLeft.inHours;
-    final minutes = _timeLeft.inMinutes.remainder(60);
-    final seconds = _timeLeft.inSeconds.remainder(60);
+    final targetDate = tournament.registrationClosesAt ?? tournament.startDate ?? DateTime.now().add(const Duration(days: 1));
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Container(
         margin: 2.horizontalPadding,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppSizes.r24),
           gradient: AppColors.tournamentPromoGradient,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: AppColors.neonPurple.withValues(alpha: 0.1),
+              color: Color(0x1A9D00FF),
               blurRadius: 8,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -198,7 +144,7 @@ class _TournamentPromoCardState extends State<TournamentPromoCard> {
                           ],
                         ),
                       ),
-                      if (widget.isRegistered && widget.participant != null)
+                      if (isRegistered && participant != null)
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                           decoration: BoxDecoration(
@@ -207,7 +153,7 @@ class _TournamentPromoCardState extends State<TournamentPromoCard> {
                             border: Border.all(color: AppColors.neonPurple),
                           ),
                           child: AppText(
-                            text: widget.participant!.status.toDbString().toUpperCase(),
+                            text: participant!.status.toDbString().toUpperCase(),
                             fontSize: 9.sp,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Orbitron',
@@ -229,24 +175,10 @@ class _TournamentPromoCardState extends State<TournamentPromoCard> {
                   6.verticalSpace,
                   Row(
                     children: [
-                      if (widget.isRegistered) ...[
+                      if (isRegistered) ...[
                         Icon(TablerIcons.clock, size: 14.sp, color: AppColors.neonBlue),
                         4.horizontalSpace,
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                          decoration: BoxDecoration(
-                            color: AppColors.black.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(6.r),
-                            border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
-                          ),
-                          child: AppText(
-                            text: '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-                            fontSize: 11.sp,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Orbitron',
-                            color: AppColors.neonBlue,
-                          ),
-                        ),
+                        _TournamentCountdownTimer(targetDate: targetDate),
                         8.horizontalSpace,
                       ],
                       Expanded(
@@ -273,6 +205,69 @@ class _TournamentPromoCardState extends State<TournamentPromoCard> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Isolated sub-widget for 1-second ticker badge (prevents rebuilding parent promo card)
+class _TournamentCountdownTimer extends StatefulWidget {
+  final DateTime targetDate;
+
+  const _TournamentCountdownTimer({required this.targetDate});
+
+  @override
+  State<_TournamentCountdownTimer> createState() => _TournamentCountdownTimerState();
+}
+
+class _TournamentCountdownTimerState extends State<_TournamentCountdownTimer> {
+  Timer? _timer;
+  Duration _timeLeft = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTimeLeft();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateTimeLeft();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _updateTimeLeft() {
+    final now = DateTime.now();
+    final difference = widget.targetDate.difference(now);
+    if (mounted) {
+      setState(() {
+        _timeLeft = difference.isNegative ? Duration.zero : difference;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hours = _timeLeft.inHours;
+    final minutes = _timeLeft.inMinutes.remainder(60);
+    final seconds = _timeLeft.inSeconds.remainder(60);
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: AppColors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+      ),
+      child: AppText(
+        text: '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+        fontSize: 11.sp,
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Orbitron',
+        color: AppColors.neonBlue,
       ),
     );
   }

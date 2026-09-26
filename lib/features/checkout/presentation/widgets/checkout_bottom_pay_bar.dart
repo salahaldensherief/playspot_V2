@@ -32,7 +32,7 @@ class CheckoutBottomPayBar extends StatelessWidget {
           previous.selectedMethod != current.selectedMethod ||
           previous.isHoldExpired != current.isHoldExpired,
       builder: (context, state) {
-        final finalPrice = params.totalPrice - state.discountAmount;
+        final finalPrice = params.calculateFinalPrice(state.discountAmount);
         final buttonText = state.status == CheckoutStatus.loading
             ? AppStrings.processing.tr()
             : (state.selectedMethod == PaymentMethod.cash

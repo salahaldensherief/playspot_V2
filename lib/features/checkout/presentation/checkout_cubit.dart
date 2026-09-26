@@ -297,7 +297,12 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       final isFirst = i == 0;
       final double totalDiscount = roomDiscount + (isFirst ? state.discountAmount : 0.0);
       final double roomAddonsTotal = isFirst ? checkoutParams.addonsTotal : 0.0;
-      final double roomTotalPrice = discRoomPrice + roomAddonsTotal - (isFirst ? state.discountAmount : 0.0);
+      final double roomTotalPrice = checkoutParams.calculateRoomTotalPrice(
+        discountedRoomPrice: discRoomPrice,
+        roomAddonsTotal: roomAddonsTotal,
+        voucherDiscount: state.discountAmount,
+        isPrimaryRoom: isFirst,
+      );
       final List<Map<String, dynamic>> roomAddons = isFirst ? checkoutParams.addOns : const [];
       final String? roomMode = breakdown['playMode']?.toString() ??
           (checkoutParams.rooms.length == 1 ? checkoutParams.playMode : 'single');

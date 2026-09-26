@@ -14,14 +14,14 @@ class RoomBookedOverlay extends StatelessWidget {
     return Positioned.fill(
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.black.withOpacity(0.7),
+          color: AppColors.black.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(RoomConstants.borderRadius.r),
         ),
         child: Center(
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
             decoration: BoxDecoration(
-              color: AppColors.danger.withOpacity(0.85),
+              color: AppColors.danger.withValues(alpha: 0.85),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: AppText(

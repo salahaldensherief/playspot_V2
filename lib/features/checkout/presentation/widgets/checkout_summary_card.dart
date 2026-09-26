@@ -23,7 +23,7 @@ class CheckoutSummaryCard extends StatelessWidget {
         final roomOriginalSubtotal = params.originalRoomSubtotal;
         final roomDiscount = params.discountAmount;
         final voucherDiscount = state.discountAmount;
-        final finalPrice = params.totalPrice - voucherDiscount;
+        final finalPrice = params.calculateFinalPrice(voucherDiscount);
 
         // Build session details rows
         final List<Map<String, dynamic>> sessionRows = [
@@ -98,7 +98,7 @@ class CheckoutSummaryCard extends StatelessWidget {
         return OrderSummaryCard(
           title: params.lounge.name,
           subtitle: roomSubtitle,
-          statusText: isArabic ? "قيد التأكيد" : "Pending",
+          statusText: AppStrings.pendingConfirmation.tr(),
           statusColor: AppColors.warning,
           baseCostLabel: AppStrings.originalRoomPrice.tr(),
           baseCostAmount: roomOriginalSubtotal,

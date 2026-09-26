@@ -21,7 +21,7 @@ class RoomPromoBadge extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.warning.withOpacity(0.3),
+            color: AppColors.warning.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),

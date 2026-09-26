@@ -18,14 +18,12 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
   @override
   void initState() {
     super.initState();
-    // ابدأ الحركة بعد تأخير بسيط عند دخول الصفحة
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() => _isExpanded = true);
       }
     });
 
-    // ارجع صغره تاني بعد 4 ثواني عشان ميزحمش الشاشة
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted) {
         setState(() => _isExpanded = false);
@@ -40,12 +38,12 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
       curve: Curves.easeInOutBack,
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(25.r),
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -77,7 +75,7 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
               child: Container(
                 height: 10.h,
                 width: 1.w,
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
               ),
             ),
             AppText(

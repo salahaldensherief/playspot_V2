@@ -91,59 +91,59 @@ class ReviewsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16.r,
-                    backgroundImage: review.userAvatar != null && review.userAvatar!.trim().isNotEmpty
-                        ? CachedNetworkImageProvider(
-                            review.userAvatar!.trim(),
-                            maxHeight: 64,
-                            maxWidth: 64,
-                          )
-                        : null,
-                    child: review.userAvatar == null || review.userAvatar!.trim().isEmpty
-                        ? const Icon(Icons.person, size: 16, color: AppColors.white)
-                        : null,
-                  ),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText(
-                          text: review.userName,
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                        SizedBox(height: 2.h),
-                        RatingDisplayWidget(
-                          rating: review.rating,
-                          starSize: 12.sp,
-                          spacing: 2.w,
-                        ),
-                      ],
-                    ),
-                  ),
-                  AppText(
-                    text: DateFormat('dd/MM/yyyy').format(review.createdAt),
-                    fontSize: 10.sp,
-                    color: AppColors.textSecondary,
-                  ),
-                ],
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16.r,
+                backgroundImage: review.userAvatar != null && review.userAvatar!.trim().isNotEmpty
+                    ? CachedNetworkImageProvider(
+                        review.userAvatar!.trim(),
+                        maxHeight: 64,
+                        maxWidth: 64,
+                      )
+                    : null,
+                child: review.userAvatar == null || review.userAvatar!.trim().isEmpty
+                    ? const Icon(Icons.person, size: 16, color: AppColors.white)
+                    : null,
               ),
-              if (review.comment != null && review.comment!.isNotEmpty) ...[
-                SizedBox(height: 8.h),
-                AppText(
-                  text: review.comment!,
-                  fontSize: 12.sp,
-                  color: AppColors.textSecondary,
-                  height: 1.4,
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(
+                      text: review.userName,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 2.h),
+                    RatingDisplayWidget(
+                      rating: review.rating,
+                      starSize: 12.sp,
+                      spacing: 2.w,
+                    ),
+                  ],
                 ),
-              ],
+              ),
+              AppText(
+                text: DateFormat('dd/MM/yyyy').format(review.createdAt),
+                fontSize: 10.sp,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
+          if (review.comment != null && review.comment!.isNotEmpty) ...[
+            SizedBox(height: 8.h),
+            AppText(
+              text: review.comment!,
+              fontSize: 12.sp,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -218,16 +218,16 @@ class ReviewsSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: AppColors.withOpacity(AppColors.warning, 0.2)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             decoration: BoxDecoration(
-              color: AppColors.withOpacity(AppColors.warning, 0.12),
+              color: AppColors.warning.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(color: AppColors.withOpacity(AppColors.warning, 0.3)),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

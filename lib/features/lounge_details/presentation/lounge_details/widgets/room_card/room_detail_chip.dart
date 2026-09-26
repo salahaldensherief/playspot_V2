@@ -12,14 +12,14 @@ class RoomDetailChip extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(color: themeColor.withOpacity(0.1)),
+        border: Border.all(color: themeColor.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle, size: 10.sp, color: themeColor.withOpacity(0.5)),
+          Icon(Icons.check_circle, size: 10.sp, color: themeColor.withValues(alpha: 0.5)),
           6.horizontalSpace,
           AppText(text: label, fontSize: 10.sp, color: Colors.white70),
         ],

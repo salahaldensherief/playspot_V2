@@ -40,9 +40,9 @@ class BookingSessionSummary extends StatelessWidget {
 
         final offerInfo = state.getOfferInfo(params, isArabic);
         final subtotals = state.getCalculatedSubtotals(params, isArabic);
-        final origRoomSubtotal = subtotals['originalRoomSubtotal'] ?? 0.0;
-        final discRoomSubtotal = subtotals['discountedRoomSubtotal'] ?? 0.0;
-        final roomDiscountAmount = subtotals['roomDiscountAmount'] ?? 0.0;
+        final origRoomSubtotal = (subtotals['originalRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
+        final discRoomSubtotal = (subtotals['discountedRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
+        final roomDiscountAmount = (subtotals['roomDiscountAmount'] as num?)?.toDouble() ?? 0.0;
 
         return Container(
           padding: 16.allPadding,
@@ -62,7 +62,7 @@ class BookingSessionSummary extends StatelessWidget {
               ),
               16.verticalSpace,
               _buildSummaryRow(
-                "Time Slot",
+                AppStrings.selectTime.tr(),
                 "${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}",
               ),
               8.verticalSpace,
@@ -82,7 +82,7 @@ class BookingSessionSummary extends StatelessWidget {
               8.verticalSpace,
               _buildSummaryRow(
                 AppStrings.duration.tr(),
-                "${state.durationMinutes} mins",
+                state.getFormattedDuration(isArabic),
               ),
               const Divider(color: AppColors.borderDefault, height: 24),
               if (offerInfo.hasOffer) ...[
@@ -99,7 +99,7 @@ class BookingSessionSummary extends StatelessWidget {
                     ),
                     AppText(
                       text:
-                          "-${roomDiscountAmount.toInt()} ${AppStrings.egp.tr()}",
+                          "-${roomDiscountAmount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                       fontSize: 12.sp,
                       color: AppColors.success,
                       fontWeight: FontWeight.bold,
@@ -121,7 +121,7 @@ class BookingSessionSummary extends StatelessWidget {
                     children: [
                       if (offerInfo.hasOffer) ...[
                         Text(
-                          "${origRoomSubtotal.toInt()} ${AppStrings.egp.tr()}",
+                          "${origRoomSubtotal.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                           style: TextStyle(
                             color: AppColors.textSecondary.withValues(
                               alpha: 0.5,

@@ -121,20 +121,22 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
           final vcNumber = settings['vodafone_cash_number']?.toString().trim() ?? settings['vodafone_cash']?.toString().trim();
           final ipAccount = settings['instapay_account']?.toString().trim() ?? settings['instapay_number']?.toString().trim() ?? settings['instapay']?.toString().trim();
 
-          setState(() {
-            if (vcNumber != null && vcNumber.isNotEmpty) {
-              _vodafoneCashNumber = vcNumber;
-              _hasVodafoneCash = true;
-              _selectedMethod = 'Vodafone Cash';
-            }
-            if (ipAccount != null && ipAccount.isNotEmpty) {
-              _instaPayAccount = ipAccount;
-              _hasInstaPay = true;
-              if (!_hasVodafoneCash) {
-                _selectedMethod = 'InstaPay';
+          if (mounted) {
+            setState(() {
+              if (vcNumber != null && vcNumber.isNotEmpty) {
+                _vodafoneCashNumber = vcNumber;
+                _hasVodafoneCash = true;
+                _selectedMethod = 'Vodafone Cash';
               }
-            }
-          });
+              if (ipAccount != null && ipAccount.isNotEmpty) {
+                _instaPayAccount = ipAccount;
+                _hasInstaPay = true;
+                if (!_hasVodafoneCash) {
+                  _selectedMethod = 'InstaPay';
+                }
+              }
+            });
+          }
         }
       } catch (_) {}
     }
@@ -179,16 +181,33 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
   }
 
   Future<void> _launchWhatsApp() async {
+    final isArabic = context.locale.languageCode == 'ar';
+    final targetPhone = _vodafoneCashNumber.isNotEmpty
+        ? _vodafoneCashNumber
+        : widget.walletNumber.trim();
+
+    if (targetPhone.isEmpty) {
+      GameHudToast.show(
+        context,
+        isArabic
+            ? 'رقم هاتف الصالة غير متوفر حالياً لتأكيد الواتساب'
+            : 'Lounge phone number is currently unavailable',
+        type: ToastType.error,
+      );
+      return;
+    }
+
     final senderAccount = _senderAccountController.text.trim();
     final transRef = _transactionRefController.text.trim();
+    final formattedAmount = widget.amount.toStringAsFixed(2);
     final message = "أهلاً PlaySpot 👋\n"
-        "أود تأكيد تحويل $_selectedMethod بقيمة ${widget.amount.toStringAsFixed(0)} ج.م "
+        "أود تأكيد تحويل $_selectedMethod بقيمة $formattedAmount ${AppStrings.egp.tr()} "
         "لصالة ${widget.loungeName}.\n"
         "${senderAccount.isNotEmpty ? 'حساب / رقم التحويل: $senderAccount\n' : ''}"
         "${transRef.isNotEmpty ? 'الرقم المرجعي: $transRef' : ''}";
 
     await ContactLauncherService.launchWhatsApp(
-      phone: _vodafoneCashNumber.isNotEmpty ? _vodafoneCashNumber : '01012345678',
+      phone: targetPhone,
       message: message,
     );
   }
@@ -369,7 +388,7 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
                     ],
                   ),
                   SizedBox(height: 12.h),
-                  Divider(color: AppColors.borderDefault, height: 1.h),
+                  const Divider(color: AppColors.borderDefault, height: 1),
                   SizedBox(height: 12.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -40,7 +40,7 @@ class RoomHeader extends StatelessWidget {
         ),
         Icon(
           isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-          color: themeColor.withOpacity(0.4),
+          color: themeColor.withValues(alpha: 0.4),
           size: 18.sp,
         ),
       ],

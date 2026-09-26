@@ -8,9 +8,9 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = data['type']?.toString().toLowerCase();
-    final sessionId = data['session_id'];
-    return type == 'session' || type == 'active_session' || sessionId != null;
+    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase();
+    final sessionId = NotificationStrategyHelper.getSessionId(data);
+    return type == 'session' || type == 'active_session' || type == 'active-session' || sessionId != null;
   }
 
   @override
@@ -18,8 +18,13 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
     final context = AppRouter.navigatorKey.currentContext;
     if (context == null) return false;
 
-    final sessionId = data['session_id']?.toString() ?? data['id']?.toString();
-    if (sessionId != null && sessionId.isNotEmpty) {
+    if (!NotificationStrategyHelper.isAuthenticated()) {
+      context.goNamed(RouterKeys.signIn);
+      return true;
+    }
+
+    final sessionId = NotificationStrategyHelper.getSessionId(data);
+    if (sessionId != null) {
       context.pushNamed(
         RouterKeys.activeSession,
         extra: {'booking_id': sessionId},
@@ -30,3 +35,4 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
     return true;
   }
 }
+

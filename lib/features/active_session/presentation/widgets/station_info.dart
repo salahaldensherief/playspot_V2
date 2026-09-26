@@ -26,7 +26,7 @@ class StationInfo extends StatelessWidget {
         border: Border.all(color: AppColors.borderDefault),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(AppColors.black, 0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -37,9 +37,9 @@ class StationInfo extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              color: AppColors.withOpacity(AppColors.neonBlue, 0.12),
+              color: AppColors.neonBlue.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: AppColors.withOpacity(AppColors.neonBlue, 0.25)),
+              border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.25)),
             ),
             child: Icon(
               Icons.sports_esports_rounded,
@@ -82,9 +82,9 @@ class StationInfo extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
               decoration: BoxDecoration(
-                color: AppColors.withOpacity(AppColors.neonBlue, 0.08),
+                color: AppColors.neonBlue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: AppColors.withOpacity(AppColors.neonBlue, 0.3)),
+                border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,

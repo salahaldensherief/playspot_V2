@@ -8,8 +8,8 @@ class TournamentNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = data['type']?.toString().toLowerCase() ?? '';
-    final tournamentId = data['tournament_id'] ?? data['tournamentId'];
+    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ?? '';
+    final tournamentId = NotificationStrategyHelper.getTournamentId(data);
     return type.contains('tournament') || tournamentId != null;
   }
 
@@ -18,8 +18,13 @@ class TournamentNotificationStrategy implements NotificationActionStrategy {
     final context = AppRouter.navigatorKey.currentContext;
     if (context == null) return false;
 
-    final tournamentId = data['tournament_id']?.toString() ?? data['tournamentId']?.toString();
-    if (tournamentId != null && tournamentId.isNotEmpty) {
+    if (!NotificationStrategyHelper.isAuthenticated()) {
+      context.goNamed(RouterKeys.signIn);
+      return true;
+    }
+
+    final tournamentId = NotificationStrategyHelper.getTournamentId(data);
+    if (tournamentId != null) {
       context.pushNamed(
         RouterKeys.tournamentDetails,
         pathParameters: {'id': tournamentId},
@@ -30,3 +35,4 @@ class TournamentNotificationStrategy implements NotificationActionStrategy {
     return true;
   }
 }
+

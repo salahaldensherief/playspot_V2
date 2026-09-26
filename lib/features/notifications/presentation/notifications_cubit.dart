@@ -208,8 +208,19 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     return super.close();
   }
 
+  final Set<String> _inFlightMarkAsReadIds = {};
+  bool _isMarkingAllAsRead = false;
+
   void markAsRead(String id) async {
-    if (isClosed) return;
+    if (isClosed || _inFlightMarkAsReadIds.contains(id)) return;
+
+    final targetIndex = state.notifications.indexWhere((n) => n.id == id);
+    if (targetIndex != -1 && state.notifications[targetIndex].isRead) {
+      return; // Already read, skip redundant update
+    }
+
+    _inFlightMarkAsReadIds.add(id);
+
     final updatedList = state.notifications.map((n) {
       if (n.id == id) return n.copyWith(isRead: true);
       return n;
@@ -218,6 +229,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     emit(state.copyWith(notifications: updatedList));
 
     final result = await _repository.markAsRead(id);
+    _inFlightMarkAsReadIds.remove(id);
 
     if (isClosed) return;
 
@@ -240,12 +252,17 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void markAllAsRead() async {
-    if (isClosed) return;
+    if (isClosed || _isMarkingAllAsRead) return;
+    if (state.unreadCount == 0) return; // Skip if all already read
+
+    _isMarkingAllAsRead = true;
+    final previousList = List<NotificationModel>.from(state.notifications);
     final updatedList = state.notifications.map((n) => n.copyWith(isRead: true)).toList();
 
     emit(state.copyWith(notifications: updatedList));
 
     final result = await _repository.markAllAsRead();
+    _isMarkingAllAsRead = false;
 
     if (isClosed) return;
 
@@ -253,7 +270,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       (failure) {
         if (!isClosed) {
           emit(state.copyWith(
-            notifications: state.notifications,
+            notifications: previousList,
             errorMessage: failure.message,
           ));
         }
@@ -262,3 +279,4 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     );
   }
 }
+

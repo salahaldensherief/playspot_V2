@@ -42,12 +42,12 @@ class RoomExpandedDetails extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Divider(color: Colors.white.withOpacity(0.05), height: 1.h),
+            Divider(color: Colors.white.withValues(alpha: 0.05), height: 1.h),
             12.verticalSpace,
             if (isSelected) ...[
               _buildSelectionConfig(context),
               16.verticalSpace,
-              Divider(color: Colors.white.withOpacity(0.05), height: 1.h),
+              Divider(color: Colors.white.withValues(alpha: 0.05), height: 1.h),
               12.verticalSpace,
             ],
             Row(
@@ -71,7 +71,7 @@ class RoomExpandedDetails extends StatelessWidget {
               AppText(
                 text: AppStrings.noExtrasAvailable.tr(),
                 fontSize: 10.sp,
-                color: AppColors.textSecondary.withOpacity(0.5),
+                color: AppColors.textSecondary.withValues(alpha: 0.5),
               ),
             12.verticalSpace,
             RoomSectionHeader(
@@ -142,7 +142,7 @@ class RoomExpandedDetails extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Row(
@@ -196,7 +196,7 @@ class RoomExpandedDetails extends StatelessWidget {
                 text:
                     "+${room.extraControllerPrice.toInt()} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()}",
                 fontSize: 9.sp,
-                color: AppColors.warning.withOpacity(0.8)),
+                color: AppColors.warning.withValues(alpha: 0.8)),
           ],
         ),
         Row(
@@ -226,7 +226,7 @@ class RoomExpandedDetails extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border.all(color: Colors.white10),
           borderRadius: BorderRadius.circular(6.r),
-          color: Colors.white.withOpacity(0.03),
+          color: Colors.white.withValues(alpha: 0.03),
         ),
         child: Icon(icon, size: 14.sp, color: Colors.white),
       ),

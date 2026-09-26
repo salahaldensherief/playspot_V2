@@ -109,7 +109,7 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
           if (mounted) {
             GameHudToast.show(
               context,
-              'Receipt image must be under 5MB',
+              AppStrings.receiptImageSizeLimit.tr(),
               type: ToastType.error,
             );
           }

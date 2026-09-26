@@ -431,3 +431,23 @@ class CheckoutParams extends Equatable {
     return CheckoutParams.fromMap(json);
   }
 }
+
+/// Consolidated pricing extensions for [CheckoutParams] across UI and submission flows
+extension CheckoutPricingX on CheckoutParams {
+  /// Calculates final payable price after applying voucher discount, clamped to >= 0.0.
+  double calculateFinalPrice(double voucherDiscount) {
+    return (totalPrice - voucherDiscount).clamp(0.0, double.infinity);
+  }
+
+  /// Calculates room final price for a specific room breakdown / room index after applying voucher discount on primary room.
+  double calculateRoomTotalPrice({
+    required double discountedRoomPrice,
+    required double roomAddonsTotal,
+    required double voucherDiscount,
+    required bool isPrimaryRoom,
+  }) {
+    final double rawPrice = discountedRoomPrice + roomAddonsTotal - (isPrimaryRoom ? voucherDiscount : 0.0);
+    return rawPrice.clamp(0.0, double.infinity);
+  }
+}
+

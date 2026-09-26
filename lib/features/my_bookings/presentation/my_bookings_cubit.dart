@@ -87,6 +87,9 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   }
 
   Future<void> cancelBooking(String bookingId) async {
+    // Guard against duplicate / in-flight double-tap cancellation requests
+    if (state.cancellingBookingId != null) return;
+
     emit(state.copyWith(cancellingBookingId: bookingId));
     final result = await _repository.cancelBooking(bookingId);
     result.fold(

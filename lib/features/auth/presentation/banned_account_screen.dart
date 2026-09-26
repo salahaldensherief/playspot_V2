@@ -11,17 +11,55 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/contact_launcher_service.dart';
+import 'package:playspot/features/profile/data/datasources/remote/support_remote_data_source.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class BannedAccountScreen extends StatelessWidget {
+class BannedAccountScreen extends StatefulWidget {
   final String? reason;
 
   const BannedAccountScreen({
     super.key,
     this.reason,
   });
+
+  @override
+  State<BannedAccountScreen> createState() => _BannedAccountScreenState();
+}
+
+class _BannedAccountScreenState extends State<BannedAccountScreen> {
+  bool _isLoadingSupport = false;
+
+  Future<void> _contactSupport() async {
+    setState(() => _isLoadingSupport = true);
+    String targetPhone = '';
+    try {
+      final settings = await sl<SupportRemoteDataSource>().getSupportSettings();
+      targetPhone = settings['whatsapp_phone']?.toString().trim() ??
+          settings['support_phone']?.toString().trim() ??
+          '';
+    } catch (_) {}
+
+    if (mounted) {
+      setState(() => _isLoadingSupport = false);
+    }
+
+    if (targetPhone.isNotEmpty) {
+      await ContactLauncherService.launchWhatsApp(
+        phone: targetPhone,
+        message: 'مرحباً فِريق دعم PlaySpot 👋\nتم حظر حسابي وأود الاستفسار حول ذلك.',
+      );
+    } else if (mounted) {
+      GameHudToast.show(
+        context,
+        AppStrings.somethingWentWrong.tr(),
+        type: ToastType.error,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +111,7 @@ class BannedAccountScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 height: 1.5,
               ),
-              if (reason != null && reason!.trim().isNotEmpty) ...[
+              if (widget.reason != null && widget.reason!.trim().isNotEmpty) ...[
                 SizedBox(height: 24.h),
                 GlassContainer(
                   borderRadius: 16,
@@ -90,7 +128,7 @@ class BannedAccountScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 6.h),
                         AppText(
-                          text: reason!.trim(),
+                          text: widget.reason!.trim(),
                           fontSize: 12.5.sp,
                           color: Colors.white,
                           height: 1.4,
@@ -107,12 +145,8 @@ class BannedAccountScreen extends StatelessWidget {
                   icon: const Icon(Icons.support_agent_rounded, color: Colors.white),
                 ),
                 behavior: ButtonBehavior.tap(
-                  onTap: () {
-                    ContactLauncherService.launchWhatsApp(
-                      phone: '01012345678',
-                      message: 'مرحباً فِريق دعم PlaySpot 👋\nتم حظر حسابي وأود الاستفسار حول ذلك.',
-                    );
-                  },
+                  isLoading: _isLoadingSupport,
+                  onTap: _contactSupport,
                 ),
                 buttonConfig: ButtonConfig(
                   height: 52.h,

@@ -57,7 +57,7 @@ class RoomActionArea extends StatelessWidget {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 14.w),
           decoration: BoxDecoration(
-            border: Border(left: BorderSide(color: Colors.white.withOpacity(0.03))),
+            border: Border(left: BorderSide(color: Colors.white.withValues(alpha: 0.03))),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -92,12 +92,12 @@ class RoomActionArea extends StatelessWidget {
                   duration: RoomConstants.toggleDuration,
                   padding: EdgeInsets.all(7.w),
                   decoration: BoxDecoration(
-                    color: isSelected ? themeColor : Colors.white.withOpacity(0.05),
+                    color: isSelected ? themeColor : Colors.white.withValues(alpha: 0.05),
                     shape: BoxShape.circle,
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                                color: themeColor.withOpacity(0.3),
+                                color: themeColor.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 spreadRadius: 1)
                           ]

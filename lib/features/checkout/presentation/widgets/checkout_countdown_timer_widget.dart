@@ -96,7 +96,7 @@ class CheckoutCountdownTimerWidget extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.danger.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(color: AppColors.danger),
+                      border: const Border.fromBorderSide(BorderSide(color: AppColors.danger)),
                     ),
                     child: AppText(
                       text: isArabic ? 'إعادة الاختيار' : 'Reselect',

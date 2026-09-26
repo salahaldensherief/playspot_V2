@@ -51,7 +51,7 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
         final isArabic = context.locale.languageCode == 'ar';
         final subtotals = state.getCalculatedSubtotals(widget.params, isArabic);
         final offerInfo = state.getOfferInfo(widget.params, isArabic);
-        final totalPrice = subtotals['discountedRoomSubtotal'] ?? 0.0;
+        final totalPrice = (subtotals['totalPrice'] as num?)?.toDouble() ?? 0.0;
 
         return Container(
           padding: EdgeInsets.only(
@@ -89,7 +89,7 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                           children: [
                             if (offerInfo.hasOffer) ...[
                               Text(
-                                "${(subtotals['originalRoomSubtotal'] ?? 0.0).toInt()} ${AppStrings.egp.tr()}",
+                                "${(subtotals['originalTotalPrice'] ?? subtotals['originalRoomSubtotal'] ?? 0.0).toInt()} ${AppStrings.egp.tr()}",
                                 style: TextStyle(
                                   color: AppColors.textSecondary.withValues(alpha: 0.5),
                                   fontSize: 12.sp,
@@ -192,7 +192,7 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                       content: ButtonContent(
                         body: AppText(
                           text: _isVerifying
-                              ? "Checking..."
+                              ? (isArabic ? 'جاري التحقق...' : 'Checking...')
                               : AppStrings.continueText.tr(),
                           fontSize: 14.sp,
                           fontWeight: FontWeight.bold,

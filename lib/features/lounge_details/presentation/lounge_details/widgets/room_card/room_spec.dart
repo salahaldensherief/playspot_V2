@@ -14,7 +14,7 @@ class RoomSpec extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 12.sp, color: AppColors.textSecondary.withOpacity(0.4)),
+        Icon(icon, size: 12.sp, color: AppColors.textSecondary.withValues(alpha: 0.4)),
         SizedBox(width: 4.w),
         AppText(
             text: value,

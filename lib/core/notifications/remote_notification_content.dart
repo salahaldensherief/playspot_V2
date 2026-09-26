@@ -26,7 +26,16 @@ class RemoteNotificationContent {
     final bodyAr = data['body_ar']?.toString();
     final bodyEn = data['body_en']?.toString();
 
-    final currentLang = (lang ?? PreferenceManager().currentLang()).toLowerCase().trim();
+    String currentLang = 'ar';
+    if (lang != null && lang.trim().isNotEmpty) {
+      currentLang = lang.toLowerCase().trim();
+    } else {
+      try {
+        currentLang = PreferenceManager().currentLang().toLowerCase().trim();
+      } catch (_) {
+        currentLang = 'ar';
+      }
+    }
 
     String? resolvedTitle;
     if (currentLang == 'ar') {

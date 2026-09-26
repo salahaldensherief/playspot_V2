@@ -184,6 +184,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> redeemPoints(String optionId) async {
+    if (isClosed || state.status == ProfileStatus.loading) return;
     emit(state.copyWith(status: ProfileStatus.loading));
     final result = await _profileRepository.redeemPoints(optionId);
 
@@ -231,6 +232,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> logout() async {
+    if (isClosed || state.status == ProfileStatus.loggingOut) return;
     emit(state.copyWith(status: ProfileStatus.loggingOut));
     final result = await _authRepository.signOut();
 

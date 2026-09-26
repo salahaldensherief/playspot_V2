@@ -38,8 +38,8 @@ class ActiveSessionActionBar extends StatelessWidget {
                   height: 52.h,
                   padding: EdgeInsets.symmetric(horizontal: 6.w),
                   borderRadius: 14.r,
-                  backgroundColor: AppColors.withOpacity(AppColors.warning, 0.12),
-                  borderColor: AppColors.withOpacity(AppColors.warning, 0.5),
+                  backgroundColor: AppColors.warning.withValues(alpha: 0.12),
+                  borderColor: AppColors.warning.withValues(alpha: 0.5),
                   textStyle: TextStyle(
                     color: AppColors.warning,
                     fontSize: 13.5.sp,

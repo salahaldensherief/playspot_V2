@@ -13,7 +13,7 @@ class RoomSectionHeader extends StatelessWidget {
       text: title.toUpperCase(),
       fontSize: 8.sp,
       fontWeight: FontWeight.w900,
-      color: themeColor.withOpacity(0.7),
+      color: themeColor.withValues(alpha: 0.7),
       letterSpacing: 0.8,
     );
   }

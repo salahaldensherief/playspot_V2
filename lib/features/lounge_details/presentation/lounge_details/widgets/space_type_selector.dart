@@ -1,4 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,72 +13,78 @@ import '../lounge_details_state.dart';
 class SpaceTypeSelector extends StatelessWidget {
   const SpaceTypeSelector({super.key});
 
+  static const List<String> _orderedKeys = [
+    'all',
+    'vip_room',
+    'standard_room',
+    'open_area',
+    'simulator',
+    'vr',
+  ];
+
+  static const Map<String, IconData> _spaceTypeIcons = {
+    'all': Icons.grid_view,
+    'vip_room': Icons.stars,
+    'standard_room': Icons.meeting_room,
+    'open_area': Icons.monitor,
+    'simulator': Icons.speed,
+    'vr': Icons.view_in_ar,
+  };
+
+  static const Map<String, Color> _spaceTypeColors = {
+    'all': AppColors.neonBlue,
+    'vip_room': AppColors.warning,
+    'standard_room': AppColors.neonPurple,
+    'open_area': AppColors.neonBlue,
+    'simulator': AppColors.cyan,
+    'vr': AppColors.neonPurple,
+  };
+
+  static String _getSpaceTypeLabel(String key) {
+    switch (key) {
+      case 'all':
+        return AppStrings.all.tr();
+      case 'vip_room':
+        return AppStrings.vipRoom.tr();
+      case 'standard_room':
+        return AppStrings.standardRoom.tr();
+      case 'open_area':
+        return AppStrings.openArea.tr();
+      case 'simulator':
+        return AppStrings.simulator.tr();
+      case 'vr':
+        return AppStrings.vr.tr();
+      default:
+        if (kDebugMode) {
+          debugPrint("⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.");
+        }
+        // Fallback: Format raw snake_case/slug into human-readable Title Case
+        return key.replaceAll('_', ' ').toUpperCase();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
-
-    final Map<String, Map<String, dynamic>> allTypesConfig = {
-      'all': {
-        'label': AppStrings.all.tr(),
-        'icon': Icons.grid_view,
-        'color': AppColors.neonBlue,
-      },
-      'vip_room': {
-        'label': AppStrings.vipRoom.tr(),
-        'icon': Icons.stars,
-        'color': AppColors.warning,
-      },
-      'standard_room': {
-        'label': AppStrings.standardRoom.tr(),
-        'icon': Icons.meeting_room,
-        'color': AppColors.neonPurple,
-      },
-      'open_area': {
-        'label': AppStrings.openArea.tr(),
-        'icon': Icons.monitor,
-        'color': AppColors.neonBlue,
-      },
-      'simulator': {
-        'label': isArabic ? "سيموليتر" : "Simulator",
-        'icon': Icons.speed,
-        'color': AppColors.cyan,
-      },
-      'vr': {
-        'label': "VR",
-        'icon': Icons.view_in_ar,
-        'color': AppColors.neonPurple,
-      },
-    };
-
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       buildWhen: (previous, current) =>
-      previous.selectedSpaceType != current.selectedSpaceType ||
+          previous.selectedSpaceType != current.selectedSpaceType ||
           previous.rooms != current.rooms,
       builder: (context, state) {
         if (state.rooms.isEmpty) {
           return const SizedBox.shrink();
         }
-        // استخراج الأنواع الموجودة فعلياً في غرف الصالة الحالية
+
         final availableTypeSlugs = state.rooms
             .map((room) => room.spaceTypeName?.toLowerCase().trim())
             .where((slug) => slug != null && slug.isNotEmpty)
             .toSet();
 
-        // فلترة القائمة لعرض الفئات المتوفرة فقط بجانب خيار "الكل"
-        final List<Map<String, dynamic>> visibleTypes = [
-          {'id': 'all', ...allTypesConfig['all']!},
-          ...allTypesConfig.entries
-              .where((entry) =>
-          entry.key != 'all' && availableTypeSlugs.contains(entry.key))
-              .map((entry) => {'id': entry.key, ...entry.value}),
-        ];
-
-        // في حال لم يتم العثور على أي نوع من الغرف نعرض القائمة الافتراضية
-        final activeList = visibleTypes.length > 1
-            ? visibleTypes
-            : allTypesConfig.entries
-            .map((entry) => {'id': entry.key, ...entry.value})
+        final List<String> activeKeys = _orderedKeys
+            .where((key) => key == 'all' || availableTypeSlugs.contains(key))
             .toList();
+
+        final List<String> displayKeys =
+            activeKeys.length > 1 ? activeKeys : _orderedKeys;
 
         return Container(
           height: 45.h,
@@ -85,16 +92,18 @@ class SpaceTypeSelector extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
-            itemCount: activeList.length,
+            itemCount: displayKeys.length,
             itemBuilder: (context, index) {
-              final type = activeList[index];
-              final isSelected = state.selectedSpaceType == type['id'];
-              final themeColor = type['color'] as Color;
+              final key = displayKeys[index];
+              final isSelected = state.selectedSpaceType == key;
+              final icon = _spaceTypeIcons[key] ?? Icons.meeting_room;
+              final themeColor = _spaceTypeColors[key] ?? AppColors.neonBlue;
+              final label = _getSpaceTypeLabel(key);
 
               return GestureDetector(
                 onTap: () => context
                     .read<LoungeDetailsCubit>()
-                    .setSpaceType(type['id']!),
+                    .setSpaceType(key),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: EdgeInsetsDirectional.only(end: 10.w),
@@ -107,27 +116,27 @@ class SpaceTypeSelector extends StatelessWidget {
                     ),
                     boxShadow: isSelected
                         ? [
-                      BoxShadow(
-                        color: themeColor.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      )
-                    ]
+                            BoxShadow(
+                              color: themeColor.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            )
+                          ]
                         : null,
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        type['icon'] as IconData,
+                        icon,
                         size: 18.sp,
                         color: isSelected ? AppColors.black : themeColor,
                       ),
                       SizedBox(width: 8.w),
                       AppText(
-                        text: type['label']!,
+                        text: label,
                         fontSize: 13.sp,
                         fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                         color: isSelected
                             ? AppColors.black
                             : AppColors.textSecondary,

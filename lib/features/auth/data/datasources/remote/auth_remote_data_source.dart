@@ -7,6 +7,7 @@ import 'package:playspot/features/auth/domain/strategies/auth_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../../art_core/exceptions/app_exceptions.dart';
+import '../../../../../core/notifications/push_notification_service.dart';
 import '../../../../../core/services/social_auth_service.dart';
 import '../../../../../core/services/supabase_storage_service.dart';
 import '../../models/auth_params.dart';
@@ -337,6 +338,8 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   @override
   Future<void> signOut() async {
     try {
+      await PushNotificationService.instance.deleteToken();
+      PushNotificationService.instance.dispose();
       await _socialAuthService.googleSignOut();
       await _socialAuthService.facebookSignOut();
       await _supabase.auth.signOut();

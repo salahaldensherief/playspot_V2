@@ -179,7 +179,7 @@ class _AppliedVoucherCard extends StatelessWidget {
                   SizedBox(height: 2.h),
                   AppText(
                     text: discountAmount > 0
-                        ? AppStrings.youSaved.tr(args: [discountAmount.toStringAsFixed(0)])
+                        ? AppStrings.youSaved.tr(args: [discountAmount.toStringAsFixed(2)])
                         : AppStrings.voucherApplied.tr(),
                     fontSize: 12.5.sp,
                     fontWeight: FontWeight.bold,
@@ -195,4 +195,3 @@ class _AppliedVoucherCard extends StatelessWidget {
     );
   }
 }
-

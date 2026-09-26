@@ -130,7 +130,8 @@ class LocalNotificationService {
       }
 
       NotificationRouter.navigate({});
-    } catch (_) {
+    } catch (e, st) {
+      AppLogger.error('Error decoding local notification response payload', e, st);
       NotificationRouter.navigate({});
     }
   }

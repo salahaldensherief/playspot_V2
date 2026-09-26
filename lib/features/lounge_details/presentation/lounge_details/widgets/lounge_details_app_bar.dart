@@ -25,9 +25,7 @@ class LoungeDetailsAppBar extends StatelessWidget {
       stretch: true,
       backgroundColor: AppColors.scaffoldBackground,
       elevation: 0,
-      leading: Padding(padding: EdgeInsets.all(8.w), child: const BackButtonWidget(
-
-      )),
+      leading: Padding(padding: EdgeInsets.all(8.w), child: const BackButtonWidget()),
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: true,
         titlePadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
@@ -70,9 +68,9 @@ class LoungeDetailsAppBar extends StatelessWidget {
                     end: Alignment.bottomCenter,
                     stops: const [0.0, 0.4, 0.8, 1.0],
                     colors: [
-                      Colors.black.withOpacity(0.5),
+                      Colors.black.withValues(alpha: 0.5),
                       Colors.transparent,
-                      AppColors.scaffoldBackground.withOpacity(0.8),
+                      AppColors.scaffoldBackground.withValues(alpha: 0.8),
                       AppColors.scaffoldBackground,
                     ],
                   ),
@@ -136,4 +134,3 @@ class LoungeDetailsAppBar extends StatelessWidget {
     );
   }
 }
-

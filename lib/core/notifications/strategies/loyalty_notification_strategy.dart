@@ -8,7 +8,7 @@ class LoyaltyNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = data['type']?.toString().toLowerCase() ?? '';
+    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ?? '';
     return type.contains('loyalty') || type.contains('points') || type.contains('reward');
   }
 
@@ -17,7 +17,13 @@ class LoyaltyNotificationStrategy implements NotificationActionStrategy {
     final context = AppRouter.navigatorKey.currentContext;
     if (context == null) return false;
 
+    if (!NotificationStrategyHelper.isAuthenticated()) {
+      context.goNamed(RouterKeys.signIn);
+      return true;
+    }
+
     context.pushNamed(RouterKeys.redeemPoints);
     return true;
   }
 }
+

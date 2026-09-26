@@ -44,7 +44,7 @@ class TimerWidget extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.withOpacity(statusColor, 0.15),
+                  color: statusColor.withValues(alpha: 0.15),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),

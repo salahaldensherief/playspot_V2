@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/models/payment_model.dart';
 
@@ -111,6 +112,7 @@ class BookingModel extends Equatable {
       ];
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
+    final bookingId = json['id']?.toString() ?? 'unknown';
     final loungeData = json['lounges'] as Map<String, dynamic>?;
     final roomData = json['rooms'] as Map<String, dynamic>?;
 
@@ -131,13 +133,28 @@ class BookingModel extends Equatable {
       }
     }
 
-    final parsedDate = json['date'] != null 
-        ? (DateTime.tryParse(json['date'].toString()) ?? DateTime.now()) 
-        : (json['booking_period'] != null 
-            ? _parseTsRangeStart(json['booking_period'].toString()) 
-            : (json['time_range'] != null 
-                ? _parseTsRangeStart(json['time_range'].toString()) 
-                : DateTime.now()));
+    DateTime parsedDate = DateTime.now();
+    bool dateParsedSuccessfully = false;
+
+    if (json['date'] != null) {
+      final dt = DateTime.tryParse(json['date'].toString());
+      if (dt != null) {
+        parsedDate = dt;
+        dateParsedSuccessfully = true;
+      }
+    }
+    if (!dateParsedSuccessfully && json['booking_period'] != null) {
+      parsedDate = _parseTsRangeStart(json['booking_period'].toString());
+      dateParsedSuccessfully = true;
+    }
+    if (!dateParsedSuccessfully && json['time_range'] != null) {
+      parsedDate = _parseTsRangeStart(json['time_range'].toString());
+      dateParsedSuccessfully = true;
+    }
+
+    if (!dateParsedSuccessfully) {
+      AppLogger.warning("⚠️ [BookingModel.fromJson] Unresolvable date field for booking ID #$bookingId. Fallback: DateTime.now()");
+    }
 
     final rawStartTime = json['start_time']?.toString() ?? '';
     DateTime parsedStartDateTime = parsedDate;
@@ -264,8 +281,13 @@ class BookingModel extends Equatable {
       parsedPayment = PaymentModel.fromJson((json['payments'] as List).first as Map<String, dynamic>);
     }
 
+    final parsedTotalPrice = (json['total_price'] as num?)?.toDouble();
+    if (parsedTotalPrice == null) {
+      AppLogger.warning("⚠️ [BookingModel.fromJson] Missing or null total_price for booking ID #$bookingId. Fallback: 0.0");
+    }
+
     return BookingModel(
-      id: json['id'].toString(),
+      id: bookingId,
       loungeId: json['lounge_id']?.toString() ?? loungeData?['id']?.toString(),
       loungeName: loungeData?['name'] ?? '',
       loungeLocation: loungeData?['location'] ?? '',
@@ -279,7 +301,7 @@ class BookingModel extends Equatable {
       endTime: json['end_time']?.toString() ?? '',
       status: BookingStatus.fromString(json['status']?.toString()),
       paymentStatus: json['payment_status'] ?? 'unpaid',
-      totalPrice: (json['total_price'] as num?)?.toDouble() ?? 0.0,
+      totalPrice: parsedTotalPrice ?? 0.0,
       playMode: json['play_mode'],
       mapsLink: loungeData?['maps_link'],
       lat: parsedLat,

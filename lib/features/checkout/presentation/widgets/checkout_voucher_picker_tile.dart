@@ -27,7 +27,7 @@ class CheckoutVoucherPickerTile extends StatelessWidget {
           padding: EdgeInsets.all(16.w),
           child: Row(
             children: [
-              Icon(Icons.local_offer_outlined, color: AppColors.neonBlue),
+              const Icon(Icons.local_offer_outlined, color: AppColors.neonBlue),
               SizedBox(width: 12.w),
               AppText(
                 text: AppStrings.selectVoucher.tr(),
@@ -35,7 +35,7 @@ class CheckoutVoucherPickerTile extends StatelessWidget {
                 color: Colors.white,
               ),
               const Spacer(),
-              Icon(Icons.chevron_right, color: AppColors.textSecondary),
+              const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             ],
           ),
         ),

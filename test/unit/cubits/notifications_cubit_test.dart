@@ -119,7 +119,111 @@ void main() {
 
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(cubit.state.notifications.first.isRead, isTrue);
+      verify(() => mockRepository.markAsRead('notif_1')).called(1);
+    });
+
+    test('markAsRead duplicate / race condition calls repository ONLY once', () async {
+      when(() => mockRepository.getNotifications(
+            'en',
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async => Right(PaginatedResponse<NotificationModel>(
+            items: [testNotification],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20,
+          )));
+      await cubit.loadNotifications('en');
+
+      when(() => mockRepository.markAsRead('notif_1'))
+          .thenAnswer((_) async {
+            await Future.delayed(const Duration(milliseconds: 100));
+            return const Right(null);
+          });
+
+      // Simultaneous dual invocation
+      cubit.markAsRead('notif_1');
+      cubit.markAsRead('notif_1');
+
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      expect(cubit.state.notifications.first.isRead, isTrue);
+      verify(() => mockRepository.markAsRead('notif_1')).called(1);
+    });
+
+    test('markAsRead failure rolls back optimistic update to unread', () async {
+      when(() => mockRepository.getNotifications(
+            'en',
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async => Right(PaginatedResponse<NotificationModel>(
+            items: [testNotification],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20,
+          )));
+      await cubit.loadNotifications('en');
+
+      when(() => mockRepository.markAsRead('notif_1'))
+          .thenAnswer((_) async => const Left(ServerFailure('Database update failed')));
+
+      cubit.markAsRead('notif_1');
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(cubit.state.notifications.first.isRead, isFalse);
+      expect(cubit.state.errorMessage, equals('Database update failed'));
+    });
+
+    test('markAllAsRead duplicate / race condition calls repository ONLY once', () async {
+      when(() => mockRepository.getNotifications(
+            'en',
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async => Right(PaginatedResponse<NotificationModel>(
+            items: [testNotification],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20,
+          )));
+      await cubit.loadNotifications('en');
+
+      when(() => mockRepository.markAllAsRead())
+          .thenAnswer((_) async {
+            await Future.delayed(const Duration(milliseconds: 100));
+            return const Right(null);
+          });
+
+      // Simultaneous dual invocation
+      cubit.markAllAsRead();
+      cubit.markAllAsRead();
+
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      expect(cubit.state.notifications.every((n) => n.isRead), isTrue);
+      verify(() => mockRepository.markAllAsRead()).called(1);
+    });
+
+    test('markAllAsRead failure rolls back optimistic update', () async {
+      when(() => mockRepository.getNotifications(
+            'en',
+            page: any(named: 'page'),
+            pageSize: any(named: 'pageSize'),
+          )).thenAnswer((_) async => Right(PaginatedResponse<NotificationModel>(
+            items: [testNotification],
+            totalCount: 1,
+            page: 1,
+            pageSize: 20,
+          )));
+      await cubit.loadNotifications('en');
+
+      when(() => mockRepository.markAllAsRead())
+          .thenAnswer((_) async => const Left(ServerFailure('Bulk update failed')));
+
+      cubit.markAllAsRead();
+
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(cubit.state.notifications.first.isRead, isFalse);
+      expect(cubit.state.errorMessage, equals('Bulk update failed'));
     });
   });
 }
+
 

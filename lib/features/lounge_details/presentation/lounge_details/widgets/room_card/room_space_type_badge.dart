@@ -21,7 +21,7 @@ class RoomSpaceTypeBadge extends StatelessWidget {
       margin: EdgeInsets.symmetric(vertical: 4.h),
       padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
       decoration: BoxDecoration(
-        color: themeColor.withOpacity(0.06),
+        color: themeColor.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(4.r),
       ),
       child: AppText(

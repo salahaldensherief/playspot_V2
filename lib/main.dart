@@ -11,9 +11,11 @@ import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:playspot/firebase_options.dart';
 import 'art_core/router/app_router.dart';
+import 'art_core/utils/app_logger.dart';
 import 'core/di.dart';
 import 'core/services/deep_link_service.dart';
 import 'core/services/network_connectivity_service.dart';
@@ -42,10 +44,12 @@ void main() async {
 
   FlutterError.onError = (details) {
     dev.log("FLUTTER ERROR: ${details.exception}", stackTrace: details.stack);
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     dev.log("PLATFORM ERROR: $error", stackTrace: stack);
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     return true;
   };
 
@@ -55,6 +59,9 @@ void main() async {
     init(),
     initSupabase(),
   ]);
+
+  // Explicitly enable Crashlytics collection for production error tracking
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
 
   NetworkConnectivityService().initialize();
 
@@ -75,18 +82,27 @@ void main() async {
 }
 
 void _initPostAppServices() {
-  LocalNotificationService.instance.initialize().then((_) {
-    PushNotificationService.instance.initialize(
-      localNotifications: LocalNotificationService.instance,
-      profileRepository: sl<ProfileRepository>(),
-    );
-    LocalNotificationService.instance.handlePendingInitialNotification();
-  }).catchError((e) {
-    dev.log("NOTIFICATION INIT ERROR: $e");
-  });
-  PlaySpotLiveActivityService.instance.init().catchError((e) {
-    dev.log("LIVE ACTIVITY INIT ERROR: $e");
-  });
+  try {
+    LocalNotificationService.instance.initialize().then((_) {
+      PushNotificationService.instance.initialize(
+        localNotifications: LocalNotificationService.instance,
+        profileRepository: sl<ProfileRepository>(),
+      );
+      LocalNotificationService.instance.handlePendingInitialNotification();
+    }).catchError((e) {
+      dev.log("NOTIFICATION INIT ERROR: $e");
+    });
+  } catch (e) {
+    dev.log("POST APP NOTIFICATION INIT EXCEPTION: $e");
+  }
+
+  try {
+    PlaySpotLiveActivityService.instance.init().catchError((e) {
+      dev.log("LIVE ACTIVITY INIT ERROR: $e");
+    });
+  } catch (e) {
+    dev.log("LIVE ACTIVITY INIT EXCEPTION: $e");
+  }
 }
 
 class MyApp extends StatefulWidget {

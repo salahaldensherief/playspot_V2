@@ -14,7 +14,13 @@ class DefaultNotificationStrategy implements NotificationActionStrategy {
     final context = AppRouter.navigatorKey.currentContext;
     if (context == null) return false;
 
+    if (!NotificationStrategyHelper.isAuthenticated()) {
+      context.goNamed(RouterKeys.signIn);
+      return true;
+    }
+
     context.pushNamed(RouterKeys.notifications);
     return true;
   }
 }
+

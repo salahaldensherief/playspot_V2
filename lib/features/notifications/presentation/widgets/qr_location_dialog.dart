@@ -21,6 +21,23 @@ class QrLocationDialog extends StatelessWidget {
     required this.loungeName,
   });
 
+  static bool isValidLocationUrl(String rawUrl) {
+    final clean = rawUrl.trim();
+    if (clean.isEmpty) return false;
+
+    final uri = Uri.tryParse(clean);
+    if (uri == null) return false;
+
+    if (!uri.hasScheme || !uri.hasAuthority) return false;
+
+    final scheme = uri.scheme.toLowerCase();
+    if (scheme != 'http' && scheme != 'https') return false;
+
+    if (uri.host.trim().isEmpty) return false;
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -57,19 +74,28 @@ class QrLocationDialog extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 30.h),
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: QrImageView(
-                  data: mapsLink,
-                  version: QrVersions.auto,
-                  size: 200.w,
-                  gapless: false,
-                ),
-              ),
+              isValidLocationUrl(mapsLink)
+                  ? Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      child: QrImageView(
+                        data: mapsLink.trim(),
+                        version: QrVersions.auto,
+                        size: 200.w,
+                        gapless: false,
+                      ),
+                    )
+                  : Padding(
+                      padding: EdgeInsets.symmetric(vertical: 30.h),
+                      child: AppText(
+                        text: "Location link unavailable",
+                        fontSize: 14.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
               SizedBox(height: 30.h),
               AppText(
                 text: AppStrings.scanDirections.tr(),

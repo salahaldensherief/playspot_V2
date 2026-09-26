@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/app_router.dart';
@@ -12,7 +11,7 @@ class OfferNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = data['type']?.toString().toLowerCase() ?? '';
+    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ?? '';
     return type.contains('offer') || type.contains('promo') || type.contains('voucher');
   }
 
@@ -20,6 +19,11 @@ class OfferNotificationStrategy implements NotificationActionStrategy {
   bool handle(Map<String, dynamic> data) {
     final context = AppRouter.navigatorKey.currentContext;
     if (context == null) return false;
+
+    if (!NotificationStrategyHelper.isAuthenticated()) {
+      context.goNamed(RouterKeys.signIn);
+      return true;
+    }
 
     context.pushNamed(RouterKeys.myVouchers);
 
@@ -39,8 +43,8 @@ class OfferNotificationStrategy implements NotificationActionStrategy {
   String _extractPromoCode(Map<String, dynamic> data) {
     final possibleKeys = ['promo_code', 'code', 'promoCode', 'coupon'];
     for (final key in possibleKeys) {
-      final val = data[key]?.toString().trim();
-      if (val != null && val.isNotEmpty && val != 'null') {
+      final val = NotificationStrategyHelper.cleanString(data[key]);
+      if (val != null) {
         return val;
       }
     }
@@ -49,3 +53,4 @@ class OfferNotificationStrategy implements NotificationActionStrategy {
     return codeMatch?.group(0) ?? '';
   }
 }
+

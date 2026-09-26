@@ -27,9 +27,9 @@ class RoomGalleryButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
         decoration: BoxDecoration(
-          color: themeColor.withOpacity(0.1),
+          color: themeColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: themeColor.withOpacity(0.2)),
+          border: Border.all(color: themeColor.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
