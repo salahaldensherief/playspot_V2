@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,68 +28,42 @@ class QuickRebookBottomSheet extends StatelessWidget {
     required this.booking,
   });
 
-  static Future<void> show(BuildContext context, BookingModel booking) {
-    return showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider(
-        create: (_) => sl<QuickRebookCubit>()..initQuickRebook(booking),
-        child: QuickRebookBottomSheet(booking: booking),
-      ),
-    );
+  static Future<void> show(
+    BuildContext context,
+    BookingModel booking,
+  ) async {
+    final cubit = sl<QuickRebookCubit>();
+    unawaited(cubit.initQuickRebook(booking));
+
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => BlocProvider.value(
+          value: cubit,
+          child: QuickRebookBottomSheet(booking: booking),
+        ),
+      );
+    } finally {
+      await cubit.close();
+    }
   }
 
-  void _proceedToQuickCheckout(BuildContext context, QuickRebookState state) {
-    if (state.lounge == null || state.room == null || state.selectedSlot == null) return;
+  Future<void> _proceedToQuickCheckout(
+    BuildContext context,
+  ) async {
+    final router = GoRouter.of(context);
+    final checkoutParams =
+        await context.read<QuickRebookCubit>().prepareCheckout();
 
-    final isArabic = context.locale.languageCode == 'ar';
+    if (!context.mounted || checkoutParams == null) return;
 
-    final addonsList = state.selectedAddonQuantities.entries.map((entry) {
-      final extra = state.availableExtras.firstWhere(
-        (e) => e.id == entry.key,
-      );
-      return {
-        'id': extra.id,
-        'extra_id': extra.id,
-        'name': isArabic ? extra.nameAr : extra.nameEn,
-        'name_ar': extra.nameAr,
-        'name_en': extra.nameEn,
-        'quantity': entry.value,
-        'unit_price': extra.price,
-        'total_price': extra.price * entry.value,
-      };
-    }).toList();
-
-    final checkoutParams = CheckoutParams(
-      lounge: state.lounge!,
-      rooms: [state.room!],
-      roomsBreakdown: [
-        {
-          'roomId': state.room!.id,
-          'roomName': state.room!.getDisplayTitle(isArabic),
-          'originalSubtotal': state.roomSubtotal,
-          'discountedSubtotal': state.roomSubtotal,
-          'discountAmount': 0.0,
-          'playMode': state.pastBooking?.playMode ?? 'single',
-        }
-      ],
-      date: state.selectedDate,
-      startTime: state.selectedSlot!,
-      duration: state.durationMinutes,
-      originalRoomSubtotal: state.roomSubtotal,
-      discountedRoomSubtotal: state.roomSubtotal,
-      discountAmount: 0.0,
-      discountPercentage: 0.0,
-      addonsTotal: state.addonsTotal,
-      totalPrice: state.totalPrice,
-      originalTotalPrice: state.totalPrice,
-      addOns: addonsList,
-      playMode: state.pastBooking?.playMode ?? 'single',
+    Navigator.of(context).pop();
+    router.pushNamed(
+      RouterKeys.checkout,
+      extra: checkoutParams,
     );
-
-    Navigator.pop(context);
-    context.pushNamed(RouterKeys.checkout, extra: checkoutParams);
   }
 
   void _navigateToCustomize(BuildContext context, QuickRebookState state) {
@@ -116,7 +91,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
       selectedDate: state.selectedDate,
       extras: addonsList,
       playMode: state.pastBooking?.playMode ?? 'single',
-      extraControllers: state.pastBooking?.controllersCount ?? 0,
+      extraControllers: state.pastBooking?.extraControllers ?? 0,
     );
 
     Navigator.pop(context);
@@ -142,6 +117,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
           border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
         ),
         child: BlocBuilder<QuickRebookCubit, QuickRebookState>(
+          buildWhen: (previous, current) => previous != current,
           builder: (context, state) {
             if (state.status == QuickRebookStatus.loading ||
                 state.status == QuickRebookStatus.initial) {
@@ -153,7 +129,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     const AppLoader(size: 40),
                     SizedBox(height: 16.h),
                     AppText(
-                      text: isArabic ? "جاري التحقق من الإتاحة والأسعار الحالية..." : "Checking availability & current prices...",
+                      text: AppStrings.quickRebookChecking.tr(),
                       fontSize: 13.sp,
                       color: AppColors.textSecondary,
                     ),
@@ -172,14 +148,14 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     Icon(Icons.event_busy_rounded, color: AppColors.warning, size: 48.sp),
                     SizedBox(height: 12.h),
                     AppText(
-                      text: isArabic ? "عفواً، تعذر الحجز السريع المباشر" : "Quick Rebook Unavailable",
+                      text: AppStrings.quickRebookUnavailableTitle.tr(),
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     SizedBox(height: 6.h),
                     AppText(
-                      text: state.errorMessage ?? (isArabic ? "الغرفة أو الموعد غير متاح حالياً" : "The requested room is currently unavailable."),
+                      text: AppStrings.quickRebookUnavailableMessage.tr(),
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,
                       textAlign: TextAlign.center,
@@ -187,7 +163,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     SizedBox(height: 20.h),
                     AppButton(
                       content: ButtonContent(
-                        label: isArabic ? "استعراض الصالة والحجز العادي" : "Browse Lounge & Book",
+                        label: AppStrings.quickRebookBrowseLounge.tr(),
                       ),
                       buttonConfig: ButtonConfig(
                         height: 44.h,
@@ -330,8 +306,12 @@ class QuickRebookBottomSheet extends StatelessWidget {
                           Expanded(
                             child: AppText(
                               text: isArabic
-                                  ? "بعض المشروبات/السناكس غير متوفرة حالياً وتم استبعادها: ${state.removedAddonNames.join(', ')}"
-                                  : "Unavailable items removed: ${state.removedAddonNames.join(', ')}",
+                                  ? AppStrings.quickRebookRemovedAddons.tr(
+                                      args: [state.removedAddonNames.join(', ')],
+                                    )
+                                  : AppStrings.quickRebookRemovedAddons.tr(
+                                      args: [state.removedAddonNames.join(', ')],
+                                    ),
                               fontSize: 11.sp,
                               color: AppColors.warning,
                               overflow: TextOverflow.visible,
@@ -345,7 +325,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
 
                   // Available Slots Section
                   AppText(
-                    text: isArabic ? "أقرب المواعيد المتاحة اليوم" : "Nearest Available Slots Today",
+                    text: AppStrings.quickRebookNearestSlots.tr(),
                     fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -364,7 +344,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                           SizedBox(width: 8.w),
                           Expanded(
                             child: AppText(
-                              text: isArabic ? "لا توجد مواعيد متاحة باقي اليوم، اختار تاريخ آخر" : "No slots remaining today.",
+                              text: AppStrings.quickRebookNoSlots.tr(),
                               fontSize: 11.sp,
                               color: AppColors.textSecondary,
                             ),
@@ -547,13 +527,15 @@ class QuickRebookBottomSheet extends StatelessWidget {
                         ),
                         behavior: ButtonBehavior.tap(
                           isEnabled: state.selectedSlot != null,
-                          onTap: state.selectedSlot != null ? () => _proceedToQuickCheckout(context, state) : null,
+                          onTap: state.selectedSlot != null
+                              ? () => _proceedToQuickCheckout(context)
+                              : null,
                         ),
                       ),
                       SizedBox(height: 10.h),
                       AppButton(
                         content: ButtonContent(
-                          label: isArabic ? "تخصيص الحجز والتاريخ" : "Customize Booking & Date",
+                          label: AppStrings.quickRebookCustomize.tr(),
                         ),
                         buttonConfig: ButtonConfig(
                           height: 42.h,
