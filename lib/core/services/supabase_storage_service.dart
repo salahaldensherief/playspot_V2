@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -34,10 +35,10 @@ class SupabaseStorageServiceImpl implements StorageService {
   }) async {
     try {
       await _supabase.storage.from(bucket).upload(
-            path,
-            file,
-            fileOptions: const FileOptions(upsert: true),
-          );
+        path,
+        file,
+        fileOptions: const FileOptions(upsert: true),
+      );
       return _supabase.storage.from(bucket).getPublicUrl(path);
     } catch (e, st) {
       AppLogger.error('[StorageService] Upload failed', e, st);
@@ -52,13 +53,17 @@ class SupabaseStorageServiceImpl implements StorageService {
   }) async {
     final length = await file.length();
     if (length > 2 * 1024 * 1024) {
-      AppLogger.error('[StorageService] Avatar size exceeds 2MB limit ($length bytes)');
+      AppLogger.error(
+        '[StorageService] Avatar size exceeds 2MB limit ($length bytes)',
+      );
       return null;
     }
+
     final rawExt = file.path.split('.').last.toLowerCase();
     final allowedExts = {'jpg', 'jpeg', 'png', 'webp'};
     final fileExt = allowedExts.contains(rawExt) ? rawExt : 'jpg';
     final path = '$userId/avatar.$fileExt';
+
     return uploadFile(
       bucket: 'avatars',
       path: path,
@@ -84,33 +89,17 @@ class SupabaseStorageServiceImpl implements StorageService {
     final allowedExts = {'jpg', 'jpeg', 'png', 'webp', 'pdf'};
     final fileExt = allowedExts.contains(rawExt) ? rawExt : 'jpg';
     final cleanBookingId = bookingId.replaceAll(
-      RegExp(r'\.(jpg|jpeg|png|webp|pdf)
-    final path = '$userId/$cleanBookingId/receipt.$fileExt';
-
-    try {
-      await _supabase.storage.from('payment-proofs').upload(
-            path,
-            file,
-            fileOptions: const FileOptions(upsert: true),
-          );
-      return path;
-    } catch (e, st) {
-      AppLogger.error('[StorageService] Payment proof upload failed', e, st);
-      return null;
-    }
-  }
-}
-, caseSensitive: false),
+      RegExp(r'\.(jpg|jpeg|png|webp|pdf)$', caseSensitive: false),
       '',
     );
     final path = '$userId/$cleanBookingId/receipt.$fileExt';
 
     try {
       await _supabase.storage.from('payment-proofs').upload(
-            path,
-            file,
-            fileOptions: const FileOptions(upsert: true),
-          );
+        path,
+        file,
+        fileOptions: const FileOptions(upsert: true),
+      );
       return path;
     } catch (e, st) {
       AppLogger.error('[StorageService] Payment proof upload failed', e, st);
