@@ -40,44 +40,104 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         super(const CheckoutState());
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     _holdTimer?.cancel();
     _realtimeSubscription?.cancel();
+    await _releaseHold();
     return super.close();
   }
 
-  void startHoldTimer([int totalSeconds = 600]) {
+  void _startHoldTimerUntil(DateTime expiresAt, String holdToken) {
     _holdTimer?.cancel();
-    final expiresAt = DateTime.now().add(Duration(seconds: totalSeconds));
-    emit(state.copyWith(
-      remainingSeconds: totalSeconds,
-      isHoldExpired: false,
-      holdExpiresAt: expiresAt,
-    ));
+
+    final initialRemaining = expiresAt.difference(DateTime.now()).inSeconds;
+    if (initialRemaining <= 0) {
+      emit(
+        state.copyWith(
+          remainingSeconds: 0,
+          isHoldExpired: true,
+          holdExpiresAt: expiresAt,
+          holdToken: holdToken,
+        ),
+      );
+      unawaited(_releaseHold());
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        remainingSeconds: initialRemaining,
+        isHoldExpired: false,
+        holdExpiresAt: expiresAt,
+        holdToken: holdToken,
+      ),
+    );
 
     _holdTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (isClosed) {
         timer.cancel();
         return;
       }
-      final now = DateTime.now();
-      final diff = expiresAt.difference(now).inSeconds;
-      if (diff <= 0) {
+
+      final remaining = expiresAt.difference(DateTime.now()).inSeconds;
+      if (remaining <= 0) {
         timer.cancel();
-        emit(state.copyWith(
-          remainingSeconds: 0,
-          isHoldExpired: true,
-        ));
-      } else {
-        emit(state.copyWith(remainingSeconds: diff));
+        emit(
+          state.copyWith(
+            remainingSeconds: 0,
+            isHoldExpired: true,
+          ),
+        );
+        unawaited(_releaseHold());
+        return;
       }
+
+      emit(state.copyWith(remainingSeconds: remaining));
     });
   }
 
-  Future<void> initCheckout(LoungeModel lounge, {int? completedBookingsCount}) async {
-    startHoldTimer(lounge.cashGracePeriodMinutes > 0
-        ? lounge.cashGracePeriodMinutes * 60
-        : 600);
+  Future<void> _releaseHold() async {
+    final holdToken = state.holdToken;
+    if (holdToken == null || holdToken.isEmpty) return;
+
+    final result = await _bookingRepository.releaseBookingHold(holdToken);
+    result.fold(
+      (failure) => AppLogger.warning(
+        'Failed to release booking hold: ${failure.message}',
+      ),
+      (_) {
+        if (!isClosed) {
+          emit(state.copyWith(clearHold: true));
+        }
+      },
+    );
+  }
+
+  Future<void> initCheckout(
+    CheckoutParams params, {
+    int? completedBookingsCount,
+  }) async {
+    final lounge = params.lounge;
+    final holdToken = params.holdToken;
+    final holdExpiresAt = params.holdExpiresAt;
+
+    if (holdToken == null ||
+        holdToken.isEmpty ||
+        holdExpiresAt == null ||
+        !holdExpiresAt.isAfter(DateTime.now())) {
+      emit(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          isHoldExpired: true,
+          remainingSeconds: 0,
+          errorMessage: AppStrings.holdExpiredMessage.tr(),
+          clearHold: true,
+        ),
+      );
+      return;
+    }
+
+    _startHoldTimerUntil(holdExpiresAt, holdToken);
 
     int userBookingsCount = completedBookingsCount ?? 0;
     if (completedBookingsCount == null) {
@@ -100,12 +160,14 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       defaultMethod = PaymentMethod.vodafoneCash;
     }
 
-    emit(state.copyWith(
-      allowCashPayment: allowCash,
-      isCashEnabled: isCashEnabled,
-      completedBookingsCount: userBookingsCount,
-      selectedMethod: defaultMethod,
-    ));
+    emit(
+      state.copyWith(
+        allowCashPayment: allowCash,
+        isCashEnabled: isCashEnabled,
+        completedBookingsCount: userBookingsCount,
+        selectedMethod: defaultMethod,
+      ),
+    );
   }
 
   void selectPaymentMethod(PaymentMethod method) {
@@ -221,13 +283,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
     emit(state.copyWith(status: CheckoutStatus.loading));
 
-    final startDateTime = DateTime(
-      checkoutParams.date.year,
-      checkoutParams.date.month,
-      checkoutParams.date.day,
-      checkoutParams.startTime.hour,
-      checkoutParams.startTime.minute,
-    );
+    final startDateTime = checkoutParams.effectiveStartAt;
     final endDateTime = startDateTime.add(Duration(minutes: checkoutParams.duration));
 
     final userName = _preferenceManager.fullName() ?? "";
@@ -406,6 +462,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     if (primaryBookingId != null) {
       listenToBookingStatus(primaryBookingId!);
     }
+
+    await _releaseHold();
+    if (isClosed) return;
 
     emit(state.copyWith(
       status: CheckoutStatus.success,
