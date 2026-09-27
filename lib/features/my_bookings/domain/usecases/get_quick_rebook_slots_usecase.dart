@@ -107,6 +107,36 @@ class GetQuickRebookSlotsUseCase {
     });
   }
 
+  DateTime? resolveOperationalStart({
+    required DateTime date,
+    required String openingTime,
+    required String closingTime,
+    required TimeOfDay slot,
+  }) {
+    final openingMinutes = _parseTimeToMinutes(openingTime);
+    final closingMinutes = _parseTimeToMinutes(closingTime);
+
+    if (openingMinutes == null || closingMinutes == null) {
+      return null;
+    }
+
+    final slotMinutes = slot.hour * 60 + slot.minute;
+    var dayOffset = 0;
+
+    if (closingMinutes <= openingMinutes &&
+        slotMinutes < closingMinutes) {
+      dayOffset = 1;
+    }
+
+    return DateTime(
+      date.year,
+      date.month,
+      date.day + dayOffset,
+      slot.hour,
+      slot.minute,
+    );
+  }
+
   int? _parseTimeToMinutes(String raw) {
     final parts = raw.split(':');
     if (parts.length < 2) return null;
