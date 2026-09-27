@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
@@ -13,15 +14,15 @@ class QuickRebookState extends Equatable {
   final LoungeModel? lounge;
   final RoomModel? room;
   final List<ExtraModel> availableExtras;
-  final Map<String, int> selectedAddonQuantities; // extraId -> qty
+  final Map<String, int> selectedAddonQuantities;
   final List<String> removedAddonNames;
   final DateTime selectedDate;
   final List<TimeOfDay> availableSlots;
   final TimeOfDay? selectedSlot;
   final int durationMinutes;
-  final double roomSubtotal;
-  final double addonsTotal;
-  final double totalPrice;
+  final String playMode;
+  final int extraControllers;
+  final bool isPreparingCheckout;
   final String? errorMessage;
 
   const QuickRebookState({
@@ -36,9 +37,9 @@ class QuickRebookState extends Equatable {
     this.availableSlots = const [],
     this.selectedSlot,
     this.durationMinutes = 60,
-    this.roomSubtotal = 0.0,
-    this.addonsTotal = 0.0,
-    this.totalPrice = 0.0,
+    this.playMode = 'single',
+    this.extraControllers = 0,
+    this.isPreparingCheckout = false,
     this.errorMessage,
   });
 
@@ -55,10 +56,11 @@ class QuickRebookState extends Equatable {
     TimeOfDay? selectedSlot,
     bool clearSelectedSlot = false,
     int? durationMinutes,
-    double? roomSubtotal,
-    double? addonsTotal,
-    double? totalPrice,
+    String? playMode,
+    int? extraControllers,
+    bool? isPreparingCheckout,
     String? errorMessage,
+    bool clearError = false,
   }) {
     return QuickRebookState(
       status: status ?? this.status,
@@ -66,16 +68,19 @@ class QuickRebookState extends Equatable {
       lounge: lounge ?? this.lounge,
       room: room ?? this.room,
       availableExtras: availableExtras ?? this.availableExtras,
-      selectedAddonQuantities: selectedAddonQuantities ?? this.selectedAddonQuantities,
+      selectedAddonQuantities:
+          selectedAddonQuantities ?? this.selectedAddonQuantities,
       removedAddonNames: removedAddonNames ?? this.removedAddonNames,
       selectedDate: selectedDate ?? this.selectedDate,
       availableSlots: availableSlots ?? this.availableSlots,
-      selectedSlot: clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
+      selectedSlot:
+          clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
       durationMinutes: durationMinutes ?? this.durationMinutes,
-      roomSubtotal: roomSubtotal ?? this.roomSubtotal,
-      addonsTotal: addonsTotal ?? this.addonsTotal,
-      totalPrice: totalPrice ?? this.totalPrice,
-      errorMessage: errorMessage ?? this.errorMessage,
+      playMode: playMode ?? this.playMode,
+      extraControllers: extraControllers ?? this.extraControllers,
+      isPreparingCheckout:
+          isPreparingCheckout ?? this.isPreparingCheckout,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 
@@ -92,9 +97,9 @@ class QuickRebookState extends Equatable {
         availableSlots,
         selectedSlot,
         durationMinutes,
-        roomSubtotal,
-        addonsTotal,
-        totalPrice,
+        playMode,
+        extraControllers,
+        isPreparingCheckout,
         errorMessage,
       ];
 }
