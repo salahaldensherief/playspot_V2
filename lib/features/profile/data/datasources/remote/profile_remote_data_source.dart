@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/art_core/utils/app_logger.dart';
-import 'package:playspot/core/notifications/push_notification_service.dart';
 import 'package:playspot/core/services/location_service.dart';
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
@@ -366,14 +365,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await _supabase.from('profiles').update({'fcm_token': token}).eq('id', user.id);
       AppLogger.debug('[ProfileDS] FCM token updated for user: ${user.id}');
 
-      unawaited(PushNotificationService.instance.toggleTopicSubscription(
-        topic: 'user_${user.id}',
-        enable: true,
-      ));
-      unawaited(PushNotificationService.instance.toggleTopicSubscription(
-        topic: 'all_users',
-        enable: true,
-      ));
     } catch (e) {
       AppLogger.debug('[ProfileDS] Update FCM token error: $e');
     }

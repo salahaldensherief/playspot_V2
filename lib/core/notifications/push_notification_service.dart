@@ -88,9 +88,7 @@ class PushNotificationService {
         _syncToken(token);
       }
 
-      // Subscribe to default broadcast topics
-      await toggleTopicSubscription(topic: 'all_users', enable: true);
-      await toggleTopicSubscription(topic: 'announcements', enable: true);
+      // Topic subscriptions are reconciled from the user's notification settings.
     } catch (error, stackTrace) {
       AppLogger.error('FCM initialization error', error, stackTrace);
     }
