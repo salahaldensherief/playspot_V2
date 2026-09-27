@@ -11,7 +11,6 @@ import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/supabase_storage_service.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
-import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 import 'package:playspot/features/my_bookings/domain/repositories/my_bookings_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
