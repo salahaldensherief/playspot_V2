@@ -8,6 +8,8 @@ import '../../../features/booking/domain/strategies/booking_slot_strategy.dart';
 import '../../../features/booking/presentation/booking_cubit.dart';
 import '../../../features/checkout/presentation/checkout_cubit.dart';
 import '../../../features/my_bookings/presentation/quick_rebook_cubit.dart';
+import '../../../features/my_bookings/domain/usecases/get_quick_rebook_slots_usecase.dart';
+import '../../../features/my_bookings/domain/usecases/prepare_quick_rebook_usecase.dart';
 
 import '../../../features/booking/domain/services/booking_availability_service.dart';
 
@@ -47,13 +49,25 @@ void initBookingModule() {
     ),
   );
 
+  sl.registerLazySingleton(
+    () => PrepareQuickRebookUseCase(
+      sl(),
+      sl(),
+    ),
+  );
+
+  sl.registerLazySingleton(
+    () => GetQuickRebookSlotsUseCase(
+      sl<BookingRepository>(),
+      sl<BookingSlotStrategy>(),
+    ),
+  );
+
   sl.registerFactory<QuickRebookCubit>(
     () => QuickRebookCubit(
-      homeRepository: sl(),
-      loungeDetailsRemoteDataSource: sl(),
-      loungeDetailsRepository: sl(),
+      prepareQuickRebookUseCase: sl(),
+      getQuickRebookSlotsUseCase: sl(),
       bookingRepository: sl(),
-      slotStrategy: sl(),
     ),
   );
 }
