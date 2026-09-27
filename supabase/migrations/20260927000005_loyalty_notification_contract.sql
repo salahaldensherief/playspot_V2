@@ -276,4 +276,72 @@ BEGIN
 END;
 $function$;
 
+
+-- Prevent duplicate booking lifecycle notifications once the typed event
+-- metadata contract is present. Historical rows without event metadata are
+-- intentionally left untouched.
+CREATE OR REPLACE FUNCTION public.guard_duplicate_booking_notification()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_booking_id text;
+  v_event text;
+  v_status text;
+  v_source text;
+  v_lock_key text;
+BEGIN
+  IF NEW.type IS DISTINCT FROM 'booking' OR NEW.user_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  v_booking_id := NULLIF(NEW.metadata->>'booking_id', '');
+  v_event := NULLIF(NEW.metadata->>'event', '');
+  IF v_booking_id IS NULL OR v_event IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  v_status := COALESCE(NEW.metadata->>'status', '');
+  v_source := COALESCE(NEW.metadata->>'cancellation_source', '');
+  v_lock_key :=
+    NEW.user_id::text
+    || ':booking:'
+    || v_booking_id
+    || ':'
+    || v_event
+    || ':'
+    || v_status
+    || ':'
+    || v_source;
+
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(v_lock_key, 0)
+  );
+
+  IF EXISTS (
+    SELECT 1
+    FROM public.notifications AS n
+    WHERE n.user_id = NEW.user_id
+      AND n.type = 'booking'
+      AND n.metadata->>'booking_id' = v_booking_id
+      AND COALESCE(n.metadata->>'event', '') = v_event
+      AND COALESCE(n.metadata->>'status', '') = v_status
+      AND COALESCE(n.metadata->>'cancellation_source', '') = v_source
+  ) THEN
+    RETURN NULL;
+  END IF;
+
+  RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS trg_guard_duplicate_booking_notification
+ON public.notifications;
+
+CREATE TRIGGER trg_guard_duplicate_booking_notification
+BEFORE INSERT ON public.notifications
+FOR EACH ROW
+EXECUTE FUNCTION public.guard_duplicate_booking_notification();
+
 COMMIT;
