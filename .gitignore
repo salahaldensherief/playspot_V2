@@ -51,3 +51,6 @@ app.*.map.json
 # Test cache
 test_cache_box*
 *.bak
+
+# Supabase CLI local state
+supabase/.temp/
