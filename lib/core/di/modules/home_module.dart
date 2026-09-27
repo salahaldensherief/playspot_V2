@@ -3,6 +3,7 @@ import '../../../features/home/data/datasources/remote/home_remote_data_source.d
 import '../../../features/home/domain/repositories/home_repository.dart';
 import '../../../features/home/data/repositories/home_repository_impl.dart';
 import '../../../features/home/presentation/home_cubit.dart';
+import '../../../features/home/domain/usecases/discover_lounges_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -13,6 +14,10 @@ void initHomeModule() {
 
   sl.registerLazySingleton<HomeRepository>(
     () => HomeRepositoryImpl(sl(), sl()),
+  );
+
+  sl.registerLazySingleton(
+    () => DiscoverLoungesUseCase(sl<HomeRepository>()),
   );
 
   sl.registerFactory<HomeCubit>(
