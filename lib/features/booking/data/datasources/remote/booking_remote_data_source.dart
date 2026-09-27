@@ -7,6 +7,8 @@ import '../../models/booking_params.dart';
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId});
   Future<bool> checkRoomAvailability({required String roomId, required DateTime startTime, required DateTime endTime});
+  Future<Map<String, dynamic>> acquireBookingHold({required List<String> roomIds, required DateTime startTime, required DateTime endTime, int holdMinutes = 10});
+  Future<void> releaseBookingHold(String holdToken);
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
@@ -81,6 +83,34 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     );
 
     return response == true;
+  }
+
+  @override
+  Future<Map<String, dynamic>> acquireBookingHold({
+    required List<String> roomIds,
+    required DateTime startTime,
+    required DateTime endTime,
+    int holdMinutes = 10,
+  }) async {
+    final response = await _client.rpc(
+      'acquire_booking_hold',
+      params: {
+        'p_room_ids': roomIds,
+        'p_start_at': startTime.toIso8601String(),
+        'p_end_at': endTime.toIso8601String(),
+        'p_hold_minutes': holdMinutes,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<void> releaseBookingHold(String holdToken) async {
+    await _client.rpc(
+      'release_booking_hold',
+      params: {'p_hold_token': holdToken},
+    );
   }
 
   @override
@@ -339,13 +369,10 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String bookingId,
     required int requestedMinutes,
   }) async {
-    await _client.rpc(
-      'request_booking_extension',
-      params: {
-        'p_booking_id': bookingId,
-        'p_requested_minutes': requestedMinutes,
-      },
-    );
+    await _client.from('bookings').update({
+      'extension_status': 'pending',
+      'requested_extension_minutes': requestedMinutes,
+    }).eq('id', bookingId);
   }
 
   @override
@@ -417,30 +444,51 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required double totalPrice,
     required String note,
   }) async {
+    final validUserId = _client.auth.currentUser?.id ?? userId;
+    
     final formattedItems = items.map((item) {
-      final id = item['id']?.toString() ??
-          item['extra_id']?.toString() ??
-          item['item_id']?.toString() ??
-          item['product_id']?.toString() ??
-          '';
-      final quantity = (item['quantity'] as num?)?.toInt() ?? 1;
+      final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString() ?? '';
+      final name = item['name']?.toString() ?? item['title']?.toString() ?? 'Extra';
+      final nameAr = item['name_ar']?.toString() ?? name;
+      final nameEn = item['name_en']?.toString() ?? name;
+      final p = (item['unit_price'] as num?)?.toDouble() ?? (item['price'] as num?)?.toDouble() ?? 0.0;
+      final q = (item['quantity'] as num?)?.toInt() ?? 1;
 
       return {
+        'id': id,
         'extra_id': id,
-        'quantity': quantity,
+        'item_id': id,
+        'product_id': id,
+        'name_ar': nameAr,
+        'name_en': nameEn,
+        'unit_price': p,
+        'price': p,
+        'quantity': q,
       };
     }).toList();
 
-    final response = await _client.rpc(
-      'place_canteen_order',
-      params: {
+    try {
+      final response = await _client.rpc('place_canteen_order', params: {
         'p_booking_id': bookingId,
         'p_items': formattedItems,
-        'p_note': note.isNotEmpty ? note : null,
-      },
-    );
-
-    dev.log("place_canteen_order RPC SUCCESS: $response");
+      });
+      dev.log("place_canteen_order RPC SUCCESS: $response");
+    } catch (e) {
+      dev.log("place_canteen_order RPC failed: $e, trying full params...");
+      try {
+        final response = await _client.rpc('place_canteen_order', params: {
+          'p_booking_id': bookingId,
+          'p_lounge_id': loungeId,
+          'p_user_id': validUserId,
+          'p_items': formattedItems,
+          'p_total_price': totalPrice > 0 ? totalPrice : null,
+          'p_note': note.isNotEmpty ? note : null,
+        });
+        dev.log("place_canteen_order RPC with full params SUCCESS: $response");
+      } catch (e2) {
+        dev.log("place_canteen_order RPC with full params failed: $e2");
+        rethrow;
+      }
+    }
   }
-
 }
