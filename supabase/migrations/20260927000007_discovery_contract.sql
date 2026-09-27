@@ -23,12 +23,12 @@ AS $function$
         WHEN p_lat IS NOT NULL
          AND p_lng IS NOT NULL
          AND l.location_point IS NOT NULL
-        THEN ST_Distance(
+        THEN public.ST_Distance(
           l.location_point,
-          ST_SetSRID(
-            ST_MakePoint(p_lng::double precision, p_lat::double precision),
+          public.ST_SetSRID(
+            public.ST_MakePoint(p_lng::double precision, p_lat::double precision),
             4326
-          )::geography
+          )::public.geography
         ) / 1000.0
         ELSE NULL
       END AS distance_km,
