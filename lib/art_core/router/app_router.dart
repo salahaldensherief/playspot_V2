@@ -349,7 +349,7 @@ class AppRouter {
                   BlocProvider(create: (context) => sl<FavoritesCubit>()),
                   BlocProvider(create: (context) => sl<ProfileCubit>()),
                   BlocProvider(create: (context) => sl<NotificationsCubit>()),
-                  BlocProvider(create: (context) => sl<ActiveSessionCubit>()),
+                  BlocProvider.value(value: sl<ActiveSessionCubit>()),
                   BlocProvider(create: (context) => sl<MyBookingsCubit>()),
                 ],
                 child: child,
