@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/art_core/utils/app_logger.dart';
-import 'package:playspot/core/notifications/push_notification_service.dart';
 import 'package:playspot/core/services/location_service.dart';
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/exceptions/app_exceptions.dart';
