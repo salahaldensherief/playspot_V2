@@ -36,7 +36,9 @@ class BuildQuickRebookCheckoutUseCase {
       endTime: endAt,
     );
 
-    return holdResult.bind((hold) {
+    return holdResult.fold(
+      (failure) => Left(failure),
+      (hold) {
       if (hold['success'] != true) {
         return Left(
           ServerFailure(
@@ -109,7 +111,8 @@ class BuildQuickRebookCheckoutUseCase {
           resolvedStartAt: startAt,
         ),
       );
-    });
+    },
+    );
   }
 
   DateTime _resolveOperationalDateTime(
