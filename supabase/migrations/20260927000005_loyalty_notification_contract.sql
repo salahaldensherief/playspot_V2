@@ -1,0 +1,279 @@
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.award_points_for_booking(
+  p_booking_id uuid
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_user_id uuid;
+  v_amount numeric;
+  v_points integer;
+  v_award jsonb;
+BEGIN
+  SELECT b.user_id, b.total_price
+  INTO v_user_id, v_amount
+  FROM public.bookings AS b
+  WHERE b.id = p_booking_id;
+
+  IF v_user_id IS NULL THEN
+    RETURN;
+  END IF;
+
+  v_points := GREATEST(
+    1,
+    ROUND(COALESCE(v_amount, 0) / 10.0)::integer
+  );
+
+  v_award := public.award_points(
+    p_user_id => v_user_id,
+    p_points => v_points,
+    p_type => 'earn_booking',
+    p_reference_id => p_booking_id,
+    p_description => 'نقاط حجز رقم: ' || p_booking_id,
+    p_source_type => 'booking',
+    p_source_id => p_booking_id,
+    p_idempotency_key => 'booking:' || p_booking_id::text,
+    p_metadata => jsonb_build_object('booking_id', p_booking_id)
+  );
+
+  IF COALESCE((v_award->>'applied')::boolean, false) IS NOT TRUE THEN
+    RETURN;
+  END IF;
+
+  INSERT INTO public.notifications (
+    user_id,
+    title,
+    title_ar,
+    title_en,
+    body,
+    body_ar,
+    body_en,
+    type,
+    metadata
+  )
+  VALUES (
+    v_user_id,
+    'Points Earned',
+    'نقاط ولاء جديدة! 🎉',
+    'New Loyalty Points Earned!',
+    'تم إضافة ' || v_points || ' نقطة ولاء لحسابك مقابل حجزك',
+    'تم إضافة ' || v_points || ' نقطة ولاء لحسابك مقابل حجزك',
+    'You earned ' || v_points || ' loyalty points for your booking!',
+    'loyalty_points',
+    jsonb_build_object(
+      'booking_id', p_booking_id,
+      'points', v_points,
+      'event', 'booking_completed'
+    )
+  );
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.trg_award_points_on_review()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_valid boolean;
+  v_award jsonb;
+BEGIN
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.bookings AS b
+    WHERE b.id = NEW.booking_id
+      AND b.user_id = NEW.user_id
+      AND b.status = 'completed'::public.booking_status
+  )
+  INTO v_valid;
+
+  IF NOT v_valid THEN
+    RETURN NEW;
+  END IF;
+
+  v_award := public.award_points(
+    p_user_id => NEW.user_id,
+    p_points => 15,
+    p_type => 'earn_review',
+    p_reference_id => NEW.id,
+    p_description => 'نقاط من تقييم صالة',
+    p_source_type => 'lounge_review',
+    p_source_id => NEW.id,
+    p_idempotency_key => 'review:' || NEW.user_id::text || ':' || NEW.id::text,
+    p_metadata => jsonb_build_object(
+      'review_id', NEW.id,
+      'booking_id', NEW.booking_id,
+      'lounge_id', NEW.lounge_id
+    )
+  );
+
+  IF COALESCE((v_award->>'applied')::boolean, false) IS TRUE THEN
+    PERFORM public.advance_loyalty_mission(
+      NEW.user_id,
+      'write_review',
+      1
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION public.handle_booking_notifications()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_lounge_name text;
+  v_actor_type text;
+  v_title_ar text;
+  v_title_en text;
+  v_body_ar text;
+  v_body_en text;
+BEGIN
+  SELECT COALESCE(l.name_ar, l.name_en, l.name)
+  INTO v_lounge_name
+  FROM public.lounges AS l
+  WHERE l.id = NEW.lounge_id;
+
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO public.notifications (
+      user_id,
+      lounge_id,
+      title_ar,
+      title_en,
+      body_ar,
+      body_en,
+      type,
+      is_read,
+      metadata,
+      created_at
+    )
+    VALUES (
+      NEW.user_id,
+      NEW.lounge_id,
+      'طلب الحجز وصل!',
+      'Booking Request Received!',
+      'طلبك في ' || COALESCE(v_lounge_name, 'الصالة') || ' وصل، مستني موافقة الإدارة',
+      'Your request at ' || COALESCE(v_lounge_name, 'the lounge') || ' was received, waiting for approval',
+      'booking',
+      false,
+      jsonb_build_object(
+        'booking_id', NEW.id,
+        'lounge_id', NEW.lounge_id,
+        'status', NEW.status::text,
+        'event', 'booking_created'
+      ),
+      now()
+    );
+
+  ELSIF TG_OP = 'UPDATE' AND OLD.status IS DISTINCT FROM NEW.status THEN
+    IF NEW.status = 'upcoming'::public.booking_status THEN
+      INSERT INTO public.notifications (
+        user_id,
+        lounge_id,
+        title_ar,
+        title_en,
+        body_ar,
+        body_en,
+        type,
+        is_read,
+        metadata,
+        created_at
+      )
+      VALUES (
+        NEW.user_id,
+        NEW.lounge_id,
+        'تم قبول حجزك! 🎉',
+        'Booking Accepted! 🎉',
+        'وافق صاحب الصالة على طلب حجزك في ' || COALESCE(v_lounge_name, ''),
+        'Your booking at ' || COALESCE(v_lounge_name, '') || ' has been approved.',
+        'booking',
+        false,
+        jsonb_build_object(
+          'booking_id', NEW.id,
+          'lounge_id', NEW.lounge_id,
+          'status', NEW.status::text,
+          'event', 'booking_approved'
+        ),
+        now()
+      );
+
+    ELSIF NEW.status IN (
+      'cancelled'::public.booking_status,
+      'rejected'::public.booking_status
+    ) THEN
+      v_actor_type := CASE
+        WHEN auth.uid() = NEW.user_id THEN 'user'
+        WHEN auth.uid() IS NULL THEN 'system'
+        ELSE 'admin'
+      END;
+
+      IF NEW.status = 'cancelled'::public.booking_status
+         AND v_actor_type = 'user' THEN
+        v_title_ar := 'تم إلغاء حجزك بنجاح';
+        v_title_en := 'Booking Cancelled Successfully';
+        v_body_ar := 'تم إلغاء حجزك بنجاح. نأمل أن نراك مرة أخرى.';
+        v_body_en := 'Your booking was cancelled successfully. We hope to see you again.';
+      ELSIF v_actor_type = 'system' THEN
+        v_title_ar := 'تم إلغاء الحجز تلقائيًا';
+        v_title_en := 'Booking Cancelled Automatically';
+        v_body_ar := 'تم إلغاء حجزك تلقائيًا بسبب انتهاء مهلة الحجز.';
+        v_body_en := 'Your booking was cancelled automatically because the booking time limit expired.';
+      ELSIF NEW.status = 'rejected'::public.booking_status THEN
+        v_title_ar := 'لم تتم الموافقة على حجزك';
+        v_title_en := 'Booking Not Approved';
+        v_body_ar := 'نأسف، لم تتم الموافقة على حجزك من قبل إدارة الصالة.';
+        v_body_en := 'Sorry, your booking was not approved by the lounge management.';
+      ELSE
+        v_title_ar := 'نأسف، تم إلغاء حجزك';
+        v_title_en := 'Booking Cancelled by Management';
+        v_body_ar := 'نأسف، تم إلغاء حجزك من قبل إدارة الصالة في ' || COALESCE(v_lounge_name, 'الصالة') || '.';
+        v_body_en := 'Sorry, your booking at ' || COALESCE(v_lounge_name, 'the lounge') || ' was cancelled by the lounge management.';
+      END IF;
+
+      INSERT INTO public.notifications (
+        user_id,
+        lounge_id,
+        title_ar,
+        title_en,
+        body_ar,
+        body_en,
+        type,
+        is_read,
+        metadata,
+        created_at
+      )
+      VALUES (
+        NEW.user_id,
+        NEW.lounge_id,
+        v_title_ar,
+        v_title_en,
+        v_body_ar,
+        v_body_en,
+        'booking',
+        false,
+        jsonb_build_object(
+          'booking_id', NEW.id,
+          'lounge_id', NEW.lounge_id,
+          'status', NEW.status::text,
+          'event', 'booking_status_changed',
+          'cancellation_source', v_actor_type
+        ),
+        now()
+      );
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$function$;
+
+COMMIT;
