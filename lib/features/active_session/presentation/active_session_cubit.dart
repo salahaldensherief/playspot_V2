@@ -3,9 +3,7 @@ import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/core/di.dart';
 import 'package:playspot/core/services/play_spot_live_activity_service.dart';
-import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'package:playspot/core/mixins/realtime_watcher_mixin.dart';
 import '../../../../core/constants/booking_status.dart';
 import '../../../../core/notifications/local_notification_service.dart';
@@ -419,9 +417,6 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
       },
       (_) {
         dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW SUCCESS");
-        try {
-          sl<ProfileCubit>().getUserData();
-        } catch (_) {}
         emit(state.copyWith(
           status: ActiveSessionStatus.empty,
           session: null,
