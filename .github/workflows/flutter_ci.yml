@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -33,8 +35,7 @@ jobs:
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          files=$(git diff --name-only --diff-filter=ACMRT "origin/${{ github.base_ref }}"...HEAD -- '*.dart')
+          files=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}"...HEAD -- '*.dart')
           if [ -n "$files" ]; then
             dart format --output=none --set-exit-if-changed $files
           fi
