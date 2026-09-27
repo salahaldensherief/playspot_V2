@@ -45,7 +45,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<CheckoutCubit>().initCheckout(widget.params.lounge);
+        context.read<CheckoutCubit>().initCheckout(widget.params);
       }
     });
   }
