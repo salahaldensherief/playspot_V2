@@ -10,7 +10,11 @@ abstract class ActiveSessionRemoteDataSource {
   Future<ActiveSessionModel?> getActiveSession({String? bookingId});
   Stream<ActiveSessionModel> streamActiveSession(String bookingId);
   Stream<ActiveSessionModel?> watchUserActiveSession();
-  Future<void> extendTime(String bookingId, int additionalMinutes, double additionalCost);
+  Future<void> extendTime(
+    String bookingId,
+    int additionalMinutes,
+    double additionalCost,
+  );
   Future<void> requestExtension({
     required String bookingId,
     required int requestedMinutes,
@@ -35,7 +39,8 @@ abstract class ActiveSessionRemoteDataSource {
   });
 }
 
-class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource {
+class ActiveSessionRemoteDataSourceImpl
+    implements ActiveSessionRemoteDataSource {
   final SupabaseClient _client;
 
   ActiveSessionRemoteDataSourceImpl(this._client);
@@ -49,28 +54,68 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       return null;
     }
 
-    const selectQuery = '*, lounges(name), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*))';
+    const selectQuery =
+        '*, lounges(name), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*))';
     final now = DateTime.now();
 
     // Try RPC get_active_session_details first for rich hydrated session details
     try {
-      final rpcRes = await _client.rpc('get_active_session_details', params: {
-        if (bookingId != null && bookingId.isNotEmpty) 'p_booking_id': bookingId,
-      });
+      final rpcRes = await _client.rpc(
+        'get_active_session_details',
+        params: {
+          if (bookingId != null && bookingId.isNotEmpty)
+            'p_booking_id': bookingId,
+        },
+      );
       if (rpcRes != null) {
         final Map<String, dynamic> rpcMap = rpcRes is List
             ? (rpcRes.isNotEmpty ? Map<String, dynamic>.from(rpcRes.first) : {})
             : Map<String, dynamic>.from(rpcRes);
-        if (rpcMap.isNotEmpty && rpcMap['id'] != null) {
-          final rpcModel = ActiveSessionModel.fromJson(rpcMap);
-          if (rpcModel.bookingId.isNotEmpty && rpcModel.status == 'in_progress') {
-            dev.log("[LIVESESSION_DS] GET_ACTIVE_SESSION RPC SUCCESS: bookingId=${rpcModel.bookingId}");
-            return rpcModel;
+
+        if (rpcMap.isNotEmpty) {
+          Map<String, dynamic> hydrated = rpcMap;
+
+          final booking = rpcMap['booking'];
+          if (booking is Map) {
+            hydrated = Map<String, dynamic>.from(booking);
+
+            final lounge = rpcMap['lounge'];
+            if (lounge is Map) {
+              hydrated['lounges'] = Map<String, dynamic>.from(lounge);
+            }
+
+            final room = rpcMap['room'];
+            if (room is Map) {
+              hydrated['rooms'] = Map<String, dynamic>.from(room);
+            }
+
+            final items = rpcMap['items'];
+            if (items is List) {
+              hydrated['items'] = items;
+            }
+
+            final canteenOrders = rpcMap['canteen_orders'];
+            if (canteenOrders is List) {
+              hydrated['canteen_orders'] = canteenOrders;
+            }
+          }
+
+          if (hydrated['id'] != null) {
+            final rpcModel = ActiveSessionModel.fromJson(hydrated);
+            if (rpcModel.bookingId.isNotEmpty &&
+                rpcModel.status == 'in_progress') {
+              dev.log(
+                "[LIVESESSION_DS] GET_ACTIVE_SESSION RPC SUCCESS: bookingId=${rpcModel.bookingId}",
+              );
+              return rpcModel;
+            }
           }
         }
       }
     } catch (e) {
-      dev.log("[LIVESESSION_DS] RPC get_active_session_details failed: $e, falling back to selectQuery");
+      dev.log(
+        "[LIVESESSION_DS] RPC get_active_session_details failed: $e, falling back to selectQuery",
+      );
     }
 
     // 1. If specific booking ID requested
@@ -84,11 +129,17 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
             .maybeSingle();
 
         if (response == null) return null;
-        final model = ActiveSessionModel.fromJson(Map<String, dynamic>.from(response));
-        dev.log("[LIVESESSION_DS] GET_ACTIVE_SESSION SUCCESS: bookingId=${model.bookingId}, status=${model.status}");
+        final model = ActiveSessionModel.fromJson(
+          Map<String, dynamic>.from(response),
+        );
+        dev.log(
+          "[LIVESESSION_DS] GET_ACTIVE_SESSION SUCCESS: bookingId=${model.bookingId}, status=${model.status}",
+        );
         return model;
       } catch (e) {
-        dev.log("[LIVESESSION_DS] Fetching specific booking $bookingId error: $e");
+        dev.log(
+          "[LIVESESSION_DS] Fetching specific booking $bookingId error: $e",
+        );
         return null;
       }
     }
@@ -106,10 +157,16 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
           .maybeSingle();
 
       if (activeResponse != null) {
-        final activeModel = ActiveSessionModel.fromJson(Map<String, dynamic>.from(activeResponse));
-        final isExpired = now.isAfter(activeModel.endTime.add(const Duration(minutes: 5)));
+        final activeModel = ActiveSessionModel.fromJson(
+          Map<String, dynamic>.from(activeResponse),
+        );
+        final isExpired = now.isAfter(
+          activeModel.endTime.add(const Duration(minutes: 5)),
+        );
         if (!isExpired) {
-          dev.log("[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}");
+          dev.log(
+            "[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}",
+          );
           return activeModel;
         }
       }
@@ -134,7 +191,9 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
           controller.add(fullSession);
         }
       } catch (e) {
-        dev.log("[LIVESESSION_DS] Error fetching active session in stream for $bookingId: $e");
+        dev.log(
+          "[LIVESESSION_DS] Error fetching active session in stream for $bookingId: $e",
+        );
       }
     }
 
@@ -144,39 +203,47 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
       channel = _client.channel('booking_$bookingId');
 
       channel
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'bookings',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'id',
-            value: bookingId,
-          ),
-          callback: (payload) {
-            dev.log("[LIVESESSION_DS] Realtime change on 'bookings' for $bookingId: ${payload.eventType}");
-            fetchAndEmit();
-          },
-        )
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'canteen_orders',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'booking_id',
-            value: bookingId,
-          ),
-          callback: (payload) {
-            dev.log("[LIVESESSION_DS] Realtime change on 'canteen_orders' for $bookingId: ${payload.eventType}");
-            fetchAndEmit();
-          },
-        )
-        .subscribe((status, [error]) {
-          dev.log("[LIVESESSION_DS] Realtime channel booking_$bookingId status: $status ${error ?? ''}");
-        });
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'bookings',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'id',
+              value: bookingId,
+            ),
+            callback: (payload) {
+              dev.log(
+                "[LIVESESSION_DS] Realtime change on 'bookings' for $bookingId: ${payload.eventType}",
+              );
+              fetchAndEmit();
+            },
+          )
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'canteen_orders',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'booking_id',
+              value: bookingId,
+            ),
+            callback: (payload) {
+              dev.log(
+                "[LIVESESSION_DS] Realtime change on 'canteen_orders' for $bookingId: ${payload.eventType}",
+              );
+              fetchAndEmit();
+            },
+          )
+          .subscribe((status, [error]) {
+            dev.log(
+              "[LIVESESSION_DS] Realtime channel booking_$bookingId status: $status ${error ?? ''}",
+            );
+          });
     } catch (e) {
-      dev.log("[LIVESESSION_DS] Error initializing channel booking_$bookingId: $e");
+      dev.log(
+        "[LIVESESSION_DS] Error initializing channel booking_$bookingId: $e",
+      );
     }
 
     controller.onCancel = () {
@@ -317,14 +384,23 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   }
 
   @override
-  Future<void> extendTime(String bookingId, int additionalMinutes, double additionalCost) async {
-    dev.log("[LIVESESSION_DS] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$additionalCost");
+  Future<void> extendTime(
+    String bookingId,
+    int additionalMinutes,
+    double additionalCost,
+  ) async {
+    dev.log(
+      "[LIVESESSION_DS] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$additionalCost",
+    );
     try {
-      await _client.rpc('extend_booking_session', params: {
-        'p_booking_id': bookingId,
-        'p_additional_minutes': additionalMinutes,
-        'p_additional_cost': additionalCost,
-      });
+      await _client.rpc(
+        'extend_booking_session',
+        params: {
+          'p_booking_id': bookingId,
+          'p_additional_minutes': additionalMinutes,
+          'p_additional_cost': additionalCost,
+        },
+      );
       dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC SUCCESS");
     } catch (e) {
       dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC error: $e");
@@ -333,7 +409,9 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
           errorStr.contains('conflict') ||
           errorStr.contains('23P01') ||
           errorStr.contains('exclusion constraint')) {
-        throw Exception("لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.");
+        throw Exception(
+          "لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.",
+        );
       }
       rethrow;
     }
@@ -358,19 +436,11 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   }
 
   @override
-  Future<void> placeOrder(
-    String bookingId,
-    List<OrderItemModel> items,
-  ) async {
+  Future<void> placeOrder(String bookingId, List<OrderItemModel> items) async {
     if (items.isEmpty) return;
 
     final formattedItems = items
-        .map(
-          (item) => {
-            'extra_id': item.id,
-            'quantity': item.quantity,
-          },
-        )
+        .map((item) => {'extra_id': item.id, 'quantity': item.quantity})
         .toList();
 
     final notes = items
@@ -397,7 +467,9 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
           .select()
           .eq('lounge_id', loungeId);
 
-      final menu = (response as List).map((e) => ExtraModel.fromJson(e)).toList();
+      final menu = (response as List)
+          .map((e) => ExtraModel.fromJson(e))
+          .toList();
       dev.log("[LIVESESSION_DS] GET_LOUNGE_MENU SUCCESS: ${menu.length} items");
       return menu;
     } catch (e) {
@@ -447,11 +519,14 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     int pageSize = 20,
   }) async {
     try {
-      final response = await _client.rpc('get_active_lounge_requests_page', params: {
-        'p_lounge_id': loungeId,
-        'p_page': page,
-        'p_page_size': pageSize,
-      });
+      final response = await _client.rpc(
+        'get_active_lounge_requests_page',
+        params: {
+          'p_lounge_id': loungeId,
+          'p_page': page,
+          'p_page_size': pageSize,
+        },
+      );
 
       return PaginatedResponse.fromRpc(
         response: response,
