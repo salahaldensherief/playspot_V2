@@ -418,6 +418,7 @@ DECLARE
   v_event text;
   v_status text;
   v_source text;
+  v_scheduled_for text;
   v_lock_key text;
 BEGIN
   IF NEW.type IS DISTINCT FROM 'booking' OR NEW.user_id IS NULL THEN
@@ -432,6 +433,7 @@ BEGIN
 
   v_status := COALESCE(NEW.metadata->>'status', '');
   v_source := COALESCE(NEW.metadata->>'cancellation_source', '');
+  v_scheduled_for := COALESCE(NEW.metadata->>'scheduled_for', '');
   v_lock_key :=
     NEW.user_id::text
     || ':booking:'
@@ -441,7 +443,9 @@ BEGIN
     || ':'
     || v_status
     || ':'
-    || v_source;
+    || v_source
+    || ':'
+    || v_scheduled_for;
 
   PERFORM pg_catalog.pg_advisory_xact_lock(
     pg_catalog.hashtextextended(v_lock_key, 0)
@@ -456,6 +460,7 @@ BEGIN
       AND COALESCE(n.metadata->>'event', '') = v_event
       AND COALESCE(n.metadata->>'status', '') = v_status
       AND COALESCE(n.metadata->>'cancellation_source', '') = v_source
+      AND COALESCE(n.metadata->>'scheduled_for', '') = v_scheduled_for
   ) THEN
     RETURN NULL;
   END IF;
