@@ -23,6 +23,10 @@ abstract class BookingRepository {
     String? senderWalletPhone,
     String? receiptUrl,
   });
+  Future<Either<Failure, void>> attachBookingReceipt({
+    required String bookingId,
+    required String receiptPath,
+  });
   Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params);
   Stream<BookingModel> watchBookingStatus(String bookingId);
   Future<Either<Failure, void>> extendSession({
