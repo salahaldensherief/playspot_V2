@@ -9,6 +9,21 @@ abstract class BookingRemoteDataSource {
   Future<bool> checkRoomAvailability({required String roomId, required DateTime startTime, required DateTime endTime});
   Future<Map<String, dynamic>> acquireBookingHold({required List<String> roomIds, required DateTime startTime, required DateTime endTime, int holdMinutes = 10});
   Future<void> releaseBookingHold(String holdToken);
+  Future<Map<String, dynamic>> getBookingQuote({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extras,
+    String? voucherCode,
+  });
+  Future<Map<String, dynamic>> createBookingsFromHold({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extras,
+    String? voucherCode,
+    required String paymentMethod,
+    String? senderWalletPhone,
+    String? receiptUrl,
+  });
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
@@ -111,6 +126,52 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       'release_booking_hold',
       params: {'p_hold_token': holdToken},
     );
+  }
+
+  @override
+  Future<Map<String, dynamic>> getBookingQuote({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extras,
+    String? voucherCode,
+  }) async {
+    final response = await _client.rpc(
+      'get_booking_quote',
+      params: {
+        'p_hold_token': holdToken,
+        'p_room_requests': roomRequests,
+        'p_extras': extras,
+        'p_voucher_code': voucherCode,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<Map<String, dynamic>> createBookingsFromHold({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extras,
+    String? voucherCode,
+    required String paymentMethod,
+    String? senderWalletPhone,
+    String? receiptUrl,
+  }) async {
+    final response = await _client.rpc(
+      'create_bookings_from_hold',
+      params: {
+        'p_hold_token': holdToken,
+        'p_room_requests': roomRequests,
+        'p_extras': extras,
+        'p_voucher_code': voucherCode,
+        'p_payment_method': paymentMethod,
+        'p_sender_wallet_phone': senderWalletPhone,
+        'p_receipt_url': receiptUrl,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
   }
 
   @override
