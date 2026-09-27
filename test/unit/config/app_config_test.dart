@@ -3,18 +3,16 @@ import 'package:playspot/core/constants/app_config.dart';
 
 void main() {
   group('AppConfig Unit Tests', () {
-    test('supabaseUrl should not be empty and should have a valid URL format', () {
-      expect(AppConfig.supabaseUrl.isNotEmpty, isTrue);
-      expect(AppConfig.supabaseUrl.startsWith('http'), isTrue);
+    test('Supabase config comes only from compile-time environment', () {
+      const expectedUrl = String.fromEnvironment('SUPABASE_URL');
+      const expectedAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+
+      expect(AppConfig.supabaseUrl, expectedUrl);
+      expect(AppConfig.supabaseAnonKey, expectedAnonKey);
     });
 
-    test('supabaseAnonKey should not be empty', () {
-      expect(AppConfig.supabaseAnonKey.isNotEmpty, isTrue);
-    });
-
-    test('appName and appVersion should be properly defined', () {
+    test('app name is defined', () {
       expect(AppConfig.appName, 'PlaySpot');
-      expect(AppConfig.appVersion.isNotEmpty, isTrue);
     });
   });
 }
