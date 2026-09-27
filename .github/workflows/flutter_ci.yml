@@ -37,7 +37,11 @@ jobs:
         run: |
           files=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}"...HEAD -- '*.dart')
           if [ -n "$files" ]; then
-            dart format --output=none --set-exit-if-changed $files
+            dart format $files
+            if ! git diff --exit-code -- $files; then
+              echo "Changed Dart files are not formatted."
+              exit 1
+            fi
           fi
 
       - name: Analyze
