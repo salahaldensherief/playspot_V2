@@ -106,10 +106,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }) async {
     final response = await _client.rpc(
       'get_visible_tournaments',
-      params: {
-        'p_latitude': latitude,
-        'p_longitude': longitude,
-      },
+      params: {'p_latitude': latitude, 'p_longitude': longitude},
     );
 
     final list = (response as List).cast<Map<String, dynamic>>();
@@ -191,9 +188,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .order('placement', ascending: true);
 
       final list = (response as List).cast<Map<String, dynamic>>();
-      return list
-          .map((json) => TournamentPrizeModel.fromJson(json))
-          .toList();
+      return list.map((json) => TournamentPrizeModel.fromJson(json)).toList();
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error fetching prizes: $e');
       return [];
@@ -213,9 +208,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .order('match_order', ascending: true);
 
       final list = (response as List).cast<Map<String, dynamic>>();
-      return list
-          .map((json) => TournamentMatchModel.fromJson(json))
-          .toList();
+      return list.map((json) => TournamentMatchModel.fromJson(json)).toList();
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentMatches: $e');
       return [];
@@ -324,7 +317,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }) async {
     final fileExt = receiptFile.path.split('.').last;
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-    final storagePath = 'tournament-receipts/$tournamentId/$userId/$fileName';
+    final storagePath = '$tournamentId/$userId/$fileName';
 
     final bytes = await receiptFile.readAsBytes();
     await _client.storage
@@ -400,8 +393,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     if (proofFile != null) {
       final fileExt = proofFile.path.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final storagePath =
-          'tournament-result-proofs/$tournamentId/$matchId/$fileName';
+      final storagePath = '$tournamentId/$matchId/$fileName';
 
       final bytes = await proofFile.readAsBytes();
       await _client.storage
@@ -538,16 +530,12 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String? tournamentId,
   }) async {
     if (tournamentId == null || tournamentId.isEmpty) {
-      throw ArgumentError(
-        'tournamentId is required for tournament withdrawal',
-      );
+      throw ArgumentError('tournamentId is required for tournament withdrawal');
     }
 
     final res = await _client.rpc(
       'withdraw_from_tournament',
-      params: {
-        'p_tournament_id': tournamentId,
-      },
+      params: {'p_tournament_id': tournamentId},
     );
 
     if (res is Map<String, dynamic>) {
