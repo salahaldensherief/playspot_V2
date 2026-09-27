@@ -1,345 +1,395 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:playspot/art_core/utils/app_logger.dart';
+
+import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
-import 'package:playspot/features/booking/domain/strategies/booking_slot_strategy.dart';
-import 'package:playspot/features/home/domain/repositories/home_repository.dart';
-import 'package:playspot/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart';
-import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
-import 'package:playspot/features/lounge_details/data/models/room_model.dart';
-import 'package:playspot/features/lounge_details/domain/repositories/lounge_details_repository.dart';
+import 'package:playspot/features/my_bookings/domain/usecases/get_quick_rebook_slots_usecase.dart';
+import 'package:playspot/features/my_bookings/domain/usecases/prepare_quick_rebook_usecase.dart';
+
 import '../data/models/booking_model.dart';
 import 'quick_rebook_state.dart';
 
 class QuickRebookCubit extends Cubit<QuickRebookState> {
-  final HomeRepository _homeRepository;
-  final LoungeDetailsRemoteDataSource _loungeDetailsRemoteDataSource;
-  final LoungeDetailsRepository _loungeDetailsRepository;
+  final PrepareQuickRebookUseCase _prepareQuickRebookUseCase;
+  final GetQuickRebookSlotsUseCase _getQuickRebookSlotsUseCase;
   final BookingRepository _bookingRepository;
-  final BookingSlotStrategy _slotStrategy;
 
   QuickRebookCubit({
-    required HomeRepository homeRepository,
-    required LoungeDetailsRemoteDataSource loungeDetailsRemoteDataSource,
-    required LoungeDetailsRepository loungeDetailsRepository,
+    required PrepareQuickRebookUseCase prepareQuickRebookUseCase,
+    required GetQuickRebookSlotsUseCase getQuickRebookSlotsUseCase,
     required BookingRepository bookingRepository,
-    required BookingSlotStrategy slotStrategy,
-  })  : _homeRepository = homeRepository,
-        _loungeDetailsRemoteDataSource = loungeDetailsRemoteDataSource,
-        _loungeDetailsRepository = loungeDetailsRepository,
+  })  : _prepareQuickRebookUseCase = prepareQuickRebookUseCase,
+        _getQuickRebookSlotsUseCase = getQuickRebookSlotsUseCase,
         _bookingRepository = bookingRepository,
-        _slotStrategy = slotStrategy,
         super(QuickRebookState(selectedDate: DateTime.now()));
 
   Future<void> initQuickRebook(BookingModel pastBooking) async {
-    emit(state.copyWith(
-      status: QuickRebookStatus.loading,
-      pastBooking: pastBooking,
-      selectedDate: DateTime.now(),
-    ));
+    final selectedDate = DateTime.now();
 
-    try {
-      final loungeId = pastBooking.loungeId;
-      if (loungeId == null || loungeId.isEmpty) {
-        emit(state.copyWith(
-          status: QuickRebookStatus.error,
-          errorMessage: 'Lounge identifier missing in booking record.',
-        ));
-        return;
-      }
-
-      // 1. Fetch real LoungeModel from Supabase
-      final loungeResult = await _homeRepository.getLoungeById(loungeId);
-      final lounge = loungeResult.fold(
-        (failure) => null,
-        (l) => l,
-      );
-
-      if (lounge == null) {
-        emit(state.copyWith(
-          status: QuickRebookStatus.error,
-          errorMessage: 'Lounge is no longer active or available.',
-        ));
-        return;
-      }
-
-      // 2. Fetch real RoomModel from Supabase
-      RoomModel? room;
-      if (pastBooking.roomId != null && pastBooking.roomId!.isNotEmpty) {
-        room = await _loungeDetailsRemoteDataSource.getRoomById(pastBooking.roomId!);
-      }
-
-      // Fallback: If roomId wasn't directly stored, find by loungeId & room name
-      if (room == null) {
-        final rooms = await _loungeDetailsRemoteDataSource.getRoomsByLoungeId(loungeId);
-        if (rooms.isNotEmpty) {
-          room = rooms.firstWhere(
-            (r) => r.nameEn.toLowerCase() == pastBooking.roomName.toLowerCase() ||
-                r.nameAr.toLowerCase() == pastBooking.roomName.toLowerCase(),
-            orElse: () => rooms.first,
-          );
-        }
-      }
-
-      if (room == null || !room.isAvailable) {
-        emit(state.copyWith(
-          status: QuickRebookStatus.unavailable,
-          pastBooking: pastBooking,
-          lounge: lounge,
-          errorMessage: 'This room is currently unavailable or unlisted.',
-        ));
-        return;
-      }
-
-      // 3. Fetch current available Extras from Supabase
-      final extrasRes = await _loungeDetailsRepository.getExtras(loungeId);
-      final List<ExtraModel> availableExtras = extrasRes.fold(
-        (_) => <ExtraModel>[],
-        (list) => list,
-      );
-
-      // Match previous canteen items against current Extras
-      final Map<String, int> selectedAddonQuantities = {};
-      final List<String> removedAddonNames = [];
-
-      for (var prevItem in pastBooking.canteenItems) {
-        final prevId = prevItem['id']?.toString() ?? prevItem['extra_id']?.toString() ?? '';
-        final prevName = prevItem['name']?.toString() ?? '';
-        final prevQty = (prevItem['quantity'] as num?)?.toInt() ?? 1;
-
-        ExtraModel? matchedExtra;
-        if (prevId.isNotEmpty) {
-          final found = availableExtras.where((e) => e.id == prevId);
-          if (found.isNotEmpty) matchedExtra = found.first;
-        }
-
-        if (matchedExtra == null && prevName.isNotEmpty) {
-          final found = availableExtras.where(
-            (e) => e.name.toLowerCase() == prevName.toLowerCase() ||
-                e.nameAr.toLowerCase() == prevName.toLowerCase() ||
-                e.nameEn.toLowerCase() == prevName.toLowerCase(),
-          );
-          if (found.isNotEmpty) matchedExtra = found.first;
-        }
-
-        if (matchedExtra != null) {
-          selectedAddonQuantities[matchedExtra.id] = prevQty;
-        } else if (prevName.isNotEmpty) {
-          removedAddonNames.add(prevName);
-        }
-      }
-
-      // 4. Determine duration in minutes (from past booking or default 60)
-      int durationMins = 60;
-      if (pastBooking.startTime.isNotEmpty && pastBooking.endTime.isNotEmpty) {
-        try {
-          final sParts = pastBooking.startTime.split(':');
-          final eParts = pastBooking.endTime.split(':');
-          if (sParts.length >= 2 && eParts.length >= 2) {
-            final startMins = (int.parse(sParts[0]) * 60) + int.parse(sParts[1]);
-            var endMins = (int.parse(eParts[0]) * 60) + int.parse(eParts[1]);
-            if (endMins <= startMins) endMins += 1440;
-            final diff = endMins - startMins;
-            if (diff >= 15) durationMins = diff;
-          }
-        } catch (_) {}
-      }
-
-      // 5. Fetch booked slots and calculate available start slots for today
-      final today = DateTime.now();
-      final bookedSlots = await _fetchBookedSlots(loungeId, room.id, today);
-      final availableSlots = _calculateAvailableSlots(today, bookedSlots, durationMins);
-
-      final TimeOfDay? defaultSlot = availableSlots.isNotEmpty ? availableSlots.first : null;
-
-      // 6. Recalculate current authoritative prices using current DB rates
-      final prices = _recalculatePrices(
-        room: room,
-        durationMinutes: durationMins,
-        playMode: pastBooking.playMode ?? 'single',
-        availableExtras: availableExtras,
-        selectedAddonQuantities: selectedAddonQuantities,
-      );
-
-      emit(state.copyWith(
-        status: QuickRebookStatus.ready,
+    emit(
+      state.copyWith(
+        status: QuickRebookStatus.loading,
         pastBooking: pastBooking,
-        lounge: lounge,
-        room: room,
-        availableExtras: availableExtras,
-        selectedAddonQuantities: selectedAddonQuantities,
-        removedAddonNames: removedAddonNames,
-        selectedDate: today,
-        availableSlots: availableSlots,
-        selectedSlot: defaultSlot,
-        durationMinutes: durationMins,
-        roomSubtotal: prices['roomSubtotal']!,
-        addonsTotal: prices['addonsTotal']!,
-        totalPrice: prices['totalPrice']!,
-      ));
-    } catch (e, st) {
-      AppLogger.error('QuickRebookCubit.initQuickRebook failed', e, st);
-      emit(state.copyWith(
-        status: QuickRebookStatus.error,
-        errorMessage: e.toString(),
-      ));
-    }
+        selectedDate: selectedDate,
+        clearError: true,
+      ),
+    );
+
+    final preparationResult = await _prepareQuickRebookUseCase(pastBooking);
+    if (isClosed) return;
+
+    await preparationResult.fold(
+      (failure) async {
+        emit(
+          state.copyWith(
+            status: QuickRebookStatus.unavailable,
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (preparation) async {
+        final slotsResult = await _getQuickRebookSlotsUseCase(
+          loungeId: preparation.lounge.id,
+          roomId: preparation.room.id,
+          date: selectedDate,
+          openingTime: preparation.lounge.openingTime,
+          closingTime: preparation.lounge.closingTime,
+          durationMinutes: preparation.durationMinutes,
+        );
+
+        if (isClosed) return;
+
+        slotsResult.fold(
+          (failure) => emit(
+            state.copyWith(
+              status: QuickRebookStatus.error,
+              lounge: preparation.lounge,
+              room: preparation.room,
+              errorMessage: failure.message,
+            ),
+          ),
+          (slots) => emit(
+            state.copyWith(
+              status: QuickRebookStatus.ready,
+              lounge: preparation.lounge,
+              room: preparation.room,
+              availableExtras: preparation.availableExtras,
+              selectedAddonQuantities:
+                  preparation.selectedAddonQuantities,
+              removedAddonNames: preparation.removedAddonNames,
+              selectedDate: selectedDate,
+              availableSlots: slots,
+              selectedSlot: slots.isNotEmpty ? slots.first : null,
+              clearSelectedSlot: slots.isEmpty,
+              durationMinutes: preparation.durationMinutes,
+              playMode: preparation.playMode,
+              extraControllers: preparation.extraControllers,
+              clearError: true,
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> changeDate(DateTime date) async {
-    if (state.room == null || state.lounge == null) return;
-    emit(state.copyWith(status: QuickRebookStatus.loading, selectedDate: date));
+    final lounge = state.lounge;
+    final room = state.room;
+    if (lounge == null || room == null) return;
 
-    final bookedSlots = await _fetchBookedSlots(state.lounge!.id, state.room!.id, date);
-    final availableSlots = _calculateAvailableSlots(date, bookedSlots, state.durationMinutes);
-    final defaultSlot = availableSlots.isNotEmpty ? availableSlots.first : null;
+    emit(
+      state.copyWith(
+        status: QuickRebookStatus.loading,
+        selectedDate: date,
+        clearError: true,
+      ),
+    );
 
-    emit(state.copyWith(
-      status: QuickRebookStatus.ready,
-      selectedDate: date,
-      availableSlots: availableSlots,
-      selectedSlot: defaultSlot,
-      clearSelectedSlot: defaultSlot == null,
-    ));
+    final result = await _getQuickRebookSlotsUseCase(
+      loungeId: lounge.id,
+      roomId: room.id,
+      date: date,
+      openingTime: lounge.openingTime,
+      closingTime: lounge.closingTime,
+      durationMinutes: state.durationMinutes,
+    );
+
+    if (isClosed) return;
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          status: QuickRebookStatus.error,
+          errorMessage: failure.message,
+        ),
+      ),
+      (slots) => emit(
+        state.copyWith(
+          status: QuickRebookStatus.ready,
+          availableSlots: slots,
+          selectedSlot: slots.isNotEmpty ? slots.first : null,
+          clearSelectedSlot: slots.isEmpty,
+          clearError: true,
+        ),
+      ),
+    );
   }
 
   void selectSlot(TimeOfDay slot) {
-    emit(state.copyWith(selectedSlot: slot));
+    emit(
+      state.copyWith(
+        selectedSlot: slot,
+        clearError: true,
+      ),
+    );
   }
 
   Future<void> updateDuration(int newDurationMinutes) async {
-    if (state.room == null || state.lounge == null) return;
+    final lounge = state.lounge;
+    final room = state.room;
+    if (lounge == null || room == null) return;
 
-    final prices = _recalculatePrices(
-      room: state.room!,
-      durationMinutes: newDurationMinutes,
-      playMode: state.pastBooking?.playMode ?? 'single',
-      availableExtras: state.availableExtras,
-      selectedAddonQuantities: state.selectedAddonQuantities,
+    final duration = newDurationMinutes.clamp(15, 720);
+
+    emit(
+      state.copyWith(
+        status: QuickRebookStatus.loading,
+        durationMinutes: duration,
+        clearError: true,
+      ),
     );
 
-    final bookedSlots = await _fetchBookedSlots(state.lounge!.id, state.room!.id, state.selectedDate);
-    final availableSlots = _calculateAvailableSlots(state.selectedDate, bookedSlots, newDurationMinutes);
+    final result = await _getQuickRebookSlotsUseCase(
+      loungeId: lounge.id,
+      roomId: room.id,
+      date: state.selectedDate,
+      openingTime: lounge.openingTime,
+      closingTime: lounge.closingTime,
+      durationMinutes: duration,
+    );
 
-    emit(state.copyWith(
-      durationMinutes: newDurationMinutes,
-      roomSubtotal: prices['roomSubtotal']!,
-      addonsTotal: prices['addonsTotal']!,
-      totalPrice: prices['totalPrice']!,
-      availableSlots: availableSlots,
-      selectedSlot: (state.selectedSlot != null && availableSlots.contains(state.selectedSlot))
-          ? state.selectedSlot
-          : (availableSlots.isNotEmpty ? availableSlots.first : null),
-    ));
+    if (isClosed) return;
+
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          status: QuickRebookStatus.error,
+          errorMessage: failure.message,
+        ),
+      ),
+      (slots) {
+        final selected = state.selectedSlot;
+        final keepSelected =
+            selected != null && slots.contains(selected);
+
+        emit(
+          state.copyWith(
+            status: QuickRebookStatus.ready,
+            availableSlots: slots,
+            selectedSlot:
+                keepSelected ? selected : (slots.isNotEmpty ? slots.first : null),
+            clearSelectedSlot: !keepSelected && slots.isEmpty,
+            clearError: true,
+          ),
+        );
+      },
+    );
   }
 
   void updateAddonQuantity(String extraId, int newQuantity) {
-    if (state.room == null) return;
-
-    final updatedMap = Map<String, int>.from(state.selectedAddonQuantities);
-    if (newQuantity > 0) {
-      updatedMap[extraId] = newQuantity;
-    } else {
-      updatedMap.remove(extraId);
-    }
-
-    final prices = _recalculatePrices(
-      room: state.room!,
-      durationMinutes: state.durationMinutes,
-      playMode: state.pastBooking?.playMode ?? 'single',
-      availableExtras: state.availableExtras,
-      selectedAddonQuantities: updatedMap,
+    final updated = Map<String, int>.from(
+      state.selectedAddonQuantities,
     );
 
-    emit(state.copyWith(
-      selectedAddonQuantities: updatedMap,
-      roomSubtotal: prices['roomSubtotal']!,
-      addonsTotal: prices['addonsTotal']!,
-      totalPrice: prices['totalPrice']!,
-    ));
+    if (newQuantity <= 0) {
+      updated.remove(extraId);
+    } else {
+      updated[extraId] = newQuantity.clamp(1, 100);
+    }
+
+    emit(
+      state.copyWith(
+        selectedAddonQuantities: updated,
+        clearError: true,
+      ),
+    );
   }
 
-  Future<Set<TimeOfDay>> _fetchBookedSlots(String loungeId, String roomId, DateTime date) async {
-    final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date, roomId: roomId);
-    final Set<TimeOfDay> booked = {};
-    result.fold(
-      (failure) => null,
-      (rawBookings) {
-        booked.addAll(_slotStrategy.calculateBookedSlots(
-          rawBookings: rawBookings,
-          roomId: roomId,
-          date: date,
-        ));
+  Future<CheckoutParams?> prepareInstantCheckout({
+    required bool isArabic,
+  }) async {
+    final lounge = state.lounge;
+    final room = state.room;
+    final slot = state.selectedSlot;
+
+    if (lounge == null || room == null || slot == null) {
+      return null;
+    }
+
+    final resolvedStart =
+        _getQuickRebookSlotsUseCase.resolveOperationalStart(
+      date: state.selectedDate,
+      openingTime: lounge.openingTime,
+      closingTime: lounge.closingTime,
+      slot: slot,
+    );
+
+    if (resolvedStart == null) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Lounge operating hours are unavailable.',
+        ),
+      );
+      return null;
+    }
+
+    final resolvedEnd = resolvedStart.add(
+      Duration(minutes: state.durationMinutes),
+    );
+
+    emit(
+      state.copyWith(
+        isPreparingCheckout: true,
+        clearError: true,
+      ),
+    );
+
+    final holdResult = await _bookingRepository.acquireBookingHold(
+      roomIds: [room.id],
+      startTime: resolvedStart,
+      endTime: resolvedEnd,
+      holdMinutes: lounge.cashGracePeriodMinutes.clamp(1, 30),
+    );
+
+    if (isClosed) return null;
+
+    return holdResult.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            isPreparingCheckout: false,
+            errorMessage: failure.message,
+          ),
+        );
+        return null;
+      },
+      (hold) {
+        if (hold['success'] != true) {
+          emit(
+            state.copyWith(
+              isPreparingCheckout: false,
+              errorMessage:
+                  hold['error_code']?.toString() ??
+                  'overlappingBookingError',
+            ),
+          );
+          return null;
+        }
+
+        final holdToken = hold['hold_token']?.toString();
+        final holdExpiresAt = DateTime.tryParse(
+          hold['hold_expires_at']?.toString() ?? '',
+        );
+
+        if (holdToken == null ||
+            holdToken.isEmpty ||
+            holdExpiresAt == null) {
+          emit(
+            state.copyWith(
+              isPreparingCheckout: false,
+              errorMessage: 'bookingHoldFailed',
+            ),
+          );
+          return null;
+        }
+
+        final addons = state.selectedAddonQuantities.entries.map((entry) {
+          final extra = state.availableExtras.firstWhere(
+            (item) => item.id == entry.key,
+          );
+
+          return <String, dynamic>{
+            'id': extra.id,
+            'extra_id': extra.id,
+            'name': isArabic ? extra.nameAr : extra.nameEn,
+            'name_ar': extra.nameAr,
+            'name_en': extra.nameEn,
+            'quantity': entry.value,
+            'unit_price': extra.price,
+          };
+        }).toList();
+
+        final params = CheckoutParams(
+          lounge: lounge,
+          rooms: [room],
+          roomsBreakdown: [
+            {
+              'roomId': room.id,
+              'roomName': room.getDisplayTitle(isArabic),
+              'playMode': state.playMode,
+              'extraControllers': state.extraControllers,
+            },
+          ],
+          date: state.selectedDate,
+          startTime: slot,
+          duration: state.durationMinutes,
+          originalRoomSubtotal: 0,
+          discountedRoomSubtotal: 0,
+          discountAmount: 0,
+          discountPercentage: 0,
+          addonsTotal: 0,
+          totalPrice: 0,
+          originalTotalPrice: 0,
+          addOns: addons,
+          playMode: state.playMode,
+          extraControllers: state.extraControllers,
+          holdToken: holdToken,
+          holdExpiresAt: holdExpiresAt,
+          resolvedStartAt: resolvedStart,
+        );
+
+        emit(
+          state.copyWith(
+            isPreparingCheckout: false,
+            clearError: true,
+          ),
+        );
+
+        return params;
       },
     );
-    return booked;
   }
 
-  List<TimeOfDay> _calculateAvailableSlots(
-    DateTime date,
-    Set<TimeOfDay> bookedSlots,
-    int durationMinutes,
-  ) {
-    final List<TimeOfDay> freeSlots = [];
-    final now = DateTime.now();
-    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
-
-    // Check operating hours starting from 10:00 AM to 02:00 AM next day
-    for (int h = 10; h < 26; h++) {
-      final actualHour = h % 24;
-      for (int m in const [0, 30]) {
-        final slotTod = TimeOfDay(hour: actualHour, minute: m);
-
-        if (isToday) {
-          var slotDt = DateTime(now.year, now.month, now.day, actualHour, m);
-          if (actualHour < 6) slotDt = slotDt.add(const Duration(days: 1));
-          if (slotDt.isBefore(now.add(const Duration(minutes: 10)))) continue;
-        }
-
-        // Check if slot or range is free
-        final isBooked = bookedSlots.any((b) => b.hour == actualHour && b.minute == m);
-        if (!isBooked) {
-          freeSlots.add(slotTod);
-        }
-      }
-    }
-    return freeSlots;
-  }
-
-  Map<String, double> _recalculatePrices({
-    required RoomModel room,
-    required int durationMinutes,
-    required String playMode,
-    required List<ExtraModel> availableExtras,
-    required Map<String, int> selectedAddonQuantities,
+  BookingDetailsParams? buildCustomizeParams({
+    required bool isArabic,
   }) {
-    final double hourlyRate = playMode == 'multi' ? room.hourlyRateMulti : room.hourlyRateSingle;
-    final double durationHours = durationMinutes / 60.0;
+    final lounge = state.lounge;
+    final room = state.room;
+    if (lounge == null || room == null) return null;
 
-    double roomSubtotal = hourlyRate * durationHours;
-    if (room.hasActivePromo && room.promoDiscountValue > 0) {
-      if (room.promoDiscountType == 'percentage') {
-        roomSubtotal *= (1.0 - (room.promoDiscountValue / 100.0));
-      } else {
-        roomSubtotal = (roomSubtotal - room.promoDiscountValue).clamp(0.0, double.infinity);
-      }
-    }
-
-    double addonsTotal = 0.0;
-    selectedAddonQuantities.forEach((extraId, qty) {
-      final extra = availableExtras.firstWhere(
-        (e) => e.id == extraId,
-        orElse: () => const ExtraModel(id: '', name: '', price: 0.0, category: 'other'),
+    final addons = state.selectedAddonQuantities.entries.map((entry) {
+      final extra = state.availableExtras.firstWhere(
+        (item) => item.id == entry.key,
       );
-      if (extra.id.isNotEmpty && extra.price > 0) {
-        addonsTotal += extra.price * qty;
-      }
-    });
 
-    return {
-      'roomSubtotal': roomSubtotal,
-      'addonsTotal': addonsTotal,
-      'totalPrice': roomSubtotal + addonsTotal,
-    };
+      return <String, dynamic>{
+        'id': extra.id,
+        'extra_id': extra.id,
+        'name': isArabic ? extra.nameAr : extra.nameEn,
+        'name_ar': extra.nameAr,
+        'name_en': extra.nameEn,
+        'quantity': entry.value,
+        'unit_price': extra.price,
+      };
+    }).toList();
+
+    return BookingDetailsParams(
+      lounge: lounge,
+      rooms: [room],
+      selectedDate: state.selectedDate,
+      extras: addons,
+      playMode: state.playMode,
+      extraControllers: state.extraControllers,
+    );
   }
 }
