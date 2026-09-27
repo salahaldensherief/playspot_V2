@@ -16,6 +16,7 @@ import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/profile/presentation/settings/notification_settings_cubit.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
+import 'package:playspot/features/search/presentation/search_cubit.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 import 'package:playspot/art_core/widgets/layout/swipe_back_wrapper.dart';
 import '../../core/di.dart';
@@ -386,7 +387,10 @@ class AppRouter {
                     pageBuilder: (context, state) => _buildPage(
                       context: context,
                       state: state,
-                      child: const SearchScreen(),
+                      child: BlocProvider(
+                        create: (context) => sl<SearchCubit>()..search(),
+                        child: const SearchScreen(),
+                      ),
                     ),
                   ),
                   GoRoute(
