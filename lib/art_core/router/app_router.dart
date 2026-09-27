@@ -245,7 +245,10 @@ class AppRouter {
             pageBuilder: (context, state) => _buildPage(
               context: context,
               state: state,
-              child: MaintenanceScreen(statusEntity: state.extra as AppStatusEntity?),
+              child: MaintenanceScreen(
+                statusEntity: state.extra as AppStatusEntity? ??
+                    sl<AppStatusCubit>().state.statusEntity,
+              ),
             ),
           ),
           GoRoute(
