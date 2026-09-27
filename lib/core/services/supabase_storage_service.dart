@@ -10,10 +10,7 @@ abstract class StorageService {
     required File file,
   });
 
-  Future<String?> uploadAvatar({
-    required String userId,
-    required File file,
-  });
+  Future<String?> uploadAvatar({required String userId, required File file});
 
   Future<String?> uploadPaymentProof({
     required String userId,
@@ -34,11 +31,9 @@ class SupabaseStorageServiceImpl implements StorageService {
     required File file,
   }) async {
     try {
-      await _supabase.storage.from(bucket).upload(
-        path,
-        file,
-        fileOptions: const FileOptions(upsert: true),
-      );
+      await _supabase.storage
+          .from(bucket)
+          .upload(path, file, fileOptions: const FileOptions(upsert: true));
       return _supabase.storage.from(bucket).getPublicUrl(path);
     } catch (e, st) {
       AppLogger.error('[StorageService] Upload failed', e, st);
@@ -64,11 +59,7 @@ class SupabaseStorageServiceImpl implements StorageService {
     final fileExt = allowedExts.contains(rawExt) ? rawExt : 'jpg';
     final path = '$userId/avatar.$fileExt';
 
-    return uploadFile(
-      bucket: 'avatars',
-      path: path,
-      file: file,
-    );
+    return uploadFile(bucket: 'avatars', path: path, file: file);
   }
 
   @override
@@ -95,11 +86,9 @@ class SupabaseStorageServiceImpl implements StorageService {
     final path = '$userId/$cleanBookingId/receipt.$fileExt';
 
     try {
-      await _supabase.storage.from('payment-proofs').upload(
-        path,
-        file,
-        fileOptions: const FileOptions(upsert: true),
-      );
+      await _supabase.storage
+          .from('payment-proofs')
+          .upload(path, file, fileOptions: const FileOptions(upsert: true));
       return path;
     } catch (e, st) {
       AppLogger.error('[StorageService] Payment proof upload failed', e, st);
