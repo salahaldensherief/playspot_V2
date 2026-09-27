@@ -56,6 +56,46 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }
 
   @override
+  Future<Either<Failure, Map<String, dynamic>>> getBookingQuote({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extras,
+    String? voucherCode,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getBookingQuote(
+        holdToken: holdToken,
+        roomRequests: roomRequests,
+        extras: extras,
+        voucherCode: voucherCode,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> createBookingsFromHold({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extras,
+    String? voucherCode,
+    required String paymentMethod,
+    String? senderWalletPhone,
+    String? receiptUrl,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.createBookingsFromHold(
+        holdToken: holdToken,
+        roomRequests: roomRequests,
+        extras: extras,
+        voucherCode: voucherCode,
+        paymentMethod: paymentMethod,
+        senderWalletPhone: senderWalletPhone,
+        receiptUrl: receiptUrl,
+      ),
+    );
+  }
+
+  @override
   Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params) async {
     return await callRepository(() => _remoteDataSource.createBooking(params));
   }
