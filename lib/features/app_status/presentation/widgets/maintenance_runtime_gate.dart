@@ -49,10 +49,14 @@ class MaintenanceRuntimeGate extends StatelessWidget {
               break;
           }
         },
-        child: MaintenanceScreen(
-          statusEntity:
-              context.watch<AppStatusCubit>().state.statusEntity ??
-              initialStatusEntity,
+        child: BlocBuilder<AppStatusCubit, AppStatusState>(
+          buildWhen: (previous, current) =>
+              previous.statusEntity != current.statusEntity,
+          builder: (context, state) {
+            return MaintenanceScreen(
+              statusEntity: state.statusEntity ?? initialStatusEntity,
+            );
+          },
         ),
       ),
     );
