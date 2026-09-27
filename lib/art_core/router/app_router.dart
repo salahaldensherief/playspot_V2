@@ -67,6 +67,7 @@ import '../../features/tournaments/presentation/history/tournament_history_scree
 import '../../features/app_status/presentation/screens/maintenance_screen.dart';
 import '../../features/app_status/presentation/screens/force_update_screen.dart';
 import '../../features/app_status/domain/entities/app_status_entity.dart';
+import '../../features/app_status/domain/entities/app_status_type.dart';
 import '../../features/app_status/presentation/cubit/app_status_cubit.dart';
 import '../../features/app_status/presentation/cubit/app_status_state.dart';
 import '../../core/notifications/notification_router.dart';
