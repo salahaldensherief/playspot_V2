@@ -60,7 +60,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     try {
       final response = await _client
           .from('lounges')
-          .select('*, promotions:promotions!lounge_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type, discount_percentage, title_ar, title_en)')
+          .select('*, promotions:promotions!lounge_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type, title_ar, title_en)')
           .eq('id', id)
           .eq('status', 'active')
           .eq('is_active', true)
