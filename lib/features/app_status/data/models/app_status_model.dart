@@ -40,11 +40,10 @@ class AppStatusModel extends AppStatusEntity {
           json['maintenance_message']?.toString() ??
           json['maintenance_message_en']?.toString() ??
           json['maintenance_message_ar']?.toString(),
-      expectedEndTime:
-          DateTime.tryParse(
-            (json['maintenance_until'] ?? json['expected_end_time'] ?? '')
-                .toString(),
-          ),
+      expectedEndTime: DateTime.tryParse(
+        (json['maintenance_until'] ?? json['expected_end_time'] ?? '')
+            .toString(),
+      ),
       minSupportedVersion:
           minVersion?.toString() ??
           json['min_supported_version']?.toString() ??
