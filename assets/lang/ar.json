@@ -585,5 +585,14 @@
   "quickRebookTitle": "إعادة حجز سريع",
   "quickRebookSubtitle": "احجز نفس تجهيزك السابق في ثوانٍ",
   "instantCheckout": "إتمام الحجز السريع",
-  "previousAddons": "إضافات الحجز السابق"
+  "previousAddons": "إضافات الحجز السابق",
+  "quickRebookChecking": "جاري التحقق من الإتاحة الحالية...",
+  "quickRebookUnavailableTitle": "الحجز السريع غير متاح",
+  "quickRebookUnavailableMessage": "الغرفة أو التجهيز السابق لم يعد متاحاً للحجز السريع.",
+  "quickRebookBrowseLounge": "استعراض الصالة والحجز",
+  "quickRebookNearestSlots": "أقرب المواعيد المتاحة",
+  "quickRebookNoSlots": "لا توجد مواعيد مناسبة متاحة لهذا التاريخ.",
+  "quickRebookRemovedAddons": "تم استبعاد عناصر غير متاحة من الحجز السابق: {}",
+  "quickRebookPricingAtCheckout": "سيتم التحقق من الأسعار والخصومات الحالية بشكل آمن عند الدفع.",
+  "quickRebookCustomize": "تخصيص الحجز"
 }
