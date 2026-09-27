@@ -17,7 +17,8 @@ BEGIN
   SELECT b.user_id, b.total_price
   INTO v_user_id, v_amount
   FROM public.bookings AS b
-  WHERE b.id = p_booking_id;
+  WHERE b.id = p_booking_id
+    AND b.status = 'completed'::public.booking_status;
 
   IF v_user_id IS NULL THEN
     RETURN;
@@ -72,6 +73,12 @@ BEGIN
   );
 END;
 $function$;
+
+REVOKE EXECUTE ON FUNCTION public.award_points_for_booking(uuid)
+FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.award_points_for_booking(uuid)
+TO service_role, supabase_auth_admin;
 
 CREATE OR REPLACE FUNCTION public.trg_award_points_on_review()
 RETURNS trigger
