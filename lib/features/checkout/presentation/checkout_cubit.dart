@@ -370,9 +370,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     String? transactionReference,
   }) async {
     final holdToken = state.holdToken ?? checkoutParams.holdToken;
-    if (state.isHoldExpired ||
-        holdToken == null ||
-        holdToken.isEmpty) {
+    if (state.isHoldExpired || holdToken == null || holdToken.isEmpty) {
       emit(
         state.copyWith(
           status: CheckoutStatus.failure,
@@ -384,42 +382,14 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
     emit(state.copyWith(status: CheckoutStatus.loading));
 
-    final method = (paymentMethod?.toLowerCase() == 'cash' ||
+    final method =
+        (paymentMethod?.toLowerCase() == 'cash' ||
             state.selectedMethod == PaymentMethod.cash)
         ? 'cash'
         : 'manual_transfer';
 
     final effectiveAccount =
         senderAccount ?? senderWalletPhone ?? state.senderWalletNumber;
-
-    String? receiptUrl;
-    if (receiptFile != null) {
-      try {
-        final userId = _preferenceManager.userId();
-        if (userId == null || userId.isEmpty) {
-          throw StateError('Authenticated user id is missing');
-        }
-
-        receiptUrl = await _storageService.uploadPaymentProof(
-          userId: userId,
-          bookingId: 'proof_${DateTime.now().millisecondsSinceEpoch}',
-          file: receiptFile,
-        );
-      } catch (error, stackTrace) {
-        AppLogger.error(
-          'Payment proof upload failed',
-          error,
-          stackTrace,
-        );
-        emit(
-          state.copyWith(
-            status: CheckoutStatus.failure,
-            errorMessage: AppStrings.somethingWentWrong.tr(),
-          ),
-        );
-        return;
-      }
-    }
 
     final voucherCode = state.selectedVoucher?['code']
         ?.toString()
@@ -435,52 +405,107 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       paymentMethod: method,
       senderWalletPhone:
           method == 'manual_transfer' ? effectiveAccount : null,
-      receiptUrl: receiptUrl,
+      receiptUrl: null,
     );
 
     if (isClosed) return;
 
+    String? checkoutError;
+    Map<String, dynamic>? checkoutData;
     result.fold(
-      (failure) {
+      (failure) => checkoutError = failure.message,
+      (data) => checkoutData = data,
+    );
+
+    if (checkoutError != null || checkoutData == null) {
+      emit(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: checkoutError ?? AppStrings.somethingWentWrong.tr(),
+        ),
+      );
+      return;
+    }
+
+    final primaryBookingId = checkoutData!['primary_booking_id']?.toString();
+    final quote = checkoutData!['quote'];
+
+    if (primaryBookingId == null || primaryBookingId.isEmpty) {
+      emit(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: AppStrings.somethingWentWrong.tr(),
+        ),
+      );
+      return;
+    }
+
+    _clearLocalHold();
+
+    if (receiptFile != null && method == 'manual_transfer') {
+      try {
+        final userId = _preferenceManager.userId();
+        if (userId == null || userId.isEmpty) {
+          throw StateError('Authenticated user id is missing');
+        }
+
+        final receiptPath = await _storageService.uploadPaymentProof(
+          userId: userId,
+          bookingId: primaryBookingId,
+          file: receiptFile,
+        );
+
+        if (receiptPath == null || receiptPath.isEmpty) {
+          throw StateError('Payment proof upload returned an empty path');
+        }
+
+        final attachResult = await _bookingRepository.attachBookingReceipt(
+          bookingId: primaryBookingId,
+          receiptPath: receiptPath,
+        );
+
+        String? attachError;
+        attachResult.fold(
+          (failure) => attachError = failure.message,
+          (_) {},
+        );
+
+        if (attachError != null) {
+          throw StateError(attachError);
+        }
+      } catch (error, stackTrace) {
+        AppLogger.error(
+          'Payment proof attach failed for booking $primaryBookingId',
+          error,
+          stackTrace,
+        );
+
         emit(
           state.copyWith(
             status: CheckoutStatus.failure,
-            errorMessage: failure.message,
-          ),
-        );
-      },
-      (data) {
-        final primaryBookingId = data['primary_booking_id']?.toString();
-        final quote = data['quote'];
-
-        if (primaryBookingId == null || primaryBookingId.isEmpty) {
-          emit(
-            state.copyWith(
-              status: CheckoutStatus.failure,
-              errorMessage: AppStrings.somethingWentWrong.tr(),
-            ),
-          );
-          return;
-        }
-
-        if (quote is Map) {
-          emit(
-            state.copyWith(
-              serverQuote: Map<String, dynamic>.from(quote),
-            ),
-          );
-        }
-
-        listenToBookingStatus(primaryBookingId);
-        _clearLocalHold();
-
-        emit(
-          state.copyWith(
-            status: CheckoutStatus.success,
             createdBookingId: primaryBookingId,
+            errorMessage: AppStrings.somethingWentWrong.tr(),
           ),
         );
-      },
+        return;
+      }
+    }
+
+    if (quote is Map) {
+      emit(
+        state.copyWith(
+          serverQuote: Map<String, dynamic>.from(quote),
+        ),
+      );
+    }
+
+    listenToBookingStatus(primaryBookingId);
+
+    emit(
+      state.copyWith(
+        status: CheckoutStatus.success,
+        createdBookingId: primaryBookingId,
+      ),
     );
   }
 }
