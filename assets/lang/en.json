@@ -584,5 +584,13 @@
   "quickRebookTitle": "Quick Rebook",
   "quickRebookSubtitle": "Rebook your previous setup in seconds",
   "instantCheckout": "Proceed to Instant Checkout",
-  "previousAddons": "Previous Snacks & Drinks"
+  "previousAddons": "Previous Snacks & Drinks",
+  "quickRebookChecking": "Checking current availability...",
+  "quickRebookUnavailable": "Quick Rebook Unavailable",
+  "quickRebookUnavailableDesc": "The original room or setup is no longer available for instant rebooking.",
+  "quickRebookBrowseLounge": "Browse Lounge & Book",
+  "quickRebookRemovedAddons": "Unavailable previous items were removed: {}",
+  "quickRebookNearestSlots": "Nearest available slots",
+  "quickRebookNoSlots": "No matching slots are available for this date. Choose another date or customize the booking.",
+  "quickRebookCustomize": "Customize Booking & Date"
 }
