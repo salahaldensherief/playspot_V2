@@ -585,4 +585,12 @@ class AppStrings {
   static const String quickRebookSubtitle = "quickRebookSubtitle";
   static const String instantCheckout = "instantCheckout";
   static const String previousAddons = "previousAddons";
+  static const String quickRebookChecking = "quickRebookChecking";
+  static const String quickRebookUnavailable = "quickRebookUnavailable";
+  static const String quickRebookUnavailableDesc = "quickRebookUnavailableDesc";
+  static const String quickRebookBrowseLounge = "quickRebookBrowseLounge";
+  static const String quickRebookRemovedAddons = "quickRebookRemovedAddons";
+  static const String quickRebookNearestSlots = "quickRebookNearestSlots";
+  static const String quickRebookNoSlots = "quickRebookNoSlots";
+  static const String quickRebookCustomize = "quickRebookCustomize";
 }
