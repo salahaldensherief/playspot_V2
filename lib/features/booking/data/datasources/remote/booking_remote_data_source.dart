@@ -7,6 +7,8 @@ import '../../models/booking_params.dart';
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId});
   Future<bool> checkRoomAvailability({required String roomId, required DateTime startTime, required DateTime endTime});
+  Future<Map<String, dynamic>> acquireBookingHold({required List<String> roomIds, required DateTime startTime, required DateTime endTime, int holdMinutes = 10});
+  Future<void> releaseBookingHold(String holdToken);
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
@@ -81,6 +83,34 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     );
 
     return response == true;
+  }
+
+  @override
+  Future<Map<String, dynamic>> acquireBookingHold({
+    required List<String> roomIds,
+    required DateTime startTime,
+    required DateTime endTime,
+    int holdMinutes = 10,
+  }) async {
+    final response = await _client.rpc(
+      'acquire_booking_hold',
+      params: {
+        'p_room_ids': roomIds,
+        'p_start_at': startTime.toIso8601String(),
+        'p_end_at': endTime.toIso8601String(),
+        'p_hold_minutes': holdMinutes,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<void> releaseBookingHold(String holdToken) async {
+    await _client.rpc(
+      'release_booking_hold',
+      params: {'p_hold_token': holdToken},
+    );
   }
 
   @override
