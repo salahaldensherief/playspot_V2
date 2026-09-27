@@ -78,6 +78,9 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
   }
 
   if (message.contains('overlappingbookingerror') ||
+      message.contains('slot_overlap_conflict') ||
+      message.contains('slot_held_by_another_user') ||
+      message.contains('bookingholdfailed') ||
       message.contains('exclusion constraint') ||
       message.contains('no_overlapping_room_bookings') ||
       message.contains('prevent_room_booking_overlap')) {
