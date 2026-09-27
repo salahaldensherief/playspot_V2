@@ -56,10 +56,12 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw const AuthException("User not logged in");
 
-    await _client
-        .from('bookings')
-        .update({'status': 'cancelled'})
-        .eq('id', bookingId)
-        .eq('user_id', userId);
+    await _client.rpc(
+      'cancel_my_booking',
+      params: {
+        'p_booking_id': bookingId,
+        'p_reason': 'Cancelled by user',
+      },
+    );
   }
 }
