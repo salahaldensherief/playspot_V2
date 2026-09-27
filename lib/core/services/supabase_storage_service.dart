@@ -74,18 +74,33 @@ class SupabaseStorageServiceImpl implements StorageService {
   }) async {
     final length = await file.length();
     if (length > 5 * 1024 * 1024) {
-      AppLogger.error('[StorageService] Payment proof size exceeds 5MB limit ($length bytes)');
+      AppLogger.error(
+        '[StorageService] Payment proof size exceeds 5MB limit ($length bytes)',
+      );
       return null;
     }
+
     final rawExt = file.path.split('.').last.toLowerCase();
     final allowedExts = {'jpg', 'jpeg', 'png', 'webp', 'pdf'};
     final fileExt = allowedExts.contains(rawExt) ? rawExt : 'jpg';
-    final cleanBookingId = bookingId.replaceAll(RegExp(r'\.(jpg|jpeg|png|pdf)$', caseSensitive: false), '');
-    final path = '$userId/$cleanBookingId/receipt.$fileExt';
-    return uploadFile(
-      bucket: 'payment-proofs',
-      path: path,
-      file: file,
+    final cleanBookingId = bookingId.replaceAll(
+      RegExp(r'\.(jpg|jpeg|png|pdf)
+}
+, caseSensitive: false),
+      '',
     );
+    final path = '$userId/$cleanBookingId/receipt.$fileExt';
+
+    try {
+      await _supabase.storage.from('payment-proofs').upload(
+            path,
+            file,
+            fileOptions: const FileOptions(upsert: true),
+          );
+      return path;
+    } catch (e, st) {
+      AppLogger.error('[StorageService] Payment proof upload failed', e, st);
+      return null;
+    }
   }
 }
