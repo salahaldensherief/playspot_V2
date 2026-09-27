@@ -84,7 +84,21 @@ class SupabaseStorageServiceImpl implements StorageService {
     final allowedExts = {'jpg', 'jpeg', 'png', 'webp', 'pdf'};
     final fileExt = allowedExts.contains(rawExt) ? rawExt : 'jpg';
     final cleanBookingId = bookingId.replaceAll(
-      RegExp(r'\.(jpg|jpeg|png|pdf)
+      RegExp(r'\.(jpg|jpeg|png|webp|pdf)
+    final path = '$userId/$cleanBookingId/receipt.$fileExt';
+
+    try {
+      await _supabase.storage.from('payment-proofs').upload(
+            path,
+            file,
+            fileOptions: const FileOptions(upsert: true),
+          );
+      return path;
+    } catch (e, st) {
+      AppLogger.error('[StorageService] Payment proof upload failed', e, st);
+      return null;
+    }
+  }
 }
 , caseSensitive: false),
       '',
