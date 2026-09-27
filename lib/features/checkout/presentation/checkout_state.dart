@@ -21,6 +21,7 @@ class CheckoutState extends Equatable {
   final int remainingSeconds;
   final bool isHoldExpired;
   final DateTime? holdExpiresAt;
+  final String? holdToken;
 
   // Realtime Booking Listener fields
   final String? createdBookingId;
@@ -42,6 +43,7 @@ class CheckoutState extends Equatable {
     this.remainingSeconds = 600,
     this.isHoldExpired = false,
     this.holdExpiresAt,
+    this.holdToken,
     this.createdBookingId,
     this.liveBookingStatus,
     this.rejectionReason,
@@ -68,6 +70,8 @@ class CheckoutState extends Equatable {
     int? remainingSeconds,
     bool? isHoldExpired,
     DateTime? holdExpiresAt,
+    String? holdToken,
+    bool clearHold = false,
     String? createdBookingId,
     BookingStatus? liveBookingStatus,
     String? rejectionReason,
@@ -86,7 +90,8 @@ class CheckoutState extends Equatable {
       senderWalletNumber: senderWalletNumber ?? this.senderWalletNumber,
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       isHoldExpired: isHoldExpired ?? this.isHoldExpired,
-      holdExpiresAt: holdExpiresAt ?? this.holdExpiresAt,
+      holdExpiresAt: clearHold ? null : (holdExpiresAt ?? this.holdExpiresAt),
+      holdToken: clearHold ? null : (holdToken ?? this.holdToken),
       createdBookingId: createdBookingId ?? this.createdBookingId,
       liveBookingStatus: liveBookingStatus ?? this.liveBookingStatus,
       rejectionReason: rejectionReason ?? this.rejectionReason,
@@ -109,6 +114,7 @@ class CheckoutState extends Equatable {
         remainingSeconds,
         isHoldExpired,
         holdExpiresAt,
+        holdToken,
         createdBookingId,
         liveBookingStatus,
         rejectionReason,
