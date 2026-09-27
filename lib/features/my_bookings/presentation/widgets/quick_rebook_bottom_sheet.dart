@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +14,6 @@ import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/features/booking/data/models/booking_params.dart';
 import '../../../../core/di.dart';
 import '../../data/models/booking_model.dart';
 import '../quick_rebook_cubit.dart';
@@ -27,100 +27,54 @@ class QuickRebookBottomSheet extends StatelessWidget {
     required this.booking,
   });
 
-  static Future<void> show(BuildContext context, BookingModel booking) {
-    return showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => BlocProvider(
-        create: (_) => sl<QuickRebookCubit>()..initQuickRebook(booking),
-        child: QuickRebookBottomSheet(booking: booking),
-      ),
-    );
+  static Future<void> show(
+    BuildContext context,
+    BookingModel booking,
+  ) async {
+    final cubit = sl<QuickRebookCubit>();
+    unawaited(cubit.initQuickRebook(booking));
+
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => BlocProvider.value(
+          value: cubit,
+          child: QuickRebookBottomSheet(booking: booking),
+        ),
+      );
+    } finally {
+      await cubit.close();
+    }
   }
 
-  void _proceedToQuickCheckout(BuildContext context, QuickRebookState state) {
-    if (state.lounge == null || state.room == null || state.selectedSlot == null) return;
-
-    final isArabic = context.locale.languageCode == 'ar';
-
-    final addonsList = state.selectedAddonQuantities.entries.map((entry) {
-      final extra = state.availableExtras.firstWhere(
-        (e) => e.id == entry.key,
-      );
-      return {
-        'id': extra.id,
-        'extra_id': extra.id,
-        'name': isArabic ? extra.nameAr : extra.nameEn,
-        'name_ar': extra.nameAr,
-        'name_en': extra.nameEn,
-        'quantity': entry.value,
-        'unit_price': extra.price,
-        'total_price': extra.price * entry.value,
-      };
-    }).toList();
-
-    final checkoutParams = CheckoutParams(
-      lounge: state.lounge!,
-      rooms: [state.room!],
-      roomsBreakdown: [
-        {
-          'roomId': state.room!.id,
-          'roomName': state.room!.getDisplayTitle(isArabic),
-          'originalSubtotal': state.roomSubtotal,
-          'discountedSubtotal': state.roomSubtotal,
-          'discountAmount': 0.0,
-          'playMode': state.pastBooking?.playMode ?? 'single',
-        }
-      ],
-      date: state.selectedDate,
-      startTime: state.selectedSlot!,
-      duration: state.durationMinutes,
-      originalRoomSubtotal: state.roomSubtotal,
-      discountedRoomSubtotal: state.roomSubtotal,
-      discountAmount: 0.0,
-      discountPercentage: 0.0,
-      addonsTotal: state.addonsTotal,
-      totalPrice: state.totalPrice,
-      originalTotalPrice: state.totalPrice,
-      addOns: addonsList,
-      playMode: state.pastBooking?.playMode ?? 'single',
+  Future<void> _proceedToQuickCheckout(
+    BuildContext context,
+  ) async {
+    final cubit = context.read<QuickRebookCubit>();
+    final router = GoRouter.of(context);
+    final params = await cubit.prepareInstantCheckout(
+      isArabic: context.locale.languageCode == 'ar',
     );
 
-    Navigator.pop(context);
-    context.pushNamed(RouterKeys.checkout, extra: checkoutParams);
+    if (params == null || !context.mounted) return;
+
+    Navigator.of(context).pop();
+    router.pushNamed(RouterKeys.checkout, extra: params);
   }
 
-  void _navigateToCustomize(BuildContext context, QuickRebookState state) {
-    if (state.lounge == null || state.room == null) return;
-
-    final isArabic = context.locale.languageCode == 'ar';
-
-    final addonsList = state.selectedAddonQuantities.entries.map((entry) {
-      final extra = state.availableExtras.firstWhere(
-        (e) => e.id == entry.key,
-      );
-      return {
-        'id': extra.id,
-        'extra_id': extra.id,
-        'name': isArabic ? extra.nameAr : extra.nameEn,
-        'quantity': entry.value,
-        'unit_price': extra.price,
-        'total_price': extra.price * entry.value,
-      };
-    }).toList();
-
-    final bookingDetailsParams = BookingDetailsParams(
-      lounge: state.lounge!,
-      rooms: [state.room!],
-      selectedDate: state.selectedDate,
-      extras: addonsList,
-      playMode: state.pastBooking?.playMode ?? 'single',
-      extraControllers: state.pastBooking?.controllersCount ?? 0,
+  void _navigateToCustomize(BuildContext context) {
+    final cubit = context.read<QuickRebookCubit>();
+    final router = GoRouter.of(context);
+    final params = cubit.buildCustomizeParams(
+      isArabic: context.locale.languageCode == 'ar',
     );
 
-    Navigator.pop(context);
-    context.pushNamed(RouterKeys.bookingDetails, extra: bookingDetailsParams);
+    if (params == null) return;
+
+    Navigator.of(context).pop();
+    router.pushNamed(RouterKeys.bookingDetails, extra: params);
   }
 
   @override
@@ -142,6 +96,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
           border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
         ),
         child: BlocBuilder<QuickRebookCubit, QuickRebookState>(
+          buildWhen: (previous, current) => previous != current,
           builder: (context, state) {
             if (state.status == QuickRebookStatus.loading ||
                 state.status == QuickRebookStatus.initial) {
