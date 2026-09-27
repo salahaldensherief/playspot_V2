@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/di.dart';
-import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/services/play_spot_live_activity_service.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 import 'package:playspot/core/mixins/realtime_watcher_mixin.dart';
