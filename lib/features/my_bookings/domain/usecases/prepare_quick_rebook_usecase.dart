@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../home/domain/repositories/home_repository.dart';
+import '../../../lounge_details/data/models/extra_model.dart';
 import '../../../lounge_details/domain/repositories/lounge_details_repository.dart';
 import '../../data/models/booking_model.dart';
 import '../entities/quick_rebook_setup.dart';
@@ -68,7 +69,7 @@ class PrepareQuickRebookUseCase {
       forceRefresh: true,
     );
     final availableExtras = extrasResult.fold(
-      (_) => const <dynamic>[],
+      (_) => const <ExtraModel>[],
       (value) => value,
     );
 
@@ -97,7 +98,7 @@ class PrepareQuickRebookUseCase {
         continue;
       }
 
-      selectedAddonQuantities[extraId] = quantity.clamp(1, 100);
+      selectedAddonQuantities[extraId] = quantity.clamp(1, 100).toInt();
     }
 
     final playMode = pastBooking.playMode == 'multi'
@@ -116,7 +117,7 @@ class PrepareQuickRebookUseCase {
         durationMinutes: _durationMinutes(pastBooking),
         playMode: playMode,
         extraControllers:
-            pastBooking.extraControllers.clamp(0, 20),
+            pastBooking.extraControllers.clamp(0, 20).toInt(),
       ),
     );
   }
