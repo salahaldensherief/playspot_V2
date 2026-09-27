@@ -46,6 +46,13 @@ DECLARE
   v_found_count integer;
   v_lounge_count integer;
   v_lounge_id uuid;
+  v_lounge_is_open boolean;
+  v_lounge_is_active boolean;
+  v_opening_time time without time zone;
+  v_closing_time time without time zone;
+  v_operational_date date;
+  v_operational_start timestamp without time zone;
+  v_operational_end timestamp without time zone;
   v_hold_token uuid := gen_random_uuid();
   v_expires_at timestamptz;
 BEGIN
@@ -102,6 +109,46 @@ BEGIN
   IF v_lounge_count <> 1 THEN
     RAISE EXCEPTION 'All held rooms must belong to the same lounge'
       USING ERRCODE = '22023';
+  END IF;
+
+  SELECT
+    l.is_open,
+    l.is_active,
+    l.opening_time,
+    l.closing_time
+  INTO
+    v_lounge_is_open,
+    v_lounge_is_active,
+    v_opening_time,
+    v_closing_time
+  FROM public.lounges AS l
+  WHERE l.id = v_lounge_id;
+
+  IF COALESCE(v_lounge_is_active, false) IS FALSE
+     OR COALESCE(v_lounge_is_open, false) IS FALSE THEN
+    RAISE EXCEPTION 'Lounge is not accepting bookings'
+      USING ERRCODE = '55000';
+  END IF;
+
+  IF v_opening_time IS NOT NULL AND v_closing_time IS NOT NULL THEN
+    v_operational_date := p_start_at::date;
+
+    IF v_closing_time <= v_opening_time
+       AND p_start_at::time < v_closing_time THEN
+      v_operational_date := v_operational_date - 1;
+    END IF;
+
+    v_operational_start := v_operational_date + v_opening_time;
+    v_operational_end := v_operational_date + v_closing_time;
+
+    IF v_closing_time <= v_opening_time THEN
+      v_operational_end := v_operational_end + interval '1 day';
+    END IF;
+
+    IF p_start_at < v_operational_start OR p_end_at > v_operational_end THEN
+      RAISE EXCEPTION 'Selected range is outside lounge working hours'
+        USING ERRCODE = '22023';
+    END IF;
   END IF;
 
   UPDATE public.booking_holds
