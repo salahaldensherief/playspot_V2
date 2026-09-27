@@ -485,27 +485,30 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     SizedBox(height: 18.h),
                   ],
 
-                  // Real Price Summary Box
                   Container(
                     padding: EdgeInsets.all(14.w),
                     decoration: BoxDecoration(
                       color: AppColors.neonBlue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(14.r),
-                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: AppColors.neonBlue.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        AppText(
-                          text: isArabic ? "الإجمالي الحقيقي الآن" : "Current Authoritative Total",
-                          fontSize: 13.sp,
-                          color: Colors.white70,
-                        ),
-                        AppText(
-                          text: "${state.totalPrice.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
+                        Icon(
+                          Icons.verified_user_outlined,
                           color: AppColors.neonBlue,
+                          size: 18.sp,
+                        ),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: AppText(
+                            text: AppStrings.quickRebookPricingAtCheckout.tr(),
+                            fontSize: 12.sp,
+                            color: Colors.white70,
+                            overflow: TextOverflow.visible,
+                          ),
                         ),
                       ],
                     ),
