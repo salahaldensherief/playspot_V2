@@ -29,17 +29,23 @@ class CheckoutBottomPayBar extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.status != current.status ||
           previous.discountAmount != current.discountAmount ||
+          previous.bookingQuote != current.bookingQuote ||
           previous.selectedMethod != current.selectedMethod ||
           previous.isHoldExpired != current.isHoldExpired,
       builder: (context, state) {
-        final finalPrice = params.calculateFinalPrice(state.discountAmount);
+        final finalPrice =
+            (state.bookingQuote?['total_price'] as num?)?.toDouble() ??
+            params.calculateFinalPrice(state.discountAmount);
         final buttonText = state.status == CheckoutStatus.loading
             ? AppStrings.processing.tr()
             : (state.selectedMethod == PaymentMethod.cash
                 ? AppStrings.confirmBookingWithPrice.tr(args: [finalPrice.toStringAsFixed(2)])
                 : AppStrings.payNowWithPrice.tr(args: [finalPrice.toStringAsFixed(2)]));
 
-        final bool isButtonEnabled = state.status != CheckoutStatus.loading && !state.isHoldExpired;
+        final bool isButtonEnabled =
+            state.status != CheckoutStatus.loading &&
+            !state.isHoldExpired &&
+            state.bookingQuote != null;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -50,9 +56,7 @@ class CheckoutBottomPayBar extends StatelessWidget {
               AppButton(
                 content: ButtonContent(
                   label: state.isHoldExpired
-                      ? (context.locale.languageCode == 'ar'
-                          ? 'انتهت فترة حجز الموعد'
-                          : 'Hold Expired')
+                      ? AppStrings.holdExpiredMessage.tr()
                       : buttonText,
                 ),
                 behavior: ButtonBehavior.tap(
