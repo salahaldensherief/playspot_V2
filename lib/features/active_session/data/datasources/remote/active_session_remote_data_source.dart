@@ -331,11 +331,7 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         throw Exception("لا يمكن تمديد الوقت لأن الغرفة محجوزة لحجز قادم بعد وقتك مباشرة.");
       }
 
-      await _client.from('bookings').update({
-        'extension_status': 'pending',
-        'requested_extension_minutes': requestedMinutes,
-      }).eq('id', bookingId);
-      dev.log("[LIVESESSION_DS] Fallback update to bookings SUCCESS");
+      rethrow;
     }
   }
 
@@ -522,66 +518,20 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     required double rating,
     String? comment,
   }) async {
-    dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW: loungeId=$loungeId, bookingId=$bookingId, rating=$rating, comment=$comment");
-    final userId = _client.auth.currentUser?.id;
+    dev.log(
+      "[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW: loungeId=$loungeId, bookingId=$bookingId, rating=$rating",
+    );
 
-    // 1. Try RPC with p_ params
-    try {
-      await _client.rpc('submit_lounge_review', params: {
+    await _client.rpc(
+      'submit_lounge_review',
+      params: {
         'p_lounge_id': loungeId,
-        'p_booking_id': bookingId,
-        'p_user_id': userId,
         'p_rating': rating,
         'p_comment': comment,
-      });
-      dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW RPC (p_ params) SUCCESS");
-      return;
-    } catch (e1) {
-      dev.log("[LIVESESSION_DS] submit_lounge_review RPC (p_ params) failed: $e1");
+      },
+    );
 
-      // 2. Try RPC without p_ params
-      try {
-        await _client.rpc('submit_lounge_review', params: {
-          'lounge_id': loungeId,
-          'booking_id': bookingId,
-          'user_id': userId,
-          'rating': rating,
-          'comment': comment,
-        });
-        dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW RPC (standard params) SUCCESS");
-        return;
-      } catch (e2) {
-        dev.log("[LIVESESSION_DS] submit_lounge_review RPC (standard params) failed: $e2");
-      }
-    }
-
-    // 3. Fallback / Direct persistence to guarantee review appears on Lounge Details page:
-    // Insert/upsert to 'lounge_reviews'
-    try {
-      await _client.from('lounge_reviews').upsert({
-        'lounge_id': loungeId,
-        'booking_id': bookingId,
-        'user_id': userId,
-        'rating': rating,
-        'comment': comment,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      dev.log("[LIVESESSION_DS] Direct insert to lounge_reviews SUCCESS");
-    } catch (e3) {
-      dev.log("[LIVESESSION_DS] Direct insert to lounge_reviews failed: $e3");
-    }
-
-    // Update 'bookings' table directly as well
-    try {
-      await _client.from('bookings').update({
-        'rating': rating,
-        'comment': comment,
-        'review': comment,
-      }).eq('id', bookingId);
-      dev.log("[LIVESESSION_DS] Direct update to bookings table SUCCESS");
-    } catch (e5) {
-      dev.log("[LIVESESSION_DS] Direct update to bookings table failed: $e5");
-    }
+    dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW RPC SUCCESS");
   }
 
   @override
