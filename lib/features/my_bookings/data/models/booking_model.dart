@@ -14,6 +14,7 @@ class BookingModel extends Equatable {
   final String? spaceType;
   final String? spaceTypeName;
   final int controllersCount;
+  final int extraControllers;
   final String screenSize;
   final DateTime date;
   final String startTime;
@@ -49,6 +50,7 @@ class BookingModel extends Equatable {
     this.spaceType,
     this.spaceTypeName,
     required this.controllersCount,
+    this.extraControllers = 0,
     required this.screenSize,
     required this.date,
     required this.startTime,
@@ -89,6 +91,7 @@ class BookingModel extends Equatable {
         spaceType,
         spaceTypeName,
         controllersCount,
+        extraControllers,
         screenSize,
         date,
         startTime,
