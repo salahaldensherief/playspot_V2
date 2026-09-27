@@ -389,51 +389,30 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required double totalPrice,
     required String note,
   }) async {
-    final validUserId = _client.auth.currentUser?.id ?? userId;
-    
     final formattedItems = items.map((item) {
-      final id = item['id']?.toString() ?? item['extra_id']?.toString() ?? item['item_id']?.toString() ?? item['product_id']?.toString() ?? '';
-      final name = item['name']?.toString() ?? item['title']?.toString() ?? 'Extra';
-      final nameAr = item['name_ar']?.toString() ?? name;
-      final nameEn = item['name_en']?.toString() ?? name;
-      final p = (item['unit_price'] as num?)?.toDouble() ?? (item['price'] as num?)?.toDouble() ?? 0.0;
-      final q = (item['quantity'] as num?)?.toInt() ?? 1;
+      final id = item['id']?.toString() ??
+          item['extra_id']?.toString() ??
+          item['item_id']?.toString() ??
+          item['product_id']?.toString() ??
+          '';
+      final quantity = (item['quantity'] as num?)?.toInt() ?? 1;
 
       return {
-        'id': id,
         'extra_id': id,
-        'item_id': id,
-        'product_id': id,
-        'name_ar': nameAr,
-        'name_en': nameEn,
-        'unit_price': p,
-        'price': p,
-        'quantity': q,
+        'quantity': quantity,
       };
     }).toList();
 
-    try {
-      final response = await _client.rpc('place_canteen_order', params: {
+    final response = await _client.rpc(
+      'place_canteen_order',
+      params: {
         'p_booking_id': bookingId,
         'p_items': formattedItems,
-      });
-      dev.log("place_canteen_order RPC SUCCESS: $response");
-    } catch (e) {
-      dev.log("place_canteen_order RPC failed: $e, trying full params...");
-      try {
-        final response = await _client.rpc('place_canteen_order', params: {
-          'p_booking_id': bookingId,
-          'p_lounge_id': loungeId,
-          'p_user_id': validUserId,
-          'p_items': formattedItems,
-          'p_total_price': totalPrice > 0 ? totalPrice : null,
-          'p_note': note.isNotEmpty ? note : null,
-        });
-        dev.log("place_canteen_order RPC with full params SUCCESS: $response");
-      } catch (e2) {
-        dev.log("place_canteen_order RPC with full params failed: $e2");
-        rethrow;
-      }
-    }
+        'p_note': note.isNotEmpty ? note : null,
+      },
+    );
+
+    dev.log("place_canteen_order RPC SUCCESS: $response");
   }
+
 }
