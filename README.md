@@ -1,55 +1,117 @@
-# PlaySpot V2
+# PlaySpot Mobile
 
-## Project Description
-PlaySpot is a comprehensive platform designed to simplify the process of discovering and booking PlayStation lounges. The application provides a seamless user experience that enables players to find the nearest locations, browse details, and book sessions with ease.
+Flutter client for the PlaySpot platform. The app covers lounge discovery, room booking and checkout, active sessions, canteen ordering, loyalty and vouchers, notifications, reviews, favorites, profile flows, and tournaments.
 
-## Key Features
-- Authentication System: Supports email, Google, and Facebook login.
-- Lounge Exploration: Displays a list of available lounges with advanced search and filtering options.
-- Lounge Details: View photos, available services, geographical location, and ratings.
-- Booking System: Ability to select rooms, timings, and session duration.
-- Booking Management: Track upcoming and past bookings with QR code support for verification.
-- Geographical Services: Location tracking using GPS and map integration for navigation.
-- Notifications: Real-time alerts for booking updates and promotional offers.
-- Favorites: Ability to save favorite places for quick access later.
-- Language Support: The application fully supports both Arabic and English.
+## Stack
 
-## Technologies Used
-- Programming Language: Dart
-- Framework: Flutter
-- State Management: Flutter Bloc & Cubit
-- Backend Services: Supabase (Authentication, Database, Storage)
-- Navigation: GoRouter
-- Dependency Injection: Get_It
-- Networking: Dio
-- Internationalization: Easy Localization
-- Responsive Design: Flutter ScreenUtil
-- Local Storage: GetStorage
-- Image Processing: Cached Network Image & Photo View
+- Flutter / Dart
+- flutter_bloc / Cubit
+- GetIt
+- GoRouter
+- Supabase Auth, Postgres, Storage, Realtime, RPCs
+- Firebase Messaging / Crashlytics
+- Easy Localization
+- ScreenUtil
 
-## Project Structure
-The project follows a Feature-driven Architecture to ensure code organization and maintainability:
+## Architecture
 
-- lib/core: Contains global configurations, utilities, routing setup, and themes.
-- lib/art_core: Contains shared graphical components (Common Widgets) used across various interfaces.
-- lib/features: Contains the functional modules of the project, where each feature is divided into:
-    - data: Includes Models, Data Sources, and Repositories.
-    - presentation: Includes UI components and State Management logic (Blocs/Cubits).
+Features live under `lib/features/<feature>/` and follow a clean feature structure:
 
-## Project Assets
-- assets/lang: Contains translation files (ar.json and en.json).
-- assets/fonts: Contains fonts used in the application, such as the Orbitron font.
-- assets/images: Includes static images used in the interfaces.
-- assets/icons: Includes application-specific icons.
+```
+feature/
+  data/
+    datasources/
+    models/
+    repositories/
+  domain/
+    entities/
+    repositories/
+    services/
+    strategies/
+    usecases/
+  presentation/
+    cubit/
+    screens/
+    widgets/
+```
 
-## Requirements
-- Flutter SDK version 3.11.4 or higher.
-- Development Environment: Android Studio or Visual Studio Code.
-- Supabase environment keys configuration.
+Core application services, dependency injection, caching, notifications, and shared utilities live under `lib/core`. Shared design-system and routing code lives under `lib/art_core`.
 
-## Getting Started
-1. Clone the repository to your local machine.
-2. Open the project folder in your preferred IDE.
-3. Run the following command in the terminal: flutter pub get
-4. Ensure a physical device or emulator is connected.
-5. Start the application using the command: flutter run
+Business rules belong in domain/use-case layers. Cubits orchestrate use cases and widgets render state. Server-authoritative operations such as booking integrity, pricing validation, payments, inventory, loyalty, permissions, and tournament lifecycle rules must be enforced in Postgres/RPCs rather than trusted to client-side calculations.
+
+Project-specific engineering rules are documented in `AGENTS_RULES.md`.
+
+## Configuration
+
+Runtime credentials are not committed. Supply them with `--dart-define`.
+
+Required:
+
+```bash
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-publishable-or-anon-key
+```
+
+Mobile map configuration may also require:
+
+```bash
+GOOGLE_API_KEY_IOS=...
+GOOGLE_API_KEY_ANDROID=...
+```
+
+Example:
+
+```bash
+flutter run \
+  --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=your-key \
+  --dart-define=GOOGLE_API_KEY_ANDROID=your-android-key \
+  --dart-define=GOOGLE_API_KEY_IOS=your-ios-key
+```
+
+See `.env.example` for the variable names. The app reads compile-time dart defines; copying values into a local `.env` file alone does not inject them into Flutter builds.
+
+## Local development
+
+```bash
+flutter pub get
+dart format --output=none --set-exit-if-changed lib test
+flutter analyze --no-fatal-infos
+flutter test
+```
+
+Run on a device/emulator with the required dart defines after the quality checks pass.
+
+## Supabase changes
+
+SQL changes are versioned under `supabase/`. Do not run the entire directory against production and do not apply ad-hoc SQL from a client.
+
+The repository SQL history and the deployed Supabase migration ledger have historically drifted, so every database change must be:
+
+1. reviewed as an isolated migration,
+2. compared with the live schema/function definition,
+3. tested in a safe environment,
+4. checked for RLS / grants / SECURITY DEFINER implications,
+5. applied deliberately,
+6. followed by Supabase security and performance advisor checks.
+
+Never expose `service_role` or other secret server keys in Flutter.
+
+## Branch and PR workflow
+
+- `main`: release/production history.
+- `dev`: integration branch.
+- Work branches: `feature/*`, `fix/*`, `chore/*`.
+- Open a PR instead of pushing feature work directly to `main`.
+- Keep migrations, client contract changes, and tests in the same PR when they form one backend contract.
+- Do not merge a PR until Flutter CI is green and any required Supabase migration has been reviewed separately.
+
+See `CONTRIBUTING.md` for the full checklist.
+
+## CI
+
+GitHub Actions runs on pull requests and pushes to `dev` / `main` and checks formatting, static analysis, and tests.
+
+## Localization
+
+User-facing copy must use Easy Localization. Arabic and English resources live under `assets/lang/`. UI changes must be safe in both RTL and LTR layouts.
