@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../domain/entities/app_status_entity.dart';
 
 class AppStatusModel extends AppStatusEntity {
@@ -5,12 +7,16 @@ class AppStatusModel extends AppStatusEntity {
     required super.maintenanceMode,
     super.maintenanceTitle,
     super.maintenanceMessage,
+    super.maintenanceMessageAr,
+    super.maintenanceMessageEn,
     super.expectedEndTime,
     required super.minSupportedVersion,
     required super.latestVersion,
     super.storeUrlAndroid,
     super.storeUrlIos,
     super.updateMessage,
+    super.updateMessageAr,
+    super.updateMessageEn,
     super.announcementId,
     super.announcementTitle,
     super.announcementBody,
@@ -19,39 +25,73 @@ class AppStatusModel extends AppStatusEntity {
     super.contactSupportNumber,
   });
 
-  factory AppStatusModel.fromJson(Map<String, dynamic> json) {
+  factory AppStatusModel.fromJson(
+    Map<String, dynamic> json, {
+    TargetPlatform? platform,
+  }) {
+    final effectivePlatform = platform ?? defaultTargetPlatform;
+    final useIos = !kIsWeb && effectivePlatform == TargetPlatform.iOS;
+
+    final maintenanceMessage = json['maintenance_message']?.toString();
+    final updateMessage = json['update_message']?.toString();
+
+    final minVersion = useIos
+        ? json['min_supported_version_ios']
+        : json['min_supported_version_android'];
+    final latestVersion = useIos
+        ? json['latest_version_ios']
+        : json['latest_version_android'];
+
     return AppStatusModel(
-      maintenanceMode: json['maintenance_mode'] ?? false,
-      maintenanceTitle: json['maintenance_title'] as String?,
-      maintenanceMessage: json['maintenance_message'] as String?,
-      expectedEndTime: json['expected_end_time'] != null
-          ? DateTime.tryParse(json['expected_end_time'].toString())
-          : null,
-      minSupportedVersion: (json['min_supported_version'] as String?) ?? '1.0.0',
-      latestVersion: (json['latest_version'] as String?) ?? '1.0.0',
-      storeUrlAndroid: json['store_url_android'] as String?,
-      storeUrlIos: json['store_url_ios'] as String?,
-      updateMessage: json['update_message'] as String?,
-      announcementId: json['announcement_id'] as String?,
-      announcementTitle: json['announcement_title'] as String?,
-      announcementBody: json['announcement_body'] as String?,
-      announcementImageUrl: json['announcement_image_url'] as String?,
-      announcementActionUrl: json['announcement_action_url'] as String?,
-      contactSupportNumber: json['contact_support_number'] as String?,
+      maintenanceMode: json['maintenance_mode'] as bool? ?? false,
+      maintenanceTitle: json['maintenance_title']?.toString(),
+      maintenanceMessage: maintenanceMessage,
+      maintenanceMessageAr:
+          json['maintenance_message_ar']?.toString() ?? maintenanceMessage,
+      maintenanceMessageEn:
+          json['maintenance_message_en']?.toString() ?? maintenanceMessage,
+      expectedEndTime:
+          json['maintenance_until'] != null
+              ? DateTime.tryParse(json['maintenance_until'].toString())
+              : json['expected_end_time'] != null
+              ? DateTime.tryParse(json['expected_end_time'].toString())
+              : null,
+      minSupportedVersion:
+          minVersion?.toString() ??
+          json['min_supported_version']?.toString() ??
+          '1.0.0',
+      latestVersion:
+          latestVersion?.toString() ??
+          json['latest_version']?.toString() ??
+          '1.0.0',
+      storeUrlAndroid: json['store_url_android']?.toString(),
+      storeUrlIos: json['store_url_ios']?.toString(),
+      updateMessage: updateMessage,
+      updateMessageAr:
+          json['update_message_ar']?.toString() ?? updateMessage,
+      updateMessageEn:
+          json['update_message_en']?.toString() ?? updateMessage,
+      announcementId: json['announcement_id']?.toString(),
+      announcementTitle: json['announcement_title']?.toString(),
+      announcementBody: json['announcement_body']?.toString(),
+      announcementImageUrl: json['announcement_image_url']?.toString(),
+      announcementActionUrl: json['announcement_action_url']?.toString(),
+      contactSupportNumber: json['contact_support_number']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'maintenance_mode': maintenanceMode,
-      'maintenance_title': maintenanceTitle,
       'maintenance_message': maintenanceMessage,
-      'expected_end_time': expectedEndTime?.toIso8601String(),
-      'min_supported_version': minSupportedVersion,
-      'latest_version': latestVersion,
+      'maintenance_message_ar': maintenanceMessageAr,
+      'maintenance_message_en': maintenanceMessageEn,
+      'maintenance_until': expectedEndTime?.toIso8601String(),
       'store_url_android': storeUrlAndroid,
       'store_url_ios': storeUrlIos,
       'update_message': updateMessage,
+      'update_message_ar': updateMessageAr,
+      'update_message_en': updateMessageEn,
       'announcement_id': announcementId,
       'announcement_title': announcementTitle,
       'announcement_body': announcementBody,
