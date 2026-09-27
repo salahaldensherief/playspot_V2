@@ -196,92 +196,121 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     final controller = StreamController<ActiveSessionModel?>.broadcast();
     RealtimeChannel? bookingChannel;
     RealtimeChannel? userBookingsChannel;
+    StreamSubscription<AuthState>? authSubscription;
     String? currentBookingId;
+    String? subscribedUserId;
+
+    Future<void> clearChannels() async {
+      final booking = bookingChannel;
+      if (booking != null) {
+        await _client.removeChannel(booking);
+        bookingChannel = null;
+      }
+
+      final userBookings = userBookingsChannel;
+      if (userBookings != null) {
+        await _client.removeChannel(userBookings);
+        userBookingsChannel = null;
+      }
+
+      currentBookingId = null;
+    }
 
     Future<void> syncSession() async {
       try {
         final session = await getActiveSession();
         if (controller.isClosed) return;
+
         controller.add(session);
 
         if (session != null && session.bookingId != currentBookingId) {
-          currentBookingId = session.bookingId;
-          if (bookingChannel != null) {
-            _client.removeChannel(bookingChannel!);
-            bookingChannel = null;
+          final previous = bookingChannel;
+          if (previous != null) {
+            await _client.removeChannel(previous);
           }
 
+          currentBookingId = session.bookingId;
           bookingChannel = _client.channel('booking_${session.bookingId}');
           bookingChannel!
-            .onPostgresChanges(
-              event: PostgresChangeEvent.all,
-              schema: 'public',
-              table: 'bookings',
-              filter: PostgresChangeFilter(
-                type: PostgresChangeFilterType.eq,
-                column: 'id',
-                value: session.bookingId,
-              ),
-              callback: (payload) {
-                dev.log("[LIVESESSION_DS] Realtime user booking update for ${session.bookingId}: ${payload.eventType}");
-                syncSession();
-              },
-            )
-            .onPostgresChanges(
-              event: PostgresChangeEvent.all,
-              schema: 'public',
-              table: 'canteen_orders',
-              filter: PostgresChangeFilter(
-                type: PostgresChangeFilterType.eq,
-                column: 'booking_id',
-                value: session.bookingId,
-              ),
-              callback: (payload) {
-                dev.log("[LIVESESSION_DS] Realtime user canteen_orders update for ${session.bookingId}: ${payload.eventType}");
-                syncSession();
-              },
-            )
-            .subscribe();
+              .onPostgresChanges(
+                event: PostgresChangeEvent.all,
+                schema: 'public',
+                table: 'bookings',
+                filter: PostgresChangeFilter(
+                  type: PostgresChangeFilterType.eq,
+                  column: 'id',
+                  value: session.bookingId,
+                ),
+                callback: (_) => syncSession(),
+              )
+              .onPostgresChanges(
+                event: PostgresChangeEvent.all,
+                schema: 'public',
+                table: 'canteen_orders',
+                filter: PostgresChangeFilter(
+                  type: PostgresChangeFilterType.eq,
+                  column: 'booking_id',
+                  value: session.bookingId,
+                ),
+                callback: (_) => syncSession(),
+              )
+              .subscribe();
         } else if (session == null && bookingChannel != null) {
-          currentBookingId = null;
-          _client.removeChannel(bookingChannel!);
+          await _client.removeChannel(bookingChannel!);
           bookingChannel = null;
+          currentBookingId = null;
         }
       } catch (e) {
         dev.log("[LIVESESSION_DS] Error in watchUserActiveSession sync: $e");
       }
     }
 
-    final userId = _client.auth.currentUser?.id;
-    if (userId != null) {
+    Future<void> bindUser(String? userId) async {
+      if (subscribedUserId == userId) {
+        await syncSession();
+        return;
+      }
+
+      await clearChannels();
+      subscribedUserId = userId;
+
+      if (userId == null) {
+        if (!controller.isClosed) {
+          controller.add(null);
+        }
+        return;
+      }
+
       userBookingsChannel = _client.channel('user_bookings_$userId');
-      userBookingsChannel
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'bookings',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'user_id',
-            value: userId,
-          ),
-          callback: (_) => syncSession(),
-        )
-        .subscribe();
+      userBookingsChannel!
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'bookings',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: userId,
+            ),
+            callback: (_) => syncSession(),
+          )
+          .subscribe();
+
+      await syncSession();
     }
 
-    syncSession();
+    authSubscription = _client.auth.onAuthStateChange.listen((authState) {
+      unawaited(bindUser(authState.session?.user.id));
+    });
 
-    controller.onCancel = () {
-      final bChannel = bookingChannel;
-      if (bChannel != null) {
-        _client.removeChannel(bChannel);
+    unawaited(bindUser(_client.auth.currentUser?.id));
+
+    controller.onCancel = () async {
+      await authSubscription?.cancel();
+      await clearChannels();
+      if (!controller.isClosed) {
+        await controller.close();
       }
-      final uChannel = userBookingsChannel;
-      if (uChannel != null) {
-        _client.removeChannel(uChannel);
-      }
-      controller.close();
     };
 
     return controller.stream;
