@@ -324,7 +324,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
   }) async {
     final fileExt = receiptFile.path.split('.').last;
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-    final storagePath = 'tournament-receipts/$tournamentId/$userId/$fileName';
+    final storagePath = '$tournamentId/$userId/$fileName';
 
     final bytes = await receiptFile.readAsBytes();
     await _client.storage
@@ -400,8 +400,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     if (proofFile != null) {
       final fileExt = proofFile.path.split('.').last;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final storagePath =
-          'tournament-result-proofs/$tournamentId/$matchId/$fileName';
+      final storagePath = '$tournamentId/$matchId/$fileName';
 
       final bytes = await proofFile.readAsBytes();
       await _client.storage
