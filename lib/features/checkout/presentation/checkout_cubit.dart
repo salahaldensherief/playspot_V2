@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,29 +13,26 @@ import 'package:playspot/core/services/supabase_storage_service.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
-import 'package:playspot/features/my_bookings/domain/repositories/my_bookings_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'checkout_state.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
   final BookingRepository _bookingRepository;
   final ProfileRepository _profileRepository;
-  final MyBookingsRepository _myBookingsRepository;
   final PreferenceManager _preferenceManager;
   final StorageService _storageService;
 
+  CheckoutParams? _checkoutParams;
   Timer? _holdTimer;
   StreamSubscription<BookingModel>? _realtimeSubscription;
 
   CheckoutCubit(
     this._bookingRepository,
     this._profileRepository, {
-    required MyBookingsRepository myBookingsRepository,
     PreferenceManager? preferenceManager,
     StorageService? storageService,
-  })  : _myBookingsRepository = myBookingsRepository,
-        _preferenceManager = preferenceManager ?? sl<PreferenceManager>(),
+  })  : _preferenceManager = preferenceManager ?? sl<PreferenceManager>(),
         _storageService = storageService ?? sl<StorageService>(),
         super(const CheckoutState());
 
@@ -112,10 +110,17 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     );
   }
 
+  void _clearLocalHold() {
+    _holdTimer?.cancel();
+    emit(state.copyWith(clearHold: true));
+  }
+
   Future<void> initCheckout(
     CheckoutParams params, {
     int? completedBookingsCount,
   }) async {
+    _checkoutParams = params;
+
     final lounge = params.lounge;
     final holdToken = params.holdToken;
     final holdExpiresAt = params.holdExpiresAt;
@@ -147,14 +152,14 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       );
     }
 
-    final bool allowCash = lounge.allowCashPayment;
-    bool isCashEnabled = true;
+    final allowCash = lounge.allowCashPayment;
+    var isCashEnabled = true;
 
     if (allowCash && lounge.requirePrepaidFirstTime && userBookingsCount == 0) {
       isCashEnabled = false;
     }
 
-    PaymentMethod defaultMethod = state.selectedMethod;
+    var defaultMethod = state.selectedMethod;
     if (!allowCash || (!isCashEnabled && defaultMethod == PaymentMethod.cash)) {
       defaultMethod = PaymentMethod.vodafoneCash;
     }
@@ -167,13 +172,17 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         selectedMethod: defaultMethod,
       ),
     );
+
+    await _refreshServerQuote();
   }
 
   void selectPaymentMethod(PaymentMethod method) {
-    if (method == PaymentMethod.cash && (!state.allowCashPayment || !state.isCashEnabled)) {
+    if (method == PaymentMethod.cash &&
+        (!state.allowCashPayment || !state.isCashEnabled)) {
       HapticFeedback.vibrate();
       return;
     }
+
     HapticFeedback.selectionClick();
     emit(state.copyWith(selectedMethod: method));
   }
@@ -186,33 +195,45 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     _realtimeSubscription?.cancel();
     emit(state.copyWith(createdBookingId: bookingId));
 
-    _realtimeSubscription = _bookingRepository.watchBookingStatus(bookingId).listen(
+    _realtimeSubscription =
+        _bookingRepository.watchBookingStatus(bookingId).listen(
       (updatedBooking) {
         if (isClosed) return;
 
         if (updatedBooking.status == BookingStatus.upcoming) {
-          emit(state.copyWith(
-            liveBookingStatus: BookingStatus.upcoming,
-            confirmedBooking: updatedBooking,
-          ));
+          emit(
+            state.copyWith(
+              liveBookingStatus: BookingStatus.upcoming,
+              confirmedBooking: updatedBooking,
+            ),
+          );
         } else if (updatedBooking.status == BookingStatus.cancelled) {
-          emit(state.copyWith(
-            liveBookingStatus: BookingStatus.cancelled,
-            rejectionReason: updatedBooking.rejectionReason ??
-                updatedBooking.cancellationReason ??
-                AppStrings.bookingRejectedByLounge.tr(),
-          ));
+          emit(
+            state.copyWith(
+              liveBookingStatus: BookingStatus.cancelled,
+              rejectionReason: updatedBooking.rejectionReason ??
+                  updatedBooking.cancellationReason ??
+                  AppStrings.bookingRejectedByLounge.tr(),
+            ),
+          );
         } else {
           emit(state.copyWith(liveBookingStatus: updatedBooking.status));
         }
       },
-      onError: (e, st) {
-        AppLogger.error('Booking status realtime stream error', e, st);
+      onError: (error, stackTrace) {
+        AppLogger.error(
+          'Booking status realtime stream error',
+          error,
+          stackTrace,
+        );
         if (isClosed) return;
-        emit(state.copyWith(
-          status: CheckoutStatus.failure,
-          errorMessage: AppStrings.realtimeConnectionLost.tr(),
-        ));
+
+        emit(
+          state.copyWith(
+            status: CheckoutStatus.failure,
+            errorMessage: AppStrings.realtimeConnectionLost.tr(),
+          ),
+        );
       },
     );
   }
@@ -220,47 +241,123 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   Future<void> applyVoucher(String code) async {
     final cleanCode = code.trim().toUpperCase();
     if (cleanCode.isEmpty) return;
-    await _validateAndApplyVoucher(cleanCode);
+
+    HapticFeedback.mediumImpact();
+    await _refreshServerQuote(voucherCode: cleanCode);
   }
 
   Future<void> selectVoucher(Map<String, dynamic> voucher) async {
-    final code = (voucher['code'] ?? voucher['id'])?.toString().trim().toUpperCase() ?? '';
+    final code = (voucher['code'] ?? voucher['id'])
+            ?.toString()
+            .trim()
+            .toUpperCase() ??
+        '';
     if (code.isEmpty) return;
-    await _validateAndApplyVoucher(code);
+
+    await _refreshServerQuote(voucherCode: code);
   }
 
-  Future<void> _validateAndApplyVoucher(String cleanCode) async {
-    HapticFeedback.mediumImpact();
+  Future<void> removeVoucher() async {
+    HapticFeedback.lightImpact();
+    emit(
+      state.copyWith(
+        clearVoucher: true,
+        status: CheckoutStatus.loading,
+      ),
+    );
+    await _refreshServerQuote();
+  }
+
+  Future<void> _refreshServerQuote({String? voucherCode}) async {
+    final params = _checkoutParams;
+    final holdToken = state.holdToken ?? params?.holdToken;
+
+    if (params == null || holdToken == null || holdToken.isEmpty) {
+      return;
+    }
+
+    final cleanVoucher = voucherCode?.trim().toUpperCase();
     emit(state.copyWith(status: CheckoutStatus.loading));
-    final result = await _profileRepository.validateVoucherByCode(cleanCode);
+
+    final result = await _bookingRepository.quoteBookingCheckout(
+      holdToken: holdToken,
+      roomRequests: _buildRoomRequests(params),
+      extraItems: _buildExtraItems(params),
+      voucherCode:
+          cleanVoucher == null || cleanVoucher.isEmpty ? null : cleanVoucher,
+    );
+
+    if (isClosed) return;
 
     result.fold(
-      (failure) => emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: failure.message)),
-      (data) {
-        if (data['valid'] == true) {
-          double discount = 0;
-          if (data['reward_type'] == 'discount_fixed') {
-            discount = (data['reward_value'] as num).toDouble();
-          } else if (data['reward_type'] == 'free_hour') {
-            discount = (data['reward_value'] as num?)?.toDouble() ?? 0;
-          }
+      (failure) {
+        emit(
+          state.copyWith(
+            status: CheckoutStatus.failure,
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (quote) {
+        final voucherDiscount =
+            (quote['voucher_discount'] as num?)?.toDouble() ?? 0.0;
+        final quotedVoucherCode = quote['voucher_code']?.toString();
 
-          emit(state.copyWith(
+        emit(
+          state.copyWith(
             status: CheckoutStatus.initial,
-            selectedVoucher: Map<String, dynamic>.from(data),
-            discountAmount: discount,
-          ));
-        } else {
-          final errorMsg = data['error']?.toString() ?? AppStrings.voucherInvalid.tr();
-          emit(state.copyWith(status: CheckoutStatus.failure, errorMessage: errorMsg));
-        }
+            serverQuote: quote,
+            selectedVoucher:
+                quotedVoucherCode == null || quotedVoucherCode.isEmpty
+                    ? null
+                    : <String, dynamic>{'code': quotedVoucherCode},
+            clearVoucher:
+                quotedVoucherCode == null || quotedVoucherCode.isEmpty,
+            discountAmount: voucherDiscount,
+          ),
+        );
       },
     );
   }
 
-  void removeVoucher() {
-    HapticFeedback.lightImpact();
-    emit(state.copyWith(selectedVoucher: null, discountAmount: 0));
+  List<Map<String, dynamic>> _buildRoomRequests(CheckoutParams params) {
+    final rooms = params.rooms.isNotEmpty ? params.rooms : [params.room];
+
+    return rooms.map((room) {
+      final breakdown = params.roomsBreakdown.firstWhere(
+        (item) => item['roomId']?.toString() == room.id,
+        orElse: () => const <String, dynamic>{},
+      );
+
+      final playMode = breakdown['playMode']?.toString() ??
+          (rooms.length == 1 ? params.playMode : null) ??
+          'single';
+
+      final extraControllers =
+          (breakdown['extraControllers'] as num?)?.toInt() ??
+              (rooms.length == 1 ? params.extraControllers : null) ??
+              0;
+
+      return <String, dynamic>{
+        'room_id': room.id,
+        'play_mode': playMode,
+        'extra_controllers': extraControllers,
+      };
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _buildExtraItems(CheckoutParams params) {
+    return params.addOns.map((item) {
+      final extraId = item['extra_id'] ??
+          item['id'] ??
+          item['product_id'] ??
+          item['item_id'];
+
+      return <String, dynamic>{
+        'extra_id': extraId?.toString() ?? '',
+        'quantity': (item['quantity'] as num?)?.toInt() ?? 1,
+      };
+    }).toList();
   }
 
   Future<void> processPayment(
@@ -272,216 +369,118 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     String? senderAccount,
     String? transactionReference,
   }) async {
-    if (state.isHoldExpired) {
-      emit(state.copyWith(
-        status: CheckoutStatus.failure,
-        errorMessage: AppStrings.holdExpiredMessage.tr(),
-      ));
+    final holdToken = state.holdToken ?? checkoutParams.holdToken;
+    if (state.isHoldExpired ||
+        holdToken == null ||
+        holdToken.isEmpty) {
+      emit(
+        state.copyWith(
+          status: CheckoutStatus.failure,
+          errorMessage: AppStrings.holdExpiredMessage.tr(),
+        ),
+      );
       return;
     }
 
     emit(state.copyWith(status: CheckoutStatus.loading));
 
-    final startDateTime = checkoutParams.effectiveStartAt;
-    final endDateTime = startDateTime.add(Duration(minutes: checkoutParams.duration));
-
-    final userName = _preferenceManager.fullName() ?? "";
-    final userPhone = _preferenceManager.phoneNumber() ?? "";
-    final userId = _preferenceManager.userId() ?? "";
-
-    final String methodStr = (paymentMethod?.toLowerCase() == 'cash' || state.selectedMethod == PaymentMethod.cash)
+    final method = (paymentMethod?.toLowerCase() == 'cash' ||
+            state.selectedMethod == PaymentMethod.cash)
         ? 'cash'
         : 'manual_transfer';
 
-    final effectiveAccount = senderAccount ?? senderWalletPhone ?? state.senderWalletNumber;
-
-    final roomsToBook = checkoutParams.rooms.isNotEmpty
-        ? checkoutParams.rooms
-        : [checkoutParams.room];
-
-    String? primaryBookingId;
-    final List<String> createdBookingIds = [];
+    final effectiveAccount =
+        senderAccount ?? senderWalletPhone ?? state.senderWalletNumber;
 
     String? receiptUrl;
     if (receiptFile != null) {
       try {
-        final uId = userId.isNotEmpty ? userId : 'guest';
-        final tempId = 'proof_${DateTime.now().millisecondsSinceEpoch}';
+        final userId = _preferenceManager.userId();
+        if (userId == null || userId.isEmpty) {
+          throw StateError('Authenticated user id is missing');
+        }
+
         receiptUrl = await _storageService.uploadPaymentProof(
-          userId: uId,
-          bookingId: tempId,
+          userId: userId,
+          bookingId: 'proof_${DateTime.now().millisecondsSinceEpoch}',
           file: receiptFile,
         );
-      } catch (e, st) {
-        AppLogger.error('Initial payment proof upload failed', e, st);
-      }
-    }
-
-    for (int i = 0; i < roomsToBook.length; i++) {
-      final currentRoom = roomsToBook[i];
-      final targetLoungeId = currentRoom.loungeId.isNotEmpty
-          ? currentRoom.loungeId
-          : checkoutParams.lounge.id;
-
-      final breakdown = checkoutParams.roomsBreakdown.firstWhere(
-        (b) => b['roomId'] == currentRoom.id,
-        orElse: () => <String, dynamic>{},
-      );
-
-      final double origRoomPrice = (breakdown['originalSubtotal'] as num?)?.toDouble() ??
-          (checkoutParams.rooms.length == 1
-              ? checkoutParams.originalRoomSubtotal
-              : (currentRoom.hourlyRateSingle * (checkoutParams.duration / 60.0)));
-
-      final double discRoomPrice = (breakdown['discountedSubtotal'] as num?)?.toDouble() ??
-          (checkoutParams.rooms.length == 1
-              ? checkoutParams.discountedRoomSubtotal
-              : origRoomPrice);
-
-      final double roomDiscount = (breakdown['discountAmount'] as num?)?.toDouble() ??
-          (checkoutParams.rooms.length == 1 ? checkoutParams.discountAmount : 0.0);
-
-      final isFirst = i == 0;
-      final double totalDiscount = roomDiscount + (isFirst ? state.discountAmount : 0.0);
-      final double roomAddonsTotal = isFirst ? checkoutParams.addonsTotal : 0.0;
-      final double roomTotalPrice = checkoutParams.calculateRoomTotalPrice(
-        discountedRoomPrice: discRoomPrice,
-        roomAddonsTotal: roomAddonsTotal,
-        voucherDiscount: state.discountAmount,
-        isPrimaryRoom: isFirst,
-      );
-      final List<Map<String, dynamic>> roomAddons = isFirst ? checkoutParams.addOns : const [];
-      final String? roomMode = breakdown['playMode']?.toString() ??
-          (checkoutParams.rooms.length == 1 ? checkoutParams.playMode : 'single');
-
-      final params = CreateBookingParams(
-        roomId: currentRoom.id,
-        roomName: currentRoom.getName(isArabic),
-        loungeId: targetLoungeId,
-        userName: userName,
-        userPhone: userPhone,
-        startTime: startDateTime,
-        endTime: endDateTime,
-        originalRoomPrice: origRoomPrice,
-        discountedRoomPrice: discRoomPrice,
-        roomPrice: discRoomPrice,
-        discountAmount: totalDiscount,
-        discountPercentage: checkoutParams.discountPercentage,
-        discountLabel: checkoutParams.discountLabel,
-        discountReason: checkoutParams.discountLabel,
-        discountSource: checkoutParams.discountSource,
-        durationHours: checkoutParams.duration / 60.0,
-        roomSubtotal: discRoomPrice,
-        addonsTotal: roomAddonsTotal,
-        totalPrice: roomTotalPrice,
-        addOns: roomAddons,
-        playMode: roomMode,
-        receiptUrl: receiptUrl,
-        proofImageUrl: receiptUrl,
-        paymentMethod: methodStr,
-        senderWalletPhone: methodStr == 'manual_transfer' ? effectiveAccount : null,
-        senderAccount: methodStr == 'manual_transfer' ? effectiveAccount : null,
-        transactionReference: transactionReference,
-        holdExpiresAt: state.holdExpiresAt,
-        expiresAt: state.holdExpiresAt,
-      );
-
-      final result = await _bookingRepository.createBooking(params);
-
-      bool hasFailed = false;
-      result.fold(
-        (failure) {
-          hasFailed = true;
-          emit(state.copyWith(
+      } catch (error, stackTrace) {
+        AppLogger.error(
+          'Payment proof upload failed',
+          error,
+          stackTrace,
+        );
+        emit(
+          state.copyWith(
             status: CheckoutStatus.failure,
-            errorMessage: failure.message,
-          ));
-        },
-        (bookingData) {
-          final createdId = bookingData['id']?.toString();
-          if (createdId != null) {
-            createdBookingIds.add(createdId);
-          }
-          if (isFirst) {
-            primaryBookingId = createdId;
-          }
-        },
-      );
-
-      if (hasFailed) {
-        await _rollbackCreatedBookings(createdBookingIds);
+            errorMessage: AppStrings.somethingWentWrong.tr(),
+          ),
+        );
         return;
       }
     }
 
-    // Re-upload under final booking ID path: payment-proofs/{userId}/{bookingId}.jpg
-    if (receiptFile != null && primaryBookingId != null) {
-      try {
-        final uId = userId.isNotEmpty ? userId : 'guest';
-        final finalReceiptUrl = await _storageService.uploadPaymentProof(
-          userId: uId,
-          bookingId: primaryBookingId!,
-          file: receiptFile,
-        );
-        if (finalReceiptUrl != null && finalReceiptUrl.isNotEmpty) {
-          try {
-            await Supabase.instance.client
-                .from('bookings')
-                .update({'receipt_url': finalReceiptUrl})
-                .eq('id', primaryBookingId!);
-            AppLogger.info('Updated booking $primaryBookingId receipt_url to $finalReceiptUrl');
-          } catch (dbErr) {
-            AppLogger.warning('Failed to update receipt_url in DB: $dbErr');
-          }
-        }
-      } catch (e, st) {
-        AppLogger.error('Payment proof upload under final booking id failed', e, st);
-      }
-    }
+    final voucherCode = state.selectedVoucher?['code']
+        ?.toString()
+        .trim()
+        .toUpperCase();
 
-    if (state.selectedVoucher != null && primaryBookingId != null) {
-      final voucherCode = (state.selectedVoucher!['code'] ?? state.selectedVoucher!['id'])
-          ?.toString()
-          .trim()
-          .toUpperCase() ?? '';
-      if (voucherCode.isNotEmpty) {
-        final consumeResult = await _profileRepository.consumeVoucherByCode(
-          code: voucherCode,
-          bookingId: primaryBookingId!,
-        );
-        consumeResult.fold(
-          (failure) => AppLogger.warning(
-            'Voucher $voucherCode was applied but consumption failed: ${failure.message}',
-          ),
-          (_) {},
-        );
-      }
-    }
+    final result = await _bookingRepository.createBookingCheckout(
+      holdToken: holdToken,
+      roomRequests: _buildRoomRequests(checkoutParams),
+      extraItems: _buildExtraItems(checkoutParams),
+      voucherCode:
+          voucherCode == null || voucherCode.isEmpty ? null : voucherCode,
+      paymentMethod: method,
+      senderWalletPhone:
+          method == 'manual_transfer' ? effectiveAccount : null,
+      receiptUrl: receiptUrl,
+    );
 
-    if (primaryBookingId != null) {
-      listenToBookingStatus(primaryBookingId!);
-    }
-
-    await _releaseHold();
     if (isClosed) return;
 
-    emit(state.copyWith(
-      status: CheckoutStatus.success,
-      createdBookingId: primaryBookingId,
-    ));
-  }
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            status: CheckoutStatus.failure,
+            errorMessage: failure.message,
+          ),
+        );
+      },
+      (data) {
+        final primaryBookingId = data['primary_booking_id']?.toString();
+        final quote = data['quote'];
 
-  /// Compensates a partial multi-room booking failure by cancelling the rooms
-  /// that were already created, so a retry never produces duplicates.
-  Future<void> _rollbackCreatedBookings(List<String> createdBookingIds) async {
-    for (final bookingId in createdBookingIds) {
-      final result = await _myBookingsRepository.cancelBooking(bookingId);
-      result.fold(
-        (failure) => AppLogger.error(
-          'Failed to roll back booking $bookingId after partial checkout failure: ${failure.message}',
-        ),
-        (_) {},
-      );
-    }
+        if (primaryBookingId == null || primaryBookingId.isEmpty) {
+          emit(
+            state.copyWith(
+              status: CheckoutStatus.failure,
+              errorMessage: AppStrings.somethingWentWrong.tr(),
+            ),
+          );
+          return;
+        }
+
+        if (quote is Map) {
+          emit(
+            state.copyWith(
+              serverQuote: Map<String, dynamic>.from(quote),
+            ),
+          );
+        }
+
+        listenToBookingStatus(primaryBookingId);
+        _clearLocalHold();
+
+        emit(
+          state.copyWith(
+            status: CheckoutStatus.success,
+            createdBookingId: primaryBookingId,
+          ),
+        );
+      },
+    );
   }
 }
