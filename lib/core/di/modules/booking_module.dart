@@ -42,7 +42,6 @@ void initBookingModule() {
     () => CheckoutCubit(
       sl(),
       sl(),
-      myBookingsRepository: sl(),
       preferenceManager: sl(),
       storageService: sl(),
     ),
