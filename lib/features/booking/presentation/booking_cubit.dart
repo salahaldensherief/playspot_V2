@@ -68,12 +68,15 @@ class BookingCubit extends Cubit<BookingState> {
     ));
   }
 
-  /// Re-verifies the full requested range against Postgres right before checkout.
+  /// Atomically acquires a server-side hold for the full requested range.
   Future<bool> verifyAvailabilityBeforeProceed() async {
     final startTime = state.startTime;
     if (startTime == null) return false;
 
-    emit(state.copyWith(status: BookingStatus.loading));
+    emit(state.copyWith(
+      status: BookingStatus.loading,
+      clearHold: true,
+    ));
 
     final startDateTime = _resolveOperationalDateTime(
       state.selectedDate,
@@ -83,47 +86,70 @@ class BookingCubit extends Cubit<BookingState> {
       Duration(minutes: state.durationMinutes),
     );
 
-    for (final rid in roomIds) {
-      final result = await _bookingRepository.checkRoomAvailability(
-        roomId: rid,
-        startTime: startDateTime,
-        endTime: endDateTime,
-      );
+    final result = await _bookingRepository.acquireBookingHold(
+      roomIds: roomIds,
+      startTime: startDateTime,
+      endTime: endDateTime,
+    );
 
-      final available = result.fold(
-        (failure) {
-          emit(
-            state.copyWith(
-              status: BookingStatus.error,
-              errorMessage: failure.message,
-            ),
-          );
-          return null;
-        },
-        (value) => value,
-      );
+    if (isClosed) return false;
 
-      if (available == null) return false;
-
-      if (!available) {
-        await fetchBookedSlots(state.selectedDate);
-        if (isClosed) return false;
-
+    return result.fold(
+      (failure) {
         emit(
           state.copyWith(
             status: BookingStatus.error,
-            clearStartTime: true,
-            errorMessage: "overlappingBookingError",
+            errorMessage: failure.message,
+            clearHold: true,
           ),
         );
         return false;
-      }
-    }
+      },
+      (data) {
+        if (data['success'] != true) {
+          emit(
+            state.copyWith(
+              status: BookingStatus.error,
+              clearStartTime: true,
+              clearHold: true,
+              errorMessage:
+                  data['error_code']?.toString() ?? 'overlappingBookingError',
+            ),
+          );
+          return false;
+        }
 
-    emit(state.copyWith(status: BookingStatus.success));
-    return true;
+        final holdToken = data['hold_token']?.toString();
+        final holdExpiresAt = DateTime.tryParse(
+          data['hold_expires_at']?.toString() ?? '',
+        );
+
+        if (holdToken == null ||
+            holdToken.isEmpty ||
+            holdExpiresAt == null) {
+          emit(
+            state.copyWith(
+              status: BookingStatus.error,
+              clearHold: true,
+              errorMessage: 'bookingHoldFailed',
+            ),
+          );
+          return false;
+        }
+
+        emit(
+          state.copyWith(
+            status: BookingStatus.success,
+            holdToken: holdToken,
+            holdExpiresAt: holdExpiresAt,
+            heldStartAt: startDateTime,
+          ),
+        );
+        return true;
+      },
+    );
   }
- 
+
   DateTime _resolveOperationalDateTime(
     DateTime selectedDate,
     TimeOfDay time,
