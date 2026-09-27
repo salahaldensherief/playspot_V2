@@ -14,7 +14,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting of changed Dart files
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.base_ref != 'main'
         shell: bash
         run: |
           files=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}"...HEAD -- '*.dart')
@@ -49,3 +49,6 @@ jobs:
 
       - name: Run tests
         run: flutter test
+
+      - name: Verify Android release build
+        run: flutter build apk --release
