@@ -11,6 +11,7 @@ class CheckoutState extends Equatable {
   final String? errorMessage;
   final Map<String, dynamic>? selectedVoucher;
   final double discountAmount;
+  final Map<String, dynamic>? bookingQuote;
   final bool allowCashPayment;
   final bool isCashEnabled;
   final int completedBookingsCount;
@@ -35,6 +36,7 @@ class CheckoutState extends Equatable {
     this.errorMessage,
     this.selectedVoucher,
     this.discountAmount = 0,
+    this.bookingQuote,
     this.allowCashPayment = true,
     this.isCashEnabled = true,
     this.completedBookingsCount = 0,
@@ -61,7 +63,10 @@ class CheckoutState extends Equatable {
     PaymentMethod? selectedMethod,
     String? errorMessage,
     Map<String, dynamic>? selectedVoucher,
+    bool clearSelectedVoucher = false,
     double? discountAmount,
+    Map<String, dynamic>? bookingQuote,
+    bool clearBookingQuote = false,
     bool? allowCashPayment,
     bool? isCashEnabled,
     int? completedBookingsCount,
@@ -81,8 +86,13 @@ class CheckoutState extends Equatable {
       status: status ?? this.status,
       selectedMethod: selectedMethod ?? this.selectedMethod,
       errorMessage: errorMessage,
-      selectedVoucher: selectedVoucher ?? this.selectedVoucher,
+      selectedVoucher: clearSelectedVoucher
+          ? null
+          : (selectedVoucher ?? this.selectedVoucher),
       discountAmount: discountAmount ?? this.discountAmount,
+      bookingQuote: clearBookingQuote
+          ? null
+          : (bookingQuote ?? this.bookingQuote),
       allowCashPayment: allowCashPayment ?? this.allowCashPayment,
       isCashEnabled: isCashEnabled ?? this.isCashEnabled,
       completedBookingsCount: completedBookingsCount ?? this.completedBookingsCount,
@@ -106,6 +116,7 @@ class CheckoutState extends Equatable {
         errorMessage,
         selectedVoucher,
         discountAmount,
+        bookingQuote,
         allowCashPayment,
         isCashEnabled,
         completedBookingsCount,
