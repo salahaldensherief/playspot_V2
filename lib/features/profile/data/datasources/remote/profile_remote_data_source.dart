@@ -366,14 +366,6 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       await _supabase.from('profiles').update({'fcm_token': token}).eq('id', user.id);
       AppLogger.debug('[ProfileDS] FCM token updated for user: ${user.id}');
 
-      unawaited(PushNotificationService.instance.toggleTopicSubscription(
-        topic: 'user_${user.id}',
-        enable: true,
-      ));
-      unawaited(PushNotificationService.instance.toggleTopicSubscription(
-        topic: 'all_users',
-        enable: true,
-      ));
     } catch (e) {
       AppLogger.debug('[ProfileDS] Update FCM token error: $e');
     }
