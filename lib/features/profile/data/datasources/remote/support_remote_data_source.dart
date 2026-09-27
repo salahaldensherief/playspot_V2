@@ -79,16 +79,12 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
     required String issueType,
     required String message,
   }) async {
-    try {
-      await _supabase.rpc('create_support_ticket', params: {
-        'issue_type': issueType,
-        'message': message,
-      });
-    } catch (_) {
-      await _supabase.rpc('create_support_ticket', params: {
+    await _supabase.rpc(
+      'create_support_ticket',
+      params: {
         'p_issue_type': issueType,
         'p_message': message,
-      });
-    }
+      },
+    );
   }
 }
