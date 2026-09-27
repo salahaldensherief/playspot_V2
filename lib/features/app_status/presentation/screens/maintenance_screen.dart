@@ -45,8 +45,11 @@ class MaintenanceScreen extends StatelessWidget {
         ? statusEntity!.maintenanceTitle!
         : AppStrings.maintenanceModeTitle.tr();
 
-    final message = statusEntity?.maintenanceMessage?.isNotEmpty == true
-        ? statusEntity!.maintenanceMessage!
+    final localizedMessage = statusEntity?.maintenanceMessageFor(
+      context.locale.languageCode,
+    );
+    final message = localizedMessage?.isNotEmpty == true
+        ? localizedMessage!
         : AppStrings.maintenanceModeDesc.tr();
 
     final expectedTime = statusEntity?.expectedEndTime;
