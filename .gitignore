@@ -54,3 +54,9 @@ test_cache_box*
 
 # Supabase CLI local state
 supabase/.temp/
+
+
+# Android release signing secrets
+/android/key.properties
+/android/*.jks
+/android/*.keystore
