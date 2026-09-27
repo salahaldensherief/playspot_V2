@@ -16,6 +16,16 @@ class CheckoutState extends Equatable {
   final int completedBookingsCount;
   final String? cashDisabledReason;
   final String? senderWalletNumber;
+  final Map<String, dynamic>? serverQuote;
+
+  double? get serverFinalTotal =>
+      (serverQuote?['final_total'] as num?)?.toDouble();
+
+  double? get serverOriginalTotal =>
+      (serverQuote?['original_total'] as num?)?.toDouble();
+
+  double? get serverPromoDiscount =>
+      (serverQuote?['promo_discount_total'] as num?)?.toDouble();
 
   // Hold Timer fields
   final int remainingSeconds;
@@ -40,6 +50,7 @@ class CheckoutState extends Equatable {
     this.completedBookingsCount = 0,
     this.cashDisabledReason,
     this.senderWalletNumber,
+    this.serverQuote,
     this.remainingSeconds = 600,
     this.isHoldExpired = false,
     this.holdExpiresAt,
@@ -67,6 +78,8 @@ class CheckoutState extends Equatable {
     int? completedBookingsCount,
     String? cashDisabledReason,
     String? senderWalletNumber,
+    Map<String, dynamic>? serverQuote,
+    bool clearVoucher = false,
     int? remainingSeconds,
     bool? isHoldExpired,
     DateTime? holdExpiresAt,
@@ -81,13 +94,15 @@ class CheckoutState extends Equatable {
       status: status ?? this.status,
       selectedMethod: selectedMethod ?? this.selectedMethod,
       errorMessage: errorMessage,
-      selectedVoucher: selectedVoucher ?? this.selectedVoucher,
-      discountAmount: discountAmount ?? this.discountAmount,
+      selectedVoucher:
+          clearVoucher ? null : (selectedVoucher ?? this.selectedVoucher),
+      discountAmount: clearVoucher ? 0 : (discountAmount ?? this.discountAmount),
       allowCashPayment: allowCashPayment ?? this.allowCashPayment,
       isCashEnabled: isCashEnabled ?? this.isCashEnabled,
       completedBookingsCount: completedBookingsCount ?? this.completedBookingsCount,
       cashDisabledReason: cashDisabledReason ?? this.cashDisabledReason,
       senderWalletNumber: senderWalletNumber ?? this.senderWalletNumber,
+      serverQuote: serverQuote ?? this.serverQuote,
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       isHoldExpired: isHoldExpired ?? this.isHoldExpired,
       holdExpiresAt: clearHold ? null : (holdExpiresAt ?? this.holdExpiresAt),
@@ -111,6 +126,7 @@ class CheckoutState extends Equatable {
         completedBookingsCount,
         cashDisabledReason,
         senderWalletNumber,
+        serverQuote,
         remainingSeconds,
         isHoldExpired,
         holdExpiresAt,
