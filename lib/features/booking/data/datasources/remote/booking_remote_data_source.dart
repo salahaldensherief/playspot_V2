@@ -24,6 +24,10 @@ abstract class BookingRemoteDataSource {
     String? senderWalletPhone,
     String? receiptUrl,
   });
+  Future<void> attachBookingReceipt({
+    required String bookingId,
+    required String receiptPath,
+  });
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
@@ -172,6 +176,20 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     );
 
     return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<void> attachBookingReceipt({
+    required String bookingId,
+    required String receiptPath,
+  }) async {
+    await _client.rpc(
+      'attach_my_booking_receipt',
+      params: {
+        'p_booking_id': bookingId,
+        'p_receipt_url': receiptPath,
+      },
+    );
   }
 
   @override
