@@ -12,10 +12,9 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/cards/search_lounge_card.dart';
-import 'package:playspot/features/home/presentation/home_cubit.dart';
-import 'package:playspot/features/home/presentation/home_state.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
-import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'search_cubit.dart';
+import 'search_state.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -44,8 +43,9 @@ class _SearchScreenState extends State<SearchScreen> {
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       if (mounted) {
         setState(() {
-          _searchQuery = value.trim().toLowerCase();
+          _searchQuery = value.trim();
         });
+        _runSearch();
       }
     });
   }
@@ -57,33 +57,21 @@ class _SearchScreenState extends State<SearchScreen> {
       _searchController.clear();
       _searchQuery = "";
     });
+    _runSearch();
+  }
+
+  void _runSearch() {
+    final sortType = _sortFilterIndex == 1 ? 'top_rated' : 'nearest';
+    context.read<SearchCubit>().search(
+      query: _searchQuery,
+      isOpenOnly: _isOpenNowFilter,
+      sortType: sortType,
+    );
   }
 
   bool get _hasActiveFilters =>
       _isOpenNowFilter || _sortFilterIndex != 0 || _searchQuery.isNotEmpty;
 
-  List<LoungeModel> _filterAndSortLounges(List<LoungeModel> allLounges) {
-    var result = allLounges.where((lounge) {
-      if (_searchQuery.isNotEmpty) {
-        final nameMatches = lounge.name.toLowerCase().contains(_searchQuery);
-        final cityMatches = (lounge.city ?? '').toLowerCase().contains(_searchQuery);
-        final addressMatches = (lounge.location ?? '').toLowerCase().contains(_searchQuery);
-        if (!nameMatches && !cityMatches && !addressMatches) return false;
-      }
-      if (_isOpenNowFilter && !lounge.isOpen) {
-        return false;
-      }
-      return true;
-    }).toList();
-
-    if (_sortFilterIndex == 1) {
-      result.sort((a, b) => b.rating.compareTo(a.rating));
-    } else if (_sortFilterIndex == 2) {
-      result.sort((a, b) => a.distance.compareTo(b.distance));
-    }
-
-    return result;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,17 +85,16 @@ class _SearchScreenState extends State<SearchScreen> {
             _buildCategories(),
             SizedBox(height: 12.h),
             Expanded(
-              child: BlocBuilder<HomeCubit, HomeState>(
+              child: BlocBuilder<SearchCubit, SearchState>(
                 buildWhen: (previous, current) =>
-                    previous.isLoungesLoading != current.isLoungesLoading ||
                     previous.status != current.status ||
-                    previous.nearestLounges != current.nearestLounges,
+                    previous.lounges != current.lounges,
                 builder: (context, state) {
-                  if (state.isLoungesLoading || state.status == HomeStatus.loading) {
+                  if (state.status == SearchStatus.loading && state.lounges.isEmpty) {
                     return const AppLoader(size: 40);
                   }
 
-                  final lounges = _filterAndSortLounges(state.nearestLounges);
+                  final lounges = state.lounges;
 
                   if (lounges.isEmpty) {
                     return Center(
@@ -253,6 +240,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   _sortFilterIndex = _sortFilterIndex == sortIdx ? 0 : sortIdx;
                 }
               });
+              _runSearch();
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),

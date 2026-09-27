@@ -49,35 +49,15 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
 
   @override
   Future<void> markAsRead(String notificationId) async {
-    try {
-      await _client.rpc('mark_notification_read', params: {'p_notification_id': notificationId});
-    } catch (e) {
-      dev.log("RPC mark_notification_read failed, trying direct table update: $e");
-      final userId = _client.auth.currentUser?.id;
-      if (userId != null) {
-        await _client
-            .from('notifications')
-            .update({'is_read': true})
-            .eq('id', notificationId)
-            .eq('user_id', userId);
-      }
-    }
+    await _client.rpc(
+      'mark_notification_read',
+      params: {'p_notification_id': notificationId},
+    );
   }
 
   @override
   Future<void> markAllAsRead() async {
-    try {
-      await _client.rpc('mark_all_notifications_read');
-    } catch (e) {
-      dev.log("RPC mark_all_notifications_read failed, trying direct table update: $e");
-      final userId = _client.auth.currentUser?.id;
-      if (userId != null) {
-        await _client
-            .from('notifications')
-            .update({'is_read': true})
-            .eq('user_id', userId);
-      }
-    }
+    await _client.rpc('mark_all_notifications_read');
   }
 
   @override

@@ -103,75 +103,32 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<LoungeModel>> getLounges(GetLoungesParams params) async {
-    try {
-      AppLogger.info("FETCHING_LOUNGES directly from lounges table with promotions");
-      dynamic query = _client
-          .from('lounges')
-          .select('*, promotions:promotions!lounge_id(*)')
-          .eq('status', 'active')
-          .eq('is_active', true);
+    final response = await _client.rpc(
+      'discover_lounges',
+      params: {
+        'p_lat': params.lat,
+        'p_lng': params.lng,
+        'p_city': params.city,
+        'p_search_query': params.searchQuery,
+        'p_category_ids': params.categoryIds,
+        'p_sort_type': params.sortType,
+        'p_is_open_only': params.isOpenOnly,
+        'p_limit': params.limit,
+        'p_offset': params.offset,
+      },
+    );
 
-      if (params.city != null && params.city!.isNotEmpty) {
-        query = query.eq('city', params.city!);
-      }
+    final list = response is List
+        ? response
+        : (response is Map && response['data'] is List
+            ? response['data'] as List
+            : const <dynamic>[]);
 
-      if (params.searchQuery != null && params.searchQuery!.trim().isNotEmpty) {
-        query = query.ilike('name', '%${params.searchQuery!.trim()}%');
-      }
-
-      if (params.sortType == 'top_rated') {
-        query = query.order('rating', ascending: false);
-      } else {
-        query = query.order('is_open', ascending: false).order('rating', ascending: false);
-      }
-
-      final response = await query.range(params.offset, params.offset + params.limit - 1);
-      final List lounges = response as List;
-      AppLogger.info("LOUNGES_DIRECT_SELECT_COUNT: ${lounges.length}");
-
-      return await _hydrateLoungesWithPromotions(lounges);
-    } catch (e) {
-      AppLogger.warning("FETCH_LOUNGES_PROMO_JOIN_ERROR: $e, trying flat select fallback");
-      try {
-        dynamic query = _client
-            .from('lounges')
-            .select()
-            .eq('status', 'active')
-            .eq('is_active', true);
-
-        if (params.city != null && params.city!.isNotEmpty) {
-          query = query.eq('city', params.city!);
-        }
-
-        if (params.searchQuery != null && params.searchQuery!.trim().isNotEmpty) {
-          query = query.ilike('name', '%${params.searchQuery!.trim()}%');
-        }
-
-        if (params.sortType == 'top_rated') {
-          query = query.order('rating', ascending: false);
-        } else {
-          query = query.order('is_open', ascending: false).order('rating', ascending: false);
-        }
-
-        final response = await query.range(params.offset, params.offset + params.limit - 1);
-        final List lounges = response as List;
-        return await _hydrateLoungesWithPromotions(lounges);
-      } catch (fallbackError) {
-        AppLogger.warning("FETCH_LOUNGES_DIRECT_ERROR: $fallbackError, falling back to RPC get_nearby_lounges");
-        try {
-          final response = await _client.rpc('get_nearby_lounges', params: {
-            'user_lat': params.lat ?? 30.0444,
-            'user_lon': params.lng ?? 31.2357,
-          });
-
-          final List lounges = response as List;
-          return await _hydrateLoungesWithPromotions(lounges);
-        } catch (criticalError) {
-          AppLogger.error("FETCH_LOUNGES_CRITICAL_ERROR: $criticalError");
-          return [];
-        }
-      }
-    }
+    return list
+        .map((item) => LoungeModel.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ))
+        .toList();
   }
 
   @override

@@ -42,7 +42,7 @@ class GoogleAuthStrategy implements AuthStrategy {
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
       AppLogger.debug('[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...');
-      return _signInWithSupabaseOAuth();
+      return await _signInWithSupabaseOAuth();
     }
   }
 
@@ -71,7 +71,7 @@ class GoogleAuthStrategy implements AuthStrategy {
         }
       });
 
-      return completer.future.timeout(
+      return await completer.future.timeout(
         const Duration(minutes: 2),
         onTimeout: () {
           subscription.cancel();

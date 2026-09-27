@@ -272,12 +272,25 @@ class CheckoutParams extends Equatable {
   final double? appliedHourlyRate;
   final int? extraControllers;
   final double? extraControllerPrice;
+  final String? holdToken;
+  final DateTime? holdExpiresAt;
+  final DateTime? resolvedStartAt;
 
   RoomModel get room =>
       rooms.isNotEmpty ? rooms.first : throw StateError('No room in CheckoutParams');
 
   double get extraControllersChargePerHour =>
       (extraControllers ?? 0) * (extraControllerPrice ?? 0.0);
+
+  DateTime get effectiveStartAt =>
+      resolvedStartAt ??
+      DateTime(
+        date.year,
+        date.month,
+        date.day,
+        startTime.hour,
+        startTime.minute,
+      );
 
   CheckoutParams({
     required this.lounge,
@@ -301,6 +314,9 @@ class CheckoutParams extends Equatable {
     this.appliedHourlyRate,
     this.extraControllers,
     this.extraControllerPrice,
+    this.holdToken,
+    this.holdExpiresAt,
+    this.resolvedStartAt,
   }) : rooms = rooms ?? (room != null ? [room] : const []);
 
   @override
@@ -325,6 +341,9 @@ class CheckoutParams extends Equatable {
         appliedHourlyRate,
         extraControllers,
         extraControllerPrice,
+        holdToken,
+        holdExpiresAt,
+        resolvedStartAt,
       ];
 
   factory CheckoutParams.fromMap(Map<String, dynamic> map) {
@@ -397,6 +416,13 @@ class CheckoutParams extends Equatable {
       appliedHourlyRate: (map['appliedHourlyRate'] as num?)?.toDouble(),
       extraControllers: (map['extraControllers'] as num?)?.toInt(),
       extraControllerPrice: (map['extraControllerPrice'] as num?)?.toDouble(),
+      holdToken: map['holdToken']?.toString(),
+      holdExpiresAt: map['holdExpiresAt'] != null
+          ? DateTime.tryParse(map['holdExpiresAt'].toString())
+          : null,
+      resolvedStartAt: map['resolvedStartAt'] != null
+          ? DateTime.tryParse(map['resolvedStartAt'].toString())
+          : null,
     );
   }
 
@@ -424,6 +450,9 @@ class CheckoutParams extends Equatable {
       'appliedHourlyRate': appliedHourlyRate,
       'extraControllers': extraControllers,
       'extraControllerPrice': extraControllerPrice,
+      'holdToken': holdToken,
+      'holdExpiresAt': holdExpiresAt?.toIso8601String(),
+      'resolvedStartAt': resolvedStartAt?.toIso8601String(),
     };
   }
 

@@ -18,16 +18,18 @@ class BookingAvailabilityService {
       return null;
     }
 
-    // Ignore pending / pending_payment bookings older than 30 minutes
     if (status == 'pending' || status == 'pending_payment') {
-      final createdAtStr = b['created_at']?.toString();
-      if (createdAtStr != null) {
-        final createdAt = DateTime.tryParse(createdAtStr);
-        if (createdAt != null) {
-          final age = DateTime.now().difference(createdAt.toLocal());
-          if (age > const Duration(minutes: 30)) {
-            return null; // Expired pending booking, does not block slot
-          }
+      final expiresAt = DateTime.tryParse(b['expires_at']?.toString() ?? '');
+      if (expiresAt != null && !expiresAt.isAfter(DateTime.now())) {
+        return null;
+      }
+
+      if (expiresAt == null) {
+        final createdAt = DateTime.tryParse(b['created_at']?.toString() ?? '');
+        if (createdAt != null &&
+            DateTime.now().difference(createdAt.toLocal()) >
+                const Duration(minutes: 30)) {
+          return null;
         }
       }
     }
@@ -60,27 +62,32 @@ class BookingAvailabilityService {
     List<TimeRange> roomBookings,
     DateTime date,
   ) {
-    final List<TimeOfDay> bookedSlots = [];
+    final slots = <TimeOfDay>{};
 
-    for (int h = 0; h < 24; h++) {
-      for (int m in const [0, 15, 30, 45]) {
-        final slotDateTime = (h >= 6)
-            ? DateTime(date.year, date.month, date.day, h, m)
-            : DateTime(date.year, date.month, date.day + 1, h, m);
-        final slotEnd = slotDateTime.add(const Duration(minutes: 15));
+    for (final range in roomBookings) {
+      var cursor = DateTime(
+        range.start.year,
+        range.start.month,
+        range.start.day,
+        range.start.hour,
+        (range.start.minute ~/ 15) * 15,
+      );
 
-        final isOccupied = roomBookings.any(
-          (range) =>
-              range.start.isBefore(slotEnd) && range.end.isAfter(slotDateTime),
-        );
-
-        if (isOccupied) {
-          bookedSlots.add(TimeOfDay(hour: h, minute: m));
+      while (cursor.isBefore(range.end)) {
+        final slotEnd = cursor.add(const Duration(minutes: 15));
+        if (range.start.isBefore(slotEnd) && range.end.isAfter(cursor)) {
+          slots.add(TimeOfDay(hour: cursor.hour, minute: cursor.minute));
         }
+        cursor = slotEnd;
       }
     }
 
-    return bookedSlots;
+    return slots.toList()
+      ..sort((a, b) {
+        final aMinutes = a.hour * 60 + a.minute;
+        final bMinutes = b.hour * 60 + b.minute;
+        return aMinutes.compareTo(bMinutes);
+      });
   }
 
   /// Checks if a proposed booking range (start + duration) conflicts with existing [TimeRange]s.

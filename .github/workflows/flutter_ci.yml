@@ -1,0 +1,51 @@
+name: Flutter CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+
+concurrency:
+  group: flutter-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting of changed Dart files
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          files=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}"...HEAD -- '*.dart')
+          if [ -n "$files" ]; then
+            dart format $files
+            if ! git diff --exit-code -- $files; then
+              echo "Changed Dart files are not formatted."
+              exit 1
+            fi
+          fi
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        run: flutter test

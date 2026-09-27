@@ -138,6 +138,15 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                             final lounge = params.lounge;
 
                             final startTime = currentState.startTime!;
+                            final holdToken = currentState.holdToken;
+                            final holdExpiresAt = currentState.holdExpiresAt;
+                            final heldStartAt = currentState.heldStartAt;
+
+                            if (holdToken == null ||
+                                holdExpiresAt == null ||
+                                heldStartAt == null) {
+                              return;
+                            }
 
                             final rawBreakdown = subtotals['roomsBreakdown'];
                             final List<Map<String, dynamic>> roomsBreakdown = (rawBreakdown is List)
@@ -172,6 +181,9 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                                   currentState.extraControllersCount,
                               extraControllerPrice: room.extraControllerPrice,
                               appliedHourlyRate: offerInfo.discountedHourlyRate,
+                              holdToken: holdToken,
+                              holdExpiresAt: holdExpiresAt,
+                              resolvedStartAt: heldStartAt,
                             );
 
                             if (context.mounted) {

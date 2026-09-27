@@ -196,92 +196,121 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     final controller = StreamController<ActiveSessionModel?>.broadcast();
     RealtimeChannel? bookingChannel;
     RealtimeChannel? userBookingsChannel;
+    StreamSubscription<AuthState>? authSubscription;
     String? currentBookingId;
+    String? subscribedUserId;
+
+    Future<void> clearChannels() async {
+      final booking = bookingChannel;
+      if (booking != null) {
+        await _client.removeChannel(booking);
+        bookingChannel = null;
+      }
+
+      final userBookings = userBookingsChannel;
+      if (userBookings != null) {
+        await _client.removeChannel(userBookings);
+        userBookingsChannel = null;
+      }
+
+      currentBookingId = null;
+    }
 
     Future<void> syncSession() async {
       try {
         final session = await getActiveSession();
         if (controller.isClosed) return;
+
         controller.add(session);
 
         if (session != null && session.bookingId != currentBookingId) {
-          currentBookingId = session.bookingId;
-          if (bookingChannel != null) {
-            _client.removeChannel(bookingChannel!);
-            bookingChannel = null;
+          final previous = bookingChannel;
+          if (previous != null) {
+            await _client.removeChannel(previous);
           }
 
+          currentBookingId = session.bookingId;
           bookingChannel = _client.channel('booking_${session.bookingId}');
           bookingChannel!
-            .onPostgresChanges(
-              event: PostgresChangeEvent.all,
-              schema: 'public',
-              table: 'bookings',
-              filter: PostgresChangeFilter(
-                type: PostgresChangeFilterType.eq,
-                column: 'id',
-                value: session.bookingId,
-              ),
-              callback: (payload) {
-                dev.log("[LIVESESSION_DS] Realtime user booking update for ${session.bookingId}: ${payload.eventType}");
-                syncSession();
-              },
-            )
-            .onPostgresChanges(
-              event: PostgresChangeEvent.all,
-              schema: 'public',
-              table: 'canteen_orders',
-              filter: PostgresChangeFilter(
-                type: PostgresChangeFilterType.eq,
-                column: 'booking_id',
-                value: session.bookingId,
-              ),
-              callback: (payload) {
-                dev.log("[LIVESESSION_DS] Realtime user canteen_orders update for ${session.bookingId}: ${payload.eventType}");
-                syncSession();
-              },
-            )
-            .subscribe();
+              .onPostgresChanges(
+                event: PostgresChangeEvent.all,
+                schema: 'public',
+                table: 'bookings',
+                filter: PostgresChangeFilter(
+                  type: PostgresChangeFilterType.eq,
+                  column: 'id',
+                  value: session.bookingId,
+                ),
+                callback: (_) => syncSession(),
+              )
+              .onPostgresChanges(
+                event: PostgresChangeEvent.all,
+                schema: 'public',
+                table: 'canteen_orders',
+                filter: PostgresChangeFilter(
+                  type: PostgresChangeFilterType.eq,
+                  column: 'booking_id',
+                  value: session.bookingId,
+                ),
+                callback: (_) => syncSession(),
+              )
+              .subscribe();
         } else if (session == null && bookingChannel != null) {
-          currentBookingId = null;
-          _client.removeChannel(bookingChannel!);
+          await _client.removeChannel(bookingChannel!);
           bookingChannel = null;
+          currentBookingId = null;
         }
       } catch (e) {
         dev.log("[LIVESESSION_DS] Error in watchUserActiveSession sync: $e");
       }
     }
 
-    final userId = _client.auth.currentUser?.id;
-    if (userId != null) {
+    Future<void> bindUser(String? userId) async {
+      if (subscribedUserId == userId) {
+        await syncSession();
+        return;
+      }
+
+      await clearChannels();
+      subscribedUserId = userId;
+
+      if (userId == null) {
+        if (!controller.isClosed) {
+          controller.add(null);
+        }
+        return;
+      }
+
       userBookingsChannel = _client.channel('user_bookings_$userId');
-      userBookingsChannel
-        .onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'bookings',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'user_id',
-            value: userId,
-          ),
-          callback: (_) => syncSession(),
-        )
-        .subscribe();
+      userBookingsChannel!
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'bookings',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'user_id',
+              value: userId,
+            ),
+            callback: (_) => syncSession(),
+          )
+          .subscribe();
+
+      await syncSession();
     }
 
-    syncSession();
+    authSubscription = _client.auth.onAuthStateChange.listen((authState) {
+      unawaited(bindUser(authState.session?.user.id));
+    });
 
-    controller.onCancel = () {
-      final bChannel = bookingChannel;
-      if (bChannel != null) {
-        _client.removeChannel(bChannel);
+    unawaited(bindUser(_client.auth.currentUser?.id));
+
+    controller.onCancel = () async {
+      await authSubscription?.cancel();
+      await clearChannels();
+      if (!controller.isClosed) {
+        await controller.close();
       }
-      final uChannel = userBookingsChannel;
-      if (uChannel != null) {
-        _client.removeChannel(uChannel);
-      }
-      controller.close();
     };
 
     return controller.stream;
@@ -315,119 +344,48 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     required String bookingId,
     required int requestedMinutes,
   }) async {
-    dev.log("[LIVESESSION_DS] REQUEST_EXTENSION: bookingId=$bookingId, requestedMinutes=$requestedMinutes");
-    try {
-      await _client.rpc('request_booking_extension', params: {
+    dev.log(
+      "[LIVESESSION_DS] REQUEST_EXTENSION: bookingId=$bookingId, requestedMinutes=$requestedMinutes",
+    );
+
+    await _client.rpc(
+      'request_booking_extension',
+      params: {
         'p_booking_id': bookingId,
         'p_requested_minutes': requestedMinutes,
-      });
-      dev.log("[LIVESESSION_DS] REQUEST_BOOKING_EXTENSION RPC SUCCESS");
-    } catch (e) {
-      dev.log("[LIVESESSION_DS] request_booking_extension RPC failed: $e, checking error or fallback...");
-      final errorStr = e.toString();
-      if (errorStr.contains('BOOKING_CONFLICT') ||
-          errorStr.contains('conflict') ||
-          errorStr.contains('محجوزة')) {
-        throw Exception("لا يمكن تمديد الوقت لأن الغرفة محجوزة لحجز قادم بعد وقتك مباشرة.");
-      }
-
-      await _client.from('bookings').update({
-        'extension_status': 'pending',
-        'requested_extension_minutes': requestedMinutes,
-      }).eq('id', bookingId);
-      dev.log("[LIVESESSION_DS] Fallback update to bookings SUCCESS");
-    }
+      },
+    );
   }
 
   @override
-  Future<void> placeOrder(String bookingId, List<OrderItemModel> items) async {
-    dev.log("[LIVESESSION_DS] PLACE_ORDER (Canteen): bookingId=$bookingId, itemsCount=${items.length}");
-    try {
-      if (items.isEmpty) return;
+  Future<void> placeOrder(
+    String bookingId,
+    List<OrderItemModel> items,
+  ) async {
+    if (items.isEmpty) return;
 
-      final currentUserId = _client.auth.currentUser?.id;
-      if (currentUserId == null) throw Exception('User not authenticated');
+    final formattedItems = items
+        .map(
+          (item) => {
+            'extra_id': item.id,
+            'quantity': item.quantity,
+          },
+        )
+        .toList();
 
-      final formattedItems = items.map((item) {
-        return {
-          'id': item.id,
-          'extra_id': item.id,
-          'item_id': item.id,
-          'product_id': item.id,
-          'name_ar': item.nameAr ?? item.name,
-          'name_en': item.nameEn ?? item.name,
-          'unit_price': item.price,
-          'price': item.price,
-          'quantity': item.quantity,
-          if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
-        };
-      }).toList();
+    final notes = items
+        .where((item) => item.note != null && item.note!.trim().isNotEmpty)
+        .map((item) => item.note!.trim())
+        .join(', ');
 
-      final notes = items.where((i) => i.note != null && i.note!.isNotEmpty).map((i) => i.note).join(', ');
-
-      try {
-        final response = await _client.rpc('place_canteen_order', params: {
-          'p_booking_id': bookingId,
-          'p_items': formattedItems,
-          if (notes.isNotEmpty) 'p_note': notes,
-        });
-        dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC SUCCESS: $response");
-      } catch (e) {
-        dev.log("[LIVESESSION_DS] place_canteen_order with p_booking_id and p_items failed: $e, trying full params...");
-        final bookingRes = await _client
-            .from('bookings')
-            .select('lounge_id')
-            .eq('id', bookingId)
-            .maybeSingle();
-        final loungeId = bookingRes?['lounge_id']?.toString() ?? '';
-
-        try {
-          final response = await _client.rpc('place_canteen_order', params: {
-            'p_booking_id': bookingId,
-            'p_lounge_id': loungeId.isNotEmpty ? loungeId : null,
-            'p_user_id': currentUserId,
-            'p_items': formattedItems,
-            'p_total_price': null,
-            'p_note': notes.isNotEmpty ? notes : null,
-          });
-          dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC with full params SUCCESS: $response");
-        } catch (e2) {
-          dev.log("[LIVESESSION_DS] Both RPCs failed: $e2, attempting direct insert into canteen_orders...");
-          final double total = items.fold(0.0, (sum, i) => sum + i.total);
-          final orderRes = await _client.from('canteen_orders').insert({
-            'booking_id': bookingId,
-            if (loungeId.isNotEmpty) 'lounge_id': loungeId,
-            'user_id': currentUserId,
-            'total_price': total,
-            'status': 'pending',
-            if (notes.isNotEmpty) 'note': notes,
-            'created_at': DateTime.now().toIso8601String(),
-          }).select('id').maybeSingle();
-
-          final orderId = orderRes?['id']?.toString();
-          if (orderId != null && orderId.isNotEmpty) {
-            for (var item in items) {
-              await _client.from('canteen_order_items').insert({
-                'canteen_order_id': orderId,
-                'extra_id': item.id,
-                'name_ar': item.nameAr ?? item.name,
-                'name_en': item.nameEn ?? item.name,
-                'unit_price': item.price,
-                'quantity': item.quantity,
-                'total_price': item.total,
-                if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
-              });
-            }
-            dev.log("[LIVESESSION_DS] Direct insert to canteen_orders & canteen_order_items SUCCESS");
-          } else {
-            rethrow;
-          }
-        }
-      }
-    } catch (e, st) {
-      dev.log("[LIVESESSION_DS] PLACE_ORDER FAILED: $e", error: e, stackTrace: st);
-      rethrow;
-    }
+    await _client.rpc(
+      'place_canteen_order',
+      params: {
+        'p_booking_id': bookingId,
+        'p_items': formattedItems,
+        if (notes.isNotEmpty) 'p_note': notes,
+      },
+    );
   }
 
   @override
@@ -454,65 +412,14 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     required String callType,
     String? notes,
   }) async {
-    dev.log("[LIVESESSION_DS] REQUEST_STAFF_ASSISTANCE: bookingId=$bookingId, callType=$callType, notes=$notes");
-    final userId = _client.auth.currentUser?.id;
-
-    final bookingData = await _client
-        .from('bookings')
-        .select('lounge_id, room_id, user_id')
-        .eq('id', bookingId)
-        .maybeSingle();
-
-    final String? loungeId = bookingData?['lounge_id']?.toString();
-    final String? roomId = bookingData?['room_id']?.toString();
-    final String? bookingUserId = bookingData?['user_id']?.toString() ?? userId;
-
-    try {
-      await _client.rpc('request_staff_assistance', params: {
+    await _client.rpc(
+      'request_staff_assistance_for_booking',
+      params: {
         'p_booking_id': bookingId,
-        'p_user_id': userId,
         'p_call_type': callType,
         'p_notes': notes,
-        if (loungeId != null && loungeId.isNotEmpty) 'p_lounge_id': loungeId,
-        if (roomId != null && roomId.isNotEmpty) 'p_room_id': roomId,
-      });
-      dev.log("[LIVESESSION_DS] REQUEST_STAFF_ASSISTANCE via RPC success");
-      return;
-    } catch (rpc1Error) {
-      dev.log("[LIVESESSION_DS] RPC request_staff_assistance failed: $rpc1Error, trying call_staff_request");
-    }
-
-    try {
-      await _client.rpc('call_staff_request', params: {
-        'p_booking_id': bookingId,
-        if (loungeId != null && loungeId.isNotEmpty) 'p_lounge_id': loungeId,
-        'p_reason': callType,
-        'p_note': notes ?? '',
-      });
-      dev.log("[LIVESESSION_DS] CALL_STAFF_REQUEST via RPC success");
-      return;
-    } catch (rpc2Error) {
-      dev.log("[LIVESESSION_DS] RPC call_staff_request failed: $rpc2Error, inserting directly into service_calls");
-    }
-
-    try {
-      await _client.from('service_calls').insert({
-        'booking_id': bookingId,
-        if (loungeId != null && loungeId.isNotEmpty) 'lounge_id': loungeId,
-        if (roomId != null && roomId.isNotEmpty) 'room_id': roomId,
-        if (bookingUserId != null && bookingUserId.isNotEmpty) 'user_id': bookingUserId,
-        'call_type': callType,
-        'request_type': callType,
-        'status': 'pending',
-        'is_attended': false,
-        if (notes != null && notes.isNotEmpty) 'note': notes,
-        if (notes != null && notes.isNotEmpty) 'notes': notes,
-      });
-      dev.log("[LIVESESSION_DS] Inserted directly into service_calls SUCCESS");
-    } catch (insertError) {
-      dev.log("[LIVESESSION_DS] Direct insert into service_calls failed: $insertError");
-      rethrow;
-    }
+      },
+    );
   }
 
   @override
@@ -522,66 +429,15 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
     required double rating,
     String? comment,
   }) async {
-    dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW: loungeId=$loungeId, bookingId=$bookingId, rating=$rating, comment=$comment");
-    final userId = _client.auth.currentUser?.id;
-
-    // 1. Try RPC with p_ params
-    try {
-      await _client.rpc('submit_lounge_review', params: {
+    await _client.rpc(
+      'submit_lounge_review',
+      params: {
         'p_lounge_id': loungeId,
         'p_booking_id': bookingId,
-        'p_user_id': userId,
         'p_rating': rating,
         'p_comment': comment,
-      });
-      dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW RPC (p_ params) SUCCESS");
-      return;
-    } catch (e1) {
-      dev.log("[LIVESESSION_DS] submit_lounge_review RPC (p_ params) failed: $e1");
-
-      // 2. Try RPC without p_ params
-      try {
-        await _client.rpc('submit_lounge_review', params: {
-          'lounge_id': loungeId,
-          'booking_id': bookingId,
-          'user_id': userId,
-          'rating': rating,
-          'comment': comment,
-        });
-        dev.log("[LIVESESSION_DS] SUBMIT_LOUNGE_REVIEW RPC (standard params) SUCCESS");
-        return;
-      } catch (e2) {
-        dev.log("[LIVESESSION_DS] submit_lounge_review RPC (standard params) failed: $e2");
-      }
-    }
-
-    // 3. Fallback / Direct persistence to guarantee review appears on Lounge Details page:
-    // Insert/upsert to 'lounge_reviews'
-    try {
-      await _client.from('lounge_reviews').upsert({
-        'lounge_id': loungeId,
-        'booking_id': bookingId,
-        'user_id': userId,
-        'rating': rating,
-        'comment': comment,
-        'created_at': DateTime.now().toIso8601String(),
-      });
-      dev.log("[LIVESESSION_DS] Direct insert to lounge_reviews SUCCESS");
-    } catch (e3) {
-      dev.log("[LIVESESSION_DS] Direct insert to lounge_reviews failed: $e3");
-    }
-
-    // Update 'bookings' table directly as well
-    try {
-      await _client.from('bookings').update({
-        'rating': rating,
-        'comment': comment,
-        'review': comment,
-      }).eq('id', bookingId);
-      dev.log("[LIVESESSION_DS] Direct update to bookings table SUCCESS");
-    } catch (e5) {
-      dev.log("[LIVESESSION_DS] Direct update to bookings table failed: $e5");
-    }
+      },
+    );
   }
 
   @override

@@ -133,35 +133,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'avatar_url': avatarUrl,
       });
 
-      if (params.referralCode != null &&
-          params.referralCode!.trim().isNotEmpty) {
-        try {
-          await _supabase.rpc(
-            'process_referral',
-            params: {
-              'p_referral_code': params.referralCode!.trim(),
-              'p_new_user_id': userId,
-            },
-          );
-        } catch (_) {
-          try {
-            final referrer = await _supabase
-                .from('profiles')
-                .select('id')
-                .eq('referral_code', params.referralCode!.trim())
-                .maybeSingle();
 
-            if (referrer != null) {
-              await _supabase.from('referrals').insert({
-                'referrer_id': referrer['id'],
-                'referred_id': userId,
-              });
-            }
-          } catch (e) {
-            AppLogger.debug(' [Referral] Error processing referral: $e');
-          }
-        }
-      }
 
       return UserModel.fromSupabaseUser(
         response.user!.toJson(),
@@ -210,35 +182,7 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'avatar_url': avatarUrl,
       });
 
-      if (params.referralCode != null &&
-          params.referralCode!.trim().isNotEmpty) {
-        try {
-          await _supabase.rpc(
-            'process_referral',
-            params: {
-              'p_referral_code': params.referralCode!.trim(),
-              'p_new_user_id': userId,
-            },
-          );
-        } catch (_) {
-          try {
-            final referrer = await _supabase
-                .from('profiles')
-                .select('id')
-                .eq('referral_code', params.referralCode!.trim())
-                .maybeSingle();
 
-            if (referrer != null) {
-              await _supabase.from('referrals').insert({
-                'referrer_id': referrer['id'],
-                'referred_id': userId,
-              });
-            }
-          } catch (e) {
-            AppLogger.debug(' [Referral] Error processing referral: $e');
-          }
-        }
-      }
 
       return UserModel.fromSupabaseUser(
         user.toJson(),

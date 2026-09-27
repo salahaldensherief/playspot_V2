@@ -11,6 +11,8 @@ class BookingCubit extends Cubit<BookingState> {
   final BookingSlotStrategy _slotStrategy;
   final List<String> roomIds;
   final String loungeId;
+  final String loungeOpeningTime;
+  final String loungeClosingTime;
 
   String get roomId => roomIds.isNotEmpty ? roomIds.first : '';
 
@@ -20,6 +22,8 @@ class BookingCubit extends Cubit<BookingState> {
     BookingDetailsParams params,
   )   : roomIds = params.rooms.map((r) => r.id).toList(),
         loungeId = params.lounge.id,
+        loungeOpeningTime = params.lounge.openingTime,
+        loungeClosingTime = params.lounge.closingTime,
         super(BookingState(
           selectedDate: params.selectedDate,
           playMode: params.playMode == 'multi' ? PlayMode.multi : PlayMode.single,
@@ -64,63 +68,122 @@ class BookingCubit extends Cubit<BookingState> {
     ));
   }
 
-  /// Re-verifies slot availability against Supabase right before proceeding to checkout.
-  /// Handles race conditions where another user booked the slot.
+  /// Atomically acquires a server-side hold for the full requested range.
   Future<bool> verifyAvailabilityBeforeProceed() async {
-    if (state.startTime == null) return false;
-
-    emit(state.copyWith(status: BookingStatus.loading));
-
-    final Set<TimeOfDay> allBookedSlots = {};
-    bool hasConflict = false;
-
-    for (final rid in roomIds) {
-      final result = await _bookingRepository.getRoomBookingsForDate(loungeId, state.selectedDate, roomId: rid);
-      final isFailed = result.fold(
-        (failure) {
-          emit(state.copyWith(
-            status: BookingStatus.error,
-            errorMessage: failure.message,
-          ));
-          return true;
-        },
-        (rawBookings) {
-          final slots = _slotStrategy.calculateBookedSlots(
-            rawBookings: rawBookings,
-            roomId: rid,
-            date: state.selectedDate,
-          );
-          allBookedSlots.addAll(slots);
-
-          final conflict = _slotStrategy.isBookingConflicting(
-            rawBookings: rawBookings,
-            roomId: rid,
-            date: state.selectedDate,
-            startTime: state.startTime!,
-            durationMinutes: state.durationMinutes,
-          );
-          if (conflict) hasConflict = true;
-          return false;
-        },
-      );
-      if (isFailed) return false;
-    }
-
-    if (hasConflict) {
-      emit(state.copyWith(
-        status: BookingStatus.error,
-        bookedTimeSlots: allBookedSlots.toList(),
-        clearStartTime: true,
-        errorMessage: "overlappingBookingError",
-      ));
-      return false;
-    }
+    final startTime = state.startTime;
+    if (startTime == null) return false;
 
     emit(state.copyWith(
-      status: BookingStatus.success,
-      bookedTimeSlots: allBookedSlots.toList(),
+      status: BookingStatus.loading,
+      clearHold: true,
     ));
-    return true;
+
+    final startDateTime = _resolveOperationalDateTime(
+      state.selectedDate,
+      startTime,
+    );
+    final endDateTime = startDateTime.add(
+      Duration(minutes: state.durationMinutes),
+    );
+
+    final result = await _bookingRepository.acquireBookingHold(
+      roomIds: roomIds,
+      startTime: startDateTime,
+      endTime: endDateTime,
+    );
+
+    if (isClosed) return false;
+
+    return result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            status: BookingStatus.error,
+            errorMessage: failure.message,
+            clearHold: true,
+          ),
+        );
+        return false;
+      },
+      (data) {
+        if (data['success'] != true) {
+          emit(
+            state.copyWith(
+              status: BookingStatus.error,
+              clearStartTime: true,
+              clearHold: true,
+              errorMessage:
+                  data['error_code']?.toString() ?? 'overlappingBookingError',
+            ),
+          );
+          return false;
+        }
+
+        final holdToken = data['hold_token']?.toString();
+        final holdExpiresAt = DateTime.tryParse(
+          data['hold_expires_at']?.toString() ?? '',
+        );
+
+        if (holdToken == null ||
+            holdToken.isEmpty ||
+            holdExpiresAt == null) {
+          emit(
+            state.copyWith(
+              status: BookingStatus.error,
+              clearHold: true,
+              errorMessage: 'bookingHoldFailed',
+            ),
+          );
+          return false;
+        }
+
+        emit(
+          state.copyWith(
+            status: BookingStatus.success,
+            holdToken: holdToken,
+            holdExpiresAt: holdExpiresAt,
+            heldStartAt: startDateTime,
+          ),
+        );
+        return true;
+      },
+    );
+  }
+
+  DateTime _resolveOperationalDateTime(
+    DateTime selectedDate,
+    TimeOfDay time,
+  ) {
+    final openingMinutes = _parseTimeToMinutes(loungeOpeningTime);
+    final closingMinutes = _parseTimeToMinutes(loungeClosingTime);
+    final selectedMinutes = time.hour * 60 + time.minute;
+
+    var dayOffset = 0;
+    if (openingMinutes != null &&
+        closingMinutes != null &&
+        closingMinutes <= openingMinutes &&
+        selectedMinutes < closingMinutes) {
+      dayOffset = 1;
+    }
+
+    return DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day + dayOffset,
+      time.hour,
+      time.minute,
+    );
+  }
+
+  int? _parseTimeToMinutes(String raw) {
+    final parts = raw.split(':');
+    if (parts.length < 2) return null;
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+
+    return hour * 60 + minute;
   }
 
   void selectDate(DateTime date) {
@@ -140,9 +203,10 @@ class BookingCubit extends Cubit<BookingState> {
     final start = customStartTime ?? sState.startTime;
     if (start == null) return 720;
 
-    final startDateTime = (start.hour >= 6)
-        ? DateTime(sState.selectedDate.year, sState.selectedDate.month, sState.selectedDate.day, start.hour, start.minute)
-        : DateTime(sState.selectedDate.year, sState.selectedDate.month, sState.selectedDate.day + 1, start.hour, start.minute);
+    final startDateTime = _resolveOperationalDateTime(
+      sState.selectedDate,
+      start,
+    );
 
     int free15MinCount = 0;
     // Check up to 12 hours (48 slots of 15 minutes)
@@ -168,17 +232,10 @@ class BookingCubit extends Cubit<BookingState> {
         state.selectedDate.day == now.day;
 
     if (isToday) {
-      var slotDateTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        time.hour,
-        time.minute,
+      final slotDateTime = _resolveOperationalDateTime(
+        state.selectedDate,
+        time,
       );
-
-      if (time.hour < 6) {
-        slotDateTime = slotDateTime.add(const Duration(days: 1));
-      }
 
       if (slotDateTime.isBefore(now.add(const Duration(minutes: 5)))) {
         return;

@@ -16,6 +16,7 @@ import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:playspot/features/profile/presentation/settings/notification_settings_cubit.dart';
 import 'package:playspot/features/search/presentation/search_screen.dart';
+import 'package:playspot/features/search/presentation/search_cubit.dart';
 import 'package:playspot/features/splash/presentation/splash_screen.dart';
 import 'package:playspot/art_core/widgets/layout/swipe_back_wrapper.dart';
 import '../../core/di.dart';
@@ -62,7 +63,8 @@ import '../../features/tournaments/presentation/live_match/tournament_match_cubi
 import '../../features/tournaments/presentation/live_match/tournament_match_screen.dart';
 import '../../features/tournaments/presentation/history/tournament_history_cubit.dart';
 import '../../features/tournaments/presentation/history/tournament_history_screen.dart';
-import '../../features/app_status/presentation/screens/maintenance_screen.dart';
+import '../../features/app_status/presentation/widgets/maintenance_runtime_gate.dart';
+import '../../features/app_status/presentation/widgets/app_status_runtime_guard.dart';
 import '../../features/app_status/presentation/screens/force_update_screen.dart';
 import '../../features/app_status/domain/entities/app_status_entity.dart';
 import '../../features/app_status/presentation/cubit/app_status_cubit.dart';
@@ -239,7 +241,9 @@ class AppRouter {
             pageBuilder: (context, state) => _buildPage(
               context: context,
               state: state,
-              child: MaintenanceScreen(statusEntity: state.extra as AppStatusEntity?),
+              child: MaintenanceRuntimeGate(
+                initialStatusEntity: state.extra as AppStatusEntity?,
+              ),
             ),
           ),
           GoRoute(
@@ -275,7 +279,7 @@ class AppRouter {
             builder: (context, state, child) {
               return BlocProvider(
                 create: (context) => sl<SignupCubit>(),
-                child: child,
+                child: AppStatusRuntimeGuard(child: child),
               );
             },
             routes: [
@@ -349,7 +353,8 @@ class AppRouter {
                   BlocProvider(create: (context) => sl<FavoritesCubit>()),
                   BlocProvider(create: (context) => sl<ProfileCubit>()),
                   BlocProvider(create: (context) => sl<NotificationsCubit>()),
-                  BlocProvider(create: (context) => sl<ActiveSessionCubit>()),
+                  BlocProvider.value(value: sl<ActiveSessionCubit>()),
+                  BlocProvider.value(value: sl<AppStatusCubit>()),
                   BlocProvider(create: (context) => sl<MyBookingsCubit>()),
                 ],
                 child: child,
@@ -386,7 +391,10 @@ class AppRouter {
                     pageBuilder: (context, state) => _buildPage(
                       context: context,
                       state: state,
-                      child: const SearchScreen(),
+                      child: BlocProvider(
+                        create: (context) => sl<SearchCubit>()..search(),
+                        child: const SearchScreen(),
+                      ),
                     ),
                   ),
                   GoRoute(

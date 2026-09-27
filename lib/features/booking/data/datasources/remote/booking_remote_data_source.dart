@@ -6,6 +6,24 @@ import '../../models/booking_params.dart';
 
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId});
+  Future<bool> checkRoomAvailability({required String roomId, required DateTime startTime, required DateTime endTime});
+  Future<Map<String, dynamic>> acquireBookingHold({required List<String> roomIds, required DateTime startTime, required DateTime endTime, int holdMinutes = 10});
+  Future<void> releaseBookingHold(String holdToken);
+  Future<Map<String, dynamic>> quoteBookingCheckout({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extraItems,
+    String? voucherCode,
+  });
+  Future<Map<String, dynamic>> createBookingCheckout({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extraItems,
+    String? voucherCode,
+    required String paymentMethod,
+    String? senderWalletPhone,
+    String? receiptUrl,
+  });
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
@@ -40,22 +58,120 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   BookingRemoteDataSourceImpl(this._client);
 
   @override
-  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId}) async {
-    final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    
-    var query = _client
-        .from('bookings')
-        .select('room_id, start_time, end_time, date, status, start_at, end_at, booking_period')
-        .eq('lounge_id', loungeId)
-        .eq('date', dateStr);
+  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(
+    String loungeId,
+    DateTime date, {
+    String? roomId,
+  }) async {
+    final dateStr =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
-    if (roomId != null && roomId.isNotEmpty) {
-      query = query.eq('room_id', roomId);
-    }
+    final response = await _client.rpc(
+      'get_room_bookings_for_operational_date',
+      params: {
+        'p_lounge_id': loungeId,
+        'p_date': dateStr,
+      },
+    );
 
-    final response = await query;
+    final rows = List<Map<String, dynamic>>.from(response as List);
+    if (roomId == null || roomId.isEmpty) return rows;
 
-    return List<Map<String, dynamic>>.from(response);
+    return rows
+        .where((row) => row['room_id']?.toString() == roomId)
+        .toList();
+  }
+
+  @override
+  Future<bool> checkRoomAvailability({
+    required String roomId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    final response = await _client.rpc(
+      'check_room_availability_local',
+      params: {
+        'p_room_id': roomId,
+        'p_start_time': startTime.toIso8601String(),
+        'p_end_time': endTime.toIso8601String(),
+      },
+    );
+
+    return response == true;
+  }
+
+  @override
+  Future<Map<String, dynamic>> acquireBookingHold({
+    required List<String> roomIds,
+    required DateTime startTime,
+    required DateTime endTime,
+    int holdMinutes = 10,
+  }) async {
+    final response = await _client.rpc(
+      'acquire_booking_hold',
+      params: {
+        'p_room_ids': roomIds,
+        'p_start_at': startTime.toIso8601String(),
+        'p_end_at': endTime.toIso8601String(),
+        'p_hold_minutes': holdMinutes,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<void> releaseBookingHold(String holdToken) async {
+    await _client.rpc(
+      'release_booking_hold',
+      params: {'p_hold_token': holdToken},
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> quoteBookingCheckout({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extraItems,
+    String? voucherCode,
+  }) async {
+    final response = await _client.rpc(
+      'quote_my_booking_checkout',
+      params: {
+        'p_hold_token': holdToken,
+        'p_room_requests': roomRequests,
+        'p_extra_items': extraItems,
+        'p_voucher_code': voucherCode,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<Map<String, dynamic>> createBookingCheckout({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extraItems,
+    String? voucherCode,
+    required String paymentMethod,
+    String? senderWalletPhone,
+    String? receiptUrl,
+  }) async {
+    final response = await _client.rpc(
+      'create_my_booking_checkout',
+      params: {
+        'p_hold_token': holdToken,
+        'p_room_requests': roomRequests,
+        'p_extra_items': extraItems,
+        'p_voucher_code': voucherCode,
+        'p_payment_method': paymentMethod,
+        'p_sender_wallet_phone': senderWalletPhone,
+        'p_receipt_url': receiptUrl,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
   }
 
   @override

@@ -33,6 +33,27 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
         : 'الدفع الكاش غير متاح في هذه الصالة.';
   }
 
+  if (message.contains('booking_hold_expired') ||
+      message.contains('hold expired')) {
+    return isEnglish
+        ? 'Your reserved time expired. Please choose the time again.'
+        : 'انتهت مهلة حجز الموعد. يرجى اختيار الوقت من جديد.';
+  }
+
+  if (message.contains('voucher_invalid') ||
+      message.contains('voucher_consumption_failed')) {
+    return isEnglish
+        ? 'This voucher is invalid, expired, or already used.'
+        : 'الكوبون غير صالح أو منتهي أو تم استخدامه بالفعل.';
+  }
+
+  if (message.contains('extra unavailable') ||
+      message.contains('insufficient stock')) {
+    return isEnglish
+        ? 'One of the selected add-ons is no longer available.'
+        : 'إحدى الإضافات المختارة لم تعد متاحة حالياً.';
+  }
+
   if (message.contains('first booking must use manual_transfer') ||
       message.contains('first_booking_manual_transfer_required')) {
     return isEnglish
@@ -78,6 +99,9 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
   }
 
   if (message.contains('overlappingbookingerror') ||
+      message.contains('slot_overlap_conflict') ||
+      message.contains('slot_held_by_another_user') ||
+      message.contains('bookingholdfailed') ||
       message.contains('exclusion constraint') ||
       message.contains('no_overlapping_room_bookings') ||
       message.contains('prevent_room_booking_overlap')) {
