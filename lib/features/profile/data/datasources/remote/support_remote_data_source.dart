@@ -33,7 +33,10 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
   @override
   Future<List<Map<String, dynamic>>> getPolicies(String lang) async {
     try {
-      final response = await _supabase.rpc('get_public_policies', params: {'p_lang': lang});
+      final response = await _supabase.rpc(
+        'get_public_policies',
+        params: {'p_lang': lang},
+      );
       if (response is List) {
         return List<Map<String, dynamic>>.from(
           response.map((item) => Map<String, dynamic>.from(item as Map)),
@@ -41,7 +44,10 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
       }
     } catch (_) {
       try {
-        final response = await _supabase.rpc('get_public_policies', params: {'lang': lang});
+        final response = await _supabase.rpc(
+          'get_public_policies',
+          params: {'lang': lang},
+        );
         if (response is List) {
           return List<Map<String, dynamic>>.from(
             response.map((item) => Map<String, dynamic>.from(item as Map)),
@@ -55,7 +61,10 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
   @override
   Future<List<Map<String, dynamic>>> getFaqs(String lang) async {
     try {
-      final response = await _supabase.rpc('get_public_faqs', params: {'p_lang': lang});
+      final response = await _supabase.rpc(
+        'get_public_faqs',
+        params: {'p_lang': lang},
+      );
       if (response is List) {
         return List<Map<String, dynamic>>.from(
           response.map((item) => Map<String, dynamic>.from(item as Map)),
@@ -63,7 +72,10 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
       }
     } catch (_) {
       try {
-        final response = await _supabase.rpc('get_public_faqs', params: {'lang': lang});
+        final response = await _supabase.rpc(
+          'get_public_faqs',
+          params: {'lang': lang},
+        );
         if (response is List) {
           return List<Map<String, dynamic>>.from(
             response.map((item) => Map<String, dynamic>.from(item as Map)),
@@ -81,10 +93,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
   }) async {
     await _supabase.rpc(
       'create_support_ticket',
-      params: {
-        'p_issue_type': issueType,
-        'p_message': message,
-      },
+      params: {'p_issue_type': issueType, 'p_message': message},
     );
   }
 }
