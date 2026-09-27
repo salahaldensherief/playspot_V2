@@ -17,13 +17,24 @@ class CheckoutSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CheckoutCubit, CheckoutState>(
-      buildWhen: (previous, current) => previous.discountAmount != current.discountAmount,
+      buildWhen: (previous, current) =>
+          previous.discountAmount != current.discountAmount ||
+          previous.serverQuote != current.serverQuote,
       builder: (context, state) {
         final isArabic = context.locale.languageCode == 'ar';
-        final roomOriginalSubtotal = params.originalRoomSubtotal;
-        final roomDiscount = params.discountAmount;
-        final voucherDiscount = state.discountAmount;
-        final finalPrice = params.calculateFinalPrice(voucherDiscount);
+        final quote = state.serverQuote;
+        final roomOriginalSubtotal =
+            (quote?['original_rooms_total'] as num?)?.toDouble() ??
+            params.originalRoomSubtotal;
+        final roomDiscount =
+            (quote?['promo_discount_total'] as num?)?.toDouble() ??
+            params.discountAmount;
+        final voucherDiscount =
+            (quote?['voucher_discount'] as num?)?.toDouble() ??
+            state.discountAmount;
+        final finalPrice =
+            (quote?['final_total'] as num?)?.toDouble() ??
+            params.calculateFinalPrice(voucherDiscount);
 
         // Build session details rows
         final List<Map<String, dynamic>> sessionRows = [
@@ -62,16 +73,26 @@ class CheckoutSummaryCard extends StatelessWidget {
         }
 
         // Build canteen / add-ons items
-        final canteenItems = params.addOns.map((addOn) {
+        final quoteExtras = quote?['extras'];
+        final sourceExtras = quoteExtras is List ? quoteExtras : params.addOns;
+        final canteenItems = sourceExtras.map((rawAddOn) {
+          final addOn = Map<String, dynamic>.from(rawAddOn as Map);
           IconData icon = Icons.local_drink_outlined;
-          final name = addOn['name'].toString().toLowerCase();
-          if (name.contains('snack') || name.contains('food') || name.contains('popcorn') || name.contains('pizza')) {
+          final itemName = (addOn['name'] ?? '').toString();
+          final normalizedName = itemName.toLowerCase();
+          if (normalizedName.contains('snack') ||
+              normalizedName.contains('food') ||
+              normalizedName.contains('popcorn') ||
+              normalizedName.contains('pizza')) {
             icon = Icons.fastfood_outlined;
           }
+
           return OrderItemData(
-            name: addOn['name'].toString(),
-            quantity: (addOn['quantity'] as num).toInt(),
-            price: (addOn['price'] as num).toDouble(),
+            name: itemName,
+            quantity: (addOn['quantity'] as num?)?.toInt() ?? 1,
+            price: (addOn['unit_price'] as num?)?.toDouble() ??
+                (addOn['price'] as num?)?.toDouble() ??
+                0,
             icon: icon,
           );
         }).toList();
