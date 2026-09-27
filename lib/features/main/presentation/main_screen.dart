@@ -26,6 +26,10 @@ import '../../../art_core/router/router_keys.dart';
 import '../../active_session/presentation/active_session_cubit.dart';
 import '../../active_session/presentation/active_session_state.dart';
 import '../../my_bookings/presentation/my_bookings_cubit.dart';
+import '../../app_status/domain/entities/app_status_type.dart';
+import '../../app_status/presentation/cubit/app_status_cubit.dart';
+import '../../app_status/presentation/cubit/app_status_state.dart';
+import '../../app_status/presentation/widgets/maintenance_banner.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -190,27 +194,48 @@ class _MainScreenState extends State<MainScreen> {
       ],
       child: Scaffold(
         backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: IndexedStack(
-              index: _selectedIndex,
-              children: screens,
+        body: Column(
+          children: [
+            BlocBuilder<AppStatusCubit, AppStatusState>(
+              buildWhen: (previous, current) =>
+                  previous.statusType != current.statusType ||
+                  previous.statusEntity != current.statusEntity,
+              builder: (context, appStatusState) {
+                if (appStatusState.statusType !=
+                    AppStatusType.maintenanceRestricted) {
+                  return const SizedBox.shrink();
+                }
+
+                return MaintenanceBanner(
+                  customMessage:
+                      appStatusState.statusEntity?.maintenanceMessage,
+                );
+              },
             ),
-          ),
-          
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: navBarBottom,
-            child: RepaintBoundary(
-              child: _buildGlassNavBar(),
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: IndexedStack(
+                      index: _selectedIndex,
+                      children: screens,
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: navBarBottom,
+                    child: RepaintBoundary(
+                      child: _buildGlassNavBar(),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    )
-        );
+    );
   }
 
   Widget _buildGlassNavBar() {
