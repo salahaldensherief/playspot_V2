@@ -38,7 +38,7 @@ class FacebookAuthStrategy implements AuthStrategy {
         }
       });
 
-      return completer.future.timeout(
+      return await completer.future.timeout(
         const Duration(minutes: 2),
         onTimeout: () {
           subscription.cancel();
