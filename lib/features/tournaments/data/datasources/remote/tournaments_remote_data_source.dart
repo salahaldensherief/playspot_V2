@@ -104,135 +104,64 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     double? longitude,
     String? loungeId,
   }) async {
-    try {
-      dynamic response;
-      try {
-        response = await _client.rpc(
-          'get_visible_tournaments',
-          params: {'p_latitude': latitude, 'p_longitude': longitude},
-        );
-      } catch (e1) {
-        dev.log('[TOURNAMENTS_REMOTE] RPC with params failed: $e1');
-      }
+    final response = await _client.rpc(
+      'get_visible_tournaments',
+      params: {
+        'p_latitude': latitude,
+        'p_longitude': longitude,
+      },
+    );
 
-      if (response == null || (response is List && response.isEmpty)) {
-        try {
-          response = await _client.rpc('get_visible_tournaments');
-        } catch (e2) {
-          dev.log('[TOURNAMENTS_REMOTE] RPC without params failed: $e2');
-        }
-      }
+    final list = (response as List).cast<Map<String, dynamic>>();
+    var models = list.map(TournamentModel.fromJson).toList();
 
-      if (response == null || (response is List && response.isEmpty)) {
-        dev.log(
-          '[TOURNAMENTS_REMOTE] RPC returned empty or failed, querying tournaments table directly...',
-        );
-        try {
-          response = await _client
-              .from('tournaments')
-              .select('*, cities:city_id(*), lounges:lounge_id(*)')
-              .order('created_at', ascending: false);
-        } catch (e3) {
-          dev.log('[TOURNAMENTS_REMOTE] Direct select failed: $e3');
-        }
-      }
-
-      final list = (response as List?)?.cast<Map<String, dynamic>>() ?? [];
-      dev.log(
-        '[TOURNAMENTS_REMOTE] Fetched ${list.length} raw tournaments from DB',
-      );
-
-      var models = list.map((json) => TournamentModel.fromJson(json)).toList();
-
-      // MOB-01: Exclude draft, cancelled, completed from active feed (unless statusFilter == 'completed')
-      if (statusFilter == 'completed') {
-        models = models
-            .where((t) => t.status == TournamentStatus.completed)
-            .toList();
-      } else {
-        models = models
-            .where(
-              (t) =>
-                  t.status != TournamentStatus.draft &&
-                  t.status != TournamentStatus.cancelled &&
-                  t.status != TournamentStatus.completed,
-            )
-            .toList();
-      }
-
-      // MOB-02: If location is null (no location permission), exclude 'radius' tournaments
-      if (latitude == null || longitude == null) {
-        models = models.where((t) {
-          if (t.visibilityScope == TournamentVisibilityScope.radius) {
-            return false;
-          }
-          if (t.visibilityScope == TournamentVisibilityScope.city) {
-            return cityId == null ||
-                cityId.isEmpty ||
-                t.cityId == null ||
-                t.cityId == cityId;
-          }
-          return true; // TournamentVisibilityScope.all
-        }).toList();
-      }
-
-      if (loungeId != null && loungeId.isNotEmpty) {
-        models = models.where((t) => t.loungeId == loungeId).toList();
-      }
-
-      if (game != null && game.isNotEmpty && game != 'All') {
-        models = models
-            .where((t) => t.game.toLowerCase().contains(game.toLowerCase()))
-            .toList();
-      }
-
-      if (cityId != null && cityId.isNotEmpty) {
-        models = models
-            .where(
-              (t) =>
-                  t.visibilityScope == TournamentVisibilityScope.all ||
-                  t.cityId == null ||
-                  t.cityId == cityId,
-            )
-            .toList();
-      }
-
-      if (statusFilter != null &&
-          statusFilter.isNotEmpty &&
-          statusFilter != 'All' &&
-          statusFilter != 'completed') {
-        models = models.where((t) {
-          final dbStatus = t.status.toDbString();
-          if (statusFilter == 'registration_open') {
-            return dbStatus == 'registration_open' || dbStatus == 'published';
-          }
-          return dbStatus == statusFilter;
-        }).toList();
-      }
-
-      if (searchQuery != null && searchQuery.trim().isNotEmpty) {
-        final q = searchQuery.trim().toLowerCase();
-        models = models.where((t) {
-          final titleAr = (t.titleAr ?? '').toLowerCase();
-          final titleEn = (t.titleEn ?? '').toLowerCase();
-          final title = t.title.toLowerCase();
-          final gameName = t.game.toLowerCase();
-          final descAr = (t.descriptionAr ?? '').toLowerCase();
-          final descEn = (t.descriptionEn ?? '').toLowerCase();
-          return titleAr.contains(q) ||
-              titleEn.contains(q) ||
-              title.contains(q) ||
-              gameName.contains(q) ||
-              descAr.contains(q) ||
-              descEn.contains(q);
-        }).toList();
-      }
-
-      return models;
-    } catch (e) {
-      dev.log('[TOURNAMENTS_REMOTE] Error fetching tournaments: $e');
-      return [];
+    if (statusFilter == 'completed') {
+      return const <TournamentModel>[];
     }
+
+    if (loungeId != null && loungeId.isNotEmpty) {
+      models = models.where((t) => t.loungeId == loungeId).toList();
+    }
+
+    if (game != null && game.isNotEmpty && game != 'All') {
+      final cleanGame = game.toLowerCase();
+      models = models
+          .where((t) => t.game.toLowerCase().contains(cleanGame))
+          .toList();
+    }
+
+    if (cityId != null && cityId.isNotEmpty) {
+      models = models.where((t) {
+        if (t.visibilityScope == TournamentVisibilityScope.all) return true;
+        return t.cityId == cityId;
+      }).toList();
+    }
+
+    if (statusFilter != null &&
+        statusFilter.isNotEmpty &&
+        statusFilter != 'All') {
+      models = models.where((t) {
+        final dbStatus = t.status.toDbString();
+        if (statusFilter == 'registration_open') {
+          return dbStatus == 'registration_open' || dbStatus == 'published';
+        }
+        return dbStatus == statusFilter;
+      }).toList();
+    }
+
+    final query = searchQuery?.trim().toLowerCase() ?? '';
+    if (query.isNotEmpty) {
+      models = models.where((t) {
+        return (t.titleAr ?? '').toLowerCase().contains(query) ||
+            (t.titleEn ?? '').toLowerCase().contains(query) ||
+            t.title.toLowerCase().contains(query) ||
+            t.game.toLowerCase().contains(query) ||
+            (t.descriptionAr ?? '').toLowerCase().contains(query) ||
+            (t.descriptionEn ?? '').toLowerCase().contains(query);
+      }).toList();
+    }
+
+    return models;
   }
 
   @override
@@ -608,35 +537,29 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String participantId, {
     String? tournamentId,
   }) async {
-    try {
-      final res = await _client.rpc(
-        'withdraw_from_tournament',
-        params: {
-          'p_participant_id': participantId,
-          'p_tournament_id': tournamentId,
-        },
+    if (tournamentId == null || tournamentId.isEmpty) {
+      throw ArgumentError(
+        'tournamentId is required for tournament withdrawal',
       );
-
-      if (res is Map<String, dynamic>) {
-        return TournamentParticipantModel.fromJson(res);
-      }
-      return null;
-    } catch (e) {
-      dev.log(
-        '[TOURNAMENTS_REMOTE] RPC withdraw_from_tournament error, fallback to direct update: $e',
-      );
-      final res = await _client
-          .from('tournament_participants')
-          .update({'registration_status': 'withdrawn'})
-          .eq('id', participantId)
-          .select()
-          .maybeSingle();
-
-      if (res != null) {
-        return TournamentParticipantModel.fromJson(res);
-      }
-      return null;
     }
+
+    final res = await _client.rpc(
+      'withdraw_from_tournament',
+      params: {
+        'p_tournament_id': tournamentId,
+      },
+    );
+
+    if (res is Map<String, dynamic>) {
+      return TournamentParticipantModel.fromJson(res);
+    }
+    if (res is Map) {
+      return TournamentParticipantModel.fromJson(
+        Map<String, dynamic>.from(res),
+      );
+    }
+
+    return null;
   }
 
   @override
