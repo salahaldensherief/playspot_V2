@@ -8,6 +8,7 @@ import '../cache/preference_manager.dart';
 class AppConfig {
   // App Information
   static const String appName = "PlaySpot";
+
   // Context-aware isDarkMode for widgets usage
   static bool isDarkModeWithContext(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark;
@@ -38,23 +39,13 @@ class AppConfig {
     FocusManager.instance.primaryFocus?.unfocus();
   }
 
-  /// Injected at build time via --dart-define. The literal keys were removed
-  /// from source (they remain in git history — rotate them in Google Cloud
-  /// Console and restrict them to the app's bundle IDs).
+  /// Injected at build time via --dart-define.
   static String kGoogleApiKey = !kIsWeb && Platform.isIOS
       ? const String.fromEnvironment('GOOGLE_API_KEY_IOS')
       : const String.fromEnvironment('GOOGLE_API_KEY_ANDROID');
 
-  /// Supabase Configuration
-  static const String supabaseUrl = String.fromEnvironment(
-    'SUPABASE_URL',
-    defaultValue: 'https://tgpdexoitemmpruepgyt.supabase.co',
-  );
-
-  static const String supabaseAnonKey = String.fromEnvironment(
-    'SUPABASE_ANON_KEY',
-    defaultValue:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRncGRleG9pdGVtbXBydWVwZ3l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NjYyNzYsImV4cCI6MjA5NDI0MjI3Nn0.i5ekdw4CkWh97-BGWzCRQZ4c9bIKWIo2vD-Ev58BVC4',
-  );
+  /// Supabase configuration is required at build time via --dart-define.
+  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String supabaseAnonKey =
+      String.fromEnvironment('SUPABASE_ANON_KEY');
 }
-
