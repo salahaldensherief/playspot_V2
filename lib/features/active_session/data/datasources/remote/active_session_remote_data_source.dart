@@ -336,94 +336,40 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
   }
 
   @override
-  Future<void> placeOrder(String bookingId, List<OrderItemModel> items) async {
-    dev.log("[LIVESESSION_DS] PLACE_ORDER (Canteen): bookingId=$bookingId, itemsCount=${items.length}");
-    try {
-      if (items.isEmpty) return;
+  Future<void> placeOrder(
+    String bookingId,
+    List<OrderItemModel> items,
+  ) async {
+    dev.log(
+      "[LIVESESSION_DS] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}",
+    );
 
-      final currentUserId = _client.auth.currentUser?.id;
-      if (currentUserId == null) throw Exception('User not authenticated');
+    if (items.isEmpty) return;
 
-      final formattedItems = items.map((item) {
-        return {
-          'id': item.id,
-          'extra_id': item.id,
-          'item_id': item.id,
-          'product_id': item.id,
-          'name_ar': item.nameAr ?? item.name,
-          'name_en': item.nameEn ?? item.name,
-          'unit_price': item.price,
-          'price': item.price,
-          'quantity': item.quantity,
-          if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
-        };
-      }).toList();
+    final formattedItems = items
+        .map(
+          (item) => {
+            'extra_id': item.id,
+            'quantity': item.quantity,
+          },
+        )
+        .toList();
 
-      final notes = items.where((i) => i.note != null && i.note!.isNotEmpty).map((i) => i.note).join(', ');
+    final notes = items
+        .where((item) => item.note != null && item.note!.isNotEmpty)
+        .map((item) => item.note)
+        .join(', ');
 
-      try {
-        final response = await _client.rpc('place_canteen_order', params: {
-          'p_booking_id': bookingId,
-          'p_items': formattedItems,
-          if (notes.isNotEmpty) 'p_note': notes,
-        });
-        dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC SUCCESS: $response");
-      } catch (e) {
-        dev.log("[LIVESESSION_DS] place_canteen_order with p_booking_id and p_items failed: $e, trying full params...");
-        final bookingRes = await _client
-            .from('bookings')
-            .select('lounge_id')
-            .eq('id', bookingId)
-            .maybeSingle();
-        final loungeId = bookingRes?['lounge_id']?.toString() ?? '';
+    final response = await _client.rpc(
+      'place_canteen_order',
+      params: {
+        'p_booking_id': bookingId,
+        'p_items': formattedItems,
+        'p_note': notes.isNotEmpty ? notes : null,
+      },
+    );
 
-        try {
-          final response = await _client.rpc('place_canteen_order', params: {
-            'p_booking_id': bookingId,
-            'p_lounge_id': loungeId.isNotEmpty ? loungeId : null,
-            'p_user_id': currentUserId,
-            'p_items': formattedItems,
-            'p_total_price': null,
-            'p_note': notes.isNotEmpty ? notes : null,
-          });
-          dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC with full params SUCCESS: $response");
-        } catch (e2) {
-          dev.log("[LIVESESSION_DS] Both RPCs failed: $e2, attempting direct insert into canteen_orders...");
-          final double total = items.fold(0.0, (sum, i) => sum + i.total);
-          final orderRes = await _client.from('canteen_orders').insert({
-            'booking_id': bookingId,
-            if (loungeId.isNotEmpty) 'lounge_id': loungeId,
-            'user_id': currentUserId,
-            'total_price': total,
-            'status': 'pending',
-            if (notes.isNotEmpty) 'note': notes,
-            'created_at': DateTime.now().toIso8601String(),
-          }).select('id').maybeSingle();
-
-          final orderId = orderRes?['id']?.toString();
-          if (orderId != null && orderId.isNotEmpty) {
-            for (var item in items) {
-              await _client.from('canteen_order_items').insert({
-                'canteen_order_id': orderId,
-                'extra_id': item.id,
-                'name_ar': item.nameAr ?? item.name,
-                'name_en': item.nameEn ?? item.name,
-                'unit_price': item.price,
-                'quantity': item.quantity,
-                'total_price': item.total,
-                if (item.note != null && item.note!.isNotEmpty) 'note': item.note,
-              });
-            }
-            dev.log("[LIVESESSION_DS] Direct insert to canteen_orders & canteen_order_items SUCCESS");
-          } else {
-            rethrow;
-          }
-        }
-      }
-    } catch (e, st) {
-      dev.log("[LIVESESSION_DS] PLACE_ORDER FAILED: $e", error: e, stackTrace: st);
-      rethrow;
-    }
+    dev.log("[LIVESESSION_DS] PLACE_CANTEEN_ORDER RPC SUCCESS: $response");
   }
 
   @override
