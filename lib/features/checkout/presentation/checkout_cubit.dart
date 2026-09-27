@@ -460,8 +460,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         String? attachError;
         attachResult.fold((failure) => attachError = failure.message, (_) {});
 
-        if (attachError != null) {
-          throw StateError(attachError);
+        final resolvedAttachError = attachError;
+        if (resolvedAttachError != null) {
+          throw StateError(resolvedAttachError);
         }
       } catch (error, stackTrace) {
         AppLogger.error(
