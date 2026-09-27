@@ -29,17 +29,22 @@ class CheckoutBottomPayBar extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.status != current.status ||
           previous.discountAmount != current.discountAmount ||
+          previous.serverQuote != current.serverQuote ||
           previous.selectedMethod != current.selectedMethod ||
           previous.isHoldExpired != current.isHoldExpired,
       builder: (context, state) {
-        final finalPrice = params.calculateFinalPrice(state.discountAmount);
+        final finalPrice = state.serverFinalTotal ??
+            params.calculateFinalPrice(state.discountAmount);
         final buttonText = state.status == CheckoutStatus.loading
             ? AppStrings.processing.tr()
             : (state.selectedMethod == PaymentMethod.cash
                 ? AppStrings.confirmBookingWithPrice.tr(args: [finalPrice.toStringAsFixed(2)])
                 : AppStrings.payNowWithPrice.tr(args: [finalPrice.toStringAsFixed(2)]));
 
-        final bool isButtonEnabled = state.status != CheckoutStatus.loading && !state.isHoldExpired;
+        final bool isButtonEnabled =
+            state.status != CheckoutStatus.loading &&
+            !state.isHoldExpired &&
+            state.serverFinalTotal != null;
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
