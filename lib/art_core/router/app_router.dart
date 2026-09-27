@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';import 'package:flutter/material.dart';
@@ -53,6 +54,7 @@ import '../../features/profile/presentation/profile/points_history_screen.dart';
 import '../../features/profile/presentation/profile/my_vouchers_screen.dart';
 import '../../features/active_session/presentation/active_session_screen.dart';
 import '../../features/active_session/presentation/active_session_cubit.dart';
+import '../../features/active_session/presentation/active_session_state.dart';
 import '../../features/lounge_details/presentation/lounge_details/room_details_screen.dart';
 import '../../features/tournaments/presentation/tournaments_feed/tournaments_feed_cubit.dart';
 import '../../features/tournaments/presentation/tournaments_feed/tournaments_feed_screen.dart';
@@ -66,6 +68,7 @@ import '../../features/app_status/presentation/screens/maintenance_screen.dart';
 import '../../features/app_status/presentation/screens/force_update_screen.dart';
 import '../../features/app_status/domain/entities/app_status_entity.dart';
 import '../../features/app_status/presentation/cubit/app_status_cubit.dart';
+import '../../features/app_status/presentation/cubit/app_status_state.dart';
 import '../../core/notifications/notification_router.dart';
 import '../presentation/locale_cubit.dart';
 import '../theme/app_colors.dart';
@@ -74,7 +77,13 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
+  late final _AppRuntimeRefreshNotifier _runtimeRefreshNotifier;
+
   AppRouter() {
+    _runtimeRefreshNotifier = _AppRuntimeRefreshNotifier(
+      appStatusCubit: sl<AppStatusCubit>(),
+      activeSessionCubit: sl<ActiveSessionCubit>(),
+    );
     _setupNotificationHandler();
   }
 
@@ -122,6 +131,7 @@ class AppRouter {
   late final GoRouter router = GoRouter(
     navigatorKey: navigatorKey,
     initialLocation: RouterKeys.splash,
+    refreshListenable: _runtimeRefreshNotifier,
     debugLogDiagnostics: kDebugMode,
     extraCodec: const MyExtraCodec(),
     redirect: (context, state) {
@@ -169,36 +179,32 @@ class AppRouter {
         return null;
       }
 
-      // Live System Maintenance Guard with fresh active session check
-      try {
-        final appStatusCubit = sl<AppStatusCubit>();
-        final statusEntity = appStatusCubit.state.statusEntity;
+      final appStatusState = sl<AppStatusCubit>().state;
+      final appStatusType = appStatusState.statusType;
 
-        if (statusEntity != null && statusEntity.maintenanceMode) {
-          // Direct live session check at redirect time
-          final activeSession = sl<ActiveSessionCubit>().state.session;
-          final hasLiveActiveSession = activeSession != null && activeSession.status == 'in_progress';
-
-          if (!hasLiveActiveSession) {
-            // User has NO live active session -> send to Maintenance Screen
-            if (currentPath != RouterKeys.maintenance) {
-              return RouterKeys.maintenance;
-            }
-            return null;
-          } else {
-            // User HAS a live active session -> allow active session controls, block NEW booking creation
-            final isNewBookingAttempt = currentName == RouterKeys.booking ||
-                currentName == RouterKeys.checkout ||
-                currentPath.startsWith('/booking') ||
-                currentPath.startsWith('/checkout');
-
-            if (isNewBookingAttempt) {
-              return RouterKeys.home;
-            }
-          }
+      if (appStatusType == AppStatusType.forceUpdate) {
+        if (currentPath != RouterKeys.forceUpdate) {
+          return RouterKeys.forceUpdate;
         }
-      } catch (e, stack) {
-        AppLogger.error('Maintenance guard check failed in router redirect', e, stack);
+        return null;
+      }
+
+      if (appStatusType == AppStatusType.maintenance) {
+        if (currentPath != RouterKeys.maintenance) {
+          return RouterKeys.maintenance;
+        }
+        return null;
+      }
+
+      if (appStatusType == AppStatusType.maintenanceRestricted) {
+        final isNewBookingAttempt = currentName == RouterKeys.booking ||
+            currentName == RouterKeys.checkout ||
+            currentPath.startsWith('/booking') ||
+            currentPath.startsWith('/checkout');
+
+        if (isNewBookingAttempt) {
+          return RouterKeys.home;
+        }
       }
 
       return null;
@@ -247,18 +253,22 @@ class AppRouter {
             name: RouterKeys.forceUpdate,
             pageBuilder: (context, state) {
               final extra = state.extra;
-              AppStatusEntity? entity;
-              String version = '1.0.0';
+              final globalState = sl<AppStatusCubit>().state;
+              AppStatusEntity? entity = globalState.statusEntity;
+              String version = globalState.currentAppVersion;
               if (extra is Map<String, dynamic>) {
-                entity = extra['entity'] as AppStatusEntity?;
-                version = extra['version'] as String? ?? '1.0.0';
+                entity = extra['entity'] as AppStatusEntity? ?? entity;
+                version = extra['version'] as String? ?? version;
               } else if (extra is AppStatusEntity) {
                 entity = extra;
               }
               return _buildPage(
                 context: context,
                 state: state,
-                child: ForceUpdateScreen(statusEntity: entity, currentVersion: version),
+                child: ForceUpdateScreen(
+                  statusEntity: entity,
+                  currentVersion: version,
+                ),
               );
             },
           ),
@@ -841,5 +851,49 @@ class _MyExtraDecoder extends Converter<Object?, Object?> {
       return input.map(convert).toList();
     }
     return input;
+  }
+}
+
+
+class _AppRuntimeRefreshNotifier extends ChangeNotifier {
+  final AppStatusCubit appStatusCubit;
+  final ActiveSessionCubit activeSessionCubit;
+
+  late final StreamSubscription<AppStatusState> _appStatusSubscription;
+  late final StreamSubscription<ActiveSessionState> _activeSessionSubscription;
+
+  _AppRuntimeRefreshNotifier({
+    required this.appStatusCubit,
+    required this.activeSessionCubit,
+  }) {
+    _syncActiveSession(activeSessionCubit.state);
+
+    _appStatusSubscription = appStatusCubit.stream.listen((_) {
+      notifyListeners();
+    });
+
+    _activeSessionSubscription = activeSessionCubit.stream.listen((state) {
+      _syncActiveSession(state);
+      notifyListeners();
+    });
+  }
+
+  void _syncActiveSession(ActiveSessionState state) {
+    final session = state.session;
+    final hasActiveSession =
+        state.status == ActiveSessionStatus.loaded &&
+        session != null &&
+        session.status == 'in_progress';
+
+    appStatusCubit.updateActiveSessionStatus(
+      hasActiveSession: hasActiveSession,
+    );
+  }
+
+  @override
+  void dispose() {
+    _appStatusSubscription.cancel();
+    _activeSessionSubscription.cancel();
+    super.dispose();
   }
 }
