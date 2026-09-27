@@ -17,6 +17,21 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> checkRoomAvailability({
+    required String roomId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.checkRoomAvailability(
+        roomId: roomId,
+        startTime: startTime,
+        endTime: endTime,
+      ),
+    );
+  }
+
+  @override
   Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params) async {
     return await callRepository(() => _remoteDataSource.createBooking(params));
   }
