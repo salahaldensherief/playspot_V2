@@ -8,8 +8,6 @@ import '../cache/preference_manager.dart';
 class AppConfig {
   // App Information
   static const String appName = "PlaySpot";
-  static const String appVersion = "1.1.1";
-
   // Context-aware isDarkMode for widgets usage
   static bool isDarkModeWithContext(BuildContext context) {
     return Theme.of(context).brightness == Brightness.dark;
