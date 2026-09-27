@@ -79,7 +79,8 @@ class QuickRebookAddonsSection extends StatelessWidget {
                       ),
                     ),
                     if (quantity > 0) ...[
-                      _QuantityButton(
+                      _buildQuantityButton(
+                        context,
                         icon: Icons.remove,
                         onTap: () => context
                             .read<QuickRebookCubit>()
@@ -98,7 +99,8 @@ class QuickRebookAddonsSection extends StatelessWidget {
                         ),
                       ),
                     ],
-                    _QuantityButton(
+                    _buildQuantityButton(
+                      context,
                       icon: Icons.add,
                       isPrimary: true,
                       onTap: () => context
@@ -117,21 +119,13 @@ class QuickRebookAddonsSection extends StatelessWidget {
       ],
     );
   }
-}
 
-class _QuantityButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isPrimary;
-
-  const _QuantityButton({
-    required this.icon,
-    required this.onTap,
-    this.isPrimary = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildQuantityButton(
+    BuildContext context, {
+    required IconData icon,
+    required VoidCallback onTap,
+    bool isPrimary = false,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(
