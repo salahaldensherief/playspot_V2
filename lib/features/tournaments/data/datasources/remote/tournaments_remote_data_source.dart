@@ -271,6 +271,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .select('*, tournaments(*)')
           .eq('user_id', currentUser.id)
           .order('created_at', ascending: false)
+          .limit(1)
           .maybeSingle();
 
       if (response == null) return null;
