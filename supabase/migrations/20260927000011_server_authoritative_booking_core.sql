@@ -85,7 +85,7 @@ BEGIN
     count(DISTINCT h.lounge_id),
     count(DISTINCT h.start_at),
     count(DISTINCT h.end_at),
-    min(h.lounge_id),
+    (array_agg(h.lounge_id ORDER BY h.lounge_id))[1],
     min(h.start_at),
     min(h.end_at),
     min(h.expires_at),
@@ -565,7 +565,7 @@ BEGIN
   FOR UPDATE;
 
   SELECT
-    min(h.lounge_id) AS lounge_id,
+    (array_agg(h.lounge_id ORDER BY h.lounge_id))[1] AS lounge_id,
     min(h.start_at) AS start_at,
     min(h.end_at) AS end_at,
     min(h.expires_at) AS hold_expires_at,
