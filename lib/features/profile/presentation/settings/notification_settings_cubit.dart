@@ -103,6 +103,8 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
 
   void _syncAllToFirebase(NotificationSettingsState s) {
     PushNotificationService.instance.syncAllTopicsFromPreferences({
+      'all_users': true,
+      'announcements': s.systemStatus,
       'user_bookings': s.bookingUpdates,
       'offers_and_promos': s.offersPromotions,
       'system_announcements': s.systemStatus,
@@ -112,6 +114,8 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
 
   void _unsubscribeFromAll() {
     PushNotificationService.instance.syncAllTopicsFromPreferences({
+      'all_users': false,
+      'announcements': false,
       'user_bookings': false,
       'offers_and_promos': false,
       'system_announcements': false,
