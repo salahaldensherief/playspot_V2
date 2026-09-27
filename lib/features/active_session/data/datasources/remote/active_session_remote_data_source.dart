@@ -61,11 +61,44 @@ class ActiveSessionRemoteDataSourceImpl implements ActiveSessionRemoteDataSource
         final Map<String, dynamic> rpcMap = rpcRes is List
             ? (rpcRes.isNotEmpty ? Map<String, dynamic>.from(rpcRes.first) : {})
             : Map<String, dynamic>.from(rpcRes);
-        if (rpcMap.isNotEmpty && rpcMap['id'] != null) {
-          final rpcModel = ActiveSessionModel.fromJson(rpcMap);
-          if (rpcModel.bookingId.isNotEmpty && rpcModel.status == 'in_progress') {
-            dev.log("[LIVESESSION_DS] GET_ACTIVE_SESSION RPC SUCCESS: bookingId=${rpcModel.bookingId}");
-            return rpcModel;
+
+        if (rpcMap.isNotEmpty) {
+          Map<String, dynamic> hydrated = rpcMap;
+
+          final booking = rpcMap['booking'];
+          if (booking is Map) {
+            hydrated = Map<String, dynamic>.from(booking);
+
+            final lounge = rpcMap['lounge'];
+            if (lounge is Map) {
+              hydrated['lounges'] = Map<String, dynamic>.from(lounge);
+            }
+
+            final room = rpcMap['room'];
+            if (room is Map) {
+              hydrated['rooms'] = Map<String, dynamic>.from(room);
+            }
+
+            final items = rpcMap['items'];
+            if (items is List) {
+              hydrated['items'] = items;
+            }
+
+            final canteenOrders = rpcMap['canteen_orders'];
+            if (canteenOrders is List) {
+              hydrated['canteen_orders'] = canteenOrders;
+            }
+          }
+
+          if (hydrated['id'] != null) {
+            final rpcModel = ActiveSessionModel.fromJson(hydrated);
+            if (rpcModel.bookingId.isNotEmpty &&
+                rpcModel.status == 'in_progress') {
+              dev.log(
+                "[LIVESESSION_DS] GET_ACTIVE_SESSION RPC SUCCESS: bookingId=${rpcModel.bookingId}",
+              );
+              return rpcModel;
+            }
           }
         }
       }
