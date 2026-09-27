@@ -96,6 +96,19 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }
 
   @override
+  Future<Either<Failure, void>> attachBookingReceipt({
+    required String bookingId,
+    required String receiptPath,
+  }) async {
+    return await callRepository<void>(
+      () => _remoteDataSource.attachBookingReceipt(
+        bookingId: bookingId,
+        receiptPath: receiptPath,
+      ),
+    );
+  }
+
+  @override
   Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params) async {
     return await callRepository(() => _remoteDataSource.createBooking(params));
   }
