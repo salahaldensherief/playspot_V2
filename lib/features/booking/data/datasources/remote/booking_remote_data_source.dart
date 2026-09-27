@@ -6,6 +6,7 @@ import '../../models/booking_params.dart';
 
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId});
+  Future<bool> checkRoomAvailability({required String roomId, required DateTime startTime, required DateTime endTime});
   Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
@@ -40,22 +41,46 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   BookingRemoteDataSourceImpl(this._client);
 
   @override
-  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId}) async {
-    final dateStr = "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
-    
-    var query = _client
-        .from('bookings')
-        .select('room_id, start_time, end_time, date, status, start_at, end_at, booking_period')
-        .eq('lounge_id', loungeId)
-        .eq('date', dateStr);
+  Future<List<Map<String, dynamic>>> getRoomBookingsForDate(
+    String loungeId,
+    DateTime date, {
+    String? roomId,
+  }) async {
+    final dateStr =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
-    if (roomId != null && roomId.isNotEmpty) {
-      query = query.eq('room_id', roomId);
-    }
+    final response = await _client.rpc(
+      'get_room_bookings_for_operational_date',
+      params: {
+        'p_lounge_id': loungeId,
+        'p_date': dateStr,
+      },
+    );
 
-    final response = await query;
+    final rows = List<Map<String, dynamic>>.from(response as List);
+    if (roomId == null || roomId.isEmpty) return rows;
 
-    return List<Map<String, dynamic>>.from(response);
+    return rows
+        .where((row) => row['room_id']?.toString() == roomId)
+        .toList();
+  }
+
+  @override
+  Future<bool> checkRoomAvailability({
+    required String roomId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    final response = await _client.rpc(
+      'check_room_availability_local',
+      params: {
+        'p_room_id': roomId,
+        'p_start_time': startTime.toIso8601String(),
+        'p_end_time': endTime.toIso8601String(),
+      },
+    );
+
+    return response == true;
   }
 
   @override
