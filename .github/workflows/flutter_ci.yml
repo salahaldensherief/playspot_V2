@@ -14,7 +14,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -49,3 +49,6 @@ jobs:
 
       - name: Run tests
         run: flutter test
+
+      - name: Verify Android release build
+        run: flutter build apk --release
