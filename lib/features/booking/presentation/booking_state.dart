@@ -15,6 +15,9 @@ class BookingState extends Equatable {
   final PlayMode playMode;
   final int extraControllersCount;
   final String? errorMessage;
+  final String? holdToken;
+  final DateTime? holdExpiresAt;
+  final DateTime? heldStartAt;
 
   const BookingState({
     this.status = BookingStatus.initial,
@@ -25,6 +28,9 @@ class BookingState extends Equatable {
     this.playMode = PlayMode.single,
     this.extraControllersCount = 0,
     this.errorMessage,
+    this.holdToken,
+    this.holdExpiresAt,
+    this.heldStartAt,
   });
 
   BookingState copyWith({
@@ -37,6 +43,10 @@ class BookingState extends Equatable {
     PlayMode? playMode,
     int? extraControllersCount,
     String? errorMessage,
+    String? holdToken,
+    DateTime? holdExpiresAt,
+    DateTime? heldStartAt,
+    bool clearHold = false,
   }) {
     return BookingState(
       status: status ?? this.status,
@@ -47,6 +57,9 @@ class BookingState extends Equatable {
       playMode: playMode ?? this.playMode,
       extraControllersCount: extraControllersCount ?? this.extraControllersCount,
       errorMessage: errorMessage,
+      holdToken: clearHold ? null : (holdToken ?? this.holdToken),
+      holdExpiresAt: clearHold ? null : (holdExpiresAt ?? this.holdExpiresAt),
+      heldStartAt: clearHold ? null : (heldStartAt ?? this.heldStartAt),
     );
   }
 
@@ -222,5 +235,8 @@ class BookingState extends Equatable {
         playMode,
         extraControllersCount,
         errorMessage,
+        holdToken,
+        holdExpiresAt,
+        heldStartAt,
       ];
 }
