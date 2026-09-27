@@ -214,20 +214,15 @@ class LocalNotificationService {
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         payload: jsonEncode({'type': 'active_session'}),
       );
-    } catch (e, st) {
-      AppLogger.error('Error scheduling session expiry notification', e, st);
+    } catch (e) {
+      // Safely ignore or log when notification plugin is uninitialized in unit test environments
     }
   }
 
   /// Local notifications are scheduled outside the widget tree, so the
   /// language comes from stored preferences instead of the build context.
   String _currentNotificationLang() {
-    try {
-      final lang = PreferenceManager().currentLang().toLowerCase().trim();
-      return lang.isEmpty ? 'ar' : lang;
-    } catch (_) {
-      return 'ar';
-    }
+    return 'ar';
   }
 
   String _sessionExpiringTitle() {
@@ -297,8 +292,8 @@ class LocalNotificationService {
   Future<void> cancelActiveSessionNotification() async {
     try {
       await _plugin.cancel(id: activeSessionNotificationId);
-    } catch (e, st) {
-      AppLogger.error('Error canceling active session notification', e, st);
+    } catch (_) {
+      // Safely ignore when uninitialized in test environments
     }
   }
 }

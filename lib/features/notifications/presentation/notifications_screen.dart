@@ -71,13 +71,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         data,
         "${notification.body} ${notification.title}",
       );
+
+      final textToCheck = "${notification.title} ${notification.body} ${data['type']} ${data['status']} ${data['action']}".toLowerCase();
+      final isCancelled = textToCheck.contains('cancel') ||
+          textToCheck.contains('reject') ||
+          textToCheck.contains('declin') ||
+          textToCheck.contains('إلغاء') ||
+          textToCheck.contains('ملغ') ||
+          textToCheck.contains('رفض');
+
+      final initialTab = isCancelled ? 2 : null;
+
       if (bookingId.isNotEmpty) {
         context.pushNamed(
           RouterKeys.bookingDetails,
           pathParameters: {'id': bookingId},
+          extra: {'initialTab': initialTab},
         );
       } else {
-        context.goNamed(RouterKeys.myBookings);
+        context.goNamed(
+          RouterKeys.myBookings,
+          extra: {'initialTab': initialTab},
+        );
       }
     } else if (type == NotificationType.offer) {
       context.pushNamed(RouterKeys.myVouchers);

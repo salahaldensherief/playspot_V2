@@ -101,11 +101,12 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
     // cached profile exists; returning it made expired sessions look valid.
     if (remoteUser == null) return null;
 
-    final cachedUser = _localDataSource.getCachedUser();
+    final storedUser = _localDataSource.getCachedUser();
+    final cachedUser = storedUser?.id == remoteUser.id ? storedUser : null;
     final phone = (remoteUser.phone != null && remoteUser.phone!.trim().isNotEmpty)
         ? remoteUser.phone
         : cachedUser?.phone;
-    final merged = remoteUser.copyWith(phone: phone);
+    final merged = (cachedUser ?? remoteUser).copyWith(phone: phone);
 
     // Persist only on an actual change: this getter runs on every router
     // redirect, and the old unconditional write churned storage each time.

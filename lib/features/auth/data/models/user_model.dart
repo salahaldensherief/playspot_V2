@@ -38,6 +38,7 @@ class UserModel extends UserEntity {
         return 'cashier';
       case 'staff':
         return 'staff';
+      case 'superadmin':
       case 'super_admin':
         return 'super_admin';
       case 'user':
@@ -88,7 +89,6 @@ class UserModel extends UserEntity {
       }) {
     final metadata =
         supabaseUser['user_metadata'] as Map<String, dynamic>? ?? {};
-    final rawRole = metadata['role'] as String? ?? supabaseUser['role'] as String?;
 
     final phoneVal = (supabaseUser['phone'] as String?)?.trim();
     final metadataPhone = (metadata['phone'] as String?)?.trim();
@@ -110,9 +110,8 @@ class UserModel extends UserEntity {
       cityId: validCityId,
       cityNameAr: metadata['city_name_ar'] as String?,
       cityNameEn: metadata['city_name_en'] as String?,
-      role: normalizeRole(rawRole),
-      isBanned: (metadata['is_banned'] as bool?) ?? (supabaseUser['is_banned'] as bool?) ?? false,
-      bannedReason: (metadata['banned_reason'] as String?) ?? (supabaseUser['banned_reason'] as String?),
+      role: 'user',
+
       isNewUser: isNewUser,
       createdAt: supabaseUser['created_at'] != null
           ? DateTime.parse(supabaseUser['created_at'] as String)
@@ -172,6 +171,7 @@ class UserModel extends UserEntity {
       cityNameEn: cityNameEn ?? this.cityNameEn,
       role: role ?? this.role,
       isBanned: isBanned ?? this.isBanned,
+      bannedReason: bannedReason ?? this.bannedReason,
       isNewUser: isNewUser ?? this.isNewUser,
       isRequiresOtp: isRequiresOtp ?? this.isRequiresOtp,
       createdAt: createdAt ?? this.createdAt,

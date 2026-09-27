@@ -43,12 +43,16 @@ void main() async {
 
   FlutterError.onError = (details) {
     dev.log("FLUTTER ERROR: ${details.exception}", stackTrace: details.stack);
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    if (!kIsWeb) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    }
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
     dev.log("PLATFORM ERROR: $error", stackTrace: stack);
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    if (!kIsWeb) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    }
     return true;
   };
 
@@ -60,13 +64,17 @@ void main() async {
   ]);
 
   // Explicitly enable Crashlytics collection for production error tracking
-  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  if (!kIsWeb) {
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  }
 
   NetworkConnectivityService().initialize();
 
   sl<DeepLinkService>().initialize();
 
-  FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);
+  }
 
   runApp(
     EasyLocalization(

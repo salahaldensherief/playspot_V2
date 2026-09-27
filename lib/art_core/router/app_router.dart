@@ -392,11 +392,20 @@ class AppRouter {
                   GoRoute(
                     path: RouterKeys.myBookings,
                     name: RouterKeys.myBookings,
-                    pageBuilder: (context, state) => _buildPage(
-                      context: context,
-                      state: state,
-                      child: const MyBookingsScreen(),
-                    ),
+                    pageBuilder: (context, state) {
+                      final extraMap = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : null;
+                      final initialTab = extraMap?['initialTab'] as int? ??
+                          (state.uri.queryParameters['tab'] != null ? int.tryParse(state.uri.queryParameters['tab']!) : null);
+                      final highlightedId = extraMap?['highlightedBookingId'] as String? ?? state.uri.queryParameters['id'];
+                      return _buildPage(
+                        context: context,
+                        state: state,
+                        child: MyBookingsScreen(
+                          highlightedBookingId: highlightedId,
+                          initialTabIndex: initialTab,
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -673,10 +682,16 @@ class AppRouter {
                 name: RouterKeys.bookingDetails,
                 pageBuilder: (context, state) {
                   final bookingId = state.pathParameters['id'];
+                  final extraMap = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : null;
+                  final initialTab = extraMap?['initialTab'] as int? ??
+                      (state.uri.queryParameters['tab'] != null ? int.tryParse(state.uri.queryParameters['tab']!) : null);
                   return _buildPage(
                     context: context,
                     state: state,
-                    child: MyBookingsScreen(highlightedBookingId: bookingId),
+                    child: MyBookingsScreen(
+                      highlightedBookingId: bookingId,
+                      initialTabIndex: initialTab,
+                    ),
                   );
                 },
               ),

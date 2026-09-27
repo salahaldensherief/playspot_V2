@@ -182,6 +182,8 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
         'payment_status': params.paymentStatus,
         'payment_method': cleanPaymentMethod,
         'play_mode': params.playMode,
+        if (params.receiptUrl != null && params.receiptUrl!.isNotEmpty)
+          'receipt_url': params.receiptUrl,
         if (cleanPaymentMethod == 'manual_transfer' &&
             params.senderWalletPhone != null &&
             params.senderWalletPhone!.isNotEmpty)

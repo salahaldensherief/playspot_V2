@@ -189,21 +189,6 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
               loungeName: session.loungeName.isNotEmpty ? session.loungeName : 'Lounge',
               expiryTime: session.endTime,
             );
-
-            final now = DateTime.now();
-            final remaining = session.endTime.difference(now);
-            final hours = remaining.inHours;
-            final mins = remaining.inMinutes % 60;
-            final isArabic = PreferenceManager().currentLang() == 'ar';
-            final timeText = isArabic
-                ? (hours > 0 ? 'باقي $hours سا $mins د' : 'باقي $mins دقيقة')
-                : (hours > 0 ? '$hours h $mins m remaining' : '$mins mins remaining');
-
-            NativeNotificationService.instance.showCustomNotification(
-              loungeName: session.loungeName.isNotEmpty ? session.loungeName : 'Active Session',
-              deviceName: session.deviceName.isNotEmpty ? session.deviceName : session.roomName,
-              timeText: timeText,
-            );
           } catch (_) {}
         }
       },
@@ -229,9 +214,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
           _subscribedBookingId = null;
           _realtimeSubscription?.cancel();
           _realtimeSubscription = null;
-          LocalNotificationService.instance.cancelActiveSessionNotification();
-          NativeNotificationService.instance.cancelCustomNotification();
-          PlaySpotLiveActivityService.instance.endActivity();
+          try {
+            LocalNotificationService.instance.cancelActiveSessionNotification();
+            NativeNotificationService.instance.cancelCustomNotification();
+            PlaySpotLiveActivityService.instance.endActivity();
+          } catch (_) {}
           final completed = state.session ?? updatedSession;
           emit(state.copyWith(
             status: ActiveSessionStatus.empty,

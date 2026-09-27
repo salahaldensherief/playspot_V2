@@ -15,6 +15,7 @@ import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 import 'package:playspot/features/my_bookings/domain/repositories/my_bookings_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'checkout_state.dart';
 
 class CheckoutCubit extends Cubit<CheckoutState> {
@@ -362,11 +363,22 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     if (receiptFile != null && primaryBookingId != null) {
       try {
         final uId = userId.isNotEmpty ? userId : 'guest';
-        await _storageService.uploadPaymentProof(
+        final finalReceiptUrl = await _storageService.uploadPaymentProof(
           userId: uId,
           bookingId: primaryBookingId!,
           file: receiptFile,
         );
+        if (finalReceiptUrl != null && finalReceiptUrl.isNotEmpty) {
+          try {
+            await Supabase.instance.client
+                .from('bookings')
+                .update({'receipt_url': finalReceiptUrl})
+                .eq('id', primaryBookingId!);
+            AppLogger.info('Updated booking $primaryBookingId receipt_url to $finalReceiptUrl');
+          } catch (dbErr) {
+            AppLogger.warning('Failed to update receipt_url in DB: $dbErr');
+          }
+        }
       } catch (e, st) {
         AppLogger.error('Payment proof upload under final booking id failed', e, st);
       }

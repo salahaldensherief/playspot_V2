@@ -134,6 +134,7 @@ class PushNotificationService {
     required bool enable,
   }) async {
     try {
+      if (kIsWeb) return;
       final messaging = _messaging;
       if (messaging == null) {
         AppLogger.debug(

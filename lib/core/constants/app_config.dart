@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../cache/preference_manager.dart';
@@ -42,7 +43,7 @@ class AppConfig {
   /// Injected at build time via --dart-define. The literal keys were removed
   /// from source (they remain in git history — rotate them in Google Cloud
   /// Console and restrict them to the app's bundle IDs).
-  static String kGoogleApiKey = Platform.isIOS
+  static String kGoogleApiKey = !kIsWeb && Platform.isIOS
       ? const String.fromEnvironment('GOOGLE_API_KEY_IOS')
       : const String.fromEnvironment('GOOGLE_API_KEY_ANDROID');
 

@@ -17,8 +17,11 @@ void main() {
 
   late AppCacheLocalDataSource localDataSource;
 
-  setUp(() async {
+  setUpAll(() async {
     await GetStorage.init('test_cache_box');
+  });
+
+  setUp(() async {
     final box = GetStorage('test_cache_box');
     try {
       await box.erase();

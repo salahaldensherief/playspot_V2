@@ -580,5 +580,10 @@
   "holdExpiredMessage": "انتهت المهلة الزمنية لحجز هذا الموعد المؤقت (10 دقائق). يرجى إعادة اختيار الموعد.",
   "sessionExpiringTitle": "جلستك هتخلص قريب!",
   "sessionExpiringBody": "جلستك في {} هتخلص خلال 5 دقائق.",
-  "realtimeConnectionLost": "ضعف في الاتصال، بنحاول نرجع تاني"
+  "realtimeConnectionLost": "ضعف في الاتصال، بنحاول نرجع تاني",
+  "quickRebook": "حجز سريع",
+  "quickRebookTitle": "إعادة حجز سريع",
+  "quickRebookSubtitle": "احجز نفس تجهيزك السابق في ثوانٍ",
+  "instantCheckout": "إتمام الحجز السريع",
+  "previousAddons": "إضافات الحجز السابق"
 }

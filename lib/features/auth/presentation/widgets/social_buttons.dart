@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -46,7 +47,7 @@ class SocialButtons extends StatelessWidget {
                   onTap: facebookOnTap,
                 ),
               ),
-              if (Platform.isIOS) ...[
+              if (!kIsWeb && Platform.isIOS) ...[
                 SizedBox(width: 6.0.w),
                 Expanded(
                   child: _socialMediaContainer(

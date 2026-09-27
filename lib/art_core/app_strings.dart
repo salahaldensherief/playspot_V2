@@ -578,4 +578,11 @@ class AppStrings {
   static const String sessionExpiringTitle = "sessionExpiringTitle";
   static const String sessionExpiringBody = "sessionExpiringBody";
   static const String realtimeConnectionLost = "realtimeConnectionLost";
+
+  // Quick Rebook Strings
+  static const String quickRebook = "quickRebook";
+  static const String quickRebookTitle = "quickRebookTitle";
+  static const String quickRebookSubtitle = "quickRebookSubtitle";
+  static const String instantCheckout = "instantCheckout";
+  static const String previousAddons = "previousAddons";
 }

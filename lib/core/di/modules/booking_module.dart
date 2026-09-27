@@ -7,6 +7,7 @@ import '../../../features/booking/domain/repositories/booking_repository.dart';
 import '../../../features/booking/domain/strategies/booking_slot_strategy.dart';
 import '../../../features/booking/presentation/booking_cubit.dart';
 import '../../../features/checkout/presentation/checkout_cubit.dart';
+import '../../../features/my_bookings/presentation/quick_rebook_cubit.dart';
 
 import '../../../features/booking/domain/services/booking_availability_service.dart';
 
@@ -44,6 +45,16 @@ void initBookingModule() {
       myBookingsRepository: sl(),
       preferenceManager: sl(),
       storageService: sl(),
+    ),
+  );
+
+  sl.registerFactory<QuickRebookCubit>(
+    () => QuickRebookCubit(
+      homeRepository: sl(),
+      loungeDetailsRemoteDataSource: sl(),
+      loungeDetailsRepository: sl(),
+      bookingRepository: sl(),
+      slotStrategy: sl(),
     ),
   );
 }

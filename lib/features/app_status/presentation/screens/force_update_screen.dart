@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -27,9 +28,9 @@ class ForceUpdateScreen extends StatelessWidget {
 
   Future<void> _openStore() async {
     String? url;
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       url = statusEntity?.storeUrlAndroid ?? 'https://play.google.com/store/apps/details?id=com.playspot.app';
-    } else if (Platform.isIOS) {
+    } else if (!kIsWeb && Platform.isIOS) {
       url = statusEntity?.storeUrlIos ?? 'https://apps.apple.com/app/playspot/id123456789';
     } else {
       url = statusEntity?.storeUrlAndroid;

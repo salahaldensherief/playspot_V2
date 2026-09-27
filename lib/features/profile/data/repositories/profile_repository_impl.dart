@@ -36,15 +36,11 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
 
   @override
   UserModel? getCurrentUser() {
-    final cachedUser = _preferenceManager.getUserData();
-    if (cachedUser != null) {
-      return cachedUser;
-    }
-
     final user = _remoteSource.getCurrentUser();
-    if (user != null) {
-      _saveUserData(user);
-    }
+    if (user == null) return null;
+    final cachedUser = _preferenceManager.getUserData();
+    if (cachedUser?.id == user.id) return cachedUser;
+    _saveUserData(user);
     return user;
   }
 

@@ -1,11 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/art_core/utils/app_logger.dart';
+import 'package:playspot/core/constants/app_config.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/models/payment_model.dart';
 
 class BookingModel extends Equatable {
   final String id;
   final String? loungeId;
+  final String? roomId;
   final String loungeName;
   final String loungeLocation;
   final String roomName;
@@ -40,6 +42,7 @@ class BookingModel extends Equatable {
   const BookingModel({
     required this.id,
     this.loungeId,
+    this.roomId,
     required this.loungeName,
     required this.loungeLocation,
     required this.roomName,
@@ -79,6 +82,7 @@ class BookingModel extends Equatable {
   List<Object?> get props => [
         id,
         loungeId,
+        roomId,
         loungeName,
         loungeLocation,
         roomName,
@@ -201,7 +205,14 @@ class BookingModel extends Equatable {
           }
           final totalPrice = rawTotal ?? (unitPrice * qty);
 
+          final itemId = item['extra_id']?.toString() ??
+              item['id']?.toString() ??
+              item['addon_id']?.toString() ??
+              item['product_id']?.toString() ??
+              '';
+
           parsedCanteenItems.add({
+            'id': itemId,
             'name': rawName.trim().isNotEmpty ? rawName.trim() : 'صنف',
             'quantity': qty,
             'unit_price': unitPrice,
@@ -242,7 +253,13 @@ class BookingModel extends Equatable {
               }
               final total = rawTotal ?? (price * qty);
 
+              final itemId = item['extra_id']?.toString() ??
+                  item['id']?.toString() ??
+                  extraData?['id']?.toString() ??
+                  '';
+
               parsedCanteenItems.add({
+                'id': itemId,
                 'name': rawName.trim().isNotEmpty ? rawName.trim() : 'إضافة',
                 'quantity': qty,
                 'unit_price': price,
@@ -289,6 +306,7 @@ class BookingModel extends Equatable {
     return BookingModel(
       id: bookingId,
       loungeId: json['lounge_id']?.toString() ?? loungeData?['id']?.toString(),
+      roomId: json['room_id']?.toString() ?? roomData?['id']?.toString(),
       loungeName: loungeData?['name'] ?? '',
       loungeLocation: loungeData?['location'] ?? '',
       roomName: roomData?['name_en'] ?? roomData?['name'] ?? '',
@@ -314,7 +332,41 @@ class BookingModel extends Equatable {
       cancellationReason: json['cancellation_reason']?.toString(),
       senderAccount: json['sender_account']?.toString() ?? json['sender_wallet_phone']?.toString(),
       transactionReference: json['transaction_reference']?.toString() ?? json['reference_number']?.toString(),
-      proofImageUrl: json['proof_image_url']?.toString() ?? json['receipt_url']?.toString(),
+      proofImageUrl: () {
+        final paymentsData = json['payments'] is Map<String, dynamic>
+            ? json['payments'] as Map<String, dynamic>
+            : (json['payments'] is List && (json['payments'] as List).isNotEmpty && (json['payments'] as List).first is Map<String, dynamic>
+                ? (json['payments'] as List).first as Map<String, dynamic>
+                : null);
+
+        final rawProof = json['proof_image_url']?.toString() ??
+            json['receipt_url']?.toString() ??
+            json['proof_url']?.toString() ??
+            json['receipt_image_url']?.toString() ??
+            json['payment_receipt_url']?.toString() ??
+            json['payment_proof_url']?.toString() ??
+            json['receipt_image']?.toString() ??
+            json['proof_image']?.toString() ??
+            json['receipt']?.toString() ??
+            json['proof']?.toString() ??
+            json['image_url']?.toString() ??
+            paymentsData?['proof_image_url']?.toString() ??
+            paymentsData?['receipt_url']?.toString() ??
+            paymentsData?['proof_url']?.toString() ??
+            paymentsData?['receipt_image_url']?.toString() ??
+            paymentsData?['image_url']?.toString();
+
+        if (rawProof != null && rawProof.trim().isNotEmpty && rawProof != 'null' && rawProof != 'undefined') {
+          final clean = rawProof.trim();
+          if (clean.startsWith('http://') || clean.startsWith('https://')) {
+            return clean;
+          }
+          final cleanPath = clean.replaceAll(RegExp(r'^(receipts/|payment-proofs/)'), '');
+          return '${AppConfig.supabaseUrl}/storage/v1/object/public/receipts/$cleanPath';
+        }
+
+        return null;
+      }(),
       holdExpiresAt: parsedHoldExpires,
       rejectionReason: parsedRejection,
       paidAt: parsedPaidAt,

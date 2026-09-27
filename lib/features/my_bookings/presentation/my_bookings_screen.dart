@@ -24,11 +24,13 @@ import 'my_bookings_state.dart';
 class MyBookingsScreen extends StatefulWidget {
   final bool isTab;
   final String? highlightedBookingId;
+  final int? initialTabIndex;
 
   const MyBookingsScreen({
     super.key,
     this.isTab = false,
     this.highlightedBookingId,
+    this.initialTabIndex,
   });
 
   @override
@@ -45,12 +47,36 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    final initIdx = (widget.initialTabIndex != null &&
+            widget.initialTabIndex! >= 0 &&
+            widget.initialTabIndex! <= 2)
+        ? widget.initialTabIndex!
+        : 0;
+    _tabController = TabController(length: 3, vsync: this, initialIndex: initIdx);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<MyBookingsCubit>().refreshBookingsIfStale();
+        final state = context.read<MyBookingsCubit>().state;
+        _checkAndHighlightBooking(state);
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(covariant MyBookingsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.highlightedBookingId != oldWidget.highlightedBookingId ||
+        widget.initialTabIndex != oldWidget.initialTabIndex) {
+      _hasHighlighted = false;
+      if (widget.initialTabIndex != null &&
+          widget.initialTabIndex! >= 0 &&
+          widget.initialTabIndex! <= 2 &&
+          _tabController.index != widget.initialTabIndex) {
+        _tabController.animateTo(widget.initialTabIndex!);
+      }
+      final state = context.read<MyBookingsCubit>().state;
+      _checkAndHighlightBooking(state);
+    }
   }
 
   @override
@@ -61,35 +87,42 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
 
   void _checkAndHighlightBooking(MyBookingsState state) {
     final targetId = widget.highlightedBookingId;
-    if (targetId == null || targetId.isEmpty || _hasHighlighted) return;
 
     int targetTabIndex = -1;
-    if (state.upcomingBookings.any((b) => b.id == targetId)) {
-      targetTabIndex = 0;
-    } else if (state.pastBookings.any((b) => b.id == targetId)) {
-      targetTabIndex = 1;
-    } else if (state.cancelledBookings.any((b) => b.id == targetId)) {
-      targetTabIndex = 2;
+    if (targetId != null && targetId.isNotEmpty) {
+      if (state.cancelledBookings.any((b) => b.id == targetId)) {
+        targetTabIndex = 2;
+      } else if (state.pastBookings.any((b) => b.id == targetId)) {
+        targetTabIndex = 1;
+      } else if (state.upcomingBookings.any((b) => b.id == targetId)) {
+        targetTabIndex = 0;
+      }
     }
 
-    if (targetTabIndex != -1) {
+    if (targetTabIndex == -1 && widget.initialTabIndex != null && widget.initialTabIndex! >= 0 && widget.initialTabIndex! <= 2) {
+      targetTabIndex = widget.initialTabIndex!;
+    }
+
+    if (targetTabIndex != -1 && !_hasHighlighted) {
       _hasHighlighted = true;
       if (_tabController.index != targetTabIndex) {
         _tabController.animateTo(targetTabIndex);
       }
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final key = _cardKeys[targetId];
-        if (key != null && key.currentContext != null) {
-          Scrollable.ensureVisible(
-            key.currentContext!,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            alignment: 0.3,
-          );
-        }
-      });
+      if (targetId != null && targetId.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          final key = _cardKeys[targetId];
+          if (key != null && key.currentContext != null) {
+            Scrollable.ensureVisible(
+              key.currentContext!,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              alignment: 0.3,
+            );
+          }
+        });
+      }
     }
   }
 

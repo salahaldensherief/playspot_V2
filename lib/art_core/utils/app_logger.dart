@@ -35,7 +35,7 @@ class AppLogger {
       _logger.w(message);
     }
     try {
-      if (Firebase.apps.isNotEmpty) {
+      if (!kIsWeb && Firebase.apps.isNotEmpty) {
         FirebaseCrashlytics.instance.log("WARNING: $message");
       }
     } catch (_) {}
@@ -46,7 +46,7 @@ class AppLogger {
       _logger.e(message, error: error, stackTrace: stackTrace);
     }
     try {
-      if (Firebase.apps.isNotEmpty) {
+      if (!kIsWeb && Firebase.apps.isNotEmpty) {
         FirebaseCrashlytics.instance.recordError(
           error ?? message,
           stackTrace,

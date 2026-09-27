@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -148,7 +149,7 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final double navBarBottom = Platform.isAndroid 
+    final double navBarBottom = !kIsWeb && Platform.isAndroid 
         ? (bottomPadding > 0 ? bottomPadding + 10.h : 20.h)
         : 30.h;
 

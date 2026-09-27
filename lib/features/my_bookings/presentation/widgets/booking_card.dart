@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
@@ -17,7 +15,8 @@ import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import '../../data/models/booking_model.dart';
-import 'booking_qr_dialog.dart';
+import 'booking_receipt_dialog.dart';
+import 'quick_rebook_bottom_sheet.dart';
 
 class BookingCard extends StatefulWidget {
   final BookingModel booking;
@@ -249,26 +248,7 @@ class _BookingCardState extends State<BookingCard> {
                   ),
                 ),
                 SizedBox(width: 8.w),
-                InkWell(
-                  onTap: () => BookingQrDialog.show(context, widget.booking),
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: Container(
-                    width: 44.w,
-                    height: 44.h,
-                    decoration: BoxDecoration(
-                      color: AppColors.neonBlue.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.qr_code_2_rounded,
-                        color: AppColors.neonBlue,
-                        size: 22.sp,
-                      ),
-                    ),
-                  ),
-                ),
+                _buildReceiptButton(isPrimary: true),
                 SizedBox(width: 8.w),
                 Expanded(
                   flex: 2,
@@ -316,26 +296,7 @@ class _BookingCardState extends State<BookingCard> {
                   ),
                   SizedBox(width: 8.w),
                 ],
-                InkWell(
-                  onTap: () => BookingQrDialog.show(context, widget.booking),
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: Container(
-                    width: 44.w,
-                    height: 44.h,
-                    decoration: BoxDecoration(
-                      color: Colors.black26,
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: AppColors.borderDefault),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.qr_code_2_rounded,
-                        color: AppColors.textSecondary,
-                        size: 22.sp,
-                      ),
-                    ),
-                  ),
-                ),
+                _buildReceiptButton(isPrimary: false),
                 SizedBox(width: 8.w),
                 Expanded(
                   flex: 2,
@@ -345,16 +306,7 @@ class _BookingCardState extends State<BookingCard> {
                       icon: Icon(Icons.refresh_rounded, size: 16.sp, color: Colors.white),
                     ),
                     behavior: ButtonBehavior.tap(
-                      onTap: () {
-                        if (widget.booking.loungeId != null && widget.booking.loungeId!.isNotEmpty) {
-                          context.pushNamed(
-                            RouterKeys.loungeDetails,
-                            extra: {'loungeId': widget.booking.loungeId},
-                          );
-                        } else {
-                          context.goNamed(RouterKeys.home);
-                        }
-                      },
+                      onTap: () => QuickRebookBottomSheet.show(context, widget.booking),
                     ),
                     buttonConfig: ButtonConfig(
                       height: 44.h,
@@ -656,6 +608,53 @@ class _BookingCardState extends State<BookingCard> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildReceiptButton({required bool isPrimary}) {
+    final hasProofImage = widget.booking.proofImageUrl != null && widget.booking.proofImageUrl!.trim().isNotEmpty;
+
+    return InkWell(
+      onTap: () => BookingReceiptDialog.show(context, widget.booking),
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        width: 44.w,
+        height: 44.h,
+        decoration: BoxDecoration(
+          color: isPrimary
+              ? AppColors.neonBlue.withValues(alpha: 0.12)
+              : Colors.black26,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: isPrimary
+                ? AppColors.neonBlue.withValues(alpha: 0.4)
+                : AppColors.borderDefault,
+          ),
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              Icons.receipt_long_rounded,
+              color: isPrimary ? AppColors.neonBlue : AppColors.textSecondary,
+              size: 22.sp,
+            ),
+            if (hasProofImage)
+              Positioned(
+                top: 6.h,
+                right: 6.w,
+                child: Container(
+                  width: 8.w,
+                  height: 8.w,
+                  decoration: const BoxDecoration(
+                    color: AppColors.success,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -579,5 +579,10 @@
   "holdExpiredMessage": "The hold time for this slot has expired (10 minutes). Please reselect a slot.",
   "sessionExpiringTitle": "Session Expiring Soon!",
   "sessionExpiringBody": "Your gaming session at {} will expire in 5 minutes.",
-  "realtimeConnectionLost": "Weak connection, trying to reconnect"
+  "realtimeConnectionLost": "Weak connection, trying to reconnect",
+  "quickRebook": "Quick Rebook",
+  "quickRebookTitle": "Quick Rebook",
+  "quickRebookSubtitle": "Rebook your previous setup in seconds",
+  "instantCheckout": "Proceed to Instant Checkout",
+  "previousAddons": "Previous Snacks & Drinks"
 }

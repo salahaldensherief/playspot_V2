@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../features/auth/data/models/user_model.dart';
 
@@ -59,8 +60,16 @@ class PreferenceManager {
 
   Future<void> saveLanguage(String lang) => _box.write(CachingKey.LANGUAGE, lang);
 
-  String currentLang() =>
-      _box.read(CachingKey.LANGUAGE) as String? ?? Platform.localeName.split("_").firstOrNull ?? 'en';
+  String currentLang() {
+    final savedLang = _box.read(CachingKey.LANGUAGE) as String?;
+    if (savedLang != null) return savedLang;
+    if (kIsWeb) return 'en';
+    try {
+      return Platform.localeName.split("_").firstOrNull ?? 'en';
+    } catch (_) {
+      return 'en';
+    }
+  }
 
   Future<void> saveUserId(String? userId) => _box.write(CachingKey.UserId, userId ?? '');
 
