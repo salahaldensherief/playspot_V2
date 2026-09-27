@@ -556,6 +556,14 @@ BEGIN
     RAISE EXCEPTION 'Unsupported payment method' USING ERRCODE = '22023';
   END IF;
 
+  PERFORM 1
+  FROM public.booking_holds AS h
+  WHERE h.hold_token = p_hold_token
+    AND h.user_id = v_user_id
+    AND h.released_at IS NULL
+    AND h.expires_at > now()
+  FOR UPDATE;
+
   SELECT
     min(h.lounge_id) AS lounge_id,
     min(h.start_at) AS start_at,
@@ -567,8 +575,7 @@ BEGIN
   WHERE h.hold_token = p_hold_token
     AND h.user_id = v_user_id
     AND h.released_at IS NULL
-    AND h.expires_at > now()
-  FOR UPDATE;
+    AND h.expires_at > now();
 
   IF v_hold.room_count IS NULL OR v_hold.room_count = 0 THEN
     RAISE EXCEPTION 'BOOKING_HOLD_EXPIRED' USING ERRCODE = '55000';
