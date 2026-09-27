@@ -12,8 +12,18 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   BookingRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(String loungeId, DateTime date, {String? roomId}) async {
-    return await callRepository(() => _remoteDataSource.getRoomBookingsForDate(loungeId, date, roomId: roomId));
+  Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(
+    String loungeId,
+    DateTime date, {
+    String? roomId,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getRoomBookingsForDate(
+        loungeId,
+        date,
+        roomId: roomId,
+      ),
+    );
   }
 
   @override
@@ -109,7 +119,9 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> createBooking(CreateBookingParams params) async {
+  Future<Either<Failure, Map<String, dynamic>>> createBooking(
+    CreateBookingParams params,
+  ) async {
     return await callRepository(() => _remoteDataSource.createBooking(params));
   }
 
@@ -124,11 +136,13 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
     required int additionalMinutes,
     required double additionalCost,
   }) async {
-    return await callRepository(() => _remoteDataSource.extendSession(
-          bookingId: bookingId,
-          additionalMinutes: additionalMinutes,
-          additionalCost: additionalCost,
-        ));
+    return await callRepository(
+      () => _remoteDataSource.extendSession(
+        bookingId: bookingId,
+        additionalMinutes: additionalMinutes,
+        additionalCost: additionalCost,
+      ),
+    );
   }
 
   @override
@@ -136,10 +150,12 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
     required String bookingId,
     required int requestedMinutes,
   }) async {
-    return await callRepository<void>(() => _remoteDataSource.requestExtension(
-          bookingId: bookingId,
-          requestedMinutes: requestedMinutes,
-        ));
+    return await callRepository<void>(
+      () => _remoteDataSource.requestExtension(
+        bookingId: bookingId,
+        requestedMinutes: requestedMinutes,
+      ),
+    );
   }
 
   @override
@@ -149,12 +165,14 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
     required String reason,
     required String note,
   }) async {
-    return await callRepository(() => _remoteDataSource.callStaff(
-          loungeId: loungeId,
-          bookingId: bookingId,
-          reason: reason,
-          note: note,
-        ));
+    return await callRepository(
+      () => _remoteDataSource.callStaff(
+        loungeId: loungeId,
+        bookingId: bookingId,
+        reason: reason,
+        note: note,
+      ),
+    );
   }
 
   @override
@@ -166,13 +184,15 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
     required double totalPrice,
     required String note,
   }) async {
-    return await callRepository(() => _remoteDataSource.placeCanteenOrder(
-          bookingId: bookingId,
-          loungeId: loungeId,
-          userId: userId,
-          items: items,
-          totalPrice: totalPrice,
-          note: note,
-        ));
+    return await callRepository(
+      () => _remoteDataSource.placeCanteenOrder(
+        bookingId: bookingId,
+        loungeId: loungeId,
+        userId: userId,
+        items: items,
+        totalPrice: totalPrice,
+        note: note,
+      ),
+    );
   }
 }
