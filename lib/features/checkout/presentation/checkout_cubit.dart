@@ -370,11 +370,14 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         );
         if (finalReceiptUrl != null && finalReceiptUrl.isNotEmpty) {
           try {
-            await Supabase.instance.client
-                .from('bookings')
-                .update({'receipt_url': finalReceiptUrl})
-                .eq('id', primaryBookingId!);
-            AppLogger.info('Updated booking $primaryBookingId receipt_url to $finalReceiptUrl');
+            await Supabase.instance.client.rpc(
+              'attach_my_booking_receipt',
+              params: {
+                'p_booking_id': primaryBookingId!,
+                'p_receipt_url': finalReceiptUrl,
+              },
+            );
+            AppLogger.info('Attached payment receipt to booking $primaryBookingId');
           } catch (dbErr) {
             AppLogger.warning('Failed to update receipt_url in DB: $dbErr');
           }
