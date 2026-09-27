@@ -17,7 +17,7 @@ import '../../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../../art_core/widgets/layout/glass_container.dart';
 import '../../../../../art_core/widgets/text/app_text.dart';
 import '../../../../../core/di.dart';
-import '../../../../booking/data/models/booking_params.dart';
+import 'package:playspot/features/booking/data/models/booking_params.dart';
 import '../../data/models/booking_model.dart';
 import '../quick_rebook_cubit.dart';
 import '../quick_rebook_state.dart';
