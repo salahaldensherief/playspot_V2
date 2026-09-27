@@ -135,4 +135,88 @@ GRANT EXECUTE ON FUNCTION public.submit_lounge_review(
   uuid, uuid, numeric, text
 ) TO authenticated, service_role, supabase_auth_admin;
 
+
+CREATE OR REPLACE FUNCTION public.request_staff_assistance_for_booking(
+  p_booking_id uuid,
+  p_call_type text,
+  p_notes text DEFAULT NULL
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_booking public.bookings%ROWTYPE;
+  v_call_id uuid;
+  v_call_type text := NULLIF(btrim(p_call_type), '');
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Authentication required' USING ERRCODE = '28000';
+  END IF;
+
+  IF v_call_type IS NULL THEN
+    RAISE EXCEPTION 'Call type is required' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT b.*
+  INTO v_booking
+  FROM public.bookings AS b
+  WHERE b.id = p_booking_id
+    AND b.user_id = auth.uid()
+    AND b.status = 'in_progress'::public.booking_status
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Active booking not found for current user'
+      USING ERRCODE = '42501';
+  END IF;
+
+  INSERT INTO public.service_calls (
+    lounge_id,
+    room_id,
+    booking_id,
+    user_id,
+    call_type,
+    request_type,
+    note,
+    notes,
+    status,
+    is_attended,
+    created_at
+  )
+  VALUES (
+    v_booking.lounge_id,
+    v_booking.room_id,
+    v_booking.id,
+    auth.uid(),
+    v_call_type,
+    v_call_type,
+    NULLIF(btrim(p_notes), ''),
+    NULLIF(btrim(p_notes), ''),
+    'pending',
+    false,
+    now()
+  )
+  RETURNING id INTO v_call_id;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'call_id', v_call_id,
+    'booking_id', v_booking.id,
+    'lounge_id', v_booking.lounge_id,
+    'room_id', v_booking.room_id,
+    'call_type', v_call_type
+  );
+END;
+$function$;
+
+REVOKE EXECUTE ON FUNCTION public.request_staff_assistance_for_booking(
+  uuid, text, text
+) FROM PUBLIC, anon;
+
+GRANT EXECUTE ON FUNCTION public.request_staff_assistance_for_booking(
+  uuid, text, text
+) TO authenticated, service_role, supabase_auth_admin;
+
 COMMIT;
