@@ -108,7 +108,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     const AppLoader(size: 40),
                     SizedBox(height: 16.h),
                     AppText(
-                      text: isArabic ? "جاري التحقق من الإتاحة والأسعار الحالية..." : "Checking availability & current prices...",
+                      text: AppStrings.quickRebookChecking.tr(),
                       fontSize: 13.sp,
                       color: AppColors.textSecondary,
                     ),
@@ -127,14 +127,14 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     Icon(Icons.event_busy_rounded, color: AppColors.warning, size: 48.sp),
                     SizedBox(height: 12.h),
                     AppText(
-                      text: isArabic ? "عفواً، تعذر الحجز السريع المباشر" : "Quick Rebook Unavailable",
+                      text: AppStrings.quickRebookUnavailable.tr(),
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                     SizedBox(height: 6.h),
                     AppText(
-                      text: state.errorMessage ?? (isArabic ? "الغرفة أو الموعد غير متاح حالياً" : "The requested room is currently unavailable."),
+                      text: state.errorMessage ?? AppStrings.quickRebookUnavailableDesc.tr(),
                       fontSize: 12.sp,
                       color: AppColors.textSecondary,
                       textAlign: TextAlign.center,
@@ -142,7 +142,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     SizedBox(height: 20.h),
                     AppButton(
                       content: ButtonContent(
-                        label: isArabic ? "استعراض الصالة والحجز العادي" : "Browse Lounge & Book",
+                        label: AppStrings.quickRebookBrowseLounge.tr(),
                       ),
                       buttonConfig: ButtonConfig(
                         height: 44.h,
@@ -258,7 +258,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                             Icon(Icons.gamepad_outlined, color: AppColors.textSecondary, size: 14.sp),
                             SizedBox(width: 6.w),
                             AppText(
-                              text: "${state.pastBooking?.playMode == 'multi' ? (isArabic ? 'زوجي (Multi)' : 'Multiplayer') : (isArabic ? 'فردي (Single)' : 'Single Player')} • ${state.durationMinutes ~/ 60} ${isArabic ? 'ساعة' : 'Hrs'}",
+                              text: '${state.playMode == 'multi' ? AppStrings.multiPlay.tr() : AppStrings.singlePlay.tr()} • ${(state.durationMinutes / 60).toStringAsFixed(state.durationMinutes % 60 == 0 ? 0 : 1)} ${AppStrings.hour.tr()}',
                               fontSize: 11.sp,
                               color: AppColors.textSecondary,
                             ),
@@ -284,9 +284,9 @@ class QuickRebookBottomSheet extends StatelessWidget {
                           SizedBox(width: 8.w),
                           Expanded(
                             child: AppText(
-                              text: isArabic
-                                  ? "بعض المشروبات/السناكس غير متوفرة حالياً وتم استبعادها: ${state.removedAddonNames.join(', ')}"
-                                  : "Unavailable items removed: ${state.removedAddonNames.join(', ')}",
+                              text: AppStrings.quickRebookRemovedAddons.tr(
+                                args: [state.removedAddonNames.join(', ')],
+                              ),
                               fontSize: 11.sp,
                               color: AppColors.warning,
                               overflow: TextOverflow.visible,
@@ -300,7 +300,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
 
                   // Available Slots Section
                   AppText(
-                    text: isArabic ? "أقرب المواعيد المتاحة اليوم" : "Nearest Available Slots Today",
+                    text: AppStrings.quickRebookNearestSlots.tr(),
                     fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -319,7 +319,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                           SizedBox(width: 8.w),
                           Expanded(
                             child: AppText(
-                              text: isArabic ? "لا توجد مواعيد متاحة باقي اليوم، اختار تاريخ آخر" : "No slots remaining today.",
+                              text: AppStrings.quickRebookNoSlots.tr(),
                               fontSize: 11.sp,
                               color: AppColors.textSecondary,
                             ),
@@ -460,55 +460,56 @@ class QuickRebookBottomSheet extends StatelessWidget {
                     SizedBox(height: 18.h),
                   ],
 
-                  // Real Price Summary Box
-                  Container(
-                    padding: EdgeInsets.all(14.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.neonBlue.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(14.r),
-                      border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        AppText(
-                          text: isArabic ? "الإجمالي الحقيقي الآن" : "Current Authoritative Total",
-                          fontSize: 13.sp,
-                          color: Colors.white70,
+                  if (state.errorMessage != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(12.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: AppColors.warning.withValues(alpha: 0.3),
                         ),
-                        AppText(
-                          text: "${state.totalPrice.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.neonBlue,
-                        ),
-                      ],
+                      ),
+                      child: AppText(
+                        text: state.errorMessage!,
+                        fontSize: 11.sp,
+                        color: AppColors.warning,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20.h),
-
+                    SizedBox(height: 12.h),
+                  ],
                   // Actions Row: Primary Quick Checkout & Secondary Customize
                   Column(
                     children: [
                       AppButton(
                         content: ButtonContent(
-                          label: AppStrings.instantCheckout.tr(),
-                          icon: Icon(Icons.flash_on_rounded, color: Colors.black, size: 18.sp),
+                          label: state.isPreparingCheckout
+                              ? AppStrings.processing.tr()
+                              : AppStrings.instantCheckout.tr(),
+                          icon: state.isPreparingCheckout
+                              ? null
+                              : Icon(Icons.flash_on_rounded, color: Colors.black, size: 18.sp),
                         ),
                         buttonConfig: ButtonConfig(
                           height: 48.h,
-                          backgroundColor: state.selectedSlot != null ? AppColors.neonBlue : Colors.white24,
+                          backgroundColor: state.selectedSlot != null && !state.isPreparingCheckout
+                              ? AppColors.neonBlue
+                              : Colors.white24,
                           borderRadius: 14.r,
                         ),
                         behavior: ButtonBehavior.tap(
-                          isEnabled: state.selectedSlot != null,
-                          onTap: state.selectedSlot != null ? () => _proceedToQuickCheckout(context, state) : null,
+                          isEnabled: state.selectedSlot != null && !state.isPreparingCheckout,
+                          onTap: state.selectedSlot != null && !state.isPreparingCheckout
+                              ? () => _proceedToQuickCheckout(context)
+                              : null,
                         ),
                       ),
                       SizedBox(height: 10.h),
                       AppButton(
                         content: ButtonContent(
-                          label: isArabic ? "تخصيص الحجز والتاريخ" : "Customize Booking & Date",
+                          label: AppStrings.quickRebookCustomize.tr(),
                         ),
                         buttonConfig: ButtonConfig(
                           height: 42.h,
@@ -517,7 +518,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                           borderRadius: 12.r,
                         ),
                         behavior: ButtonBehavior.tap(
-                          onTap: () => _navigateToCustomize(context, state),
+                          onTap: () => _navigateToCustomize(context),
                         ),
                       ),
                     ],
