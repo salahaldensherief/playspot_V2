@@ -56,7 +56,7 @@ class BookingCubit extends Cubit<BookingState> {
         endAt: startAt.add(const Duration(hours: 1)),
       );
       if (isClosed) return 'waitlistUnavailable';
-      return result.fold(
+      final messageKey = result.fold<String>(
         (failure) => switch (failure.message) {
           'SLOT_AVAILABLE_NOW' => 'waitlistAvailableNow',
           'ROOM_UNAVAILABLE' ||
@@ -66,6 +66,7 @@ class BookingCubit extends Cubit<BookingState> {
         },
         (_) => 'waitlistJoined',
       );
+      return messageKey;
     } finally {
       _waitlistInFlight = false;
     }
