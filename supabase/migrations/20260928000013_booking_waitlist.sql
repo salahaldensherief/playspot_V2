@@ -81,6 +81,10 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'error_code', 'ROOM_UNAVAILABLE');
   END IF;
 
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended('waitlist-user:' || v_user_id::text, 0)
+  );
+
   v_operational_date := p_start_at::date;
   IF v_closing <= v_opening AND p_start_at::time < v_closing THEN
     v_operational_date := v_operational_date - 1;
@@ -186,10 +190,27 @@ BEGIN
     AND start_at <= (now() AT TIME ZONE 'Africa/Cairo') + interval '10 minutes';
 
   FOR v_entry IN
-    SELECT * FROM public.booking_waitlist
-    WHERE status = 'waiting'
-      AND start_at > (now() AT TIME ZONE 'Africa/Cairo') + interval '10 minutes'
-    ORDER BY created_at, id LIMIT 100 FOR UPDATE SKIP LOCKED
+    SELECT w.* FROM public.booking_waitlist w
+    WHERE w.status = 'waiting'
+      AND w.start_at > (now() AT TIME ZONE 'Africa/Cairo') + interval '10 minutes'
+      AND NOT EXISTS (
+        SELECT 1 FROM public.bookings b
+        WHERE b.room_id = w.room_id
+          AND b.status IN ('pending'::public.booking_status,
+                           'upcoming'::public.booking_status,
+                           'in_progress'::public.booking_status)
+          AND (b.status <> 'pending'::public.booking_status
+               OR b.expires_at IS NULL OR b.expires_at > now())
+          AND b.booking_period && pg_catalog.tsrange(w.start_at, w.end_at, '[)')
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM public.booking_holds h
+        WHERE h.room_id = w.room_id AND h.released_at IS NULL
+          AND h.expires_at > now()
+          AND pg_catalog.tsrange(h.start_at, h.end_at, '[)')
+              && pg_catalog.tsrange(w.start_at, w.end_at, '[)')
+      )
+    ORDER BY w.created_at, w.id LIMIT 100 FOR UPDATE OF w SKIP LOCKED
   LOOP
     PERFORM pg_catalog.pg_advisory_xact_lock(
       pg_catalog.hashtextextended(v_entry.room_id::text, 0)
