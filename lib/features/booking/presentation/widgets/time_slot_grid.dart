@@ -25,6 +25,7 @@ class TimeSlotGrid extends StatefulWidget {
 class _TimeSlotGridState extends State<TimeSlotGrid> {
   // Playtomic Shift Filter (0: All, 1: Morning, 2: Evening, 3: Night)
   int _shiftFilter = 0;
+  bool _waitlistBusy = false;
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +151,11 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                     final isInSelectionSpan = _isPartOfCurrentSelection(slot, state);
 
                     return InkWell(
-                      onTap: isBooked ? null : () => context.read<BookingCubit>().selectStartTime(slot),
+                      onTap: isBooked
+                          ? (context.read<BookingCubit>().roomIds.length == 1
+                              ? () => _requestWaitlist(context, slot)
+                              : null)
+                          : () => context.read<BookingCubit>().selectStartTime(slot),
                       borderRadius: BorderRadius.circular(10.r),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
@@ -200,7 +205,9 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                             if (isBooked) ...[
                               SizedBox(height: 2.h),
                               AppText(
-                                text: AppStrings.booked.tr(),
+                                text: context.read<BookingCubit>().roomIds.length == 1
+                                    ? AppStrings.waitlistNotify.tr()
+                                    : AppStrings.booked.tr(),
                                 fontSize: 8.sp,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.danger,
@@ -396,6 +403,58 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
         ],
       ),
     );
+  }
+
+  Future<void> _requestWaitlist(BuildContext context, TimeOfDay slot) async {
+    if (_waitlistBusy) return;
+    _waitlistBusy = true;
+    try {
+      final cubit = context.read<BookingCubit>();
+      final (loaded, activeId) = await cubit.activeWaitlistRequest(slot);
+      if (!mounted) return;
+      if (!loaded) {
+        _showWaitlistMessage(context, AppStrings.waitlistFailed);
+        return;
+      }
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text((activeId == null
+                  ? AppStrings.waitlistNotify
+                  : AppStrings.waitlistCancel)
+              .tr()),
+          content: Text((activeId == null
+                  ? AppStrings.waitlistExplain
+                  : AppStrings.waitlistCancelExplain)
+              .tr()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(AppStrings.cancel.tr()),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text((activeId == null
+                      ? AppStrings.waitlistNotify
+                      : AppStrings.waitlistCancel)
+                  .tr()),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+      final messageKey = activeId == null
+          ? await cubit.joinWaitlist(slot)
+          : await cubit.cancelWaitlist(activeId);
+      if (!mounted) return;
+      _showWaitlistMessage(context, messageKey);
+    } finally {
+      _waitlistBusy = false;
+    }
+  }
+
+  void _showWaitlistMessage(BuildContext context, String key) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(key.tr())));
   }
 
   int _parseHour(String str, int defaultHour) {

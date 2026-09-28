@@ -67,6 +67,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final type = notification.type;
 
     if (type == NotificationType.booking) {
+      if (data['event'] == 'waitlist_available') {
+        final loungeId = data['lounge_id']?.toString();
+        if (loungeId != null && loungeId.isNotEmpty) {
+          context.pushNamed(
+            RouterKeys.loungeDetails,
+            extra: {'loungeId': loungeId},
+          );
+        }
+        return;
+      }
       final bookingId = _extractBookingId(
         data,
         "${notification.body} ${notification.title}",
