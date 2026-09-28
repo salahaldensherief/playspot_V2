@@ -95,7 +95,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       final response = await _client.rpc('get_user_points_balance', params: {
         'p_user_id': userId,
       });
-      return response as int? ?? 0;
+      return (response as num?)?.toInt() ?? 0;
     } catch (e) {
       return 0;
     }
