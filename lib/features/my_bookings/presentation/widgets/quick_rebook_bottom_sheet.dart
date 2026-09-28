@@ -160,7 +160,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
                 return _buildLoading();
               case QuickRebookStatus.error:
               case QuickRebookStatus.unavailable:
-                return _buildUnavailable(context);
+                return _buildUnavailable(context, state);
               case QuickRebookStatus.ready:
                 return _buildReady(context, state);
             }
@@ -188,7 +188,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildUnavailable(BuildContext context) {
+  Widget _buildUnavailable(BuildContext context, QuickRebookState state) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 24.h),
       child: Column(
@@ -214,6 +214,21 @@ class QuickRebookBottomSheet extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 20.h),
+          if (state.status == QuickRebookStatus.error) ...[
+            AppButton(
+              content: ButtonContent(label: AppStrings.retry.tr()),
+              buttonConfig: ButtonConfig(
+                height: 44.h,
+                backgroundColor: AppColors.neonBlue,
+                borderRadius: 12.r,
+              ),
+              behavior: ButtonBehavior.tap(
+                onTap: () => context.read<QuickRebookCubit>()
+                    .changeDate(state.selectedDate),
+              ),
+            ),
+            SizedBox(height: 12.h),
+          ],
           AppButton(
             content: ButtonContent(
               label: AppStrings.quickRebookBrowseLounge.tr(),
