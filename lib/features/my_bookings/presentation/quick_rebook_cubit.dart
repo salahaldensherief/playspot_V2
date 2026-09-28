@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../booking/data/models/booking_params.dart';
 import '../data/models/booking_model.dart';
 import '../domain/entities/quick_rebook_setup.dart';
+import '../domain/quick_rebook_preference.dart';
 import '../domain/usecases/build_quick_rebook_checkout_usecase.dart';
 import '../domain/usecases/get_quick_rebook_slots_usecase.dart';
 import '../domain/usecases/prepare_quick_rebook_usecase.dart';
@@ -15,6 +16,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
   final BuildQuickRebookCheckoutUseCase _buildQuickRebookCheckout;
 
   QuickRebookSetup? _setup;
+  int _slotRequest = 0;
 
   QuickRebookCubit({
     required PrepareQuickRebookUseCase prepareQuickRebook,
@@ -26,18 +28,22 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
         super(QuickRebookState(selectedDate: DateTime.now()));
 
   Future<void> initQuickRebook(BookingModel pastBooking) async {
-    final today = DateTime.now();
+    final suggestedDate = QuickRebookPreference.nextVisitDate(
+      pastBooking.date,
+      DateTime.now(),
+    );
+    final request = ++_slotRequest;
 
     emit(
       state.copyWith(
         status: QuickRebookStatus.loading,
         pastBooking: pastBooking,
-        selectedDate: today,
+        selectedDate: suggestedDate,
       ),
     );
 
     final setupResult = await _prepareQuickRebook(pastBooking);
-    if (isClosed) return;
+    if (isClosed || request != _slotRequest) return;
 
     await setupResult.fold(
       (failure) async {
@@ -54,13 +60,13 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
         final slotsResult = await _getQuickRebookSlots(
           loungeId: setup.lounge.id,
           roomId: setup.room.id,
-          date: today,
+          date: suggestedDate,
           openingTime: setup.lounge.openingTime,
           closingTime: setup.lounge.closingTime,
           durationMinutes: setup.durationMinutes,
         );
 
-        if (isClosed) return;
+        if (isClosed || request != _slotRequest) return;
 
         slotsResult.fold(
           (failure) {
@@ -82,9 +88,12 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
                 selectedAddonQuantities:
                     setup.selectedAddonQuantities,
                 removedAddonNames: setup.removedAddonNames,
-                selectedDate: today,
+                selectedDate: suggestedDate,
                 availableSlots: slots,
-                selectedSlot: slots.isEmpty ? null : slots.first,
+                selectedSlot: QuickRebookPreference.closestSlot(
+                  slots,
+                  pastBooking.startTime,
+                ),
                 clearSelectedSlot: slots.isEmpty,
                 durationMinutes: setup.durationMinutes,
               ),
@@ -98,6 +107,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
   Future<void> changeDate(DateTime date) async {
     final setup = _setup;
     if (setup == null) return;
+    final request = ++_slotRequest;
 
     emit(
       state.copyWith(
@@ -115,7 +125,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       durationMinutes: state.durationMinutes,
     );
 
-    if (isClosed) return;
+    if (isClosed || request != _slotRequest) return;
 
     slotsResult.fold(
       (failure) {
@@ -132,7 +142,10 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
             status: QuickRebookStatus.ready,
             selectedDate: date,
             availableSlots: slots,
-            selectedSlot: slots.isEmpty ? null : slots.first,
+            selectedSlot: QuickRebookPreference.closestSlot(
+              slots,
+              setup.pastBooking.startTime,
+            ),
             clearSelectedSlot: slots.isEmpty,
           ),
         );
@@ -148,6 +161,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
   Future<void> updateDuration(int newDurationMinutes) async {
     final setup = _setup;
     if (setup == null) return;
+    final request = ++_slotRequest;
 
     final normalizedDuration =
         newDurationMinutes.clamp(15, 24 * 60).toInt();
@@ -168,7 +182,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       durationMinutes: normalizedDuration,
     );
 
-    if (isClosed) return;
+    if (isClosed || request != _slotRequest) return;
 
     slotsResult.fold(
       (failure) {
