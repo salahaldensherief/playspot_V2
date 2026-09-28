@@ -1,7 +1,7 @@
 BEGIN;
 
--- A customer reservation does not require a cashier shift. A shift becomes
--- mandatory only when the booking is started as an operational session.
+-- Accepted bookings are guarded by an open-shift trigger. Once a booking is
+-- started, attach the operational session to that exact shift for accounting.
 CREATE OR REPLACE FUNCTION public.attach_booking_to_active_shift()
 RETURNS trigger
 LANGUAGE plpgsql
