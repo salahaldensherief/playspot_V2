@@ -35,16 +35,29 @@ class CheckoutBottomPayBar extends StatelessWidget {
       builder: (context, state) {
         final finalPrice = state.serverFinalTotal ??
             params.calculateFinalPrice(state.discountAmount);
+        final quoteFailed =
+            state.status == CheckoutStatus.failure &&
+            state.serverFinalTotal == null &&
+            !state.isHoldExpired;
+
         final buttonText = state.status == CheckoutStatus.loading
             ? AppStrings.processing.tr()
+            : quoteFailed
+            ? (context.locale.languageCode == 'ar'
+                  ? 'إعادة محاولة حساب السعر'
+                  : 'Retry price calculation')
             : (state.selectedMethod == PaymentMethod.cash
-                ? AppStrings.confirmBookingWithPrice.tr(args: [finalPrice.toStringAsFixed(2)])
-                : AppStrings.payNowWithPrice.tr(args: [finalPrice.toStringAsFixed(2)]));
+                  ? AppStrings.confirmBookingWithPrice.tr(
+                      args: [finalPrice.toStringAsFixed(2)],
+                    )
+                  : AppStrings.payNowWithPrice.tr(
+                      args: [finalPrice.toStringAsFixed(2)],
+                    ));
 
         final bool isButtonEnabled =
             state.status != CheckoutStatus.loading &&
             !state.isHoldExpired &&
-            state.serverFinalTotal != null;
+            (state.serverFinalTotal != null || quoteFailed);
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -64,6 +77,11 @@ class CheckoutBottomPayBar extends StatelessWidget {
                   isEnabled: isButtonEnabled,
                   onTap: () {
                     if (state.isHoldExpired) return;
+
+                    if (quoteFailed) {
+                      context.read<CheckoutCubit>().retryServerQuote();
+                      return;
+                    }
 
                     if (state.selectedMethod == PaymentMethod.cash) {
                       context.read<CheckoutCubit>().processPayment(
