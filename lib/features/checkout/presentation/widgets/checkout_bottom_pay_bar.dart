@@ -18,10 +18,7 @@ import 'vodafone_cash_bottom_sheet.dart';
 class CheckoutBottomPayBar extends StatelessWidget {
   final CheckoutParams params;
 
-  const CheckoutBottomPayBar({
-    super.key,
-    required this.params,
-  });
+  const CheckoutBottomPayBar({super.key, required this.params});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +30,8 @@ class CheckoutBottomPayBar extends StatelessWidget {
           previous.selectedMethod != current.selectedMethod ||
           previous.isHoldExpired != current.isHoldExpired,
       builder: (context, state) {
-        final finalPrice = state.serverFinalTotal ??
+        final finalPrice =
+            state.serverFinalTotal ??
             params.calculateFinalPrice(state.discountAmount);
         final quoteFailed =
             state.status == CheckoutStatus.failure &&
@@ -69,8 +67,8 @@ class CheckoutBottomPayBar extends StatelessWidget {
                 content: ButtonContent(
                   label: state.isHoldExpired
                       ? (context.locale.languageCode == 'ar'
-                          ? 'انتهت فترة حجز الموعد'
-                          : 'Hold Expired')
+                            ? 'انتهت فترة حجز الموعد'
+                            : 'Hold Expired')
                       : buttonText,
                 ),
                 behavior: ButtonBehavior.tap(
@@ -90,7 +88,8 @@ class CheckoutBottomPayBar extends StatelessWidget {
                         paymentMethod: 'cash',
                       );
                     } else {
-                      final initialMethod = state.selectedMethod == PaymentMethod.instaPay
+                      final initialMethod =
+                          state.selectedMethod == PaymentMethod.instaPay
                           ? 'InstaPay'
                           : 'Vodafone Cash';
                       VodafoneCashBottomSheet.show(
@@ -100,17 +99,23 @@ class CheckoutBottomPayBar extends StatelessWidget {
                         walletNumber: params.lounge.effectiveWalletNumber ?? '',
                         instaPayAccount: params.lounge.effectiveInstapayHandle,
                         initialMethod: initialMethod,
-                        onConfirm: (method, receiptFile, senderAccount, transactionRef) {
-                          context.read<CheckoutCubit>().processPayment(
-                            params,
-                            isArabic: context.locale.languageCode == 'ar',
-                            receiptFile: receiptFile,
-                            paymentMethod: 'manual_transfer',
-                            senderAccount: senderAccount,
-                            senderWalletPhone: senderAccount,
-                            transactionReference: transactionRef,
-                          );
-                        },
+                        onConfirm:
+                            (
+                              method,
+                              receiptFile,
+                              senderAccount,
+                              transactionRef,
+                            ) {
+                              context.read<CheckoutCubit>().processPayment(
+                                params,
+                                isArabic: context.locale.languageCode == 'ar',
+                                receiptFile: receiptFile,
+                                paymentMethod: 'manual_transfer',
+                                senderAccount: senderAccount,
+                                senderWalletPhone: senderAccount,
+                                transactionReference: transactionRef,
+                              );
+                            },
                       );
                     }
                   },
