@@ -27,17 +27,21 @@ class BookingCubit extends Cubit<BookingState> {
     BookingDetailsParams params, {
     required JoinBookingWaitlistUseCase joinWaitlist,
     required BookingWaitlistRepository waitlistRepository,
-  })  : roomIds = params.rooms.map((r) => r.id).toList(),
-        _joinWaitlist = joinWaitlist,
-        _waitlistRepository = waitlistRepository,
-        loungeId = params.lounge.id,
-        loungeOpeningTime = params.lounge.openingTime,
-        loungeClosingTime = params.lounge.closingTime,
-        super(BookingState(
-          selectedDate: params.selectedDate,
-          playMode: params.playMode == 'multi' ? PlayMode.multi : PlayMode.single,
-          extraControllersCount: params.extraControllers,
-        )) {
+  }) : roomIds = params.rooms.map((r) => r.id).toList(),
+       _joinWaitlist = joinWaitlist,
+       _waitlistRepository = waitlistRepository,
+       loungeId = params.lounge.id,
+       loungeOpeningTime = params.lounge.openingTime,
+       loungeClosingTime = params.lounge.closingTime,
+       super(
+         BookingState(
+           selectedDate: params.selectedDate,
+           playMode: params.playMode == 'multi'
+               ? PlayMode.multi
+               : PlayMode.single,
+           extraControllersCount: params.extraControllers,
+         ),
+       ) {
     fetchBookedSlots(state.selectedDate);
   }
 
@@ -55,8 +59,8 @@ class BookingCubit extends Cubit<BookingState> {
       return result.fold(
         (failure) => switch (failure.message) {
           'SLOT_AVAILABLE_NOW' => 'waitlistAvailableNow',
-          'ROOM_UNAVAILABLE' || 'OUTSIDE_WORKING_HOURS' =>
-            'waitlistUnavailable',
+          'ROOM_UNAVAILABLE' ||
+          'OUTSIDE_WORKING_HOURS' => 'waitlistUnavailable',
           'WAITLIST_LIMIT' => 'waitlistLimit',
           _ => 'waitlistFailed',
         },
@@ -93,33 +97,35 @@ class BookingCubit extends Cubit<BookingState> {
     String? failureMsg;
 
     for (final rid in roomIds) {
-      final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date, roomId: rid);
-      result.fold(
-        (failure) => failureMsg = failure.message,
-        (rawBookings) {
-          final slots = _slotStrategy.calculateBookedSlots(
-            rawBookings: rawBookings,
-            roomId: rid,
-            date: date,
-          );
-          allBookedSlots.addAll(slots);
-        },
+      final result = await _bookingRepository.getRoomBookingsForDate(
+        loungeId,
+        date,
+        roomId: rid,
       );
+      result.fold((failure) => failureMsg = failure.message, (rawBookings) {
+        final slots = _slotStrategy.calculateBookedSlots(
+          rawBookings: rawBookings,
+          roomId: rid,
+          date: date,
+        );
+        allBookedSlots.addAll(slots);
+      });
     }
 
     if (failureMsg != null && allBookedSlots.isEmpty) {
-      emit(state.copyWith(
-        status: BookingStatus.error,
-        errorMessage: failureMsg,
-      ));
+      emit(
+        state.copyWith(status: BookingStatus.error, errorMessage: failureMsg),
+      );
       return;
     }
 
-    emit(state.copyWith(
-      status: BookingStatus.success,
-      selectedDate: date,
-      bookedTimeSlots: allBookedSlots.toList(),
-    ));
+    emit(
+      state.copyWith(
+        status: BookingStatus.success,
+        selectedDate: date,
+        bookedTimeSlots: allBookedSlots.toList(),
+      ),
+    );
   }
 
   /// Atomically acquires a server-side hold for the full requested range.
@@ -127,10 +133,7 @@ class BookingCubit extends Cubit<BookingState> {
     final startTime = state.startTime;
     if (startTime == null) return false;
 
-    emit(state.copyWith(
-      status: BookingStatus.loading,
-      clearHold: true,
-    ));
+    emit(state.copyWith(status: BookingStatus.loading, clearHold: true));
 
     final startDateTime = _resolveOperationalDateTime(
       state.selectedDate,
@@ -178,9 +181,7 @@ class BookingCubit extends Cubit<BookingState> {
           data['hold_expires_at']?.toString() ?? '',
         );
 
-        if (holdToken == null ||
-            holdToken.isEmpty ||
-            holdExpiresAt == null) {
+        if (holdToken == null || holdToken.isEmpty || holdExpiresAt == null) {
           emit(
             state.copyWith(
               status: BookingStatus.error,
@@ -204,10 +205,7 @@ class BookingCubit extends Cubit<BookingState> {
     );
   }
 
-  DateTime _resolveOperationalDateTime(
-    DateTime selectedDate,
-    TimeOfDay time,
-  ) {
+  DateTime _resolveOperationalDateTime(DateTime selectedDate, TimeOfDay time) {
     final openingMinutes = _parseTimeToMinutes(loungeOpeningTime);
     final closingMinutes = _parseTimeToMinutes(loungeClosingTime);
     final selectedMinutes = time.hour * 60 + time.minute;
@@ -252,7 +250,10 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   /// Calculates maximum continuous free duration in minutes before the next booked slot
-  int getMaxAvailableDurationMinutes([TimeOfDay? customStartTime, BookingState? customState]) {
+  int getMaxAvailableDurationMinutes([
+    TimeOfDay? customStartTime,
+    BookingState? customState,
+  ]) {
     final sState = customState ?? state;
     final start = customStartTime ?? sState.startTime;
     if (start == null) return 720;
@@ -267,7 +268,9 @@ class BookingCubit extends Cubit<BookingState> {
     for (int i = 0; i < 48; i++) {
       final checkTime = startDateTime.add(Duration(minutes: i * 15));
       final tod = TimeOfDay(hour: checkTime.hour, minute: checkTime.minute);
-      if (sState.bookedTimeSlots.any((slot) => slot.hour == tod.hour && slot.minute == tod.minute)) {
+      if (sState.bookedTimeSlots.any(
+        (slot) => slot.hour == tod.hour && slot.minute == tod.minute,
+      )) {
         break; // Stop at the first booked slot!
       }
       free15MinCount++;
@@ -281,7 +284,8 @@ class BookingCubit extends Cubit<BookingState> {
     if (isSlotBooked(time)) return;
 
     final now = DateTime.now();
-    final isToday = state.selectedDate.year == now.year &&
+    final isToday =
+        state.selectedDate.year == now.year &&
         state.selectedDate.month == now.month &&
         state.selectedDate.day == now.day;
 
@@ -315,7 +319,10 @@ class BookingCubit extends Cubit<BookingState> {
 
   void updateDuration(int deltaMinutes) {
     final maxAllowed = getMaxAvailableDurationMinutes();
-    final newDuration = (state.durationMinutes + deltaMinutes).clamp(15, maxAllowed);
+    final newDuration = (state.durationMinutes + deltaMinutes).clamp(
+      15,
+      maxAllowed,
+    );
 
     if (newDuration == state.durationMinutes && deltaMinutes > 0) {
       HapticFeedback.vibrate();
@@ -327,7 +334,9 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   bool isSlotBooked(TimeOfDay time) {
-    return state.bookedTimeSlots.any((slot) => slot.hour == time.hour && slot.minute == time.minute);
+    return state.bookedTimeSlots.any(
+      (slot) => slot.hour == time.hour && slot.minute == time.minute,
+    );
   }
 
   bool isRangeAvailable(TimeOfDay start, int durationMinutes) {
