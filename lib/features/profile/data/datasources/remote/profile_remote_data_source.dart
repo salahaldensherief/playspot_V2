@@ -121,8 +121,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final response = await _supabase.rpc('get_user_points_balance', params: {
         'p_user_id': user.id,
       });
-      return response as int? ?? 0;
+      return (response as num?)?.toInt() ?? 0;
     } catch (e) {
+      AppLogger.debug('[Profile] get_user_points_balance RPC error: $e');
       return 0;
     }
   }
