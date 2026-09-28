@@ -19,9 +19,31 @@ class QuickRebookSlotsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final today = DateTime.now();
+    final firstDate = DateTime(today.year, today.month, today.day);
+    final lastDate = DateTime(today.year, today.month, today.day + 30);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        OutlinedButton.icon(
+          onPressed: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: state.selectedDate,
+              firstDate: firstDate,
+              lastDate: lastDate,
+            );
+            if (picked != null && context.mounted) {
+              await context.read<QuickRebookCubit>().changeDate(picked);
+            }
+          },
+          icon: const Icon(Icons.calendar_month_outlined),
+          label: Text(
+            DateFormat.yMMMEd(context.locale.languageCode)
+                .format(state.selectedDate),
+          ),
+        ),
+        SizedBox(height: 10.h),
         AppText(
           text: AppStrings.quickRebookNearestSlots.tr(),
           fontSize: 13.sp,
