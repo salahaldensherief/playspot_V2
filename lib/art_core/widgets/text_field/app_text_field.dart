@@ -76,6 +76,7 @@ class AppTextField extends StatefulWidget {
 
 class _AppTextFieldState extends State<AppTextField> {
   late bool obscureText;
+  String? _internalErrorText;
 
   @override
   void initState() {
@@ -85,6 +86,8 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final hasError = widget.errorText != null || _internalErrorText != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -99,10 +102,14 @@ class _AppTextFieldState extends State<AppTextField> {
                     widget.label!,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
-                    style: widget.labelStyle ??
+                    style:
+                        widget.labelStyle ??
                         TextStyle(
                           fontSize: 14.sp,
-                          color: AppColors.textSecondary, // 🎨 label color
+                          color: hasError
+                              ? AppColors.danger
+                              : AppColors
+                                    .textSecondary, // 🎨 label color changes on error
                           fontWeight: FontWeight.w400,
                           height: 1,
                         ),
@@ -125,10 +132,12 @@ class _AppTextFieldState extends State<AppTextField> {
             color: widget.fillColor ?? AppColors.cardBackground, // 🎨 card bg
             border: widget.enableBorder
                 ? Border.all(
-              color: widget.errorText != null
-                  ? AppColors.danger          // 🎨 error border
-                  : AppColors.borderDefault,  // 🎨 default border
-            )
+                    color: hasError
+                        ? AppColors
+                              .danger // 🎨 error border
+                        : AppColors.borderDefault, // 🎨 default border
+                    width: 1.0,
+                  )
                 : null,
             borderRadius: BorderRadius.circular(widget.borderRadius ?? 12.r),
             boxShadow: widget.boxShadow,
@@ -139,19 +148,17 @@ class _AppTextFieldState extends State<AppTextField> {
             children: [
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 4),
+                    if (widget.label != null) const SizedBox(height: 4),
                     Padding(
                       padding: REdgeInsets.only(
                         left: (widget.prefixIcon != null) ? 25.0 : 0,
                         top: 0,
-                        bottom: 4,
+                        bottom: 0,
                       ),
                       child: TextFormField(
-                        onTapUpOutside: (value) {
-                          FocusManager.instance.primaryFocus?.unfocus();
-                        },
                         inputFormatters: widget.inputFormatters,
                         controller: widget.controller,
                         initialValue: widget.initialText,
@@ -163,13 +170,25 @@ class _AppTextFieldState extends State<AppTextField> {
                         obscureText: obscureText,
                         keyboardType: widget.textInputType,
                         textInputAction: widget.textInputAction,
-                        onChanged: widget.onChanged,
-                        validator: widget.validator,
+                        onChanged: (val) {
+                          if (_internalErrorText != null) {
+                            setState(() {
+                              _internalErrorText = null;
+                            });
+                          }
+                          widget.onChanged?.call(val);
+                        },
+                        validator: (val) {
+                          final error = widget.validator?.call(val);
+                          // We don't update state here anymore as it can cause issues during build/layout
+                          return error;
+                        },
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         onTap: widget.onTap,
                         scrollPadding: EdgeInsets.zero,
-                        onTapOutside: (_) => FocusScope.of(context).unfocus(),
-                        style: widget.textInputStyle ??
+                        onTapOutside: (event) => FocusManager.instance.primaryFocus?.unfocus(),
+                        style:
+                            widget.textInputStyle ??
                             widget.textStyle ??
                             TextStyle(
                               fontSize: 14.sp,
@@ -180,15 +199,16 @@ class _AppTextFieldState extends State<AppTextField> {
                         decoration: InputDecoration(
                           prefixIcon: widget.hintIcon != null
                               ? Padding(
-                            padding: REdgeInsets.only(
-                              right: 8.0,
-                              bottom: 2.0,
-                            ),
-                            child: SvgIconWidget(
-                              path: widget.hintIcon!,
-                              color: AppColors.textSecondary, // 🎨 prefix icon
-                            ),
-                          )
+                                  padding: REdgeInsets.only(
+                                    right: 8.0,
+                                    bottom: 2.0,
+                                  ),
+                                  child: SvgIconWidget(
+                                    path: widget.hintIcon!,
+                                    color: AppColors
+                                        .textSecondary, // 🎨 prefix icon
+                                  ),
+                                )
                               : null,
                           prefixIconConstraints: const BoxConstraints(
                             minWidth: 0,
@@ -196,7 +216,8 @@ class _AppTextFieldState extends State<AppTextField> {
                           ),
                           suffix: widget.suffixIcon,
                           hintText: widget.hint ?? "Enter your text",
-                          hintStyle: widget.hintStyle ??
+                          hintStyle:
+                              widget.hintStyle ??
                               TextStyle(
                                 fontSize: 12.sp,
                                 color: AppColors.hintText, // 🎨 hint text
@@ -204,12 +225,18 @@ class _AppTextFieldState extends State<AppTextField> {
                                 height: 1,
                               ),
                           fillColor: widget.filled
-                              ? (widget.fillColor ?? AppColors.cardBackground) // 🎨 fill
+                              ? (widget.fillColor ??
+                                    AppColors.cardBackground) // 🎨 fill
                               : null,
                           filled: widget.filled,
                           border: InputBorder.none,
                           contentPadding:
-                          widget.contentPadding ?? EdgeInsets.zero,
+                              widget.contentPadding ??
+                              EdgeInsets.symmetric(
+                                vertical: 6.h,
+                                horizontal: 8.w,
+                              ),
+
                           isCollapsed: true,
                           errorText: widget.errorText,
                           errorStyle: const TextStyle(
@@ -225,7 +252,7 @@ class _AppTextFieldState extends State<AppTextField> {
               if (widget.isPassword) ...[
                 Padding(
                   padding: REdgeInsets.only(
-                    top: obscureText ? 10 : 20,
+                    top: 15.h, // Fixed consistent padding
                     right: 5,
                   ),
                   child: SvgIconWidget(

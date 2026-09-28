@@ -103,10 +103,47 @@ class AppColors {
   static const Color categoryFood   = Color(0xFFFBBF24);
   static const Color categorySnacks = Color(0xFFA855F7);
 
+  // ─── Tournaments & Esports ────────────────────────────────────
+  static const Color tournamentGold        = Color(0xFFFFD700);
+  static const Color tournamentCardBg      = Color(0xFF13141F);
+  static const Color tournamentFilterBg    = Color(0xFF181A28);
+  static const Color tournamentHeaderBg    = Color(0xFF1C1E2D);
+  static const Color tournamentTrackBg     = Color(0xFF1E2030);
+  static const Color tournamentGradStart   = Color(0xFF2A0845);
+  static const Color tournamentGradMid     = Color(0xFF1B003A);
+  static const Color tournamentGradEnd     = Color(0xFF003853);
+  static const Color tournamentBannerStart = Color(0xFF1E1535);
+  static const Color tournamentBannerEnd   = Color(0xFF0F1E36);
+
+  static const LinearGradient tournamentPromoGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF2A0845),
+      Color(0xFF1B003A),
+      Color(0xFF003853),
+    ],
+  );
+
+  static const LinearGradient tournamentPlaceholderGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF1E1535),
+      Color(0xFF0F1E36),
+    ],
+  );
+
   // ─── Borders & Dividers ───────────────────────────────────────
   static const Color borderDefault = Color(0x1AFFFFFF);
   static const Color borderSubtle  = Color(0x0DFFFFFF);
   static const Color divider       = Color(0x1AFFFFFF);
+
+  // ─── Glass & Overlays ─────────────────────────────────────────
+  static final Color glassBackground = Colors.white.withOpacity(0.03);
+  static final Color glassBorder = Colors.white.withOpacity(0.08);
+  static final Color blackOverlay = Colors.black.withOpacity(0.6);
+  static final Color whiteOverlay = Colors.white.withOpacity(0.05);
 
   // ─── Neon Blue Overlays ───────────────────────────────────────
   static const Color neonBlue10 = Color(0x1A00D4FF);

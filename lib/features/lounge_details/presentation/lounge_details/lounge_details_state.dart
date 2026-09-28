@@ -1,0 +1,170 @@
+import 'package:equatable/equatable.dart';
+import 'package:playspot/art_core/models/time_range.dart';
+import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
+import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+import 'package:playspot/features/lounge_details/data/models/review_model.dart';
+import 'package:playspot/features/home/data/models/category_model.dart';
+import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
+
+enum LoungeDetailsStatus { initial, loading, success, error }
+
+class LoungeDetailsState extends Equatable {
+  final LoungeDetailsStatus status;
+  final bool isDateLoading;
+  final List<RoomModel> rooms;
+  final List<ExtraModel> extras;
+  final List<ReviewModel> reviews;
+  final Map<String, int> selectedExtras;
+  final Set<String> selectedRoomIds;
+  final DateTime? selectedDate;
+  final List<String> bookedRoomIds;
+  final Map<String, List<TimeRange>> bookedSlotsByRoom;
+  final List<String> categories;
+  final List<CategoryModel> deviceCategories;
+  final int availableRoomsCount;
+  final String selectedCategory;
+  final String selectedSpaceType;
+  final Map<String, String> roomPlayModes; // {roomId: 'single' | 'multi'}
+  final Map<String, int> roomExtraControllers; // {roomId: count}
+  final LoungeModel? lounge;
+  final List<TournamentEntity> tournaments;
+
+  const LoungeDetailsState({
+    this.status = LoungeDetailsStatus.initial,
+    this.isDateLoading = false,
+    this.rooms = const [],
+    this.extras = const [],
+    this.reviews = const [],
+    this.selectedExtras = const {},
+    this.selectedRoomIds = const {},
+    String? selectedRoomId,
+    this.selectedDate,
+    this.bookedRoomIds = const [],
+    this.bookedSlotsByRoom = const {},
+    this.categories = const [],
+    this.deviceCategories = const [],
+    this.availableRoomsCount = 0,
+    this.selectedCategory = '',
+    this.selectedSpaceType = 'all',
+    this.roomPlayModes = const {},
+    this.roomExtraControllers = const {},
+    this.lounge,
+    this.tournaments = const [],
+  }) : _initialSelectedRoomId = selectedRoomId;
+
+  final String? _initialSelectedRoomId;
+
+  String? get selectedRoomId =>
+      selectedRoomIds.isNotEmpty ? selectedRoomIds.first : _initialSelectedRoomId;
+
+  List<RoomModel> get selectedRooms =>
+      rooms.where((r) => selectedRoomIds.contains(r.id)).toList();
+
+  bool isRoomSelected(String roomId) => selectedRoomIds.contains(roomId);
+
+  int get selectedRoomsCount => selectedRoomIds.length;
+
+  LoungeDetailsState copyWith({
+    LoungeDetailsStatus? status,
+    bool? isDateLoading,
+    List<RoomModel>? rooms,
+    List<ExtraModel>? extras,
+    List<ReviewModel>? reviews,
+    Map<String, int>? selectedExtras,
+    Set<String>? selectedRoomIds,
+    String? selectedRoomId,
+    bool clearRoom = false,
+    DateTime? selectedDate,
+    List<String>? bookedRoomIds,
+    Map<String, List<TimeRange>>? bookedSlotsByRoom,
+    List<String>? categories,
+    List<CategoryModel>? deviceCategories,
+    int? availableRoomsCount,
+    String? selectedCategory,
+    String? selectedSpaceType,
+    Map<String, String>? roomPlayModes,
+    Map<String, int>? roomExtraControllers,
+    LoungeModel? lounge,
+    List<TournamentEntity>? tournaments,
+  }) {
+    Set<String> nextSelectedRoomIds = selectedRoomIds ?? this.selectedRoomIds;
+    if (clearRoom) {
+      nextSelectedRoomIds = const {};
+    } else if (selectedRoomId != null) {
+      nextSelectedRoomIds = {selectedRoomId};
+    }
+
+    return LoungeDetailsState(
+      status: status ?? this.status,
+      isDateLoading: isDateLoading ?? this.isDateLoading,
+      rooms: rooms ?? this.rooms,
+      extras: extras ?? this.extras,
+      reviews: reviews ?? this.reviews,
+      selectedExtras: selectedExtras ?? this.selectedExtras,
+      selectedRoomIds: nextSelectedRoomIds,
+      selectedDate: selectedDate ?? this.selectedDate,
+      bookedRoomIds: bookedRoomIds ?? this.bookedRoomIds,
+      bookedSlotsByRoom: bookedSlotsByRoom ?? this.bookedSlotsByRoom,
+      categories: categories ?? this.categories,
+      deviceCategories: deviceCategories ?? this.deviceCategories,
+      availableRoomsCount: availableRoomsCount ?? this.availableRoomsCount,
+      selectedCategory: selectedCategory ?? this.selectedCategory,
+      selectedSpaceType: selectedSpaceType ?? this.selectedSpaceType,
+      roomPlayModes: roomPlayModes ?? this.roomPlayModes,
+      roomExtraControllers: roomExtraControllers ?? this.roomExtraControllers,
+      lounge: lounge ?? this.lounge,
+      tournaments: tournaments ?? this.tournaments,
+    );
+  }
+
+  List<RoomModel> get filteredRooms {
+    if (selectedSpaceType == 'all') return rooms;
+
+    return rooms.where((r) {
+      if (selectedSpaceType == 'simulator') return r.isSimulator;
+      if (selectedSpaceType == 'vr') return r.isVR;
+      return r.spaceTypeName == selectedSpaceType;
+    }).toList();
+  }
+
+  double get totalPrice {
+    double basePrice = 0;
+    for (final r in selectedRooms) {
+      basePrice += r.hourlyRateSingle;
+    }
+
+    double extrasTotal = 0;
+    selectedExtras.forEach((id, qty) {
+      final extra = extras.where((e) => e.id == id).firstOrNull;
+      if (extra != null) {
+        extrasTotal += (extra.price * qty);
+      }
+    });
+
+    return basePrice + extrasTotal;
+  }
+
+  @override
+  List<Object?> get props => [
+        status,
+        isDateLoading,
+        rooms,
+        extras,
+        reviews,
+        selectedExtras,
+        selectedRoomIds,
+        selectedDate,
+        bookedRoomIds,
+        bookedSlotsByRoom,
+        categories,
+        deviceCategories,
+        availableRoomsCount,
+        selectedCategory,
+        selectedSpaceType,
+        roomPlayModes,
+        roomExtraControllers,
+        lounge,
+        tournaments,
+      ];
+}

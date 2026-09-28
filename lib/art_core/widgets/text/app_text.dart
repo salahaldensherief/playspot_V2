@@ -27,6 +27,7 @@ class AppText extends StatefulWidget {
   final String? showMoreText;
   final String? showLessText;
   final TextStyle? showMoreStyle;
+  final double? letterSpacing;
 
   const AppText({
     super.key,
@@ -50,6 +51,7 @@ class AppText extends StatefulWidget {
     this.showMoreText,
     this.showLessText,
     this.showMoreStyle,
+    this.letterSpacing,
   });
 
   @override
@@ -69,20 +71,18 @@ class _AppTextState extends State<AppText> {
   }
 
   TextStyle _getTextStyle() {
-    final defaultColor = Theme.of(context).textTheme.bodyMedium?.color ?? AppColors.primary;
-    final defaultFontFamily = Theme.of(context).textTheme.bodyMedium?.fontFamily;
-
-    return widget.style ??
-        TextStyle(
-          fontSize: widget.fontSize ?? 14.sp,
-          decorationColor: widget.color ?? defaultColor,
-          color: widget.color ?? defaultColor,
-          fontWeight: widget.fontWeight ?? FontWeight.w400,
-          height: widget.height ?? 1.4.h,
-          fontFamily: widget.fontFamily ?? defaultFontFamily ?? FontsManager.fontFamily,
-          decoration: widget.textDecoration,
-          shadows: widget.shadows,
-        );
+    return FontsManager.getStyle(
+      context: context,
+      fontSize: widget.fontSize,
+      color: widget.color,
+      fontWeight: widget.fontWeight,
+      height: widget.height,
+      fontFamily: widget.fontFamily,
+      letterSpacing: widget.letterSpacing,
+      textDecoration: widget.textDecoration,
+      shadows: widget.shadows,
+      baseStyle: widget.style,
+    );
   }
 
   bool _isTextOverflowing(String text, TextStyle style, int maxLines, double maxWidth) {
@@ -120,8 +120,7 @@ class _AppTextState extends State<AppText> {
                   style: textStyle,
                   maxLines: _showAll ? null : widget.maxLines,
                   overflow: _showAll ? TextOverflow.visible : (widget.overflow ?? TextOverflow.ellipsis),
-                  textAlign: widget.textAlign ?? (_getTextDirection() == TextDirection.rtl ? TextAlign.right : TextAlign.left),
-                  textDirection: _getTextDirection() ,
+                  textAlign: widget.textAlign ?? TextAlign.start,
                 ),
               ),
 
@@ -139,9 +138,7 @@ class _AppTextState extends State<AppText> {
                       decoration: TextDecoration.underline,
                       decorationThickness: 0.5,
                     ),
-                    textAlign: widget.textAlign ?? (_getTextDirection() == TextDirection.rtl ? TextAlign.right : TextAlign.left),
-
-                    textDirection: _getTextDirection() ,
+                    textAlign: widget.textAlign ?? TextAlign.start,
                   ),
                 ),
               ],
@@ -157,9 +154,10 @@ class _AppTextState extends State<AppText> {
         displayText,
         style: textStyle,
         maxLines: widget.maxLines,
-        overflow: widget.overflow ?? TextOverflow.ellipsis,
-        textAlign: widget.textAlign ?? (_getTextDirection() == TextDirection.rtl ? TextAlign.right : TextAlign.left),
-        textDirection: _getTextDirection(),
+        overflow: widget.maxLines != null
+            ? (widget.overflow ?? TextOverflow.ellipsis)
+            : widget.overflow,
+        textAlign: widget.textAlign ?? TextAlign.start,
       ),
     );
   }
@@ -201,28 +199,4 @@ class _AppTextState extends State<AppText> {
     // لو حرف واحد على الأقل عربي من أول 3
     return arabicCount > 0 ? TextDirection.rtl : TextDirection.ltr;
   }
-
-// TextDirection _getTextDirection() {
-//   if (widget.textDirection != null) {
-//     return widget.textDirection!;
-//   }
-//
-//   if (widget.text.isEmpty) {
-//     return TextDirection.ltr;
-//   }
-//
-//   for (final rune in widget.text.runes) {
-//     if (rune >= 0x0600 && rune <= 0x06FF) {
-//       print('Arabic detected in: ${widget.text}');
-//       return TextDirection.rtl;
-//     }
-//     if ((rune >= 0x0041 && rune <= 0x005A) || (rune >= 0x0061 && rune <= 0x007A)) {
-//       print('English detected in: ${widget.text}');
-//       return TextDirection.ltr;
-//     }
-//   }
-//
-//   return TextDirection.ltr;
-// }
-
 }

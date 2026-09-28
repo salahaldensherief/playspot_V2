@@ -1,51 +1,50 @@
 import 'package:get_it/get_it.dart';
-import 'package:playspot/features/auth/presetation/signin/signin_cubit.dart';
-import 'package:playspot/features/auth/presetation/signup/signup_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../features/auth/data/data_source/remote/auth_remote_data_source.dart';
-import '../features/auth/data/repos/auth_repos.dart';
+import 'constants/app_config.dart';
+import 'di/modules/active_session_module.dart';
+import 'di/modules/app_status_module.dart';
+import 'di/modules/auth_module.dart';
+import 'di/modules/booking_module.dart';
+import 'di/modules/core_module.dart';
+import 'di/modules/favorites_module.dart';
+import 'di/modules/home_module.dart';
+import 'di/modules/lounge_module.dart';
+import 'di/modules/my_bookings_module.dart';
+import 'di/modules/notifications_module.dart';
+import 'di/modules/profile_module.dart';
+import 'di/modules/tournaments_module.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  await _initSupabase();
-  _initAuth();
+  // Core services & Cache
+  await initCoreModule();
+
+  // Feature modules
+  initAuthModule();
+  initHomeModule();
+  initLoungeModule();
+  initBookingModule();
+  initMyBookingsModule();
+  initProfileModule();
+  initFavoritesModule();
+  initNotificationsModule();
+  initActiveSessionModule();
+  initTournamentsModule();
+  initAppStatusModule();
 }
 
-// ─── Supabase ─────────────────────────────────────────────────
-Future<void> _initSupabase() async {
+Future<void> initSupabase() async {
+  if (AppConfig.supabaseUrl.isEmpty || AppConfig.supabaseAnonKey.isEmpty) {
+    throw StateError(
+      'Missing SUPABASE_URL or SUPABASE_ANON_KEY. '
+      'Pass them with --dart-define at build/run time.',
+    );
+  }
+
   await Supabase.initialize(
-    url: 'https://tgpdexoitemmpruepgyt.supabase.co',
-    anonKey:
-    'YOUR_ANON_KEY',
-  );
-
-  sl.registerLazySingleton<SupabaseClient>(
-        () => Supabase.instance.client,
-  );
-}
-
-// ─── Auth ─────────────────────────────────────────────────────
-void _initAuth() {
-
-  // Data Source
-  sl.registerLazySingleton<AuthRemoteSource>(
-        () => AuthRemoteSourceImpl(),
-  );
-
-  // Repository
-  sl.registerLazySingleton<AuthRepository>(
-        () => AuthRepositoryImpl(sl()),
-  );
-
-  // Login Cubit
-  sl.registerFactory<LoginCubit>(
-        () => LoginCubit(sl()),
-  );
-
-  // Signup Cubit
-  sl.registerFactory<SignupCubit>(
-        () => SignupCubit(sl()),
+    url: AppConfig.supabaseUrl,
+    publishableKey: AppConfig.supabaseAnonKey,
   );
 }

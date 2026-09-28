@@ -1,0 +1,152 @@
+import 'package:dartz/dartz.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/core/utils/repository_helper.dart';
+import 'package:playspot/features/auth/data/models/user_model.dart';
+import 'package:playspot/features/profile/data/datasources/remote/profile_remote_data_source.dart';
+import 'package:playspot/features/profile/data/models/claim_referral_result.dart';
+import 'package:playspot/features/profile/data/models/loyalty_mission_model.dart';
+import 'package:playspot/features/profile/data/models/loyalty_status_model.dart';
+import 'package:playspot/features/profile/data/models/notification_settings_model.dart';
+import 'package:playspot/features/profile/data/models/profile_params.dart';
+import 'package:playspot/features/profile/data/models/redemption_option_model.dart';
+import 'package:playspot/features/profile/data/models/user_referral_stats_model.dart';
+import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+
+class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
+  final ProfileRemoteDataSource _remoteSource;
+  final PreferenceManager _preferenceManager;
+
+  ProfileRepositoryImpl(this._remoteSource, this._preferenceManager);
+
+  @override
+  Future<Either<Failure, UserModel>> updateProfile(UpdateProfileParams params) async {
+    return await callRepository(() async {
+      final user = await _remoteSource.updateProfile(params);
+      _saveUserData(user);
+      return user;
+    });
+  }
+
+  @override
+  Future<Either<Failure, void>> updateUserLocation() async {
+    return await callRepository(() => _remoteSource.updateUserLocation());
+  }
+
+  @override
+  UserModel? getCurrentUser() {
+    final user = _remoteSource.getCurrentUser();
+    if (user == null) return null;
+    final cachedUser = _preferenceManager.getUserData();
+    if (cachedUser?.id == user.id) return cachedUser;
+    _saveUserData(user);
+    return user;
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> getUserProfile() async {
+    return await callRepository(() async {
+      final user = await _remoteSource.getUserProfile();
+      _saveUserData(user);
+      return user;
+    });
+  }
+
+  @override
+  Future<Either<Failure, int>> getPointsBalance() async {
+    return await callRepository(() => _remoteSource.getPointsBalance());
+  }
+
+  @override
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getPointsHistory({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    return await callRepository<PaginatedResponse<Map<String, dynamic>>>(
+      () => _remoteSource.getPointsHistory(page: page, pageSize: pageSize),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions() async {
+    return await callRepository(() => _remoteSource.getRedemptionOptions());
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId) async {
+    return await callRepository(() => _remoteSource.redeemPoints(optionId));
+  }
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getMyVouchers() async {
+    return await callRepository(() => _remoteSource.getMyVouchers());
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucher(String voucherId) async {
+    return await callRepository(() => _remoteSource.validateVoucher(voucherId));
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(String code) async {
+    return await callRepository(() => _remoteSource.validateVoucherByCode(code));
+  }
+
+  @override
+  Future<Either<Failure, void>> consumeVoucher({required String voucherId, required String bookingId}) async {
+    return await callRepository(() => _remoteSource.consumeVoucher(voucherId: voucherId, bookingId: bookingId));
+  }
+
+  @override
+  Future<Either<Failure, void>> consumeVoucherByCode({required String code, required String bookingId}) async {
+    return await callRepository(() => _remoteSource.consumeVoucherByCode(code: code, bookingId: bookingId));
+  }
+
+  @override
+  Future<void> updateFcmToken(String token) async {
+    await _preferenceManager.saveFCMToken(token);
+    await _remoteSource.updateFcmToken(token);
+  }
+
+  @override
+  Future<Either<Failure, NotificationSettingsModel>> getNotificationSettings() async {
+    return await callRepository(() => _remoteSource.getNotificationSettings());
+  }
+
+  @override
+  Future<Either<Failure, void>> updateNotificationSettings(NotificationSettingsModel settings) async {
+    return await callRepository(() => _remoteSource.updateNotificationSettings(settings));
+  }
+
+  @override
+  Future<Either<Failure, LoyaltyStatusModel>> getLoyaltyStatus() async {
+    return await callRepository(() => _remoteSource.getLoyaltyStatus());
+  }
+
+  @override
+  Future<Either<Failure, List<LoyaltyMissionModel>>> getLoyaltyMissions() async {
+    return await callRepository(() => _remoteSource.getLoyaltyMissions());
+  }
+
+  @override
+  Future<Either<Failure, UserReferralStatsModel>> getReferralStats() async {
+    return await callRepository(() => _remoteSource.getReferralStats());
+  }
+
+  @override
+  Future<Either<Failure, ClaimReferralResult>> claimReferralCode(String referralCode) async {
+    return await callRepository(() => _remoteSource.claimReferralCode(referralCode));
+  }
+
+  @override
+  Future<Either<Failure, int>> getTotalBookingsCount() async {
+    return await callRepository(() => _remoteSource.getTotalBookingsCount());
+  }
+
+  void _saveUserData(UserModel user) {
+    _preferenceManager.saveUserId(user.id);
+    _preferenceManager.saveFullName(user.name);
+    _preferenceManager.saveUserData(user);
+  }
+}

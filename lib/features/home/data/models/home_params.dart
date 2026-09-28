@@ -1,0 +1,38 @@
+/// Parameters for fetching lounges from the repository
+class GetLoungesParams {
+  final double? lat;
+  final double? lng;
+  final String? city;
+  final String? searchQuery;
+  final List<String>? categoryIds;
+  final String sortType;
+  final bool isOpenOnly;
+  final int limit;
+  final int offset;
+
+  GetLoungesParams({
+    this.lat,
+    this.lng,
+    this.city,
+    this.searchQuery,
+    this.categoryIds,
+    this.sortType = 'nearest',
+    this.isOpenOnly = false,
+    this.limit = 20,
+    this.offset = 0,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'p_lat': lat,
+      'p_lng': lng,
+      'p_city': city,
+      'p_search_query': searchQuery,
+      'p_category_ids': categoryIds,
+      'p_sort_type': sortType,
+      'p_is_open_only': isOpenOnly,
+      'p_limit': limit,
+      'p_offset': offset,
+    };
+  }
+}

@@ -1,7 +1,8 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../features/auth/data/models/user_model.dart';
 
 import 'caching_key.dart';
 
@@ -12,96 +13,120 @@ class PreferenceManager {
 
   final GetStorage _box = GetStorage();
 
-  void saveLatitude(double latitude) => _box.write(CachingKey.LATITUDE, latitude);
+  Future<void> saveLatitude(double latitude) => _box.write(CachingKey.LATITUDE, latitude);
 
   String latitude() => _box.read(CachingKey.LATITUDE)?.toString() ?? '';
 
-  void saveLongitude(double longitude) => _box.write(CachingKey.LONGITUDE, longitude);
+  Future<void> saveLongitude(double longitude) => _box.write(CachingKey.LONGITUDE, longitude);
 
   String longitude() => _box.read(CachingKey.LONGITUDE)?.toString() ?? '';
 
-  void saveFCMToken(String fcmToken) => _box.write(CachingKey.FCM_TOKEN, fcmToken);
+  Future<void> saveFCMToken(String fcmToken) => _box.write(CachingKey.FCM_TOKEN, fcmToken);
 
   String fcmToken() => _box.read(CachingKey.FCM_TOKEN) as String? ?? "";
 
-  void saveIsFirstTime(bool isFirstTime) => _box.write(CachingKey.IS_FIRST_TIME, isFirstTime);
+  Future<void> saveIsFirstTime(bool isFirstTime) => _box.write(CachingKey.IS_FIRST_TIME, isFirstTime);
 
   bool isFirstTime() => _box.read(CachingKey.IS_FIRST_TIME) as bool? ?? true;
 
-  void saveIsOpenAsGuestUser(bool isGustUser) => _box.write(CachingKey.IS_GUEST_USER, isGustUser);
+  Future<void> saveIsOpenAsGuestUser(bool isGustUser) => _box.write(CachingKey.IS_GUEST_USER, isGustUser);
 
   bool isOpenAsGuestUser() => _box.read(CachingKey.IS_GUEST_USER) as bool? ?? false;
 
-  void saveIsLoggedIn(bool isLoggedIn) => _box.write(CachingKey.IS_LOGGED_IN, isLoggedIn);
+  Future<void> saveIsLoggedIn(bool isLoggedIn) => _box.write(CachingKey.IS_LOGGED_IN, isLoggedIn);
 
   bool get isLoggedIn => _box.read(CachingKey.IS_LOGGED_IN) as bool? ?? false;
 
-  void saveAuthToken(String? authToken) => _box.write(CachingKey.AUTH_TOKEN, authToken ?? '');
+  Future<void> saveAuthToken(String? authToken) => _box.write(CachingKey.AUTH_TOKEN, authToken ?? '');
 
   String authToken() => _box.read(CachingKey.AUTH_TOKEN) as String? ?? "";
 
-  void saveToken(String? cooke) => _box.write(CachingKey.TOKEN, cooke ?? '');
+  Future<void> saveToken(String? cooke) => _box.write(CachingKey.TOKEN, cooke ?? '');
 
   String token() => _box.read(CachingKey.TOKEN) as String? ?? "";
 
-  // bool get isSubscribed => (getUserData()?.isSubscribe ?? false);
 
-  void saveFullName(String? fullName) => _box.write(CachingKey.FullName, fullName ?? '');
+  Future<void> saveFullName(String? fullName) => _box.write(CachingKey.FullName, fullName ?? '');
 
   String? fullName() => _box.read(CachingKey.FullName) as String? ?? "";
 
-  // String? phoneNumber() => getUserData()?.mobileNumber ?? '';
-  //
-  // String? countryCode() => getUserData()?.countryCode ?? '';
+  Future<void> savePhoneNumber(String? phone) => _box.write(CachingKey.PhoneNumber, phone ?? '');
 
-  void saveValue(String cachingKey, String value) => _box.write(cachingKey, value);
+  String? phoneNumber() => _box.read(CachingKey.PhoneNumber) as String? ?? getUserData()?.phone ?? "";
 
-  String getValue(String cachingKey) => _box.read(cachingKey) as String;
+  Future<void> saveValue(String cachingKey, String value) => _box.write(cachingKey, value);
 
-  void saveLanguage(String lang) => _box.write(CachingKey.LANGUAGE, lang);
+  String getValue(String cachingKey) => _box.read(cachingKey)?.toString() ?? "";
 
-  String currentLang() =>
-      _box.read(CachingKey.LANGUAGE) as String? ?? Platform.localeName.split("_").firstOrNull ?? 'en';
+  Future<void> saveLanguage(String lang) => _box.write(CachingKey.LANGUAGE, lang);
 
-  void saveUserId(String? userId) => _box.write(CachingKey.UserId, userId ?? '');
+  String currentLang() {
+    final savedLang = _box.read(CachingKey.LANGUAGE) as String?;
+    if (savedLang != null) return savedLang;
+    if (kIsWeb) return 'en';
+    try {
+      return Platform.localeName.split("_").firstOrNull ?? 'en';
+    } catch (_) {
+      return 'en';
+    }
+  }
+
+  Future<void> saveUserId(String? userId) => _box.write(CachingKey.UserId, userId ?? '');
 
   String? userId() => _box.read(CachingKey.UserId) as String? ?? "";
 
-  // bool? isUserSubscription() => _box.read(CachingKey.isUserSubscription) as bool?;
-  //
-  // void setUserSubscription(bool subscription) =>
-  //     _box.write(CachingKey.isUserSubscription, isDarkMode);
-  //
-  //
+  Future<void> savePendingReferralCode(String? code) {
+    if (code == null || code.trim().isEmpty) return Future.value();
+    return _box.write(CachingKey.PENDING_REFERRAL_CODE, code.trim().toUpperCase());
+  }
 
-  // void saveUserData(UserModel user) {
-  //   final json = user.toJson();
-  //   _box.write(CachingKey.UserData, json);
-  //
-  //   // ✅ Backup copy (self-healing if UserData becomes null)
-  //   _box.write(CachingKey.UserDataBackup, json);
-  // }
+  String getPendingReferralCode() {
+    return _box.read(CachingKey.PENDING_REFERRAL_CODE) as String? ?? '';
+  }
 
-  // UserModel? getUserData() {
-  //   final data = _box.read(CachingKey.UserData);
-  //   if (data != null) {
-  //     return UserModel.fromJson(data);
-  //   }
-  //
-  //   // ✅ Restore from backup automatically
-  //   final backup = _box.read(CachingKey.UserDataBackup);
-  //   if (backup != null) {
-  //     try {
-  //       final user = UserModel.fromJson(backup);
-  //       _box.write(CachingKey.UserData, user.toJson()); // restore primary
-  //       return user;
-  //     } catch (_) {
-  //       // ignore parsing errors
-  //     }
-  //   }
-  //
-  //   return null;
-  // }
+  Future<void> clearPendingReferralCode() {
+    return _box.remove(CachingKey.PENDING_REFERRAL_CODE);
+  }
+
+  Future<void> saveUserData(UserModel user) {
+    return _box.write(CachingKey.UserData, user.toJson());
+  }
+
+  UserModel? getUserData() {
+    final data = _box.read(CachingKey.UserData);
+    if (data != null) {
+      return UserModel.fromJson(Map<String, dynamic>.from(data));
+    }
+    return null;
+  }
+
+  Future<void> clearUserData() async {
+    await _box.remove(CachingKey.UserData);
+    await _box.remove(CachingKey.UserId);
+    await _box.remove(CachingKey.FullName);
+    await _box.remove(CachingKey.PhoneNumber);
+    await _box.remove(CachingKey.UserDataBackup);
+    await _box.remove(CachingKey.REVIEWED_BOOKINGS);
+    await _box.remove(CachingKey.CACHED_LOUNGES);
+    await _box.remove(CachingKey.CURRENT_ADDRESS);
+    await _box.remove(CachingKey.LATITUDE);
+    await _box.remove(CachingKey.LONGITUDE);
+    await _box.remove(CachingKey.PENDING_REFERRAL_CODE);
+    await saveIsLoggedIn(false);
+
+    // Session & Auth Cleanup: Clear local entity caches on logout
+    final keys = _box.getKeys<Iterable<String>>();
+    final keysToRemove = keys.where((k) =>
+        k.startsWith(CachingKey.LOUNGE_PROFILES_PREFIX) ||
+        k.startsWith(CachingKey.LOUNGE_ROOMS_PREFIX) ||
+        k.startsWith(CachingKey.LOUNGE_EXTRAS_PREFIX) ||
+        k == CachingKey.CATEGORIES_CACHE ||
+        k == CachingKey.PROMOTIONS_CACHE).toList();
+
+    for (final key in keysToRemove) {
+      await _box.remove(key);
+    }
+  }
 
 
   // =========================
@@ -109,8 +134,8 @@ class PreferenceManager {
   // =========================
   String _appleProfileKey(String appleUserId) => '${CachingKey.AppleProfilePrefix}$appleUserId';
 
-  void saveAppleProfile({required String appleUserId, String? email, String? name}) {
-    _box.write(_appleProfileKey(appleUserId), {
+  Future<void> saveAppleProfile({required String appleUserId, String? email, String? name}) {
+    return _box.write(_appleProfileKey(appleUserId), {
       'email': email,
       'name': name,
       'updatedAt': DateTime.now().toIso8601String(),
@@ -123,15 +148,26 @@ class PreferenceManager {
     return Map<String, dynamic>.from(data);
   }
 
-  // UserModel? getUserData() {
-  //   final data = _box.read(CachingKey.UserData);
-  //   if (data == null) return null;
-  //   return UserModel.fromJson(data);
-  // }
 
   bool? isDarkMode() => _box.read(CachingKey.IS_DARK_MODE) as bool?;
 
   void setDarkMode(bool? isDarkMode) => _box.write(CachingKey.IS_DARK_MODE, isDarkMode);
+
+  // --- Notification Settings ---
+  Future<void> savePushEnabled(bool val) => _box.write(CachingKey.PUSH_NOTIF_ENABLED, val);
+  bool pushEnabled() => _box.read(CachingKey.PUSH_NOTIF_ENABLED) as bool? ?? true;
+
+  Future<void> saveBookingUpdatesEnabled(bool val) => _box.write(CachingKey.BOOKING_UPDATES_ENABLED, val);
+  bool bookingUpdatesEnabled() => _box.read(CachingKey.BOOKING_UPDATES_ENABLED) as bool? ?? true;
+
+  Future<void> saveOffersEnabled(bool val) => _box.write(CachingKey.OFFERS_ENABLED, val);
+  bool offersEnabled() => _box.read(CachingKey.OFFERS_ENABLED) as bool? ?? true;
+
+  Future<void> saveSystemNotifEnabled(bool val) => _box.write(CachingKey.SYSTEM_NOTIF_ENABLED, val);
+  bool systemNotifEnabled() => _box.read(CachingKey.SYSTEM_NOTIF_ENABLED) as bool? ?? true;
+
+  Future<void> saveTournamentsEnabled(bool val) => _box.write(CachingKey.TOURNAMENTS_ENABLED, val);
+  bool tournamentsEnabled() => _box.read(CachingKey.TOURNAMENTS_ENABLED) as bool? ?? true;
 
   bool? isGuestUser() => authToken().isEmpty;
 

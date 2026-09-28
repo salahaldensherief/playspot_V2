@@ -1,0 +1,56 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/features/auth/presentation/forgot_password/forgot_password_bottom_sheet.dart';
+import 'package:playspot/core/utils/app_validators.dart';
+
+import '../../../../../art_core/app_strings.dart';
+import '../../../../../art_core/theme/app_colors.dart';
+import '../../../../../art_core/widgets/text/app_text.dart';
+import '../../../../../art_core/widgets/text_field/app_text_field.dart';
+import '../signin_cubit.dart';
+
+class SignInForm extends StatelessWidget {
+  const SignInForm({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<SignInCubit>();
+    return Form(
+      key: cubit.formKey,
+      child: Column(
+        children: [
+          AppTextField(
+            controller: cubit.emailController,
+            textInputType: TextInputType.emailAddress,
+            label: AppStrings.email.tr(),
+            isRequired: true,
+            hint: AppStrings.pleaseEnterEmail.tr(),
+            validator: AppValidators.validateEmail,
+          ),
+          10.verticalSpace,
+          AppTextField(
+            controller: cubit.passwordController,
+            label: AppStrings.password.tr(),
+            hint: AppStrings.pleaseEnterPassword.tr(),
+            isPassword: true,
+            isRequired: true,
+            textInputType: TextInputType.visiblePassword,
+            validator: AppValidators.validatePassword,
+          ),
+          10.verticalSpace,
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: AppText(
+              text: AppStrings.forgotPassword.tr(),
+              color: AppColors.white,
+              onTap: () => showForgotPasswordBottomSheet(context),
+            ),
+          ),
+          10.verticalSpace,
+        ],
+      ),
+    );
+  }
+}

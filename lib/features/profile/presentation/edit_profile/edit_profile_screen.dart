@@ -1,0 +1,214 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/router/router_keys.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/avatar_picker/avatar_picker_widget.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/layout/app_dialog.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
+import 'edit_profile_cubit.dart';
+import 'edit_profile_state.dart';
+import 'widgets/edit_profile_form.dart';
+
+class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
+
+  @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      final isArabic = context.locale.languageCode == 'ar';
+      context.read<EditProfileCubit>().init(isArabic: isArabic);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<EditProfileCubit, EditProfileState>(
+      listenWhen: (previous, current) => previous.status != current.status,
+      listener: _handleStateChange,
+      child: Scaffold(
+        backgroundColor: AppColors.scaffoldBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            AppStrings.editProfile.tr(),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          leading: const BackButtonWidget(),
+        ),
+        body: SingleChildScrollView(
+          padding: 20.allPadding,
+          child: Column(
+            children: [
+              const _AvatarSection(),
+              30.verticalSpace,
+              _FormSection(),
+              40.verticalSpace,
+              const _SaveButton(),
+              20.verticalSpace,
+              const _DeleteAccountButton(),
+              const SafeBottomSpacer(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleStateChange(BuildContext context, EditProfileState state) {
+    if (state.status == EditProfileStatus.locationUpdated) {
+      GameHudToast.show(
+        context,
+        AppStrings.locationUpdatedSuccessfully.tr(),
+        type: ToastType.success,
+      );
+    } else if (state.status == EditProfileStatus.success) {
+      GameHudToast.show(
+        null,
+        AppStrings.profileUpdatedSuccessfully.tr(),
+        type: ToastType.success,
+      );
+      if (context.mounted) {
+        Navigator.pop(context, true);
+      }
+    } else if (state.status == EditProfileStatus.accountDeleted) {
+      GameHudToast.show(
+        null,
+        AppStrings.accountDeletedSuccessfully.tr(),
+        type: ToastType.success,
+      );
+      if (context.mounted) {
+        context.goNamed(RouterKeys.signIn);
+      }
+    } else if (state.status == EditProfileStatus.error) {
+      GameHudToast.show(
+        context,
+        state.errorMessage ?? AppStrings.errorUpdatingProfile.tr(),
+        type: ToastType.error,
+      );
+    }
+  }
+}
+
+class _AvatarSection extends StatelessWidget {
+  const _AvatarSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<EditProfileCubit, EditProfileState>(
+      buildWhen: (previous, current) =>
+          previous.user?.avatarUrl != current.user?.avatarUrl ||
+          previous.avatarFile != current.avatarFile ||
+          previous.status != current.status,
+      builder: (context, state) {
+        final cubit = context.read<EditProfileCubit>();
+        return AvatarPickerWidget(
+          avatarFile: state.avatarFile,
+          imageUrl: state.user?.avatarUrl,
+          onTap: cubit.pickAvatar,
+          radius: 60,
+        );
+      },
+    );
+  }
+}
+
+class _FormSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return EditProfileForm(cubit: context.read<EditProfileCubit>());
+  }
+}
+
+class _SaveButton extends StatelessWidget {
+  const _SaveButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<EditProfileCubit, EditProfileState, bool>(
+      selector: (state) => state.status == EditProfileStatus.loading,
+      builder: (context, isLoading) {
+        final cubit = context.read<EditProfileCubit>();
+        return AppButton(
+          buttonConfig: ButtonConfig.gradient(
+            gradient: const LinearGradient(
+              colors: [AppColors.neonBlue, AppColors.neonPurple],
+            ),
+            glowColor: AppColors.neonBlue,
+            borderRadius: 15.r,
+            width: double.infinity,
+            height: 50.h,
+          ),
+          behavior: TapBehavior(
+            isLoading: isLoading,
+            onTap: cubit.updateProfile,
+          ),
+          content: ButtonContent(
+            label: AppStrings.saveChanges.tr(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DeleteAccountButton extends StatelessWidget {
+  const _DeleteAccountButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppButton(
+      content: ButtonContent(
+        label: AppStrings.deleteAccount.tr(),
+      ),
+      behavior: ButtonBehavior.tap(
+        onTap: () => _showDeleteConfirmation(context),
+      ),
+      buttonConfig: ButtonConfig(
+        height: 44.h,
+        backgroundColor: Colors.transparent,
+        borderRadius: 12.r,
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    final cubit = context.read<EditProfileCubit>();
+    AppDialog.show(
+      context,
+      type: AppDialogType.confirm,
+      title: AppStrings.deleteAccount,
+      description: AppStrings.deleteAccountConfirmation,
+      confirmText: AppStrings.deleteAccount,
+      cancelText: AppStrings.cancel,
+      onConfirm: () {
+        cubit.deleteAccount();
+      },
+    );
+  }
+}

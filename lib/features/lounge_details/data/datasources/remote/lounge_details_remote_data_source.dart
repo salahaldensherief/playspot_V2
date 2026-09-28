@@ -1,0 +1,362 @@
+import 'dart:developer' as dev;
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../../home/data/models/category_model.dart';
+import '../../models/extra_model.dart';
+import '../../models/room_model.dart';
+import '../../models/review_model.dart';
+
+abstract class LoungeDetailsRemoteDataSource {
+  Future<List<RoomModel>> getRoomsByLoungeId(
+    String loungeId, {
+    String? categoryId,
+  });
+  Future<List<ExtraModel>> getExtras(String loungeId);
+  Future<List<CategoryModel>> getLoungeCategories(String loungeId);
+  Future<List<ReviewModel>> getLoungeReviews(String loungeId);
+  Future<PaginatedResponse<ReviewModel>> getLoungeReviewsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 20,
+  });
+  Future<PaginatedResponse<Map<String, dynamic>>> getLoungeRolePermissionsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 50,
+  });
+  Future<RoomModel?> getRoomById(String roomId);
+}
+
+class LoungeDetailsRemoteDataSourceImpl
+    implements LoungeDetailsRemoteDataSource {
+  final SupabaseClient _client;
+
+  LoungeDetailsRemoteDataSourceImpl(this._client);
+
+  @override
+  Future<RoomModel?> getRoomById(String roomId) async {
+    try {
+      final response = await _client
+          .from('rooms')
+          .select(
+            '*, space_types(name, label), room_categories(category_id, categories(name_en)), promotions:promotions!room_id(*)',
+          )
+          .eq('id', roomId)
+          .neq('status', 'deleted')
+          .maybeSingle();
+
+      if (response != null) return RoomModel.fromJson(response);
+      return null;
+    } catch (e) {
+      try {
+        final fallback = await _client
+            .from('rooms')
+            .select('*, space_types(name, label)')
+            .eq('id', roomId)
+            .neq('status', 'deleted')
+            .maybeSingle();
+        if (fallback != null) return RoomModel.fromJson(fallback);
+        return null;
+      } catch (_) {
+        return null;
+      }
+    }
+  }
+
+  Future<List<RoomModel>> _hydrateRoomsWithPromotions(String loungeId, List<dynamic> rawRooms) async {
+    final roomMaps = rawRooms.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    if (roomMaps.isEmpty) return [];
+
+    try {
+      final promosRes = await _client
+          .from('promotions')
+          .select()
+          .eq('is_active', true)
+          .eq('lounge_id', loungeId);
+
+      if (promosRes.isNotEmpty) {
+        final Map<String, List<Map<String, dynamic>>> promoByRoom = {};
+        final List<Map<String, dynamic>> loungePromos = [];
+
+        for (var p in promosRes) {
+          final rid = p['room_id']?.toString();
+          if (rid != null && rid.isNotEmpty) {
+            promoByRoom.putIfAbsent(rid, () => []).add(Map<String, dynamic>.from(p));
+          } else {
+            loungePromos.add(Map<String, dynamic>.from(p));
+          }
+        }
+
+        for (var r in roomMaps) {
+          final rid = r['id']?.toString();
+          final existingPromos = r['promotions'];
+          if (existingPromos == null || (existingPromos is List && existingPromos.isEmpty)) {
+            if (rid != null && promoByRoom.containsKey(rid)) {
+              r['promotions'] = promoByRoom[rid];
+            } else if (loungePromos.isNotEmpty) {
+              r['promotions'] = loungePromos;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      dev.log("[ROOMS_DS] ROOM_PROMO_HYDRATION_ERROR: $e");
+    }
+
+    return roomMaps.map((e) => RoomModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<List<RoomModel>> getRoomsByLoungeId(
+    String loungeId, {
+    String? categoryId,
+  }) async {
+    final bool hasFilter =
+        categoryId != null &&
+        categoryId.isNotEmpty &&
+        categoryId.toLowerCase() != 'all';
+
+    final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
+    var query = _client
+        .from('rooms')
+        .select(
+          '*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(*)',
+        )
+        .eq('lounge_id', loungeId)
+        .eq('is_available', true)
+        .neq('status', 'deleted');
+
+    if (hasFilter) {
+      query = query.eq(
+        'room_categories.category_id',
+        categoryId,
+      );
+    }
+
+    try {
+      final response = await query;
+      return await _hydrateRoomsWithPromotions(loungeId, response as List);
+    } catch (e) {
+      dev.log("[ROOMS_DS] Error getting rooms with promo join: $e, trying simpler fallback query");
+      try {
+        var fallbackQuery = _client
+            .from('rooms')
+            .select('*, space_types(name, label), promotions(*)')
+            .eq('lounge_id', loungeId)
+            .eq('is_available', true)
+            .neq('status', 'deleted');
+        final response = await fallbackQuery;
+        return await _hydrateRoomsWithPromotions(loungeId, response as List);
+      } catch (fallbackError) {
+        dev.log("[ROOMS_DS] Error on secondary query: $fallbackError, trying plain select");
+        try {
+          var plainQuery = _client
+              .from('rooms')
+              .select('*, space_types(name, label)')
+              .eq('lounge_id', loungeId)
+              .eq('is_available', true)
+              .neq('status', 'deleted');
+          final response = await plainQuery;
+          return await _hydrateRoomsWithPromotions(loungeId, response as List);
+        } catch (finalError) {
+          dev.log("[ROOMS_DS] Final rooms query error: $finalError");
+          return [];
+        }
+      }
+    }
+  }
+
+  @override
+  Future<List<ExtraModel>> getExtras(String loungeId) async {
+    final response = await _client
+        .from('extras')
+        .select()
+        .eq('lounge_id', loungeId)
+        .eq('is_available', true);
+    return (response as List).map((e) => ExtraModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<List<CategoryModel>> getLoungeCategories(String loungeId) async {
+    final response = await _client.rpc(
+      'get_lounge_categories',
+      params: {'p_lounge_id': loungeId},
+    );
+    return (response as List).map((e) => CategoryModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<PaginatedResponse<ReviewModel>> getLoungeReviewsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    if (loungeId.isEmpty) {
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+
+    try {
+      final response = await _client.rpc('get_lounge_reviews_page', params: {
+        'p_lounge_id': loungeId,
+        'p_page': page,
+        'p_page_size': pageSize,
+      });
+
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => ReviewModel.fromJson(json),
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
+    } catch (e) {
+      dev.log("[REVIEWS_DS] get_lounge_reviews_page error: $e, fallback to getLoungeReviews");
+      final legacy = await getLoungeReviews(loungeId);
+      return PaginatedResponse(
+        items: legacy,
+        totalCount: legacy.length,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+  }
+
+  @override
+  Future<PaginatedResponse<Map<String, dynamic>>> getLoungeRolePermissionsPage(
+    String loungeId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    if (loungeId.isEmpty) {
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+
+    try {
+      final response = await _client.rpc('get_lounge_role_permissions_page', params: {
+        'p_lounge_id': loungeId,
+        'p_page': page,
+        'p_page_size': pageSize,
+      });
+
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => json,
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
+    } catch (e) {
+      dev.log("[LOUNGE_DS] get_lounge_role_permissions_page error: $e");
+      return PaginatedResponse(
+        items: const [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      );
+    }
+  }
+
+  @override
+  Future<List<ReviewModel>> getLoungeReviews(String loungeId) async {
+    if (loungeId.isEmpty) return [];
+
+    Future<List<ReviewModel>> processAndHydrate(List<dynamic> rawList) async {
+      final list = rawList.map((e) {
+        try {
+          return ReviewModel.fromJson(Map<String, dynamic>.from(e));
+        } catch (err) {
+          dev.log("[REVIEWS_DS] Review parse error: $err for item $e");
+          return null;
+        }
+      }).whereType<ReviewModel>().where((r) => r.rating > 0 || (r.comment != null && r.comment!.isNotEmpty)).toList();
+
+      if (list.isEmpty) return list;
+
+      final missingProfileUserIds = list
+          .where((r) => (r.userName == 'User' || r.userName.trim().isEmpty) && (r.userId != null && r.userId!.isNotEmpty))
+          .map((r) => r.userId!)
+          .toSet()
+          .toList();
+
+      if (missingProfileUserIds.isNotEmpty) {
+        try {
+          final profilesRes = await _client.rpc(
+            'get_users_public_info',
+            params: {'user_ids': missingProfileUserIds},
+          );
+
+          final profilesMap = <String, Map<String, dynamic>>{};
+          for (final p in (profilesRes as List)) {
+            final id = p['user_id']?.toString() ?? p['id']?.toString();
+            if (id != null) profilesMap[id] = Map<String, dynamic>.from(p);
+          }
+
+          return list.map((r) {
+            if ((r.userName == 'User' || r.userName.trim().isEmpty) && r.userId != null && profilesMap.containsKey(r.userId!)) {
+              final p = profilesMap[r.userId!]!;
+              final name = p['full_name']?.toString() ?? p['name']?.toString() ?? 'User';
+              final avatar = p['avatar_url']?.toString();
+              return ReviewModel(
+                id: r.id,
+                loungeId: r.loungeId,
+                bookingId: r.bookingId,
+                userId: r.userId,
+                userName: name.isNotEmpty ? name : 'User',
+                userAvatar: avatar ?? r.userAvatar,
+                rating: r.rating,
+                comment: r.comment,
+                createdAt: r.createdAt,
+              );
+            }
+            return r;
+          }).toList();
+        } catch (e) {
+          dev.log("[REVIEWS_DS] Profiles hydration error: $e");
+        }
+      }
+
+      return list;
+    }
+
+    final List<ReviewModel> combinedReviews = [];
+
+    // Fetch lounge_reviews flat (since there is no direct FK relationship to profiles)
+    try {
+      final res = await _client
+          .from('lounge_reviews')
+          .select('*')
+          .eq('lounge_id', loungeId)
+          .order('created_at', ascending: false);
+      final result = await processAndHydrate(res as List);
+      combinedReviews.addAll(result);
+    } catch (e) {
+      dev.log("[REVIEWS_DS] lounge_reviews flat select error: $e");
+    }
+
+    // Deduplicate combined reviews
+    final seenKeys = <String>{};
+    final List<ReviewModel> uniqueReviews = [];
+
+    for (final review in combinedReviews) {
+      final key = review.id.isNotEmpty
+          ? review.id
+          : '${review.userId ?? "anon"}_${review.rating}_${review.comment ?? ""}';
+      if (!seenKeys.contains(key)) {
+        seenKeys.add(key);
+        uniqueReviews.add(review);
+      }
+    }
+
+    uniqueReviews.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return uniqueReviews;
+  }
+}

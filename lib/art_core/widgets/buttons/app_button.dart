@@ -1,10 +1,9 @@
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_animator.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../theme/app_colors.dart'; // ✅ المسار صح
 
 class AppButton extends StatefulWidget {
@@ -90,38 +89,41 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
         ),
         borderRadius: BorderRadius.circular(widget.buttonConfig.borderRadius),
       );
-    }
-    else {
+    } else {
       return BoxDecoration(
-        gradient: widget.behavior.isEnabled  // 👈
-            ? widget.buttonConfig.gradient
-            : null,
-        color: widget.buttonConfig.gradient != null
+        gradient: widget.behavior.isEnabled ? widget.buttonConfig.gradient : null,
+        color: widget.buttonConfig.gradient != null && widget.behavior.isEnabled
             ? null
             : widget.behavior.isEnabled
-            ? widget.buttonConfig.backgroundColor
-            : widget.buttonConfig.disabledColor,
+                ? widget.buttonConfig.backgroundColor
+                : widget.buttonConfig.disabledColor,
+        border: !widget.behavior.isEnabled
+            ? Border.all(color: Colors.white.withOpacity(0.1), width: 1)
+            : widget.buttonConfig.borderColor != null
+                ? Border.all(color: widget.buttonConfig.borderColor!, width: 1)
+                : null,
         borderRadius: BorderRadius.circular(widget.buttonConfig.borderRadius),
         boxShadow: widget.behavior.isEnabled
             ? [
-          if (widget.buttonConfig.glowColor != null)  // 👈
-            BoxShadow(
-              color: widget.buttonConfig.glowColor!.withOpacity(0.5),
-              blurRadius: 20,
-              spreadRadius: 1,
-              offset: const Offset(0, 0),
-            )
-          else
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.1),
-              blurRadius: 6.0,
-              offset: const Offset(0, 5),
-            ),
-        ]
+                if (widget.buttonConfig.glowColor != null)
+                  BoxShadow(
+                    color: widget.buttonConfig.glowColor!.withOpacity(0.5),
+                    blurRadius: 20,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 0),
+                  )
+                else
+                  BoxShadow(
+                    color: AppColors.black.withOpacity(0.04),
+                    blurRadius: 3.0,
+                    offset: const Offset(0, 2),
+                  ),
+              ]
             : null,
       );
     }
   }
+
   Widget _buildChild() {
     return AnimatedSwitcher(
       duration: widget.buttonConfig.animationDuration,
@@ -130,24 +132,27 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
         child: child,
       ),
       child: widget.behavior.isLoading
-          ? CupertinoActivityIndicator(
-        key: const ValueKey('loading'),
-        color: widget.buttonConfig.loadingColor,radius: 15,
-        // strokeWidth: 2.0,
-      )
+          ? AppLoader(
+              key: const ValueKey('loading'),
+              size: 22,
+              strokeWidth: 2.5,
+              color: widget.buttonConfig.loadingColor,
+            )
           : ButtonContentWidget(
-        key: const ValueKey('content'),
-        content: ButtonContent(
-          label: widget.content.label,
-          icon: widget.content.icon,
-          body: widget.content.body,
-        ),
-        textStyle: widget.buttonConfig.textStyle.copyWith(
-          color: !widget.behavior.isEnabled && widget.buttonConfig.isOutlined
-              ? widget.buttonConfig.disabledColor
-              : null,
-        ),
-      ),
+              key: const ValueKey('content'),
+              content: ButtonContent(
+                label: widget.content.label,
+                icon: widget.content.icon,
+                body: widget.content.body,
+              ),
+              textStyle: widget.buttonConfig.textStyle.copyWith(
+                color: !widget.behavior.isEnabled
+                    ? Colors.white.withOpacity(0.2)
+                    : widget.buttonConfig.gradient != null
+                        ? Colors.black
+                        : null,
+              ),
+            ),
     );
   }
 }

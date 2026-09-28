@@ -1,29 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../cache/preference_manager.dart';
 
 class AppConfig {
   // App Information
-  static const String appName = "60IX";
-  static const String appVersion = "1.1.1";
-
-  ///********************* Themes *********************///
-  // static bool get isDarkMode => AppThemes.themeMode() == ThemeMode.dark;
-
-
-  // {
-  //   try {
-  //     final context = Modular.routerDelegate.navigatorKey.currentContext;
-  //     if (context != null) {
-  //       return Theme.of(context).brightness == Brightness.dark;
-  //     }
-  //     return PreferenceManager().isDarkMode();
-  //   } catch (e) {
-  //     return PreferenceManager().isDarkMode();
-  //   }
-  // }
+  static const String appName = "PlaySpot";
 
   // Context-aware isDarkMode for widgets usage
   static bool isDarkModeWithContext(BuildContext context) {
@@ -55,7 +39,14 @@ class AppConfig {
     FocusManager.instance.primaryFocus?.unfocus();
   }
 
-  static String kGoogleApiKey = Platform.isIOS
-      ? "AIzaSyC67gDDTt0enFRQdH7ca1ex5FYIezlKqg4"
-      : "AIzaSyDmBCl0ScTRCDyoLdkphhr0JLYjDgGBry4";
+  /// Injected at build time via --dart-define.
+  static String kGoogleApiKey = !kIsWeb && Platform.isIOS
+      ? const String.fromEnvironment('GOOGLE_API_KEY_IOS')
+      : const String.fromEnvironment('GOOGLE_API_KEY_ANDROID');
+
+  /// Supabase configuration is required at build time via --dart-define.
+  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+  );
 }

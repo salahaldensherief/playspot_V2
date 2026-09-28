@@ -158,23 +158,25 @@ class AppImage extends StatelessWidget {
   }
 
   Widget _getImageWidget() {
-    if (urlImg.startsWith('http')) {
+    final cleanUrl = urlImg.trim();
+    if (cleanUrl.isEmpty || cleanUrl == 'null') {
+      return _buildError();
+    } else if (cleanUrl.startsWith('http')) {
       return _buildNetworkImage();
-    } else if (urlImg.startsWith('assets')) {
-      return Image.asset(urlImg, fit: BoxFit.contain);
+    } else if (cleanUrl.startsWith('assets')) {
+      return Image.asset(cleanUrl, fit: BoxFit.contain);
     } else {
-      return Image.file(File(urlImg), fit: BoxFit.contain);
+      return Image.file(File(cleanUrl), fit: BoxFit.contain);
     }
   }
 
-  /// Determines the appropriate ImageProvider based on the source
-
   /// Determines the image source and delegates to the appropriate builder.
   Widget _buildImageBasedOnSource() {
-    if (urlImg.trim().isEmpty) {
+    final cleanUrl = urlImg.trim();
+    if (cleanUrl.isEmpty || cleanUrl == 'null') {
       return _buildError();
     }
-    if (urlImg.startsWith('http')) {
+    if (cleanUrl.startsWith('http')) {
       return _buildNetworkImage();
     }
     return _buildLocalImage();
@@ -182,10 +184,13 @@ class AppImage extends StatelessWidget {
 
   /// Builds the network image using CachedNetworkImage with 7-day disk cache.
   Widget _buildNetworkImage() {
+    final cleanUrl = urlImg.trim();
+    if (cleanUrl.isEmpty || cleanUrl == 'null') {
+      return _buildError();
+    }
     return CachedNetworkImage(
-      imageUrl: urlImg,
+      imageUrl: cleanUrl,
       cacheManager: AppCacheManager.instance,
-
       width: width,
       height: height,
       fit: fit,
@@ -193,14 +198,9 @@ class AppImage extends StatelessWidget {
       placeholder: (_, _) => placeholderWidget ?? _buildPlaceholder(),
       errorWidget: (_, _, _) => errorWidget ?? _buildError(),
       fadeInDuration: const Duration(milliseconds: 300),
-      // Faster, smoother fade
       fadeOutDuration: const Duration(milliseconds: 200),
-      // Enhanced caching configuration - only if valid dimensions
-      // memCacheWidth: (width != null && width!.isFinite) ? width!.toInt() : null,
-      // memCacheHeight: (height != null && height!.isFinite)
-      //     ? height!.toInt()
-      //     : null,
-
+      memCacheWidth: (width != null && width! > 0 && width!.isFinite) ? (width! * 2).toInt() : null,
+      memCacheHeight: (height != null && height! > 0 && height!.isFinite) ? (height! * 2).toInt() : null,
     );
   }
 

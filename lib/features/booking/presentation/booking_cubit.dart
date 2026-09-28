@@ -1,0 +1,283 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../data/models/booking_params.dart';
+import '../domain/repositories/booking_repository.dart';
+import '../domain/strategies/booking_slot_strategy.dart';
+import 'booking_state.dart';
+
+class BookingCubit extends Cubit<BookingState> {
+  final BookingRepository _bookingRepository;
+  final BookingSlotStrategy _slotStrategy;
+  final List<String> roomIds;
+  final String loungeId;
+  final String loungeOpeningTime;
+  final String loungeClosingTime;
+
+  String get roomId => roomIds.isNotEmpty ? roomIds.first : '';
+
+  BookingCubit(
+    this._bookingRepository,
+    this._slotStrategy,
+    BookingDetailsParams params,
+  )   : roomIds = params.rooms.map((r) => r.id).toList(),
+        loungeId = params.lounge.id,
+        loungeOpeningTime = params.lounge.openingTime,
+        loungeClosingTime = params.lounge.closingTime,
+        super(BookingState(
+          selectedDate: params.selectedDate,
+          playMode: params.playMode == 'multi' ? PlayMode.multi : PlayMode.single,
+          extraControllersCount: params.extraControllers,
+        )) {
+    fetchBookedSlots(state.selectedDate);
+  }
+
+  Future<void> fetchBookedSlots(DateTime date) async {
+    emit(state.copyWith(status: BookingStatus.loading, selectedDate: date));
+
+    final Set<TimeOfDay> allBookedSlots = {};
+    String? failureMsg;
+
+    for (final rid in roomIds) {
+      final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date, roomId: rid);
+      result.fold(
+        (failure) => failureMsg = failure.message,
+        (rawBookings) {
+          final slots = _slotStrategy.calculateBookedSlots(
+            rawBookings: rawBookings,
+            roomId: rid,
+            date: date,
+          );
+          allBookedSlots.addAll(slots);
+        },
+      );
+    }
+
+    if (failureMsg != null && allBookedSlots.isEmpty) {
+      emit(state.copyWith(
+        status: BookingStatus.error,
+        errorMessage: failureMsg,
+      ));
+      return;
+    }
+
+    emit(state.copyWith(
+      status: BookingStatus.success,
+      selectedDate: date,
+      bookedTimeSlots: allBookedSlots.toList(),
+    ));
+  }
+
+  /// Atomically acquires a server-side hold for the full requested range.
+  Future<bool> verifyAvailabilityBeforeProceed() async {
+    final startTime = state.startTime;
+    if (startTime == null) return false;
+
+    emit(state.copyWith(
+      status: BookingStatus.loading,
+      clearHold: true,
+    ));
+
+    final startDateTime = _resolveOperationalDateTime(
+      state.selectedDate,
+      startTime,
+    );
+    final endDateTime = startDateTime.add(
+      Duration(minutes: state.durationMinutes),
+    );
+
+    final result = await _bookingRepository.acquireBookingHold(
+      roomIds: roomIds,
+      startTime: startDateTime,
+      endTime: endDateTime,
+    );
+
+    if (isClosed) return false;
+
+    return result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            status: BookingStatus.error,
+            errorMessage: failure.message,
+            clearHold: true,
+          ),
+        );
+        return false;
+      },
+      (data) {
+        if (data['success'] != true) {
+          emit(
+            state.copyWith(
+              status: BookingStatus.error,
+              clearStartTime: true,
+              clearHold: true,
+              errorMessage:
+                  data['error_code']?.toString() ?? 'overlappingBookingError',
+            ),
+          );
+          return false;
+        }
+
+        final holdToken = data['hold_token']?.toString();
+        final holdExpiresAt = DateTime.tryParse(
+          data['hold_expires_at']?.toString() ?? '',
+        );
+
+        if (holdToken == null ||
+            holdToken.isEmpty ||
+            holdExpiresAt == null) {
+          emit(
+            state.copyWith(
+              status: BookingStatus.error,
+              clearHold: true,
+              errorMessage: 'bookingHoldFailed',
+            ),
+          );
+          return false;
+        }
+
+        emit(
+          state.copyWith(
+            status: BookingStatus.success,
+            holdToken: holdToken,
+            holdExpiresAt: holdExpiresAt,
+            heldStartAt: startDateTime,
+          ),
+        );
+        return true;
+      },
+    );
+  }
+
+  DateTime _resolveOperationalDateTime(
+    DateTime selectedDate,
+    TimeOfDay time,
+  ) {
+    final openingMinutes = _parseTimeToMinutes(loungeOpeningTime);
+    final closingMinutes = _parseTimeToMinutes(loungeClosingTime);
+    final selectedMinutes = time.hour * 60 + time.minute;
+
+    var dayOffset = 0;
+    if (openingMinutes != null &&
+        closingMinutes != null &&
+        closingMinutes <= openingMinutes &&
+        selectedMinutes < closingMinutes) {
+      dayOffset = 1;
+    }
+
+    return DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day + dayOffset,
+      time.hour,
+      time.minute,
+    );
+  }
+
+  int? _parseTimeToMinutes(String raw) {
+    final parts = raw.split(':');
+    if (parts.length < 2) return null;
+
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+
+    return hour * 60 + minute;
+  }
+
+  void selectDate(DateTime date) {
+    if (date.year == state.selectedDate.year &&
+        date.month == state.selectedDate.month &&
+        date.day == state.selectedDate.day) {
+      return;
+    }
+
+    HapticFeedback.lightImpact();
+    fetchBookedSlots(date);
+  }
+
+  /// Calculates maximum continuous free duration in minutes before the next booked slot
+  int getMaxAvailableDurationMinutes([TimeOfDay? customStartTime, BookingState? customState]) {
+    final sState = customState ?? state;
+    final start = customStartTime ?? sState.startTime;
+    if (start == null) return 720;
+
+    final startDateTime = _resolveOperationalDateTime(
+      sState.selectedDate,
+      start,
+    );
+
+    int free15MinCount = 0;
+    // Check up to 12 hours (48 slots of 15 minutes)
+    for (int i = 0; i < 48; i++) {
+      final checkTime = startDateTime.add(Duration(minutes: i * 15));
+      final tod = TimeOfDay(hour: checkTime.hour, minute: checkTime.minute);
+      if (sState.bookedTimeSlots.any((slot) => slot.hour == tod.hour && slot.minute == tod.minute)) {
+        break; // Stop at the first booked slot!
+      }
+      free15MinCount++;
+    }
+
+    final maxMins = free15MinCount * 15;
+    return maxMins < 15 ? 15 : maxMins;
+  }
+
+  void selectStartTime(TimeOfDay time) {
+    if (isSlotBooked(time)) return;
+
+    final now = DateTime.now();
+    final isToday = state.selectedDate.year == now.year &&
+        state.selectedDate.month == now.month &&
+        state.selectedDate.day == now.day;
+
+    if (isToday) {
+      final slotDateTime = _resolveOperationalDateTime(
+        state.selectedDate,
+        time,
+      );
+
+      if (slotDateTime.isBefore(now.add(const Duration(minutes: 5)))) {
+        return;
+      }
+    }
+
+    HapticFeedback.lightImpact();
+
+    // Auto-cap duration if current duration extends past next booked slot!
+    final tempState = state.copyWith(startTime: time);
+    final maxAllowed = getMaxAvailableDurationMinutes(time, tempState);
+    final cappedDuration = state.durationMinutes.clamp(15, maxAllowed);
+
+    emit(tempState.copyWith(durationMinutes: cappedDuration));
+  }
+
+  void setDurationMinutes(int minutes) {
+    final maxAllowed = getMaxAvailableDurationMinutes();
+    final cappedMinutes = minutes.clamp(15, maxAllowed);
+    HapticFeedback.lightImpact();
+    emit(state.copyWith(durationMinutes: cappedMinutes));
+  }
+
+  void updateDuration(int deltaMinutes) {
+    final maxAllowed = getMaxAvailableDurationMinutes();
+    final newDuration = (state.durationMinutes + deltaMinutes).clamp(15, maxAllowed);
+
+    if (newDuration == state.durationMinutes && deltaMinutes > 0) {
+      HapticFeedback.vibrate();
+      return;
+    }
+
+    HapticFeedback.lightImpact();
+    emit(state.copyWith(durationMinutes: newDuration));
+  }
+
+  bool isSlotBooked(TimeOfDay time) {
+    return state.bookedTimeSlots.any((slot) => slot.hour == time.hour && slot.minute == time.minute);
+  }
+
+  bool isRangeAvailable(TimeOfDay start, int durationMinutes) {
+    final maxAllowed = getMaxAvailableDurationMinutes(start);
+    return durationMinutes <= maxAllowed;
+  }
+}

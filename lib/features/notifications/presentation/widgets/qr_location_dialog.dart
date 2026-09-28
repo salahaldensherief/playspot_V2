@@ -1,0 +1,123 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
+import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/layout/glass_container.dart';
+
+class QrLocationDialog extends StatelessWidget {
+  final String mapsLink;
+  final String loungeName;
+
+  const QrLocationDialog({
+    super.key,
+    required this.mapsLink,
+    required this.loungeName,
+  });
+
+  static bool isValidLocationUrl(String rawUrl) {
+    final clean = rawUrl.trim();
+    if (clean.isEmpty) return false;
+
+    final uri = Uri.tryParse(clean);
+    if (uri == null) return false;
+
+    if (!uri.hasScheme || !uri.hasAuthority) return false;
+
+    final scheme = uri.scheme.toLowerCase();
+    if (scheme != 'http' && scheme != 'https') return false;
+
+    if (uri.host.trim().isEmpty) return false;
+
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: 40.w),
+      child: GlassContainer(
+        borderRadius: 30,
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 50.w,
+                height: 5.h,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              SizedBox(height: 24.h),
+              AppText(
+                text: AppStrings.loungeLocation.tr(),
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontFamily: "Orbitron",
+              ),
+              SizedBox(height: 8.h),
+              AppText(
+                text: loungeName,
+                fontSize: 14.sp,
+                color: AppColors.neonBlue,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 30.h),
+              isValidLocationUrl(mapsLink)
+                  ? Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      child: QrImageView(
+                        data: mapsLink.trim(),
+                        version: QrVersions.auto,
+                        size: 200.w,
+                        gapless: false,
+                      ),
+                    )
+                  : Padding(
+                      padding: EdgeInsets.symmetric(vertical: 30.h),
+                      child: AppText(
+                        text: "Location link unavailable",
+                        fontSize: 14.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+              SizedBox(height: 30.h),
+              AppText(
+                text: AppStrings.scanDirections.tr(),
+                fontSize: 12.sp,
+                color: AppColors.textSecondary,
+              ),
+              SizedBox(height: 20.h),
+              AppButton(
+                content: ButtonContent(label: AppStrings.close.tr().toUpperCase()),
+                behavior: ButtonBehavior.tap(
+                  onTap: () => Navigator.pop(context),
+                ),
+                buttonConfig: ButtonConfig(
+                  height: 44.h,
+                  backgroundColor: Colors.transparent,
+                  borderRadius: 12.r,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,345 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+import 'package:go_router/go_router.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/utils/app_logger.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
+import 'package:playspot/features/home/presentation/home_cubit.dart';
+import 'package:playspot/features/home/presentation/home_screen.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_state.dart';
+import 'package:playspot/features/profile/presentation/profile/profile_screen.dart';
+import 'package:playspot/features/my_bookings/presentation/my_bookings_screen.dart';
+
+import '../../../art_core/presentation/locale_cubit.dart';
+import '../../../art_core/router/router_keys.dart';
+import '../../active_session/presentation/active_session_cubit.dart';
+import '../../active_session/presentation/active_session_state.dart';
+import '../../my_bookings/presentation/my_bookings_cubit.dart';
+import '../../app_status/domain/entities/app_status_type.dart';
+import '../../app_status/presentation/cubit/app_status_cubit.dart';
+import '../../app_status/presentation/cubit/app_status_state.dart';
+import '../../app_status/presentation/widgets/maintenance_banner.dart';
+
+class MainScreen extends StatefulWidget {
+  final int initialIndex;
+  const MainScreen({super.key, this.initialIndex = 0});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  late int _selectedIndex;
+  int? _previousPointsBalance;
+  
+  final Map<int, DateTime> _lastRefreshTime = {};
+  final Map<int, bool> _hasPendingRefresh = {};
+  final Map<int, Timer?> _pendingRefreshTimers = {};
+
+  static const Duration _refreshThreshold = Duration(seconds: 10);
+  static const Duration _floorWindow = Duration(milliseconds: 1500);
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+    _previousPointsBalance = context.read<ProfileCubit>().state.pointsBalance;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshModuleData(_selectedIndex);
+      _lastRefreshTime[_selectedIndex] = DateTime.now();
+    });
+  }
+
+  @override
+  void dispose() {
+    for (final timer in _pendingRefreshTimers.values) {
+      timer?.cancel();
+    }
+    AppLogger.debug("CLEAN_UP: MainScreen and Home branch disposed successfully.");
+    super.dispose();
+  }
+
+  void _onItemTapped(int index, {bool force = false}) {
+    final now = DateTime.now();
+    final lastRefresh = _lastRefreshTime[index];
+
+    // 1.5s Floor Window: If triggered within 1.5s floor, queue a single pending refresh
+    if (lastRefresh != null) {
+      final elapsed = now.difference(lastRefresh);
+      if (elapsed < _floorWindow) {
+        if (!(_hasPendingRefresh[index] ?? false)) {
+          _hasPendingRefresh[index] = true;
+          final remainingFloor = _floorWindow - elapsed;
+
+          _pendingRefreshTimers[index]?.cancel();
+          _pendingRefreshTimers[index] = Timer(remainingFloor, () {
+            if (mounted) {
+              _hasPendingRefresh[index] = false;
+              _onItemTapped(index, force: true);
+            }
+          });
+        }
+
+        if (_selectedIndex != index) {
+          setState(() => _selectedIndex = index);
+        }
+        return;
+      }
+    }
+
+    final bool isStale = lastRefresh == null || now.difference(lastRefresh) > _refreshThreshold;
+
+    if (force || isStale) {
+      _lastRefreshTime[index] = now;
+      _refreshModuleData(index, force: force);
+    }
+
+    if (_selectedIndex != index) {
+      setState(() => _selectedIndex = index);
+    }
+  }
+
+  void _refreshModuleData(int index, {bool force = false}) {
+    AppLogger.debug("AUTO_REFRESH: Refreshing data for module index $index (force=$force)");
+    try {
+      switch (index) {
+        case 0:
+          context.read<HomeCubit>().refreshHome();
+          break;
+        case 1:
+          context.read<MyBookingsCubit>().refreshBookingsIfStale(force: force);
+          break;
+        case 2:
+          context.read<ProfileCubit>().getUserData();
+          break;
+      }
+      // Always refresh active session check
+      context.read<ActiveSessionCubit>().loadActiveSession();
+    } catch (e) {
+      AppLogger.debug("AUTO_REFRESH_ERROR: $e");
+    }
+  }
+
+
+
+  @override
+  void didUpdateWidget(covariant MainScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialIndex != oldWidget.initialIndex) {
+      // 🚀 تحديث إجباري لو جاي من نافيجيشن خارجي (زي بعد الحجز)
+      _onItemTapped(widget.initialIndex, force: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.watch<LocaleCubit>();
+    final screens = [
+      const HomeScreen(),
+      const MyBookingsScreen(isTab: true),
+      const ProfileScreen(),
+    ];
+
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    final double navBarBottom = !kIsWeb && Platform.isAndroid 
+        ? (bottomPadding > 0 ? bottomPadding + 10.h : 20.h)
+        : 30.h;
+
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<LocaleCubit, Locale>(
+          listener: (context, locale) {
+            _refreshModuleData(_selectedIndex, force: true);
+          },
+        ),
+        BlocListener<ActiveSessionCubit, ActiveSessionState>(
+          listenWhen: (prev, curr) =>
+              prev.status != ActiveSessionStatus.loaded && curr.status == ActiveSessionStatus.loaded && curr.session != null,
+          listener: (context, state) {
+            try {
+              context.pushNamed(RouterKeys.activeSession);
+            } catch (_) {}
+          },
+        ),
+        BlocListener<ProfileCubit, ProfileState>(
+          listenWhen: (prev, curr) => curr.pointsBalance != prev.pointsBalance,
+          listener: (context, state) {
+            final prev = _previousPointsBalance ?? state.pointsBalance;
+            if (prev > 0 && state.pointsBalance > prev) {
+              final gainedPoints = state.pointsBalance - prev;
+              GameHudToast.show(
+                context,
+                AppStrings.pointsEarnedToast.tr(args: [
+                  gainedPoints.toString(),
+                  state.pointsBalance.toString(),
+                ]),
+                type: ToastType.success,
+              );
+            }
+            _previousPointsBalance = state.pointsBalance;
+          },
+        ),
+      ],
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: [
+            BlocBuilder<AppStatusCubit, AppStatusState>(
+              buildWhen: (previous, current) =>
+                  previous.statusType != current.statusType ||
+                  previous.statusEntity != current.statusEntity,
+              builder: (context, appStatusState) {
+                if (appStatusState.statusType !=
+                    AppStatusType.maintenanceRestricted) {
+                  return const SizedBox.shrink();
+                }
+
+                return MaintenanceBanner(
+                  customMessage:
+                      appStatusState.statusEntity?.maintenanceMessage,
+                );
+              },
+            ),
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: IndexedStack(
+                      index: _selectedIndex,
+                      children: screens,
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: navBarBottom,
+                    child: RepaintBoundary(
+                      child: _buildGlassNavBar(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGlassNavBar() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      margin: 24.horizontalPadding,
+      height: 68.h,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(34.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 25,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(34.r),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02),
+              borderRadius: BorderRadius.circular(34.r),
+              border: Border.all(
+                color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.08),
+                width: 1.0,
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
+                  isDark ? Colors.white.withOpacity(0.01) : Colors.black.withOpacity(0.01),
+                ],
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, TablerIcons.home, AppStrings.home.tr()),
+                _buildNavItem(1, TablerIcons.calendar, AppStrings.bookings.tr()),
+                _buildNavItem(2, TablerIcons.user, AppStrings.profile.tr()),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    bool isSelected = _selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            width: 50.w,
+            duration: const Duration(milliseconds: 300),
+            padding: 8.allPadding,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppSizes.r12),
+              color: isSelected ? AppColors.neonBlue.withOpacity(0.12) : Colors.transparent, 
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.neonBlue.withOpacity(0.3),
+                        blurRadius: 15,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : [],
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? AppColors.neonBlue : Colors.white.withOpacity(0.4),
+              size: 20.sp,
+            ),
+          ),
+          4.verticalSpace,
+          if (isSelected)
+            Text(
+              label,
+              style: TextStyle(
+                color: AppColors.neonBlue,
+                fontSize: 9.sp,
+                fontWeight: FontWeight.w600,
+                shadows: [
+                  Shadow(
+                    color: AppColors.neonBlue.withOpacity(0.6),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

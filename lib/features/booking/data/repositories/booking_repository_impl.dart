@@ -1,0 +1,198 @@
+import 'package:dartz/dartz.dart';
+import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/utils/repository_helper.dart';
+import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
+import 'package:playspot/features/booking/data/datasources/remote/booking_remote_data_source.dart';
+import 'package:playspot/features/booking/data/models/booking_params.dart';
+import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
+
+class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
+  final BookingRemoteDataSource _remoteDataSource;
+
+  BookingRepositoryImpl(this._remoteDataSource);
+
+  @override
+  Future<Either<Failure, List<Map<String, dynamic>>>> getRoomBookingsForDate(
+    String loungeId,
+    DateTime date, {
+    String? roomId,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getRoomBookingsForDate(
+        loungeId,
+        date,
+        roomId: roomId,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, bool>> checkRoomAvailability({
+    required String roomId,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.checkRoomAvailability(
+        roomId: roomId,
+        startTime: startTime,
+        endTime: endTime,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> acquireBookingHold({
+    required List<String> roomIds,
+    required DateTime startTime,
+    required DateTime endTime,
+    int holdMinutes = 10,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.acquireBookingHold(
+        roomIds: roomIds,
+        startTime: startTime,
+        endTime: endTime,
+        holdMinutes: holdMinutes,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> releaseBookingHold(String holdToken) async {
+    return await callRepository<void>(
+      () => _remoteDataSource.releaseBookingHold(holdToken),
+    );
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> quoteBookingCheckout({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extraItems,
+    String? voucherCode,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.quoteBookingCheckout(
+        holdToken: holdToken,
+        roomRequests: roomRequests,
+        extraItems: extraItems,
+        voucherCode: voucherCode,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> createBookingCheckout({
+    required String holdToken,
+    required List<Map<String, dynamic>> roomRequests,
+    required List<Map<String, dynamic>> extraItems,
+    String? voucherCode,
+    required String paymentMethod,
+    String? senderWalletPhone,
+    String? receiptUrl,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.createBookingCheckout(
+        holdToken: holdToken,
+        roomRequests: roomRequests,
+        extraItems: extraItems,
+        voucherCode: voucherCode,
+        paymentMethod: paymentMethod,
+        senderWalletPhone: senderWalletPhone,
+        receiptUrl: receiptUrl,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> attachBookingReceipt({
+    required String bookingId,
+    required String receiptPath,
+  }) async {
+    return await callRepository<void>(
+      () => _remoteDataSource.attachBookingReceipt(
+        bookingId: bookingId,
+        receiptPath: receiptPath,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> createBooking(
+    CreateBookingParams params,
+  ) async {
+    return await callRepository(() => _remoteDataSource.createBooking(params));
+  }
+
+  @override
+  Stream<BookingModel> watchBookingStatus(String bookingId) {
+    return _remoteDataSource.streamBookingStatus(bookingId);
+  }
+
+  @override
+  Future<Either<Failure, void>> extendSession({
+    required String bookingId,
+    required int additionalMinutes,
+    required double additionalCost,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.extendSession(
+        bookingId: bookingId,
+        additionalMinutes: additionalMinutes,
+        additionalCost: additionalCost,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
+  }) async {
+    return await callRepository<void>(
+      () => _remoteDataSource.requestExtension(
+        bookingId: bookingId,
+        requestedMinutes: requestedMinutes,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> callStaff({
+    required String loungeId,
+    required String bookingId,
+    required String reason,
+    required String note,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.callStaff(
+        loungeId: loungeId,
+        bookingId: bookingId,
+        reason: reason,
+        note: note,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> placeCanteenOrder({
+    required String bookingId,
+    required String loungeId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required double totalPrice,
+    required String note,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.placeCanteenOrder(
+        bookingId: bookingId,
+        loungeId: loungeId,
+        userId: userId,
+        items: items,
+        totalPrice: totalPrice,
+        note: note,
+      ),
+    );
+  }
+}

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../theme/app_colors.dart';
-import '../../text/font_manager.dart';
 abstract class ButtonStyleConfig {
   Color get backgroundColor;
   Color get disabledColor;
@@ -53,13 +52,13 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
   final Color? borderColor;
 
   ButtonConfig({
-    this.backgroundColor = AppColors.primary,
-    this.disabledColor = AppColors.disableButton,
+    this.backgroundColor = Colors.transparent,
+    this.disabledColor = const Color(0x0DFFFFFF), // white.withOpacity(0.05)
     this.gradient,
     this.glowColor,
     this.borderColor,
     TextStyle? textStyle,
-    this.borderRadius = 12.0,
+    this.borderRadius = 16.0,
     this.width,
     this.height = 50.0,
     this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
@@ -70,9 +69,8 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
   }) : textStyle = textStyle ??
       TextStyle(
         color: Colors.white,
-        fontSize: 15.5.sp,
-        fontWeight: FontWeight.w600,
-        fontFamily: FontsManager.fontFamily,
+        fontSize: 16.sp,
+        fontWeight: FontWeight.w900,
       );
 
   ButtonConfig.secondary({
@@ -96,7 +94,6 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
               color: AppColors.primary,
               fontSize: 15.5.sp,
               fontWeight: FontWeight.w600,
-              fontFamily: FontsManager.fontFamily,
             );
 
   ButtonConfig.outlined({
@@ -119,7 +116,6 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
         color: AppColors.primary,
         fontSize: 15.5.sp,
         fontWeight: FontWeight.w600,
-        fontFamily: FontsManager.fontFamily,
       );
 
   ButtonConfig.gradient({
@@ -143,10 +139,8 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
 
         textStyle = textStyle ??
             TextStyle(
-
               color: Colors.black,
               fontSize: 15.5.sp,
               fontWeight: FontWeight.w400,
-              fontFamily: FontsManager.fontFamily,
             );
 }

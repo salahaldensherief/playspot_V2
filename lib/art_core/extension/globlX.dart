@@ -1,17 +1,30 @@
-// part of 'extensions.dart';
-
-extension GlopalX on dynamic {
+extension StringNullOrEmptyX on String? {
   bool get isNotNullOrEmptyX {
     if (this == null) return false;
     if (this == "Null" || this == "null") return false;
-    if (this is String) return (this as String).isNotEmpty;
-    if (this is List) return (this as List).isNotEmpty;
-    if (this is Map) return (this as Map).isNotEmpty;
+    return this!.trim().isNotEmpty;
+  }
+}
 
-    return true;
+extension ListNullOrEmptyX<T> on List<T>? {
+  bool get isNotNullOrEmptyX {
+    return this != null && this!.isNotEmpty;
+  }
+}
+
+extension MapNullOrEmptyX<K, V> on Map<K, V>? {
+  bool get isNotNullOrEmptyX {
+    return this != null && this!.isNotEmpty;
   }
 
-  bool get isValidMap {
-    return this != null && this is Map && (this as Map).isNotEmpty;
+  bool get isValidMap => isNotNullOrEmptyX;
+}
+
+extension IterableFirstWhereOrNullX<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T element) test) {
+    for (var element in this) {
+      if (test(element)) return element;
+    }
+    return null;
   }
 }
