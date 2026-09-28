@@ -39,7 +39,7 @@ Core application services, dependency injection, caching, notifications, and sha
 
 Business rules belong in domain/use-case layers. Cubits orchestrate use cases and widgets render state. Server-authoritative operations such as booking integrity, pricing validation, payments, inventory, loyalty, permissions, and tournament lifecycle rules must be enforced in Postgres/RPCs rather than trusted to client-side calculations.
 
-Project-specific engineering rules are documented in `AGENTS_RULES.md`.
+Agent engineering rules start in `AGENTS.md`; `AGENTS_RULES.md` contains additional conventions.
 
 ## Configuration
 
