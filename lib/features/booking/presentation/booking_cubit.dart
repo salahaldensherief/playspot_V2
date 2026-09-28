@@ -4,11 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/models/booking_params.dart';
 import '../domain/repositories/booking_repository.dart';
 import '../domain/strategies/booking_slot_strategy.dart';
+import '../domain/repositories/booking_waitlist_repository.dart';
+import '../domain/usecases/join_booking_waitlist_usecase.dart';
 import 'booking_state.dart';
 
 class BookingCubit extends Cubit<BookingState> {
   final BookingRepository _bookingRepository;
   final BookingSlotStrategy _slotStrategy;
+  final JoinBookingWaitlistUseCase _joinWaitlist;
+  final BookingWaitlistRepository _waitlistRepository;
+  bool _waitlistInFlight = false;
   final List<String> roomIds;
   final String loungeId;
   final String loungeOpeningTime;
@@ -19,8 +24,12 @@ class BookingCubit extends Cubit<BookingState> {
   BookingCubit(
     this._bookingRepository,
     this._slotStrategy,
-    BookingDetailsParams params,
-  )   : roomIds = params.rooms.map((r) => r.id).toList(),
+    BookingDetailsParams params, {
+    required JoinBookingWaitlistUseCase joinWaitlist,
+    required BookingWaitlistRepository waitlistRepository,
+  })  : roomIds = params.rooms.map((r) => r.id).toList(),
+        _joinWaitlist = joinWaitlist,
+        _waitlistRepository = waitlistRepository,
         loungeId = params.lounge.id,
         loungeOpeningTime = params.lounge.openingTime,
         loungeClosingTime = params.lounge.closingTime,
@@ -30,6 +39,51 @@ class BookingCubit extends Cubit<BookingState> {
           extraControllersCount: params.extraControllers,
         )) {
     fetchBookedSlots(state.selectedDate);
+  }
+
+  Future<String> joinWaitlist(TimeOfDay slot) async {
+    if (_waitlistInFlight || roomIds.length != 1) return 'waitlistUnavailable';
+    _waitlistInFlight = true;
+    try {
+      final startAt = _resolveOperationalDateTime(state.selectedDate, slot);
+      final result = await _joinWaitlist(
+        roomId: roomId,
+        startAt: startAt,
+        endAt: startAt.add(const Duration(hours: 1)),
+      );
+      if (isClosed) return 'waitlistUnavailable';
+      return result.fold(
+        (failure) => switch (failure.message) {
+          'SLOT_AVAILABLE_NOW' => 'waitlistAvailableNow',
+          'ROOM_UNAVAILABLE' || 'OUTSIDE_WORKING_HOURS' =>
+            'waitlistUnavailable',
+          'WAITLIST_LIMIT' => 'waitlistLimit',
+          _ => 'waitlistFailed',
+        },
+        (_) => 'waitlistJoined',
+      );
+    } finally {
+      _waitlistInFlight = false;
+    }
+  }
+
+  Future<(bool, String?)> activeWaitlistRequest(TimeOfDay slot) async {
+    if (roomIds.length != 1) return (false, null);
+    final startAt = _resolveOperationalDateTime(state.selectedDate, slot);
+    final result = await _waitlistRepository.activeRequest(
+      roomId: roomId,
+      startAt: startAt,
+      endAt: startAt.add(const Duration(hours: 1)),
+    );
+    return result.fold((_) => (false, null), (id) => (true, id));
+  }
+
+  Future<String> cancelWaitlist(String requestId) async {
+    final result = await _waitlistRepository.cancel(requestId);
+    return result.fold(
+      (_) => 'waitlistFailed',
+      (cancelled) => cancelled ? 'waitlistCancelled' : 'waitlistUnavailable',
+    );
   }
 
   Future<void> fetchBookedSlots(DateTime date) async {

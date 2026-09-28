@@ -405,6 +405,16 @@ class AppStrings {
   static const String tournamentCancelled = "tournamentCancelled";
   static const String alreadyRegistered = "alreadyRegistered";
   static const String waitlist = "waitlist";
+  static const String waitlistNotify = "waitlistNotify";
+  static const String waitlistExplain = "waitlistExplain";
+  static const String waitlistJoined = "waitlistJoined";
+  static const String waitlistAvailableNow = "waitlistAvailableNow";
+  static const String waitlistUnavailable = "waitlistUnavailable";
+  static const String waitlistLimit = "waitlistLimit";
+  static const String waitlistFailed = "waitlistFailed";
+  static const String waitlistCancel = "waitlistCancel";
+  static const String waitlistCancelExplain = "waitlistCancelExplain";
+  static const String waitlistCancelled = "waitlistCancelled";
   static const String pendingPayment = "pendingPayment";
   static const String uploadReceipt = "uploadReceipt";
   static const String receiptImageSizeLimit = "receiptImageSizeLimit";
