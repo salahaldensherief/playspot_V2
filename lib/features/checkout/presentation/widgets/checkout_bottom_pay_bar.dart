@@ -18,10 +18,7 @@ import 'vodafone_cash_bottom_sheet.dart';
 class CheckoutBottomPayBar extends StatelessWidget {
   final CheckoutParams params;
 
-  const CheckoutBottomPayBar({
-    super.key,
-    required this.params,
-  });
+  const CheckoutBottomPayBar({super.key, required this.params});
 
   @override
   Widget build(BuildContext context) {
@@ -33,18 +30,32 @@ class CheckoutBottomPayBar extends StatelessWidget {
           previous.selectedMethod != current.selectedMethod ||
           previous.isHoldExpired != current.isHoldExpired,
       builder: (context, state) {
-        final finalPrice = state.serverFinalTotal ??
+        final finalPrice =
+            state.serverFinalTotal ??
             params.calculateFinalPrice(state.discountAmount);
+        final quoteFailed =
+            state.status == CheckoutStatus.failure &&
+            state.serverFinalTotal == null &&
+            !state.isHoldExpired;
+
         final buttonText = state.status == CheckoutStatus.loading
             ? AppStrings.processing.tr()
+            : quoteFailed
+            ? (context.locale.languageCode == 'ar'
+                  ? 'إعادة محاولة حساب السعر'
+                  : 'Retry price calculation')
             : (state.selectedMethod == PaymentMethod.cash
-                ? AppStrings.confirmBookingWithPrice.tr(args: [finalPrice.toStringAsFixed(2)])
-                : AppStrings.payNowWithPrice.tr(args: [finalPrice.toStringAsFixed(2)]));
+                  ? AppStrings.confirmBookingWithPrice.tr(
+                      args: [finalPrice.toStringAsFixed(2)],
+                    )
+                  : AppStrings.payNowWithPrice.tr(
+                      args: [finalPrice.toStringAsFixed(2)],
+                    ));
 
         final bool isButtonEnabled =
             state.status != CheckoutStatus.loading &&
             !state.isHoldExpired &&
-            state.serverFinalTotal != null;
+            (state.serverFinalTotal != null || quoteFailed);
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -56,14 +67,19 @@ class CheckoutBottomPayBar extends StatelessWidget {
                 content: ButtonContent(
                   label: state.isHoldExpired
                       ? (context.locale.languageCode == 'ar'
-                          ? 'انتهت فترة حجز الموعد'
-                          : 'Hold Expired')
+                            ? 'انتهت فترة حجز الموعد'
+                            : 'Hold Expired')
                       : buttonText,
                 ),
                 behavior: ButtonBehavior.tap(
                   isEnabled: isButtonEnabled,
                   onTap: () {
                     if (state.isHoldExpired) return;
+
+                    if (quoteFailed) {
+                      context.read<CheckoutCubit>().retryServerQuote();
+                      return;
+                    }
 
                     if (state.selectedMethod == PaymentMethod.cash) {
                       context.read<CheckoutCubit>().processPayment(
@@ -72,7 +88,8 @@ class CheckoutBottomPayBar extends StatelessWidget {
                         paymentMethod: 'cash',
                       );
                     } else {
-                      final initialMethod = state.selectedMethod == PaymentMethod.instaPay
+                      final initialMethod =
+                          state.selectedMethod == PaymentMethod.instaPay
                           ? 'InstaPay'
                           : 'Vodafone Cash';
                       VodafoneCashBottomSheet.show(
@@ -82,17 +99,23 @@ class CheckoutBottomPayBar extends StatelessWidget {
                         walletNumber: params.lounge.effectiveWalletNumber ?? '',
                         instaPayAccount: params.lounge.effectiveInstapayHandle,
                         initialMethod: initialMethod,
-                        onConfirm: (method, receiptFile, senderAccount, transactionRef) {
-                          context.read<CheckoutCubit>().processPayment(
-                            params,
-                            isArabic: context.locale.languageCode == 'ar',
-                            receiptFile: receiptFile,
-                            paymentMethod: 'manual_transfer',
-                            senderAccount: senderAccount,
-                            senderWalletPhone: senderAccount,
-                            transactionReference: transactionRef,
-                          );
-                        },
+                        onConfirm:
+                            (
+                              method,
+                              receiptFile,
+                              senderAccount,
+                              transactionRef,
+                            ) {
+                              context.read<CheckoutCubit>().processPayment(
+                                params,
+                                isArabic: context.locale.languageCode == 'ar',
+                                receiptFile: receiptFile,
+                                paymentMethod: 'manual_transfer',
+                                senderAccount: senderAccount,
+                                senderWalletPhone: senderAccount,
+                                transactionReference: transactionRef,
+                              );
+                            },
                       );
                     }
                   },
