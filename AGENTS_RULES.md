@@ -1,5 +1,7 @@
 # AGENT CODING RULES & ARCHITECTURAL GUIDELINES (Mobile App)
 
+`AGENTS.md` is the primary, current guidance for agents. Use this document for additional conventions only; the focused SOLID, architecture, security, and verification guidance in `AGENTS.md` wins if a rule here conflicts with it.
+
 You must strictly adhere to the following rules for ALL code generation, refactoring, and feature implementations in this **Flutter Mobile App** project (Flutter + Supabase, Clean Architecture, BLoC/Cubit).
 
 > This project shares its architecture, domain/data-layer contracts, and naming conventions with a companion **Web Dashboard** repository (governed by its own, separate rules file). If you are ever unsure whether a decision here (a `Failure` type, an RPC contract, a caching strategy, a naming convention) should match the dashboard side, assume it should — the two repos are meant to stay in lockstep on everything except platform-specific `presentation/` widgets.
