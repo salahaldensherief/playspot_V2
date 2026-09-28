@@ -258,6 +258,15 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     await _refreshServerQuote();
   }
 
+  Future<void> retryServerQuote() async {
+    if (state.isHoldExpired || state.status == CheckoutStatus.loading) {
+      return;
+    }
+    await _refreshServerQuote(
+      voucherCode: state.selectedVoucher?['code']?.toString(),
+    );
+  }
+
   Future<void> _refreshServerQuote({String? voucherCode}) async {
     final params = _checkoutParams;
     final holdToken = state.holdToken ?? params?.holdToken;
