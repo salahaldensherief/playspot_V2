@@ -26,11 +26,14 @@ class BookingWaitlistRemoteDataSource {
     required DateTime startAt,
     required DateTime endAt,
   }) async {
-    final result = await client.rpc('join_booking_waitlist', params: {
-      'p_room_id': roomId,
-      'p_start_at': startAt.toIso8601String(),
-      'p_end_at': endAt.toIso8601String(),
-    });
+    final result = await client.rpc(
+      'join_booking_waitlist',
+      params: {
+        'p_room_id': roomId,
+        'p_start_at': startAt.toIso8601String(),
+        'p_end_at': endAt.toIso8601String(),
+      },
+    );
     return Map<String, dynamic>.from(result as Map);
   }
 

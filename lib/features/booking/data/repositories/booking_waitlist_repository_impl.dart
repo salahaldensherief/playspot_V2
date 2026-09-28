@@ -5,7 +5,8 @@ import '../../domain/repositories/booking_waitlist_repository.dart';
 import '../datasources/remote/booking_waitlist_remote_data_source.dart';
 
 class BookingWaitlistRepositoryImpl
-    with RepositoryHelper implements BookingWaitlistRepository {
+    with RepositoryHelper
+    implements BookingWaitlistRepository {
   final BookingWaitlistRemoteDataSource dataSource;
 
   BookingWaitlistRepositoryImpl(this.dataSource);
@@ -15,22 +16,22 @@ class BookingWaitlistRepositoryImpl
     required String roomId,
     required DateTime startAt,
     required DateTime endAt,
-  }) => callRepository(() => dataSource.activeRequest(
-        roomId: roomId,
-        startAt: startAt,
-        endAt: endAt,
-      ));
+  }) => callRepository(
+    () => dataSource.activeRequest(
+      roomId: roomId,
+      startAt: startAt,
+      endAt: endAt,
+    ),
+  );
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> join({
     required String roomId,
     required DateTime startAt,
     required DateTime endAt,
-  }) => callRepository(() => dataSource.join(
-        roomId: roomId,
-        startAt: startAt,
-        endAt: endAt,
-      ));
+  }) => callRepository(
+    () => dataSource.join(roomId: roomId, startAt: startAt, endAt: endAt),
+  );
 
   @override
   Future<Either<Failure, bool>> cancel(String requestId) =>

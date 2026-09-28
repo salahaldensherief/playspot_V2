@@ -82,8 +82,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         "${notification.body} ${notification.title}",
       );
 
-      final textToCheck = "${notification.title} ${notification.body} ${data['type']} ${data['status']} ${data['action']}".toLowerCase();
-      final isCancelled = textToCheck.contains('cancel') ||
+      final textToCheck =
+          "${notification.title} ${notification.body} ${data['type']} ${data['status']} ${data['action']}"
+              .toLowerCase();
+      final isCancelled =
+          textToCheck.contains('cancel') ||
           textToCheck.contains('reject') ||
           textToCheck.contains('declin') ||
           textToCheck.contains('إلغاء') ||
@@ -211,10 +214,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       if (state.status == NotificationsStatus.loading &&
                           state.notifications.isEmpty) {
                         return const Center(
-                          child: AppLoader(
-                            size: 32,
-                            color: AppColors.neonBlue,
-                          ),
+                          child: AppLoader(size: 32, color: AppColors.neonBlue),
                         );
                       }
 
@@ -233,7 +233,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 controller: _scrollController,
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 padding: 16.allPadding,
-                                itemCount: state.notifications.length +
+                                itemCount:
+                                    state.notifications.length +
                                     (state.isLoadingMore ? 1 : 0) +
                                     1,
                                 itemBuilder: (context, index) {
@@ -250,8 +251,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   if (index == state.notifications.length &&
                                       state.isLoadingMore) {
                                     return Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 16.h),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16.h,
+                                      ),
                                       child: const Center(
                                         child: AppLoader(
                                           size: 24,
@@ -295,7 +297,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               IconButton(
                 onPressed: _onRefresh,
-                icon: const Icon(TablerIcons.refresh, color: AppColors.neonBlue),
+                icon: const Icon(
+                  TablerIcons.refresh,
+                  color: AppColors.neonBlue,
+                ),
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.neonBlue.withValues(alpha: 0.05),
                   shape: RoundedRectangleBorder(

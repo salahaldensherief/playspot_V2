@@ -17,20 +17,17 @@ class JoinBookingWaitlistUseCase {
       startAt: startAt,
       endAt: endAt,
     );
-    return result.fold(
-      (failure) => Left(failure),
-      (payload) {
-        if (payload['success'] != true) {
-          return Left(ServerFailure(
-            payload['error_code']?.toString() ?? 'WAITLIST_FAILED',
-          ));
-        }
-        final id = payload['waitlist_id']?.toString();
-        if (id == null || id.isEmpty) {
-          return const Left(ServerFailure('WAITLIST_FAILED'));
-        }
-        return Right(id);
-      },
-    );
+    return result.fold((failure) => Left(failure), (payload) {
+      if (payload['success'] != true) {
+        return Left(
+          ServerFailure(payload['error_code']?.toString() ?? 'WAITLIST_FAILED'),
+        );
+      }
+      final id = payload['waitlist_id']?.toString();
+      if (id == null || id.isEmpty) {
+        return const Left(ServerFailure('WAITLIST_FAILED'));
+      }
+      return Right(id);
+    });
   }
 }
