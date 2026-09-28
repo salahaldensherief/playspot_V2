@@ -58,11 +58,6 @@ BEGIN
 END;
 $function$;
 
--- This legacy trigger required a shift for every reservation insert. The
--- lifecycle-aware trigger above now owns the complete shift invariant.
-DROP TRIGGER IF EXISTS tr_check_active_shift ON public.bookings;
-DROP FUNCTION IF EXISTS public.check_active_shift_before_booking();
-
 -- Keep one review loyalty trigger. award_points is idempotent, but invoking
 -- the function twice still repeats unnecessary mission and notification work.
 DROP TRIGGER IF EXISTS trg_review_loyalty ON public.lounge_reviews;
