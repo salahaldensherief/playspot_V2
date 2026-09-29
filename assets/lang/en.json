@@ -545,6 +545,7 @@
   "faqTitle": "Frequently Asked Questions",
   "sendSupportTicket": "Send Support Request",
   "bookingPendingReview": "Booking request and payment receipt sent successfully. The booking is under review and will be confirmed by management soon (valid for review within 30 minutes).",
+  "bookingCreatedProofUploadFailed": "Your booking request was created, but the payment proof could not be attached. Keep the receipt and contact the lounge to confirm the transfer before the review window expires.",
   "multiRoomAllowedNote": "💡 Note: You can book multiple rooms at the same time if you are booking for a group!",
   "selectIssueCategory": "Select Issue Category",
   "issueCategoryBooking": "Booking Problem",

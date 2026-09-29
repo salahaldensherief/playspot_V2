@@ -382,7 +382,12 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       return;
     }
 
-    emit(state.copyWith(status: CheckoutStatus.loading));
+    emit(
+      state.copyWith(
+        status: CheckoutStatus.loading,
+        paymentProofUploadFailed: false,
+      ),
+    );
 
     final method =
         (paymentMethod?.toLowerCase() == 'cash' ||
@@ -480,14 +485,15 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           stackTrace,
         );
 
+        // The authoritative checkout already committed the booking. Treat the
+        // receipt as a follow-up failure so the user cannot mistake an existing
+        // booking for a failed checkout and submit it again.
         emit(
           state.copyWith(
-            status: CheckoutStatus.failure,
             createdBookingId: primaryBookingId,
-            errorMessage: AppStrings.somethingWentWrong.tr(),
+            paymentProofUploadFailed: true,
           ),
         );
-        return;
       }
     }
 

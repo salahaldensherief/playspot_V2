@@ -507,6 +507,8 @@ class AppStrings {
   static const String checkInClosed = "checkInClosed";
   static const String eliminated = "eliminated";
   static const String bookingPendingReview = "bookingPendingReview";
+  static const String bookingCreatedProofUploadFailed =
+      "bookingCreatedProofUploadFailed";
   static const String multiRoomAllowedNote = "multiRoomAllowedNote";
   static const String withdrawn = "withdrawn";
   static const String noShow = "noShow";

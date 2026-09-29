@@ -83,7 +83,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
         if (state.status == CheckoutStatus.success) {
           context.read<ProfileCubit>().getUserData();
-          _showSuccessDialog(context);
+          _showSuccessDialog(
+            context,
+            paymentProofUploadFailed: state.paymentProofUploadFailed,
+          );
         } else if (state.status == CheckoutStatus.failure) {
           final isEnglish = context.locale.languageCode == 'en';
           final errorMsg = getBookingErrorMessage(
@@ -141,14 +144,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  void _showSuccessDialog(BuildContext context) {
+  void _showSuccessDialog(
+    BuildContext context, {
+    required bool paymentProofUploadFailed,
+  }) {
     AppDialog.show(
       context,
       barrierDismissible: false,
       type: AppDialogType.success,
       title: AppStrings.bookingRequestedTitle,
-      description:
-          "${AppStrings.bookingPendingReview.tr()}\n\n${AppStrings.multiRoomAllowedNote.tr()}",
+      description: paymentProofUploadFailed
+          ? AppStrings.bookingCreatedProofUploadFailed.tr()
+          : "${AppStrings.bookingPendingReview.tr()}\n\n${AppStrings.multiRoomAllowedNote.tr()}",
       confirmText: AppStrings.viewMyBookings,
       onConfirm: () {
         final navContext = AppRouter.navigatorKey.currentContext ?? context;
