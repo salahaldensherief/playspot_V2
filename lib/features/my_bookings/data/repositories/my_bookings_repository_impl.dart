@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/models/paginated_response.dart';
 import '../../../../core/utils/repository_helper.dart';
+import '../../domain/entities/booking_timeline_item.dart';
 import '../../domain/repositories/my_bookings_repository.dart';
 import '../datasources/remote/my_bookings_remote_data_source.dart';
 import '../models/booking_model.dart';
@@ -30,5 +31,10 @@ class MyBookingsRepositoryImpl with RepositoryHelper implements MyBookingsReposi
   @override
   Future<Either<Failure, void>> cancelBooking(String bookingId) async {
     return await callRepository(() => _remoteDataSource.cancelBooking(bookingId));
+  }
+
+  @override
+  Future<Either<Failure, List<BookingTimelineItem>>> getBookingTimeline(String bookingId) async {
+    return await callRepository(() => _remoteDataSource.getBookingTimeline(bookingId));
   }
 }

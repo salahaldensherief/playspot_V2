@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:playspot/core/models/paginated_response.dart';
 import '../../models/booking_model.dart';
+import '../../models/booking_timeline_item_model.dart';
 
 abstract class MyBookingsRemoteDataSource {
   Future<List<BookingModel>> getMyBookings();
@@ -10,6 +11,7 @@ abstract class MyBookingsRemoteDataSource {
     int pageSize = 20,
   });
   Future<void> cancelBooking(String bookingId);
+  Future<List<BookingTimelineItemModel>> getBookingTimeline(String bookingId);
 }
 
 class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
@@ -63,5 +65,28 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
         'p_reason': 'Cancelled by user',
       },
     );
+  }
+
+  @override
+  Future<List<BookingTimelineItemModel>> getBookingTimeline(String bookingId) async {
+    final response = await _client.rpc(
+      'get_booking_timeline_for_customer',
+      params: {'p_booking_id': bookingId},
+    );
+
+    final rawList = response as List? ?? [];
+    final seenIds = <String>{};
+    final items = <BookingTimelineItemModel>[];
+
+    for (final raw in rawList) {
+      if (raw is Map<String, dynamic>) {
+        final model = BookingTimelineItemModel.fromJson(raw);
+        if (seenIds.add(model.id)) {
+          items.add(model);
+        }
+      }
+    }
+
+    return items;
   }
 }

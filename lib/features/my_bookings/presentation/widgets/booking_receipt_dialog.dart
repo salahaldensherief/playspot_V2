@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
@@ -12,7 +13,11 @@ import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/constants/app_config.dart';
+import 'package:playspot/core/di.dart';
 import '../../data/models/booking_model.dart';
+import '../../domain/usecases/get_booking_timeline_usecase.dart';
+import '../booking_timeline_cubit.dart';
+import 'booking_timeline_widget.dart';
 
 class BookingReceiptDialog extends StatelessWidget {
   final BookingModel booking;
@@ -25,7 +30,10 @@ class BookingReceiptDialog extends StatelessWidget {
   static Future<void> show(BuildContext context, BookingModel booking) {
     return showDialog(
       context: context,
-      builder: (_) => BookingReceiptDialog(booking: booking),
+      builder: (_) => BlocProvider<BookingTimelineCubit>(
+        create: (context) => BookingTimelineCubit(sl<GetBookingTimelineUseCase>()),
+        child: BookingReceiptDialog(booking: booking),
+      ),
     );
   }
 
@@ -119,21 +127,10 @@ class BookingReceiptDialog extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: EdgeInsets.all(8.w),
-                          decoration: BoxDecoration(
-                            color: AppColors.neonBlue.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                          child: Icon(
-                            Icons.receipt_long_rounded,
-                            color: AppColors.neonBlue,
-                            size: 20.sp,
-                          ),
-                        ),
-                        SizedBox(width: 10.w),
+                        Icon(Icons.receipt_long_rounded, color: AppColors.neonBlue, size: 22.sp),
+                        SizedBox(width: 8.w),
                         AppText(
-                          text: isArabic ? "إيصال التحويل / الدفع" : "Payment Receipt",
+                          text: isArabic ? "تفاصيل الحجز والإيصال" : "Booking Details & Receipt",
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -141,7 +138,8 @@ class BookingReceiptDialog extends StatelessWidget {
                       ],
                     ),
                     IconButton(
-                      icon: Icon(Icons.close_rounded, color: Colors.white70, size: 20.sp),
+                      tooltip: isArabic ? "إغلاق" : "Close",
+                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -302,6 +300,11 @@ class BookingReceiptDialog extends StatelessWidget {
                   ),
                 ),
 
+                SizedBox(height: 16.h),
+
+                // Booking Timeline Section
+                BookingTimelineWidget(bookingId: booking.id),
+
                 SizedBox(height: 20.h),
 
                 // Action Close Button
@@ -348,9 +351,8 @@ class BookingReceiptDialog extends StatelessWidget {
           child: AppText(
             text: value,
             fontSize: 12.sp,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
             color: valueColor ?? Colors.white,
-            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
