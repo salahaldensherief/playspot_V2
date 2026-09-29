@@ -87,7 +87,7 @@ END $$;
 ALTER TABLE public.bookings
   ADD CONSTRAINT bookings_payment_method_check
   CHECK (payment_method IN (
-    'cash', 'manual_transfer', 'online', 'card', 'wallet', 'instapay',
+    'cash', 'manual_transfer', 'online', 'card', 'wallet', 'app_wallet', 'instapay',
     'fawry', 'vodafone_cash', 'points', 'free', 'package', 'other',
     'visa', 'mastercard', 'pos', 'credit_card', 'bank_transfer'
   ))
@@ -112,7 +112,7 @@ END $$;
 ALTER TABLE public.payments
   ADD CONSTRAINT payments_payment_method_check
   CHECK (payment_method IN (
-    'cash', 'manual_transfer', 'online', 'card', 'wallet', 'instapay',
+    'cash', 'manual_transfer', 'online', 'card', 'wallet', 'app_wallet', 'instapay',
     'fawry', 'vodafone_cash', 'points', 'free', 'package', 'other',
     'visa', 'mastercard', 'pos', 'credit_card', 'bank_transfer'
   ))
@@ -137,7 +137,7 @@ END $$;
 ALTER TABLE public.shift_payments
   ADD CONSTRAINT shift_payments_payment_method_check
   CHECK (payment_method IN (
-    'cash', 'manual_transfer', 'online', 'card', 'wallet', 'instapay',
+    'cash', 'manual_transfer', 'online', 'card', 'wallet', 'app_wallet', 'instapay',
     'fawry', 'vodafone_cash', 'points', 'free', 'package', 'other',
     'visa', 'mastercard', 'pos', 'credit_card', 'bank_transfer'
   ))
@@ -161,8 +161,9 @@ END $$;
 ALTER TABLE public.shift_payments
   ADD CONSTRAINT shift_payments_category_check
   CHECK (category IN (
-    'booking', 'canteen', 'session', 'package_sale', 'tournament_entry',
-    'other', 'expense', 'refund', 'deposit', 'withdrawal', 'general'
+    'gaming_time', 'snacks', 'extra_controllers', 'package_sale', 'tournament_entry',
+    'booking', 'canteen', 'session', 'other', 'expense', 'refund', 'deposit',
+    'withdrawal', 'general'
   ))
   NOT VALID;
 
@@ -185,11 +186,18 @@ END $$;
 ALTER TABLE public.notifications
   ADD CONSTRAINT notifications_type_check
   CHECK (type IN (
-    'booking_confirmed', 'booking_cancelled', 'booking_reminder', 'booking_completed',
-    'points_earned', 'points_redeemed', 'tier_upgraded', 'tier_downgraded',
-    'tournament_registered', 'tournament_starting', 'tournament_won', 'waitlist_promoted',
-    'system', 'general', 'package', 'package_expiring', 'winback',
-    'group_invite', 'group_update', 'tournament_invite', 'growth_insight', 'price_change'
+    'booking', 'booking_status', 'booking_no_show', 'canteen', 'service_call',
+    'client_request', 'booking_extension_approved', 'booking_extension_rejected',
+    'offer', 'loyalty', 'loyalty_points', 'system', 'kyc', 'kyc_submitted',
+    'kyc_approved', 'kyc_rejected', 'tournament', 'tournament_payment',
+    'tournament_match', 'tournament_dispute', 'tournament_waitlist_promoted',
+    'tournament_cancelled', 'tournament_prize', 'payout', 'staff_assigned',
+    'shift_approved', 'booking_confirmed', 'booking_cancelled', 'booking_reminder',
+    'booking_completed', 'points_earned', 'points_redeemed', 'tier_upgraded',
+    'tier_downgraded', 'tournament_registered', 'tournament_starting',
+    'tournament_won', 'waitlist_promoted', 'general',
+    'package', 'package_expiring', 'winback', 'group_invite', 'group_update',
+    'tournament_invite', 'growth_insight', 'price_change'
   ))
   NOT VALID;
 
