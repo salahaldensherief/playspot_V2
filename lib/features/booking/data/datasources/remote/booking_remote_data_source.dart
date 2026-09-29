@@ -503,13 +503,13 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String bookingId,
     required int requestedMinutes,
   }) async {
-    await _client
-        .from('bookings')
-        .update({
-          'extension_status': 'pending',
-          'requested_extension_minutes': requestedMinutes,
-        })
-        .eq('id', bookingId);
+    await _client.rpc(
+      'request_booking_extension',
+      params: {
+        'p_booking_id': bookingId,
+        'p_requested_minutes': requestedMinutes,
+      },
+    );
   }
 
   @override
