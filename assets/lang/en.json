@@ -361,6 +361,7 @@
   "orderPlacedSuccess": "Order placed successfully",
   "staffNotifiedSuccess": "Staff notified, they will assist you shortly",
   "remaining": "REMAINING",
+  "sessionTimeRemaining": "{} remaining",
   "comingSoon": "Feature coming soon!",
   "pointsHistory": "Points History",
   "noPointsHistory": "No points transactions found yet",

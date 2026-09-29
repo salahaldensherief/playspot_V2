@@ -366,6 +366,7 @@
   "orderPlacedSuccess": "طلبك اتبعت وهيجيلك في ثواني",
   "staffNotifiedSuccess": "بلغنا الستاف وهيجوا يساعدوك حالاً",
   "remaining": "متبقي",
+  "sessionTimeRemaining": "متبقي {}",
   "comingSoon": "الميزة دي هتنزل قريب جداً!",
   "pointsHistory": "سجل النقاط",
   "noPointsHistory": "لا يوجد سجل معاملة نقاط حتى الآن",

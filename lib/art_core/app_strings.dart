@@ -311,6 +311,7 @@ class AppStrings {
   static const String staffNotifiedSuccess = "staffNotifiedSuccess";
   static const String overtime = "overtime";
   static const String remaining = "remaining";
+  static const String sessionTimeRemaining = "sessionTimeRemaining";
   static const String addNote = "addNote";
   static const String placeOrder = "placeOrder";
   static const String egpSymbol = "egp";
