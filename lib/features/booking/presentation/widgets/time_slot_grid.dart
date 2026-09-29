@@ -20,16 +20,18 @@ class TimeSlotGrid extends StatefulWidget {
 }
 
 class _TimeSlotGridState extends State<TimeSlotGrid> {
-  // Playtomic Shift Filter (0: All, 1: Morning, 2: Evening, 3: Night)
   int _shiftFilter = 0;
   bool _waitlistBusy = false;
 
   @override
   Widget build(BuildContext context) {
+    final isArabic = context.locale.languageCode == 'ar';
+
     return BlocBuilder<BookingCubit, BookingState>(
       buildWhen: (previous, current) =>
           previous.status != current.status ||
           previous.bookedTimeSlots != current.bookedTimeSlots ||
+          previous.slotPrices != current.slotPrices ||
           previous.startTime != current.startTime ||
           previous.durationMinutes != current.durationMinutes ||
           previous.selectedDate != current.selectedDate,
@@ -39,7 +41,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
           return SizedBox(height: 100.h, child: const AppLoader(size: 30));
         }
 
-        // Generate future slots ONLY (Past slots are completely excluded)
+        // Generate future slots
         final slots = _generateFutureSlots(
           widget.lounge.openingTime,
           widget.lounge.closingTime,
@@ -50,7 +52,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
           return _buildFullyBookedOrPastBanner(context);
         }
 
-        // 🚀 AUTO-SET INITIAL VALUE TO NEAREST AVAILABLE SLOT
+        // AUTO-SET INITIAL VALUE TO NEAREST AVAILABLE SLOT
         if (state.startTime == null) {
           final firstAvailable = slots.firstWhere(
             (s) => !_isSlotBooked(s, state),
@@ -66,12 +68,10 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
           }
         }
 
-        // Determine which shifts actually have remaining future slots today
         final hasMorning = slots.any((s) => s.hour >= 6 && s.hour < 16);
         final hasAfternoon = slots.any((s) => s.hour >= 16 && s.hour < 22);
         final hasNight = slots.any((s) => s.hour >= 22 || s.hour < 6);
 
-        // Reset filter if active shift filter tab is no longer available today
         if (_shiftFilter == 1 && !hasMorning) _shiftFilter = 0;
         if (_shiftFilter == 2 && !hasAfternoon) _shiftFilter = 0;
         if (_shiftFilter == 3 && !hasNight) _shiftFilter = 0;
@@ -79,7 +79,6 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
         final availableShiftCount =
             (hasMorning ? 1 : 0) + (hasAfternoon ? 1 : 0) + (hasNight ? 1 : 0);
 
-        // Filter slots according to active shift tab
         List<TimeOfDay> filteredSlots = slots;
         if (_shiftFilter == 1 && hasMorning) {
           filteredSlots = slots
@@ -120,7 +119,6 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Dynamic Shift Filter Bar Header (Only show tabs for remaining future shifts!)
               if (availableShiftCount > 1) ...[
                 Row(
                   children: [
@@ -142,9 +140,9 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                 SizedBox(height: 14.h),
               ],
 
-              // Playtomic Compact Time Ribbon
+              // Time Slot Ribbon with Price and Peak Tag
               SizedBox(
-                height: 52.h,
+                height: 68.h,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: filteredSlots.length,
@@ -152,6 +150,10 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                   itemBuilder: (context, index) {
                     final slot = filteredSlots[index];
                     final isBooked = _isSlotBooked(slot, state);
+                    final slotPrice = state.getSlotPrice(slot);
+                    final isPeak = slotPrice?.isPeak ?? false;
+                    final rateVal = slotPrice?.hourlyRate;
+
                     final isSelectedStart =
                         state.startTime?.hour == slot.hour &&
                         state.startTime?.minute == slot.minute;
@@ -171,8 +173,8 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                       borderRadius: BorderRadius.circular(10.r),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        width: 76.w,
-                        padding: EdgeInsets.symmetric(vertical: 6.h),
+                        width: 82.w,
+                        padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 4.w),
                         decoration: BoxDecoration(
                           color: isSelectedStart
                               ? AppColors.neonBlue
@@ -182,7 +184,9 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                                           ? AppColors.danger.withValues(
                                               alpha: 0.15,
                                             )
-                                          : Colors.black45)),
+                                          : (isPeak
+                                              ? AppColors.warning.withValues(alpha: 0.12)
+                                              : Colors.black45))),
                           borderRadius: BorderRadius.circular(10.r),
                           border: Border.all(
                             color: isSelectedStart
@@ -191,7 +195,9 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                                       ? AppColors.neonBlue
                                       : (isBooked
                                             ? AppColors.danger
-                                            : AppColors.borderDefault)),
+                                            : (isPeak
+                                                ? AppColors.warning.withValues(alpha: 0.6)
+                                                : AppColors.borderDefault))),
                             width: isSelectedStart ? 1.5 : 1.0,
                           ),
                           boxShadow: isSelectedStart
@@ -224,29 +230,48 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                                   ? TextDecoration.lineThrough
                                   : null,
                             ),
+                            SizedBox(height: 2.h),
                             if (isBooked) ...[
-                              SizedBox(height: 2.h),
                               AppText(
-                                text:
-                                    context
-                                            .read<BookingCubit>()
-                                            .roomIds
-                                            .length ==
-                                        1
+                                text: context.read<BookingCubit>().roomIds.length == 1
                                     ? AppStrings.waitlistNotify.tr()
                                     : AppStrings.booked.tr(),
                                 fontSize: 8.sp,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.danger,
                               ),
-                            ] else if (isSelectedStart) ...[
-                              SizedBox(height: 2.h),
-                              AppText(
-                                text: "start".tr(),
-                                fontSize: 8.sp,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.black,
-                              ),
+                            ] else ...[
+                              if (rateVal != null && rateVal > 0)
+                                AppText(
+                                  text: "${rateVal.toStringAsFixed(0)} ${isArabic ? 'ج.م/س' : 'EGP/h'}",
+                                  fontSize: 8.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSelectedStart
+                                      ? Colors.black87
+                                      : (isPeak ? AppColors.warning : Colors.white70),
+                                ),
+                              if (isPeak) ...[
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.warning,
+                                    borderRadius: BorderRadius.circular(4.r),
+                                  ),
+                                  child: AppText(
+                                    text: isArabic ? "ذروة" : "Peak",
+                                    fontSize: 7.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ] else if (isSelectedStart) ...[
+                                AppText(
+                                  text: "start".tr(),
+                                  fontSize: 8.sp,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.black,
+                                ),
+                              ],
                             ],
                           ],
                         ),
@@ -257,7 +282,6 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
               ),
               SizedBox(height: 14.h),
 
-              // Playtomic Instant Status & Availability Preview Card
               if (selectedStart != null) ...[
                 Container(
                   padding: EdgeInsets.symmetric(
@@ -342,7 +366,6 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
     );
   }
 
-  // ─── Slot Generation: Exclude Past Slots Completely ──────────────────
   List<TimeOfDay> _generateFutureSlots(
     String openStr,
     String closeStr,
@@ -373,7 +396,6 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
       for (int m = 0; m < 60; m += 15) {
         final slot = TimeOfDay(hour: hourMod, minute: m);
 
-        // Completely skip slots that are in the past if date is today
         if (isToday) {
           var slotDateTime = DateTime(
             now.year,
@@ -382,10 +404,19 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
             slot.hour,
             slot.minute,
           );
-          if (slot.hour < 6)
+          if (slot.hour < 6) {
             slotDateTime = slotDateTime.add(const Duration(days: 1));
+          }
           if (slotDateTime.isBefore(now.add(const Duration(minutes: 5)))) {
-            continue; // Skip past slots!
+            continue;
+          }
+        }
+
+        // Rule #2: if slotPrices is available and slot price rate <= 0 (unpriced slot), hide it!
+        if (state.slotPrices.isNotEmpty) {
+          final slotPrice = state.getSlotPrice(slot);
+          if (slotPrice != null && !slotPrice.isValidPriced) {
+            continue; // Hide slot!
           }
         }
 
@@ -395,7 +426,6 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
     return list;
   }
 
-  // ─── Helpers & Range Span Math ────────────────────────────────────────
   bool _isSlotBooked(TimeOfDay slot, BookingState state) {
     return state.bookedTimeSlots.any(
       (b) => b.hour == slot.hour && b.minute == slot.minute,
@@ -476,7 +506,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
       final (loaded, activeId) = await cubit.activeWaitlistRequest(slot);
       if (!mounted) return;
       if (!loaded) {
-        _showWaitlistMessage(context, AppStrings.waitlistFailed);
+        _showWaitlistMessage(AppStrings.waitlistFailed);
         return;
       }
       final confirmed = await showDialog<bool>(
@@ -516,13 +546,14 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
           ? await cubit.joinWaitlist(slot)
           : await cubit.cancelWaitlist(activeId);
       if (!mounted) return;
-      _showWaitlistMessage(context, messageKey);
+      _showWaitlistMessage(messageKey);
     } finally {
       _waitlistBusy = false;
     }
   }
 
-  void _showWaitlistMessage(BuildContext context, String key) {
+  void _showWaitlistMessage(String key) {
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(key.tr())));

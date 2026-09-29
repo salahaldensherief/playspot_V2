@@ -43,6 +43,7 @@ class BookingCubit extends Cubit<BookingState> {
          ),
        ) {
     fetchBookedSlots(state.selectedDate);
+    fetchRoomSlotsWithPrices(state.selectedDate);
   }
 
   Future<String> joinWaitlist(TimeOfDay slot) async {
@@ -88,6 +89,64 @@ class BookingCubit extends Cubit<BookingState> {
     return result.fold(
       (_) => 'waitlistFailed',
       (cancelled) => cancelled ? 'waitlistCancelled' : 'waitlistUnavailable',
+    );
+  }
+
+  Future<void> fetchRoomSlotsWithPrices(DateTime date) async {
+    if (roomId.isEmpty) return;
+    final dateStr =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    final result = await _bookingRepository.getRoomSlotsWithPrices(
+      roomId: roomId,
+      date: dateStr,
+    );
+
+    if (isClosed) return;
+
+    result.fold(
+      (_) => null,
+      (slots) {
+        // Rule #2: filter out unpriced slots (hourlyRate <= 0)
+        final validSlots = slots.where((s) => s.isValidPriced).toList();
+        emit(state.copyWith(slotPrices: validSlots));
+      },
+    );
+  }
+
+  Future<void> fetchPriceQuote() async {
+    final startTime = state.startTime;
+    if (startTime == null || roomId.isEmpty) return;
+
+    final startDateTime = _resolveOperationalDateTime(
+      state.selectedDate,
+      startTime,
+    );
+    final endDateTime = startDateTime.add(
+      Duration(minutes: state.durationMinutes),
+    );
+
+    final dateStr =
+        "${startDateTime.year}-${startDateTime.month.toString().padLeft(2, '0')}-${startDateTime.day.toString().padLeft(2, '0')}";
+    final startStr =
+        "${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}:00";
+    final endStr =
+        "${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}:00";
+
+    final result = await _bookingRepository.quoteBookingPrice(
+      roomId: roomId,
+      date: dateStr,
+      startTime: startStr,
+      endTime: endStr,
+      playMode: state.playMode == PlayMode.single ? 'single' : 'multi',
+      extraControllers: state.extraControllersCount,
+    );
+
+    if (isClosed) return;
+
+    result.fold(
+      (_) => null,
+      (quote) => emit(state.copyWith(priceQuote: quote)),
     );
   }
 
@@ -248,6 +307,8 @@ class BookingCubit extends Cubit<BookingState> {
 
     HapticFeedback.lightImpact();
     fetchBookedSlots(date);
+    fetchRoomSlotsWithPrices(date);
+    fetchPriceQuote();
   }
 
   /// Calculates maximum continuous free duration in minutes before the next booked slot
@@ -309,6 +370,7 @@ class BookingCubit extends Cubit<BookingState> {
     final cappedDuration = state.durationMinutes.clamp(15, maxAllowed);
 
     emit(tempState.copyWith(durationMinutes: cappedDuration));
+    fetchPriceQuote();
   }
 
   void setDurationMinutes(int minutes) {
@@ -316,6 +378,7 @@ class BookingCubit extends Cubit<BookingState> {
     final cappedMinutes = minutes.clamp(15, maxAllowed);
     HapticFeedback.lightImpact();
     emit(state.copyWith(durationMinutes: cappedMinutes));
+    fetchPriceQuote();
   }
 
   void updateDuration(int deltaMinutes) {
@@ -332,6 +395,7 @@ class BookingCubit extends Cubit<BookingState> {
 
     HapticFeedback.lightImpact();
     emit(state.copyWith(durationMinutes: newDuration));
+    fetchPriceQuote();
   }
 
   bool isSlotBooked(TimeOfDay time) {

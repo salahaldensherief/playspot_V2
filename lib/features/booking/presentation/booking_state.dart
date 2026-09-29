@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import '../data/models/booking_offer_info.dart';
 import '../data/models/booking_params.dart';
+import '../domain/entities/booking_price_quote.dart';
+import '../domain/entities/room_slot_price.dart';
 
 enum BookingStatus { initial, loading, success, error }
 enum PlayMode { single, multi }
@@ -12,6 +14,8 @@ class BookingState extends Equatable {
   final TimeOfDay? startTime;
   final int durationMinutes;
   final List<TimeOfDay> bookedTimeSlots;
+  final List<RoomSlotPrice> slotPrices;
+  final BookingPriceQuote? priceQuote;
   final PlayMode playMode;
   final int extraControllersCount;
   final String? errorMessage;
@@ -25,6 +29,8 @@ class BookingState extends Equatable {
     this.startTime,
     this.durationMinutes = 60,
     this.bookedTimeSlots = const [],
+    this.slotPrices = const [],
+    this.priceQuote,
     this.playMode = PlayMode.single,
     this.extraControllersCount = 0,
     this.errorMessage,
@@ -40,6 +46,9 @@ class BookingState extends Equatable {
     bool clearStartTime = false,
     int? durationMinutes,
     List<TimeOfDay>? bookedTimeSlots,
+    List<RoomSlotPrice>? slotPrices,
+    BookingPriceQuote? priceQuote,
+    bool clearPriceQuote = false,
     PlayMode? playMode,
     int? extraControllersCount,
     String? errorMessage,
@@ -54,6 +63,8 @@ class BookingState extends Equatable {
       startTime: clearStartTime ? null : (startTime ?? this.startTime),
       durationMinutes: durationMinutes ?? this.durationMinutes,
       bookedTimeSlots: bookedTimeSlots ?? this.bookedTimeSlots,
+      slotPrices: slotPrices ?? this.slotPrices,
+      priceQuote: clearPriceQuote ? null : (priceQuote ?? this.priceQuote),
       playMode: playMode ?? this.playMode,
       extraControllersCount: extraControllersCount ?? this.extraControllersCount,
       errorMessage: errorMessage,
@@ -61,6 +72,18 @@ class BookingState extends Equatable {
       holdExpiresAt: clearHold ? null : (holdExpiresAt ?? this.holdExpiresAt),
       heldStartAt: clearHold ? null : (heldStartAt ?? this.heldStartAt),
     );
+  }
+
+  // Helper method to find a priced slot for a given TimeOfDay
+  RoomSlotPrice? getSlotPrice(TimeOfDay time) {
+    final startStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00";
+    try {
+      return slotPrices.firstWhere(
+        (s) => s.slotStart == startStr || s.slotStart.startsWith("${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}"),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   // ─── Price & Logic Calculations ──────────────────────────────
@@ -74,6 +97,43 @@ class BookingState extends Equatable {
   }
 
   Map<String, dynamic> getCalculatedSubtotals(BookingDetailsParams params, bool isArabic) {
+    // If dynamic priceQuote exists from server, use its exact server-authoritative numbers!
+    if (priceQuote != null) {
+      final double serverTotal = priceQuote!.total;
+      final double roomSub = priceQuote!.roomSubtotal;
+      final double extraControllersSub = priceQuote!.extraControllersAmount;
+      final double discountSub = priceQuote!.discountAmount;
+      final durationHours = durationMinutes / 60.0;
+
+      return {
+        'originalRoomSubtotal': roomSub + discountSub,
+        'discountedRoomSubtotal': roomSub,
+        'roomDiscountAmount': discountSub,
+        'addonsTotal': calculateExtrasPrice(params),
+        'totalPrice': serverTotal,
+        'originalTotalPrice': roomSub + discountSub + calculateExtrasPrice(params) + extraControllersSub,
+        'durationHours': durationHours,
+        'segments': priceQuote!.segments,
+        'hasPeak': priceQuote!.hasPeak,
+        'currency': priceQuote!.currency,
+        'roomsBreakdown': <Map<String, dynamic>>[
+          {
+            'room': params.room,
+            'roomId': params.room.id,
+            'roomName': params.room.getDisplayTitle(isArabic),
+            'playMode': playMode == PlayMode.single ? 'single' : 'multi',
+            'extraControllers': extraControllersCount,
+            'extraControllerPrice': params.room.extraControllerPrice,
+            'originalRate': roomSub,
+            'appliedRate': roomSub,
+            'originalSubtotal': roomSub,
+            'discountedSubtotal': roomSub,
+            'discountAmount': discountSub,
+          }
+        ],
+      };
+    }
+
     if (params.rooms.length <= 1) {
       final offerInfo = getOfferInfo(params, isArabic);
       final singleSub = Map<String, dynamic>.from(offerInfo.calculateSubtotals(
@@ -169,6 +229,9 @@ class BookingState extends Equatable {
   }
 
   double calculateAppliedRate(BookingDetailsParams params) {
+    if (priceQuote != null && priceQuote!.segments.isNotEmpty) {
+      return priceQuote!.segments.first.rate;
+    }
     final offerInfo = BookingOfferInfo.resolve(
       room: params.room,
       lounge: params.lounge,
@@ -179,12 +242,18 @@ class BookingState extends Equatable {
   }
 
   double calculateOriginalRate(BookingDetailsParams params) {
+    if (priceQuote != null && priceQuote!.segments.isNotEmpty) {
+      return priceQuote!.segments.first.baseRate;
+    }
     return playMode == PlayMode.single
         ? params.room.hourlyRateSingle
         : params.room.hourlyRateMulti;
   }
 
   double calculateExtraControllersCharge(BookingDetailsParams params) {
+    if (priceQuote != null) {
+      return priceQuote!.extraControllersAmount;
+    }
     return extraControllersCount * params.room.extraControllerPrice;
   }
 
@@ -232,6 +301,8 @@ class BookingState extends Equatable {
         startTime,
         durationMinutes,
         bookedTimeSlots,
+        slotPrices,
+        priceQuote,
         playMode,
         extraControllersCount,
         errorMessage,

@@ -37,6 +37,20 @@ abstract class BookingRemoteDataSource {
     String? senderWalletPhone,
     String? receiptUrl,
   });
+  Future<Map<String, dynamic>> quoteBookingPrice({
+    required String roomId,
+    required String date,
+    required String startTime,
+    required String endTime,
+    String playMode = 'single',
+    int extraControllers = 0,
+    String? couponCode,
+  });
+  Future<List<Map<String, dynamic>>> getRoomSlotsWithPrices({
+    required String roomId,
+    required String date,
+  });
+  Future<Map<String, dynamic>> getLoungePriceRange(String loungeId);
   Future<void> attachBookingReceipt({
     required String bookingId,
     required String receiptPath,
@@ -170,20 +184,87 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     String? senderWalletPhone,
     String? receiptUrl,
   }) async {
+    try {
+      final response = await _client.rpc(
+        'create_my_booking_checkout',
+        params: {
+          'p_hold_token': holdToken,
+          'p_room_requests': roomRequests,
+          'p_extra_items': extraItems,
+          'p_voucher_code': voucherCode,
+          'p_payment_method': paymentMethod,
+          'p_sender_wallet_phone': senderWalletPhone,
+          'p_receipt_url': receiptUrl,
+        },
+      );
+
+      return Map<String, dynamic>.from(response as Map);
+    } catch (e) {
+      _checkPriceChangedError(e);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> quoteBookingPrice({
+    required String roomId,
+    required String date,
+    required String startTime,
+    required String endTime,
+    String playMode = 'single',
+    int extraControllers = 0,
+    String? couponCode,
+  }) async {
     final response = await _client.rpc(
-      'create_my_booking_checkout',
+      'quote_booking_price',
       params: {
-        'p_hold_token': holdToken,
-        'p_room_requests': roomRequests,
-        'p_extra_items': extraItems,
-        'p_voucher_code': voucherCode,
-        'p_payment_method': paymentMethod,
-        'p_sender_wallet_phone': senderWalletPhone,
-        'p_receipt_url': receiptUrl,
+        'p_room_id': roomId,
+        'p_date': date,
+        'p_start': startTime,
+        'p_end': endTime,
+        'p_play_mode': playMode,
+        'p_extra_controllers': extraControllers,
+        'p_coupon_code': couponCode,
       },
     );
 
     return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRoomSlotsWithPrices({
+    required String roomId,
+    required String date,
+  }) async {
+    final response = await _client.rpc(
+      'get_room_slots_with_prices',
+      params: {
+        'p_room_id': roomId,
+        'p_date': date,
+      },
+    );
+
+    return List<Map<String, dynamic>>.from(response as List);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLoungePriceRange(String loungeId) async {
+    final response = await _client.rpc(
+      'get_lounge_price_range',
+      params: {
+        'p_lounge_id': loungeId,
+      },
+    );
+
+    return Map<String, dynamic>.from(response as Map);
+  }
+
+  void _checkPriceChangedError(dynamic error) {
+    final errStr = error.toString();
+    if (errStr.contains('PRICE_CHANGED') ||
+        (error is PostgrestException && error.code == 'PRICE_CHANGED')) {
+      throw Exception('PRICE_CHANGED: $errStr');
+    }
   }
 
   @override
@@ -323,6 +404,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
           .select('id, is_first_booking, payment_method, status')
           .single();
     } catch (e) {
+      _checkPriceChangedError(e);
       // Fallback in case Postgres table doesn't have all optional snapshot columns
       response = await _client
           .from('bookings')
@@ -551,7 +633,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     }
 
     try {
-      // Fetch lounge_id and room_id directly from the booking record using bookingId
       final bookingData = await _client
           .from('bookings')
           .select('lounge_id, room_id, user_id')

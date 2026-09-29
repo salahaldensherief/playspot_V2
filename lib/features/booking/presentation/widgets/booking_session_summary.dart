@@ -9,6 +9,7 @@ import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text/price_widget.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
+import 'package:playspot/features/booking/domain/entities/booking_price_quote.dart';
 
 import '../booking_cubit.dart';
 import '../booking_state.dart';
@@ -28,6 +29,7 @@ class BookingSessionSummary extends StatelessWidget {
           previous.startTime != current.startTime ||
           previous.durationMinutes != current.durationMinutes ||
           previous.playMode != current.playMode ||
+          previous.priceQuote != current.priceQuote ||
           previous.extraControllersCount != current.extraControllersCount,
       builder: (context, state) {
         final startTime = state.startTime;
@@ -43,6 +45,7 @@ class BookingSessionSummary extends StatelessWidget {
         final origRoomSubtotal = (subtotals['originalRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
         final discRoomSubtotal = (subtotals['discountedRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
         final roomDiscountAmount = (subtotals['roomDiscountAmount'] as num?)?.toDouble() ?? 0.0;
+        final priceQuote = state.priceQuote;
 
         return Container(
           padding: 16.allPadding,
@@ -84,6 +87,30 @@ class BookingSessionSummary extends StatelessWidget {
                 AppStrings.duration.tr(),
                 state.getFormattedDuration(isArabic),
               ),
+
+              // Segments Breakdown Section (If server returns segments crossing different rates)
+              if (priceQuote != null && priceQuote.segments.isNotEmpty) ...[
+                const Divider(color: AppColors.borderDefault, height: 20),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.pie_chart_outline_rounded,
+                      color: AppColors.neonBlue,
+                      size: 14.sp,
+                    ),
+                    SizedBox(width: 6.w),
+                    AppText(
+                      text: isArabic ? "تفصيل الفترات والأسعار:" : "Pricing Segments Breakdown:",
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white70,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                ...priceQuote.segments.map((seg) => _buildSegmentRow(seg, isArabic)),
+              ],
+
               const Divider(color: AppColors.borderDefault, height: 24),
               if (offerInfo.hasOffer) ...[
                 Row(
@@ -99,7 +126,7 @@ class BookingSessionSummary extends StatelessWidget {
                     ),
                     AppText(
                       text:
-                          "-${roomDiscountAmount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                          "-${roomDiscountAmount.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                       fontSize: 12.sp,
                       color: AppColors.success,
                       fontWeight: FontWeight.bold,
@@ -121,7 +148,7 @@ class BookingSessionSummary extends StatelessWidget {
                     children: [
                       if (offerInfo.hasOffer) ...[
                         Text(
-                          "${origRoomSubtotal.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                          "${origRoomSubtotal.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                           style: TextStyle(
                             color: AppColors.textSecondary.withValues(
                               alpha: 0.5,
@@ -148,6 +175,38 @@ class BookingSessionSummary extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSegmentRow(PricingSegment seg, bool isArabic) {
+    final fromTime = seg.from.length >= 5 ? seg.from.substring(0, 5) : seg.from;
+    final toTime = seg.to.length >= 5 ? seg.to.substring(0, 5) : seg.to;
+    final isPeak = seg.isPeak;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 3.h),
+      child: Row(
+        children: [
+          Icon(
+            isPeak ? Icons.local_fire_department_rounded : Icons.schedule_rounded,
+            color: isPeak ? AppColors.warning : AppColors.neonBlue,
+            size: 13.sp,
+          ),
+          SizedBox(width: 6.w),
+          AppText(
+            text: "$fromTime - $toTime ${isPeak ? (isArabic ? '(ذروة)' : '(Peak)') : ''}",
+            fontSize: 11.sp,
+            color: Colors.white70,
+          ),
+          const Spacer(),
+          AppText(
+            text: "${seg.amount.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
+            fontSize: 11.sp,
+            fontWeight: FontWeight.bold,
+            color: isPeak ? AppColors.warning : Colors.white,
+          ),
+        ],
+      ),
     );
   }
 
