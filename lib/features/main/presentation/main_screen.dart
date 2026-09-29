@@ -57,7 +57,12 @@ class _MainScreenState extends State<MainScreen> {
     _previousPointsBalance = context.read<ProfileCubit>().state.pointsBalance;
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshModuleData(_selectedIndex);
+      if (!mounted) return;
+      if (_selectedIndex == 0) {
+        context.read<ActiveSessionCubit>().loadActiveSession();
+      } else {
+        _refreshModuleData(_selectedIndex);
+      }
       _lastRefreshTime[_selectedIndex] = DateTime.now();
     });
   }
@@ -147,7 +152,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     final screens = [
-      const HomeScreen(),
+      HomeScreen(isActive: _selectedIndex == 0),
       const MyBookingsScreen(isTab: true),
       const ProfileScreen(),
     ];

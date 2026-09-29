@@ -22,16 +22,20 @@ import 'package:playspot/features/home/presentation/widgets/promo_carousel.dart'
 import 'package:playspot/features/notifications/presentation/notifications_cubit.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final bool isActive;
+
+  const HomeScreen({super.key, this.isActive = true});
 
   @override
   Widget build(BuildContext context) {
-    return const _HomeView();
+    return _HomeView(isActive: isActive);
   }
 }
 
 class _HomeView extends StatefulWidget {
-  const _HomeView();
+  final bool isActive;
+
+  const _HomeView({required this.isActive});
 
   @override
   State<_HomeView> createState() => _HomeViewState();
@@ -41,13 +45,16 @@ class _HomeViewState extends State<_HomeView> {
   late final String userName;
   late final String currentLocation;
   final ScrollController _scrollController = ScrollController();
+  late final HomeCubit _homeCubit;
   bool _isLoadingMoreTriggered = false;
+  bool _initialized = false;
 
   late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
     super.initState();
+    _homeCubit = context.read<HomeCubit>();
     final pref = sl<PreferenceManager>();
     userName = pref.fullName() ?? "User";
 
@@ -60,7 +67,7 @@ class _HomeViewState extends State<_HomeView> {
 
     _lifecycleListener = AppLifecycleListener(
       onResume: () {
-        if (mounted) {
+        if (mounted && widget.isActive) {
           context.read<HomeCubit>().startLocationListening();
         }
       },
@@ -72,18 +79,39 @@ class _HomeViewState extends State<_HomeView> {
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<HomeCubit>().init();
-        context.read<HomeCubit>().startLocationListening();
-        final lang = context.locale.languageCode;
-        context.read<NotificationsCubit>().getNotifications(lang);
-      }
+      if (mounted && widget.isActive) _initializeHome();
     });
+  }
+
+  void _initializeHome() {
+    if (_initialized) return;
+    _initialized = true;
+    _homeCubit.init();
+    _homeCubit.startLocationListening();
+    context.read<NotificationsCubit>().getNotifications(context.locale.languageCode);
+  }
+
+  @override
+  void didUpdateWidget(covariant _HomeView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive == oldWidget.isActive) return;
+    if (widget.isActive) {
+      if (_initialized) {
+        _homeCubit.startLocationListening();
+      } else {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && widget.isActive) _initializeHome();
+        });
+      }
+    } else {
+      _homeCubit.stopLocationListening();
+    }
   }
 
   @override
   void dispose() {
     _lifecycleListener.dispose();
+    _homeCubit.stopLocationListening();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
