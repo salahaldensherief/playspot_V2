@@ -3,6 +3,8 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/models/paginated_response.dart';
 import '../entities/active_session.dart';
 import '../entities/order_item.dart';
+import '../entities/upsell_suggestion.dart';
+import '../../data/models/canteen_menu_data_model.dart';
 import '../../../lounge_details/data/models/extra_model.dart';
 
 abstract class ActiveSessionRepository {
@@ -18,6 +20,15 @@ abstract class ActiveSessionRepository {
   Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(
     String loungeId, {
     bool forceRefresh = false,
+  });
+  Future<Either<Failure, CanteenMenuData>> getCanteenMenu(String loungeId);
+  Future<Either<Failure, List<UpsellSuggestion>>> getUpsellSuggestions(String bookingId);
+  Future<Either<Failure, void>> recordUpsellEvent({
+    required String ruleId,
+    required String bookingId,
+    required String event,
+    String? canteenOrderId,
+    double? amount,
   });
   Future<Either<Failure, void>> requestStaffAssistance({
     required String bookingId,

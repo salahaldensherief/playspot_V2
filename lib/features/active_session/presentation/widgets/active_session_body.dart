@@ -22,6 +22,7 @@ import 'quick_actions.dart';
 import 'session_summary_card.dart';
 import 'station_info.dart';
 import 'timer_section.dart';
+import 'upsell_suggestion_banner.dart';
 
 class ActiveSessionBody extends StatelessWidget {
   const ActiveSessionBody({super.key});
@@ -163,7 +164,9 @@ class ActiveSessionBody extends StatelessWidget {
                 SizedBox(height: 20.h),
                 _buildPendingExtensionBanner(context, session),
                 StationInfo(session: session),
-                SizedBox(height: 24.h),
+                SizedBox(height: 16.h),
+                const UpsellSuggestionBanner(),
+                SizedBox(height: 8.h),
                 const QuickActions(),
                 SizedBox(height: 24.h),
                 const ActiveSessionActionBar(),

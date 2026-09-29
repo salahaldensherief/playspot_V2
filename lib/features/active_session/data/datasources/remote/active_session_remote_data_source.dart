@@ -4,7 +4,9 @@ import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/active_session_model.dart';
+import '../../models/canteen_menu_data_model.dart';
 import '../../models/order_item_model.dart';
+import '../../models/upsell_suggestion_model.dart';
 
 abstract class ActiveSessionRemoteDataSource {
   Future<ActiveSessionModel?> getActiveSession({String? bookingId});
@@ -21,6 +23,15 @@ abstract class ActiveSessionRemoteDataSource {
   });
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items);
   Future<List<ExtraModel>> getLoungeMenu(String loungeId);
+  Future<CanteenMenuData> getCanteenMenu(String loungeId);
+  Future<List<UpsellSuggestionModel>> getUpsellSuggestions(String bookingId);
+  Future<void> recordUpsellEvent({
+    required String ruleId,
+    required String bookingId,
+    required String event,
+    String? canteenOrderId,
+    double? amount,
+  });
   Future<void> requestStaffAssistance({
     required String bookingId,
     required String callType,
@@ -440,12 +451,13 @@ class ActiveSessionRemoteDataSourceImpl
     if (items.isEmpty) return;
 
     final formattedItems = items
-        .map((item) => {'extra_id': item.id, 'quantity': item.quantity})
+        .map((item) => item.toOrderPayload())
         .toList();
 
     final notes = items
-        .where((item) => item.note != null && item.note!.trim().isNotEmpty)
-        .map((item) => item.note!.trim())
+        .where((item) => item.note != null && (item.note?.trim().isNotEmpty ?? false))
+        .map((item) => item.note?.trim() ?? '')
+        .where((n) => n.isNotEmpty)
         .join(', ');
 
     await _client.rpc(
@@ -456,6 +468,69 @@ class ActiveSessionRemoteDataSourceImpl
         if (notes.isNotEmpty) 'p_note': notes,
       },
     );
+  }
+
+  @override
+  Future<CanteenMenuData> getCanteenMenu(String loungeId) async {
+    dev.log("[LIVESESSION_DS] GET_CANTEEN_MENU: loungeId=$loungeId");
+    try {
+      final response = await _client.rpc('get_canteen_menu', params: {
+        'p_lounge_id': loungeId,
+      });
+
+      if (response != null && response is Map<String, dynamic>) {
+        return CanteenMenuData.fromJson(response);
+      } else if (response != null && response is Map) {
+        return CanteenMenuData.fromJson(Map<String, dynamic>.from(response));
+      }
+      return const CanteenMenuData();
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] GET_CANTEEN_MENU ERROR: $e");
+      final legacy = await getLoungeMenu(loungeId);
+      return CanteenMenuData(extras: legacy);
+    }
+  }
+
+  @override
+  Future<List<UpsellSuggestionModel>> getUpsellSuggestions(String bookingId) async {
+    dev.log("[LIVESESSION_DS] GET_UPSELL_SUGGESTIONS: bookingId=$bookingId");
+    try {
+      final response = await _client.rpc('get_upsell_suggestions', params: {
+        'p_booking_id': bookingId,
+      });
+
+      if (response != null && response is List) {
+        return response
+            .map((e) => UpsellSuggestionModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+      }
+      return const [];
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] GET_UPSELL_SUGGESTIONS ERROR: $e");
+      return const [];
+    }
+  }
+
+  @override
+  Future<void> recordUpsellEvent({
+    required String ruleId,
+    required String bookingId,
+    required String event,
+    String? canteenOrderId,
+    double? amount,
+  }) async {
+    dev.log("[LIVESESSION_DS] RECORD_UPSELL_EVENT: ruleId=$ruleId, event=$event");
+    try {
+      await _client.rpc('record_upsell_event', params: {
+        'p_rule_id': ruleId,
+        'p_booking_id': bookingId,
+        'p_event': event,
+        'p_canteen_order_id': canteenOrderId,
+        'p_amount': amount,
+      });
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] RECORD_UPSELL_EVENT ERROR: $e");
+    }
   }
 
   @override

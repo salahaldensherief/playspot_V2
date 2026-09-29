@@ -258,7 +258,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                                     borderRadius: BorderRadius.circular(4.r),
                                   ),
                                   child: AppText(
-                                    text: isArabic ? "ذروة" : "Peak",
+                                    text: AppStrings.peak.tr(),
                                     fontSize: 7.sp,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,

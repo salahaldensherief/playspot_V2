@@ -10,6 +10,8 @@ class OrderItemModel extends OrderItem {
     required super.quantity,
     super.totalPriceOverride,
     super.note,
+    super.isCombo,
+    super.status,
   });
 
   factory OrderItemModel.fromEntity(OrderItem entity) {
@@ -22,6 +24,8 @@ class OrderItemModel extends OrderItem {
       quantity: entity.quantity,
       totalPriceOverride: entity.totalPriceOverride,
       note: entity.note,
+      isCombo: entity.isCombo,
+      status: entity.status,
     );
   }
 
@@ -62,8 +66,13 @@ class OrderItemModel extends OrderItem {
       parsedPrice = rawTotal / (parsedQty > 0 ? parsedQty : 1);
     }
 
+    final bool isCombo = json['is_combo'] == true ||
+        json['combo_id'] != null ||
+        json['line_kind'] == 'combo_parent';
+
     return OrderItemModel(
       id: json['id']?.toString() ??
+          json['combo_id']?.toString() ??
           json['extra_id']?.toString() ??
           json['product_id']?.toString() ??
           extraData?['id']?.toString() ??
@@ -75,6 +84,8 @@ class OrderItemModel extends OrderItem {
       quantity: parsedQty,
       totalPriceOverride: rawTotal,
       note: json['note']?.toString() ?? json['notes']?.toString(),
+      isCombo: isCombo,
+      status: json['status']?.toString(),
     );
   }
 
@@ -87,5 +98,20 @@ class OrderItemModel extends OrderItem {
         'price': price,
         'quantity': quantity,
         if (note != null) 'note': note,
+        'is_combo': isCombo,
+        if (status != null) 'status': status,
       };
+
+  Map<String, dynamic> toOrderPayload() {
+    if (isCombo) {
+      return {
+        'combo_id': id,
+        'quantity': quantity,
+      };
+    }
+    return {
+      'extra_id': id,
+      'quantity': quantity,
+    };
+  }
 }

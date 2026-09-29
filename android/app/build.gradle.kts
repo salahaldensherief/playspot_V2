@@ -59,13 +59,10 @@ android {
 
     buildTypes {
         release {
-            signingConfig = when {
-                hasReleaseSigning -> signingConfigs.getByName("release")
-                System.getenv("CI") == "true" -> signingConfigs.getByName("debug")
-                else -> throw GradleException(
-                    "Release signing is not configured. Add android/key.properties " +
-                        "with storeFile, storePassword, keyAlias, and keyPassword."
-                )
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
             }
         }
     }

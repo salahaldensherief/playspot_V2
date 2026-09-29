@@ -6,14 +6,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/services/play_spot_live_activity_service.dart';
 import 'package:playspot/core/mixins/realtime_watcher_mixin.dart';
 import '../../../../core/constants/booking_status.dart';
+import '../../../../core/error/failures.dart';
 import '../../../../core/notifications/local_notification_service.dart';
 import '../../../../core/notifications/native_notification_service.dart';
 import '../domain/entities/active_session.dart';
 import '../domain/entities/order_item.dart';
+import '../domain/entities/out_of_stock_item.dart';
+import '../domain/entities/upsell_suggestion.dart';
 import '../domain/usecases/extend_session_time_usecase.dart';
 import '../domain/usecases/get_active_session_usecase.dart';
+import '../domain/usecases/get_canteen_menu_usecase.dart';
 import '../domain/usecases/get_lounge_menu_usecase.dart';
+import '../domain/usecases/get_upsell_suggestions_usecase.dart';
 import '../domain/usecases/place_session_order_usecase.dart';
+import '../domain/usecases/record_upsell_event_usecase.dart';
 import '../domain/usecases/request_session_extension_usecase.dart';
 import '../domain/usecases/request_staff_assistance_usecase.dart';
 import '../domain/usecases/stream_active_session_usecase.dart';
@@ -33,7 +39,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
   final ExtendSessionTimeUseCase _extendSessionTimeUseCase;
   final RequestSessionExtensionUseCase _requestSessionExtensionUseCase;
   final PlaceSessionOrderUseCase _placeSessionOrderUseCase;
-  final GetLoungeMenuUseCase _getLoungeMenuUseCase;
+  final GetCanteenMenuUseCase _getCanteenMenuUseCase;
+  final GetUpsellSuggestionsUseCase _getUpsellSuggestionsUseCase;
+  final RecordUpsellEventUseCase _recordUpsellEventUseCase;
   final RequestStaffAssistanceUseCase _requestStaffAssistanceUseCase;
   final SubmitLoungeReviewUseCase _submitLoungeReviewUseCase;
 
@@ -48,7 +56,10 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     required ExtendSessionTimeUseCase extendSessionTimeUseCase,
     required RequestSessionExtensionUseCase requestSessionExtensionUseCase,
     required PlaceSessionOrderUseCase placeSessionOrderUseCase,
-    required GetLoungeMenuUseCase getLoungeMenuUseCase,
+    GetLoungeMenuUseCase? getLoungeMenuUseCase,
+    required GetCanteenMenuUseCase getCanteenMenuUseCase,
+    required GetUpsellSuggestionsUseCase getUpsellSuggestionsUseCase,
+    required RecordUpsellEventUseCase recordUpsellEventUseCase,
     required RequestStaffAssistanceUseCase requestStaffAssistanceUseCase,
     required SubmitLoungeReviewUseCase submitLoungeReviewUseCase,
   })  : _getActiveSessionUseCase = getActiveSessionUseCase,
@@ -57,7 +68,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
         _extendSessionTimeUseCase = extendSessionTimeUseCase,
         _requestSessionExtensionUseCase = requestSessionExtensionUseCase,
         _placeSessionOrderUseCase = placeSessionOrderUseCase,
-        _getLoungeMenuUseCase = getLoungeMenuUseCase,
+        _getCanteenMenuUseCase = getCanteenMenuUseCase,
+        _getUpsellSuggestionsUseCase = getUpsellSuggestionsUseCase,
+        _recordUpsellEventUseCase = recordUpsellEventUseCase,
         _requestStaffAssistanceUseCase = requestStaffAssistanceUseCase,
         _submitLoungeReviewUseCase = submitLoungeReviewUseCase,
         super(const ActiveSessionState()) {
@@ -171,6 +184,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
           ));
           _subscribeToRealtime(session.bookingId);
           loadMenu(session.loungeId);
+          loadUpsellSuggestions(session.bookingId);
 
           try {
             PlaySpotLiveActivityService.instance.startActivity(
@@ -277,20 +291,85 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     if (!forceRefresh && state.menu.isNotEmpty && state.session?.loungeId == loungeId) {
       return;
     }
-    dev.log("[LIVESESSION_CUBIT] LOAD_MENU for lounge: $loungeId");
+    dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU for lounge: $loungeId");
     if (!isClosed) emit(state.copyWith(menuStatus: ActionStatus.loading));
-    final result = await _getLoungeMenuUseCase(loungeId: loungeId);
+    final result = await _getCanteenMenuUseCase(loungeId: loungeId);
     if (isClosed) return;
     result.fold(
       (f) {
-        dev.log("[LIVESESSION_CUBIT] LOAD_MENU FAILURE: ${f.message}");
+        dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU FAILURE: ${f.message}");
         emit(state.copyWith(menuStatus: ActionStatus.error));
       },
-      (menu) {
-        dev.log("[LIVESESSION_CUBIT] LOAD_MENU SUCCESS: ${menu.length} items");
-        emit(state.copyWith(menu: menu, menuStatus: ActionStatus.success));
+      (canteenMenu) {
+        dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU SUCCESS: ${canteenMenu.extras.length} items, ${canteenMenu.combos.length} combos");
+        emit(state.copyWith(
+          menu: canteenMenu.extras,
+          combos: canteenMenu.combos,
+          menuStatus: ActionStatus.success,
+        ));
       },
     );
+  }
+
+  Future<void> loadUpsellSuggestions(String bookingId) async {
+    if (bookingId.isEmpty || isClosed) return;
+    if (state.upsellImpressionsCount >= 2) return;
+
+    final result = await _getUpsellSuggestionsUseCase(bookingId: bookingId);
+    if (isClosed) return;
+
+    result.fold(
+      (f) => dev.log("[LIVESESSION_CUBIT] LOAD_UPSELL FAILURE: ${f.message}"),
+      (suggestions) {
+        emit(state.copyWith(upsellSuggestions: suggestions));
+      },
+    );
+  }
+
+  Future<void> recordUpsellImpression(UpsellSuggestion suggestion) async {
+    final session = state.session;
+    if (session == null || state.upsellImpressionsCount >= 2) return;
+
+    emit(state.copyWith(upsellImpressionsCount: state.upsellImpressionsCount + 1));
+    await _recordUpsellEventUseCase(
+      ruleId: suggestion.ruleId,
+      bookingId: session.bookingId,
+      event: 'shown',
+    );
+  }
+
+  Future<void> dismissUpsellSuggestion(UpsellSuggestion suggestion) async {
+    final session = state.session;
+    final updatedSuggestions = state.upsellSuggestions.where((s) => s.ruleId != suggestion.ruleId).toList();
+    emit(state.copyWith(upsellSuggestions: updatedSuggestions));
+
+    if (session != null) {
+      await _recordUpsellEventUseCase(
+        ruleId: suggestion.ruleId,
+        bookingId: session.bookingId,
+        event: 'dismissed',
+      );
+    }
+  }
+
+  Future<void> acceptUpsellSuggestion(UpsellSuggestion suggestion, {String? orderId, double? amount}) async {
+    final session = state.session;
+    final updatedSuggestions = state.upsellSuggestions.where((s) => s.ruleId != suggestion.ruleId).toList();
+    emit(state.copyWith(upsellSuggestions: updatedSuggestions));
+
+    if (session != null) {
+      await _recordUpsellEventUseCase(
+        ruleId: suggestion.ruleId,
+        bookingId: session.bookingId,
+        event: 'accepted',
+        canteenOrderId: orderId,
+        amount: amount,
+      );
+    }
+  }
+
+  void clearUnavailableItems() {
+    emit(state.copyWith(unavailableItems: []));
   }
 
   Future<void> extendTime(int additionalMinutes, [double? precalculatedCost]) async {
@@ -435,21 +514,29 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     final bookingId = session.bookingId;
     dev.log("[LIVESESSION_CUBIT] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}");
 
-    emit(state.copyWith(orderStatus: ActionStatus.loading));
+    emit(state.copyWith(orderStatus: ActionStatus.loading, unavailableItems: []));
 
     final result = await _placeSessionOrderUseCase(bookingId: bookingId, items: items);
 
     result.fold(
       (failure) {
         dev.log("[LIVESESSION_CUBIT] PLACE_ORDER FAILURE: ${failure.message}");
-        emit(state.copyWith(
-          orderStatus: ActionStatus.error,
-          errorMessage: failure.message,
-        ));
+        if (failure is CanteenOutOfStockFailure) {
+          emit(state.copyWith(
+            orderStatus: ActionStatus.error,
+            errorMessage: failure.message,
+            unavailableItems: failure.unavailableItems.whereType<OutOfStockItem>().toList(),
+          ));
+        } else {
+          emit(state.copyWith(
+            orderStatus: ActionStatus.error,
+            errorMessage: failure.message,
+          ));
+        }
       },
       (_) {
         dev.log("[LIVESESSION_CUBIT] PLACE_ORDER SUCCESS");
-        emit(state.copyWith(orderStatus: ActionStatus.success));
+        emit(state.copyWith(orderStatus: ActionStatus.success, unavailableItems: []));
         loadActiveSession(bookingId: bookingId);
       },
     );

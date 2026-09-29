@@ -158,12 +158,17 @@ class ActiveSessionModel extends ActiveSession {
     if (canteenOrders != null && canteenOrders.isNotEmpty) {
       for (var cOrder in canteenOrders) {
         if (cOrder is! Map) continue;
+        final String? orderStatus = cOrder['status']?.toString();
         final cItems = cOrder['items'] as List? ?? cOrder['canteen_order_items'] as List?;
         if (cItems != null) {
           for (var item in cItems) {
             if (item is Map) {
               try {
-                parsedOrders.add(OrderItemModel.fromJson(Map<String, dynamic>.from(item)));
+                final map = Map<String, dynamic>.from(item);
+                if (map['status'] == null && orderStatus != null) {
+                  map['status'] = orderStatus;
+                }
+                parsedOrders.add(OrderItemModel.fromJson(map));
               } catch (_) {}
             }
           }

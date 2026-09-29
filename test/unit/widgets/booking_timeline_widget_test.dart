@@ -1,9 +1,11 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_theme.dart';
 import 'package:playspot/features/my_bookings/domain/entities/booking_timeline_item.dart';
 import 'package:playspot/features/my_bookings/presentation/booking_timeline_cubit.dart';
@@ -83,7 +85,7 @@ void main() {
       ));
       await tester.pump();
 
-      expect(find.text('الجدول الزمني للحجز'), findsOneWidget);
+      expect(find.text(AppStrings.bookingTimelineTitle.tr()), findsOneWidget);
       expect(find.text('تم الحجز'), findsOneWidget);
       expect(find.text('تحديث بالحجز'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -103,7 +105,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('خطأ في الاتصال بالشبكة'), findsOneWidget);
-      expect(find.text('إعادة المحاولة'), findsOneWidget);
+      expect(find.text(AppStrings.retry.tr()), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

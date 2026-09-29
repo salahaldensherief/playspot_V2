@@ -40,3 +40,15 @@ class PriceChangedFailure extends Failure {
   @override
   List<Object> get props => [message, oldPrice, newPrice];
 }
+
+class CanteenOutOfStockFailure extends Failure {
+  final List<dynamic> unavailableItems;
+
+  const CanteenOutOfStockFailure({
+    required String message,
+    this.unavailableItems = const [],
+  }) : super(message);
+
+  @override
+  List<Object> get props => [message, unavailableItems];
+}

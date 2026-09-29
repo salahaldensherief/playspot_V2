@@ -11,12 +11,14 @@ class OrderItemData {
   final int quantity;
   final double price;
   final IconData? icon;
+  final String? status;
 
   const OrderItemData({
     required this.name,
     required this.quantity,
     required this.price,
     this.icon,
+    this.status,
   });
 }
 
@@ -321,6 +323,10 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (item.status != null && item.status!.isNotEmpty) ...[
+                            SizedBox(width: 6.w),
+                            _buildOrderStatusBadge(item.status!),
+                          ],
                           SizedBox(width: 8.w),
                           AppText(
                             text: "${(item.price * item.quantity).toStringAsFixed(2)} $currency",
@@ -439,6 +445,44 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOrderStatusBadge(String status) {
+    String label;
+    Color color;
+    switch (status.toLowerCase()) {
+      case 'preparing':
+        label = AppStrings.orderStatusPreparing.tr();
+        color = AppColors.neonBlue;
+        break;
+      case 'delivered':
+        label = AppStrings.orderStatusDelivered.tr();
+        color = AppColors.success;
+        break;
+      case 'completed':
+        label = AppStrings.orderStatusCompleted.tr();
+        color = AppColors.success;
+        break;
+      case 'pending':
+      default:
+        label = AppStrings.orderStatusPending.tr();
+        color = AppColors.warning;
+        break;
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: AppText(
+        text: label,
+        fontSize: 10.sp,
+        fontWeight: FontWeight.bold,
+        color: color,
       ),
     );
   }

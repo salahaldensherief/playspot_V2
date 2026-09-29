@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -67,13 +68,13 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         if (state.status == RequestStatus.failure) {
           return _buildErrorView(
             context,
-            state.errorMessage ?? (isArabic ? 'تعذر تحميل الجدول الزمني' : 'Failed to load timeline'),
+            state.errorMessage ?? AppStrings.bookingTimelineFailed.tr(),
             isArabic,
           );
         }
 
         if (state.status == RequestStatus.success && state.items.isEmpty) {
-          return _buildEmptyView(isArabic);
+          return _buildEmptyView();
         }
 
         return Column(
@@ -81,7 +82,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: EdgeInsets.only(bottom: 12.h),
+              padding: EdgeInsetsDirectional.only(bottom: 12.h),
               child: Row(
                 children: [
                   Icon(
@@ -91,7 +92,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                   ),
                   SizedBox(width: 8.w),
                   AppText(
-                    text: isArabic ? "الجدول الزمني للحجز" : "Booking Timeline",
+                    text: AppStrings.bookingTimelineTitle.tr(),
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -199,7 +200,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
               height: 36.h,
               child: AppButton(
                 content: ButtonContent(
-                  label: isArabic ? "إعادة المحاولة" : "Retry",
+                  label: AppStrings.retry.tr(),
                 ),
                 buttonConfig: ButtonConfig(
                   height: 36.h,
@@ -219,7 +220,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
     );
   }
 
-  Widget _buildEmptyView(bool isArabic) {
+  Widget _buildEmptyView() {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -233,7 +234,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
           SizedBox(width: 8.w),
           Expanded(
             child: AppText(
-              text: isArabic ? "لا توجد تحديثات في الجدول الزمني" : "No timeline updates available",
+              text: AppStrings.noTimelineUpdates.tr(),
               fontSize: 13.sp,
               color: Colors.white70,
             ),
@@ -394,9 +395,9 @@ class _TimelineTileNode extends StatelessWidget {
                     fontSize: 11.sp,
                     color: Colors.white60,
                   ),
-                  if (item.payload != null && item.payload!.isNotEmpty) ...[
+                  if (item.payload != null && (item.payload?.isNotEmpty ?? false)) ...[
                     SizedBox(height: 6.h),
-                    _buildPayloadDetails(item.payload!),
+                    _buildPayloadDetails(item.payload ?? const {}),
                   ],
                 ],
               ),

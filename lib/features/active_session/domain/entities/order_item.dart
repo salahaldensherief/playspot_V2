@@ -9,6 +9,8 @@ class OrderItem extends Equatable {
   final int quantity;
   final double? totalPriceOverride;
   final String? note;
+  final bool isCombo;
+  final String? status;
 
   const OrderItem({
     required this.id,
@@ -19,10 +21,12 @@ class OrderItem extends Equatable {
     required this.quantity,
     this.totalPriceOverride,
     this.note,
+    this.isCombo = false,
+    this.status,
   });
 
   @override
-  List<Object?> get props => [id, name, nameAr, nameEn, price, quantity, totalPriceOverride, note];
+  List<Object?> get props => [id, name, nameAr, nameEn, price, quantity, totalPriceOverride, note, isCombo, status];
 
   double get total {
     final override = totalPriceOverride;

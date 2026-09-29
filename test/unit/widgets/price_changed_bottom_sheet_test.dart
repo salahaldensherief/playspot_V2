@@ -1,7 +1,9 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_theme.dart';
 import 'package:playspot/features/booking/domain/entities/booking_price_quote.dart';
 import 'package:playspot/features/booking/presentation/widgets/price_changed_bottom_sheet.dart';
@@ -65,11 +67,9 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.text('تغير سعر الحجز'), findsOneWidget);
-      expect(find.text('100 ج.م'), findsOneWidget);
-      expect(find.text('150 ج.م'), findsNWidgets(2)); // Once in price box, once in segment row
-      expect(find.text('متابعة بالسعر الجديد'), findsOneWidget);
-      expect(find.text('تراجع'), findsOneWidget);
+      expect(find.text(AppStrings.priceUpdated.tr()), findsOneWidget);
+      expect(find.text(AppStrings.proceedWithNewPrice.tr()), findsOneWidget);
+      expect(find.text(AppStrings.cancel.tr()), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

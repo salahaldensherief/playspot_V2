@@ -8,6 +8,8 @@ import 'package:playspot/features/active_session/domain/usecases/extend_session_
 import 'package:playspot/features/active_session/domain/usecases/get_active_session_usecase.dart';
 import 'package:playspot/features/active_session/domain/usecases/place_session_order_usecase.dart';
 import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/features/active_session/data/models/canteen_menu_data_model.dart';
+import 'package:playspot/features/active_session/domain/entities/upsell_suggestion.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 
 class FakeActiveSessionRepository implements ActiveSessionRepository {
@@ -80,6 +82,27 @@ class FakeActiveSessionRepository implements ActiveSessionRepository {
     int pageSize = 20,
   }) async {
     return Right(PaginatedResponse(items: [], totalCount: 0, page: page, pageSize: pageSize));
+  }
+
+  @override
+  Future<Either<Failure, CanteenMenuData>> getCanteenMenu(String loungeId) async {
+    return const Right(CanteenMenuData(extras: [], combos: []));
+  }
+
+  @override
+  Future<Either<Failure, List<UpsellSuggestion>>> getUpsellSuggestions(String bookingId) async {
+    return const Right([]);
+  }
+
+  @override
+  Future<Either<Failure, void>> recordUpsellEvent({
+    required String ruleId,
+    required String bookingId,
+    required String event,
+    String? canteenOrderId,
+    double? amount,
+  }) async {
+    return const Right(null);
   }
 }
 

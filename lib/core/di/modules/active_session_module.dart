@@ -12,6 +12,9 @@ import '../../../features/active_session/domain/usecases/request_staff_assistanc
 import '../../../features/active_session/domain/usecases/stream_active_session_usecase.dart';
 import '../../../features/active_session/domain/usecases/submit_lounge_review_usecase.dart';
 import '../../../features/active_session/domain/usecases/watch_user_active_session_usecase.dart';
+import '../../../features/active_session/domain/usecases/get_canteen_menu_usecase.dart';
+import '../../../features/active_session/domain/usecases/get_upsell_suggestions_usecase.dart';
+import '../../../features/active_session/domain/usecases/record_upsell_event_usecase.dart';
 import '../../../features/active_session/presentation/active_session_cubit.dart';
 import '../../datasources/local/app_cache_local_data_source.dart';
 import '../../di.dart';
@@ -38,6 +41,9 @@ void initActiveSessionModule() {
   sl.registerLazySingleton(() => RequestSessionExtensionUseCase(sl<ActiveSessionRepository>()));
   sl.registerLazySingleton(() => PlaceSessionOrderUseCase(sl<ActiveSessionRepository>()));
   sl.registerLazySingleton(() => GetLoungeMenuUseCase(sl<ActiveSessionRepository>()));
+  sl.registerLazySingleton(() => GetCanteenMenuUseCase(sl<ActiveSessionRepository>()));
+  sl.registerLazySingleton(() => GetUpsellSuggestionsUseCase(sl<ActiveSessionRepository>()));
+  sl.registerLazySingleton(() => RecordUpsellEventUseCase(sl<ActiveSessionRepository>()));
   sl.registerLazySingleton(() => RequestStaffAssistanceUseCase(sl<ActiveSessionRepository>()));
   sl.registerLazySingleton(() => SubmitLoungeReviewUseCase(sl<ActiveSessionRepository>()));
   sl.registerLazySingleton(() => GetActiveLoungeRequestsPageUseCase(sl<ActiveSessionRepository>()));
@@ -53,6 +59,9 @@ void initActiveSessionModule() {
       requestSessionExtensionUseCase: sl<RequestSessionExtensionUseCase>(),
       placeSessionOrderUseCase: sl<PlaceSessionOrderUseCase>(),
       getLoungeMenuUseCase: sl<GetLoungeMenuUseCase>(),
+      getCanteenMenuUseCase: sl<GetCanteenMenuUseCase>(),
+      getUpsellSuggestionsUseCase: sl<GetUpsellSuggestionsUseCase>(),
+      recordUpsellEventUseCase: sl<RecordUpsellEventUseCase>(),
       requestStaffAssistanceUseCase: sl<RequestStaffAssistanceUseCase>(),
       submitLoungeReviewUseCase: sl<SubmitLoungeReviewUseCase>(),
     ),

@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/core/utils/repository_helper.dart';
 import 'package:playspot/features/booking/data/models/booking_price_quote_model.dart';
@@ -111,8 +112,8 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
       return Right(res);
     } catch (e) {
       if (e.toString().contains('PRICE_CHANGED')) {
-        return Left(PriceChangedFailure(
-          message: 'تغير سعر الساعات بناءً على القواعد الحالية',
+        return const Left(PriceChangedFailure(
+          message: AppStrings.priceUpdatedDesc,
           oldPrice: 0.0,
           newPrice: 0.0,
         ));

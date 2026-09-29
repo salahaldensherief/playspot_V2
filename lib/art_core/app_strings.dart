@@ -610,4 +610,44 @@ class AppStrings {
   static const String quickRebookPricingAtCheckout =
       "quickRebookPricingAtCheckout";
   static const String quickRebookCustomize = "quickRebookCustomize";
+
+  // Booking Timeline
+  static const String bookingTimelineTitle = "bookingTimelineTitle";
+  static const String bookingTimelineFailed = "bookingTimelineFailed";
+  static const String noTimelineUpdates = "noTimelineUpdates";
+  static const String bookingDetailsAndReceipt = "bookingDetailsAndReceipt";
+  static const String done = "done";
+
+  // Pricing Engine
+  static const String priceUpdated = "priceUpdated";
+  static const String priceUpdatedDesc = "priceUpdatedDesc";
+  static const String oldPrice = "oldPrice";
+  static const String newTotalPrice = "newTotalPrice";
+  static const String segmentBreakdown = "segmentBreakdown";
+  static const String proceedWithNewPrice = "proceedWithNewPrice";
+  static const String peak = "peak";
+  static const String pricingSegmentsBreakdown = "pricingSegmentsBreakdown";
+
+  // Canteen Combos & Upsell
+  static const String canteenMenu = "canteenMenu";
+  static const String combosAndOffers = "combosAndOffers";
+  static const String singleItems = "singleItems";
+  static const String comboContents = "comboContents";
+  static const String saveAmount = "saveAmount";
+  static const String notAvailableCurrently = "notAvailableCurrently";
+  static const String specialOffer = "specialOffer";
+  static const String addSuggestion = "addSuggestion";
+  static const String dismiss = "dismiss";
+  static const String outOfStockError = "outOfStockError";
+  static const String remainingQuantity = "remainingQuantity";
+  static const String orderStatusPending = "orderStatusPending";
+  static const String orderStatusPreparing = "orderStatusPreparing";
+  static const String orderStatusDelivered = "orderStatusDelivered";
+  static const String orderStatusCompleted = "orderStatusCompleted";
+  static const String canteenClosed = "canteenClosed";
+  static const String cart = "cart";
+  static const String confirmOrder = "confirmOrder";
+  static const String orderNoteHint = "orderNoteHint";
+  static const String cartEmpty = "cartEmpty";
+  static const String totalCanteen = "totalCanteen";
 }

@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
@@ -130,7 +131,7 @@ class BookingReceiptDialog extends StatelessWidget {
                         Icon(Icons.receipt_long_rounded, color: AppColors.neonBlue, size: 22.sp),
                         SizedBox(width: 8.w),
                         AppText(
-                          text: isArabic ? "تفاصيل الحجز والإيصال" : "Booking Details & Receipt",
+                          text: AppStrings.bookingDetailsAndReceipt.tr(),
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -138,7 +139,7 @@ class BookingReceiptDialog extends StatelessWidget {
                       ],
                     ),
                     IconButton(
-                      tooltip: isArabic ? "إغلاق" : "Close",
+                      tooltip: AppStrings.close.tr(),
                       icon: const Icon(Icons.close_rounded, color: Colors.white70),
                       onPressed: () => Navigator.pop(context),
                     ),

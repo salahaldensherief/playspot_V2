@@ -9,6 +9,7 @@ import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/core/services/supabase_storage_service.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
@@ -420,9 +421,25 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     String? checkoutError;
     Map<String, dynamic>? checkoutData;
     result.fold(
-      (failure) => checkoutError = failure.message,
+      (failure) {
+        if (failure is PriceChangedFailure) {
+          emit(
+            state.copyWith(
+              status: CheckoutStatus.failure,
+              priceChangedFailure: failure,
+              errorMessage: failure.message,
+            ),
+          );
+        } else {
+          checkoutError = failure.message;
+        }
+      },
       (data) => checkoutData = data,
     );
+
+    if (state.priceChangedFailure != null) {
+      return;
+    }
 
     if (checkoutError != null || checkoutData == null) {
       emit(

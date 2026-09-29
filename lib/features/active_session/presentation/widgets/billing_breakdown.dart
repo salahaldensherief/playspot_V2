@@ -26,6 +26,7 @@ class BillingBreakdownWidget extends StatelessWidget {
         name: order.name,
         quantity: order.quantity,
         price: order.price,
+        status: order.status,
       );
     }).toList();
 

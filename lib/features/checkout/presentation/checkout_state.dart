@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/core/constants/booking_status.dart';
+import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 
 enum PaymentMethod { vodafoneCash, instaPay, cash }
@@ -41,6 +42,8 @@ class CheckoutState extends Equatable {
   final String? rejectionReason;
   final BookingModel? confirmedBooking;
 
+  final PriceChangedFailure? priceChangedFailure;
+
   const CheckoutState({
     this.status = CheckoutStatus.initial,
     this.selectedMethod = PaymentMethod.vodafoneCash,
@@ -62,6 +65,7 @@ class CheckoutState extends Equatable {
     this.liveBookingStatus,
     this.rejectionReason,
     this.confirmedBooking,
+    this.priceChangedFailure,
   });
 
   String get formattedRemainingTime {
@@ -93,6 +97,8 @@ class CheckoutState extends Equatable {
     BookingStatus? liveBookingStatus,
     String? rejectionReason,
     BookingModel? confirmedBooking,
+    PriceChangedFailure? priceChangedFailure,
+    bool clearPriceChangedFailure = false,
   }) {
     return CheckoutState(
       status: status ?? this.status,
@@ -121,6 +127,9 @@ class CheckoutState extends Equatable {
       liveBookingStatus: liveBookingStatus ?? this.liveBookingStatus,
       rejectionReason: rejectionReason ?? this.rejectionReason,
       confirmedBooking: confirmedBooking ?? this.confirmedBooking,
+      priceChangedFailure: clearPriceChangedFailure
+          ? null
+          : (priceChangedFailure ?? this.priceChangedFailure),
     );
   }
 
@@ -146,5 +155,6 @@ class CheckoutState extends Equatable {
     liveBookingStatus,
     rejectionReason,
     confirmedBooking,
+    priceChangedFailure,
   ];
 }

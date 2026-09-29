@@ -100,7 +100,7 @@ class BookingSessionSummary extends StatelessWidget {
                     ),
                     SizedBox(width: 6.w),
                     AppText(
-                      text: isArabic ? "تفصيل الفترات والأسعار:" : "Pricing Segments Breakdown:",
+                      text: AppStrings.pricingSegmentsBreakdown.tr(),
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white70,
@@ -194,13 +194,13 @@ class BookingSessionSummary extends StatelessWidget {
           ),
           SizedBox(width: 6.w),
           AppText(
-            text: "$fromTime - $toTime ${isPeak ? (isArabic ? '(ذروة)' : '(Peak)') : ''}",
+            text: "$fromTime - $toTime ${isPeak ? "(${AppStrings.peak.tr()})" : ''}",
             fontSize: 11.sp,
             color: Colors.white70,
           ),
           const Spacer(),
           AppText(
-            text: "${seg.amount.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
+            text: "${seg.amount.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
             fontSize: 11.sp,
             fontWeight: FontWeight.bold,
             color: isPeak ? AppColors.warning : Colors.white,

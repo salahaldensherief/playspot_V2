@@ -15,6 +15,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/utils/booking_error_formatter.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
+import 'package:playspot/features/booking/presentation/widgets/price_changed_bottom_sheet.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
 
 import 'checkout_cubit.dart';
@@ -88,6 +89,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             paymentProofUploadFailed: state.paymentProofUploadFailed,
           );
         } else if (state.status == CheckoutStatus.failure) {
+          final priceFailure = state.priceChangedFailure;
+          if (priceFailure != null) {
+            PriceChangedBottomSheet.show(
+              context,
+              oldPrice: priceFailure.oldPrice,
+              newPrice: priceFailure.newPrice,
+              newQuote: priceFailure.newQuote,
+            ).then((accepted) {
+              if (accepted && context.mounted) {
+                context.read<CheckoutCubit>().retryServerQuote();
+              }
+            });
+            return;
+          }
           final isEnglish = context.locale.languageCode == 'en';
           final errorMsg = getBookingErrorMessage(
             state.errorMessage ?? '',

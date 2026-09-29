@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
@@ -41,23 +42,13 @@ class PriceChangedBottomSheet extends StatelessWidget {
     return result == true;
   }
 
-  String _getLangCode(BuildContext context) {
-    try {
-      final easyLoc = EasyLocalization.of(context);
-      if (easyLoc != null) return easyLoc.locale.languageCode;
-      return Localizations.localeOf(context).languageCode;
-    } catch (_) {
-      return 'ar';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final isArabic = _getLangCode(context) == 'ar';
+    final quote = newQuote;
 
     return Container(
       constraints: BoxConstraints(maxHeight: 0.85.sh),
-      padding: EdgeInsets.only(
+      padding: EdgeInsetsDirectional.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: GlassContainer(
@@ -100,7 +91,7 @@ class PriceChangedBottomSheet extends StatelessWidget {
                     SizedBox(width: 12.w),
                     Expanded(
                       child: AppText(
-                        text: isArabic ? "تغير سعر الحجز" : "Price Updated",
+                        text: AppStrings.priceUpdated.tr(),
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -112,9 +103,7 @@ class PriceChangedBottomSheet extends StatelessWidget {
 
                 // Message Body
                 AppText(
-                  text: isArabic
-                      ? "تغير سعر الساعات بناءً على قواعد الذروة الحالية. يرجى مراجعة السعر الجديد قبل إكمال الحجز."
-                      : "Hourly rates changed based on current peak rules. Please review the updated pricing before proceeding.",
+                  text: AppStrings.priceUpdatedDesc.tr(),
                   fontSize: 13.sp,
                   color: Colors.white70,
                   height: 1.4,
@@ -137,13 +126,13 @@ class PriceChangedBottomSheet extends StatelessWidget {
                           child: Column(
                             children: [
                               AppText(
-                                text: isArabic ? "السعر السابق" : "Old Price",
+                                text: AppStrings.oldPrice.tr(),
                                 fontSize: 11.sp,
                                 color: AppColors.textSecondary,
                               ),
                               SizedBox(height: 4.h),
                               Text(
-                                "${oldPrice.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
+                                "${oldPrice.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                                 style: TextStyle(
                                   fontSize: 14.sp,
                                   color: Colors.white54,
@@ -159,13 +148,13 @@ class PriceChangedBottomSheet extends StatelessWidget {
                         child: Column(
                           children: [
                             AppText(
-                              text: isArabic ? "السعر الجديد الإجمالي" : "New Total Price",
+                              text: AppStrings.newTotalPrice.tr(),
                               fontSize: 11.sp,
                               color: AppColors.textSecondary,
                             ),
                             SizedBox(height: 4.h),
                             AppText(
-                              text: "${newPrice.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
+                              text: "${newPrice.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.success,
@@ -178,40 +167,44 @@ class PriceChangedBottomSheet extends StatelessWidget {
                 ),
 
                 // Segments Breakdown if available
-                if (newQuote != null && newQuote!.segments.isNotEmpty) ...[
+                if (quote != null && quote.segments.isNotEmpty) ...[
                   SizedBox(height: 12.h),
                   AppText(
-                    text: isArabic ? "تفاصيل فترات السعر:" : "Segment Breakdown:",
+                    text: AppStrings.segmentBreakdown.tr(),
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w600,
                     color: Colors.white70,
                   ),
                   SizedBox(height: 6.h),
-                  ...newQuote!.segments.map((seg) => Padding(
-                        padding: EdgeInsets.symmetric(vertical: 2.h),
-                        child: Row(
-                          children: [
-                            Icon(
-                              seg.isPeak ? Icons.local_fire_department_rounded : Icons.schedule_rounded,
-                              color: seg.isPeak ? AppColors.warning : AppColors.neonBlue,
-                              size: 14.sp,
-                            ),
-                            SizedBox(width: 6.w),
-                            AppText(
-                              text: "${seg.from.substring(0, 5)} - ${seg.to.substring(0, 5)}",
-                              fontSize: 11.sp,
-                              color: Colors.white70,
-                            ),
-                            const Spacer(),
-                            AppText(
-                              text: "${seg.amount.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                      )),
+                  ...quote.segments.map((seg) {
+                    final fromTime = seg.from.length >= 5 ? seg.from.substring(0, 5) : seg.from;
+                    final toTime = seg.to.length >= 5 ? seg.to.substring(0, 5) : seg.to;
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 2.h),
+                      child: Row(
+                        children: [
+                          Icon(
+                            seg.isPeak ? Icons.local_fire_department_rounded : Icons.schedule_rounded,
+                            color: seg.isPeak ? AppColors.warning : AppColors.neonBlue,
+                            size: 14.sp,
+                          ),
+                          SizedBox(width: 6.w),
+                          AppText(
+                            text: "$fromTime - $toTime",
+                            fontSize: 11.sp,
+                            color: Colors.white70,
+                          ),
+                          const Spacer(),
+                          AppText(
+                            text: "${seg.amount.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 ],
 
                 SizedBox(height: 20.h),
@@ -222,7 +215,7 @@ class PriceChangedBottomSheet extends StatelessWidget {
                     Expanded(
                       child: AppButton(
                         content: ButtonContent(
-                          label: isArabic ? "تراجع" : "Cancel",
+                          label: AppStrings.cancel.tr(),
                         ),
                         buttonConfig: ButtonConfig(
                           height: 44.h,
@@ -240,7 +233,7 @@ class PriceChangedBottomSheet extends StatelessWidget {
                       flex: 2,
                       child: AppButton(
                         content: ButtonContent(
-                          label: isArabic ? "متابعة بالسعر الجديد" : "Confirm New Price",
+                          label: AppStrings.proceedWithNewPrice.tr(),
                         ),
                         buttonConfig: ButtonConfig(
                           height: 44.h,
