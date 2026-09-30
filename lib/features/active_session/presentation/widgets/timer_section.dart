@@ -67,6 +67,7 @@ class _TimerSectionState extends State<TimerSection> {
   Widget build(BuildContext context) {
     return BlocConsumer<ActiveSessionCubit, ActiveSessionState>(
       listenWhen: (prev, curr) =>
+          prev.session?.bookingId != curr.session?.bookingId ||
           prev.session?.startTime != curr.session?.startTime ||
           prev.session?.endTime != curr.session?.endTime,
       listener: (context, state) {
@@ -75,6 +76,10 @@ class _TimerSectionState extends State<TimerSection> {
           _startTime = session.startTime;
           _endTime = session.endTime;
           _updateRemaining();
+        } else {
+          _startTime = null;
+          _endTime = null;
+          _remainingNotifier.value = Duration.zero;
         }
       },
       buildWhen: (prev, curr) =>

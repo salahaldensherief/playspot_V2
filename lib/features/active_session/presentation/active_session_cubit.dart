@@ -48,6 +48,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
   StreamSubscription? _realtimeSubscription;
   StreamSubscription? _userSessionsSubscription;
   String? _subscribedBookingId;
+  int _sessionLoadVersion = 0;
 
   ActiveSessionCubit({
     required GetActiveSessionUseCase getActiveSessionUseCase,
@@ -142,13 +143,14 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
   Future<void> loadActiveSession({String? bookingId}) async {
     dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION: bookingId=$bookingId");
     if (isClosed) return;
+    final loadVersion = ++_sessionLoadVersion;
     if (state.status != ActiveSessionStatus.loaded) {
       emit(state.copyWith(status: ActiveSessionStatus.loading));
     }
 
     final result = await _getActiveSessionUseCase(bookingId: bookingId);
 
-    if (isClosed) return;
+    if (isClosed || loadVersion != _sessionLoadVersion) return;
 
     result.fold(
       (failure) {
