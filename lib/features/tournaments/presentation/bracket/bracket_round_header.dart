@@ -58,7 +58,7 @@ class BracketRoundHeader extends StatelessWidget {
           color: isFinal ? AppColors.warning : AppColors.neonBlue,
           fontWeight: FontWeight.bold,
           fontSize: 10,
-          fontFamily: 'Orbitron',
+
         ),
       ),
     );

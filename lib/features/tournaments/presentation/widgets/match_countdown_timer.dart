@@ -98,7 +98,7 @@ class _MatchCountdownTimerState extends State<MatchCountdownTimer> {
                   color: AppColors.warning,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Orbitron',
+
                 ),
               ),
             ],

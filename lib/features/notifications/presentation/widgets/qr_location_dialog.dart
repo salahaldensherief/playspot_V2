@@ -64,7 +64,7 @@ class QrLocationDialog extends StatelessWidget {
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                fontFamily: "Orbitron",
+
               ),
               SizedBox(height: 8.h),
               AppText(

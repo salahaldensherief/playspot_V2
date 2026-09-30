@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'dart:developer' as dev;
@@ -124,15 +123,15 @@ final _appRouter = AppRouter();
 final _arTheme = ThemeData(
   useMaterial3: false,
   scaffoldBackgroundColor: AppColors.scaffoldBackground,
-  fontFamily: GoogleFonts.tajawal().fontFamily,
-  textTheme: GoogleFonts.tajawalTextTheme(ThemeData.dark().textTheme),
+  fontFamily: 'Tajawal',
+  textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Tajawal'),
 );
 
 final _enTheme = ThemeData(
   useMaterial3: false,
   scaffoldBackgroundColor: AppColors.scaffoldBackground,
   fontFamily: 'Orbitron',
-  textTheme: GoogleFonts.orbitronTextTheme(ThemeData.dark().textTheme),
+  textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Orbitron'),
 );
 
 class _MyAppState extends State<MyApp> {

@@ -90,7 +90,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             color: AppColors.danger,
             fontWeight: FontWeight.bold,
             fontSize: 16.sp,
-            fontFamily: 'Orbitron',
+
           ),
         ),
         content: Column(
@@ -213,7 +213,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                 color: AppColors.textPrimary,
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Orbitron',
+
               ),
             ),
             centerTitle: true,
@@ -294,7 +294,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                               color: AppColors.neonBlue,
                               fontSize: 22.sp,
                               fontWeight: FontWeight.bold,
-                              fontFamily: 'Orbitron',
+
                             ),
                           ),
                         ),
@@ -500,7 +500,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                   color: AppColors.neonBlue,
                   fontSize: 28.sp,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Orbitron',
+
                 ),
               ),
               if (isEditable) ...[

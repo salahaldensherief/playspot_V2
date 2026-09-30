@@ -43,7 +43,7 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
             color: AppColors.textPrimary,
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Orbitron',
+
           ),
         ),
         centerTitle: true,

@@ -71,7 +71,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 color: AppColors.textPrimary,
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w900,
-                fontFamily: 'Orbitron',
+
                 letterSpacing: 1.0,
               ),
             ),

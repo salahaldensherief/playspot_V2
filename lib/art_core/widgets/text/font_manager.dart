@@ -1,14 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 
 class FontsManager {
   static const String englishFontFamily = "Orbitron";
 
-  /// Returns Tajawal Google Font for Arabic
-  static String get arabicFontFamily => GoogleFonts.tajawal().fontFamily ?? 'Tajawal';
+  /// Bundled Arabic family, available without network access.
+  static const String arabicFontFamily = 'Tajawal';
 
   /// Helper to check if current locale is Arabic
   static bool isArabic(BuildContext context) {
@@ -78,7 +77,7 @@ class FontsManager {
     final isAr = isArabic(context);
     final rawSize = fontSize ?? 14.sp;
     final finalSize = getScaledFontSize(context, rawSize);
-    final finalFamily = fontFamily ?? (isAr ? arabicFontFamily : englishFontFamily);
+    final finalFamily = isAr ? arabicFontFamily : (fontFamily ?? englishFontFamily);
     final finalWeight = getFontWeight(context, fontWeight ?? baseStyle?.fontWeight);
     final finalHeight = getLineHeight(context, height: height ?? baseStyle?.height);
     final finalLetterSpacing = getLetterSpacing(context, letterSpacing ?? baseStyle?.letterSpacing);

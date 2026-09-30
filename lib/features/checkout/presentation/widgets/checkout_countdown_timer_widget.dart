@@ -85,7 +85,7 @@ class CheckoutCountdownTimerWidget extends StatelessWidget {
                     fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
                     color: timerColor,
-                    fontFamily: 'Orbitron',
+
                   ),
                 )
               else

@@ -186,7 +186,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
               fontSize: 24.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.white,
-              fontFamily: 'Orbitron',
+
             ),
             bottom: TabBar(
               controller: _tabController,

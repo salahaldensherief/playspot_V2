@@ -138,7 +138,7 @@ class TournamentPromoCard extends StatelessWidget {
                               text: AppStrings.tournaments.tr().toUpperCase(),
                               fontSize: 10.sp,
                               fontWeight: FontWeight.w900,
-                              fontFamily: 'Orbitron',
+
                               color: AppColors.neonBlue,
                             ),
                           ],
@@ -156,7 +156,7 @@ class TournamentPromoCard extends StatelessWidget {
                             text: participant!.status.toDbString().toUpperCase(),
                             fontSize: 9.sp,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Orbitron',
+
                             color: AppColors.white,
                           ),
                         ),
@@ -167,7 +167,7 @@ class TournamentPromoCard extends StatelessWidget {
                     text: title,
                     fontSize: 17.sp,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'Orbitron',
+
                     color: AppColors.white,
                     height: 1.2,
                     maxLines: 1,
@@ -266,7 +266,7 @@ class _TournamentCountdownTimerState extends State<_TournamentCountdownTimer> {
         text: '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
         fontSize: 11.sp,
         fontWeight: FontWeight.bold,
-        fontFamily: 'Orbitron',
+
         color: AppColors.neonBlue,
       ),
     );

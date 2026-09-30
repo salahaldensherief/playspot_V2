@@ -78,7 +78,7 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                 color: isInProgress ? AppColors.neonPurple : AppColors.neonBlue,
                 fontSize: 7,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Orbitron',
+
               ),
             ),
           ),

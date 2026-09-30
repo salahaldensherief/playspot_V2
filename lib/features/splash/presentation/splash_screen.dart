@@ -187,7 +187,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ],
                     color: AppColors.primary,
                     fontSize: 18.sp,
-                    fontFamily: "Orbitron",
+
                   ),
                 ),
               ),

@@ -51,7 +51,7 @@ class LoungeDetailsBottomBar extends StatelessWidget {
           child: AppButton(
             content: ButtonContent(
               body: AppText(
-                fontFamily: 'Orbitron',
+
                 textAlign: TextAlign.center,
                 text: buttonText,
                 fontSize: 15.sp,
