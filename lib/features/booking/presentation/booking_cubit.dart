@@ -6,6 +6,7 @@ import '../domain/repositories/booking_repository.dart';
 import '../domain/strategies/booking_slot_strategy.dart';
 import '../domain/repositories/booking_waitlist_repository.dart';
 import '../domain/usecases/join_booking_waitlist_usecase.dart';
+import '../domain/services/operational_slot_clock.dart';
 import 'booking_state.dart';
 
 class BookingCubit extends Cubit<BookingState> {
@@ -14,6 +15,9 @@ class BookingCubit extends Cubit<BookingState> {
   final JoinBookingWaitlistUseCase _joinWaitlist;
   final BookingWaitlistRepository _waitlistRepository;
   bool _waitlistInFlight = false;
+  int _availabilityRequestVersion = 0;
+  int _slotPricesRequestVersion = 0;
+  int _quoteRequestVersion = 0;
   final List<String> roomIds;
   final String loungeId;
   final String loungeOpeningTime;
@@ -94,6 +98,7 @@ class BookingCubit extends Cubit<BookingState> {
 
   Future<void> fetchRoomSlotsWithPrices(DateTime date) async {
     if (roomId.isEmpty) return;
+    final requestVersion = ++_slotPricesRequestVersion;
     final dateStr =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
@@ -102,7 +107,7 @@ class BookingCubit extends Cubit<BookingState> {
       date: dateStr,
     );
 
-    if (isClosed) return;
+    if (isClosed || requestVersion != _slotPricesRequestVersion) return;
 
     result.fold(
       (_) => null,
@@ -115,6 +120,7 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   Future<void> fetchPriceQuote() async {
+    final requestVersion = ++_quoteRequestVersion;
     final startTime = state.startTime;
     if (startTime == null || roomId.isEmpty) return;
 
@@ -142,7 +148,7 @@ class BookingCubit extends Cubit<BookingState> {
       extraControllers: state.extraControllersCount,
     );
 
-    if (isClosed) return;
+    if (isClosed || requestVersion != _quoteRequestVersion) return;
 
     result.fold(
       (_) => null,
@@ -151,6 +157,7 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   Future<void> fetchBookedSlots(DateTime date) async {
+    final requestVersion = ++_availabilityRequestVersion;
     emit(state.copyWith(status: BookingStatus.loading, selectedDate: date));
 
     final Set<TimeOfDay> allBookedSlots = {};
@@ -162,6 +169,7 @@ class BookingCubit extends Cubit<BookingState> {
         date,
         roomId: rid,
       );
+      if (isClosed || requestVersion != _availabilityRequestVersion) return;
       result.fold((failure) => failureMsg = failure.message, (rawBookings) {
         final slots = _slotStrategy.calculateBookedSlots(
           rawBookings: rawBookings,
@@ -172,7 +180,7 @@ class BookingCubit extends Cubit<BookingState> {
       });
     }
 
-    if (failureMsg != null && allBookedSlots.isEmpty) {
+    if (failureMsg != null) {
       emit(
         state.copyWith(status: BookingStatus.error, errorMessage: failureMsg),
       );
@@ -266,36 +274,12 @@ class BookingCubit extends Cubit<BookingState> {
   }
 
   DateTime _resolveOperationalDateTime(DateTime selectedDate, TimeOfDay time) {
-    final openingMinutes = _parseTimeToMinutes(loungeOpeningTime);
-    final closingMinutes = _parseTimeToMinutes(loungeClosingTime);
-    final selectedMinutes = time.hour * 60 + time.minute;
-
-    var dayOffset = 0;
-    if (openingMinutes != null &&
-        closingMinutes != null &&
-        closingMinutes <= openingMinutes &&
-        selectedMinutes < closingMinutes) {
-      dayOffset = 1;
-    }
-
-    return DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day + dayOffset,
-      time.hour,
-      time.minute,
+    return const OperationalSlotClock().resolve(
+      businessDate: selectedDate,
+      slot: time,
+      opensAt: loungeOpeningTime,
+      closesAt: loungeClosingTime,
     );
-  }
-
-  int? _parseTimeToMinutes(String raw) {
-    final parts = raw.split(':');
-    if (parts.length < 2) return null;
-
-    final hour = int.tryParse(parts[0]);
-    final minute = int.tryParse(parts[1]);
-    if (hour == null || minute == null) return null;
-
-    return hour * 60 + minute;
   }
 
   void selectDate(DateTime date) {
@@ -306,6 +290,14 @@ class BookingCubit extends Cubit<BookingState> {
     }
 
     HapticFeedback.lightImpact();
+    emit(state.copyWith(
+      selectedDate: date,
+      clearStartTime: true,
+      clearHold: true,
+      clearPriceQuote: true,
+      slotPrices: const [],
+      bookedTimeSlots: const [],
+    ));
     fetchBookedSlots(date);
     fetchRoomSlotsWithPrices(date);
     fetchPriceQuote();
