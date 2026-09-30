@@ -21,6 +21,20 @@ val hasReleaseSigning =
         !keystoreProperties.getProperty("keyAlias").isNullOrBlank() &&
         !keystoreProperties.getProperty("keyPassword").isNullOrBlank()
 
+val releaseTaskRequested = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+val allowDebugReleaseSigning =
+    providers.gradleProperty("allowDebugReleaseSigning").orNull == "true"
+
+if (releaseTaskRequested && !hasReleaseSigning && !allowDebugReleaseSigning) {
+    throw GradleException(
+        "Release signing is not configured. Copy android/key.properties.example " +
+            "to android/key.properties and provide the release keystore values. " +
+            "CI compile-only builds may explicitly set -PallowDebugReleaseSigning=true.",
+    )
+}
+
 android {
     namespace = "com.playspot.app"
     compileSdk = 37
@@ -36,7 +50,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.playspot.client"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
@@ -62,6 +75,8 @@ android {
             signingConfig = if (hasReleaseSigning) {
                 signingConfigs.getByName("release")
             } else {
+                // This path is allowed only by the explicit compile-only flag
+                // checked above. Production releases fail closed.
                 signingConfigs.getByName("debug")
             }
         }
