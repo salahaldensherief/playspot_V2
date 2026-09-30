@@ -653,5 +653,13 @@
   "waitlistSubscribed": "Waitlist active for this time",
   "allSlotsBookedOrPast": "All time slots for this date are booked or past. Please select another date.",
   "retryPriceCalculation": "Retry price calculation",
-  "holdExpiredLabel": "Hold expired"
+  "holdExpiredLabel": "Hold expired",
+  "room_select": "Select room",
+  "room_selected": "Room selected",
+  "room_available": "Available to book",
+  "room_busy": "Currently occupied",
+  "room_closed": "Lounge closed",
+  "room_unavailable": "Unavailable to book",
+  "choose_slot_hint": "Choose your preferred start time",
+  "slot_selected": "Selected start time"
 }
