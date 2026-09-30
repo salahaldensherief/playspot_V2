@@ -96,28 +96,40 @@ class BookingAvailabilityService {
     required DateTime date,
     required TimeOfDay startTime,
     required int durationMinutes,
+    required String opensAt,
+    required String closesAt,
   }) {
-    final startDateTime = (startTime.hour >= 10)
-        ? DateTime(
-            date.year,
-            date.month,
-            date.day,
-            startTime.hour,
-            startTime.minute,
-          )
-        : DateTime(
-            date.year,
-            date.month,
-            date.day + 1,
-            startTime.hour,
-            startTime.minute,
-          );
+    final openingMinutes = _parseTimeToMinutes(opensAt);
+    final closingMinutes = _parseTimeToMinutes(closesAt);
+    final selectedMinutes = startTime.hour * 60 + startTime.minute;
+    final crossesMidnight = openingMinutes != null &&
+        closingMinutes != null &&
+        closingMinutes <= openingMinutes;
+    final dayOffset = crossesMidnight && selectedMinutes < closingMinutes ? 1 : 0;
+    final startDateTime = DateTime(
+      date.year,
+      date.month,
+      date.day + dayOffset,
+      startTime.hour,
+      startTime.minute,
+    );
     final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
 
     return roomBookings.any(
       (range) =>
           range.start.isBefore(endDateTime) && range.end.isAfter(startDateTime),
     );
+  }
+
+  int? _parseTimeToMinutes(String raw) {
+    final parts = raw.trim().split(':');
+    if (parts.length < 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null || hour > 23 || minute > 59) {
+      return null;
+    }
+    return hour * 60 + minute;
   }
 
   /// Parses raw booking rows and groups valid [TimeRange]s by `room_id`.

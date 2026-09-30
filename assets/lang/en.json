@@ -200,6 +200,7 @@
   "prepaidLatePolicyNotice": "Your session time starts at the booked time; any delay will be deducted from your actual playing time.",
   "cashLatePolicyNotice": "Please arrive at the lounge {} minutes before your appointment; in case of delay, the booking will be automatically cancelled to free the room for others.",
   "loungeWalletNumber": "Lounge Wallet / Account Number",
+  "copiedToClipboard": "Number copied successfully",
   "senderWalletNumberOptional": "Sender Wallet / Phone Number (Optional)",
   "processing": "Processing...",
   "total": "Total",
