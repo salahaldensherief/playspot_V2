@@ -16,7 +16,8 @@ class BillingBreakdownWidget extends StatelessWidget {
     if (session.extensionsPrice > 0) {
       sessionRows.add({
         'label': AppStrings.extensions.tr(),
-        'value': "${session.extensionsPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+        'value':
+            "${session.extensionsPrice.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
         'color': AppColors.neonBlue,
       });
     }
@@ -32,11 +33,16 @@ class BillingBreakdownWidget extends StatelessWidget {
 
     return OrderSummaryCard(
       title: AppStrings.billingBreakdown.tr(),
-      subtitle: "${session.loungeName} • ${session.roomName} (${session.deviceName})",
-      statusText: session.status == 'active'
+      subtitle:
+          "${session.loungeName} • ${session.roomName} (${session.deviceName})",
+      statusText:
+          (session.status == 'active' || session.status == 'in_progress')
           ? AppStrings.statusActive.tr()
           : AppStrings.completed.tr(),
-      statusColor: session.status == 'active' ? AppColors.neonBlue : AppColors.success,
+      statusColor:
+          (session.status == 'active' || session.status == 'in_progress')
+          ? AppColors.neonBlue
+          : AppColors.success,
       baseCostLabel: AppStrings.baseCost.tr(),
       baseCostAmount: session.basePrice,
       sessionDetailsRows: sessionRows,

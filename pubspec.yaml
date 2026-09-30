@@ -83,6 +83,7 @@ dependencies:
 
 
 dev_dependencies:
+  shared_preferences: ^2.5.2
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
