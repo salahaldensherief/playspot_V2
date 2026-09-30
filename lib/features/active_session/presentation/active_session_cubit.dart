@@ -49,6 +49,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
   StreamSubscription? _userSessionsSubscription;
   String? _subscribedBookingId;
   int _sessionLoadVersion = 0;
+  int _menuLoadVersion = 0;
+  String? _loadedMenuLoungeId;
+  int _upsellLoadVersion = 0;
 
   ActiveSessionCubit({
     required GetActiveSessionUseCase getActiveSessionUseCase,
@@ -290,19 +293,21 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
 
   Future<void> loadMenu(String loungeId, {bool forceRefresh = false}) async {
     if (loungeId.isEmpty || isClosed) return;
-    if (!forceRefresh && state.menu.isNotEmpty && state.session?.loungeId == loungeId) {
+    if (!forceRefresh && state.menu.isNotEmpty && _loadedMenuLoungeId == loungeId) {
       return;
     }
     dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU for lounge: $loungeId");
     if (!isClosed) emit(state.copyWith(menuStatus: ActionStatus.loading));
+    final menuVersion = ++_menuLoadVersion;
     final result = await _getCanteenMenuUseCase(loungeId: loungeId);
-    if (isClosed) return;
+    if (isClosed || menuVersion != _menuLoadVersion) return;
     result.fold(
       (f) {
         dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU FAILURE: ${f.message}");
         emit(state.copyWith(menuStatus: ActionStatus.error));
       },
       (canteenMenu) {
+        _loadedMenuLoungeId = loungeId;
         dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU SUCCESS: ${canteenMenu.extras.length} items, ${canteenMenu.combos.length} combos");
         emit(state.copyWith(
           menu: canteenMenu.extras,
@@ -317,8 +322,10 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     if (bookingId.isEmpty || isClosed) return;
     if (state.upsellImpressionsCount >= 2) return;
 
+    final upsellVersion = ++_upsellLoadVersion;
     final result = await _getUpsellSuggestionsUseCase(bookingId: bookingId);
-    if (isClosed) return;
+    if (isClosed || upsellVersion != _upsellLoadVersion ||
+        state.session?.bookingId != bookingId) return;
 
     result.fold(
       (f) => dev.log("[LIVESESSION_CUBIT] LOAD_UPSELL FAILURE: ${f.message}"),
@@ -376,7 +383,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
 
   Future<void> extendTime(int additionalMinutes, [double? precalculatedCost]) async {
     final active = state.session;
-    if (active == null) return;
+    if (isClosed || active == null || state.extendStatus == ActionStatus.loading) return;
 
     HapticFeedback.mediumImpact();
 
@@ -391,6 +398,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
       additionalMinutes: additionalMinutes,
       additionalCost: cost,
     );
+
+    if (isClosed || state.session?.bookingId != bookingId) return;
 
     result.fold(
       (failure) {
@@ -410,7 +419,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
 
   Future<void> requestExtension(int requestedMinutes) async {
     final active = state.session;
-    if (active == null) return;
+    if (isClosed || active == null || state.extendStatus == ActionStatus.loading) return;
 
     HapticFeedback.mediumImpact();
 
@@ -423,6 +432,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
       bookingId: bookingId,
       requestedMinutes: requestedMinutes,
     );
+
+    if (isClosed || state.session?.bookingId != bookingId) return;
 
     result.fold(
       (failure) {
@@ -442,7 +453,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
 
   Future<void> requestStaffAssistance(String type, String? notes) async {
     final session = state.session;
-    if (session == null) return;
+    if (isClosed || session == null || state.staffRequestStatus == ActionStatus.loading) return;
 
     HapticFeedback.mediumImpact();
 
@@ -456,6 +467,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
       callType: type,
       notes: notes,
     );
+
+    if (isClosed || state.session?.bookingId != bookingId) return;
 
     result.fold(
       (failure) {
@@ -477,7 +490,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     String? comment,
   }) async {
     final session = state.session ?? state.completedSession;
-    if (session == null) return;
+    if (isClosed || session == null) return;
 
     HapticFeedback.mediumImpact();
 
@@ -490,6 +503,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
       rating: rating,
       comment: comment,
     );
+
+    if (isClosed ||
+        (state.session ?? state.completedSession)?.bookingId != bookingId) return;
 
     result.fold(
       (failure) {
@@ -509,7 +525,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
 
   Future<void> placeOrder(List<OrderItem> items) async {
     final session = state.session;
-    if (session == null) return;
+    if (isClosed || session == null || state.orderStatus == ActionStatus.loading) return;
 
     HapticFeedback.mediumImpact();
 
@@ -519,6 +535,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     emit(state.copyWith(orderStatus: ActionStatus.loading, unavailableItems: []));
 
     final result = await _placeSessionOrderUseCase(bookingId: bookingId, items: items);
+
+    if (isClosed || state.session?.bookingId != bookingId) return;
 
     result.fold(
       (failure) {
