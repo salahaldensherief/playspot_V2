@@ -26,6 +26,8 @@ await db.exec(`
  CREATE TABLE public.profiles(id uuid primary key,lounge_id uuid,is_active boolean,is_setup_completed boolean,updated_at timestamptz);
  CREATE TABLE public.notifications(user_id uuid,title text,title_ar text,title_en text,body text,body_ar text,body_en text,type text,metadata jsonb);
  INSERT INTO public.profiles VALUES('${owner}','${lounge}',false,false,now());
+ ALTER TABLE public.profiles ADD COLUMN full_name text, ADD COLUMN email text;
+ UPDATE public.profiles SET full_name='Synthetic Owner',email='owner@example.invalid';
  INSERT INTO public.lounges VALUES('${lounge}','${owner}','Synthetic lounge','Cairo','Synthetic address','01000000000',
   '10:00','02:00','synthetic point','pending',false,false),
   ('${other}','${owner}','Other lounge','Cairo','Other address','01000000001','10:00','02:00','synthetic point','pending',false,false);

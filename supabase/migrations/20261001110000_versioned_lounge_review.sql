@@ -108,7 +108,10 @@ BEGIN
  IF auth.uid() IS NULL OR public.is_super_admin() IS NOT TRUE THEN
   RAISE EXCEPTION 'SUPER_ADMIN_REQUIRED' USING ERRCODE='42501';
  END IF;
- RETURN (SELECT COALESCE(jsonb_agg(to_jsonb(r) ORDER BY created_at,id),'[]'::jsonb)
+ RETURN (SELECT COALESCE(jsonb_agg(to_jsonb(r)||jsonb_build_object(
+  'owner_name',(SELECT full_name FROM public.profiles WHERE id=r.owner_id),
+  'owner_email',(SELECT email FROM public.profiles WHERE id=r.owner_id),
+  'lounge_name',r.snapshot->'lounge'->>'name') ORDER BY created_at,id),'[]'::jsonb)
   FROM private.lounge_review_requests r WHERE status='pending');
 END;
 $$;
