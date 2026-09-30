@@ -651,5 +651,7 @@
   "notifyMeFailure": "Failed to subscribe to waitlist. Please try again.",
   "notifyMePartial": "Subscribed to waitlist for available rooms in this group.",
   "waitlistSubscribed": "Waitlist active for this time",
-  "allSlotsBookedOrPast": "All time slots for this date are booked or past. Please select another date."
+  "allSlotsBookedOrPast": "All time slots for this date are booked or past. Please select another date.",
+  "retryPriceCalculation": "Retry price calculation",
+  "holdExpiredLabel": "Hold expired"
 }

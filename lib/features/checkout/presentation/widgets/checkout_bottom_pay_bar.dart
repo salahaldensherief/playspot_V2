@@ -41,9 +41,7 @@ class CheckoutBottomPayBar extends StatelessWidget {
         final buttonText = state.status == CheckoutStatus.loading
             ? AppStrings.processing.tr()
             : quoteFailed
-            ? (context.locale.languageCode == 'ar'
-                  ? 'إعادة محاولة حساب السعر'
-                  : 'Retry price calculation')
+            ? AppStrings.retryPriceCalculation.tr()
             : (state.selectedMethod == PaymentMethod.cash
                   ? AppStrings.confirmBookingWithPrice.tr(
                       args: [finalPrice.toStringAsFixed(2)],
@@ -66,9 +64,7 @@ class CheckoutBottomPayBar extends StatelessWidget {
               AppButton(
                 content: ButtonContent(
                   label: state.isHoldExpired
-                      ? (context.locale.languageCode == 'ar'
-                            ? 'انتهت فترة حجز الموعد'
-                            : 'Hold Expired')
+                      ? AppStrings.holdExpiredLabel.tr()
                       : buttonText,
                 ),
                 behavior: ButtonBehavior.tap(

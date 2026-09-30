@@ -664,4 +664,6 @@ class AppStrings {
   static const String notifyMePartial = "notifyMePartial";
   static const String waitlistSubscribed = "waitlistSubscribed";
   static const String allSlotsBookedOrPast = "allSlotsBookedOrPast";
+  static const String retryPriceCalculation = "retryPriceCalculation";
+  static const String holdExpiredLabel = "holdExpiredLabel";
 }
