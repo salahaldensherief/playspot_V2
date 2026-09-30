@@ -1,3 +1,4 @@
+import {createFixtureDatabase} from './runtime/database.mjs';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
@@ -5,8 +6,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const runtime=process.env.PLAYSPOT_TEST_RUNTIME ?? resolve(root,'supabase/tests/runtime');
-const {PGlite}=createRequire(resolve(runtime,'package.json'))('@electric-sql/pglite');
-const db=new PGlite();
+const db = await createFixtureDatabase();
 const read=p=>readFileSync(resolve(root,p),'utf8');
 const cust='00000000-0000-0000-0000-000000000001';
 const staff='00000000-0000-0000-0000-000000000002';

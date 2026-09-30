@@ -1,10 +1,10 @@
+import {createFixtureDatabase} from './runtime/database.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 const runtime=process.env.PLAYSPOT_TEST_RUNTIME??path.resolve('supabase/tests/runtime');
-const {PGlite}=await import(pathToFileURL(path.join(runtime,'node_modules/@electric-sql/pglite/dist/index.js')));
-const db=new PGlite();const owner='00000000-0000-0000-0000-000000000001';const other='00000000-0000-0000-0000-000000000002';
+const db = await createFixtureDatabase();const owner='00000000-0000-0000-0000-000000000001';const other='00000000-0000-0000-0000-000000000002';
 await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
  CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT NULLIF(current_setting('test.actor',true),'')::uuid$$;
  GRANT USAGE ON SCHEMA public,auth TO authenticated,anon;

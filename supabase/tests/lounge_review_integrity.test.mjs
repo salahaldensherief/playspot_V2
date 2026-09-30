@@ -1,11 +1,11 @@
+import {createFixtureDatabase} from './runtime/database.mjs';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const runtime = process.env.PLAYSPOT_TEST_RUNTIME ?? path.resolve('supabase/tests/runtime');
-const { PGlite } = await import(pathToFileURL(path.join(runtime, 'node_modules/@electric-sql/pglite/dist/index.js')));
-const db = new PGlite();
+const db = await createFixtureDatabase();
 const owner = '00000000-0000-0000-0000-000000000001';
 const stranger = '00000000-0000-0000-0000-000000000002';
 const admin = '00000000-0000-0000-0000-000000000003';
@@ -36,6 +36,8 @@ await db.exec(`
  GRANT USAGE ON SCHEMA public,auth TO authenticated,anon;
 `);
 await db.exec(await readFile(new URL('../migrations/20261001110000_versioned_lounge_review.sql', import.meta.url), 'utf8'));
+await db.exec(`ALTER TABLE public.lounges ADD COLUMN vodafone_cash_number text, ADD COLUMN instapay_account text; UPDATE public.lounges SET instapay_account='synthetic@instapay';`);
+await db.exec(await readFile(new URL('../migrations/20261001150000_finalize_review_submission.sql', import.meta.url), 'utf8'));
 async function actor(id) { await db.exec(`RESET ROLE; SET test.actor='${id ?? ''}'; SET ROLE authenticated;`); }
 async function deny(name, sql, code) {
  await assert.rejects(db.query(sql), error => error.code === code);
@@ -52,9 +54,19 @@ await actor(owner);
 await deny('missing uploaded object', `SELECT public.submit_lounge_review('${lounge}','${owner}/missing.png')`, '22023');
 await deny('foreign document path', `SELECT public.submit_lounge_review('${lounge}','${stranger}/id.png')`, '22023');
 let request;
+await db.exec(`RESET ROLE; UPDATE public.lounges SET instapay_account=NULL WHERE id='${lounge}'; SET ROLE authenticated;`);
+await deny('review requires payment destination', submit, '22023');
+await db.exec(`RESET ROLE; UPDATE public.lounges SET instapay_account='synthetic@instapay' WHERE id='${lounge}'; SET ROLE authenticated;`);
 await ok('complete lounge submitted as immutable revision', async () => {
  request = (await db.query(submit)).rows[0].result;
  assert.equal(request.revision,1); assert.equal(request.status,'pending');
+});
+await ok('only final accepted submission completes setup without activating venue',async()=>{
+ await db.exec('RESET ROLE');
+ const row=(await db.query(`SELECT p.is_setup_completed,p.is_active,l.status,l.is_open FROM public.profiles p JOIN public.lounges l ON l.id=p.lounge_id WHERE p.id='${owner}'`)).rows[0];
+ assert.equal(row.is_setup_completed,true);assert.equal(row.is_active,false);
+ assert.equal(row.status,'pending');assert.equal(row.is_open,false);
+ await db.exec('SET ROLE authenticated');
 });
 await ok('same submission replay does not create a second request', async () => {
  const result = (await db.query(submit)).rows[0].result;
