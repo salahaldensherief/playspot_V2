@@ -22,6 +22,7 @@ class TimeSlotGrid extends StatefulWidget {
 class _TimeSlotGridState extends State<TimeSlotGrid> {
   int _shiftFilter = 0;
   final Set<String> _waitlistedSlotKeys = {};
+  bool _waitlistBusy = false;
 
   String _slotKey(DateTime date, TimeOfDay slot) =>
       "${date.year}-${date.month}-${date.day}_${slot.hour}:${slot.minute}";

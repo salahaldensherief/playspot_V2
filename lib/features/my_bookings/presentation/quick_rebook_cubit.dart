@@ -190,7 +190,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       state.selectedDate,
       normalizedDuration,
     );
-    if (isClosed) return;
+    if (isClosed || request != _slotRequest) return;
 
     final targetTime = BookingSlotUtils.resolveTargetTime(
       setup.pastBooking.startTime,
