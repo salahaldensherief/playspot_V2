@@ -32,7 +32,15 @@ import '../../../../art_core/widgets/layout/app_bottom_sheet.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../../core/cache/caching_key.dart';
 
-class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherMixin {
+part 'active_session_stream.dart';
+part 'active_session_menu.dart';
+part 'active_session_upsell.dart';
+part 'active_session_extension.dart';
+part 'active_session_review.dart';
+part 'active_session_order.dart';
+
+class ActiveSessionCubit extends Cubit<ActiveSessionState>
+    with RealtimeWatcherMixin {
   final GetActiveSessionUseCase _getActiveSessionUseCase;
   final WatchUserActiveSessionUseCase _watchUserActiveSessionUseCase;
   final StreamActiveSessionUseCase _streamActiveSessionUseCase;
@@ -52,6 +60,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
   int _menuLoadVersion = 0;
   String? _loadedMenuLoungeId;
   int _upsellLoadVersion = 0;
+  int _sessionEpoch = 0;
+  String? _pendingBookingId;
+  String? _requestedMenuLoungeId;
 
   ActiveSessionCubit({
     required GetActiveSessionUseCase getActiveSessionUseCase,
@@ -66,18 +77,18 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     required RecordUpsellEventUseCase recordUpsellEventUseCase,
     required RequestStaffAssistanceUseCase requestStaffAssistanceUseCase,
     required SubmitLoungeReviewUseCase submitLoungeReviewUseCase,
-  })  : _getActiveSessionUseCase = getActiveSessionUseCase,
-        _watchUserActiveSessionUseCase = watchUserActiveSessionUseCase,
-        _streamActiveSessionUseCase = streamActiveSessionUseCase,
-        _extendSessionTimeUseCase = extendSessionTimeUseCase,
-        _requestSessionExtensionUseCase = requestSessionExtensionUseCase,
-        _placeSessionOrderUseCase = placeSessionOrderUseCase,
-        _getCanteenMenuUseCase = getCanteenMenuUseCase,
-        _getUpsellSuggestionsUseCase = getUpsellSuggestionsUseCase,
-        _recordUpsellEventUseCase = recordUpsellEventUseCase,
-        _requestStaffAssistanceUseCase = requestStaffAssistanceUseCase,
-        _submitLoungeReviewUseCase = submitLoungeReviewUseCase,
-        super(const ActiveSessionState()) {
+  }) : _getActiveSessionUseCase = getActiveSessionUseCase,
+       _watchUserActiveSessionUseCase = watchUserActiveSessionUseCase,
+       _streamActiveSessionUseCase = streamActiveSessionUseCase,
+       _extendSessionTimeUseCase = extendSessionTimeUseCase,
+       _requestSessionExtensionUseCase = requestSessionExtensionUseCase,
+       _placeSessionOrderUseCase = placeSessionOrderUseCase,
+       _getCanteenMenuUseCase = getCanteenMenuUseCase,
+       _getUpsellSuggestionsUseCase = getUpsellSuggestionsUseCase,
+       _recordUpsellEventUseCase = recordUpsellEventUseCase,
+       _requestStaffAssistanceUseCase = requestStaffAssistanceUseCase,
+       _submitLoungeReviewUseCase = submitLoungeReviewUseCase,
+       super(const ActiveSessionState()) {
     _watchUserSessions();
   }
 
@@ -86,10 +97,20 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     _userSessionsSubscription = subscribeWithRetry(
       streamFactory: () => _watchUserActiveSessionUseCase(),
       onData: (activeSession) {
+        if (isClosed) return;
+        if (activeSession == null) {
+          _clearSession();
+          return;
+        }
         if (activeSession != null) {
-          dev.log("[LIVESESSION_CUBIT] Watch Stream detected active session: ${activeSession.bookingId}");
+          dev.log(
+            "[LIVESESSION_CUBIT] Watch Stream detected active session: ${activeSession.bookingId}",
+          );
           final currentSession = state.session;
-          if (currentSession == null || currentSession.bookingId != activeSession.bookingId || state.status != ActiveSessionStatus.loaded) {
+          if (currentSession == null ||
+              currentSession.bookingId != activeSession.bookingId ||
+              state.status != ActiveSessionStatus.loaded) {
+            if (_pendingBookingId == activeSession.bookingId) return;
             loadActiveSession(bookingId: activeSession.bookingId);
           }
         }
@@ -133,7 +154,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
         AppBottomSheet.show(
           context: context,
           child: LoungeReviewBottomSheet(
-            loungeName: session.loungeName.isNotEmpty ? session.loungeName : session.roomName,
+            loungeName: session.loungeName.isNotEmpty
+                ? session.loungeName
+                : session.roomName,
             onSubmit: (rating, comment) {
               submitReview(rating: rating, comment: comment);
             },
@@ -147,6 +170,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION: bookingId=$bookingId");
     if (isClosed) return;
     final loadVersion = ++_sessionLoadVersion;
+    if (bookingId != null && bookingId != state.session?.bookingId) {
+      _resetSessionScope();
+      emit(const ActiveSessionState(status: ActiveSessionStatus.loading));
+    }
+    _pendingBookingId = bookingId;
     if (state.status != ActiveSessionStatus.loaded) {
       emit(state.copyWith(status: ActiveSessionStatus.loading));
     }
@@ -154,39 +182,42 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     final result = await _getActiveSessionUseCase(bookingId: bookingId);
 
     if (isClosed || loadVersion != _sessionLoadVersion) return;
+    _pendingBookingId = null;
 
     result.fold(
       (failure) {
-        dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION FAILURE: ${failure.message}");
-        emit(state.copyWith(
-          status: ActiveSessionStatus.error,
-          errorMessage: failure.message,
-        ));
+        dev.log(
+          "[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION FAILURE: ${failure.message}",
+        );
+        emit(
+          state.copyWith(
+            status: ActiveSessionStatus.error,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (session) {
         if (session == null) {
-          dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION EMPTY: No session found");
-          _subscribedBookingId = null;
-          _realtimeSubscription?.cancel();
-          _realtimeSubscription = null;
+          dev.log(
+            "[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION EMPTY: No session found",
+          );
+          _clearSession();
           LocalNotificationService.instance.cancelActiveSessionNotification();
           NativeNotificationService.instance.cancelCustomNotification();
           PlaySpotLiveActivityService.instance.endActivity();
-          final completed = state.session ?? state.completedSession;
-          emit(state.copyWith(
-            status: ActiveSessionStatus.empty,
-            session: null,
-            completedSession: completed,
-          ));
-          if (completed != null && state.session != null) {
-            _showGlobalReviewBottomSheet(completed);
-          }
         } else {
-          dev.log("[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION LOADED: bookingId=${session.bookingId}, status=${session.status}");
-          emit(state.copyWith(
-            status: ActiveSessionStatus.loaded,
-            session: session,
-          ));
+          if (state.session?.bookingId != session.bookingId) {
+            _resetSessionScope();
+          }
+          dev.log(
+            "[LIVESESSION_CUBIT] LOAD_ACTIVE_SESSION LOADED: bookingId=${session.bookingId}, status=${session.status}",
+          );
+          emit(
+            (state.session?.bookingId == session.bookingId
+                    ? state
+                    : const ActiveSessionState())
+                .copyWith(status: ActiveSessionStatus.loaded, session: session),
+          );
           _subscribeToRealtime(session.bookingId);
           loadMenu(session.loungeId);
           loadUpsellSuggestions(session.bookingId);
@@ -194,15 +225,22 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
           try {
             PlaySpotLiveActivityService.instance.startActivity(
               sessionId: session.bookingId,
-              hallName: session.loungeName.isNotEmpty ? session.loungeName : 'PlaySpot Lounge',
-              deviceName: session.deviceName.isNotEmpty ? session.deviceName : session.roomName,
+              hallName: session.loungeName.isNotEmpty
+                  ? session.loungeName
+                  : 'PlaySpot Lounge',
+              deviceName: session.deviceName.isNotEmpty
+                  ? session.deviceName
+                  : session.roomName,
               endTimeTimestamp: session.endTime.millisecondsSinceEpoch ~/ 1000,
             );
 
-            final notificationId = session.bookingId.hashCode.abs() & 0x7FFFFFFF;
+            final notificationId =
+                session.bookingId.hashCode.abs() & 0x7FFFFFFF;
             LocalNotificationService.instance.scheduleSessionExpiryWarning(
               id: notificationId,
-              loungeName: session.loungeName.isNotEmpty ? session.loungeName : 'Lounge',
+              loungeName: session.loungeName.isNotEmpty
+                  ? session.loungeName
+                  : 'Lounge',
               expiryTime: session.endTime,
             );
           } catch (_) {}
@@ -211,361 +249,63 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState> with RealtimeWatcherM
     );
   }
 
-  void _subscribeToRealtime(String bookingId) {
-    if (_subscribedBookingId == bookingId && _realtimeSubscription != null) {
-      return;
-    }
-
-    dev.log("[LIVESESSION_CUBIT] Subscribing to Realtime stream for booking: $bookingId");
-    _subscribedBookingId = bookingId;
-    _realtimeSubscription?.cancel();
-
-    _realtimeSubscription = subscribeWithRetry(
-      streamFactory: () => _streamActiveSessionUseCase(bookingId),
-      onData: (updatedSession) {
-        dev.log("[LIVESESSION_CUBIT] REALTIME EVENT for $bookingId: status=${updatedSession.status}, end_time=${updatedSession.endTime}");
-        final status = BookingStatus.fromString(updatedSession.status);
-        if (status == BookingStatus.completed || status == BookingStatus.cancelled) {
-          dev.log("[LIVESESSION_CUBIT] Session ended or cancelled via Realtime");
-          _subscribedBookingId = null;
-          _realtimeSubscription?.cancel();
-          _realtimeSubscription = null;
-          try {
-            LocalNotificationService.instance.cancelActiveSessionNotification();
-            NativeNotificationService.instance.cancelCustomNotification();
-            PlaySpotLiveActivityService.instance.endActivity();
-          } catch (_) {}
-          final completed = state.session ?? updatedSession;
-          emit(state.copyWith(
-            status: ActiveSessionStatus.empty,
-            session: null,
-            completedSession: completed,
-          ));
-          if (status == BookingStatus.completed) {
-            _showGlobalReviewBottomSheet(completed);
-          }
-        } else {
-          dev.log("[LIVESESSION_CUBIT] Realtime update applied directly without re-fetching...");
-          final currentSession = state.session;
-          final mergedSession = updatedSession.copyWith(
-            loungeName: updatedSession.loungeName.isNotEmpty
-                ? updatedSession.loungeName
-                : currentSession?.loungeName ?? '',
-            roomName: updatedSession.roomName.isNotEmpty
-                ? updatedSession.roomName
-                : currentSession?.roomName ?? '',
-            orders: updatedSession.orders.isNotEmpty
-                ? updatedSession.orders
-                : currentSession?.orders ?? const [],
-          );
-
-          emit(state.copyWith(
-            status: ActiveSessionStatus.loaded,
-            session: mergedSession,
-          ));
-
-          try {
-            PlaySpotLiveActivityService.instance.startActivity(
-              sessionId: mergedSession.bookingId,
-              hallName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'PlaySpot Lounge',
-              deviceName: mergedSession.deviceName.isNotEmpty ? mergedSession.deviceName : mergedSession.roomName,
-              endTimeTimestamp: mergedSession.endTime.millisecondsSinceEpoch ~/ 1000,
-            );
-
-            final notificationId = mergedSession.bookingId.hashCode.abs() & 0x7FFFFFFF;
-            LocalNotificationService.instance.scheduleSessionExpiryWarning(
-              id: notificationId,
-              loungeName: mergedSession.loungeName.isNotEmpty ? mergedSession.loungeName : 'Lounge',
-              expiryTime: mergedSession.endTime,
-            );
-          } catch (_) {}
-        }
-      },
-      onError: (err) {
-        dev.log("[LIVESESSION_CUBIT] REALTIME STREAM ERROR: $err");
-        _subscribedBookingId = null;
-      },
-      isClosedCheck: () => isClosed || (_subscribedBookingId != null && _subscribedBookingId != bookingId),
-      retryDelay: const Duration(seconds: 3),
-      tag: 'LIVESESSION_REALTIME',
-    );
-  }
-
-  Future<void> loadMenu(String loungeId, {bool forceRefresh = false}) async {
-    if (loungeId.isEmpty || isClosed) return;
-    if (!forceRefresh && state.menu.isNotEmpty && _loadedMenuLoungeId == loungeId) {
-      return;
-    }
-    dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU for lounge: $loungeId");
-    if (!isClosed) emit(state.copyWith(menuStatus: ActionStatus.loading));
-    final menuVersion = ++_menuLoadVersion;
-    final result = await _getCanteenMenuUseCase(loungeId: loungeId);
-    if (isClosed || menuVersion != _menuLoadVersion) return;
-    result.fold(
-      (f) {
-        dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU FAILURE: ${f.message}");
-        emit(state.copyWith(menuStatus: ActionStatus.error));
-      },
-      (canteenMenu) {
-        _loadedMenuLoungeId = loungeId;
-        dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU SUCCESS: ${canteenMenu.extras.length} items, ${canteenMenu.combos.length} combos");
-        emit(state.copyWith(
-          menu: canteenMenu.extras,
-          combos: canteenMenu.combos,
-          menuStatus: ActionStatus.success,
-        ));
-      },
-    );
-  }
-
-  Future<void> loadUpsellSuggestions(String bookingId) async {
-    if (bookingId.isEmpty || isClosed) return;
-    if (state.upsellImpressionsCount >= 2) return;
-
-    final upsellVersion = ++_upsellLoadVersion;
-    final result = await _getUpsellSuggestionsUseCase(bookingId: bookingId);
-    if (isClosed || upsellVersion != _upsellLoadVersion ||
-        state.session?.bookingId != bookingId) return;
-
-    result.fold(
-      (f) => dev.log("[LIVESESSION_CUBIT] LOAD_UPSELL FAILURE: ${f.message}"),
-      (suggestions) {
-        emit(state.copyWith(upsellSuggestions: suggestions));
-      },
-    );
-  }
-
-  Future<void> recordUpsellImpression(UpsellSuggestion suggestion) async {
-    final session = state.session;
-    if (session == null || state.upsellImpressionsCount >= 2) return;
-
-    emit(state.copyWith(upsellImpressionsCount: state.upsellImpressionsCount + 1));
-    await _recordUpsellEventUseCase(
-      ruleId: suggestion.ruleId,
-      bookingId: session.bookingId,
-      event: 'shown',
-    );
-  }
-
-  Future<void> dismissUpsellSuggestion(UpsellSuggestion suggestion) async {
-    final session = state.session;
-    final updatedSuggestions = state.upsellSuggestions.where((s) => s.ruleId != suggestion.ruleId).toList();
-    emit(state.copyWith(upsellSuggestions: updatedSuggestions));
-
-    if (session != null) {
-      await _recordUpsellEventUseCase(
-        ruleId: suggestion.ruleId,
-        bookingId: session.bookingId,
-        event: 'dismissed',
-      );
-    }
-  }
-
-  Future<void> acceptUpsellSuggestion(UpsellSuggestion suggestion, {String? orderId, double? amount}) async {
-    final session = state.session;
-    final updatedSuggestions = state.upsellSuggestions.where((s) => s.ruleId != suggestion.ruleId).toList();
-    emit(state.copyWith(upsellSuggestions: updatedSuggestions));
-
-    if (session != null) {
-      await _recordUpsellEventUseCase(
-        ruleId: suggestion.ruleId,
-        bookingId: session.bookingId,
-        event: 'accepted',
-        canteenOrderId: orderId,
-        amount: amount,
-      );
-    }
-  }
-
   void clearUnavailableItems() {
     emit(state.copyWith(unavailableItems: []));
   }
 
-  Future<void> extendTime(int additionalMinutes, [double? precalculatedCost]) async {
-    final active = state.session;
-    if (isClosed || active == null || state.extendStatus == ActionStatus.loading) return;
-
-    HapticFeedback.mediumImpact();
-
-    final cost = precalculatedCost ?? calculateExtensionCost(additionalMinutes);
-    final bookingId = active.bookingId;
-    dev.log("[LIVESESSION_CUBIT] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$cost");
-
-    emit(state.copyWith(extendStatus: ActionStatus.loading));
-
-    final result = await _extendSessionTimeUseCase(
-      bookingId: bookingId,
-      additionalMinutes: additionalMinutes,
-      additionalCost: cost,
-    );
-
-    if (isClosed || state.session?.bookingId != bookingId) return;
-
-    result.fold(
-      (failure) {
-        dev.log("[LIVESESSION_CUBIT] EXTEND_TIME FAILURE: ${failure.message}");
-        emit(state.copyWith(
-          extendStatus: ActionStatus.error,
-          errorMessage: failure.message,
-        ));
-      },
-      (_) {
-        dev.log("[LIVESESSION_CUBIT] EXTEND_TIME SUCCESS");
-        emit(state.copyWith(extendStatus: ActionStatus.success));
-        loadActiveSession(bookingId: bookingId);
-      },
-    );
-  }
-
-  Future<void> requestExtension(int requestedMinutes) async {
-    final active = state.session;
-    if (isClosed || active == null || state.extendStatus == ActionStatus.loading) return;
-
-    HapticFeedback.mediumImpact();
-
-    final bookingId = active.bookingId;
-    dev.log("[LIVESESSION_CUBIT] REQUEST_EXTENSION: bookingId=$bookingId, minutes=$requestedMinutes");
-
-    emit(state.copyWith(extendStatus: ActionStatus.loading));
-
-    final result = await _requestSessionExtensionUseCase(
-      bookingId: bookingId,
-      requestedMinutes: requestedMinutes,
-    );
-
-    if (isClosed || state.session?.bookingId != bookingId) return;
-
-    result.fold(
-      (failure) {
-        dev.log("[LIVESESSION_CUBIT] REQUEST_EXTENSION FAILURE: ${failure.message}");
-        emit(state.copyWith(
-          extendStatus: ActionStatus.error,
-          errorMessage: failure.message,
-        ));
-      },
-      (_) {
-        dev.log("[LIVESESSION_CUBIT] REQUEST_EXTENSION SUCCESS");
-        emit(state.copyWith(extendStatus: ActionStatus.success));
-        loadActiveSession(bookingId: bookingId);
-      },
-    );
-  }
-
-  Future<void> requestStaffAssistance(String type, String? notes) async {
-    final session = state.session;
-    if (isClosed || session == null || state.staffRequestStatus == ActionStatus.loading) return;
-
-    HapticFeedback.mediumImpact();
-
-    final bookingId = session.bookingId;
-    dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE: bookingId=$bookingId, type=$type");
-
-    emit(state.copyWith(staffRequestStatus: ActionStatus.loading));
-
-    final result = await _requestStaffAssistanceUseCase(
-      bookingId: bookingId,
-      callType: type,
-      notes: notes,
-    );
-
-    if (isClosed || state.session?.bookingId != bookingId) return;
-
-    result.fold(
-      (failure) {
-        dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE FAILURE: ${failure.message}");
-        emit(state.copyWith(
-          staffRequestStatus: ActionStatus.error,
-          errorMessage: failure.message,
-        ));
-      },
-      (_) {
-        dev.log("[LIVESESSION_CUBIT] REQUEST_STAFF_ASSISTANCE SUCCESS");
-        emit(state.copyWith(staffRequestStatus: ActionStatus.success));
-      },
-    );
-  }
-
-  Future<void> submitReview({
-    required double rating,
-    String? comment,
-  }) async {
-    final session = state.session ?? state.completedSession;
-    if (isClosed || session == null) return;
-
-    HapticFeedback.mediumImpact();
-
-    final bookingId = session.bookingId;
-    dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW: bookingId=$bookingId, rating=$rating");
-
-    final result = await _submitLoungeReviewUseCase(
-      loungeId: session.loungeId,
-      bookingId: bookingId,
-      rating: rating,
-      comment: comment,
-    );
-
-    if (isClosed ||
-        (state.session ?? state.completedSession)?.bookingId != bookingId) return;
-
-    result.fold(
-      (failure) {
-        dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW FAILURE: ${failure.message}");
-        emit(state.copyWith(errorMessage: failure.message));
-      },
-      (_) {
-        dev.log("[LIVESESSION_CUBIT] SUBMIT_REVIEW SUCCESS");
-        emit(state.copyWith(
-          status: ActiveSessionStatus.empty,
-          session: null,
-          completedSession: null,
-        ));
-      },
-    );
-  }
-
-  Future<void> placeOrder(List<OrderItem> items) async {
-    final session = state.session;
-    if (isClosed || session == null || state.orderStatus == ActionStatus.loading) return;
-
-    HapticFeedback.mediumImpact();
-
-    final bookingId = session.bookingId;
-    dev.log("[LIVESESSION_CUBIT] PLACE_ORDER: bookingId=$bookingId, itemsCount=${items.length}");
-
-    emit(state.copyWith(orderStatus: ActionStatus.loading, unavailableItems: []));
-
-    final result = await _placeSessionOrderUseCase(bookingId: bookingId, items: items);
-
-    if (isClosed || state.session?.bookingId != bookingId) return;
-
-    result.fold(
-      (failure) {
-        dev.log("[LIVESESSION_CUBIT] PLACE_ORDER FAILURE: ${failure.message}");
-        if (failure is CanteenOutOfStockFailure) {
-          emit(state.copyWith(
-            orderStatus: ActionStatus.error,
-            errorMessage: failure.message,
-            unavailableItems: failure.unavailableItems.whereType<OutOfStockItem>().toList(),
-          ));
-        } else {
-          emit(state.copyWith(
-            orderStatus: ActionStatus.error,
-            errorMessage: failure.message,
-          ));
-        }
-      },
-      (_) {
-        dev.log("[LIVESESSION_CUBIT] PLACE_ORDER SUCCESS");
-        emit(state.copyWith(orderStatus: ActionStatus.success, unavailableItems: []));
-        loadActiveSession(bookingId: bookingId);
-      },
-    );
-  }
+  void _publish(ActiveSessionState next) => emit(next);
+  Future<void> loadMenu(String loungeId, {bool forceRefresh = false}) =>
+      _loadMenuImpl(loungeId, forceRefresh: forceRefresh);
+  Future<void> loadUpsellSuggestions(String bookingId) =>
+      _loadUpsellSuggestionsImpl(bookingId);
+  Future<void> recordUpsellImpression(UpsellSuggestion suggestion) =>
+      _recordUpsellImpressionImpl(suggestion);
+  Future<void> dismissUpsellSuggestion(UpsellSuggestion suggestion) =>
+      _dismissUpsellSuggestionImpl(suggestion);
+  Future<void> acceptUpsellSuggestion(
+    UpsellSuggestion suggestion, {
+    String? orderId,
+    double? amount,
+  }) =>
+      _acceptUpsellSuggestionImpl(suggestion, orderId: orderId, amount: amount);
+  Future<void> extendTime(int additionalMinutes, [double? precalculatedCost]) =>
+      _extendTimeImpl(additionalMinutes, precalculatedCost);
+  Future<void> requestExtension(int requestedMinutes) =>
+      _requestExtensionImpl(requestedMinutes);
+  Future<void> requestStaffAssistance(String type, String? notes) =>
+      _requestStaffAssistanceImpl(type, notes);
+  Future<void> submitReview({required double rating, String? comment}) =>
+      _submitReviewImpl(rating: rating, comment: comment);
+  Future<void> placeOrder(List<OrderItem> items) => _placeOrderImpl(items);
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
+    ++_sessionLoadVersion;
+    _resetSessionScope();
+    await _userSessionsSubscription?.cancel();
+    await super.close();
+  }
+
+  void _resetSessionScope() {
+    ++_sessionEpoch;
+    ++_menuLoadVersion;
+    ++_upsellLoadVersion;
+    _requestedMenuLoungeId = null;
+    _loadedMenuLoungeId = null;
+    _pendingBookingId = null;
+    _subscribedBookingId = null;
     _realtimeSubscription?.cancel();
-    _userSessionsSubscription?.cancel();
-    return super.close();
+    _realtimeSubscription = null;
+  }
+
+  void _clearSession({ActiveSession? completed}) {
+    ++_sessionLoadVersion;
+    _resetSessionScope();
+    emit(
+      ActiveSessionState(
+        status: ActiveSessionStatus.empty,
+        completedSession: completed,
+      ),
+    );
   }
 }

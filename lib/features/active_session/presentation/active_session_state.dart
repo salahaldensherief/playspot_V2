@@ -6,9 +6,11 @@ import '../domain/entities/upsell_suggestion.dart';
 import '../../lounge_details/data/models/extra_model.dart';
 
 enum ActiveSessionStatus { initial, loading, loaded, empty, error }
+
 enum ActionStatus { initial, loading, success, error }
 
 class ActiveSessionState extends Equatable {
+  static const _unchanged = Object();
   final ActiveSessionStatus status;
   final ActiveSession? session;
   final ActiveSession? completedSession;
@@ -41,8 +43,8 @@ class ActiveSessionState extends Equatable {
 
   ActiveSessionState copyWith({
     ActiveSessionStatus? status,
-    ActiveSession? session,
-    ActiveSession? completedSession,
+    Object? session = _unchanged,
+    Object? completedSession = _unchanged,
     List<ExtraModel>? menu,
     List<CanteenCombo>? combos,
     List<UpsellSuggestion>? upsellSuggestions,
@@ -52,39 +54,46 @@ class ActiveSessionState extends Equatable {
     ActionStatus? extendStatus,
     ActionStatus? orderStatus,
     ActionStatus? staffRequestStatus,
-    String? errorMessage,
+    Object? errorMessage = _unchanged,
   }) {
     return ActiveSessionState(
       status: status ?? this.status,
-      session: session ?? this.session,
-      completedSession: completedSession ?? this.completedSession,
+      session: identical(session, _unchanged)
+          ? this.session
+          : session as ActiveSession?,
+      completedSession: identical(completedSession, _unchanged)
+          ? this.completedSession
+          : completedSession as ActiveSession?,
       menu: menu ?? this.menu,
       combos: combos ?? this.combos,
       upsellSuggestions: upsellSuggestions ?? this.upsellSuggestions,
-      upsellImpressionsCount: upsellImpressionsCount ?? this.upsellImpressionsCount,
+      upsellImpressionsCount:
+          upsellImpressionsCount ?? this.upsellImpressionsCount,
       unavailableItems: unavailableItems ?? this.unavailableItems,
       menuStatus: menuStatus ?? this.menuStatus,
       extendStatus: extendStatus ?? this.extendStatus,
       orderStatus: orderStatus ?? this.orderStatus,
       staffRequestStatus: staffRequestStatus ?? this.staffRequestStatus,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: identical(errorMessage, _unchanged)
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 
   @override
   List<Object?> get props => [
-        status,
-        session,
-        completedSession,
-        menu,
-        combos,
-        upsellSuggestions,
-        upsellImpressionsCount,
-        unavailableItems,
-        menuStatus,
-        extendStatus,
-        orderStatus,
-        staffRequestStatus,
-        errorMessage,
-      ];
+    status,
+    session,
+    completedSession,
+    menu,
+    combos,
+    upsellSuggestions,
+    upsellImpressionsCount,
+    unavailableItems,
+    menuStatus,
+    extendStatus,
+    orderStatus,
+    staffRequestStatus,
+    errorMessage,
+  ];
 }
