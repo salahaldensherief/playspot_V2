@@ -18,6 +18,8 @@ abstract class BookingSlotStrategy {
     required DateTime date,
     required TimeOfDay startTime,
     required int durationMinutes,
+    required String opensAt,
+    required String closesAt,
   });
 
   /// Parses a single booking row into a [TimeRange] entity or null if invalid/cancelled.

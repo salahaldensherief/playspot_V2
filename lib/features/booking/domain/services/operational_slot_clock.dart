@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+
+class OperationalSlotClock {
+  const OperationalSlotClock();
+
+  DateTime resolve({
+    required DateTime businessDate,
+    required TimeOfDay slot,
+    required String opensAt,
+    required String closesAt,
+  }) {
+    final opening = _minutes(opensAt);
+    final closing = _minutes(closesAt);
+    final selected = slot.hour * 60 + slot.minute;
+    final nextDay =
+        opening != null &&
+        closing != null &&
+        closing <= opening &&
+        selected < closing;
+    return DateTime(
+      businessDate.year,
+      businessDate.month,
+      businessDate.day + (nextDay ? 1 : 0),
+      slot.hour,
+      slot.minute,
+    );
+  }
+
+  int? _minutes(String raw) {
+    final parts = raw.trim().split(':');
+    if (parts.length < 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
+      return null;
+    }
+    return hour * 60 + minute;
+  }
+}

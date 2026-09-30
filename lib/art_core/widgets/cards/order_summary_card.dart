@@ -26,10 +26,7 @@ class DiscountData {
   final String label;
   final double amount;
 
-  const DiscountData({
-    required this.label,
-    required this.amount,
-  });
+  const DiscountData({required this.label, required this.amount});
 }
 
 class OrderSummaryCard extends StatefulWidget {
@@ -37,18 +34,18 @@ class OrderSummaryCard extends StatefulWidget {
   final String? subtitle;
   final String? statusText;
   final Color? statusColor;
-  
+
   // Session / Base cost breakdown
   final String baseCostLabel;
   final double baseCostAmount;
   final List<Map<String, dynamic>> sessionDetailsRows;
-  
+
   // Canteen / Add-ons items
   final List<OrderItemData> canteenItems;
-  
+
   // Discounts & Vouchers
   final List<DiscountData> discounts;
-  
+
   final double grandTotal;
   final String? currencySymbol;
 
@@ -149,20 +146,27 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                 ),
                 if (widget.statusText != null) ...[
                   SizedBox(width: 8.w),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                    decoration: BoxDecoration(
-                      color: (widget.statusColor ?? AppColors.success).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: (widget.statusColor ?? AppColors.success).withValues(alpha: 0.4),
+                  Flexible(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 5.h,
                       ),
-                    ),
-                    child: AppText(
-                      text: widget.statusText!,
-                      fontSize: 11.5.sp,
-                      fontWeight: FontWeight.bold,
-                      color: widget.statusColor ?? AppColors.success,
+                      decoration: BoxDecoration(
+                        color: (widget.statusColor ?? AppColors.success)
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(
+                          color: (widget.statusColor ?? AppColors.success)
+                              .withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: AppText(
+                        text: widget.statusText!,
+                        fontSize: 11.5.sp,
+                        fontWeight: FontWeight.bold,
+                        color: widget.statusColor ?? AppColors.success,
+                      ),
                     ),
                   ),
                 ],
@@ -189,11 +193,13 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                       color: AppColors.neonBlue,
                     ),
                     SizedBox(width: 8.w),
-                    AppText(
-                      text: AppStrings.sessionDetails.tr(),
-                      fontSize: 13.5.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.neonBlue,
+                    Expanded(
+                      child: AppText(
+                        text: AppStrings.sessionDetails.tr(),
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.neonBlue,
+                      ),
                     ),
                   ],
                 ),
@@ -213,7 +219,8 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                       ),
                       SizedBox(width: 8.w),
                       AppText(
-                        text: "${widget.baseCostAmount.toStringAsFixed(2)} $currency",
+                        text:
+                            "${widget.baseCostAmount.toStringAsFixed(2)} $currency",
                         fontSize: 13.5.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -274,7 +281,9 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                             SizedBox(width: 8.w),
                             Expanded(
                               child: AppText(
-                                text: isArabic ? "الكانتين والأصناف الإضافية" : "Canteen & Items",
+                                text: isArabic
+                                    ? "الكانتين والأصناف الإضافية"
+                                    : "Canteen & Items",
                                 fontSize: 13.5.sp,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -302,7 +311,10 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                         children: [
                           // Quantity Chip before item name (solves Arabic RTL text direction & rapid scanning)
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.w,
+                              vertical: 3.h,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.neonBlue.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(6.r),
@@ -323,13 +335,15 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (item.status != null && item.status!.isNotEmpty) ...[
+                          if (item.status != null &&
+                              item.status!.isNotEmpty) ...[
                             SizedBox(width: 6.w),
                             _buildOrderStatusBadge(item.status!),
                           ],
                           SizedBox(width: 8.w),
                           AppText(
-                            text: "${(item.price * item.quantity).toStringAsFixed(2)} $currency",
+                            text:
+                                "${(item.price * item.quantity).toStringAsFixed(2)} $currency",
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -340,7 +354,9 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                   if (hasMoreCanteen) ...[
                     SizedBox(height: 6.h),
                     GestureDetector(
-                      onTap: () => setState(() => _isCanteenExpanded = !_isCanteenExpanded),
+                      onTap: () => setState(
+                        () => _isCanteenExpanded = !_isCanteenExpanded,
+                      ),
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 4.h),
                         child: Row(
@@ -356,7 +372,9 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                             ),
                             SizedBox(width: 4.w),
                             Icon(
-                              _isCanteenExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                              _isCanteenExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
                               size: 16.sp,
                               color: AppColors.neonBlue,
                             ),
@@ -396,7 +414,8 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                           ),
                           SizedBox(width: 8.w),
                           AppText(
-                            text: "-${discount.amount.toStringAsFixed(2)} $currency",
+                            text:
+                                "-${discount.amount.toStringAsFixed(2)} $currency",
                             fontSize: 13.sp,
                             fontWeight: FontWeight.bold,
                             color: AppColors.success,
@@ -435,11 +454,13 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                   ),
                 ),
                 SizedBox(width: 8.w),
-                AppText(
-                  text: "${widget.grandTotal.toStringAsFixed(2)} $currency",
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.neonBlue,
+                Flexible(
+                  child: AppText(
+                    text: "${widget.grandTotal.toStringAsFixed(2)} $currency",
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.neonBlue,
+                  ),
                 ),
               ],
             ),

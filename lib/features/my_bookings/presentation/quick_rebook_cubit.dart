@@ -23,10 +23,10 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
     required PrepareQuickRebookUseCase prepareQuickRebook,
     required GetQuickRebookSlotsUseCase getQuickRebookSlots,
     required BuildQuickRebookCheckoutUseCase buildQuickRebookCheckout,
-  })  : _prepareQuickRebook = prepareQuickRebook,
-        _getQuickRebookSlots = getQuickRebookSlots,
-        _buildQuickRebookCheckout = buildQuickRebookCheckout,
-        super(QuickRebookState(selectedDate: DateTime.now()));
+  }) : _prepareQuickRebook = prepareQuickRebook,
+       _getQuickRebookSlots = getQuickRebookSlots,
+       _buildQuickRebookCheckout = buildQuickRebookCheckout,
+       super(QuickRebookState(selectedDate: DateTime.now()));
 
   Future<void> initQuickRebook(BookingModel pastBooking) async {
     final suggestedDate = QuickRebookPreference.nextVisitDate(
@@ -136,12 +136,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
     if (setup == null) return;
     final request = ++_slotRequest;
 
-    emit(
-      state.copyWith(
-        status: QuickRebookStatus.loading,
-        selectedDate: date,
-      ),
-    );
+    emit(state.copyWith(status: QuickRebookStatus.loading, selectedDate: date));
 
     final slots = await _fetchSlotsForDate(setup, date, state.durationMinutes);
     if (isClosed || request != _slotRequest) return;
@@ -175,8 +170,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
     if (setup == null) return;
     final request = ++_slotRequest;
 
-    final normalizedDuration =
-        newDurationMinutes.clamp(15, 24 * 60).toInt();
+    final normalizedDuration = newDurationMinutes.clamp(15, 24 * 60).toInt();
 
     emit(
       state.copyWith(
@@ -190,15 +184,18 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       state.selectedDate,
       normalizedDuration,
     );
-    if (isClosed) return;
+    if (isClosed || request != _slotRequest) return;
 
     final targetTime = BookingSlotUtils.resolveTargetTime(
       setup.pastBooking.startTime,
       setup.pastBooking.startDateTime,
     );
-    final selectedSlot = state.selectedSlot != null && slots.contains(state.selectedSlot)
+    final selectedSlot =
+        state.selectedSlot != null && slots.contains(state.selectedSlot)
         ? state.selectedSlot
-        : (slots.isEmpty ? null : BookingSlotUtils.findClosestSlot(slots, targetTime));
+        : (slots.isEmpty
+              ? null
+              : BookingSlotUtils.findClosestSlot(slots, targetTime));
 
     emit(
       state.copyWith(
@@ -225,10 +222,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       durationMinutes: durationMinutes,
     );
 
-    return slotsResult.fold(
-      (_) => const <TimeOfDay>[],
-      (slots) => slots,
-    );
+    return slotsResult.fold((_) => const <TimeOfDay>[], (slots) => slots);
   }
 
   void updateAddonQuantity(String extraId, int newQuantity) {
@@ -240,9 +234,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
     );
     if (!isAvailable) return;
 
-    final updated = Map<String, int>.from(
-      state.selectedAddonQuantities,
-    );
+    final updated = Map<String, int>.from(state.selectedAddonQuantities);
 
     if (newQuantity <= 0) {
       updated.remove(extraId);
@@ -250,11 +242,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       updated[extraId] = newQuantity.clamp(1, 100).toInt();
     }
 
-    emit(
-      state.copyWith(
-        selectedAddonQuantities: updated,
-      ),
-    );
+    emit(state.copyWith(selectedAddonQuantities: updated));
   }
 
   Future<CheckoutParams?> prepareCheckout() async {

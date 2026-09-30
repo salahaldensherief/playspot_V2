@@ -10,11 +10,7 @@ class BracketMatchNode extends StatefulWidget {
   final TournamentMatchEntity match;
   final VoidCallback onTap;
 
-  const BracketMatchNode({
-    super.key,
-    required this.match,
-    required this.onTap,
-  });
+  const BracketMatchNode({super.key, required this.match, required this.onTap});
 
   @override
   State<BracketMatchNode> createState() => _BracketMatchNodeState();
@@ -62,13 +58,19 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  isInProgress ? AppColors.neonPurple.withValues(alpha: 0.4) : AppColors.neonBlue.withValues(alpha: 0.2),
-                  isInProgress ? AppColors.neonBlue.withValues(alpha: 0.4) : AppColors.neonPurple.withValues(alpha: 0.2),
+                  isInProgress
+                      ? AppColors.neonPurple.withValues(alpha: 0.4)
+                      : AppColors.neonBlue.withValues(alpha: 0.2),
+                  isInProgress
+                      ? AppColors.neonBlue.withValues(alpha: 0.4)
+                      : AppColors.neonPurple.withValues(alpha: 0.2),
                 ],
               ),
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
-                color: isInProgress ? AppColors.neonPurple : AppColors.neonBlue.withValues(alpha: 0.5),
+                color: isInProgress
+                    ? AppColors.neonPurple
+                    : AppColors.neonBlue.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
@@ -78,7 +80,6 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                 color: isInProgress ? AppColors.neonPurple : AppColors.neonBlue,
                 fontSize: 7,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Orbitron',
               ),
             ),
           ),
@@ -117,8 +118,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
     final Color borderColor = isWinner
         ? AppColors.success
         : isLoser
-            ? AppColors.danger
-            : AppColors.neonBlue;
+        ? AppColors.danger
+        : AppColors.neonBlue;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -147,7 +148,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                         ? Image.network(
                             avatar,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => _defaultAvatar(),
+                            errorBuilder: (context, error, stackTrace) =>
+                                _defaultAvatar(),
                           )
                         : _defaultAvatar(),
                   ),
@@ -158,13 +160,16 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                   bottom: 0,
                   right: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 1,
+                    ),
                     decoration: BoxDecoration(
                       color: isWinner
                           ? AppColors.success
                           : isLoser
-                              ? AppColors.danger
-                              : AppColors.neonBlue,
+                          ? AppColors.danger
+                          : AppColors.neonBlue,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: Colors.black, width: 0.8),
                     ),
@@ -197,8 +202,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                     color: isWinner
                         ? AppColors.success
                         : isLoser
-                            ? AppColors.danger
-                            : AppColors.textSecondary.withValues(alpha: 0.5),
+                        ? AppColors.danger
+                        : AppColors.textSecondary.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Text(
@@ -207,8 +212,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                     color: isWinner
                         ? AppColors.success
                         : isLoser
-                            ? AppColors.danger
-                            : AppColors.textSecondary,
+                        ? AppColors.danger
+                        : AppColors.textSecondary,
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
                   ),

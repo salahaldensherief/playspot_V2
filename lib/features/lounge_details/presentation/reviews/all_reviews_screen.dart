@@ -76,7 +76,6 @@ class AllReviewsScreen extends StatelessWidget {
                   fontSize: 20.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
-                  fontFamily: "Orbitron",
                 ),
                 AppText(
                   text: loungeName,

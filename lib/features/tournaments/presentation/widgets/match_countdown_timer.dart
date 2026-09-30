@@ -63,15 +63,24 @@ class _MatchCountdownTimerState extends State<MatchCountdownTimer> {
 
   @override
   Widget build(BuildContext context) {
-    final minutes = _remaining.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = _remaining.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes = _remaining.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
+    final seconds = _remaining.inSeconds
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: AppColors.warning.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.5), width: 1.2),
+        border: Border.all(
+          color: AppColors.warning.withValues(alpha: 0.5),
+          width: 1.2,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -98,7 +107,6 @@ class _MatchCountdownTimerState extends State<MatchCountdownTimer> {
                   color: AppColors.warning,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Orbitron',
                 ),
               ),
             ],

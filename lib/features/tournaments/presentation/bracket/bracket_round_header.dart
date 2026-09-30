@@ -27,9 +27,7 @@ class BracketRoundHeader extends StatelessWidget {
       return AppStrings.tournamentQuarterFinal.tr();
     }
 
-    return AppStrings.roundOf.tr(
-      args: ['$matchCountInRound'],
-    );
+    return AppStrings.roundOf.tr(args: ['$matchCountInRound']);
   }
 
   @override
@@ -58,7 +56,6 @@ class BracketRoundHeader extends StatelessWidget {
           color: isFinal ? AppColors.warning : AppColors.neonBlue,
           fontWeight: FontWeight.bold,
           fontSize: 10,
-          fontFamily: 'Orbitron',
         ),
       ),
     );

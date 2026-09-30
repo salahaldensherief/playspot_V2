@@ -50,8 +50,12 @@ class CheckoutCountdownTimerWidget extends StatelessWidget {
                   children: [
                     AppText(
                       text: isExpired
-                          ? (isArabic ? 'انتهت المهلة المؤقتة للحجز' : 'Hold Expired')
-                          : (isArabic ? 'مهلة حجز الموعد المؤقتة' : 'Temporary Hold Timer'),
+                          ? (isArabic
+                                ? 'انتهت المهلة المؤقتة للحجز'
+                                : 'Hold Expired')
+                          : (isArabic
+                                ? 'مهلة حجز الموعد المؤقتة'
+                                : 'Temporary Hold Timer'),
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,
                       color: timerColor,
@@ -60,11 +64,11 @@ class CheckoutCountdownTimerWidget extends StatelessWidget {
                     AppText(
                       text: isExpired
                           ? (isArabic
-                              ? 'انتهت الـ 10 دقائق المحددة للحجز. يرجى العودة وإعادة اختيار الموعد.'
-                              : '10-minute hold limit reached. Please go back and reselect a slot.')
+                                ? 'انتهت الـ 10 دقائق المحددة للحجز. يرجى العودة وإعادة اختيار الموعد.'
+                                : '10-minute hold limit reached. Please go back and reselect a slot.')
                           : (isArabic
-                              ? 'احجز وارفقت الإيصال قبل انتهاء الوقت لتأكيد حجزك.'
-                              : 'Complete payment before time expires to hold your slot.'),
+                                ? 'احجز وارفقت الإيصال قبل انتهاء الوقت لتأكيد حجزك.'
+                                : 'Complete payment before time expires to hold your slot.'),
                       fontSize: 11.sp,
                       color: AppColors.textSecondary,
                     ),
@@ -74,29 +78,38 @@ class CheckoutCountdownTimerWidget extends StatelessWidget {
               SizedBox(width: 8.w),
               if (!isExpired)
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
                   decoration: BoxDecoration(
                     color: timerColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(color: timerColor.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: timerColor.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: AppText(
                     text: state.formattedRemainingTime,
                     fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
                     color: timerColor,
-                    fontFamily: 'Orbitron',
                   ),
                 )
               else
                 GestureDetector(
                   onTap: () => context.pop(),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 6.h,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.danger.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10.r),
-                      border: const Border.fromBorderSide(BorderSide(color: AppColors.danger)),
+                      border: const Border.fromBorderSide(
+                        BorderSide(color: AppColors.danger),
+                      ),
                     ),
                     child: AppText(
                       text: isArabic ? 'إعادة الاختيار' : 'Reselect',

@@ -200,6 +200,7 @@
   "prepaidLatePolicyNotice": "Your session time starts at the booked time; any delay will be deducted from your actual playing time.",
   "cashLatePolicyNotice": "Please arrive at the lounge {} minutes before your appointment; in case of delay, the booking will be automatically cancelled to free the room for others.",
   "loungeWalletNumber": "Lounge Wallet / Account Number",
+  "copiedToClipboard": "Number copied successfully",
   "senderWalletNumberOptional": "Sender Wallet / Phone Number (Optional)",
   "processing": "Processing...",
   "total": "Total",
@@ -650,5 +651,15 @@
   "notifyMeFailure": "Failed to subscribe to waitlist. Please try again.",
   "notifyMePartial": "Subscribed to waitlist for available rooms in this group.",
   "waitlistSubscribed": "Waitlist active for this time",
-  "allSlotsBookedOrPast": "All time slots for this date are booked or past. Please select another date."
+  "allSlotsBookedOrPast": "All time slots for this date are booked or past. Please select another date.",
+  "retryPriceCalculation": "Retry price calculation",
+  "holdExpiredLabel": "Hold expired",
+  "room_select": "Select room",
+  "room_selected": "Room selected",
+  "room_available": "Available to book",
+  "room_busy": "Currently occupied",
+  "room_closed": "Lounge closed",
+  "room_unavailable": "Unavailable to book",
+  "choose_slot_hint": "Choose your preferred start time",
+  "slot_selected": "Selected start time"
 }

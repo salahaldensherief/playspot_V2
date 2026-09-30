@@ -651,5 +651,15 @@
   "notifyMeFailure": "تعذر التسجيل في قائمة الانتظار، حاول مرة ثانية.",
   "notifyMePartial": "تم تسجيلك في قائمة الانتظار للغرف المتاحة في المجموعة.",
   "waitlistSubscribed": "مفعل التنبيه لهذا الوقت",
-  "allSlotsBookedOrPast": "جميع الأوقات لهذا اليوم محجوزة أو انقضت. يرجى اختيار تاريخ آخر."
+  "allSlotsBookedOrPast": "جميع الأوقات لهذا اليوم محجوزة أو انقضت. يرجى اختيار تاريخ آخر.",
+  "retryPriceCalculation": "إعادة محاولة حساب السعر",
+  "holdExpiredLabel": "انتهت فترة حجز الموعد",
+  "room_select": "اختيار الغرفة",
+  "room_selected": "تم اختيار الغرفة",
+  "room_available": "متاحة للحجز",
+  "room_busy": "مشغولة حاليًا",
+  "room_closed": "الصالة مغلقة",
+  "room_unavailable": "غير متاحة للحجز",
+  "choose_slot_hint": "اختر وقت البداية المناسب لك",
+  "slot_selected": "وقت البداية المختار"
 }

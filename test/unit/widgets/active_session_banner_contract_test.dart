@@ -10,9 +10,9 @@ void main() {
 
     expect(RegExp(r'Timer\.periodic').allMatches(source), hasLength(1));
     expect(source, contains('TickerMode.valuesOf(context).enabled'));
-    expect(source, contains('AppStrings.activeSession.tr()'));
+    expect(source, contains('AppStrings.liveNow.tr()'));
     expect(source, contains('AppStrings.joinNow.tr()'));
-    expect(source, contains('AppStrings.sessionTimeRemaining.tr'));
+    expect(source, contains('LocalizedDurationFormatter'));
     expect(source, isNot(contains("text: 'Live now'")));
     expect(source, isNot(contains("text: 'Join'")));
     expect(source, isNot(contains("timeText = 'Session ended'")));

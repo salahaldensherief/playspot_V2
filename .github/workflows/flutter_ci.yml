@@ -51,4 +51,6 @@ jobs:
         run: flutter test
 
       - name: Verify Android release build
+        env:
+          ORG_GRADLE_PROJECT_allowDebugReleaseSigning: "true"
         run: flutter build apk --release

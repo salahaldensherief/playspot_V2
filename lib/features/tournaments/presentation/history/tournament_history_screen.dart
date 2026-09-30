@@ -19,7 +19,8 @@ class TournamentHistoryScreen extends StatefulWidget {
   const TournamentHistoryScreen({super.key});
 
   @override
-  State<TournamentHistoryScreen> createState() => _TournamentHistoryScreenState();
+  State<TournamentHistoryScreen> createState() =>
+      _TournamentHistoryScreenState();
 }
 
 class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
@@ -43,7 +44,6 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
             color: AppColors.textPrimary,
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Orbitron',
           ),
         ),
         centerTitle: true,
@@ -59,7 +59,10 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
               return Center(
                 child: Text(
                   state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14.sp,
+                  ),
                 ),
               );
             }
@@ -80,7 +83,9 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                           Icon(
                             TablerIcons.trophy_off,
                             size: 64.sp,
-                            color: AppColors.textSecondary.withValues(alpha: 0.5),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                           SizedBox(height: 16.h),
                           Text(
@@ -111,11 +116,15 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                   final participant = item.participant;
                   final tournament = item.tournament;
 
-                  final String tournamentTitle = tournament?.title ?? AppStrings.tournaments.tr();
+                  final String tournamentTitle =
+                      tournament?.title ?? AppStrings.tournaments.tr();
                   final String loungeName = tournament?.loungeName ?? '-';
                   final String gameName = tournament?.game ?? '-';
-                  final DateTime? date = participant.createdAt ?? tournament?.startDate;
-                  final String formattedDate = date != null ? DateFormat('yyyy-MM-dd').format(date) : '-';
+                  final DateTime? date =
+                      participant.createdAt ?? tournament?.startDate;
+                  final String formattedDate = date != null
+                      ? DateFormat('yyyy-MM-dd').format(date)
+                      : '-';
 
                   return InkWell(
                     onTap: () {
@@ -153,11 +162,19 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                               GlassContainer(
                                 borderRadius: 20,
                                 blur: 8,
-                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                                borderColor: AppColors.neonBlue.withValues(alpha: 0.4),
-                                color: AppColors.neonBlue.withValues(alpha: 0.15),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w,
+                                  vertical: 4.h,
+                                ),
+                                borderColor: AppColors.neonBlue.withValues(
+                                  alpha: 0.4,
+                                ),
+                                color: AppColors.neonBlue.withValues(
+                                  alpha: 0.15,
+                                ),
                                 child: AppText(
-                                  text: participant.paymentStatus.toLocalizedName(),
+                                  text: participant.paymentStatus
+                                      .toLocalizedName(),
                                   color: AppColors.neonBlue,
                                   fontSize: 11.sp,
                                   fontWeight: FontWeight.bold,
@@ -168,7 +185,11 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                           SizedBox(height: 8.h),
                           Row(
                             children: [
-                              Icon(TablerIcons.device_gamepad, size: 14.sp, color: AppColors.textSecondary),
+                              Icon(
+                                TablerIcons.device_gamepad,
+                                size: 14.sp,
+                                color: AppColors.textSecondary,
+                              ),
                               SizedBox(width: 4.w),
                               AppText(
                                 text: gameName,
@@ -176,7 +197,11 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                                 fontSize: 13.sp,
                               ),
                               SizedBox(width: 16.w),
-                              Icon(TablerIcons.building, size: 14.sp, color: AppColors.textSecondary),
+                              Icon(
+                                TablerIcons.building,
+                                size: 14.sp,
+                                color: AppColors.textSecondary,
+                              ),
                               SizedBox(width: 4.w),
                               AppText(
                                 text: loungeName,
@@ -190,7 +215,8 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               AppText(
-                                text: '${AppStrings.bookingDate.tr()}: $formattedDate',
+                                text:
+                                    '${AppStrings.bookingDate.tr()}: $formattedDate',
                                 color: AppColors.textSecondary,
                                 fontSize: 12.sp,
                               ),

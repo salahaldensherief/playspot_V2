@@ -32,6 +32,8 @@ class StandardBookingSlotStrategy implements BookingSlotStrategy {
     required DateTime date,
     required TimeOfDay startTime,
     required int durationMinutes,
+    required String opensAt,
+    required String closesAt,
   }) {
     final roomBookings = rawBookings
         .where((b) => b['room_id'].toString() == roomId)
@@ -44,6 +46,8 @@ class StandardBookingSlotStrategy implements BookingSlotStrategy {
       date: date,
       startTime: startTime,
       durationMinutes: durationMinutes,
+      opensAt: opensAt,
+      closesAt: closesAt,
     );
   }
 

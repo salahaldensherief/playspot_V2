@@ -79,7 +79,11 @@ void main() {
     id: 'lounge-1',
     name: 'GameSpot',
     location: 'Cairo',
-    address: 'Cairo',
+    imageUrl: '',
+    rating: 0,
+    distance: 0,
+    pricePerHour: 100,
+    isOpen: true,
     openingTime: '10:00:00',
     closingTime: '03:00:00',
   );
@@ -88,7 +92,13 @@ void main() {
     id: 'room-1',
     nameEn: 'VIP Room',
     nameAr: 'غرفة VIP',
-    roomNumber: '1',
+    loungeId: 'lounge-1',
+    activityNames: [],
+    maxCapacity: 4,
+    isAvailable: true,
+    images: [],
+    featuresAr: [],
+    featuresEn: [],
     controllersCount: 2,
     hourlyRateSingle: 100,
     hourlyRateMulti: 150,
@@ -107,87 +117,111 @@ void main() {
   );
 
   group('QuickRebookCubit Smart Scan & Circular Distance Tests', () {
-    test('selects closest slot across midnight boundary (00:30 when target was 23:30)', () async {
-      when(() => mockPrepare(any())).thenAnswer((_) async => Right(setup));
+    test(
+      'selects closest slot across midnight boundary (00:30 when target was 23:30)',
+      () async {
+        when(
+          () => mockPrepare(pastBooking),
+        ).thenAnswer((_) async => Right(setup));
 
-      // Available slots include 14:00, 16:00, and 00:30
-      when(
-        () => mockGetSlots(
-          loungeId: any(named: 'loungeId'),
-          roomId: any(named: 'roomId'),
-          date: any(named: 'date'),
-          openingTime: any(named: 'openingTime'),
-          closingTime: any(named: 'closingTime'),
-          durationMinutes: any(named: 'durationMinutes'),
-        ),
-      ).thenAnswer(
-        (_) async => const Right([
-          TimeOfDay(hour: 14, minute: 0),
-          TimeOfDay(hour: 16, minute: 0),
-          TimeOfDay(hour: 0, minute: 30),
-        ]),
-      );
+        // Available slots include 14:00, 16:00, and 00:30
+        when(
+          () => mockGetSlots(
+            loungeId: any(named: 'loungeId'),
+            roomId: any(named: 'roomId'),
+            date: any(named: 'date'),
+            openingTime: any(named: 'openingTime'),
+            closingTime: any(named: 'closingTime'),
+            durationMinutes: any(named: 'durationMinutes'),
+          ),
+        ).thenAnswer(
+          (_) async => const Right([
+            TimeOfDay(hour: 14, minute: 0),
+            TimeOfDay(hour: 16, minute: 0),
+            TimeOfDay(hour: 0, minute: 30),
+          ]),
+        );
 
-      await cubit.initQuickRebook(pastBooking);
+        await cubit.initQuickRebook(pastBooking);
 
-      expect(cubit.state.status, QuickRebookStatus.ready);
-      expect(
-        cubit.state.selectedSlot,
-        const TimeOfDay(hour: 0, minute: 30),
-      );
-    });
+        expect(cubit.state.status, QuickRebookStatus.ready);
+        expect(cubit.state.selectedSlot, const TimeOfDay(hour: 0, minute: 30));
+      },
+    );
 
-    test('scans future candidate dates when today has no slots and picks candidate with slots', () async {
-      when(() => mockPrepare(any())).thenAnswer((_) async => Right(setup));
+    test(
+      'scans future candidate dates when today has no slots and picks candidate with slots',
+      () async {
+        when(
+          () => mockPrepare(pastBooking),
+        ).thenAnswer((_) async => Right(setup));
 
-      final today = DateTime.now();
+        final today = DateTime.now();
 
-      // Today has empty slots
-      when(
-        () => mockGetSlots(
-          loungeId: any(named: 'loungeId'),
-          roomId: any(named: 'roomId'),
-          date: any(that: isA<DateTime>().having((d) => d.day, 'day', today.day)),
-          openingTime: any(named: 'openingTime'),
-          closingTime: any(named: 'closingTime'),
-          durationMinutes: any(named: 'durationMinutes'),
-        ),
-      ).thenAnswer((_) async => const Right([]));
+        // Today has empty slots
+        when(
+          () => mockGetSlots(
+            loungeId: any(named: 'loungeId'),
+            roomId: any(named: 'roomId'),
+            date: any(
+              named: 'date',
+              that: isA<DateTime>().having((d) => d.day, 'day', today.day),
+            ),
+            openingTime: any(named: 'openingTime'),
+            closingTime: any(named: 'closingTime'),
+            durationMinutes: any(named: 'durationMinutes'),
+          ),
+        ).thenAnswer((_) async => const Right([]));
 
-      // Tomorrow has slots
-      final tomorrow = today.add(const Duration(days: 1));
-      when(
-        () => mockGetSlots(
-          loungeId: any(named: 'loungeId'),
-          roomId: any(named: 'roomId'),
-          date: any(that: isA<DateTime>().having((d) => d.day, 'day', tomorrow.day)),
-          openingTime: any(named: 'openingTime'),
-          closingTime: any(named: 'closingTime'),
-          durationMinutes: any(named: 'durationMinutes'),
-        ),
-      ).thenAnswer((_) async => const Right([
+        // Tomorrow has slots
+        final tomorrow = today.add(const Duration(days: 1));
+        when(
+          () => mockGetSlots(
+            loungeId: any(named: 'loungeId'),
+            roomId: any(named: 'roomId'),
+            date: any(
+              named: 'date',
+              that: isA<DateTime>().having((d) => d.day, 'day', tomorrow.day),
+            ),
+            openingTime: any(named: 'openingTime'),
+            closingTime: any(named: 'closingTime'),
+            durationMinutes: any(named: 'durationMinutes'),
+          ),
+        ).thenAnswer(
+          (_) async => const Right([
             TimeOfDay(hour: 23, minute: 0),
             TimeOfDay(hour: 23, minute: 30),
-          ]));
+          ]),
+        );
 
-      // Other dates
-      when(
-        () => mockGetSlots(
-          loungeId: any(named: 'loungeId'),
-          roomId: any(named: 'roomId'),
-          date: any(named: 'date'),
-          openingTime: any(named: 'openingTime'),
-          closingTime: any(named: 'closingTime'),
-          durationMinutes: any(named: 'durationMinutes'),
-        ),
-      ).thenAnswer((_) async => const Right([]));
+        // Other dates
+        when(
+          () => mockGetSlots(
+            loungeId: any(named: 'loungeId'),
+            roomId: any(named: 'roomId'),
+            date: any(named: 'date'),
+            openingTime: any(named: 'openingTime'),
+            closingTime: any(named: 'closingTime'),
+            durationMinutes: any(named: 'durationMinutes'),
+          ),
+        ).thenAnswer((invocation) async {
+          final date = invocation.namedArguments[#date] as DateTime;
+          if (DateUtils.isSameDay(date, tomorrow)) {
+            return const Right([
+              TimeOfDay(hour: 23, minute: 0),
+              TimeOfDay(hour: 23, minute: 30),
+            ]);
+          }
+          return const Right([]);
+        });
 
-      await cubit.initQuickRebook(pastBooking);
+        await cubit.initQuickRebook(pastBooking);
 
-      expect(cubit.state.status, QuickRebookStatus.ready);
-      expect(cubit.state.availableSlots.isNotEmpty, isTrue);
-      expect(cubit.state.selectedSlot, const TimeOfDay(hour: 23, minute: 30));
-      expect(cubit.state.suggestedDates.isNotEmpty, isTrue);
-    });
+        expect(cubit.state.status, QuickRebookStatus.ready);
+        expect(cubit.state.availableSlots.isNotEmpty, isTrue);
+        expect(cubit.state.selectedSlot, const TimeOfDay(hour: 23, minute: 30));
+        expect(cubit.state.suggestedDates.isNotEmpty, isTrue);
+      },
+    );
   });
 }

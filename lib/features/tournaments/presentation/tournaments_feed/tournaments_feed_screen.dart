@@ -31,7 +31,14 @@ class TournamentsFeedScreen extends StatefulWidget {
 class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<String> _gameFilters = ['All', 'FIFA', 'EA FC 24', 'Tekken 8', 'Mortal Kombat', 'Rocket League'];
+  final List<String> _gameFilters = [
+    'All',
+    'FIFA',
+    'EA FC 24',
+    'Tekken 8',
+    'Mortal Kombat',
+    'Rocket League',
+  ];
   final List<String> _statusFilters = [
     'All',
     'registration_open',
@@ -71,7 +78,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 color: AppColors.textPrimary,
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w900,
-                fontFamily: 'Orbitron',
+
                 letterSpacing: 1.0,
               ),
             ),
@@ -84,9 +91,15 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
               decoration: BoxDecoration(
                 color: AppColors.neonBlue.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.neonBlue.withValues(alpha: 0.3),
+                ),
               ),
-              child: Icon(TablerIcons.history, color: AppColors.neonBlue, size: 18.sp),
+              child: Icon(
+                TablerIcons.history,
+                color: AppColors.neonBlue,
+                size: 18.sp,
+              ),
             ),
             tooltip: AppStrings.myTournamentHistory.tr(),
             onPressed: () {
@@ -108,15 +121,24 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 return Container(
                   width: double.infinity,
                   margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 10.h,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.neonPurple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
+                    border: Border.all(
+                      color: AppColors.neonPurple.withValues(alpha: 0.4),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(TablerIcons.location_off, color: AppColors.neonPurple, size: 20.sp),
+                      Icon(
+                        TablerIcons.location_off,
+                        color: AppColors.neonPurple,
+                        size: 20.sp,
+                      ),
                       SizedBox(width: 10.w),
                       Expanded(
                         child: Text(
@@ -146,14 +168,22 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                     prefixIcon: TablerIcons.search,
                     suffixIcon: value.text.isNotEmpty
                         ? IconButton(
-                            icon: Icon(Icons.clear, color: AppColors.textSecondary, size: 18.sp),
+                            icon: Icon(
+                              Icons.clear,
+                              color: AppColors.textSecondary,
+                              size: 18.sp,
+                            ),
                             onPressed: () {
                               _searchController.clear();
-                              context.read<TournamentsFeedCubit>().onSearchChanged('');
+                              context
+                                  .read<TournamentsFeedCubit>()
+                                  .onSearchChanged('');
                             },
                           )
                         : null,
-                    onChanged: context.read<TournamentsFeedCubit>().onSearchChanged,
+                    onChanged: context
+                        .read<TournamentsFeedCubit>()
+                        .onSearchChanged,
                   );
                 },
               ),
@@ -169,32 +199,51 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 separatorBuilder: (context, index) => SizedBox(width: 8.w),
                 itemBuilder: (context, index) {
                   final game = _gameFilters[index];
-                  return BlocSelector<TournamentsFeedCubit, TournamentsFeedState, String?>(
+                  return BlocSelector<
+                    TournamentsFeedCubit,
+                    TournamentsFeedState,
+                    String?
+                  >(
                     selector: (state) => state.selectedGame,
                     builder: (context, selectedGame) {
-                      final isSelected = (selectedGame == null && game == 'All') || selectedGame == game;
+                      final isSelected =
+                          (selectedGame == null && game == 'All') ||
+                          selectedGame == game;
                       return GestureDetector(
                         onTap: () {
-                          context.read<TournamentsFeedCubit>().filterByGame(game == 'All' ? null : game);
+                          context.read<TournamentsFeedCubit>().filterByGame(
+                            game == 'All' ? null : game,
+                          );
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           child: GlassContainer(
                             borderRadius: 12,
                             blur: 8,
-                            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14.w,
+                              vertical: 8.h,
+                            ),
                             color: isSelected
                                 ? AppColors.neonBlue.withValues(alpha: 0.85)
-                                : AppColors.tournamentFilterBg.withValues(alpha: 0.5),
+                                : AppColors.tournamentFilterBg.withValues(
+                                    alpha: 0.5,
+                                  ),
                             borderColor: isSelected
                                 ? AppColors.neonBlue
                                 : AppColors.neonBlue.withValues(alpha: 0.25),
                             child: Center(
                               child: AppText(
-                                text: game == 'All' ? AppStrings.all.tr() : game,
-                                color: isSelected ? AppColors.black : AppColors.white,
+                                text: game == 'All'
+                                    ? AppStrings.all.tr()
+                                    : game,
+                                color: isSelected
+                                    ? AppColors.black
+                                    : AppColors.white,
                                 fontSize: 12.sp,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                                fontWeight: isSelected
+                                    ? FontWeight.w900
+                                    : FontWeight.w600,
                               ),
                             ),
                           ),
@@ -217,28 +266,45 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                 separatorBuilder: (context, index) => SizedBox(width: 8.w),
                 itemBuilder: (context, index) {
                   final statusKey = _statusFilters[index];
-                  return BlocSelector<TournamentsFeedCubit, TournamentsFeedState, String?>(
+                  return BlocSelector<
+                    TournamentsFeedCubit,
+                    TournamentsFeedState,
+                    String?
+                  >(
                     selector: (state) => state.selectedStatus,
                     builder: (context, selectedStatus) {
-                      final isSelected = (selectedStatus == null && statusKey == 'All') || selectedStatus == statusKey;
+                      final isSelected =
+                          (selectedStatus == null && statusKey == 'All') ||
+                          selectedStatus == statusKey;
 
                       return GestureDetector(
                         onTap: () {
-                          context.read<TournamentsFeedCubit>().filterByStatus(statusKey == 'All' ? null : statusKey);
+                          context.read<TournamentsFeedCubit>().filterByStatus(
+                            statusKey == 'All' ? null : statusKey,
+                          );
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 14.w,
+                            vertical: 8.h,
+                          ),
                           decoration: BoxDecoration(
-                            color: isSelected ? AppColors.neonPurple : AppColors.tournamentFilterBg,
+                            color: isSelected
+                                ? AppColors.neonPurple
+                                : AppColors.tournamentFilterBg,
                             borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
-                              color: isSelected ? AppColors.neonPurple : AppColors.neonPurple.withValues(alpha: 0.2),
+                              color: isSelected
+                                  ? AppColors.neonPurple
+                                  : AppColors.neonPurple.withValues(alpha: 0.2),
                             ),
                             boxShadow: isSelected
                                 ? [
                                     BoxShadow(
-                                      color: AppColors.neonPurple.withValues(alpha: 0.4),
+                                      color: AppColors.neonPurple.withValues(
+                                        alpha: 0.4,
+                                      ),
                                       blurRadius: 8.r,
                                     ),
                                   ]
@@ -248,9 +314,13 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                             child: Text(
                               _getLocalizedStatus(statusKey),
                               style: TextStyle(
-                                color: isSelected ? AppColors.white : AppColors.textSecondary,
+                                color: isSelected
+                                    ? AppColors.white
+                                    : AppColors.textSecondary,
                                 fontSize: 12.sp,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                             ),
                           ),
@@ -271,11 +341,13 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                     previous.tournaments != current.tournaments ||
                     previous.errorMessage != current.errorMessage,
                 builder: (context, state) {
-                  if (state.status == TournamentsFeedStatus.loading && state.tournaments.isEmpty) {
+                  if (state.status == TournamentsFeedStatus.loading &&
+                      state.tournaments.isEmpty) {
                     return const AppLoader(size: 40);
                   }
 
-                  if (state.status == TournamentsFeedStatus.failure && state.tournaments.isEmpty) {
+                  if (state.status == TournamentsFeedStatus.failure &&
+                      state.tournaments.isEmpty) {
                     return Center(
                       child: Padding(
                         padding: EdgeInsets.all(24.w),
@@ -289,7 +361,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                             ),
                             SizedBox(height: 12.h),
                             Text(
-                              state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                              state.errorMessage ??
+                                  AppStrings.somethingWentWrong.tr(),
                               style: TextStyle(
                                 color: AppColors.textSecondary,
                                 fontSize: 14.sp,
@@ -303,10 +376,14 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                 borderColor: AppColors.neonBlue,
                                 isOutlined: true,
                               ),
-                              content: ButtonContent(label: AppStrings.retry.tr()),
+                              content: ButtonContent(
+                                label: AppStrings.retry.tr(),
+                              ),
                               behavior: TapBehavior(
                                 onTap: () {
-                                  context.read<TournamentsFeedCubit>().loadTournaments(isRefresh: true);
+                                  context
+                                      .read<TournamentsFeedCubit>()
+                                      .loadTournaments(isRefresh: true);
                                 },
                               ),
                             ),
@@ -319,7 +396,9 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                   if (state.tournaments.isEmpty) {
                     return AppRefreshIndicator(
                       onRefresh: () async {
-                        await context.read<TournamentsFeedCubit>().loadTournaments(isRefresh: true);
+                        await context
+                            .read<TournamentsFeedCubit>()
+                            .loadTournaments(isRefresh: true);
                       },
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
@@ -332,7 +411,9 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                 Icon(
                                   TablerIcons.trophy_off,
                                   size: 64.sp,
-                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.5,
+                                  ),
                                 ),
                                 SizedBox(height: 16.h),
                                 Text(
@@ -353,10 +434,15 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
 
                   return AppRefreshIndicator(
                     onRefresh: () async {
-                      await context.read<TournamentsFeedCubit>().loadTournaments(isRefresh: true);
+                      await context
+                          .read<TournamentsFeedCubit>()
+                          .loadTournaments(isRefresh: true);
                     },
                     child: ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 8.h,
+                      ),
                       itemCount: state.tournaments.length,
                       itemBuilder: (context, index) {
                         final tournament = state.tournaments[index];

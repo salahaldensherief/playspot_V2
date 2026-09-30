@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../art_core/models/time_range.dart';
+import 'operational_slot_clock.dart';
 
 /// Domain Service responsible for booking availability calculations,
 /// status filtering, TimeRange parsing, operational hours calculation,
@@ -82,12 +83,11 @@ class BookingAvailabilityService {
       }
     }
 
-    return slots.toList()
-      ..sort((a, b) {
-        final aMinutes = a.hour * 60 + a.minute;
-        final bMinutes = b.hour * 60 + b.minute;
-        return aMinutes.compareTo(bMinutes);
-      });
+    return slots.toList()..sort((a, b) {
+      final aMinutes = a.hour * 60 + a.minute;
+      final bMinutes = b.hour * 60 + b.minute;
+      return aMinutes.compareTo(bMinutes);
+    });
   }
 
   /// Checks if a proposed booking range (start + duration) conflicts with existing [TimeRange]s.
@@ -96,22 +96,15 @@ class BookingAvailabilityService {
     required DateTime date,
     required TimeOfDay startTime,
     required int durationMinutes,
+    required String opensAt,
+    required String closesAt,
   }) {
-    final startDateTime = (startTime.hour >= 10)
-        ? DateTime(
-            date.year,
-            date.month,
-            date.day,
-            startTime.hour,
-            startTime.minute,
-          )
-        : DateTime(
-            date.year,
-            date.month,
-            date.day + 1,
-            startTime.hour,
-            startTime.minute,
-          );
+    final startDateTime = const OperationalSlotClock().resolve(
+      businessDate: date,
+      slot: startTime,
+      opensAt: opensAt,
+      closesAt: closesAt,
+    );
     final endDateTime = startDateTime.add(Duration(minutes: durationMinutes));
 
     return roomBookings.any(

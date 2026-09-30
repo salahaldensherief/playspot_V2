@@ -27,7 +27,8 @@ import 'package:playspot/features/active_session/presentation/active_session_cub
 import 'package:playspot/features/active_session/presentation/active_session_state.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 
-class MockActiveSessionRepository extends Mock implements ActiveSessionRepository {}
+class MockActiveSessionRepository extends Mock
+    implements ActiveSessionRepository {}
 
 void main() {
   setUpAll(() {
@@ -53,38 +54,52 @@ void main() {
 
   setUp(() {
     mockRepository = MockActiveSessionRepository();
-    when(() => mockRepository.watchUserActiveSession())
-        .thenAnswer((_) => Stream.value(null));
-    when(() => mockRepository.streamActiveSession(any()))
-        .thenAnswer((_) => Stream.value(testSession));
-    when(() => mockRepository.getActiveSession(bookingId: any(named: 'bookingId')))
-        .thenAnswer((_) async => Right(testSession));
-    when(() => mockRepository.getLoungeMenu(any()))
-        .thenAnswer((_) async => const Right([]));
-    when(() => mockRepository.getCanteenMenu(any()))
-        .thenAnswer((_) async => const Right(CanteenMenuData(extras: [], combos: [])));
-    when(() => mockRepository.getUpsellSuggestions(any()))
-        .thenAnswer((_) async => const Right([]));
-    when(() => mockRepository.recordUpsellEvent(
-          ruleId: any(named: 'ruleId'),
-          bookingId: any(named: 'bookingId'),
-          event: any(named: 'event'),
-          canteenOrderId: any(named: 'canteenOrderId'),
-          amount: any(named: 'amount'),
-        )).thenAnswer((_) async => const Right(null));
+    when(
+      () => mockRepository.watchUserActiveSession(),
+    ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockRepository.streamActiveSession(any()),
+    ).thenAnswer((_) => Stream.value(testSession));
+    when(
+      () => mockRepository.getActiveSession(bookingId: any(named: 'bookingId')),
+    ).thenAnswer((_) async => Right(testSession));
+    when(
+      () => mockRepository.getLoungeMenu(any()),
+    ).thenAnswer((_) async => const Right([]));
+    when(() => mockRepository.getCanteenMenu(any())).thenAnswer(
+      (_) async => const Right(CanteenMenuData(extras: [], combos: [])),
+    );
+    when(
+      () => mockRepository.getUpsellSuggestions(any()),
+    ).thenAnswer((_) async => const Right([]));
+    when(
+      () => mockRepository.recordUpsellEvent(
+        ruleId: any(named: 'ruleId'),
+        bookingId: any(named: 'bookingId'),
+        event: any(named: 'event'),
+        canteenOrderId: any(named: 'canteenOrderId'),
+        amount: any(named: 'amount'),
+      ),
+    ).thenAnswer((_) async => const Right(null));
 
     cubit = ActiveSessionCubit(
       getActiveSessionUseCase: GetActiveSessionUseCase(mockRepository),
-      watchUserActiveSessionUseCase: WatchUserActiveSessionUseCase(mockRepository),
+      watchUserActiveSessionUseCase: WatchUserActiveSessionUseCase(
+        mockRepository,
+      ),
       streamActiveSessionUseCase: StreamActiveSessionUseCase(mockRepository),
       extendSessionTimeUseCase: ExtendSessionTimeUseCase(mockRepository),
-      requestSessionExtensionUseCase: RequestSessionExtensionUseCase(mockRepository),
+      requestSessionExtensionUseCase: RequestSessionExtensionUseCase(
+        mockRepository,
+      ),
       placeSessionOrderUseCase: PlaceSessionOrderUseCase(mockRepository),
       getLoungeMenuUseCase: GetLoungeMenuUseCase(mockRepository),
       getCanteenMenuUseCase: GetCanteenMenuUseCase(mockRepository),
       getUpsellSuggestionsUseCase: GetUpsellSuggestionsUseCase(mockRepository),
       recordUpsellEventUseCase: RecordUpsellEventUseCase(mockRepository),
-      requestStaffAssistanceUseCase: RequestStaffAssistanceUseCase(mockRepository),
+      requestStaffAssistanceUseCase: RequestStaffAssistanceUseCase(
+        mockRepository,
+      ),
       submitLoungeReviewUseCase: SubmitLoungeReviewUseCase(mockRepository),
     );
   });
@@ -103,22 +118,26 @@ void main() {
       expect(cubit.state.unavailableItems, isEmpty);
     });
 
-    test('loadActiveSession emits [loading, loaded] when active session exists', () async {
-      when(() => mockRepository.getActiveSession(bookingId: 'b_100'))
-          .thenAnswer((_) async => Right(testSession));
+    test(
+      'loadActiveSession emits [loading, loaded] when active session exists',
+      () async {
+        when(
+          () => mockRepository.getActiveSession(bookingId: 'b_100'),
+        ).thenAnswer((_) async => Right(testSession));
 
-      final expectedStates = [
-        const ActiveSessionState(status: ActiveSessionStatus.loading),
-        ActiveSessionState(
-          status: ActiveSessionStatus.loaded,
-          session: testSession,
-        ),
-      ];
+        final expectedStates = [
+          const ActiveSessionState(status: ActiveSessionStatus.loading),
+          ActiveSessionState(
+            status: ActiveSessionStatus.loaded,
+            session: testSession,
+          ),
+        ];
 
-      expectLater(cubit.stream, emitsInOrder(expectedStates));
+        expectLater(cubit.stream, emitsInOrder(expectedStates));
 
-      await cubit.loadActiveSession(bookingId: 'b_100');
-    });
+        await cubit.loadActiveSession(bookingId: 'b_100');
+      },
+    );
 
     test('loadMenu populates extras and combos correctly', () async {
       const testExtra = ExtraModel(
@@ -139,10 +158,9 @@ void main() {
       );
 
       when(() => mockRepository.getCanteenMenu('l_200')).thenAnswer(
-        (_) async => const Right(CanteenMenuData(
-          extras: [testExtra],
-          combos: [testCombo],
-        )),
+        (_) async => const Right(
+          CanteenMenuData(extras: [testExtra], combos: [testCombo]),
+        ),
       );
 
       await cubit.loadMenu('l_200');
@@ -153,36 +171,41 @@ void main() {
       expect(cubit.state.combos.first.savings, 15.0);
     });
 
-    test('placeOrder with CanteenOutOfStockFailure populates unavailableItems without clearing cart', () async {
-      await cubit.loadActiveSession(bookingId: 'b_100');
+    test(
+      'placeOrder with CanteenOutOfStockFailure populates unavailableItems without clearing cart',
+      () async {
+        await cubit.loadActiveSession(bookingId: 'b_100');
 
-      const unavailable = OutOfStockItem(
-        id: 'e1',
-        name: 'بيبسي',
-        available: 2,
-        requested: 5,
-      );
+        const unavailable = OutOfStockItem(
+          id: 'e1',
+          name: 'بيبسي',
+          available: 2,
+          requested: 5,
+        );
 
-      when(() => mockRepository.placeOrder(any(), any())).thenAnswer(
-        (_) async => const Left(CanteenOutOfStockFailure(
-          message: 'Some items are out of stock',
-          unavailableItems: [unavailable],
-        )),
-      );
+        when(() => mockRepository.placeOrder(any(), any())).thenAnswer(
+          (_) async => const Left(
+            CanteenOutOfStockFailure(
+              message: 'Some items are out of stock',
+              unavailableItems: [unavailable],
+            ),
+          ),
+        );
 
-      final orderItem = const OrderItem(
-        id: 'e1',
-        name: 'Pepsi',
-        price: 20.0,
-        quantity: 5,
-      );
+        final orderItem = const OrderItem(
+          id: 'e1',
+          name: 'Pepsi',
+          price: 20.0,
+          quantity: 5,
+        );
 
-      await cubit.placeOrder([orderItem]);
+        await cubit.placeOrder([orderItem]);
 
-      expect(cubit.state.orderStatus, ActionStatus.error);
-      expect(cubit.state.unavailableItems.length, 1);
-      expect(cubit.state.unavailableItems.first.available, 2);
-    });
+        expect(cubit.state.orderStatus, ActionStatus.error);
+        expect(cubit.state.unavailableItems.length, 1);
+        expect(cubit.state.unavailableItems.first.available, 2);
+      },
+    );
 
     test('recordUpsellImpression caps at 2 impressions per booking', () async {
       await cubit.loadActiveSession(bookingId: 'b_100');
@@ -209,11 +232,13 @@ void main() {
       await cubit.recordUpsellImpression(suggestion);
       expect(cubit.state.upsellImpressionsCount, 2);
 
-      verify(() => mockRepository.recordUpsellEvent(
-            ruleId: 'r1',
-            bookingId: 'b_100',
-            event: 'shown',
-          )).called(2);
+      verify(
+        () => mockRepository.recordUpsellEvent(
+          ruleId: 'r1',
+          bookingId: 'b_100',
+          event: 'shown',
+        ),
+      ).called(2);
     });
   });
 }

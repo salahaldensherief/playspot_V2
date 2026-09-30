@@ -291,7 +291,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
-            fontFamily: "Orbitron",
           ),
           Row(
             children: [

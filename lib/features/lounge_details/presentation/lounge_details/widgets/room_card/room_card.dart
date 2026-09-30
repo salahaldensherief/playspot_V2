@@ -20,7 +20,8 @@ class RoomCard extends StatefulWidget {
   State<RoomCard> createState() => _RoomCardState();
 }
 
-class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin {
+class _RoomCardState extends State<RoomCard>
+    with SingleTickerProviderStateMixin {
   bool _isExpanded = false;
 
   @override
@@ -39,7 +40,8 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
       },
       child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
         buildWhen: (prev, curr) =>
-            prev.isRoomSelected(widget.room.id) != curr.isRoomSelected(widget.room.id) ||
+            prev.isRoomSelected(widget.room.id) !=
+                curr.isRoomSelected(widget.room.id) ||
             prev.bookedRoomIds.contains(widget.room.id) !=
                 curr.bookedRoomIds.contains(widget.room.id) ||
             prev.lounge?.isOpen != curr.lounge?.isOpen ||
@@ -47,18 +49,22 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
         builder: (context, state) {
           final isSelected = state.isRoomSelected(widget.room.id);
           final isBooked = state.bookedRoomIds.contains(widget.room.id);
-          final isLoungeOpen = state.lounge?.isOpen ?? true;
-          final isAvailable = widget.room.isAvailable &&
+          final isLoungeOpen = state.lounge?.isOpen ?? false;
+          final isAvailable =
+              widget.room.isAvailable &&
               !widget.room.isOccupied &&
               !isBooked &&
               isLoungeOpen;
-          final hasOffer = widget.room.hasActivePromo ||
+          final hasOffer =
+              widget.room.hasActivePromo ||
               (state.lounge != null &&
                   state.lounge!.isDiscountActive &&
                   state.lounge!.discountPercentage > 0);
 
           return GestureDetector(
-            onTap: isAvailable ? () => setState(() => _isExpanded = !_isExpanded) : null,
+            onTap: isAvailable
+                ? () => setState(() => _isExpanded = !_isExpanded)
+                : null,
             child: AnimatedContainer(
               duration: RoomConstants.animationDuration,
               margin: EdgeInsets.only(bottom: 12.h),
@@ -70,14 +76,21 @@ class _RoomCardState extends State<RoomCard> with SingleTickerProviderStateMixin
                 borderColor: isSelected
                     ? themeColor
                     : (hasOffer
-                        ? AppColors.warning.withValues(alpha: 0.4)
-                        : (isAvailable
-                            ? AppColors.borderDefault
-                            : AppColors.danger.withValues(alpha: 0.15))),
+                          ? AppColors.warning.withValues(alpha: 0.4)
+                          : (isAvailable
+                                ? AppColors.borderDefault
+                                : AppColors.danger.withValues(alpha: 0.15))),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     RoomMainContent(
+                      availabilityLabel: !isLoungeOpen
+                          ? 'room_closed'
+                          : (widget.room.isOccupied || isBooked)
+                          ? 'room_busy'
+                          : !widget.room.isAvailable
+                          ? 'room_unavailable'
+                          : 'room_available',
                       room: widget.room,
                       isArabic: isArabic,
                       isAvailable: isAvailable,

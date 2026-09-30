@@ -238,10 +238,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   }) async {
     final response = await _client.rpc(
       'get_room_slots_with_prices',
-      params: {
-        'p_room_id': roomId,
-        'p_date': date,
-      },
+      params: {'p_room_id': roomId, 'p_date': date},
     );
 
     return List<Map<String, dynamic>>.from(response as List);
@@ -251,9 +248,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
   Future<Map<String, dynamic>> getLoungePriceRange(String loungeId) async {
     final response = await _client.rpc(
       'get_lounge_price_range',
-      params: {
-        'p_lounge_id': loungeId,
-      },
+      params: {'p_lounge_id': loungeId},
     );
 
     return Map<String, dynamic>.from(response as Map);
@@ -601,67 +596,14 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String reason,
     required String note,
   }) async {
-    final userId = _client.auth.currentUser?.id;
-
-    try {
-      await _client.rpc(
-        'request_staff_assistance',
-        params: {
-          'p_booking_id': bookingId,
-          'p_user_id': userId,
-          'p_call_type': reason,
-          'p_notes': note,
-        },
-      );
-      return;
-    } catch (rpc1Error) {
-      dev.log(
-        "RPC request_staff_assistance failed: $rpc1Error, trying call_staff_request",
-      );
-    }
-
-    try {
-      await _client.rpc(
-        'call_staff_request',
-        params: {'p_booking_id': bookingId, 'p_reason': reason, 'p_note': note},
-      );
-      return;
-    } catch (rpc2Error) {
-      dev.log(
-        "RPC call_staff_request failed: $rpc2Error, inserting directly into service_calls",
-      );
-    }
-
-    try {
-      final bookingData = await _client
-          .from('bookings')
-          .select('lounge_id, room_id, user_id')
-          .eq('id', bookingId)
-          .maybeSingle();
-
-      final String? fetchedLoungeId =
-          bookingData?['lounge_id']?.toString() ??
-          (loungeId.isNotEmpty ? loungeId : null);
-      final String? roomId = bookingData?['room_id']?.toString();
-      final String? bookingUserId =
-          bookingData?['user_id']?.toString() ?? userId;
-
-      await _client.from('service_calls').insert({
-        'booking_id': bookingId,
-        if (fetchedLoungeId != null && fetchedLoungeId.isNotEmpty)
-          'lounge_id': fetchedLoungeId,
-        if (roomId != null && roomId.isNotEmpty) 'room_id': roomId,
-        if (bookingUserId != null && bookingUserId.isNotEmpty)
-          'user_id': bookingUserId,
-        'call_type': reason,
-        'status': 'pending',
-        if (note.isNotEmpty) 'notes': note,
-      });
-      dev.log("Inserted directly into service_calls SUCCESS");
-    } catch (e) {
-      dev.log("callStaff failed to insert into service_calls: $e");
-      rethrow;
-    }
+    await _client.rpc(
+      'request_staff_assistance_for_booking',
+      params: {
+        'p_booking_id': bookingId,
+        'p_call_type': reason,
+        'p_notes': note.isEmpty ? null : note,
+      },
+    );
   }
 
   @override
@@ -673,8 +615,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required double totalPrice,
     required String note,
   }) async {
-    final validUserId = _client.auth.currentUser?.id ?? userId;
-
     final formattedItems = items.map((item) {
       final id =
           item['id']?.toString() ??
@@ -705,31 +645,14 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       };
     }).toList();
 
-    try {
-      final response = await _client.rpc(
-        'place_canteen_order',
-        params: {'p_booking_id': bookingId, 'p_items': formattedItems},
-      );
-      dev.log("place_canteen_order RPC SUCCESS: $response");
-    } catch (e) {
-      dev.log("place_canteen_order RPC failed: $e, trying full params...");
-      try {
-        final response = await _client.rpc(
-          'place_canteen_order',
-          params: {
-            'p_booking_id': bookingId,
-            'p_lounge_id': loungeId,
-            'p_user_id': validUserId,
-            'p_items': formattedItems,
-            'p_total_price': totalPrice > 0 ? totalPrice : null,
-            'p_note': note.isNotEmpty ? note : null,
-          },
-        );
-        dev.log("place_canteen_order RPC with full params SUCCESS: $response");
-      } catch (e2) {
-        dev.log("place_canteen_order RPC with full params failed: $e2");
-        rethrow;
-      }
-    }
+    final response = await _client.rpc(
+      'place_canteen_order',
+      params: {
+        'p_booking_id': bookingId,
+        'p_items': formattedItems,
+        'p_note': note.isEmpty ? null : note,
+      },
+    );
+    dev.log("place_canteen_order RPC SUCCESS: $response");
   }
 }

@@ -64,7 +64,6 @@ class QrLocationDialog extends StatelessWidget {
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                fontFamily: "Orbitron",
               ),
               SizedBox(height: 8.h),
               AppText(
@@ -104,7 +103,9 @@ class QrLocationDialog extends StatelessWidget {
               ),
               SizedBox(height: 20.h),
               AppButton(
-                content: ButtonContent(label: AppStrings.close.tr().toUpperCase()),
+                content: ButtonContent(
+                  label: AppStrings.close.tr().toUpperCase(),
+                ),
                 behavior: ButtonBehavior.tap(
                   onTap: () => Navigator.pop(context),
                 ),

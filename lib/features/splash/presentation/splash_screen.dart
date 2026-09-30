@@ -69,7 +69,10 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (statusType == AppStatusType.maintenance) {
-      context.goNamed(RouterKeys.maintenance, extra: appStatusCubit.state.statusEntity);
+      context.goNamed(
+        RouterKeys.maintenance,
+        extra: appStatusCubit.state.statusEntity,
+      );
       return;
     }
 
@@ -106,7 +109,6 @@ class _SplashScreenState extends State<SplashScreen>
       context.goNamed(RouterKeys.signIn);
     }
   }
-
 
   Future<void> _fetchUserLocation() async {
     try {
@@ -187,7 +189,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ],
                     color: AppColors.primary,
                     fontSize: 18.sp,
-                    fontFamily: "Orbitron",
                   ),
                 ),
               ),

@@ -51,12 +51,13 @@ class LoungeDetailsBottomBar extends StatelessWidget {
           child: AppButton(
             content: ButtonContent(
               body: AppText(
-                fontFamily: 'Orbitron',
                 textAlign: TextAlign.center,
                 text: buttonText,
                 fontSize: 15.sp,
                 fontWeight: FontWeight.bold,
-                color: (isRoomSelected && isOpen) ? AppColors.black : AppColors.white,
+                color: (isRoomSelected && isOpen)
+                    ? AppColors.black
+                    : AppColors.white,
               ),
             ),
             behavior: ButtonBehavior.tap(
@@ -66,10 +67,12 @@ class LoungeDetailsBottomBar extends StatelessWidget {
                       final selectedRooms = state.selectedRooms;
                       if (selectedRooms.isEmpty) return;
 
-                      final selectedExtras =
-                          state.selectedExtras.entries.map((entry) {
-                        final extra =
-                            state.extras.where((e) => e.id == entry.key).firstOrNull;
+                      final selectedExtras = state.selectedExtras.entries.map((
+                        entry,
+                      ) {
+                        final extra = state.extras
+                            .where((e) => e.id == entry.key)
+                            .firstOrNull;
                         return {
                           'id': entry.key,
                           'name': extra?.name ?? 'Extra',
@@ -79,7 +82,8 @@ class LoungeDetailsBottomBar extends StatelessWidget {
                       }).toList();
 
                       final firstRoom = selectedRooms.first;
-                      final primaryPlayMode = state.roomPlayModes[firstRoom.id] ??
+                      final primaryPlayMode =
+                          state.roomPlayModes[firstRoom.id] ??
                           (firstRoom.isOpenArea ? 'single' : 'multi');
                       final primaryExtraControllers =
                           state.roomExtraControllers[firstRoom.id] ?? 0;
@@ -101,8 +105,12 @@ class LoungeDetailsBottomBar extends StatelessWidget {
                   : null,
             ),
             buttonConfig: ButtonConfig(
-              gradient: (isRoomSelected && isOpen) ? AppColors.primaryGradient : null,
-              glowColor: (isRoomSelected && isOpen) ? AppColors.neonBlueAlt : Colors.transparent,
+              gradient: (isRoomSelected && isOpen)
+                  ? AppColors.primaryGradient
+                  : null,
+              glowColor: (isRoomSelected && isOpen)
+                  ? AppColors.neonBlueAlt
+                  : Colors.transparent,
               borderRadius: 15.r,
               width: 340.w,
               height: 50.h,
