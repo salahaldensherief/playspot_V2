@@ -23,7 +23,8 @@ async function snapshot(){await db.exec('RESET ROLE');return (await db.query(`SE
  (SELECT count(*) FROM public.wallet_transactions) as transactions,
  (SELECT count(*) FROM public.payments) as payments,
  (SELECT count(*) FROM public.shift_payments) as shift_payments,
- (SELECT payment_status FROM public.bookings WHERE id='${booking}') as payment_status`)).rows[0];}
+ (SELECT payment_status FROM public.bookings WHERE id='${booking}') as payment_status,
+ (SELECT jsonb_agg(to_jsonb(b) ORDER BY id) FROM public.bookings b) as bookings`)).rows[0];}
 async function denied(name,id,sql,code){const before=await snapshot();await actor(id);
  await assert.rejects(()=>db.query(sql),e=>e.code===code);
  assert.deepEqual(await snapshot(),before);passed++;console.log('PASS '+name);}
@@ -79,7 +80,7 @@ try {
    assert.equal(result.idempotent,true);assert.deepEqual(await snapshot(),before);
  });
  await denied('same key altered amount',cust,`SELECT public.pay_with_wallet('${booking}',99,'payment-1')`,'22023');
- await denied('same key different owner',foreign,`SELECT public.pay_with_wallet('${other}',100,'payment-1')`,'22023');
+ await denied('other owner raw key cannot reuse earlier receipt',foreign,`SELECT public.pay_with_wallet('${other}',100,'payment-1')`,'55000');
  await denied('new payment operation for paid booking',cust,`SELECT public.pay_with_wallet('${booking}',100,'payment-2')`,'55000');
  await denied('customer cannot collect cash',cust,`SELECT public.collect_wallet_cash_topup('${cust}','${lounge}',100,'cash-1')`,'42501');
  await denied('cashier cannot collect for another lounge',staff,`SELECT public.collect_wallet_cash_topup('${cust}','10000000-0000-0000-0000-000000000002',100,'cash-1')`,'42501');
@@ -116,6 +117,93 @@ try {
  await denied('NULL capability fails closed',staff,`SELECT public.collect_wallet_cash_topup('${cust}','${lounge}',50,'null-cap')`,'42501');
  await check('private function has no client execute grant',async()=>{
    await db.exec('RESET ROLE');const grants=(await db.query(`SELECT has_function_privilege('authenticated','private.record_verified_booking_payment(uuid,text,numeric)','execute') AS allowed`)).rows[0];assert.equal(grants.allowed,false);
+ });
+ await admin(`CREATE OR REPLACE FUNCTION public.has_lounge_permission(p_lounge uuid,p_permission text)
+ RETURNS boolean LANGUAGE sql SECURITY DEFINER SET search_path='' AS $$
+ SELECT EXISTS(SELECT 1 FROM public.fixture_permissions WHERE actor=auth.uid() AND lounge=p_lounge AND permission=p_permission) $$;
+ ALTER TABLE public.bookings ADD COLUMN open_time_pricing_snapshot jsonb,
+ ADD COLUMN open_time_started_at timestamptz, ADD COLUMN actual_start_time timestamptz,
+ ADD COLUMN created_at timestamptz DEFAULT now(), ADD COLUMN open_time_closed_at timestamptz,
+ ADD COLUMN open_time_billing_minutes integer CHECK(open_time_billing_minutes BETWEEN 1 AND 1440),
+ ADD COLUMN duration_minutes integer, ADD COLUMN room_price numeric, ADD COLUMN play_mode text,
+ ADD COLUMN addons_total numeric;
+ CREATE TABLE public.rooms(id uuid PRIMARY KEY,lounge_id uuid,status text,is_available boolean,
+ updated_at timestamptz,open_time_minimum_minutes integer,open_time_rounding_minutes integer,
+ open_time_max_minutes integer,hourly_rate_single numeric,hourly_rate_multi numeric,hourly_rate numeric);
+ CREATE TABLE public.lounges(id uuid PRIMARY KEY,open_time_minimum_minutes integer,
+ open_time_rounding_minutes integer,open_time_max_minutes integer);
+ INSERT INTO public.fixture_permissions VALUES('${staff}','${lounge}','sessions_control');
+ INSERT INTO public.lounges(id) VALUES('${lounge}');
+ INSERT INTO public.rooms(id,lounge_id,status,is_available) VALUES('40000000-0000-0000-0000-000000000001','${lounge}','occupied',false);
+ INSERT INTO public.bookings(id,user_id,lounge_id,room_id,status,payment_status,total_price,is_open_time,
+ open_time_started_at,open_time_pricing_snapshot)
+ VALUES('20000000-0000-0000-0000-000000000003','${cust}','${lounge}','40000000-0000-0000-0000-000000000001',
+ 'in_progress','unpaid',0,true,now()-interval '61 minutes',
+ '{"effective_hourly_rate":60,"minimum_minutes":30,"rounding_minutes":15,"max_minutes":30}');`);
+ await db.exec(read('supabase/migrations/20261001100000_session_close_shift_and_ledger_integrity.sql'));
+ const session='20000000-0000-0000-0000-000000000003';
+ await denied('anonymous session close','',`SELECT public.complete_booking_session('${session}',NULL)`,'28000');
+ await denied('session close capability required',cust,`SELECT public.complete_booking_session('${session}',NULL)`,'42501');
+ await denied('session actor cannot be spoofed',staff,`SELECT public.complete_booking_session('${session}','${cust}')`,'42501');
+ await admin(`UPDATE public.shifts SET closed_at=now(),status='closed';`);
+ await denied('session close requires open same-lounge shift',staff,`SELECT public.complete_booking_session('${session}',NULL)`,'55000');
+ await admin(`UPDATE public.shifts SET closed_at=NULL,status='open';`);
+ await check('overrun billed without free max cap and no implicit payment',async()=>{
+   const before=await snapshot();await actor(staff);
+   const result=(await db.query(`SELECT public.complete_booking_session('${session}',NULL) AS value`)).rows[0].value;
+   assert.equal(result.billing_minutes,75);assert.equal(result.final_total,75);
+   assert.equal(result.amount_paid,0);assert.equal(result.amount_due,75);
+   const after=await snapshot();assert.equal(after.transactions,before.transactions);
+   assert.equal(after.payments,before.payments);assert.equal(after.shift_payments,before.shift_payments);
+ });
+ await check('completed session price is stable after snapshot changes',async()=>{
+   await admin(`UPDATE public.bookings SET open_time_pricing_snapshot='{ "effective_hourly_rate":900}' WHERE id='${session}'; UPDATE public.shifts SET status='closed',closed_at=now();`);
+   await actor(staff);const result=(await db.query(`SELECT public.complete_booking_session('${session}',NULL) AS value`)).rows[0].value;
+   assert.equal(result.final_total,75);assert.equal(result.billing_minutes,75);assert.equal(result.idempotent,true);
+ });
+ await check('paid flag is not proof of collection',async()=>{
+   await admin(`UPDATE public.bookings SET payment_status='paid' WHERE id='${session}';`);
+   await actor(staff);const result=(await db.query(`SELECT public.complete_booking_session('${session}',NULL) AS value`)).rows[0].value;
+   assert.equal(result.amount_paid,0);assert.equal(result.amount_due,75);
+ });
+ await check('receipt follows actual ledger instead of final total',async()=>{
+   await admin(`INSERT INTO public.payments(booking_id,user_id,lounge_id,amount,status) VALUES('${session}','${cust}','${lounge}',50,'completed');`);
+   await actor(staff);const result=(await db.query(`SELECT public.complete_booking_session('${session}',NULL) AS value`)).rows[0].value;
+   assert.equal(result.amount_paid,50);assert.equal(result.amount_due,25);
+ });
+ await admin(`UPDATE public.shifts SET status='open',closed_at=NULL;
+ UPDATE public.bookings SET status='in_progress',payment_status='unpaid',open_time_started_at=now()-interval '30 minutes 6 seconds',
+ open_time_pricing_snapshot='{"effective_hourly_rate":60,"minimum_minutes":30,"rounding_minutes":15}' WHERE id='${session}';
+ UPDATE public.rooms SET status='occupied',is_available=false;`);
+ await check('fractional minute rounds up before billing quantum',async()=>{
+   await actor(staff);const result=(await db.query(`SELECT public.complete_booking_session('${session}',NULL) AS value`)).rows[0].value;
+   assert.equal(result.billing_minutes,45);assert.equal(result.final_total,45);
+ });
+ await admin(`UPDATE public.bookings SET status='in_progress',open_time_pricing_snapshot='{"effective_hourly_rate":60,"minimum_minutes":30,"rounding_minutes":0}' WHERE id='${session}';`);
+ await denied('invalid rounding fails atomically',staff,`SELECT public.complete_booking_session('${session}',NULL)`,'22023');
+ await admin(`UPDATE public.bookings SET open_time_pricing_snapshot='{"effective_hourly_rate":60,"minimum_minutes":30,"rounding_minutes":15}' WHERE id='${session}';
+ UPDATE public.rooms SET status='maintenance',is_available=false;`);
+ await check('close preserves maintenance state',async()=>{
+   await actor(staff);await db.query(`SELECT public.complete_booking_session('${session}',NULL)`);
+   await db.exec('RESET ROLE');const room=(await db.query('SELECT status,is_available FROM public.rooms')).rows[0];
+   assert.equal(room.status,'maintenance');assert.equal(room.is_available,false);
+ });
+ await admin(`UPDATE public.bookings SET status='in_progress',open_time_started_at=now()-interval '25 hours',
+ open_time_pricing_snapshot='{"effective_hourly_rate":60,"minimum_minutes":30,"rounding_minutes":15,"max_minutes":30}' WHERE id='${session}';`);
+ await check('long overrun can close beyond old 1440-minute constraint',async()=>{
+   await actor(staff);const result=(await db.query(`SELECT public.complete_booking_session('${session}',NULL) AS value`)).rows[0].value;
+   assert.ok(result.billing_minutes>1440);assert.ok(result.final_total>1440);
+ });
+ await admin(`UPDATE public.bookings SET status='in_progress' WHERE id='${session}'; UPDATE public.rooms SET status='occupied',is_available=false;
+ INSERT INTO public.bookings(id,user_id,lounge_id,room_id,status,payment_status,total_price)
+ VALUES('20000000-0000-0000-0000-000000000004','${cust}','${lounge}','40000000-0000-0000-0000-000000000001','in_progress','unpaid',100);`);
+ await check('closing one session cannot free a room with another active session',async()=>{
+   await actor(staff);await db.query(`SELECT public.complete_booking_session('${session}',NULL)`);
+   await db.exec('RESET ROLE');const room=(await db.query('SELECT status,is_available FROM public.rooms')).rows[0];
+   assert.equal(room.status,'occupied');assert.equal(room.is_available,false);
+ });
+ await check('private completion receipt is not callable by clients',async()=>{
+   await db.exec('RESET ROLE');const value=(await db.query(`SELECT has_function_privilege('authenticated','private.booking_completion_receipt(uuid,boolean)','execute') AS allowed`)).rows[0];assert.equal(value.allowed,false);
  });
  console.log(JSON.stringify({passed,engine:(await db.query('SELECT version()')).rows[0],limitations:['Synthetic minimal schema; production triggers are not mirrored','Single connection; concurrent sessions not tested','No live database contacted']}));
 } finally {await db.close();}

@@ -33,6 +33,6 @@ Each slice needs adversarial auth/tenant/capability cases, open-shift lifecycle 
 rollback and same-ID retries, genuine multi-connection concurrency tests and deployed
 contract checks. Publish code and client contracts separately from applying SQL.
 
-Current tested slice is wallet integrity and safe cash collection/full wallet reversal.
+Current tested slices are wallet integrity, safe cash collection/full wallet reversal, and session closure with ledger-derived amounts and uncapped elapsed billing. The combined isolated suite passes 60 sequential checks; production-schema and multi-connection verification remain outstanding.
 The remaining phases above are not implemented by this correction. The Flutter work
 already exists in separate handoff branches; this backend phase does not modify it.

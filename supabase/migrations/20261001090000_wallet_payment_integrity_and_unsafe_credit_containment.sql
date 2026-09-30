@@ -205,6 +205,7 @@ CREATE OR REPLACE FUNCTION public.pay_with_wallet(
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE
   v_caller uuid := auth.uid();
+  v_key text;
   v_booking public.bookings%ROWTYPE;
   v_wallet public.user_wallets%ROWTYPE;
   v_previous public.wallet_transactions%ROWTYPE;
@@ -219,16 +220,17 @@ BEGIN
      OR p_amount <> round(p_amount,2) THEN
     RAISE EXCEPTION 'INVALID_PAYMENT_AMOUNT' USING ERRCODE='22023';
   END IF;
-  IF p_idempotency_key IS NULL OR length(btrim(p_idempotency_key)) NOT BETWEEN 1 AND 128 THEN
+  IF p_idempotency_key IS NULL OR length(p_idempotency_key) NOT BETWEEN 1 AND 128 OR btrim(p_idempotency_key)='' THEN
     RAISE EXCEPTION 'IDEMPOTENCY_KEY_REQUIRED' USING ERRCODE='22023';
   END IF;
-  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_idempotency_key,0));
+  v_key := 'wallet-payment:' || v_caller::text || ':' || p_idempotency_key;
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_key,0));
   SELECT * INTO v_booking FROM public.bookings WHERE id=p_booking_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'BOOKING_NOT_FOUND' USING ERRCODE='P0002'; END IF;
   IF v_booking.user_id IS DISTINCT FROM v_caller THEN
     RAISE EXCEPTION 'WALLET_BOOKING_OWNER_REQUIRED' USING ERRCODE='42501';
   END IF;
-  SELECT * INTO v_previous FROM public.wallet_transactions WHERE idempotency_key=p_idempotency_key;
+  SELECT * INTO v_previous FROM public.wallet_transactions WHERE idempotency_key=v_key;
   IF FOUND THEN
     IF v_previous.user_id IS DISTINCT FROM v_caller
        OR v_previous.booking_id IS DISTINCT FROM p_booking_id
@@ -264,7 +266,7 @@ BEGIN
   INSERT INTO public.wallet_transactions(user_id,booking_id,shift_id,amount,balance_after,
     transaction_type,idempotency_key,created_by)
     VALUES(v_caller,p_booking_id,(v_result->>'shift_id')::uuid,-v_total,v_wallet.balance,
-      'booking_payment',p_idempotency_key,v_caller) RETURNING id INTO v_transaction;
+      'booking_payment',v_key,v_caller) RETURNING id INTO v_transaction;
   RETURN v_result || jsonb_build_object('transaction_id',v_transaction,
     'amount_deducted',v_total,'remaining_balance',v_wallet.balance,
     'final_total',v_total,'amount_due',0,'payment_status','paid');
@@ -287,6 +289,7 @@ CREATE OR REPLACE FUNCTION public.collect_wallet_cash_topup(
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$
 DECLARE
   v_caller uuid := auth.uid();
+  v_key text;
   v_wallet public.user_wallets%ROWTYPE;
   v_previous public.wallet_transactions%ROWTYPE;
   v_shift_id uuid;
@@ -297,14 +300,15 @@ BEGIN
      OR p_amount::text IN ('NaN','Infinity','-Infinity') OR p_amount <> round(p_amount,2) THEN
     RAISE EXCEPTION 'INVALID_CASH_COLLECTION' USING ERRCODE='22023';
   END IF;
-  IF p_idempotency_key IS NULL OR length(btrim(p_idempotency_key)) NOT BETWEEN 1 AND 128 THEN
+  IF p_idempotency_key IS NULL OR length(p_idempotency_key) NOT BETWEEN 1 AND 128 OR btrim(p_idempotency_key)='' THEN
     RAISE EXCEPTION 'IDEMPOTENCY_KEY_REQUIRED' USING ERRCODE='22023';
   END IF;
   IF public.has_lounge_permission(p_lounge_id,'billing_checkout') IS NOT TRUE THEN
     RAISE EXCEPTION 'BILLING_PERMISSION_REQUIRED' USING ERRCODE='42501';
   END IF;
-  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_idempotency_key,0));
-  SELECT * INTO v_previous FROM public.wallet_transactions WHERE idempotency_key=p_idempotency_key;
+  v_key := 'wallet-cash:' || v_caller::text || ':' || p_idempotency_key;
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_key,0));
+  SELECT * INTO v_previous FROM public.wallet_transactions WHERE idempotency_key=v_key;
   IF FOUND THEN
     IF v_previous.user_id IS DISTINCT FROM p_customer_id OR v_previous.created_by IS DISTINCT FROM v_caller
        OR v_previous.transaction_type <> 'topup' OR v_previous.amount IS DISTINCT FROM p_amount
@@ -328,7 +332,7 @@ BEGIN
     VALUES(v_shift_id,p_lounge_id,'cash','other',p_amount,now());
   INSERT INTO public.wallet_transactions(user_id,shift_id,amount,balance_after,
     transaction_type,idempotency_key,notes,created_by)
-    VALUES(p_customer_id,v_shift_id,p_amount,v_wallet.balance,'topup',p_idempotency_key,
+    VALUES(p_customer_id,v_shift_id,p_amount,v_wallet.balance,'topup',v_key,
       'confirmed_cash_collection',v_caller) RETURNING id INTO v_transaction;
   RETURN jsonb_build_object('success',true,'transaction_id',v_transaction,
     'customer_id',p_customer_id,'amount_collected',p_amount,'balance',v_wallet.balance,'shift_id',v_shift_id);

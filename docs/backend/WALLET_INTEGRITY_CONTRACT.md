@@ -22,6 +22,8 @@ Never run the whole directory automatically. Originals and frontend branches pre
   before confirm; target wallet, open lounge shift and receipt recorded atomically.
   Returns success/customer_id/amount_collected/balance/shift_id/transaction_id.
   Same-ID replay verifies operator, customer, lounge, amount and collection type.
+  Stored keys are namespaced by operator and operation type to prevent cross-user
+  key squatting or collision with internally generated reversal keys.
 - refund_to_wallet(p_booking_id uuid,p_amount numeric,p_reason text default cancellation):
   authorized billing operator + open same-lounge shift. Only FULL reversal of a verified
   wallet payment is implemented. No arbitrary cash-to-wallet conversion or partial
@@ -52,7 +54,7 @@ separate reviewed contract and UI before release.
 
 ## Verification and limits
 
-46 checks pass using PGlite 0.5.8 / PostgreSQL 18.3 WASM, synthetic fixture and exact
+46 wallet/payment checks pass in a 60-check combined suite using PGlite 0.5.8 / PostgreSQL 18.3 WASM, synthetic fixture and exact
 migration source. Live target is PostgreSQL 17. Tests cover caller ownership, invalid
 amounts including NaN/Infinity/null, wrong lounge, frozen/insufficient wallet,
 closed shift, completed-session preservation, failures after payment insert, stable
