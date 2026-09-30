@@ -7,7 +7,6 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'package:playspot/features/slot_waitlist/presentation/widgets/slot_waitlist_bottom_sheet.dart';
 import '../booking_cubit.dart';
 import '../booking_state.dart';
 
@@ -171,21 +170,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                     return InkWell(
                       onTap: () {
                         if (isBooked) {
-                          SlotWaitlistBottomSheet.show(
-                            context,
-                            loungeId: widget.lounge.id,
-                            loungeName: widget.lounge.name,
-                            roomIds: context.read<BookingCubit>().roomIds,
-                            date: state.selectedDate,
-                            slotTime: slot,
-                            onSuccess: () {
-                              if (mounted) {
-                                setState(() {
-                                  _waitlistedSlotKeys.add(slotKey);
-                                });
-                              }
-                            },
-                          );
+                          _requestWaitlist(context, slot);
                         } else {
                           context.read<BookingCubit>().selectStartTime(slot);
                         }
@@ -594,6 +579,15 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
           ? await cubit.joinWaitlist(slot)
           : await cubit.cancelWaitlist(activeId);
       if (!mounted) return;
+      if (messageKey == 'waitlistJoined') {
+        setState(() {
+          _waitlistedSlotKeys.add(_slotKey(cubit.state.selectedDate, slot));
+        });
+      } else if (messageKey == 'waitlistCancelled') {
+        setState(() {
+          _waitlistedSlotKeys.remove(_slotKey(cubit.state.selectedDate, slot));
+        });
+      }
       _showWaitlistMessage(messageKey);
     } finally {
       _waitlistBusy = false;

@@ -289,9 +289,10 @@ BEGIN
   v_billable_minutes :=
     GREATEST(v_minimum, CEIL(v_elapsed_minutes::numeric / v_rounding::numeric)::integer * v_rounding);
 
-  IF v_room.open_time_max_minutes IS NOT NULL
-     AND v_elapsed_minutes > v_room.open_time_max_minutes THEN
-    RAISE EXCEPTION 'OPEN_TIME_MAX_EXCEEDED' USING ERRCODE = '55000';
+  -- Never trap an active room in an unclosable state. The configured maximum
+  -- is a billing cap and an operational warning, not a close-session guard.
+  IF v_room.open_time_max_minutes IS NOT NULL THEN
+    v_billable_minutes := LEAST(v_billable_minutes, v_room.open_time_max_minutes);
   END IF;
 
   v_base_rate := COALESCE(
