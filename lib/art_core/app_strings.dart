@@ -610,7 +610,6 @@ class AppStrings {
   static const String quickRebookPricingAtCheckout =
       "quickRebookPricingAtCheckout";
   static const String quickRebookCustomize = "quickRebookCustomize";
-
   // Booking Timeline
   static const String bookingTimelineTitle = "bookingTimelineTitle";
   static const String bookingTimelineFailed = "bookingTimelineFailed";
@@ -650,4 +649,19 @@ class AppStrings {
   static const String orderNoteHint = "orderNoteHint";
   static const String cartEmpty = "cartEmpty";
   static const String totalCanteen = "totalCanteen";
+
+  // Quick Rebook & Alternatives
+  static const String suggestedAlternativeDates = "suggestedAlternativeDates";
+
+  // Active Session Banner & Waitlist
+  static const String liveNow = "liveNow";
+  static const String join = "join";
+  static const String sessionEnded = "sessionEnded";
+  static const String notifyMe = "notifyMe";
+  static const String notifyMeForSlot = "notifyMeForSlot";
+  static const String notifyMeSuccess = "notifyMeSuccess";
+  static const String notifyMeFailure = "notifyMeFailure";
+  static const String notifyMePartial = "notifyMePartial";
+  static const String waitlistSubscribed = "waitlistSubscribed";
+  static const String allSlotsBookedOrPast = "allSlotsBookedOrPast";
 }

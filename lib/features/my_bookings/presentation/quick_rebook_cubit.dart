@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/booking_slot_utils.dart';
 import '../../booking/data/models/booking_params.dart';
 import '../data/models/booking_model.dart';
 import '../domain/entities/quick_rebook_setup.dart';
@@ -56,49 +57,75 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       },
       (setup) async {
         _setup = setup;
-
-        final slotsResult = await _getQuickRebookSlots(
-          loungeId: setup.lounge.id,
-          roomId: setup.room.id,
-          date: suggestedDate,
-          openingTime: setup.lounge.openingTime,
-          closingTime: setup.lounge.closingTime,
-          durationMinutes: setup.durationMinutes,
+        final targetTime = BookingSlotUtils.resolveTargetTime(
+          setup.pastBooking.startTime,
+          setup.pastBooking.startDateTime,
         );
+
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+
+        // 1. Try today's slots first
+        final todaySlots = await _fetchSlotsForDate(
+          setup,
+          today,
+          setup.durationMinutes,
+        );
+        if (isClosed || request != _slotRequest) return;
+
+        DateTime activeDate = today;
+        List<TimeOfDay> activeSlots = todaySlots;
+        final suggestedDates = <DateTime>[];
+
+        if (todaySlots.isNotEmpty) {
+          suggestedDates.add(today);
+        } else {
+          // Smart Rebook: Scan next 7-14 days to find available slots
+          final candidateDates = BookingSlotUtils.buildCandidateDates(
+            today,
+            setup.pastBooking.date.weekday,
+          );
+
+          for (final candidate in candidateDates) {
+            if (isClosed || request != _slotRequest) return;
+            final slots = await _fetchSlotsForDate(
+              setup,
+              candidate,
+              setup.durationMinutes,
+            );
+            if (slots.isNotEmpty) {
+              suggestedDates.add(candidate);
+              if (activeSlots.isEmpty) {
+                activeDate = candidate;
+                activeSlots = slots;
+              }
+              if (suggestedDates.length >= 4) break;
+            }
+          }
+        }
 
         if (isClosed || request != _slotRequest) return;
 
-        slotsResult.fold(
-          (failure) {
-            emit(
-              state.copyWith(
-                status: QuickRebookStatus.error,
-                errorMessage: failure.message,
-              ),
-            );
-          },
-          (slots) {
-            emit(
-              state.copyWith(
-                status: QuickRebookStatus.ready,
-                pastBooking: setup.pastBooking,
-                lounge: setup.lounge,
-                room: setup.room,
-                availableExtras: setup.availableExtras,
-                selectedAddonQuantities:
-                    setup.selectedAddonQuantities,
-                removedAddonNames: setup.removedAddonNames,
-                selectedDate: suggestedDate,
-                availableSlots: slots,
-                selectedSlot: QuickRebookPreference.closestSlot(
-                  slots,
-                  pastBooking.startTime,
-                ),
-                clearSelectedSlot: slots.isEmpty,
-                durationMinutes: setup.durationMinutes,
-              ),
-            );
-          },
+        final selectedSlot = activeSlots.isEmpty
+            ? null
+            : BookingSlotUtils.findClosestSlot(activeSlots, targetTime);
+
+        emit(
+          state.copyWith(
+            status: QuickRebookStatus.ready,
+            pastBooking: setup.pastBooking,
+            lounge: setup.lounge,
+            room: setup.room,
+            availableExtras: setup.availableExtras,
+            selectedAddonQuantities: setup.selectedAddonQuantities,
+            removedAddonNames: setup.removedAddonNames,
+            selectedDate: activeDate,
+            availableSlots: activeSlots,
+            selectedSlot: selectedSlot,
+            clearSelectedSlot: selectedSlot == null,
+            suggestedDates: suggestedDates,
+            durationMinutes: setup.durationMinutes,
+          ),
         );
       },
     );
@@ -116,40 +143,25 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       ),
     );
 
-    final slotsResult = await _getQuickRebookSlots(
-      loungeId: setup.lounge.id,
-      roomId: setup.room.id,
-      date: date,
-      openingTime: setup.lounge.openingTime,
-      closingTime: setup.lounge.closingTime,
-      durationMinutes: state.durationMinutes,
-    );
-
+    final slots = await _fetchSlotsForDate(setup, date, state.durationMinutes);
     if (isClosed || request != _slotRequest) return;
 
-    slotsResult.fold(
-      (failure) {
-        emit(
-          state.copyWith(
-            status: QuickRebookStatus.error,
-            errorMessage: failure.message,
-          ),
-        );
-      },
-      (slots) {
-        emit(
-          state.copyWith(
-            status: QuickRebookStatus.ready,
-            selectedDate: date,
-            availableSlots: slots,
-            selectedSlot: QuickRebookPreference.closestSlot(
-              slots,
-              setup.pastBooking.startTime,
-            ),
-            clearSelectedSlot: slots.isEmpty,
-          ),
-        );
-      },
+    final targetTime = BookingSlotUtils.resolveTargetTime(
+      setup.pastBooking.startTime,
+      setup.pastBooking.startDateTime,
+    );
+    final selectedSlot = slots.isEmpty
+        ? null
+        : BookingSlotUtils.findClosestSlot(slots, targetTime);
+
+    emit(
+      state.copyWith(
+        status: QuickRebookStatus.ready,
+        selectedDate: date,
+        availableSlots: slots,
+        selectedSlot: selectedSlot,
+        clearSelectedSlot: selectedSlot == null,
+      ),
     );
   }
 
@@ -173,43 +185,49 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       ),
     );
 
+    final slots = await _fetchSlotsForDate(
+      setup,
+      state.selectedDate,
+      normalizedDuration,
+    );
+    if (isClosed) return;
+
+    final targetTime = BookingSlotUtils.resolveTargetTime(
+      setup.pastBooking.startTime,
+      setup.pastBooking.startDateTime,
+    );
+    final selectedSlot = state.selectedSlot != null && slots.contains(state.selectedSlot)
+        ? state.selectedSlot
+        : (slots.isEmpty ? null : BookingSlotUtils.findClosestSlot(slots, targetTime));
+
+    emit(
+      state.copyWith(
+        status: QuickRebookStatus.ready,
+        durationMinutes: normalizedDuration,
+        availableSlots: slots,
+        selectedSlot: selectedSlot,
+        clearSelectedSlot: selectedSlot == null,
+      ),
+    );
+  }
+
+  Future<List<TimeOfDay>> _fetchSlotsForDate(
+    QuickRebookSetup setup,
+    DateTime date,
+    int durationMinutes,
+  ) async {
     final slotsResult = await _getQuickRebookSlots(
       loungeId: setup.lounge.id,
       roomId: setup.room.id,
-      date: state.selectedDate,
+      date: date,
       openingTime: setup.lounge.openingTime,
       closingTime: setup.lounge.closingTime,
-      durationMinutes: normalizedDuration,
+      durationMinutes: durationMinutes,
     );
 
-    if (isClosed || request != _slotRequest) return;
-
-    slotsResult.fold(
-      (failure) {
-        emit(
-          state.copyWith(
-            status: QuickRebookStatus.error,
-            errorMessage: failure.message,
-          ),
-        );
-      },
-      (slots) {
-        final selectedSlot =
-            state.selectedSlot != null &&
-                    slots.contains(state.selectedSlot)
-                ? state.selectedSlot
-                : (slots.isEmpty ? null : slots.first);
-
-        emit(
-          state.copyWith(
-            status: QuickRebookStatus.ready,
-            durationMinutes: normalizedDuration,
-            availableSlots: slots,
-            selectedSlot: selectedSlot,
-            clearSelectedSlot: selectedSlot == null,
-          ),
-        );
-      },
+    return slotsResult.fold(
+      (_) => const <TimeOfDay>[],
+      (slots) => slots,
     );
   }
 

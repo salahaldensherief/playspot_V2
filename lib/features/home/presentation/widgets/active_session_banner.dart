@@ -10,6 +10,7 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/core/utils/localized_duration_formatter.dart';
 import 'package:playspot/features/active_session/presentation/active_session_cubit.dart';
 import 'package:playspot/features/active_session/presentation/active_session_state.dart';
 
@@ -126,7 +127,7 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
                               ),
                               SizedBox(width: 6.w),
                               AppText(
-                                text: AppStrings.activeSession.tr(),
+                                text: AppStrings.liveNow.tr(),
                                 fontSize: 10.sp,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.greenAccent,
@@ -256,19 +257,20 @@ class _SessionCountdownText extends StatelessWidget {
         final remaining = endTime.difference(now);
         if (remaining.inSeconds <= 0) {
           return AppText(
-            text: AppStrings.sessionEndedTitle.tr(),
+            text: AppStrings.sessionEnded.tr(),
             fontSize: 11.sp,
             color: AppColors.textSecondary,
           );
         }
 
-        final hours = remaining.inHours.toString().padLeft(2, '0');
-        final minutes = (remaining.inMinutes % 60).toString().padLeft(2, '0');
-        final seconds = (remaining.inSeconds % 60).toString().padLeft(2, '0');
+        final isArabic = context.locale.languageCode == 'ar';
+        final timeText = LocalizedDurationFormatter.formatRemainingTime(
+          remaining,
+          isArabic: isArabic,
+        );
+
         return AppText(
-          text: AppStrings.sessionTimeRemaining.tr(
-            args: ['$hours:$minutes:$seconds'],
-          ),
+          text: timeText,
           fontSize: 11.sp,
           color: AppColors.textSecondary,
         );

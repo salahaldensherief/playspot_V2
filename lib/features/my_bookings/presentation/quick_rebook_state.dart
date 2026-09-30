@@ -18,6 +18,7 @@ class QuickRebookState extends Equatable {
   final DateTime selectedDate;
   final List<TimeOfDay> availableSlots;
   final TimeOfDay? selectedSlot;
+  final List<DateTime> suggestedDates;
   final int durationMinutes;
   final double roomSubtotal;
   final double addonsTotal;
@@ -35,6 +36,7 @@ class QuickRebookState extends Equatable {
     required this.selectedDate,
     this.availableSlots = const [],
     this.selectedSlot,
+    this.suggestedDates = const [],
     this.durationMinutes = 60,
     this.roomSubtotal = 0.0,
     this.addonsTotal = 0.0,
@@ -54,6 +56,7 @@ class QuickRebookState extends Equatable {
     List<TimeOfDay>? availableSlots,
     TimeOfDay? selectedSlot,
     bool clearSelectedSlot = false,
+    List<DateTime>? suggestedDates,
     int? durationMinutes,
     double? roomSubtotal,
     double? addonsTotal,
@@ -71,6 +74,7 @@ class QuickRebookState extends Equatable {
       selectedDate: selectedDate ?? this.selectedDate,
       availableSlots: availableSlots ?? this.availableSlots,
       selectedSlot: clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
+      suggestedDates: suggestedDates ?? this.suggestedDates,
       durationMinutes: durationMinutes ?? this.durationMinutes,
       roomSubtotal: roomSubtotal ?? this.roomSubtotal,
       addonsTotal: addonsTotal ?? this.addonsTotal,
@@ -91,6 +95,7 @@ class QuickRebookState extends Equatable {
         selectedDate,
         availableSlots,
         selectedSlot,
+        suggestedDates,
         durationMinutes,
         roomSubtotal,
         addonsTotal,

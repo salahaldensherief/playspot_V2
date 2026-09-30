@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/theme/app_colors.dart';
@@ -44,6 +45,64 @@ class QuickRebookSlotsSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: 10.h),
+        if (state.suggestedDates.length > 1) ...[
+          AppText(
+            text: AppStrings.suggestedAlternativeDates.tr(),
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+          SizedBox(height: 8.h),
+          SizedBox(
+            height: 36.h,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: state.suggestedDates.length,
+              separatorBuilder: (_, _) => SizedBox(width: 8.w),
+              itemBuilder: (context, index) {
+                final date = state.suggestedDates[index];
+                final isSelected = date.year == state.selectedDate.year &&
+                    date.month == state.selectedDate.month &&
+                    date.day == state.selectedDate.day;
+                final dateStr = DateFormat('E, d MMM').format(date);
+
+                return GestureDetector(
+                  onTap: () =>
+                      context.read<QuickRebookCubit>().changeDate(date),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 6.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.neonBlue.withValues(alpha: 0.2)
+                          : AppColors.cardBackground,
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.neonBlue
+                            : AppColors.borderDefault,
+                      ),
+                    ),
+                    child: Center(
+                      child: AppText(
+                        text: dateStr,
+                        fontSize: 11.sp,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected ? AppColors.neonBlue : Colors.white70,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          SizedBox(height: 12.h),
+        ],
         AppText(
           text: AppStrings.quickRebookNearestSlots.tr(),
           fontSize: 13.sp,

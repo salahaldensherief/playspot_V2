@@ -13,6 +13,7 @@ import 'di/modules/lounge_module.dart';
 import 'di/modules/my_bookings_module.dart';
 import 'di/modules/notifications_module.dart';
 import 'di/modules/profile_module.dart';
+import 'di/modules/slot_waitlist_module.dart';
 import 'di/modules/tournaments_module.dart';
 
 final sl = GetIt.instance;
@@ -33,6 +34,7 @@ Future<void> init() async {
   initActiveSessionModule();
   initTournamentsModule();
   initAppStatusModule();
+  initSlotWaitlistModule();
 }
 
 Future<void> initSupabase() async {

@@ -7,6 +7,7 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'package:playspot/features/slot_waitlist/presentation/widgets/slot_waitlist_bottom_sheet.dart';
 import '../booking_cubit.dart';
 import '../booking_state.dart';
 
@@ -21,7 +22,10 @@ class TimeSlotGrid extends StatefulWidget {
 
 class _TimeSlotGridState extends State<TimeSlotGrid> {
   int _shiftFilter = 0;
-  bool _waitlistBusy = false;
+  final Set<String> _waitlistedSlotKeys = {};
+
+  String _slotKey(DateTime date, TimeOfDay slot) =>
+      "${date.year}-${date.month}-${date.day}_${slot.hour}:${slot.minute}";
 
   @override
   Widget build(BuildContext context) {
@@ -161,43 +165,72 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                       slot,
                       state,
                     );
+                    final slotKey = _slotKey(state.selectedDate, slot);
+                    final isWaitlisted = _waitlistedSlotKeys.contains(slotKey);
 
                     return InkWell(
-                      onTap: isBooked
-                          ? (context.read<BookingCubit>().roomIds.length == 1
-                                ? () => _requestWaitlist(context, slot)
-                                : null)
-                          : () => context.read<BookingCubit>().selectStartTime(
-                              slot,
-                            ),
+                      onTap: () {
+                        if (isBooked) {
+                          SlotWaitlistBottomSheet.show(
+                            context,
+                            loungeId: widget.lounge.id,
+                            loungeName: widget.lounge.name,
+                            roomIds: context.read<BookingCubit>().roomIds,
+                            date: state.selectedDate,
+                            slotTime: slot,
+                            onSuccess: () {
+                              if (mounted) {
+                                setState(() {
+                                  _waitlistedSlotKeys.add(slotKey);
+                                });
+                              }
+                            },
+                          );
+                        } else {
+                          context.read<BookingCubit>().selectStartTime(slot);
+                        }
+                      },
                       borderRadius: BorderRadius.circular(10.r),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         width: 82.w,
-                        padding: EdgeInsets.symmetric(vertical: 6.h, horizontal: 4.w),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 6.h,
+                          horizontal: 4.w,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelectedStart
                               ? AppColors.neonBlue
                               : (isInSelectionSpan
-                                    ? AppColors.neonBlue.withValues(alpha: 0.25)
-                                    : (isBooked
-                                          ? AppColors.danger.withValues(
+                                  ? AppColors.neonBlue.withValues(alpha: 0.25)
+                                  : (isBooked
+                                      ? (isWaitlisted
+                                          ? AppColors.neonBlue.withValues(
                                               alpha: 0.15,
                                             )
-                                          : (isPeak
-                                              ? AppColors.warning.withValues(alpha: 0.12)
-                                              : Colors.black45))),
+                                          : AppColors.danger.withValues(
+                                              alpha: 0.15,
+                                            ))
+                                      : (isPeak
+                                          ? AppColors.warning.withValues(
+                                              alpha: 0.12,
+                                            )
+                                          : Colors.black45))),
                           borderRadius: BorderRadius.circular(10.r),
                           border: Border.all(
                             color: isSelectedStart
                                 ? Colors.white
                                 : (isInSelectionSpan
-                                      ? AppColors.neonBlue
-                                      : (isBooked
-                                            ? AppColors.danger
-                                            : (isPeak
-                                                ? AppColors.warning.withValues(alpha: 0.6)
-                                                : AppColors.borderDefault))),
+                                    ? AppColors.neonBlue
+                                    : (isBooked
+                                        ? (isWaitlisted
+                                            ? AppColors.neonBlue
+                                            : AppColors.danger)
+                                        : (isPeak
+                                            ? AppColors.warning.withValues(
+                                                alpha: 0.6,
+                                              )
+                                            : AppColors.borderDefault))),
                             width: isSelectedStart ? 1.5 : 1.0,
                           ),
                           boxShadow: isSelectedStart
@@ -222,23 +255,43 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                               color: isSelectedStart
                                   ? Colors.black
                                   : (isInSelectionSpan
-                                        ? AppColors.neonBlue
-                                        : (isBooked
-                                              ? AppColors.danger
-                                              : Colors.white)),
+                                      ? AppColors.neonBlue
+                                      : (isBooked
+                                          ? (isWaitlisted
+                                              ? AppColors.neonBlue
+                                              : AppColors.danger)
+                                          : Colors.white)),
                               textDecoration: isBooked
                                   ? TextDecoration.lineThrough
                                   : null,
                             ),
                             SizedBox(height: 2.h),
                             if (isBooked) ...[
-                              AppText(
-                                text: context.read<BookingCubit>().roomIds.length == 1
-                                    ? AppStrings.waitlistNotify.tr()
-                                    : AppStrings.booked.tr(),
-                                fontSize: 8.sp,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.danger,
+                              SizedBox(height: 2.h),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    isWaitlisted
+                                        ? Icons.notifications_active_rounded
+                                        : Icons.notifications_none_rounded,
+                                    size: 9.sp,
+                                    color: isWaitlisted
+                                        ? AppColors.neonBlue
+                                        : AppColors.danger,
+                                  ),
+                                  SizedBox(width: 2.w),
+                                  AppText(
+                                    text: isWaitlisted
+                                        ? AppStrings.notifyMe.tr()
+                                        : AppStrings.booked.tr(),
+                                    fontSize: 8.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: isWaitlisted
+                                        ? AppColors.neonBlue
+                                        : AppColors.danger,
+                                  ),
+                                ],
                               ),
                             ] else ...[
                               if (rateVal != null && rateVal > 0)
@@ -468,11 +521,6 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
   }
 
   Widget _buildFullyBookedOrPastBanner(BuildContext context) {
-    final isEnglish = context.locale.languageCode == 'en';
-    final message = isEnglish
-        ? 'All time slots for this date are booked or past. Please select another date.'
-        : 'جميع الأوقات لهذا اليوم محجوزة أو انقضت. يرجى اختيار تاريخ آخر.';
-
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
@@ -487,7 +535,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
           SizedBox(width: 10.w),
           Expanded(
             child: AppText(
-              text: message,
+              text: AppStrings.allSlotsBookedOrPast.tr(),
               fontSize: 12.sp,
               color: AppColors.warning,
               fontWeight: FontWeight.w600,
