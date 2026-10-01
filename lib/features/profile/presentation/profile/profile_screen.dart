@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 
-import 'profile_cubit.dart';
-import 'profile_state.dart';
+import 'widgets/profile_logout_listener.dart';
 import 'widgets/logout_button.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/profile_menu_section.dart';
@@ -19,13 +15,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ProfileCubit, ProfileState>(
-      listenWhen: (previous, current) => previous.status != current.status,
-      listener: (context, state) {
-        if (state.status == ProfileStatus.logoutSuccess) {
-          context.goNamed(RouterKeys.signIn);
-        }
-      },
+    return ProfileLogoutListener(
       child: Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
         body: SafeArea(

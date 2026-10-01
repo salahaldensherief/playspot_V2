@@ -73,3 +73,11 @@ physical hardware security or complete mobile/cashier workflows.
 The production mobile Android processDebugMainManifest task also passed (80
 tasks). Its merged manifest retains allowBackup=false and the explicit
 play_spot_data_extraction_rules reference. No production app was installed.
+
+Mobile logout cleanup subsequently passed four remote/local success/failure cases
+and three UI cases (Arabic/English cleanup error and successful sign-in route).
+The repository attempts cleanup once even after remote signOut failure and returns
+a localized CacheFailure if cleanup fails. The profile listener now renders that
+error. Full mobile tests: 213 pass; analyze: 109 existing infos, no warnings/errors
+(exit 1). Provider waits before local logout and plaintext profile/cache migration
+remain separate release work; this does not prove complete offline logout.
