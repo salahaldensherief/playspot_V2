@@ -81,12 +81,12 @@ try {
   const r=await send(op);assert.equal(r.status,'applied');assert.equal(r.session_receipt.total_minor,10167);
  });
  await check('overnight booking preserves the full UTC planned interval',async()=>{
-  const from=Date.UTC(2026,8,30,20,30);const op=operation('reserve',1,{occurred_at:new Date(from).toISOString(),
+  const from=Date.UTC(2026,8,30,20,30);await f.issuePermit(from-3600000);const op=operation('reserve',1,{occurred_at:new Date(from).toISOString(),
    payload:{...operation().payload,start_ms:from,end_ms:from+3600000}});const r=await send(op);
   assert.equal(r.status,'applied');assert.equal(r.session_receipt.start_ms,from);assert.equal(r.session_receipt.end_ms,from+3600000);
  });
  await check('DST-crossing interval is retained for review instead of billing the wrong duration',async()=>{
-  const from=Date.UTC(2026,3,23,21,30);const op=operation('reserve',1,{occurred_at:new Date(from).toISOString(),
+  const from=Date.UTC(2026,3,23,21,30);await f.issuePermit(from-3600000);const op=operation('reserve',1,{occurred_at:new Date(from).toISOString(),
    payload:{...operation().payload,start_ms:from,end_ms:from+3600000}});
   await conflict(op,'OFFLINE_DST_INTERVAL_REQUIRES_REVIEW');
  });

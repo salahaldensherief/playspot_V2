@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS private.cashier_operation_receipts (
   UNIQUE(permit_id,sequence)
 );
 ALTER TABLE private.cashier_operation_receipts ENABLE ROW LEVEL SECURITY;
+CREATE UNIQUE INDEX IF NOT EXISTS cashier_receipts_lounge_sequence_key ON private.cashier_operation_receipts(lounge_id,sequence);
 REVOKE ALL ON private.cashier_operation_receipts FROM PUBLIC,anon,authenticated;
 
 CREATE OR REPLACE FUNCTION private.validate_cashier_operation(p_operation jsonb)
@@ -62,7 +63,8 @@ REVOKE ALL ON FUNCTION private.assert_offline_cashier_permission(jsonb) FROM PUB
 
 CREATE OR REPLACE FUNCTION private.lock_cashier_operation_writer(p_operation jsonb)
 RETURNS private.cashier_writer_authorities LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
-DECLARE v_writer private.cashier_writer_authorities%ROWTYPE;v_time timestamptz:=(p_operation->>'occurred_at')::timestamptz;
+DECLARE v_writer private.cashier_writer_authorities%ROWTYPE;v_permit private.cashier_writer_permits%ROWTYPE;
+  v_time timestamptz:=(p_operation->>'occurred_at')::timestamptz;v_permission text;
 BEGIN
   IF auth.uid() IS DISTINCT FROM (p_operation->>'actor_id')::uuid THEN
     RAISE EXCEPTION 'OFFLINE_ACTOR_MISMATCH' USING ERRCODE='42501';
@@ -71,11 +73,20 @@ BEGIN
   SELECT * INTO v_writer FROM private.cashier_writer_authorities
     WHERE lounge_id=(p_operation->>'lounge_id')::uuid FOR UPDATE;
   IF NOT FOUND OR v_writer.actor_id IS DISTINCT FROM auth.uid()
-    OR v_writer.device_id IS DISTINCT FROM (p_operation->>'device_id')::uuid
-    OR v_writer.permit_id IS DISTINCT FROM (p_operation->>'permit_id')::uuid THEN
+    OR v_writer.device_id IS DISTINCT FROM (p_operation->>'device_id')::uuid THEN
     RAISE EXCEPTION 'OFFLINE_WRITER_MISMATCH' USING ERRCODE='42501';
   END IF;
-  IF v_time<v_writer.issued_at OR v_time>=v_writer.permit_expires_at
+  SELECT * INTO v_permit FROM private.cashier_writer_permits WHERE permit_id=(p_operation->>'permit_id')::uuid FOR SHARE;
+  IF NOT FOUND OR (v_permit.lounge_id,v_permit.actor_id,v_permit.device_id)
+    IS DISTINCT FROM (v_writer.lounge_id,v_writer.actor_id,v_writer.device_id) THEN
+    RAISE EXCEPTION 'OFFLINE_WRITER_MISMATCH' USING ERRCODE='42501';
+  END IF;
+  v_permission:=CASE p_operation->>'kind' WHEN 'reserve' THEN 'bookings.manage'
+    WHEN 'collectCash' THEN 'billing_checkout' ELSE 'sessions_control' END;
+  IF v_permit.permissions->v_permission IS DISTINCT FROM 'true'::jsonb THEN
+    RAISE EXCEPTION 'OFFLINE_PERMISSION_NOT_ISSUED' USING ERRCODE='42501';
+  END IF;
+  IF v_time<v_permit.issued_at OR v_time>=v_permit.expires_at
     OR v_time>statement_timestamp()+interval '5 minutes' THEN
     RAISE EXCEPTION 'OFFLINE_OPERATION_OUTSIDE_PERMIT' USING ERRCODE='22023';
   END IF;
@@ -121,7 +132,7 @@ BEGIN
       'status','conflict','code','OFFLINE_SEQUENCE_GAP');
   END IF;
   IF EXISTS (SELECT 1 FROM private.cashier_operation_receipts
-    WHERE permit_id=v_writer.permit_id AND sequence=v_sequence) THEN
+    WHERE lounge_id=v_lounge AND sequence=v_sequence) THEN
     RETURN jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,
       'status','conflict','code','OFFLINE_SEQUENCE_BLOCKED');
   END IF;
@@ -146,7 +157,7 @@ BEGIN
       'status','conflict','code','OFFLINE_RECORD_ID_CONFLICT');
   END;
   INSERT INTO private.cashier_operation_receipts(operation_id,permit_id,sequence,actor_id,lounge_id,request,result)
-    VALUES(v_id,v_writer.permit_id,v_sequence,auth.uid(),v_lounge,p_operation,v_result);
+    VALUES(v_id,(p_operation->>'permit_id')::uuid,v_sequence,auth.uid(),v_lounge,p_operation,v_result);
   IF v_result->>'status'='applied' THEN
     UPDATE private.cashier_writer_authorities SET last_applied_sequence=v_sequence WHERE lounge_id=v_lounge;
   END IF;

@@ -60,7 +60,7 @@ try {
  VALUES('${booking}','${customer}','${lounge}','in_progress','${room}','${shift}',100);
  INSERT INTO public.extras(id,lounge_id,name,price,stock_quantity) VALUES
  ('${product}','${lounge}','Water',15,4),('${secondProduct}','${lounge}','Snack',15,4);`);
- for(const file of ['active_super_admin_boundary.sql','partial_cash_collection.sql','cashier_writer_availability.sql',
+ for(const file of ['active_super_admin_boundary.sql','partial_cash_collection.sql','cashier_writer_permits.sql','cashier_writer_availability.sql',
   'offline_canteen_reconciliation.sql','offline_cash_reconciliation.sql']) await db.exec(await read('../repairs/'+file));
  await login();permit=(await db.query('SELECT public.refresh_cashier_writer($1,$2,false) AS authority',[lounge,device])).rows[0].authority.permit_id;
  await check('session permission can add canonically priced items without billing permission or implicit cash',async()=>{

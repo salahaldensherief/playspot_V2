@@ -45,8 +45,11 @@ DECLARE
   v_profile public.profiles%ROWTYPE;
   v_lounge public.lounges%ROWTYPE;
   v_writer private.cashier_writer_authorities%ROWTYPE;
-  v_now timestamptz := statement_timestamp();
+  v_permit private.cashier_writer_permits%ROWTYPE;
+  v_now timestamptz := date_trunc('milliseconds',statement_timestamp());
   v_super_admin boolean;
+  v_created boolean;
+  v_permissions jsonb;
 BEGIN
   IF v_actor IS NULL THEN RAISE EXCEPTION 'AUTHENTICATION_REQUIRED' USING ERRCODE='28000'; END IF;
   IF p_device_id IS NULL OR p_lounge_id IS NULL OR p_online IS NULL THEN
@@ -64,31 +67,43 @@ BEGIN
   IF NOT v_super_admin AND public.has_lounge_permission(p_lounge_id,'sessions_control') IS NOT TRUE THEN
     RAISE EXCEPTION 'CASHIER_WRITER_PERMISSION_DENIED' USING ERRCODE='42501';
   END IF;
-  INSERT INTO private.cashier_writer_authorities(lounge_id,actor_id,device_id,permit_expires_at,heartbeat_expires_at)
-    VALUES(p_lounge_id,v_actor,p_device_id,v_now+interval '24 hours',v_now)
-    ON CONFLICT(lounge_id) DO NOTHING;
+  v_permissions:=private.cashier_effective_permissions(p_lounge_id);
+  INSERT INTO private.cashier_writer_authorities(lounge_id,actor_id,device_id,issued_at,permit_expires_at,heartbeat_expires_at)
+    VALUES(p_lounge_id,v_actor,p_device_id,v_now,v_now+interval '24 hours',v_now)
+    ON CONFLICT(lounge_id) DO NOTHING RETURNING * INTO v_writer;
+  v_created:=FOUND;
   SELECT * INTO STRICT v_writer FROM private.cashier_writer_authorities WHERE lounge_id=p_lounge_id FOR UPDATE;
   -- Losing a heartbeat never authorizes another independent offline writer.
   IF v_writer.actor_id<>v_actor OR v_writer.device_id<>p_device_id THEN
     RAISE EXCEPTION 'CASHIER_WRITER_ALREADY_ASSIGNED' USING ERRCODE='55000';
   END IF;
+  v_now:=date_trunc('milliseconds',clock_timestamp());
+  IF NOT v_created THEN
+    SELECT * INTO v_permit FROM private.cashier_writer_permits WHERE permit_id=v_writer.permit_id FOR SHARE;
+    IF NOT FOUND OR (v_permit.lounge_id,v_permit.actor_id,v_permit.device_id,v_permit.issued_at,v_permit.expires_at)
+      IS DISTINCT FROM (v_writer.lounge_id,v_writer.actor_id,v_writer.device_id,v_writer.issued_at,v_writer.permit_expires_at) THEN
+      RAISE EXCEPTION 'CASHIER_PERMIT_RECORD_MISSING_OR_CHANGED' USING ERRCODE='55000';
+    END IF;
+  END IF;
+  IF v_created OR v_now>=v_permit.expires_at OR v_permissions IS DISTINCT FROM v_permit.permissions THEN
+    INSERT INTO private.cashier_writer_permits(permit_id,lounge_id,actor_id,device_id,issued_at,expires_at,permissions)
+      VALUES(CASE WHEN v_created THEN v_writer.permit_id ELSE gen_random_uuid() END,
+        p_lounge_id,v_actor,p_device_id,v_now,v_now+interval '24 hours',v_permissions) RETURNING * INTO v_permit;
+  END IF;
   UPDATE private.cashier_writer_authorities SET
-    permit_expires_at=v_now+interval '24 hours',
+    permit_id=v_permit.permit_id,issued_at=v_permit.issued_at,permit_expires_at=v_permit.expires_at,
     heartbeat_expires_at=CASE WHEN p_online THEN v_now+interval '90 seconds' ELSE v_now END,
     online_requested=p_online, updated_at=v_now
   WHERE lounge_id=p_lounge_id RETURNING * INTO v_writer;
   RETURN jsonb_build_object(
+    'protocol_version',2,'server_time_ms',floor(extract(epoch FROM v_now)*1000)::bigint,'online_requested',p_online,
     'actor_id',v_actor,'lounge_id',p_lounge_id,'device_id',p_device_id,'permit_id',v_writer.permit_id,
     'profile_active',true,'profile_banned',false,'lounge_status',v_lounge.status,'lounge_active',true,
     'offline_enabled',true,'issued_ms',floor(extract(epoch FROM v_writer.issued_at)*1000)::bigint,
     'expires_ms',floor(extract(epoch FROM v_writer.permit_expires_at)*1000)::bigint,
     'heartbeat_expires_at',v_writer.heartbeat_expires_at,
     'last_applied_sequence',v_writer.last_applied_sequence,'timezone',to_jsonb(v_lounge)->>'timezone',
-    'permissions',jsonb_build_object(
-      'bookings.manage',v_super_admin OR public.has_lounge_permission(p_lounge_id,'bookings.manage') IS TRUE,
-      'sessions_control',v_super_admin OR public.has_lounge_permission(p_lounge_id,'sessions_control') IS TRUE,
-      'billing_checkout',v_super_admin OR public.has_lounge_permission(p_lounge_id,'billing_checkout') IS TRUE
-    )
+    'permissions',v_permit.permissions
   );
 END;
 $function$;
@@ -105,6 +120,10 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $fu
       AND (writer.lounge_id IS NULL OR (
         writer.online_requested IS TRUE
         AND writer.heartbeat_expires_at>statement_timestamp()
+        AND EXISTS(SELECT 1 FROM private.cashier_writer_permits permit WHERE permit.permit_id=writer.permit_id
+          AND (permit.lounge_id,permit.actor_id,permit.device_id,permit.issued_at,permit.expires_at)
+            IS NOT DISTINCT FROM (writer.lounge_id,writer.actor_id,writer.device_id,writer.issued_at,writer.permit_expires_at)
+          AND permit.expires_at>statement_timestamp())
         AND EXISTS (
           SELECT 1 FROM public.profiles AS profile
           JOIN auth.users AS identity ON identity.id=profile.id
@@ -144,7 +163,8 @@ BEGIN
       JOIN auth.users AS identity ON identity.id=profile.id
       JOIN public.lounges AS lounge ON lounge.id=writer.lounge_id
       WHERE context.transaction_id=txid_current() AND context.actor_id=auth.uid()
-        AND context.actor_id=writer.actor_id AND context.permit_id=writer.permit_id
+        AND context.actor_id=writer.actor_id
+        AND private.cashier_sync_permit_matches_writer(context.lounge_id,context.actor_id,context.permit_id)
         AND context.lounge_id=NEW.lounge_id AND profile.is_active IS TRUE
         AND profile.is_banned IS FALSE AND lounge.status='active' AND lounge.is_active IS TRUE
         AND (public.is_super_admin() IS TRUE OR public.has_lounge_permission(NEW.lounge_id,'bookings.manage') IS TRUE

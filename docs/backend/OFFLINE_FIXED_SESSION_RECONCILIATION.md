@@ -4,7 +4,7 @@ Review sources only. No hosted migration or dev/main merge has been performed.
 Native fixtures exercise PostgreSQL 17.11 on synthetic data at loopback port 55439.
 
 Load `active_super_admin_boundary.sql`, `offline_walk_in_customer_policy.sql`,
-`partial_cash_collection.sql`, `cashier_writer_availability.sql`,
+`partial_cash_collection.sql`, `cashier_writer_permits.sql`, `cashier_writer_availability.sql`,
 `offline_fixed_session_capacity.sql`, `offline_fixed_session_reservation.sql`,
 `offline_fixed_session_transitions.sql`, `offline_canteen_reconciliation.sql`,
 then `offline_cash_reconciliation.sql`. Load the verified minimal schema and
@@ -83,13 +83,16 @@ Run with `PLAYSPOT_NATIVE_PG_PORT=55439`:
 `node supabase/tests/offline_fixed_session_reconciliation.test.mjs`.
 Optional `PLAYSPOT_FIXED_CONTRACT_EXPORT` exports the complete synthetic five-command
 operation/response flow to UTF-8 JSON for the dashboard's real encrypted Hive tests.
-The fixture supplies synthetic permissions/Auth and long historical permit windows
-for DST dates; it does not reproduce all hosted audit/moderation/notification/loyalty
+The fixture supplies synthetic permissions/Auth and separate immutable 24-hour
+historical permits for DST dates; it does not reproduce all hosted audit/moderation/notification/loyalty
 triggers, production RLS or credential storage. Earlier sources separately pass
 47 partial-cash, 41 writer, 25 envelope and 34 item-order native cases.
 
-Release remains blocked on immutable permit renewal/reassignment, canonical cache
-bootstrap, authenticated/logout binding, shift lifecycle/reconciliation, conflicting
+Immutable renewal now has 23 additional native cases. Dashboard source binds its
+encrypted journal to the authenticated account and invalidates old references on
+logout; this is not hosted Auth or full UI verification.
+Release remains blocked on explicit writer reassignment, canonical cache
+bootstrap, real cashier lifecycle/heartbeat integration, shift lifecycle/reconciliation, conflicting
 operation review, real cashier read/action adapters and hosted deployment validation.
 Open-time/extensions, combos, discounts, mixed payments/refunds, old canteen/KYC
 overloads and the broader backend baseline remain incomplete. Existing experimental

@@ -32,6 +32,7 @@ try {
     GRANT INSERT,SELECT,UPDATE ON public.bookings TO authenticated;
   `);
   await db.exec(await readFile(new URL('../repairs/active_super_admin_boundary.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../repairs/cashier_writer_permits.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../repairs/cashier_writer_availability.sql',import.meta.url),'utf8'));
   const refresh=`SELECT public.refresh_cashier_writer('${lounge}','${device}',true) AS authority`;
   async function actorAs(id){await db.exec(`RESET ROLE;SET test.actor='${id??''}';SET ROLE authenticated;`);}

@@ -14,7 +14,7 @@ export async function fixedSessionFixture() {
   for(const file of ['partial_cash_fixture.sql','offline_order_fixture.sql','offline_fixed_session_fixture.sql',
    'hosted_booking_price_trigger.sql','hosted_fixed_session_contract.sql']) await db.exec(await read('../fixtures/'+file));
   for(const file of ['active_super_admin_boundary.sql','offline_walk_in_customer_policy.sql','partial_cash_collection.sql',
-   'cashier_writer_availability.sql','offline_fixed_session_capacity.sql','offline_fixed_session_reservation.sql',
+   'cashier_writer_permits.sql','cashier_writer_availability.sql','offline_fixed_session_capacity.sql','offline_fixed_session_reservation.sql',
    'offline_fixed_session_transitions.sql','offline_canteen_reconciliation.sql','offline_cash_reconciliation.sql'])
    await db.exec(await read('../../repairs/'+file));
   await admin(`INSERT INTO auth.users VALUES('${actor}'),('${customer}');
@@ -26,7 +26,14 @@ export async function fixedSessionFixture() {
    INSERT INTO public.extras(id,lounge_id,name,price,stock_quantity) VALUES('${product}','${lounge}','Water',15,10);
    INSERT INTO public.fixture_permissions VALUES('${actor}','${lounge}','sessions_control'),
     ('${actor}','${lounge}','bookings.manage'),('${actor}','${lounge}','billing_checkout');`);
-  await login();const permit=(await db.query('SELECT public.refresh_cashier_writer($1,$2,false) AS authority',[lounge,device])).rows[0].authority.permit_id;
+  await login();let permit=(await db.query('SELECT public.refresh_cashier_writer($1,$2,false) AS authority',[lounge,device])).rows[0].authority.permit_id;
+  async function issuePermit(from=start-3600000,permissions={'bookings.manage':true,sessions_control:true,billing_checkout:true}) {
+   permit=randomUUID();await admin(`INSERT INTO private.cashier_writer_permits VALUES('${permit}','${lounge}','${actor}','${device}',
+    to_timestamp(${from}/1000.0),to_timestamp(${from+86400000}/1000.0),'${JSON.stringify(permissions)}'::jsonb);
+    UPDATE private.cashier_writer_authorities SET permit_id='${permit}',issued_at=to_timestamp(${from}/1000.0),
+     permit_expires_at=to_timestamp(${from+86400000}/1000.0) WHERE lounge_id='${lounge}';`);
+   return permit;
+  }
   async function reset() {await admin(`SET test.actor='${actor}';DELETE FROM private.cashier_operation_receipts;DELETE FROM private.cash_collection_receipts;
    DELETE FROM public.booking_items;DELETE FROM public.canteen_order_items;DELETE FROM public.canteen_orders;
    DELETE FROM public.shift_payments;DELETE FROM public.payments;DELETE FROM public.bookings;DELETE FROM public.tournament_matches;
@@ -39,8 +46,8 @@ export async function fixedSessionFixture() {
    DELETE FROM public.fixture_permissions;
    INSERT INTO public.fixture_permissions VALUES('${actor}','${lounge}','sessions_control'),
     ('${actor}','${lounge}','bookings.manage'),('${actor}','${lounge}','billing_checkout');
-   UPDATE private.cashier_writer_authorities SET last_applied_sequence=0,online_requested=false,heartbeat_expires_at=now(),
-    issued_at='2025-01-01T00:00:00Z',permit_expires_at='2027-01-01T00:00:00Z';`);}
+   UPDATE private.cashier_writer_authorities SET last_applied_sequence=0,online_requested=false,heartbeat_expires_at=now();`);
+   await issuePermit();}
   function operation(kind='reserve',sequence=1,options={}) {
    const op={id:randomUUID(),actor_id:actor,lounge_id:lounge,device_id:device,permit_id:permit,
     booking_id:booking,shift_id:shift,sequence,occurred_at:new Date(start).toISOString(),kind,
@@ -69,7 +76,7 @@ export async function fixedSessionFixture() {
     '${status}','${shift}',100,to_timestamp(${from}/1000.0));
     ALTER TABLE public.bookings ENABLE TRIGGER guard_cashier_online_booking;`);return id;
   }
-  await reset();return {db,actor,customer,lounge,otherLounge,device,room,shift,otherShift,booking,product,start,permit,
-   admin,login,reset,operation,request,send,snapshot,seedBooking};
+  await reset();return {db,actor,customer,lounge,otherLounge,device,room,shift,otherShift,booking,product,start,get permit(){return permit;},
+   admin,login,reset,issuePermit,operation,request,send,snapshot,seedBooking};
  } catch(error) {await db.close();throw error;}
 }

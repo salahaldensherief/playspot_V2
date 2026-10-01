@@ -2,7 +2,7 @@
 
 Review source only; no hosted SQL has been applied. Load
 `active_super_admin_boundary.sql`, `partial_cash_collection.sql`,
-`cashier_writer_availability.sql`, `offline_canteen_reconciliation.sql`, then
+`cashier_writer_permits.sql`, `cashier_writer_availability.sql`, `offline_canteen_reconciliation.sql`, then
 `offline_cash_reconciliation.sql`. The latter now dispatches `collectCash` and
 `addItems`. The additional fixed reserve/start/close source dependencies are
 documented in `OFFLINE_FIXED_SESSION_RECONCILIATION.md`. Real UI enablement still

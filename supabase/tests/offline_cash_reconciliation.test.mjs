@@ -36,7 +36,7 @@ try {
  INSERT INTO public.shifts VALUES('${shift}','${lounge}','${actor}','${actor}','open',NULL);
  INSERT INTO public.bookings(id,user_id,lounge_id,status,total_price) VALUES('${booking}','${customer}','${lounge}','completed',100);
  GRANT USAGE ON SCHEMA public,auth TO authenticated,anon;`);
- for(const file of ['active_super_admin_boundary.sql','partial_cash_collection.sql','cashier_writer_availability.sql','offline_cash_reconciliation.sql'])
+ for(const file of ['active_super_admin_boundary.sql','partial_cash_collection.sql','cashier_writer_permits.sql','cashier_writer_availability.sql','offline_cash_reconciliation.sql'])
   await db.exec(await read('../repairs/'+file));
  await login();permit=(await db.query('SELECT public.refresh_cashier_writer($1,$2,false) AS authority',[lounge,device])).rows[0].authority.permit_id;
  await check('issued writer can stay offline while submitting recorded cash',async()=>{

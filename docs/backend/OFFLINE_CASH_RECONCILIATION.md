@@ -1,7 +1,8 @@
 # Device-bound offline cash reconciliation slice
 
 This source depends on `active_super_admin_boundary.sql`,
-`partial_cash_collection.sql` and `cashier_writer_availability.sql`. Load those
+`partial_cash_collection.sql`, `cashier_writer_permits.sql` and
+`cashier_writer_availability.sql`. Load those
 review sources before `offline_cash_reconciliation.sql` in the isolated fixture.
 The item-order path additionally needs `offline_canteen_reconciliation.sql`;
 its separate contract and verification are in `OFFLINE_CANTEEN_RECONCILIATION.md`.
@@ -18,12 +19,16 @@ The real cashier UI must remain disabled for this incomplete server feature.
 
 The actor must match Auth. Current account, Auth identity, approved venue and
 billing eligibility for cash, or session-control eligibility for orders, are rechecked. The writer row is locked and must match the
-actor/device/permit. The event must fall inside its issued permit window and cannot
+actor/device. Its immutable permit must belong to that same venue/actor/device and
+have originally granted the command's required permission. The event must fall
+inside that original permit window and cannot
 be more than five minutes ahead of server time. Device UUID matching is a server
 ownership check; it is not hardware attestation or a cryptographic event timestamp.
-The current writer implementation extends a stable permit on refresh; immutable
-permit revisions, safe reassignment, old-writer reconciliation and shift lifecycle
-still need a coordinated design before full offline release.
+Heartbeat does not extend an existing permit. Renewal preserves original grant
+records and venue-wide sequence/conflict boundaries. Historical events may use
+their original permit after renewal, with current eligibility still rechecked.
+Safe reassignment, old-writer reconciliation and shift lifecycle still need a
+coordinated design before full offline release.
 
 Only the next sequence can apply. A successful financial receipt, operation receipt
 and sequence advance commit together. Exact retry returns `replayed`; changed JSON
@@ -40,7 +45,7 @@ the source does not write cash into a closed or another cashier's shift.
 
 ## Verification
 
-25 native PostgreSQL 17.11 cash tests passed with this slice's four source dependencies
+25 native PostgreSQL 17.11 cash tests passed with this slice's five source dependencies
 loaded together into one minimal fixture. They cover forged actor/device/permit,
 invalid sequence/shift/time, unsupported operation kinds, sequence gaps, canonical
 cash acknowledgements, response-loss retry, payload conflict, banned-account replay,

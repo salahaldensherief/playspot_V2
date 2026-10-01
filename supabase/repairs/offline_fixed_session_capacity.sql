@@ -26,7 +26,8 @@ BEGIN
     JOIN private.cashier_writer_authorities writer ON writer.lounge_id=context.lounge_id
     WHERE command.transaction_id=txid_current() AND command.booking_id=NEW.id
       AND context.actor_id=auth.uid() AND context.actor_id=writer.actor_id
-      AND context.permit_id=writer.permit_id AND context.lounge_id=NEW.lounge_id;
+      AND private.cashier_sync_permit_matches_writer(context.lounge_id,context.actor_id,context.permit_id)
+      AND context.lounge_id=NEW.lounge_id;
   IF NOT FOUND OR (v_kind<>'close' AND NEW.cashier_closed_at IS NOT NULL)
     OR (v_kind='close' AND (TG_OP<>'UPDATE' OR NEW.status<>'completed'::public.booking_status
       OR NEW.cashier_booking_timezone IS DISTINCT FROM OLD.cashier_booking_timezone)) THEN
