@@ -120,6 +120,7 @@ DECLARE
   v_paid numeric;
   v_rate numeric := private.platform_commission_rate();
   v_shift_payment uuid;
+  v_final_total numeric;
 BEGIN
   v_booking:=private.lock_cash_collection_booking(p_booking_id);
   PERFORM private.lock_cash_collection_shift(p_shift_id,v_booking.lounge_id);
@@ -140,7 +141,10 @@ BEGIN
   INSERT INTO public.shift_payments(shift_id,lounge_id,booking_id,payment_method,category,amount,paid_at)
   VALUES(p_shift_id,v_booking.lounge_id,p_booking_id,'cash','gaming_time',v_amount,now()) RETURNING id INTO v_shift_payment;
   UPDATE public.bookings SET payment_status=CASE WHEN v_paid+v_amount=total_price THEN 'paid' ELSE 'partial' END,
-    payment_method='cash',updated_at=now() WHERE id=p_booking_id;
+    payment_method='cash',updated_at=now() WHERE id=p_booking_id RETURNING total_price INTO v_final_total;
+  IF v_final_total IS DISTINCT FROM v_booking.total_price THEN
+    RAISE EXCEPTION 'BOOKING_PRICE_CHANGED_DURING_COLLECTION' USING ERRCODE='22023';
+  END IF;
   DELETE FROM private.cash_collection_context WHERE transaction_id=txid_current() AND booking_id=p_booking_id;
   RETURN jsonb_build_object('booking_id',p_booking_id,'lounge_id',v_booking.lounge_id,
     'shift_id',p_shift_id,'shift_payment_id',v_shift_payment,'collected_minor',p_amount_minor,

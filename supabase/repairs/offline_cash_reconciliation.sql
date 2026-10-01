@@ -34,7 +34,7 @@ BEGIN
   END IF;
   v_time:=(p_operation->>'occurred_at')::timestamptz;
   IF NOT isfinite(v_time) THEN RAISE EXCEPTION 'INVALID_OFFLINE_OPERATION' USING ERRCODE='22023'; END IF;
-  IF p_operation->>'kind' IS NULL OR p_operation->>'kind' NOT IN ('collectCash','addItems') THEN
+  IF p_operation->>'kind' IS NULL OR p_operation->>'kind' NOT IN ('collectCash','addItems','reserve','start','close') THEN
     RAISE EXCEPTION 'OFFLINE_OPERATION_KIND_NOT_IMPLEMENTED' USING ERRCODE='0A000';
   END IF;
 END; $$;
@@ -42,6 +42,7 @@ REVOKE ALL ON FUNCTION private.validate_cashier_operation(jsonb) FROM PUBLIC,ano
 
 CREATE OR REPLACE FUNCTION private.assert_offline_cashier_permission(p_operation jsonb)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE v_permission text:=CASE WHEN p_operation->>'kind'='reserve' THEN 'bookings.manage' ELSE 'sessions_control' END;
 BEGIN
   IF p_operation->>'kind'='collectCash' THEN
     PERFORM private.assert_cash_collector(auth.uid(),(p_operation->>'lounge_id')::uuid);
@@ -51,7 +52,7 @@ BEGIN
     WHERE p.id=auth.uid() AND p.is_active IS TRUE AND p.is_banned IS FALSE FOR SHARE OF p,u;
   IF NOT FOUND THEN RAISE EXCEPTION 'ACCOUNT_NOT_ELIGIBLE' USING ERRCODE='42501'; END IF;
   IF public.is_super_admin() IS NOT TRUE AND
-    public.has_lounge_permission((p_operation->>'lounge_id')::uuid,'sessions_control') IS NOT TRUE THEN
+    public.has_lounge_permission((p_operation->>'lounge_id')::uuid,v_permission) IS NOT TRUE THEN
     RAISE EXCEPTION 'OFFLINE_SESSION_PERMISSION_DENIED' USING ERRCODE='42501';
   END IF;
   PERFORM 1 FROM public.lounges WHERE id=(p_operation->>'lounge_id')::uuid AND is_active IS TRUE AND status='active' FOR SHARE;
@@ -127,14 +128,22 @@ BEGIN
   BEGIN
     IF p_operation->>'kind'='collectCash' THEN
       v_result:=jsonb_build_object('financial_receipt',private.apply_cashier_cash_operation(p_operation));
-    ELSE
+    ELSIF p_operation->>'kind'='addItems' THEN
       v_result:=jsonb_build_object('order_receipt',private.apply_cashier_order_operation(p_operation));
+    ELSE
+      v_result:=jsonb_build_object('session_receipt',private.apply_cashier_fixed_operation(p_operation));
     END IF;
     v_result:=v_result||jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,'status','applied');
   EXCEPTION WHEN SQLSTATE '22023' OR SQLSTATE '55000' OR SQLSTATE '42501' OR SQLSTATE 'P0002' THEN
     GET STACKED DIAGNOSTICS v_code=MESSAGE_TEXT;
     v_result:=jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,
       'status','conflict','code',v_code);
+  WHEN exclusion_violation THEN
+    v_result:=jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,
+      'status','conflict','code','OFFLINE_ROOM_CONFLICT');
+  WHEN unique_violation THEN
+    v_result:=jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,
+      'status','conflict','code','OFFLINE_RECORD_ID_CONFLICT');
   END;
   INSERT INTO private.cashier_operation_receipts(operation_id,permit_id,sequence,actor_id,lounge_id,request,result)
     VALUES(v_id,v_writer.permit_id,v_sequence,auth.uid(),v_lounge,p_operation,v_result);

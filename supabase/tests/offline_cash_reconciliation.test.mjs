@@ -51,7 +51,7 @@ try {
  await rejected('naive time has no timezone',{...first,occurred_at:'2026-10-01T12:00:00'},'22023');
  await rejected('before permit issuance',{...first,occurred_at:'2020-01-01T00:00:00Z'},'22023');
  await rejected('future clock cannot invent events',{...first,occurred_at:new Date(Date.now()+3600000).toISOString()},'22023');
- await rejected('unimplemented reservation preserves the queue rather than pretending success',{...first,kind:'reserve'},'0A000');
+ await rejected('unknown operation preserves the queue rather than pretending success',{...first,kind:'extend'},'0A000');
  await check('sequence gap never writes money',async()=>{
   const before=await financial(),r=await send({...first,sequence:2});assert.equal(r.status,'conflict');
   assert.equal(r.code,'OFFLINE_SEQUENCE_GAP');assert.deepEqual(await financial(),before);

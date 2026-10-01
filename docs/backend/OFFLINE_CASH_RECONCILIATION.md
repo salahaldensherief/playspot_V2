@@ -10,7 +10,9 @@ It is not an automatically applied migration or deployed endpoint.
 `apply_offline_cashier_operation(p_operation jsonb)` accepts the dashboard envelope:
 operation UUID, actor/venue/device/permit/booking/shift UUIDs, positive integer
 sequence, timezone-qualified occurrence timestamp, kind and payload. This slice
-implements **collectCash and fixed-session addItems**. Reserve/start/close explicitly fail with
+implements **collectCash, fixed-session addItems, and fixed reserve/start/close**.
+The session path requires the additional reviewed sources and schema changes in
+`OFFLINE_FIXED_SESSION_RECONCILIATION.md`. Other kinds fail with
 `OFFLINE_OPERATION_KIND_NOT_IMPLEMENTED`; they never manufacture an acknowledgement.
 The real cashier UI must remain disabled for this incomplete server feature.
 
@@ -52,4 +54,6 @@ fixture suites, not evidence of full hosted/UI end-to-end integration. Hosted au
 triggers, production RLS, Auth session revocation, room/pricing/inventory operations,
 snapshots, device bootstrap, logout and conflict-review UI remain unverified here.
 The separate item-order fixture passes 34 native cases and reproduces the actual
-hosted booking-price trigger. No hosted write, migration or dev/main merge was performed.
+hosted booking-price trigger. The integrated fixed-session fixture passes 52 native
+cases, including cash rollback on trigger-driven repricing. No hosted write,
+migration or dev/main merge was performed.

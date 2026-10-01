@@ -28,6 +28,14 @@ CREATE TABLE IF NOT EXISTS private.cashier_sync_context (
 ALTER TABLE private.cashier_sync_context ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON private.cashier_sync_context FROM PUBLIC,anon,authenticated;
 
+CREATE TABLE IF NOT EXISTS private.cashier_booking_command_context (
+  transaction_id bigint PRIMARY KEY,
+  booking_id uuid NOT NULL,
+  kind text NOT NULL CHECK(kind IN ('reserve','start','close'))
+);
+ALTER TABLE private.cashier_booking_command_context ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON private.cashier_booking_command_context FROM PUBLIC,anon,authenticated;
+
 CREATE OR REPLACE FUNCTION public.refresh_cashier_writer(
   p_lounge_id uuid, p_device_id uuid, p_online boolean DEFAULT true
 )
@@ -73,7 +81,7 @@ BEGIN
     'offline_enabled',true,'issued_ms',floor(extract(epoch FROM v_writer.issued_at)*1000)::bigint,
     'expires_ms',floor(extract(epoch FROM v_writer.permit_expires_at)*1000)::bigint,
     'heartbeat_expires_at',v_writer.heartbeat_expires_at,
-    'last_applied_sequence',v_writer.last_applied_sequence,
+    'last_applied_sequence',v_writer.last_applied_sequence,'timezone',to_jsonb(v_lounge)->>'timezone',
     'permissions',jsonb_build_object(
       'bookings.manage',public.has_lounge_permission(p_lounge_id,'bookings.manage') IS TRUE,
       'sessions_control',public.has_lounge_permission(p_lounge_id,'sessions_control') IS TRUE,
@@ -137,7 +145,13 @@ BEGIN
         AND context.actor_id=writer.actor_id AND context.permit_id=writer.permit_id
         AND context.lounge_id=NEW.lounge_id AND profile.is_active IS TRUE
         AND profile.is_banned IS FALSE AND lounge.status='active' AND lounge.is_active IS TRUE
-        AND public.has_lounge_permission(NEW.lounge_id,'bookings.manage') IS TRUE
+        AND (public.has_lounge_permission(NEW.lounge_id,'bookings.manage') IS TRUE
+          OR (TG_OP='UPDATE' AND public.has_lounge_permission(NEW.lounge_id,'sessions_control') IS TRUE
+            AND NEW.status::text='in_progress' AND OLD.status::text='upcoming'
+            AND (NEW.room_id,NEW.lounge_id,NEW.user_id,NEW.date,NEW.start_time,NEW.end_time)
+              IS NOT DISTINCT FROM (OLD.room_id,OLD.lounge_id,OLD.user_id,OLD.date,OLD.start_time,OLD.end_time)
+            AND EXISTS(SELECT 1 FROM private.cashier_booking_command_context command
+              WHERE command.transaction_id=txid_current() AND command.booking_id=NEW.id AND command.kind='start')))
     ) THEN RAISE EXCEPTION 'LOUNGE_OFFLINE' USING ERRCODE='55000'; END IF;
   END IF;
   RETURN NEW;
