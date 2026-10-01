@@ -16,7 +16,7 @@ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
  CREATE FUNCTION public.st_setsrid(text,integer) RETURNS text LANGUAGE sql AS $$SELECT $1$$;
  CREATE TABLE public.profiles(id uuid primary key,is_setup_completed boolean,updated_at timestamptz);
  CREATE TABLE public.brands(id uuid primary key,owner_id uuid);
- CREATE TABLE public.bookings(id uuid primary key,lounge_id uuid,status text);
+ CREATE TABLE public.bookings(id uuid primary key,lounge_id uuid,status text,room_id uuid);
  CREATE TABLE public.lounges(id uuid primary key,owner_id uuid,status text,name text,name_ar text,name_en text,brand_id uuid,branch_name text,
  city text,city_id uuid,location text,opening_time time,closing_time time,image_url text,images text[],description_ar text,description_en text,
  address text,contact_phone text,location_point public.geography,vodafone_cash_number text,instapay_account text);
@@ -30,6 +30,7 @@ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
  INSERT INTO public.lounges(id,owner_id,status,name) VALUES('${lounge}','${owner}','pending','Old'),('${foreign}','${other}','pending','Foreign');
 `);
 await db.exec(await readFile(new URL('../migrations/20261001140000_idempotent_onboarding_resource_save.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../migrations/20261001170000_onboarding_omitted_resources.sql',import.meta.url),'utf8'));
 let passed=0;async function actor(id){await db.exec(`RESET ROLE;SET test.actor='${id??''}';SET ROLE authenticated;`);}
 const rooms=[{id:room,name:'Room',hourly_rate_single:60,hourly_rate_multi:90,max_capacity:4,status:'available'}];
 const extras=[{id:extra,name:'Snack',price:15,category:'food'}];
@@ -58,6 +59,20 @@ await db.exec(`RESET ROLE;UPDATE public.rooms SET status='maintenance',is_availa
 await check('editing room pricing preserves maintenance state',async()=>{
  await db.query(save([{...rooms[0],hourly_rate_single:75}]));await db.exec('RESET ROLE');
  const row=(await db.query(`SELECT * FROM public.rooms WHERE id='${room}'`)).rows[0];assert.equal(row.status,'maintenance');assert.equal(row.is_available,false);
+ await db.exec('SET ROLE authenticated');
+});
+await db.exec(`RESET ROLE;
+ INSERT INTO public.rooms(id,lounge_id,is_active,is_available) VALUES('20000000-0000-0000-0000-000000000003','${lounge}',true,true);
+ INSERT INTO public.extras(id,lounge_id,is_active,is_available) VALUES('30000000-0000-0000-0000-000000000003','${lounge}',true,true);
+ INSERT INTO public.bookings VALUES('40000000-0000-0000-0000-000000000001','${lounge}','upcoming','20000000-0000-0000-0000-000000000003');SET ROLE authenticated;`);
+await deny('omitted resource with future booking cannot disappear',save(),'55000');
+await db.exec(`RESET ROLE;UPDATE public.bookings SET status='cancelled';SET ROLE authenticated;`);
+await check('removed draft resources are retained but disabled',async()=>{
+ await db.query(save([{...rooms[0],hourly_rate_single:75}]));await db.exec('RESET ROLE');
+ const omittedRoom=(await db.query(`SELECT is_active,is_available FROM public.rooms WHERE id='20000000-0000-0000-0000-000000000003'`)).rows[0];
+ const omittedExtra=(await db.query(`SELECT is_active,is_available FROM public.extras WHERE id='30000000-0000-0000-0000-000000000003'`)).rows[0];
+ assert.deepEqual(omittedRoom,{is_active:false,is_available:false});assert.deepEqual(omittedExtra,{is_active:false,is_available:false});
+ assert.equal(Number((await db.query(`SELECT count(*) AS n FROM public.rooms WHERE lounge_id='${foreign}'`)).rows[0].n),1);
  await db.exec('SET ROLE authenticated');
 });
 await db.exec(`RESET ROLE;CREATE FUNCTION public.fail_extra_test() RETURNS trigger LANGUAGE plpgsql AS $$BEGIN RAISE EXCEPTION 'fixture failure';END$$;
