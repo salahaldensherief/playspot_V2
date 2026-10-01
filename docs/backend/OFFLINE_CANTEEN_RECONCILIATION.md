@@ -46,6 +46,11 @@ reproduce all hosted audit, notifications, RLS, moderation or loyalty triggers.
 Run: `PLAYSPOT_NATIVE_PG_PORT=55439 node supabase/tests/offline_canteen_reconciliation.test.mjs`
 (set the environment variable using the platform's shell syntax).
 
+Optional `PLAYSPOT_ORDER_CONTRACT_EXPORT` writes the first successfully tested
+operation/response pair to an explicitly selected UTF-8 JSON file. The cash fixture
+has equivalent `PLAYSPOT_CASH_CONTRACT_EXPORT`. These synthetic responses feed the
+dashboard's offline receipt contract tests; no hosted credentials/data are exported.
+
 This slice supports simple products on active fixed-duration sessions with
 reconciled cash/no-payment state. It deliberately rejects unsettled open-time
 sessions. Combo provenance, mixed tender/refunds, discount/room repricing,

@@ -1,6 +1,6 @@
 import {createFixtureDatabase} from './runtime/database.mjs';
 import {lockedRace} from './runtime/locked_race.mjs';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
 
@@ -65,6 +65,8 @@ try {
  await login();permit=(await db.query('SELECT public.refresh_cashier_writer($1,$2,false) AS authority',[lounge,device])).rows[0].authority.permit_id;
  await check('session permission can add canonically priced items without billing permission or implicit cash',async()=>{
   const op=operation(),r=await send(op);assert.equal(r.status,'applied');assert.equal(r.order_receipt.total_minor,13000);
+  if(process.env.PLAYSPOT_ORDER_CONTRACT_EXPORT) await writeFile(process.env.PLAYSPOT_ORDER_CONTRACT_EXPORT,
+   JSON.stringify({operation:op,response:r},null,2)+'\n','utf8');
   assert.equal(r.order_receipt.due_minor,13000);assert.equal(r.order_receipt.order_id,op.id);
   const s=await snapshot();assert.equal(s.orders.length,1);assert.equal(s.lines.length,1);assert.equal(s.booking_items.length,1);
   assert.equal(s.stock.find(x=>x.id===product).stock_quantity,2);assert.equal(s.cash,null);assert.equal(s.payments,null);

@@ -1,6 +1,6 @@
 import {createFixtureDatabase} from './runtime/database.mjs';
 import {lockedRace} from './runtime/locked_race.mjs';
-import {readFile} from 'node:fs/promises';
+import {readFile,writeFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import assert from 'node:assert/strict';
 
@@ -58,6 +58,8 @@ try {
  });
  await check('first financial operation atomically advances sequence and exposes canonical receipt',async()=>{
   const r=await send(first);assert.equal(r.status,'applied');assert.equal(r.operation_id,first.id);
+  if(process.env.PLAYSPOT_CASH_CONTRACT_EXPORT) await writeFile(process.env.PLAYSPOT_CASH_CONTRACT_EXPORT,
+   JSON.stringify({operation:first,response:r},null,2)+'\n','utf8');
   assert.equal(r.financial_receipt.paid_minor,4000);assert.equal(r.financial_receipt.due_minor,6000);
   assert.equal((await financial()).last_sequence,1);
  });
