@@ -90,19 +90,21 @@ REVOKE ALL ON FUNCTION private.lock_cash_collection_shift(uuid,uuid) FROM PUBLIC
 
 CREATE OR REPLACE FUNCTION private.cash_collection_paid_amount(p_booking_id uuid,p_lounge_id uuid,p_payment_status text)
 RETURNS numeric LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
-DECLARE v_payment public.payments%ROWTYPE;
+DECLARE v_payment public.payments%ROWTYPE;v_cash numeric;
 BEGIN
+  SELECT COALESCE(sum(amount),0) INTO v_cash FROM public.shift_payments
+    WHERE booking_id=p_booking_id AND lounge_id=p_lounge_id AND payment_method='cash';
   SELECT * INTO v_payment FROM public.payments WHERE booking_id=p_booking_id FOR UPDATE;
   IF FOUND THEN
     IF v_payment.payment_method IS DISTINCT FROM 'cash' OR v_payment.status IS DISTINCT FROM 'completed'
       OR v_payment.lounge_id IS DISTINCT FROM p_lounge_id OR v_payment.payout_id IS NOT NULL
       OR v_payment.amount IS NULL OR v_payment.amount<0
       OR v_payment.amount::text IN ('NaN','Infinity','-Infinity')
-      OR v_payment.amount<>round(v_payment.amount,2) THEN
+      OR v_payment.amount<>round(v_payment.amount,2) OR v_payment.amount IS DISTINCT FROM v_cash THEN
       RAISE EXCEPTION 'PAYMENT_REQUIRES_RECONCILIATION' USING ERRCODE='55000';
     END IF;
     RETURN v_payment.amount;
-  ELSIF p_payment_status IS DISTINCT FROM 'unpaid' THEN
+  ELSIF p_payment_status IS DISTINCT FROM 'unpaid' OR v_cash<>0 THEN
     RAISE EXCEPTION 'PAYMENT_REQUIRES_RECONCILIATION' USING ERRCODE='55000';
   END IF;
   RETURN 0;

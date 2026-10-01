@@ -12,7 +12,8 @@ shift must be open, belong to that cashier and venue, and have no conflicting st
 identity. A super-admin role does not exempt the own-shift requirement.
 
 The booking lock serializes competing amounts. The server uses the booking's final
-total and verified cash payment aggregate, rejects manual/unverified/mixed/refunded
+total and cash payment aggregate matched against recorded cash ledger entries,
+rejects manual/unverified/mixed/refunded
 or paid-out aggregates, and appends only the newly collected amount to shift payments.
 The existing platform commission policy and financial trigger govern the aggregate.
 Closing a session and collecting money remain separate: completed status is retained.
@@ -34,7 +35,7 @@ this financial RPC alone does not authorize an offline device or reconcile its q
 
 ## Verification
 
-44 tests passed in native PostgreSQL 17.11 on the isolated loopback fixture cluster,
+47 tests passed in native PostgreSQL 17.11 on the isolated loopback fixture cluster,
 including real independent connections demonstrably waiting on row locks for:
 
 - same-operation simultaneous retry;
@@ -44,7 +45,7 @@ including real independent connections demonstrably waiting on row locks for:
 
 The suite also verifies account/venue/shift eligibility, whole minor units, invalid
 totals, overpayment, completed-status preservation, exact incremental shift entries,
-late-write rollback, response-loss replay, privilege boundaries and legacy aggregate
+late-write rollback, response-loss replay, aggregate/ledger disagreement, privilege boundaries and legacy aggregate
 overwrite rejection. Run with `PLAYSPOT_NATIVE_PG_PORT=55439`:
 `node supabase/tests/partial_cash_collection.test.mjs`.
 
