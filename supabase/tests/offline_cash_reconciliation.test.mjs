@@ -95,5 +95,5 @@ try {
  await login();await check('operation receipts cannot be edited by client',async()=>{
   await assert.rejects(db.query('DELETE FROM private.cashier_operation_receipts'),e=>e.code==='42501');
  });
- console.log(JSON.stringify({passed,limitations:['This fixture covers cash; item orders have a separate native fixture','Reserve/start/close still unsupported','No UI enablement or production writes','Minimal schema; audit/Auth session revocation not mirrored','Conflicts require a separate reviewed resolution flow']}));
+ console.log(JSON.stringify({passed,limitations:['This fixture covers cash; item orders have a separate native fixture','Minimal cash fixture does not load separate fixed-session handlers','No UI enablement or production writes','Minimal schema; audit/Auth session revocation not mirrored','Conflicts require a separate reviewed resolution flow']}));
 } finally {await db.close();}

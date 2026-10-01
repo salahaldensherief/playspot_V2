@@ -46,12 +46,13 @@ DECLARE
   v_lounge public.lounges%ROWTYPE;
   v_writer private.cashier_writer_authorities%ROWTYPE;
   v_now timestamptz := statement_timestamp();
+  v_super_admin boolean;
 BEGIN
   IF v_actor IS NULL THEN RAISE EXCEPTION 'AUTHENTICATION_REQUIRED' USING ERRCODE='28000'; END IF;
   IF p_device_id IS NULL OR p_lounge_id IS NULL OR p_online IS NULL THEN
     RAISE EXCEPTION 'INVALID_CASHIER_WRITER_REQUEST' USING ERRCODE='22023';
   END IF;
-  SELECT p.* INTO v_profile FROM public.profiles p JOIN auth.users u ON u.id=p.id WHERE p.id=v_actor;
+  SELECT p.* INTO v_profile FROM public.profiles p JOIN auth.users u ON u.id=p.id WHERE p.id=v_actor FOR SHARE OF p,u;
   IF NOT FOUND OR v_profile.is_active IS NOT TRUE OR v_profile.is_banned IS DISTINCT FROM false THEN
     RAISE EXCEPTION 'ACCOUNT_NOT_ELIGIBLE' USING ERRCODE='42501';
   END IF;
@@ -59,7 +60,8 @@ BEGIN
   IF NOT FOUND OR v_lounge.status IS DISTINCT FROM 'active' OR v_lounge.is_active IS NOT TRUE THEN
     RAISE EXCEPTION 'LOUNGE_NOT_APPROVED' USING ERRCODE='42501';
   END IF;
-  IF public.is_super_admin() IS NOT TRUE AND public.has_lounge_permission(p_lounge_id,'sessions_control') IS NOT TRUE THEN
+  v_super_admin:=public.is_super_admin() IS TRUE;
+  IF NOT v_super_admin AND public.has_lounge_permission(p_lounge_id,'sessions_control') IS NOT TRUE THEN
     RAISE EXCEPTION 'CASHIER_WRITER_PERMISSION_DENIED' USING ERRCODE='42501';
   END IF;
   INSERT INTO private.cashier_writer_authorities(lounge_id,actor_id,device_id,permit_expires_at,heartbeat_expires_at)
@@ -83,9 +85,9 @@ BEGIN
     'heartbeat_expires_at',v_writer.heartbeat_expires_at,
     'last_applied_sequence',v_writer.last_applied_sequence,'timezone',to_jsonb(v_lounge)->>'timezone',
     'permissions',jsonb_build_object(
-      'bookings.manage',public.has_lounge_permission(p_lounge_id,'bookings.manage') IS TRUE,
-      'sessions_control',public.has_lounge_permission(p_lounge_id,'sessions_control') IS TRUE,
-      'billing_checkout',public.has_lounge_permission(p_lounge_id,'billing_checkout') IS TRUE
+      'bookings.manage',v_super_admin OR public.has_lounge_permission(p_lounge_id,'bookings.manage') IS TRUE,
+      'sessions_control',v_super_admin OR public.has_lounge_permission(p_lounge_id,'sessions_control') IS TRUE,
+      'billing_checkout',v_super_admin OR public.has_lounge_permission(p_lounge_id,'billing_checkout') IS TRUE
     )
   );
 END;
@@ -145,7 +147,7 @@ BEGIN
         AND context.actor_id=writer.actor_id AND context.permit_id=writer.permit_id
         AND context.lounge_id=NEW.lounge_id AND profile.is_active IS TRUE
         AND profile.is_banned IS FALSE AND lounge.status='active' AND lounge.is_active IS TRUE
-        AND (public.has_lounge_permission(NEW.lounge_id,'bookings.manage') IS TRUE
+        AND (public.is_super_admin() IS TRUE OR public.has_lounge_permission(NEW.lounge_id,'bookings.manage') IS TRUE
           OR (TG_OP='UPDATE' AND public.has_lounge_permission(NEW.lounge_id,'sessions_control') IS TRUE
             AND NEW.status::text='in_progress' AND OLD.status::text='upcoming'
             AND (NEW.room_id,NEW.lounge_id,NEW.user_id,NEW.date,NEW.start_time,NEW.end_time)

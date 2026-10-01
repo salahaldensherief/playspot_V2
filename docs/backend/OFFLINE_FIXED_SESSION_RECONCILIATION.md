@@ -65,7 +65,7 @@ plan table rewrite/index rebuild locks and update discovery/read adapters that s
 use `booking_period`. Those adapters otherwise remain conservatively unavailable
 after an early close. Do not automatically apply this source to production.
 
-Verification: 52 native cases passed. Cases include first-customer/permission
+Verification: 53 native cases passed. Cases include first-customer/permission
 boundaries, typed customer fields, overlapping/adjacent bookings, tariff changes,
 room scope/status, cash policy, malformed intervals, overnight/DST handling,
 existing tournaments, session-only start permission, snapshot changes, late/early
@@ -73,6 +73,11 @@ starts, overdue occupancy, shift ownership/closure, early close and historical
 capacity, microseconds, maintenance, cash-trigger repricing rollback, a complete
 five-command flow and replay after shift closure. Two independent connections
 actually wait on the writer lock and commit one reservation for duplicate requests.
+Canonical active super admins can reconcile the lifecycle and partial cash without
+staff grant rows. Their effective permission snapshot and private booking proof use
+the same verified admin boundary. Banned/disabled/deleted identities do not inherit
+those privileges. Separate writer tests cover both canonical role and platform-list
+membership, membership removal and actual profile/Auth revocation lock waits.
 
 Run with `PLAYSPOT_NATIVE_PG_PORT=55439`:
 `node supabase/tests/offline_fixed_session_reconciliation.test.mjs`.
@@ -81,7 +86,7 @@ operation/response flow to UTF-8 JSON for the dashboard's real encrypted Hive te
 The fixture supplies synthetic permissions/Auth and long historical permit windows
 for DST dates; it does not reproduce all hosted audit/moderation/notification/loyalty
 triggers, production RLS or credential storage. Earlier sources separately pass
-47 partial-cash, 31 writer, 25 envelope and 34 item-order native cases.
+47 partial-cash, 41 writer, 25 envelope and 34 item-order native cases.
 
 Release remains blocked on immutable permit renewal/reassignment, canonical cache
 bootstrap, authenticated/logout binding, shift lifecycle/reconciliation, conflicting

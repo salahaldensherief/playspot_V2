@@ -104,6 +104,12 @@ try {
   await reserve();await admin(`DELETE FROM public.fixture_permissions WHERE permission='bookings.manage'`);
   assert.equal((await send(operation('start',2,{occurred_at:at(1)}))).status,'applied');
  });
+ await check('canonical super admin reconciles reserve/start/cash/close without staff grants',async()=>{
+  await admin(`UPDATE public.profiles SET role='super_admin' WHERE id='${actor}';DELETE FROM public.fixture_permissions`);
+  await begin();assert.equal((await send(operation('collectCash',3,{occurred_at:at(2),payload:{amount_minor:5000}}))).status,'applied');
+  const op=operation('close',4,{occurred_at:at(10)});op.quoted_session.paid_minor=5000;
+  assert.equal((await send(op)).status,'applied');
+ });
  await check('missing session snapshot never acknowledges a transition',async()=>{
   await reserve();const op=operation('start',2,{occurred_at:at(1)});delete op.quoted_session;
   await conflict(op,'OFFLINE_SESSION_SNAPSHOT_REQUIRED');

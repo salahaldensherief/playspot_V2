@@ -33,7 +33,8 @@ export async function fixedSessionFixture() {
    UPDATE public.rooms SET lounge_id='${lounge}',hourly_rate_single=100,status='available',is_active=true,is_available=true;
    UPDATE public.extras SET stock_quantity=10,price=15;
    UPDATE public.shifts SET status='open',closed_at=NULL;
-   UPDATE public.profiles SET is_active=true,is_banned=false,completed_bookings_count=0;
+   UPDATE public.profiles SET is_active=true,is_banned=false,completed_bookings_count=0,
+    role=CASE WHEN id='${actor}' THEN 'cashier' ELSE 'user' END;
    UPDATE public.lounges SET status='active',is_active=true,timezone='Africa/Cairo',allow_cash_payment=true;
    DELETE FROM public.fixture_permissions;
    INSERT INTO public.fixture_permissions VALUES('${actor}','${lounge}','sessions_control'),

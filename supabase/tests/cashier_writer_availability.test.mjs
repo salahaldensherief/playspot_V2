@@ -1,4 +1,5 @@
 import {createFixtureDatabase} from './runtime/database.mjs';
+import {lockedRace} from './runtime/locked_race.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -115,5 +116,39 @@ try {
   await db.query(`INSERT INTO public.bookings(lounge_id,room_id) VALUES('${lounge}','${room}')`);
   await db.exec('COMMIT');passed++;console.log('PASS trusted transaction proof allows reviewed reconciliation insertion');
   await deny('committed proof cannot be reused by another transaction',`INSERT INTO public.bookings(lounge_id,room_id) VALUES('${lounge}','${room}')`,'55000');
-  console.log(JSON.stringify({passed,limitations:['Synthetic schema and permission helper','Discovery/checkout/hold responses still need availability wiring','Reconciliation proof creation exercised as fixture admin; real apply RPC not implemented','No hosted writes','Concurrency exercised only on native PostgreSQL']}));
+  await db.exec(`RESET ROLE;UPDATE public.profiles SET role='super_admin' WHERE id='${actor}';
+    DELETE FROM public.fixture_permissions WHERE actor='${actor}';SET ROLE authenticated;`);
+  const adminAuthority=(await db.query(refresh)).rows[0].authority;
+  assert.deepEqual(adminAuthority.permissions,{'bookings.manage':true,sessions_control:true,billing_checkout:true});
+  passed++;console.log('PASS canonical active super admin receives effective offline permissions');
+  await db.query(`SELECT public.refresh_cashier_writer('${lounge}','${device}',false)`);
+  await db.exec(`RESET ROLE;BEGIN;INSERT INTO private.cashier_sync_context SELECT txid_current(),lounge_id,actor_id,permit_id
+    FROM private.cashier_writer_authorities WHERE lounge_id='${lounge}';SET ROLE authenticated;`);
+  await db.query(`INSERT INTO public.bookings(lounge_id,room_id) VALUES('${lounge}','${room}')`);
+  await db.exec('COMMIT');passed++;console.log('PASS canonical super admin uses trusted offline booking proof without a staff grant');
+  await db.exec(`RESET ROLE;UPDATE public.profiles SET role='cashier' WHERE id='${actor}';
+    INSERT INTO public.platform_super_admins VALUES('${actor}');SET ROLE authenticated;`);
+  const listedAuthority=(await db.query(refresh)).rows[0].authority;
+  assert.deepEqual(listedAuthority.permissions,{'bookings.manage':true,sessions_control:true,billing_checkout:true});
+  passed++;console.log('PASS canonical listed super admin receives effective offline permissions');
+  await db.exec(`RESET ROLE;UPDATE public.profiles SET is_banned=true WHERE id='${actor}';SET ROLE authenticated;`);
+  await deny('banned listed super admin cannot issue offline permissions',refresh,'42501');
+  await online(false,'banned listed super admin closes online availability');
+  await db.exec(`RESET ROLE;UPDATE public.profiles SET is_banned=false,is_active=false WHERE id='${actor}';SET ROLE authenticated;`);
+  await deny('disabled listed super admin cannot issue offline permissions',refresh,'42501');
+  await db.exec(`RESET ROLE;UPDATE public.profiles SET is_active=true WHERE id='${actor}';
+    DELETE FROM public.platform_super_admins WHERE user_id='${actor}';SET ROLE authenticated;`);
+  await deny('removed platform membership does not leave stale admin permissions',refresh,'42501');
+  await online(false,'removed admin membership closes online availability');
+  if(db.connect) {
+    await db.exec(`RESET ROLE;INSERT INTO public.fixture_permissions VALUES('${actor}','${lounge}','sessions_control')`);
+    for(const change of [`UPDATE public.profiles SET is_banned=true WHERE id='${actor}'`,
+      `DELETE FROM auth.users WHERE id='${actor}'`]) {
+      await db.exec(`RESET ROLE;UPDATE public.profiles SET is_active=true,is_banned=false WHERE id='${actor}'`);
+      const [issued,revoked]=await lockedRace(db,{sql:refresh,args:[]},{sql:'RESET ROLE;'+change,args:[]},actor);
+      assert.equal(issued.rows[0].authority.actor_id,actor);assert.equal(revoked.error,undefined);
+      await actorAs(actor);await online(false,'identity revocation waits for issuance then closes availability: '+change.split(' ')[0]);
+    }
+  }
+  console.log(JSON.stringify({passed,limitations:['Synthetic schema and permission helper','Discovery/checkout/hold responses still need availability wiring','Proof creation here uses admin; actual apply RPC has a separate integrated suite','No hosted writes','Concurrency exercised only on native PostgreSQL']}));
 } finally {await db.close();}

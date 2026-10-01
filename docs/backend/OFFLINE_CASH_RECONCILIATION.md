@@ -54,6 +54,6 @@ fixture suites, not evidence of full hosted/UI end-to-end integration. Hosted au
 triggers, production RLS, Auth session revocation, room/pricing/inventory operations,
 snapshots, device bootstrap, logout and conflict-review UI remain unverified here.
 The separate item-order fixture passes 34 native cases and reproduces the actual
-hosted booking-price trigger. The integrated fixed-session fixture passes 52 native
+hosted booking-price trigger. The integrated fixed-session fixture passes 53 native
 cases, including cash rollback on trigger-driven repricing. No hosted write,
 migration or dev/main merge was performed.

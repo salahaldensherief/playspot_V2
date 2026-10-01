@@ -163,7 +163,7 @@ try {
    const after=await snapshot();assert.equal(after.orders,null);assert.equal(after.bookings[0].total_price,before.bookings[0].total_price);
   });
  }
- console.log(JSON.stringify({passed,limitations:['Source-only fixed active session item orders; reserve/start/close unsupported',
+ console.log(JSON.stringify({passed,limitations:['Source-only item fixture; fixed lifecycle has a separate integrated suite',
   'Minimal fixture reproduces actual hosted price trigger, not every production RLS/audit/notification trigger',
   'No combo/open-time/discount repricing or conflict resolution UI enablement']}));
 } finally {await db.close();}
