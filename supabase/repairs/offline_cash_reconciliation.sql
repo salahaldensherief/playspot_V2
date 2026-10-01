@@ -34,11 +34,30 @@ BEGIN
   END IF;
   v_time:=(p_operation->>'occurred_at')::timestamptz;
   IF NOT isfinite(v_time) THEN RAISE EXCEPTION 'INVALID_OFFLINE_OPERATION' USING ERRCODE='22023'; END IF;
-  IF p_operation->>'kind' IS DISTINCT FROM 'collectCash' THEN
+  IF p_operation->>'kind' IS NULL OR p_operation->>'kind' NOT IN ('collectCash','addItems') THEN
     RAISE EXCEPTION 'OFFLINE_OPERATION_KIND_NOT_IMPLEMENTED' USING ERRCODE='0A000';
   END IF;
 END; $$;
 REVOKE ALL ON FUNCTION private.validate_cashier_operation(jsonb) FROM PUBLIC,anon,authenticated;
+
+CREATE OR REPLACE FUNCTION private.assert_offline_cashier_permission(p_operation jsonb)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+BEGIN
+  IF p_operation->>'kind'='collectCash' THEN
+    PERFORM private.assert_cash_collector(auth.uid(),(p_operation->>'lounge_id')::uuid);
+    RETURN;
+  END IF;
+  PERFORM 1 FROM public.profiles p JOIN auth.users u ON u.id=p.id
+    WHERE p.id=auth.uid() AND p.is_active IS TRUE AND p.is_banned IS FALSE FOR SHARE OF p,u;
+  IF NOT FOUND THEN RAISE EXCEPTION 'ACCOUNT_NOT_ELIGIBLE' USING ERRCODE='42501'; END IF;
+  IF public.is_super_admin() IS NOT TRUE AND
+    public.has_lounge_permission((p_operation->>'lounge_id')::uuid,'sessions_control') IS NOT TRUE THEN
+    RAISE EXCEPTION 'OFFLINE_SESSION_PERMISSION_DENIED' USING ERRCODE='42501';
+  END IF;
+  PERFORM 1 FROM public.lounges WHERE id=(p_operation->>'lounge_id')::uuid AND is_active IS TRUE AND status='active' FOR SHARE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'LOUNGE_NOT_APPROVED' USING ERRCODE='42501'; END IF;
+END; $$;
+REVOKE ALL ON FUNCTION private.assert_offline_cashier_permission(jsonb) FROM PUBLIC,anon,authenticated;
 
 CREATE OR REPLACE FUNCTION private.lock_cashier_operation_writer(p_operation jsonb)
 RETURNS private.cashier_writer_authorities LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -47,7 +66,7 @@ BEGIN
   IF auth.uid() IS DISTINCT FROM (p_operation->>'actor_id')::uuid THEN
     RAISE EXCEPTION 'OFFLINE_ACTOR_MISMATCH' USING ERRCODE='42501';
   END IF;
-  PERFORM private.assert_cash_collector(auth.uid(),(p_operation->>'lounge_id')::uuid);
+  PERFORM private.assert_offline_cashier_permission(p_operation);
   SELECT * INTO v_writer FROM private.cashier_writer_authorities
     WHERE lounge_id=(p_operation->>'lounge_id')::uuid FOR UPDATE;
   IF NOT FOUND OR v_writer.actor_id IS DISTINCT FROM auth.uid()
@@ -106,8 +125,12 @@ BEGIN
       'status','conflict','code','OFFLINE_SEQUENCE_BLOCKED');
   END IF;
   BEGIN
-    v_result:=jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,
-      'status','applied','financial_receipt',private.apply_cashier_cash_operation(p_operation));
+    IF p_operation->>'kind'='collectCash' THEN
+      v_result:=jsonb_build_object('financial_receipt',private.apply_cashier_cash_operation(p_operation));
+    ELSE
+      v_result:=jsonb_build_object('order_receipt',private.apply_cashier_order_operation(p_operation));
+    END IF;
+    v_result:=v_result||jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,'status','applied');
   EXCEPTION WHEN SQLSTATE '22023' OR SQLSTATE '55000' OR SQLSTATE '42501' OR SQLSTATE 'P0002' THEN
     GET STACKED DIAGNOSTICS v_code=MESSAGE_TEXT;
     v_result:=jsonb_build_object('operation_id',v_id,'lounge_id',v_lounge,'sequence',v_sequence,

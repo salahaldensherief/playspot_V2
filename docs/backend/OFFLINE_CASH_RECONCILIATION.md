@@ -3,17 +3,19 @@
 This source depends on `active_super_admin_boundary.sql`,
 `partial_cash_collection.sql` and `cashier_writer_availability.sql`. Load those
 review sources before `offline_cash_reconciliation.sql` in the isolated fixture.
+The item-order path additionally needs `offline_canteen_reconciliation.sql`;
+its separate contract and verification are in `OFFLINE_CANTEEN_RECONCILIATION.md`.
 It is not an automatically applied migration or deployed endpoint.
 
 `apply_offline_cashier_operation(p_operation jsonb)` accepts the dashboard envelope:
 operation UUID, actor/venue/device/permit/booking/shift UUIDs, positive integer
 sequence, timezone-qualified occurrence timestamp, kind and payload. This slice
-implements **collectCash only**. Reserve/start/addItems/close explicitly fail with
+implements **collectCash and fixed-session addItems**. Reserve/start/close explicitly fail with
 `OFFLINE_OPERATION_KIND_NOT_IMPLEMENTED`; they never manufacture an acknowledgement.
 The real cashier UI must remain disabled for this incomplete server feature.
 
 The actor must match Auth. Current account, Auth identity, approved venue and
-billing eligibility are rechecked. The writer row is locked and must match the
+billing eligibility for cash, or session-control eligibility for orders, are rechecked. The writer row is locked and must match the
 actor/device/permit. The event must fall inside its issued permit window and cannot
 be more than five minutes ahead of server time. Device UUID matching is a server
 ownership check; it is not hardware attestation or a cryptographic event timestamp.
@@ -36,7 +38,7 @@ the source does not write cash into a closed or another cashier's shift.
 
 ## Verification
 
-25 native PostgreSQL 17.11 tests passed with this slice's four source dependencies
+25 native PostgreSQL 17.11 cash tests passed with this slice's four source dependencies
 loaded together into one minimal fixture. They cover forged actor/device/permit,
 invalid sequence/shift/time, unsupported operation kinds, sequence gaps, canonical
 cash acknowledgements, response-loss retry, payload conflict, banned-account replay,
@@ -49,4 +51,5 @@ The partial-cash suite independently passes 47 tests. These counts are separate
 fixture suites, not evidence of full hosted/UI end-to-end integration. Hosted audit
 triggers, production RLS, Auth session revocation, room/pricing/inventory operations,
 snapshots, device bootstrap, logout and conflict-review UI remain unverified here.
-No hosted write, migration or dev/main merge was performed.
+The separate item-order fixture passes 34 native cases and reproduces the actual
+hosted booking-price trigger. No hosted write, migration or dev/main merge was performed.
