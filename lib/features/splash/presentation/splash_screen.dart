@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
@@ -113,21 +115,27 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _fetchUserLocation() async {
     try {
       final locationService = sl<LocationService>();
-      final position = await locationService.getCurrentLocation();
-      if (position != null) {
-        final pref = sl<PreferenceManager>();
-        await pref.saveLatitude(position.latitude);
-        await pref.saveLongitude(position.longitude);
+      final permission = await locationService.checkPermission();
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        final position = await locationService.getCurrentLocation();
+        if (position != null) {
+          final pref = sl<PreferenceManager>();
+          await pref.saveLatitude(position.latitude);
+          await pref.saveLongitude(position.longitude);
 
-        final address = await locationService.getAddressFromLatLng(
-          position.latitude,
-          position.longitude,
-        );
-        if (address != null) {
-          await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
+          final address = await locationService.getAddressFromLatLng(
+            position.latitude,
+            position.longitude,
+          );
+          if (address != null) {
+            await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
+          }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      dev.log("SPLASH_LOCATION_FETCH_ERROR: $e");
+    }
   }
 
   void _safeRemoveNativeSplash() {
