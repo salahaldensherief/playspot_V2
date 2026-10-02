@@ -1,8 +1,10 @@
+import 'home_metadata_loader.dart';
+import 'home_tournaments_loader.dart';
+import 'home_location_tracker.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../../art_core/extension/globlX.dart';
 import '../../../core/cache/caching_key.dart';
 import '../../../core/cache/preference_manager.dart';
 import '../../../core/di.dart';
@@ -10,346 +12,186 @@ import '../../../core/services/location_service.dart';
 import '../../tournaments/domain/usecases/get_tournaments_usecase.dart';
 import '../../tournaments/domain/usecases/get_home_tournament_usecase.dart';
 import '../../tournaments/domain/usecases/get_my_active_tournament_usecase.dart';
-import '../../tournaments/domain/entities/tournament_entity.dart';
-import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
-import 'package:playspot/art_core/utils/app_logger.dart';
 import '../domain/repositories/home_repository.dart';
+import '../domain/usecases/discover_lounges_usecase.dart';
+import '../domain/usecases/recalculate_lounge_distances_usecase.dart';
 import 'home_state.dart';
 import '../data/models/lounge_model.dart';
-import '../data/models/category_model.dart';
-import '../data/models/promo_model.dart';
 import '../data/models/home_params.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final HomeRepository _homeRepository;
+  final DiscoverLoungesUseCase _discover;
+  final RecalculateLoungeDistancesUseCase _recalculate;
   final LocationService _locationService;
-  final GetTournamentsUseCase _getTournamentsUseCase;
-  final GetHomeTournamentUseCase _getHomeTournamentUseCase;
-  final GetMyActiveTournamentUseCase _getMyActiveTournamentUseCase;
-
   final PreferenceManager _pref;
-  final ProfileRepository? _profileRepository;
-
+  late final HomeMetadataLoader _metadata = HomeMetadataLoader(
+    _homeRepository,
+    _pref,
+    () => state,
+    _safeEmit,
+  );
+  late final HomeTournamentsLoader _tournaments;
+  late final HomeLocationTracker _location = HomeLocationTracker(_pref);
+  final Stream<Position> Function() _positions;
   StreamSubscription<Position>? _positionSubscription;
-
-  // Token to handle race conditions for getHomeData calls
   int _homeDataFetchToken = 0;
-
-  double? _lastUsedLat;
-  double? _lastUsedLng;
+  int _locationReadToken = 0;
 
   HomeCubit(
     this._homeRepository,
     this._locationService,
-    this._getTournamentsUseCase,
-    this._getHomeTournamentUseCase,
-    this._getMyActiveTournamentUseCase, {
+    GetTournamentsUseCase tournaments,
+    GetHomeTournamentUseCase homeTournament,
+    GetMyActiveTournamentUseCase activeTournament, {
     PreferenceManager? preferenceManager,
-    ProfileRepository? profileRepository,
-  })  : _pref = preferenceManager ?? sl<PreferenceManager>(),
-        _profileRepository = profileRepository ?? (sl.isRegistered<ProfileRepository>() ? sl<ProfileRepository>() : null),
-        super(const HomeState());
+    DiscoverLoungesUseCase? discover,
+    RecalculateLoungeDistancesUseCase recalculate =
+        const RecalculateLoungeDistancesUseCase(),
+    Stream<Position> Function()? positions,
+  }) : _pref = preferenceManager ?? sl<PreferenceManager>(),
+       _discover = discover ?? DiscoverLoungesUseCase(_homeRepository),
+       _recalculate = recalculate,
+       _positions = positions ?? HomeLocationTracker.platformPositions,
+       super(const HomeState()) {
+    _tournaments = HomeTournamentsLoader(
+      tournaments,
+      homeTournament,
+      activeTournament,
+      _pref,
+      () => state,
+      _safeEmit,
+    );
+  }
 
   void _safeEmit(HomeState s) {
     if (!isClosed) emit(s);
   }
 
   Future<void> init() async {
-    _loadCachedHomeData();
-
-    final userId = _pref.userId();
-    final hasCachedData = state.nearestLounges.isNotEmpty;
-
-    _safeEmit(state.copyWith(
-      status: hasCachedData ? HomeStatus.refreshing : HomeStatus.loading,
-      isLoungesLoading: !hasCachedData,
-      isPromosLoading: state.promotions.isEmpty,
-      isCategoriesLoading: state.categories.isEmpty,
-    ));
-
-    final savedLat = double.tryParse(_pref.latitude());
-    final savedLng = double.tryParse(_pref.longitude());
-    var hasSavedLocation = savedLat != null && savedLng != null;
-
-    if (!hasSavedLocation) {
-      try {
-        final lastPos = await Geolocator.getLastKnownPosition();
-        if (lastPos != null) {
-          await _pref.saveLatitude(lastPos.latitude);
-          await _pref.saveLongitude(lastPos.longitude);
-          hasSavedLocation = true;
-          unawaited(getHomeData());
-        }
-      } catch (_) {}
-    }
-
-    final citiesFuture = _loadCities();
-    unawaited(_loadPromotions());
-    unawaited(_loadCategories());
-    unawaited(_loadPoints(userId));
-    unawaited(fetchTournamentsData());
-    if (hasSavedLocation && state.nearestLounges.isEmpty) {
-      unawaited(getHomeData());
-    }
-
-    await _detectLocation(
-      citiesFuture,
-      shouldRefreshLounges: !hasSavedLocation,
+    if (isClosed) return;
+    _metadata.loadCached();
+    _applyDistanceEstimates();
+    final cached = state.nearestLounges.isNotEmpty;
+    _safeEmit(
+      state.copyWith(
+        status: cached ? HomeStatus.success : HomeStatus.loading,
+        isLoungesLoading: !cached,
+        isPromosLoading: state.promotions.isEmpty,
+        isCategoriesLoading: state.categories.isEmpty,
+      ),
     );
-  }
-
-  static const String _citiesCacheKey = 'CITIES_CACHE';
-  static const String _citiesCacheTimeKey = 'CITIES_CACHE_TIME';
-  static const String _categoriesCacheTimeKey = 'CATEGORIES_CACHE_TIME';
-  static const Duration _metaTtl = Duration(hours: 24);
-
-  bool _isCacheValid(String timeKey) {
-    final timestampStr = _pref.getValue(timeKey);
-    if (timestampStr.isEmpty) return false;
-    final timestamp = int.tryParse(timestampStr);
-    if (timestamp == null) return false;
-    final age = DateTime.now().millisecondsSinceEpoch - timestamp;
-    return age < _metaTtl.inMilliseconds;
-  }
-
-  List<Map<String, dynamic>> _getCachedCities() {
-    final raw = _pref.getValue(_citiesCacheKey);
-    if (raw.isEmpty) return [];
-    try {
-      final list = jsonDecode(raw) as List;
-      return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  List<CategoryModel> _getCachedCategories() {
-    final raw = _pref.getValue(CachingKey.CATEGORIES_CACHE);
-    if (raw.isEmpty) return [];
-    try {
-      final list = jsonDecode(raw) as List;
-      return list.map((e) => CategoryModel.fromJson(Map<String, dynamic>.from(e as Map))).toList();
-    } catch (_) {
-      return [];
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> _loadCities() async {
-    if (_isCacheValid(_citiesCacheTimeKey)) {
-      final cached = _getCachedCities();
-      if (cached.isNotEmpty) {
-        _safeEmit(state.copyWith(availableCities: cached));
-        return cached;
-      }
-    }
-    final res = await _homeRepository.getAvailableCities();
-    return res.fold((_) => <Map<String, dynamic>>[], (cities) {
-      if (cities.isNotEmpty) {
-        _safeEmit(state.copyWith(availableCities: cities));
-        _pref.saveValue(_citiesCacheKey, jsonEncode(cities));
-        _pref.saveValue(_citiesCacheTimeKey,
-            DateTime.now().millisecondsSinceEpoch.toString());
-      }
-      return cities;
-    });
-  }
-
-  Future<void> _loadCategories() async {
-    if (_isCacheValid(_categoriesCacheTimeKey)) {
-      final cached = _getCachedCategories();
-      if (cached.isNotEmpty) {
-        _safeEmit(state.copyWith(categories: cached, isCategoriesLoading: false));
-        return;
-      }
-    }
-    final res = await _homeRepository.getCategories();
-    res.fold(
-      (_) => _safeEmit(state.copyWith(isCategoriesLoading: false)),
-      (cats) {
-        if (cats.isEmpty) {
-          _safeEmit(state.copyWith(isCategoriesLoading: false));
-          return;
-        }
-        _safeEmit(state.copyWith(categories: cats, isCategoriesLoading: false));
-        _pref.saveValue(CachingKey.CATEGORIES_CACHE,
-            jsonEncode(cats.map((e) => e.toJson()).toList()));
-        _pref.saveValue(_categoriesCacheTimeKey,
-            DateTime.now().millisecondsSinceEpoch.toString());
-      },
-    );
-  }
-
-  Future<void> _loadPromotions() async {
-    final res = await _homeRepository.getPromotions(loungeId: null);
-    res.fold(
-      (_) => _safeEmit(state.copyWith(isPromosLoading: false)),
-      (promos) {
-        _safeEmit(state.copyWith(
-          promotions: promos,
-          isPromosLoading: false,
-        ));
-        if (promos.isNotEmpty) {
-          _pref.saveValue(CachingKey.PROMOTIONS_CACHE,
-              jsonEncode(promos.map((e) => e.toJson()).toList()));
-        }
-      },
-    );
-  }
-
-  Future<void> _loadPoints(String? userId) async {
-    if (userId == null || userId.isEmpty) return;
-    final res = await _homeRepository.getUserPoints(userId);
-    res.fold((_) {}, (p) => _safeEmit(state.copyWith(pointsBalance: p)));
-  }
-
-  Future<void> fetchTournamentsData() async {
-    await Future.wait([_loadHomeTournament(), _loadActiveTournament()]);
-  }
-
-  Future<void> _loadHomeTournament() async {
-    final result = await _getHomeTournamentUseCase();
-    await result.fold(
-      (_) async {
-        final lat = double.tryParse(_pref.latitude());
-        final lng = double.tryParse(_pref.longitude());
-        final res = await _getTournamentsUseCase(latitude: lat, longitude: lng);
-        res.fold((_) {}, (tournaments) {
-          final nearest = tournaments.firstWhereOrNull((t) =>
-                  t.status == TournamentStatus.registrationOpen ||
-                  t.status == TournamentStatus.published) ??
-              tournaments.firstOrNull;
-          _safeEmit(state.copyWith(
-            nearbyTournament: nearest,
-            clearNearbyTournament: nearest == null,
-          ));
-        });
-      },
-      (t) async => _safeEmit(state.copyWith(
-        nearbyTournament: t,
-        clearNearbyTournament: t == null,
-      )),
-    );
-  }
-
-  Future<void> _loadActiveTournament() async {
-    final userId = _pref.userId();
-    if (userId == null || userId.isEmpty) return;
-    final result = await _getMyActiveTournamentUseCase();
-    result.fold((_) {}, (p) {
-      _safeEmit(state.copyWith(
-        activeRegisteredTournament: p?.tournament,
-        clearActiveRegisteredTournament: p?.tournament == null,
-        activeUserParticipant: p?.participant,
-        clearActiveUserParticipant: p?.participant == null,
-      ));
-    });
-  }
-
-  void _loadCachedHomeData() {
-    final cachedPromos = _pref.getValue(CachingKey.PROMOTIONS_CACHE);
-    final cachedCats = _pref.getValue(CachingKey.CATEGORIES_CACHE);
-    final cachedLounges = _pref.getValue(CachingKey.CACHED_LOUNGES);
-
-    if (cachedPromos.isNotEmpty || cachedCats.isNotEmpty || cachedLounges.isNotEmpty) {
-      try {
-        final List<PromoModel> promos = cachedPromos.isNotEmpty
-            ? (jsonDecode(cachedPromos) as List).map((e) => PromoModel.fromJson(e)).toList()
-            : <PromoModel>[];
-        final List<CategoryModel> cats = cachedCats.isNotEmpty
-            ? (jsonDecode(cachedCats) as List).map((e) => CategoryModel.fromJson(e)).toList()
-            : <CategoryModel>[];
-        final List<LoungeModel> lounges = cachedLounges.isNotEmpty
-            ? (jsonDecode(cachedLounges) as List).map((e) => LoungeModel.fromJson(e)).toList()
-            : <LoungeModel>[];
-
-        emit(state.copyWith(
-          promotions: promos,
-          categories: cats,
-          nearestLounges: lounges,
-          topRatedLounges: List<LoungeModel>.from(lounges)
-            ..sort((a, b) => b.rating.compareTo(a.rating)),
-        ));
-      } catch (e) {
-        AppLogger.debug("CACHE_LOAD_ERROR: $e");
-      }
-    }
+    final cities = _metadata.loadCities();
+    unawaited(_metadata.loadPromotions());
+    unawaited(_metadata.loadCategories());
+    unawaited(_metadata.loadPoints(_pref.userId()));
+    unawaited(_tournaments.load());
+    if (!cached) unawaited(getHomeData());
+    await _detectLocation(cities);
   }
 
   Future<void> refreshHome() async {
     _safeEmit(state.copyWith(status: HomeStatus.refreshing));
     await Future.wait([
-      _loadCities(),
-      _loadPromotions(),
-      _loadCategories(),
-      _loadPoints(_pref.userId()),
-      fetchTournamentsData(),
+      _metadata.loadCities(),
+      _metadata.loadPromotions(),
+      _metadata.loadCategories(),
+      _metadata.loadPoints(_pref.userId()),
+      _tournaments.load(),
       getHomeData(forceLoading: false),
     ]);
   }
 
-  Future<void> getHomeData({bool isLoadMore = false, bool forceLoading = false}) async {
-    final lat = double.tryParse(_pref.latitude());
-    final lng = double.tryParse(_pref.longitude());
-
-    if (lat == null || lng == null) return;
-    if (isLoadMore && (state.hasReachedMax || state.status == HomeStatus.loadingMore)) return;
-
-    final currentFetchToken = ++_homeDataFetchToken;
-
-    _lastUsedLat = lat;
-    _lastUsedLng = lng;
-
+  Future<void> getHomeData({
+    bool isLoadMore = false,
+    bool forceLoading = false,
+  }) async {
+    if (isClosed) return;
+    if (isLoadMore &&
+        (state.hasReachedMax || state.status == HomeStatus.loadingMore)) {
+      return;
+    }
+    final coordinates = _location.coordinates;
+    _applyDistanceEstimates();
+    final token = ++_homeDataFetchToken;
+    _location.lastRequested = coordinates;
     final nextPage = isLoadMore ? state.currentPage + 1 : 0;
-    const pageSize = 10;
-
-    final isBackgroundRefresh = state.nearestLounges.isNotEmpty && !isLoadMore && !forceLoading && !state.isLoungesLoading;
-    
-    _safeEmit(state.copyWith(
-      status: isLoadMore 
-          ? HomeStatus.loadingMore
-          : (isBackgroundRefresh ? HomeStatus.refreshing : HomeStatus.loading),
-      isLoungesLoading: !isLoadMore && !isBackgroundRefresh,
-      currentPage: nextPage,
-      hasReachedMax: isLoadMore ? state.hasReachedMax : false,
-      nearestLounges: (forceLoading || (!isLoadMore && !isBackgroundRefresh && state.nearestLounges.isEmpty)) ? [] : state.nearestLounges,
-    ));
-
-    final result = await _homeRepository.getLounges(
+    final background =
+        state.nearestLounges.isNotEmpty &&
+        !isLoadMore &&
+        !forceLoading &&
+        !state.isLoungesLoading;
+    _prepareLoungesRequest(isLoadMore, background, nextPage);
+    final result = await _discover(
       GetLoungesParams(
-        lat: lat,
-        lng: lng,
+        lat: coordinates?.latitude,
+        lng: coordinates?.longitude,
         city: state.selectedCity,
         categoryIds: state.selectedCategoryIds,
-        sortType: state.sortType == LoungeSortType.topRated ? 'top_rated' : 'nearest',
-        limit: pageSize,
-        offset: nextPage * pageSize,
-      )
+        sortType: state.sortType == LoungeSortType.topRated
+            ? 'top_rated'
+            : 'nearest',
+        limit: 10,
+        offset: nextPage * 10,
+      ),
     );
-
-    // Stale request check: Ignore response if a newer getHomeData request was triggered
-    if (currentFetchToken != _homeDataFetchToken) return;
-
+    if (token != _homeDataFetchToken || isClosed) return;
     result.fold(
-      (f) => _safeEmit(state.copyWith(
-        status: HomeStatus.failure,
+      (f) => _safeEmit(
+        state.copyWith(status: HomeStatus.failure, isLoungesLoading: false),
+      ),
+      (lounges) => _applyLounges(lounges, isLoadMore),
+    );
+  }
+
+  void _prepareLoungesRequest(bool isLoadMore, bool background, int nextPage) {
+    _safeEmit(
+      state.copyWith(
+        status: isLoadMore
+            ? HomeStatus.loadingMore
+            : background
+            ? HomeStatus.refreshing
+            : HomeStatus.loading,
+        isLoungesLoading: !isLoadMore && !background,
+        currentPage: nextPage,
+        hasReachedMax: isLoadMore ? state.hasReachedMax : false,
+      ),
+    );
+  }
+
+  void _applyLounges(List<LoungeModel> lounges, bool isLoadMore) {
+    final updated = isLoadMore
+        ? [...state.nearestLounges, ...lounges]
+        : lounges;
+    _safeEmit(
+      state.copyWith(
+        status: HomeStatus.success,
         isLoungesLoading: false,
-      )),
-      (newLounges) {
-        final List<LoungeModel> updatedLounges = isLoadMore 
-            ? [...state.nearestLounges, ...newLounges]
-            : newLounges;
+        nearestLounges: updated,
+        hasReachedMax: lounges.length < 10,
+      ),
+    );
+    if (!isLoadMore) {
+      _pref.saveValue(
+        CachingKey.CACHED_LOUNGES,
+        jsonEncode(updated.map((e) => e.toJson()).toList()),
+      );
+    }
+  }
 
-        _safeEmit(state.copyWith(
-          status: HomeStatus.success,
-          isLoungesLoading: false,
-          nearestLounges: updatedLounges,
-          hasReachedMax: newLounges.length < pageSize,
-        ));
-
-        if (!isLoadMore) {
-          _pref.saveValue(CachingKey.CACHED_LOUNGES, jsonEncode(updatedLounges.map((e) => e.toJson()).toList()));
-        }
-      },
+  void _applyDistanceEstimates() {
+    if (state.nearestLounges.isEmpty) return;
+    final lounges = _recalculate(
+      state.nearestLounges,
+      _location.coordinates,
+      sortByDistance: state.sortType == LoungeSortType.nearest,
+    );
+    final next = state.copyWith(nearestLounges: lounges);
+    if (next == state) return;
+    _safeEmit(next);
+    _pref.saveValue(
+      CachingKey.CACHED_LOUNGES,
+      jsonEncode(lounges.map((lounge) => lounge.toJson()).toList()),
     );
   }
 
@@ -362,93 +204,67 @@ class HomeCubit extends Cubit<HomeState> {
   void loadMore() => getHomeData(isLoadMore: true);
 
   Future<void> _detectLocation(
-    Future<List<Map<String, dynamic>>> citiesFuture, {
-    required bool shouldRefreshLounges,
-  }) async {
+    Future<List<Map<String, dynamic>>> citiesFuture,
+  ) async {
+    final token = ++_locationReadToken;
     final pos = await _locationService.getCurrentLocation();
-    if (pos == null) {
-      if (state.status == HomeStatus.loading) {
-        _safeEmit(state.copyWith(status: HomeStatus.failure));
-      }
+    if (pos == null || isClosed || token != _locationReadToken) return;
+    final moved = _location.hasMoved(pos);
+    if (!await _location.save(pos) || isClosed || token != _locationReadToken) {
       return;
     }
+    if (moved) unawaited(getHomeData());
 
-    await _pref.saveLatitude(pos.latitude);
-    await _pref.saveLongitude(pos.longitude);
-
-    // Invoke update-user-location Edge Function in background
-    try {
-      if (_profileRepository != null) {
-        unawaited(_profileRepository.updateUserLocation());
-      }
-    } catch (_) {}
-
-    final movedSignificantly = _hasMovedSignificantly(pos.latitude, pos.longitude);
-    if (shouldRefreshLounges || movedSignificantly) {
-      unawaited(getHomeData());
-    }
-
-    final address = await _locationService.getAddressFromLatLng(pos.latitude, pos.longitude);
-    if (address == null) return;
+    final address = await _locationService.getAddressFromLatLng(
+      pos.latitude,
+      pos.longitude,
+    );
+    if (address == null || isClosed || token != _locationReadToken) return;
     await citiesFuture;
 
-    final isInEgypt = address.toLowerCase().contains("egypt") || address.toLowerCase().contains("مصر");
-
+    if (isClosed || token != _locationReadToken) return;
     await _pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
-
-    String displayLocation = address;
-    if (isInEgypt) {
-      final parts = address.split(',');
-      final area = parts.first.trim();
-      displayLocation = "$area, Egypt";
-    }
-
-    _safeEmit(state.copyWith(
-      currentAddress: displayLocation,
-    ));
+    if (isClosed || token != _locationReadToken) return;
+    _safeEmit(state.copyWith(currentAddress: address));
   }
 
-  bool _hasMovedSignificantly(double newLat, double newLng) {
-    final lastLat = _lastUsedLat;
-    final lastLng = _lastUsedLng;
-    if (lastLat == null || lastLng == null) return true;
-    final distanceInMeters = Geolocator.distanceBetween(
-      lastLat,
-      lastLng,
-      newLat,
-      newLng,
-    );
-    return distanceInMeters > 500;
-  }
+  Future<void> fetchTournamentsData() => _tournaments.load();
 
   void startLocationListening() {
-    if (_positionSubscription != null) return;
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.medium,
-        distanceFilter: 500,
-      ),
-    ).listen((p) async {
-      final moved = _hasMovedSignificantly(p.latitude, p.longitude);
-      await _pref.saveLatitude(p.latitude);
-      await _pref.saveLongitude(p.longitude);
+    if (isClosed || _positionSubscription != null) return;
+    _positionSubscription = _positions().listen(
+      _onPosition,
+      onError: (Object error) {
+        stopLocationListening();
+      },
+    );
+  }
 
-      if (moved) {
-        await getHomeData();
-      }
-    });
+  Future<void> _onPosition(Position position) async {
+    if (isClosed || !_location.isValid(position)) return;
+    final token = ++_locationReadToken;
+    final moved = _location.hasMoved(position);
+    if (await _location.save(position) &&
+        moved &&
+        !isClosed &&
+        token == _locationReadToken) {
+      await getHomeData();
+    }
   }
 
   void stopLocationListening() {
+    ++_locationReadToken;
     _positionSubscription?.cancel();
     _positionSubscription = null;
   }
 
   Future<void> selectCity(String? city) async {
     if (city == state.selectedCity) return;
-    _safeEmit(city == null || city.isEmpty
-        ? state.copyWith(clearCity: true, isLoungesLoading: true)
-        : state.copyWith(selectedCity: city, isLoungesLoading: true));
+    _safeEmit(
+      city == null || city.isEmpty
+          ? state.copyWith(clearCity: true, isLoungesLoading: true)
+          : state.copyWith(selectedCity: city, isLoungesLoading: true),
+    );
     await getHomeData();
   }
 
@@ -460,16 +276,20 @@ class HomeCubit extends Cubit<HomeState> {
       currentSelected.add(categoryId);
     }
 
-    _safeEmit(state.copyWith(
-      selectedCategoryIds: currentSelected,
-      isLoungesLoading: true,
-    ));
+    _safeEmit(
+      state.copyWith(
+        selectedCategoryIds: currentSelected,
+        isLoungesLoading: true,
+      ),
+    );
 
     await getHomeData();
   }
 
   @override
   Future<void> close() {
+    ++_homeDataFetchToken;
+    ++_locationReadToken;
     stopLocationListening();
     return super.close();
   }

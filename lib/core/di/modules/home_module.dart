@@ -4,6 +4,7 @@ import '../../../features/home/domain/repositories/home_repository.dart';
 import '../../../features/home/data/repositories/home_repository_impl.dart';
 import '../../../features/home/presentation/home_cubit.dart';
 import '../../../features/home/domain/usecases/discover_lounges_usecase.dart';
+import '../../../features/home/domain/usecases/recalculate_lounge_distances_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -16,9 +17,7 @@ void initHomeModule() {
     () => HomeRepositoryImpl(sl(), sl()),
   );
 
-  sl.registerLazySingleton(
-    () => DiscoverLoungesUseCase(sl<HomeRepository>()),
-  );
+  sl.registerLazySingleton(() => DiscoverLoungesUseCase(sl<HomeRepository>()));
 
   sl.registerFactory<HomeCubit>(
     () => HomeCubit(
@@ -28,7 +27,11 @@ void initHomeModule() {
       sl(),
       sl(),
       preferenceManager: sl(),
-      profileRepository: sl(),
+      discover: sl(),
+      recalculate: sl(),
     ),
+  );
+  sl.registerLazySingleton<RecalculateLoungeDistancesUseCase>(
+    () => const RecalculateLoungeDistancesUseCase(),
   );
 }
