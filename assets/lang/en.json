@@ -661,5 +661,7 @@
   "room_closed": "Lounge closed",
   "room_unavailable": "Unavailable to book",
   "choose_slot_hint": "Choose your preferred start time",
-  "slot_selected": "Selected start time"
+  "slot_selected": "Selected start time",
+  "directions_coordinates_unavailable": "The lounge location is unavailable. Contact the lounge to confirm its location.",
+  "directions_open_failed": "Unable to open maps. Please try again."
 }

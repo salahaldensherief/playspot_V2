@@ -571,9 +571,8 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
 
   Widget _buildDirectionsButton(BuildContext context, TournamentEntity tournament) {
     return DirectionsButton(
-      loungeName: tournament.loungeName,
-      loungeLocation: tournament.cityName,
-      mapsLink: null,
+      lat: tournament.latitude,
+      lng: tournament.longitude,
       height: 45.h,
       isPrimary: false,
     );

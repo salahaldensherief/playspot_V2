@@ -661,5 +661,7 @@
   "room_closed": "الصالة مغلقة",
   "room_unavailable": "غير متاحة للحجز",
   "choose_slot_hint": "اختر وقت البداية المناسب لك",
-  "slot_selected": "وقت البداية المختار"
+  "slot_selected": "وقت البداية المختار",
+  "directions_coordinates_unavailable": "موقع الصالة غير متاح حاليًا. تواصل مع الصالة لتأكيد الموقع.",
+  "directions_open_failed": "تعذّر فتح الخرائط. جرّب مرة أخرى."
 }

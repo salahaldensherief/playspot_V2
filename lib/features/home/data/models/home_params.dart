@@ -1,5 +1,7 @@
-/// Parameters for fetching lounges from the repository
-class GetLoungesParams {
+import 'package:equatable/equatable.dart';
+import 'package:playspot/core/models/geo_coordinates.dart';
+
+class GetLoungesParams extends Equatable {
   final double? lat;
   final double? lng;
   final String? city;
@@ -10,7 +12,7 @@ class GetLoungesParams {
   final int limit;
   final int offset;
 
-  GetLoungesParams({
+  const GetLoungesParams({
     this.lat,
     this.lng,
     this.city,
@@ -23,9 +25,10 @@ class GetLoungesParams {
   });
 
   Map<String, dynamic> toJson() {
+    final point = GeoCoordinates.fromPair(lat, lng);
     return {
-      'p_lat': lat,
-      'p_lng': lng,
+      'p_lat': point?.latitude,
+      'p_lng': point?.longitude,
       'p_city': city,
       'p_search_query': searchQuery,
       'p_category_ids': categoryIds,
@@ -35,4 +38,17 @@ class GetLoungesParams {
       'p_offset': offset,
     };
   }
+
+  @override
+  List<Object?> get props => [
+    lat,
+    lng,
+    city,
+    searchQuery,
+    categoryIds,
+    sortType,
+    isOpenOnly,
+    limit,
+    offset,
+  ];
 }
