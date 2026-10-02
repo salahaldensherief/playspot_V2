@@ -5,7 +5,11 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 class RoomDetailChip extends StatelessWidget {
   final String label;
   final Color themeColor;
-  const RoomDetailChip({super.key, required this.label, required this.themeColor});
+  const RoomDetailChip({
+    super.key,
+    required this.label,
+    required this.themeColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +23,15 @@ class RoomDetailChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.check_circle, size: 10.sp, color: themeColor.withValues(alpha: 0.5)),
+          Icon(
+            Icons.check_circle,
+            size: 14,
+            color: themeColor.withValues(alpha: 0.5),
+          ),
           6.horizontalSpace,
-          AppText(text: label, fontSize: 10.sp, color: Colors.white70),
+          Flexible(
+            child: AppText(text: label, fontSize: 12, color: Colors.white70),
+          ),
         ],
       ),
     );

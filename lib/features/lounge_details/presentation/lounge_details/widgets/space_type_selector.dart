@@ -57,7 +57,9 @@ class SpaceTypeSelector extends StatelessWidget {
         return AppStrings.vr.tr();
       default:
         if (kDebugMode) {
-          AppLogger.debug("⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.");
+          AppLogger.debug(
+            "⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.",
+          );
         }
         // Fallback: Format raw snake_case/slug into human-readable Title Case
         return key.replaceAll('_', ' ').toUpperCase();
@@ -84,11 +86,10 @@ class SpaceTypeSelector extends StatelessWidget {
             .where((key) => key == 'all' || availableTypeSlugs.contains(key))
             .toList();
 
-        final List<String> displayKeys =
-            activeKeys.length > 1 ? activeKeys : _orderedKeys;
+        final List<String> displayKeys = activeKeys;
 
         return Container(
-          height: 45.h,
+          height: 48 * MediaQuery.textScalerOf(context).scale(1),
           margin: EdgeInsets.symmetric(vertical: 12.h),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -102,9 +103,8 @@ class SpaceTypeSelector extends StatelessWidget {
               final label = _getSpaceTypeLabel(key);
 
               return GestureDetector(
-                onTap: () => context
-                    .read<LoungeDetailsCubit>()
-                    .setSpaceType(key),
+                onTap: () =>
+                    context.read<LoungeDetailsCubit>().setSpaceType(key),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: EdgeInsetsDirectional.only(end: 10.w),
@@ -121,7 +121,7 @@ class SpaceTypeSelector extends StatelessWidget {
                               color: themeColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
-                            )
+                            ),
                           ]
                         : null,
                   ),
@@ -129,15 +129,16 @@ class SpaceTypeSelector extends StatelessWidget {
                     children: [
                       Icon(
                         icon,
-                        size: 18.sp,
+                        size: 18,
                         color: isSelected ? AppColors.black : themeColor,
                       ),
                       SizedBox(width: 8.w),
                       AppText(
                         text: label,
-                        fontSize: 13.sp,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 13,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         color: isSelected
                             ? AppColors.black
                             : AppColors.textSecondary,

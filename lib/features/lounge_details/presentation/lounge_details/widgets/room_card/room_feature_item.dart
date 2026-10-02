@@ -18,13 +18,20 @@ class RoomFeatureItem extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star, size: 10.sp, color: AppColors.success.withValues(alpha: 0.6)),
+          Icon(
+            Icons.star,
+            size: 14,
+            color: AppColors.success.withValues(alpha: 0.6),
+          ),
           6.horizontalSpace,
-          AppText(
+          Flexible(
+            child: AppText(
               text: feature,
-              fontSize: 10.sp,
+              fontSize: 12,
               color: Colors.white70,
-              fontWeight: FontWeight.w500),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );

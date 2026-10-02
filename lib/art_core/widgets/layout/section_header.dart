@@ -1,17 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
-import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
-import '../../theme/app_colors.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import '../buttons/app_button.dart';
+import '../buttons/res/button_behavior.dart';
+import '../buttons/res/button_content.dart';
+import '../buttons/res/button_style_config.dart';
 import '../text/app_text.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAllTap;
   final String? seeAllText;
-
   const SectionHeader({
     super.key,
     required this.title,
@@ -23,31 +25,39 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     return Padding(
-      padding: 16.horizontalPadding + 12.verticalPadding,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          AppText(
-            text: title.tr(),
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.white,
+          Expanded(
+            child: AppText(
+              text: title.tr(),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.white,
+            ),
           ),
-          if (onSeeAllTap != null)
-            GestureDetector(
-              onTap: onSeeAllTap,
-              child: Row(
-                children: [
-                  AppText(
-                    text: (seeAllText ?? "See all").tr(),
-                    fontSize: 14.sp,
-                    color: AppColors.neonBlue,
-                  ),
-                  4.horizontalSpace,
-                  Icon(Icons.arrow_forward_ios, size: 12.sp, color: AppColors.neonBlue),
-                ],
+          if (onSeeAllTap != null) ...[
+            const SizedBox(width: 8),
+            AppButton(
+              content: ButtonContent(
+                label: (seeAllText ?? AppStrings.seeAll).tr(),
+                icon: const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 12,
+                  color: AppColors.neonBlue,
+                ),
+              ),
+              behavior: ButtonBehavior.tap(onTap: onSeeAllTap),
+              buttonConfig: ButtonConfig(
+                width: 112,
+                height: 48 * MediaQuery.textScalerOf(context).scale(1),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.neonBlue,
+                ),
               ),
             ),
+          ],
         ],
       ),
     );

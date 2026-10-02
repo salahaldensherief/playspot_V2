@@ -6,6 +6,7 @@ import '../../services/supabase_storage_service.dart';
 import '../../services/social_auth_service.dart';
 import '../../services/location_service.dart';
 import '../../services/directions_service.dart';
+import '../../services/directions_service_impl.dart';
 import '../../services/deep_link_service.dart';
 import '../../../art_core/presentation/locale_cubit.dart';
 
@@ -23,24 +24,16 @@ Future<void> initCoreModule() async {
   sl.registerFactory(() => LocaleCubit());
 
   // Supabase
-  sl.registerLazySingleton<SupabaseClient>(
-    () => Supabase.instance.client,
-  );
+  sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
   // Services
   sl.registerLazySingleton<StorageService>(
     () => SupabaseStorageServiceImpl(sl()),
   );
-  sl.registerLazySingleton<SocialAuthService>(
-    () => SocialAuthServiceImpl(),
-  );
-  sl.registerLazySingleton<LocationService>(
-    () => LocationServiceImpl(),
-  );
+  sl.registerLazySingleton<SocialAuthService>(() => SocialAuthServiceImpl());
+  sl.registerLazySingleton<LocationService>(() => LocationServiceImpl());
   sl.registerLazySingleton<DirectionsService>(
-    () => DirectionsServiceImpl(sl()),
+    () => const DirectionsServiceImpl(),
   );
-  sl.registerLazySingleton<DeepLinkService>(
-    () => DeepLinkService(sl(), sl()),
-  );
+  sl.registerLazySingleton<DeepLinkService>(() => DeepLinkService(sl(), sl()));
 }

@@ -240,9 +240,6 @@ class _BookingCardState extends State<BookingCard> {
                   child: DirectionsButton(
                     lat: widget.booking.lat,
                     lng: widget.booking.lng,
-                    loungeName: widget.booking.loungeName,
-                    loungeLocation: widget.booking.loungeLocation,
-                    mapsLink: widget.booking.mapsLink,
                     height: 44.h,
                     isPrimary: true,
                   ),
@@ -287,9 +284,6 @@ class _BookingCardState extends State<BookingCard> {
                     child: DirectionsButton(
                       lat: widget.booking.lat,
                       lng: widget.booking.lng,
-                      loungeName: widget.booking.loungeName,
-                      loungeLocation: widget.booking.loungeLocation,
-                      mapsLink: widget.booking.mapsLink,
                       height: 44.h,
                       isPrimary: false,
                     ),

@@ -75,7 +75,7 @@ class FontsManager {
     TextStyle? baseStyle,
   }) {
     final isAr = isArabic(context);
-    final rawSize = fontSize ?? 14.sp;
+    final rawSize = fontSize ?? baseStyle?.fontSize ?? 14.sp;
     final finalSize = getScaledFontSize(context, rawSize);
     final finalFamily = isAr
         ? arabicFontFamily
