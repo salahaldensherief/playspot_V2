@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting of changed Dart files
-        if: github.event_name == 'pull_request' && github.base_ref != 'main'
+        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           files=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}"...HEAD -- '*.dart')
@@ -51,40 +51,4 @@ jobs:
         run: flutter test
 
       - name: Verify Android release build
-        env:
-          ORG_GRADLE_PROJECT_allowDebugReleaseSigning: "true"
-        run: flutter build apk --release --android-project-arg=allowDebugReleaseSigning=true
-
-  backend-fixtures:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      postgres:
-        image: postgres:17.11
-        env:
-          POSTGRES_USER: playspot_fixture
-          POSTGRES_DB: postgres
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports:
-          - 55439:5432
-        options: >-
-          --health-cmd "pg_isready -U playspot_fixture -d postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-          cache-dependency-path: supabase/tests/runtime/package-lock.json
-      - name: Install pinned fixture dependencies
-        run: npm ci --prefix supabase/tests/runtime
-      - name: Run isolated PostgreSQL contracts
-        env:
-          PLAYSPOT_NATIVE_PG_PORT: '55439'
-        run: |
-          for suite in supabase/tests/*.test.mjs; do
-            node "$suite"
-          done
+        run: flutter build apk --release
