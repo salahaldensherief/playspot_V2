@@ -40,9 +40,10 @@ Pre-versioned writer rows without the original grant fail closed with
 reconstructed from a mutable latest heartbeat. Any deployed legacy writer or
 client pending operations need explicit reconciliation before protocol activation.
 
-23 cases passed on native PostgreSQL 17.11, including observed two-connection lock
-waiting and exactly one renewal generation. Writer/cash/items/fixed-session suites
-also passed 41/25/34/53 cases with the shared source loaded. Run from the backend
+25 cases passed on native PostgreSQL 17.11, including observed two-connection lock
+waiting, exactly one renewal generation and both orderings of offline reservation
+against writer refresh. Writer/cash/items/fixed-session suites also passed
+51/25/34/53 cases with the shared source loaded. Run from the backend
 repository with `PLAYSPOT_NATIVE_PG_PORT=55439`:
 `node supabase/tests/offline_permit_renewal.test.mjs`.
 

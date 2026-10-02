@@ -1,5 +1,6 @@
 import {createFixtureDatabase} from './runtime/database.mjs';
 import {lockedRace} from './runtime/locked_race.mjs';
+import {writerBookingRaces} from './runtime/writer_booking_races.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
@@ -102,6 +103,7 @@ try {
   await actorAs(other);
   const insert=`INSERT INTO public.bookings(user_id,lounge_id,room_id) VALUES('${other}','${lounge}','${room}')`;
   await db.query(insert);passed++;console.log('PASS fresh online venue accepts customer booking');
+  passed += await writerBookingRaces(db, {actor, other, lounge, room, device});
   await db.exec(`RESET ROLE;UPDATE private.cashier_writer_authorities SET heartbeat_expires_at=now()-interval '1 second' WHERE lounge_id='${lounge}';SET ROLE authenticated;`);
   await deny('expired heartbeat blocks actual booking insertion',insert,'55000');
   await deny('expired heartbeat blocks confirmation of an earlier pending booking',`UPDATE public.bookings SET status='upcoming' WHERE user_id='${other}'`,'55000');

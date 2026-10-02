@@ -36,6 +36,21 @@ CREATE TABLE IF NOT EXISTS private.cashier_booking_command_context (
 ALTER TABLE private.cashier_booking_command_context ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON private.cashier_booking_command_context FROM PUBLIC,anon,authenticated;
 
+-- Serialize first claims too: a missing writer row cannot be row-locked.
+-- All writer/booking/reconciliation paths acquire this before writer row locks.
+CREATE OR REPLACE FUNCTION private.lock_cashier_lounge(p_lounge_id uuid)
+RETURNS void LANGUAGE plpgsql VOLATILE STRICT SECURITY DEFINER SET search_path='' AS $function$
+BEGIN
+  IF current_setting('transaction_isolation')<>'read committed' THEN
+    RAISE EXCEPTION 'CASHIER_REQUIRES_READ_COMMITTED' USING ERRCODE='25001';
+  END IF;
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended('cashier-online:' || p_lounge_id::text,0)
+  );
+END;
+$function$;
+REVOKE ALL ON FUNCTION private.lock_cashier_lounge(uuid) FROM PUBLIC,anon,authenticated;
+
 CREATE OR REPLACE FUNCTION public.refresh_cashier_writer(
   p_lounge_id uuid, p_device_id uuid, p_online boolean DEFAULT true
 )
@@ -55,6 +70,7 @@ BEGIN
   IF p_device_id IS NULL OR p_lounge_id IS NULL OR p_online IS NULL THEN
     RAISE EXCEPTION 'INVALID_CASHIER_WRITER_REQUEST' USING ERRCODE='22023';
   END IF;
+  PERFORM private.lock_cashier_lounge(p_lounge_id);
   SELECT p.* INTO v_profile FROM public.profiles p JOIN auth.users u ON u.id=p.id WHERE p.id=v_actor FOR SHARE OF p,u;
   IF NOT FOUND OR v_profile.is_active IS NOT TRUE OR v_profile.is_banned IS DISTINCT FROM false THEN
     RAISE EXCEPTION 'ACCOUNT_NOT_ELIGIBLE' USING ERRCODE='42501';
@@ -111,19 +127,21 @@ REVOKE ALL ON FUNCTION public.refresh_cashier_writer(uuid,uuid,boolean) FROM PUB
 GRANT EXECUTE ON FUNCTION public.refresh_cashier_writer(uuid,uuid,boolean) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.get_lounge_online_availability(p_lounge_id uuid)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $function$
-  SELECT EXISTS (
+RETURNS boolean LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = '' AS $function$
+DECLARE v_now timestamptz:=clock_timestamp();
+BEGIN
+  RETURN EXISTS (
     SELECT 1 FROM public.lounges AS lounge
     LEFT JOIN private.cashier_writer_authorities AS writer ON writer.lounge_id=lounge.id
     WHERE lounge.id=p_lounge_id AND lounge.status='active'
       AND lounge.is_active IS TRUE AND lounge.is_open IS TRUE
       AND (writer.lounge_id IS NULL OR (
         writer.online_requested IS TRUE
-        AND writer.heartbeat_expires_at>statement_timestamp()
+        AND writer.heartbeat_expires_at>v_now
         AND EXISTS(SELECT 1 FROM private.cashier_writer_permits permit WHERE permit.permit_id=writer.permit_id
           AND (permit.lounge_id,permit.actor_id,permit.device_id,permit.issued_at,permit.expires_at)
             IS NOT DISTINCT FROM (writer.lounge_id,writer.actor_id,writer.device_id,writer.issued_at,writer.permit_expires_at)
-          AND permit.expires_at>statement_timestamp())
+          AND permit.expires_at>v_now)
         AND EXISTS (
           SELECT 1 FROM public.profiles AS profile
           JOIN auth.users AS identity ON identity.id=profile.id
@@ -135,6 +153,7 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $fu
         )
       ))
   );
+END;
 $function$;
 REVOKE ALL ON FUNCTION public.get_lounge_online_availability(uuid) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_lounge_online_availability(uuid) TO anon,authenticated;
@@ -154,6 +173,9 @@ BEGIN
   IF TG_OP='UPDATE' AND NEW.status::text IN ('cancelled','rejected','completed') THEN
     RETURN NEW;
   END IF;
+  PERFORM private.lock_cashier_lounge(NEW.lounge_id);
+  -- Also serialize administrative writer updates that do not use the RPC.
+  PERFORM 1 FROM private.cashier_writer_authorities WHERE lounge_id=NEW.lounge_id FOR SHARE;
   IF EXISTS (SELECT 1 FROM private.cashier_writer_authorities WHERE lounge_id=NEW.lounge_id)
      AND public.get_lounge_online_availability(NEW.lounge_id) IS NOT TRUE THEN
     IF NOT EXISTS (

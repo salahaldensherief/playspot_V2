@@ -69,6 +69,7 @@ BEGIN
   IF auth.uid() IS DISTINCT FROM (p_operation->>'actor_id')::uuid THEN
     RAISE EXCEPTION 'OFFLINE_ACTOR_MISMATCH' USING ERRCODE='42501';
   END IF;
+  PERFORM private.lock_cashier_lounge((p_operation->>'lounge_id')::uuid);
   PERFORM private.assert_offline_cashier_permission(p_operation);
   SELECT * INTO v_writer FROM private.cashier_writer_authorities
     WHERE lounge_id=(p_operation->>'lounge_id')::uuid FOR UPDATE;

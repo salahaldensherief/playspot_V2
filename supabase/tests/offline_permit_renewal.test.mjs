@@ -114,6 +114,17 @@ try {
   const [a,b]=await lockedRace(db,query,query,actor);assert.equal(b.error,undefined);
   assert.equal(a.rows[0].grant.permit_id,b.value.rows[0].grant.permit_id);assert.notEqual(a.rows[0].grant.permit_id,oldId);
  });
+ if(db.connect) for(const reserveFirst of [true,false]) await check(
+  reserveFirst ? 'writer refresh waits for atomic offline reservation' : 'offline reservation waits for writer refresh',async()=>{
+   const op=operation(),reserve=f.request(op),heartbeat={
+    sql:'SELECT public.refresh_cashier_writer($1,$2,false) AS grant',args:[lounge,device]};
+   const [a,b]=await lockedRace(db,reserveFirst?reserve:heartbeat,reserveFirst?heartbeat:reserve,actor);
+   assert.equal(b.error,undefined);
+   const receipt=reserveFirst?a.rows[0].receipt:b.value.rows[0].receipt;
+   assert.equal(receipt.status,'applied');
+   const persisted=await snapshot();assert.equal(persisted.sequence,1);
+   assert.equal(persisted.bookings.some(value=>value.id===op.booking_id),true);
+  });
  await check('native authority wire fixture includes original and renewed generations with a queued old event',async()=>{
   const oldId=await f.issuePermit(expiredIssued),old=await grant(oldId),pending=reserveAt(oldId,expiredIssued+3600000),current=await refresh();
   if(process.env.PLAYSPOT_PERMIT_CONTRACT_EXPORT) await writeFile(process.env.PLAYSPOT_PERMIT_CONTRACT_EXPORT,
