@@ -23,7 +23,8 @@ class RoomsGrid extends StatelessWidget {
           previous.selectedSpaceType != current.selectedSpaceType ||
           previous.deviceCategories != current.deviceCategories,
       builder: (context, state) {
-        if (state.status == LoungeDetailsStatus.loading || state.isDateLoading) {
+        if (state.status == LoungeDetailsStatus.loading ||
+            state.isDateLoading) {
           return SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
             sliver: SliverGrid(
@@ -45,14 +46,20 @@ class RoomsGrid extends StatelessWidget {
           return SliverAppStateView(
             type: AppStateViewType.error,
             title: AppStrings.errorLoadingRooms,
-            onRetry: () => context
-                .read<LoungeDetailsCubit>()
-                .getLoungeDetails(state.lounge?.id ?? ""),
+            onRetry: () => context.read<LoungeDetailsCubit>().getLoungeDetails(
+              state.lounge?.id ?? "",
+            ),
           );
         }
 
         if (state.rooms.isEmpty || state.filteredRooms.isEmpty) {
-          return const SliverToBoxAdapter(child: SizedBox.shrink());
+          return SliverAppStateView(
+            type: AppStateViewType.empty,
+            title: 'lounge_no_matching_rooms',
+            onRetry: () => context.read<LoungeDetailsCubit>().getLoungeDetails(
+              state.lounge?.id ?? '',
+            ),
+          );
         }
 
         final filteredRooms = state.filteredRooms;

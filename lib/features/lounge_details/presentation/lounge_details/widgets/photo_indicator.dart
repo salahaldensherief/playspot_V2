@@ -1,90 +1,30 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
 
-class PhotoIndicator extends StatefulWidget {
+class PhotoIndicator extends StatelessWidget {
   final int? totalImages;
   const PhotoIndicator({super.key, this.totalImages});
 
   @override
-  State<PhotoIndicator> createState() => _PhotoIndicatorState();
-}
-
-class _PhotoIndicatorState extends State<PhotoIndicator> {
-  bool _isExpanded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() => _isExpanded = true);
-      }
-    });
-
-    Future.delayed(const Duration(seconds: 4), () {
-      if (mounted) {
-        setState(() => _isExpanded = false);
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOutBack,
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+    final count = totalImages ?? 0;
+    if (count <= 0) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(25.r),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        color: Colors.black54,
+        borderRadius: BorderRadius.circular(24),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Wrap(
+        spacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Icon(Icons.zoom_out_map_rounded, color: Colors.white, size: 16.sp),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 400),
-            child: Row(
-              children: [
-                if (_isExpanded) ...[
-                  SizedBox(width: 8.w),
-                  AppText(
-                    text: AppStrings.viewPhotos.tr(),
-                    fontSize: 10.sp,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ],
-              ],
-            ),
+          const Icon(Icons.photo_library_outlined, size: 20),
+          Text(
+            '${AppStrings.viewPhotos.tr()} · $count',
+            style: const TextStyle(fontSize: 12),
           ),
-          if (widget.totalImages != null && widget.totalImages! > 1) ...[
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              child: Container(
-                height: 10.h,
-                width: 1.w,
-                color: Colors.white.withValues(alpha: 0.3),
-              ),
-            ),
-            AppText(
-              text: "1/${widget.totalImages}",
-              fontSize: 10.sp,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ],
         ],
       ),
     );

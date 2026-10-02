@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
@@ -12,118 +11,75 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/sticky_bottom_bar.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import '../lounge_booking_selection.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 
 class LoungeDetailsBottomBar extends StatelessWidget {
   final LoungeModel lounge;
-
   const LoungeDetailsBottomBar({super.key, required this.lounge});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-      buildWhen: (previous, current) =>
-          previous.selectedRoomIds != current.selectedRoomIds ||
-          previous.selectedExtras != current.selectedExtras ||
-          previous.rooms != current.rooms ||
-          previous.extras != current.extras ||
-          previous.lounge != current.lounge,
-      builder: (context, state) {
-        final isRoomSelected = state.selectedRoomIds.isNotEmpty;
-        final selectedCount = state.selectedRoomIds.length;
-        final isOpen = lounge.isOpen;
-
-        String buttonText;
-        if (!isOpen) {
-          buttonText = AppStrings.closed.tr().toUpperCase();
-        } else if (!isRoomSelected) {
-          buttonText = AppStrings.selectRoomsPrompt.tr();
-        } else if (selectedCount == 1) {
-          buttonText = AppStrings.bookARoom.tr();
-        } else {
-          buttonText = "${AppStrings.bookRoomsCount.tr()} ($selectedCount)";
-        }
-
-        return StickyBottomBar(
-          child: AppButton(
-            content: ButtonContent(
-              body: AppText(
-                textAlign: TextAlign.center,
-                text: buttonText,
-                fontSize: 15.sp,
-                fontWeight: FontWeight.bold,
-                color: (isRoomSelected && isOpen)
-                    ? AppColors.black
-                    : AppColors.white,
+  Widget build(BuildContext context) =>
+      BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+        buildWhen: (a, b) =>
+            a.selectedRoomIds != b.selectedRoomIds ||
+            a.rooms != b.rooms ||
+            a.lounge != b.lounge ||
+            a.isDateLoading != b.isDateLoading ||
+            a.status != b.status ||
+            a.bookedRoomIds != b.bookedRoomIds,
+        builder: (context, state) {
+          final selection = LoungeBookingSelection(
+            state,
+            state.lounge ?? lounge,
+          );
+          return StickyBottomBar(
+            child: AppButton(
+              content: ButtonContent(
+                body: AppText(
+                  text: _label(state, selection.lounge),
+                  textAlign: TextAlign.center,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: selection.isEnabled
+                      ? AppColors.black
+                      : AppColors.textSecondary,
+                ),
+              ),
+              behavior: ButtonBehavior.tap(
+                isEnabled: selection.isEnabled,
+                onTap: () => _book(context),
+              ),
+              buttonConfig: ButtonConfig(
+                width: double.infinity,
+                height: 56 * MediaQuery.textScalerOf(context).scale(1),
+                borderRadius: 15,
+                gradient: AppColors.primaryGradient,
+                glowColor: AppColors.neonBlueAlt,
+                backgroundColor: AppColors.neonBlue,
+                borderColor: AppColors.neonBlue,
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            behavior: ButtonBehavior.tap(
-              isEnabled: isRoomSelected && isOpen,
-              onTap: (isRoomSelected && isOpen)
-                  ? () {
-                      final selectedRooms = state.selectedRooms;
-                      if (selectedRooms.isEmpty) return;
+          );
+        },
+      );
 
-                      final selectedExtras = state.selectedExtras.entries.map((
-                        entry,
-                      ) {
-                        final extra = state.extras
-                            .where((e) => e.id == entry.key)
-                            .firstOrNull;
-                        return {
-                          'id': entry.key,
-                          'name': extra?.name ?? 'Extra',
-                          'price': extra?.price ?? 0.0,
-                          'quantity': entry.value,
-                        };
-                      }).toList();
+  String _label(LoungeDetailsState state, LoungeModel lounge) {
+    if (!lounge.isOpen) return AppStrings.closed.tr();
+    if (state.selectedRooms.isEmpty) return AppStrings.selectRoomsPrompt.tr();
+    if (state.selectedRooms.length == 1) return AppStrings.bookARoom.tr();
+    return '${AppStrings.bookRoomsCount.tr()} (${state.selectedRooms.length})';
+  }
 
-                      final firstRoom = selectedRooms.first;
-                      final primaryPlayMode =
-                          state.roomPlayModes[firstRoom.id] ??
-                          (firstRoom.isOpenArea ? 'single' : 'multi');
-                      final primaryExtraControllers =
-                          state.roomExtraControllers[firstRoom.id] ?? 0;
-
-                      context.pushNamed(
-                        RouterKeys.booking,
-                        extra: BookingDetailsParams(
-                          lounge: lounge,
-                          rooms: selectedRooms,
-                          selectedDate: state.selectedDate ?? DateTime.now(),
-                          extras: selectedExtras,
-                          playMode: primaryPlayMode,
-                          extraControllers: primaryExtraControllers,
-                          roomPlayModes: state.roomPlayModes,
-                          roomExtraControllers: state.roomExtraControllers,
-                        ),
-                      );
-                    }
-                  : null,
-            ),
-            buttonConfig: ButtonConfig(
-              gradient: (isRoomSelected && isOpen)
-                  ? AppColors.primaryGradient
-                  : null,
-              glowColor: (isRoomSelected && isOpen)
-                  ? AppColors.neonBlueAlt
-                  : Colors.transparent,
-              borderRadius: 15.r,
-              width: 340.w,
-              height: 50.h,
-              backgroundColor: (isRoomSelected && isOpen)
-                  ? AppColors.neonBlue
-                  : AppColors.cardBackground,
-              borderColor: (isRoomSelected && isOpen)
-                  ? AppColors.neonBlue
-                  : AppColors.borderDefault,
-            ),
-          ),
-        );
-      },
-    );
+  void _book(BuildContext context) {
+    final state = context.read<LoungeDetailsCubit>().state;
+    final params = LoungeBookingSelection(state, state.lounge ?? lounge).params;
+    if (params != null) context.pushNamed(RouterKeys.booking, extra: params);
   }
 }
