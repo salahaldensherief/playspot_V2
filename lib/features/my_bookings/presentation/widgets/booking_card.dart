@@ -103,8 +103,8 @@ class _BookingCardState extends State<BookingCard> {
         : '';
     final spaceText =
         widget.booking.spaceType != null && widget.booking.spaceType!.isNotEmpty
-            ? '${widget.booking.spaceType} - '
-            : '';
+        ? '${widget.booking.spaceType} - '
+        : '';
     final roomSpecsText =
         "$spaceText${widget.booking.roomName}$playModeText · ${widget.booking.controllersCount} ${AppStrings.controllers.tr()} · ${widget.booking.screenSize}";
 
@@ -176,7 +176,9 @@ class _BookingCardState extends State<BookingCard> {
             decoration: BoxDecoration(
               color: Colors.black26,
               borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: AppColors.borderDefault.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: AppColors.borderDefault.withValues(alpha: 0.5),
+              ),
             ),
             child: AppText(
               text: roomSpecsText,
@@ -194,11 +196,17 @@ class _BookingCardState extends State<BookingCard> {
             decoration: BoxDecoration(
               color: AppColors.backgroundAlt,
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColors.neonBlue.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today_rounded, color: AppColors.neonBlue, size: 15.sp),
+                Icon(
+                  Icons.calendar_today_rounded,
+                  color: AppColors.neonBlue,
+                  size: 15.sp,
+                ),
                 SizedBox(width: 6.w),
                 Flexible(
                   child: AppText(
@@ -211,7 +219,11 @@ class _BookingCardState extends State<BookingCard> {
                   ),
                 ),
                 SizedBox(width: 12.w),
-                Icon(Icons.access_time_filled_rounded, color: AppColors.neonBlue, size: 15.sp),
+                Icon(
+                  Icons.access_time_filled_rounded,
+                  color: AppColors.neonBlue,
+                  size: 15.sp,
+                ),
                 SizedBox(width: 6.w),
                 AppText(
                   text: widget.booking.startDateTime.toAppTimeString(),
@@ -251,7 +263,9 @@ class _BookingCardState extends State<BookingCard> {
                   flex: 2,
                   child: AppButton(
                     content: ButtonContent(
-                      label: widget.isCancelling ? null : AppStrings.cancel.tr(),
+                      label: widget.isCancelling
+                          ? null
+                          : AppStrings.cancel.tr(),
                       body: widget.isCancelling
                           ? SizedBox(
                               width: 16.w,
@@ -278,7 +292,8 @@ class _BookingCardState extends State<BookingCard> {
             SizedBox(height: 14.h),
             Row(
               children: [
-                if (widget.booking.mapsLink != null || widget.booking.lat != null) ...[
+                if (widget.booking.mapsLink != null ||
+                    widget.booking.lat != null) ...[
                   Expanded(
                     flex: 2,
                     child: DirectionsButton(
@@ -297,10 +312,15 @@ class _BookingCardState extends State<BookingCard> {
                   child: AppButton(
                     content: ButtonContent(
                       label: AppStrings.rebook.tr(),
-                      icon: Icon(Icons.refresh_rounded, size: 16.sp, color: Colors.white),
+                      icon: Icon(
+                        Icons.refresh_rounded,
+                        size: 16.sp,
+                        color: Colors.white,
+                      ),
                     ),
                     behavior: ButtonBehavior.tap(
-                      onTap: () => QuickRebookBottomSheet.show(context, widget.booking),
+                      onTap: () =>
+                          QuickRebookBottomSheet.show(context, widget.booking),
                     ),
                     buttonConfig: ButtonConfig(
                       height: 44.h,
@@ -349,7 +369,9 @@ class _BookingCardState extends State<BookingCard> {
             decoration: BoxDecoration(
               color: AppColors.neonPurple.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.neonPurple.withValues(alpha: 0.3),
+              ),
             ),
             child: AppText(
               text: AppStrings.firstBooking.tr(),
@@ -422,11 +444,14 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   Widget _buildCancellationReasonBanner() {
-    final reason = widget.booking.rejectionReason ?? widget.booking.cancellationReason;
+    final reason =
+        widget.booking.rejectionReason ?? widget.booking.cancellationReason;
     if (reason == null || reason.trim().isEmpty) {
       return const SizedBox.shrink();
     }
-    final isRejection = widget.booking.rejectionReason != null && widget.booking.rejectionReason!.trim().isNotEmpty;
+    final isRejection =
+        widget.booking.rejectionReason != null &&
+        widget.booking.rejectionReason!.trim().isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -441,7 +466,9 @@ class _BookingCardState extends State<BookingCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
-            text: isRejection ? AppStrings.rejectionReason.tr() : AppStrings.cancellationReason.tr(),
+            text: isRejection
+                ? AppStrings.rejectionReason.tr()
+                : AppStrings.cancellationReason.tr(),
             fontSize: 12.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.danger,
@@ -607,7 +634,9 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   Widget _buildReceiptButton({required bool isPrimary}) {
-    final hasProofImage = widget.booking.proofImageUrl != null && widget.booking.proofImageUrl!.trim().isNotEmpty;
+    final hasProofImage =
+        widget.booking.proofImageUrl != null &&
+        widget.booking.proofImageUrl!.trim().isNotEmpty;
 
     return InkWell(
       onTap: () => BookingReceiptDialog.show(context, widget.booking),
