@@ -31,9 +31,9 @@ async function denied(name,id,sql,code){const before=await snapshot();await acto
 async function check(name,fn){await fn();passed++;console.log('PASS '+name);}
 try {
  await db.exec(read('supabase/tests/fixtures/wallet_integrity_fixture.sql'));
- const old=read('supabase/migrations/20260930220000_p2_advanced_operations_and_wallets.sql');
+ const old=read('supabase/review/migrations/20260930220000_p2_advanced_operations_and_wallets.sql');
  await db.exec(old.slice(old.indexOf('CREATE TABLE IF NOT EXISTS public.user_wallets'),old.indexOf('-- ============================================================================',old.indexOf('GRANT EXECUTE ON FUNCTION public.refund_to_wallet'))));
- await db.exec(read('supabase/migrations/20261001090000_wallet_payment_integrity_and_unsafe_credit_containment.sql'));
+ await db.exec(read('supabase/review/migrations/20261001090000_wallet_payment_integrity_and_unsafe_credit_containment.sql'));
  await admin(`INSERT INTO auth.users VALUES('${cust}'),('${staff}'),('${foreign}');
  INSERT INTO public.user_wallets(user_id,balance) VALUES('${cust}',250);
  INSERT INTO public.fixture_permissions VALUES('${staff}','${lounge}','billing_checkout');
@@ -140,7 +140,7 @@ try {
  VALUES('20000000-0000-0000-0000-000000000003','${cust}','${lounge}','40000000-0000-0000-0000-000000000001',
  'in_progress','unpaid',0,true,now()-interval '61 minutes',
  '{"effective_hourly_rate":60,"minimum_minutes":30,"rounding_minutes":15,"max_minutes":30}');`);
- await db.exec(read('supabase/migrations/20261001100000_session_close_shift_and_ledger_integrity.sql'));
+ await db.exec(read('supabase/review/migrations/20261001100000_session_close_shift_and_ledger_integrity.sql'));
  const session='20000000-0000-0000-0000-000000000003';
  await denied('anonymous session close','',`SELECT public.complete_booking_session('${session}',NULL)`,'28000');
  await denied('session close capability required',cust,`SELECT public.complete_booking_session('${session}',NULL)`,'42501');

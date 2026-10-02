@@ -35,11 +35,11 @@ await db.exec(`
  INSERT INTO storage.objects VALUES('kyc-documents','${owner}/id.png');
  GRANT USAGE ON SCHEMA public,auth TO authenticated,anon;
 `);
-await db.exec(await readFile(new URL('../migrations/20261001110000_versioned_lounge_review.sql', import.meta.url), 'utf8'));
+await db.exec(await readFile(new URL('../review/migrations/20261001110000_versioned_lounge_review.sql', import.meta.url), 'utf8'));
 await db.exec(`ALTER TABLE public.lounges ADD COLUMN vodafone_cash_number text, ADD COLUMN instapay_account text; UPDATE public.lounges SET instapay_account='synthetic@instapay';`);
-await db.exec(await readFile(new URL('../migrations/20261001150000_finalize_review_submission.sql', import.meta.url), 'utf8'));
+await db.exec(await readFile(new URL('../review/migrations/20261001150000_finalize_review_submission.sql', import.meta.url), 'utf8'));
 await db.exec(`CREATE FUNCTION public.st_asgeojson(text) RETURNS text LANGUAGE sql AS $$SELECT '{"type":"Point","coordinates":[31.2,30.0]}'::text$$;`);
-await db.exec(await readFile(new URL('../migrations/20261001160000_owner_review_status_and_rejection_reentry.sql', import.meta.url), 'utf8'));
+await db.exec(await readFile(new URL('../review/migrations/20261001160000_owner_review_status_and_rejection_reentry.sql', import.meta.url), 'utf8'));
 async function actor(id) { await db.exec(`RESET ROLE; SET test.actor='${id ?? ''}'; SET ROLE authenticated;`); }
 async function deny(name, sql, code) {
  await assert.rejects(db.query(sql), error => error.code === code);

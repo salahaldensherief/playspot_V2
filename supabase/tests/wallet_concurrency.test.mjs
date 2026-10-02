@@ -15,10 +15,10 @@ const peers = [];
 let passed = 0;
 try {
   await db.exec(await read('./fixtures/wallet_integrity_fixture.sql'));
-  const old = await read('../migrations/20260930220000_p2_advanced_operations_and_wallets.sql');
+  const old = await read('../review/migrations/20260930220000_p2_advanced_operations_and_wallets.sql');
   await db.exec(old.slice(old.indexOf('CREATE TABLE IF NOT EXISTS public.user_wallets'),
     old.indexOf('-- ============================================================================', old.indexOf('GRANT EXECUTE ON FUNCTION public.refund_to_wallet'))));
-  await db.exec(await read('../migrations/20261001090000_wallet_payment_integrity_and_unsafe_credit_containment.sql'));
+  await db.exec(await read('../review/migrations/20261001090000_wallet_payment_integrity_and_unsafe_credit_containment.sql'));
   await db.exec(`INSERT INTO auth.users VALUES('${user}'),('${staff}');
     INSERT INTO public.user_wallets(user_id,balance) VALUES('${user}',150);
     INSERT INTO public.fixture_permissions VALUES('${staff}','${lounge}','billing_checkout');

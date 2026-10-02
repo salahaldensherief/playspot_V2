@@ -22,7 +22,7 @@ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
  INSERT INTO public.profiles VALUES('${owner}','owner',NULL,false,true,now()),('${stranger}','cashier',NULL,false,true,now());
  GRANT USAGE ON SCHEMA public,auth TO authenticated,anon;
 `);
-await db.exec(await readFile(new URL('../migrations/20261001120000_onboarding_draft_bootstrap.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../review/migrations/20261001120000_onboarding_draft_bootstrap.sql',import.meta.url),'utf8'));
 let passed=0;
 async function actor(id){await db.exec(`RESET ROLE;SET test.actor='${id??''}';SET ROLE authenticated;`);}
 async function deny(name,sql,code){await assert.rejects(db.query(sql),e=>e.code===code);passed++;console.log('PASS '+name);}

@@ -19,7 +19,7 @@ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
  CREATE POLICY profiles_select ON public.profiles FOR SELECT TO authenticated USING(id=auth.uid());
  INSERT INTO public.profiles(id,full_name,role,is_active) VALUES('${other}','Other','owner',false);
 `);
-await db.exec(await readFile(new URL('../migrations/20261001130000_profile_security_write_boundaries.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../review/migrations/20261001130000_profile_security_write_boundaries.sql',import.meta.url),'utf8'));
 let passed=0;async function deny(name,sql,code='42501'){await assert.rejects(db.query(sql),e=>e.code===code);passed++;console.log('PASS '+name);}
 await db.exec(`SET test.actor='${owner}';SET ROLE authenticated;`);
 await deny('cannot create own super admin role',`INSERT INTO public.profiles(id,role) VALUES('${owner}','super_admin')`);

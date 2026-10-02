@@ -29,8 +29,8 @@ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
  INSERT INTO public.profiles VALUES('${owner}',false,now()),('${other}',false,now());
  INSERT INTO public.lounges(id,owner_id,status,name) VALUES('${lounge}','${owner}','pending','Old'),('${foreign}','${other}','pending','Foreign');
 `);
-await db.exec(await readFile(new URL('../migrations/20261001140000_idempotent_onboarding_resource_save.sql',import.meta.url),'utf8'));
-await db.exec(await readFile(new URL('../migrations/20261001170000_onboarding_omitted_resources.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../review/migrations/20261001140000_idempotent_onboarding_resource_save.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../review/migrations/20261001170000_onboarding_omitted_resources.sql',import.meta.url),'utf8'));
 let passed=0;async function actor(id){await db.exec(`RESET ROLE;SET test.actor='${id??''}';SET ROLE authenticated;`);}
 const rooms=[{id:room,name:'Room',hourly_rate_single:60,hourly_rate_multi:90,max_capacity:4,status:'available'}];
 const extras=[{id:extra,name:'Snack',price:15,category:'food'}];
