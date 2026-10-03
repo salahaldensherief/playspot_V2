@@ -41,6 +41,9 @@ void main() async {
   Bloc.observer = AppBlocObserver();
 
   FlutterError.onError = (details) {
+    // Keep framework failures visible in the attached console and adb logcat.
+    // dev.log alone only reaches the VM logging stream.
+    if (kDebugMode) FlutterError.presentError(details);
     dev.log("FLUTTER ERROR: ${details.exception}", stackTrace: details.stack);
     if (!kIsWeb) {
       FirebaseCrashlytics.instance.recordFlutterFatalError(details);
@@ -48,6 +51,10 @@ void main() async {
   };
 
   PlatformDispatcher.instance.onError = (error, stack) {
+    if (kDebugMode) {
+      debugPrint('[APP-ERROR] unhandled ${error.runtimeType}');
+      debugPrintStack(stackTrace: stack);
+    }
     dev.log("PLATFORM ERROR: $error", stackTrace: stack);
     if (!kIsWeb) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);

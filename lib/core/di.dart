@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/secure_supabase_auth_options.dart';
+import 'services/request_diagnostics_client.dart';
 
 import 'constants/app_config.dart';
 import 'di/modules/active_session_module.dart';
@@ -47,6 +48,7 @@ Future<void> initSupabase() async {
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     publishableKey: AppConfig.supabaseAnonKey,
+    httpClient: RequestDiagnosticsClient(),
     authOptions: SecureSupabaseAuthOptions.forUrl(AppConfig.supabaseUrl),
   );
 }
