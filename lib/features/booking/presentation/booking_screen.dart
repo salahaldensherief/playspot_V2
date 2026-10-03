@@ -10,6 +10,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 
 import '../../../core/utils/booking_error_formatter.dart';
+import '../../../art_core/widgets/notifications/game_hud_toast.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/booking_bottom_bar.dart';
@@ -63,16 +64,7 @@ class _BookingScreenState extends State<BookingScreen> {
             state.errorMessage!,
             isEnglish,
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                errorMsg,
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: AppColors.danger,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          GameHudToast.show(context, errorMsg, type: ToastType.error);
         }
         if (state.startTime != null) {
           _scrollToDurationAndSummary();

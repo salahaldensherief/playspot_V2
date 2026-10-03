@@ -20,6 +20,7 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
 
   if (message.contains('هذه الصالة موقوفة حالياً') ||
       message.contains('lounge is suspended') ||
+      message.contains('lounge is not active') ||
       message.contains('is_active = false')) {
     return isEnglish
         ? 'This lounge is currently suspended.'
@@ -86,7 +87,8 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
         : 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجدداً لإتمام العملية.';
   }
 
-  if (message.contains('no_open_shift')) {
+  if (message.contains('no_open_shift') ||
+      message.contains('no active shift open')) {
     return isEnglish
         ? 'No open shift is available for this lounge.'
         : 'لا توجد وردية مفتوحة لهذه الصالة حالياً.';
@@ -101,7 +103,6 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
   if (message.contains('overlappingbookingerror') ||
       message.contains('slot_overlap_conflict') ||
       message.contains('slot_held_by_another_user') ||
-      message.contains('bookingholdfailed') ||
       message.contains('exclusion constraint') ||
       message.contains('no_overlapping_room_bookings') ||
       message.contains('prevent_room_booking_overlap')) {

@@ -235,7 +235,7 @@ class BookingCubit extends Cubit<BookingState> {
               clearStartTime: true,
               clearHold: true,
               errorMessage:
-                  data['error_code']?.toString() ?? 'overlappingBookingError',
+                  data['error_code']?.toString() ?? 'bookingHoldFailed',
             ),
           );
           return false;
@@ -243,7 +243,7 @@ class BookingCubit extends Cubit<BookingState> {
 
         final holdToken = data['hold_token']?.toString();
         final holdExpiresAt = DateTime.tryParse(
-          data['hold_expires_at']?.toString() ?? '',
+          data['expires_at']?.toString() ?? '',
         );
 
         if (holdToken == null || holdToken.isEmpty || holdExpiresAt == null) {
