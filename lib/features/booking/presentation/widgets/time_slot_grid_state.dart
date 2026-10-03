@@ -119,7 +119,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
               const SizedBox(height: 12),
               // Time Slot Ribbon with Price and Peak Tag
               SizedBox(
-                height: MediaQuery.textScalerOf(context).scale(128),
+                height: MediaQuery.textScalerOf(context).scale(152),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: filteredSlots.length,

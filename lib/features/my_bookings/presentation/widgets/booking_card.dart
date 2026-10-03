@@ -11,7 +11,6 @@ import 'package:playspot/art_core/widgets/buttons/directions_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
-import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import '../../data/models/booking_model.dart';
@@ -210,7 +209,9 @@ class _BookingCardState extends State<BookingCard> {
                 SizedBox(width: 6.w),
                 Flexible(
                   child: AppText(
-                    text: widget.booking.date.toAppDateString(),
+                    text: widget.booking.date.toAppDateString(
+                      locale: context.locale.languageCode,
+                    ),
                     fontSize: 12.sp,
                     color: AppColors.white,
                     fontWeight: FontWeight.w600,
@@ -226,7 +227,9 @@ class _BookingCardState extends State<BookingCard> {
                 ),
                 SizedBox(width: 6.w),
                 AppText(
-                  text: widget.booking.startDateTime.toAppTimeString(),
+                  text: widget.booking.startDateTime.toAppTimeString(
+                    locale: context.locale.languageCode,
+                  ),
                   fontSize: 12.sp,
                   color: AppColors.white,
                   fontWeight: FontWeight.bold,
@@ -244,96 +247,88 @@ class _BookingCardState extends State<BookingCard> {
             _buildLatePolicyBanner(),
             SizedBox(height: 14.h),
 
-            // Action Buttons Row (Upcoming)
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: DirectionsButton(
-                    lat: widget.booking.lat,
-                    lng: widget.booking.lng,
-                    height: 44.h,
-                    isPrimary: true,
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                _buildReceiptButton(isPrimary: true),
-                SizedBox(width: 8.w),
-                Expanded(
-                  flex: 2,
-                  child: AppButton(
-                    content: ButtonContent(
-                      label: widget.isCancelling
-                          ? null
-                          : AppStrings.cancel.tr(),
-                      body: widget.isCancelling
-                          ? SizedBox(
-                              width: 16.w,
-                              height: 16.w,
-                              child: const AppLoader(strokeWidth: 2),
-                            )
-                          : null,
-                    ),
-                    behavior: ButtonBehavior.tap(
-                      isEnabled: !widget.isCancelling,
-                      onTap: widget.isCancelling ? null : widget.onCancel,
-                    ),
-                    buttonConfig: ButtonConfig(
-                      height: 44.h,
-                      borderRadius: 12.r,
-                      backgroundColor: AppColors.transparent,
-                      borderColor: AppColors.danger.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildActions(true),
           ] else ...[
             SizedBox(height: 14.h),
-            Row(
-              children: [
-                if (widget.booking.mapsLink != null ||
-                    widget.booking.lat != null) ...[
-                  Expanded(
-                    flex: 2,
-                    child: DirectionsButton(
-                      lat: widget.booking.lat,
-                      lng: widget.booking.lng,
-                      height: 44.h,
-                      isPrimary: false,
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                ],
-                _buildReceiptButton(isPrimary: false),
-                SizedBox(width: 8.w),
-                Expanded(
-                  flex: 2,
-                  child: AppButton(
-                    content: ButtonContent(
-                      label: AppStrings.rebook.tr(),
-                      icon: Icon(
-                        Icons.refresh_rounded,
-                        size: 16.sp,
-                        color: Colors.white,
-                      ),
-                    ),
-                    behavior: ButtonBehavior.tap(
-                      onTap: () =>
-                          QuickRebookBottomSheet.show(context, widget.booking),
-                    ),
-                    buttonConfig: ButtonConfig(
-                      height: 44.h,
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: 12.r,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildActions(false),
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildActions(bool upcoming) {
+    final directions = DirectionsButton(
+      lat: widget.booking.lat,
+      lng: widget.booking.lng,
+      height: 48,
+      isPrimary: upcoming,
+    );
+    final showDirections =
+        upcoming ||
+        widget.booking.mapsLink != null ||
+        widget.booking.lat != null;
+    final action = upcoming
+        ? AppButton(
+            content: ButtonContent(label: AppStrings.cancel.tr()),
+            behavior: ButtonBehavior.tap(
+              isEnabled: !widget.isCancelling,
+              isLoading: widget.isCancelling,
+              onTap: widget.onCancel,
+            ),
+            buttonConfig: ButtonConfig(
+              height: 48,
+              borderRadius: 12,
+              borderColor: AppColors.danger.withValues(alpha: .3),
+            ),
+          )
+        : AppButton(
+            content: ButtonContent(
+              label: AppStrings.rebook.tr(),
+              icon: const Icon(
+                Icons.refresh_rounded,
+                size: 18,
+                color: Colors.black,
+              ),
+            ),
+            behavior: ButtonBehavior.tap(
+              onTap: () => QuickRebookBottomSheet.show(context, widget.booking),
+            ),
+            buttonConfig: ButtonConfig(
+              height: 48,
+              gradient: AppColors.primaryGradient,
+              borderRadius: 12,
+            ),
+          );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+        if (constraints.maxWidth < 280 * scale) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showDirections) ...[directions, const SizedBox(height: 8)],
+              action,
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: _buildReceiptButton(isPrimary: upcoming),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            if (showDirections) ...[
+              Expanded(flex: 2, child: directions),
+              const SizedBox(width: 8),
+            ],
+            _buildReceiptButton(isPrimary: upcoming),
+            const SizedBox(width: 8),
+            Expanded(flex: 2, child: action),
+          ],
+        );
+      },
     );
   }
 

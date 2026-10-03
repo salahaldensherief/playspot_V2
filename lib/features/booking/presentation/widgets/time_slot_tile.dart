@@ -51,7 +51,7 @@ class TimeSlotTile extends StatelessWidget {
         behavior: ButtonBehavior.tap(onTap: onTap),
         buttonConfig: ButtonConfig(
           width: 116,
-          height: MediaQuery.textScalerOf(context).scale(128),
+          height: MediaQuery.textScalerOf(context).scale(152),
           borderRadius: 14,
           padding: const EdgeInsets.all(8),
           backgroundColor: selected

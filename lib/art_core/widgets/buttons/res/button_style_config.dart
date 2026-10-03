@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../theme/app_colors.dart';
+
 abstract class ButtonStyleConfig {
   Color get backgroundColor;
   Color get disabledColor;
@@ -66,12 +67,13 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
     this.loadingColor = AppColors.white,
     this.animationDuration = const Duration(milliseconds: 200),
     this.isOutlined = false,
-  }) : textStyle = textStyle ??
-      TextStyle(
-        color: Colors.white,
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w900,
-      );
+  }) : textStyle =
+           textStyle ??
+           TextStyle(
+             color: Colors.white,
+             fontSize: 14,
+             fontWeight: FontWeight.w600,
+           );
 
   ButtonConfig.secondary({
     Color? backgroundColor,
@@ -89,12 +91,13 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
     this.animationDuration = const Duration(milliseconds: 200),
     this.isOutlined = false,
   }) : backgroundColor = backgroundColor ?? AppColors.cardBackground,
-        textStyle = textStyle ??
-            TextStyle(
-              color: AppColors.primary,
-              fontSize: 15.5.sp,
-              fontWeight: FontWeight.w600,
-            );
+       textStyle =
+           textStyle ??
+           TextStyle(
+             color: AppColors.primary,
+             fontSize: 15.5.sp,
+             fontWeight: FontWeight.w600,
+           );
 
   ButtonConfig.outlined({
     this.backgroundColor = AppColors.primary,
@@ -111,12 +114,13 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
     this.loadingColor = AppColors.primary,
     this.animationDuration = const Duration(milliseconds: 200),
     this.isOutlined = true,
-  }) : textStyle = textStyle ??
-      TextStyle(
-        color: AppColors.primary,
-        fontSize: 15.5.sp,
-        fontWeight: FontWeight.w600,
-      );
+  }) : textStyle =
+           textStyle ??
+           TextStyle(
+             color: AppColors.primary,
+             fontSize: 15.5.sp,
+             fontWeight: FontWeight.w600,
+           );
 
   ButtonConfig.gradient({
     required Gradient gradient,
@@ -133,14 +137,15 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
     this.loadingColor = AppColors.white,
     this.animationDuration = const Duration(milliseconds: 200),
   }) : backgroundColor = Colors.transparent,
-        isOutlined = false,
-        gradient = gradient,
-        glowColor = glowColor,
+       isOutlined = false,
+       gradient = gradient,
+       glowColor = glowColor,
 
-        textStyle = textStyle ??
-            TextStyle(
-              color: Colors.black,
-              fontSize: 15.5.sp,
-              fontWeight: FontWeight.w400,
-            );
+       textStyle =
+           textStyle ??
+           TextStyle(
+             color: Colors.black,
+             fontSize: 15.5.sp,
+             fontWeight: FontWeight.w400,
+           );
 }

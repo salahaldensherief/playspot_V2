@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:playspot/art_core/widgets/buttons/res/button_animator.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
@@ -22,7 +23,8 @@ class AppButton extends StatefulWidget {
   State<AppButton> createState() => _AppButtonState();
 }
 
-class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMixin {
+class _AppButtonState extends State<AppButton>
+    with SingleTickerProviderStateMixin {
   late ButtonAnimator _animator;
 
   @override
@@ -48,23 +50,34 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
         animation: _animator.controller,
         builder: (context, child) {
           return Transform.scale(
-            scale: widget.behavior.isEnabled ? _animator.scaleAnimation.value : 1.0,
+            scale: widget.behavior.isEnabled
+                ? _animator.scaleAnimation.value
+                : 1.0,
             child: MouseRegion(
               onEnter: (_) => _animator.onHover(true),
               onExit: (_) => _animator.onHover(false),
               child: Container(
                 width: widget.buttonConfig.width,
-                height: widget.buttonConfig.height,
+                constraints: BoxConstraints(
+                  minHeight: math.max(widget.buttonConfig.height, 48),
+                ),
                 padding: widget.buttonConfig.padding,
                 margin: widget.buttonConfig.margin,
                 decoration: _buildDecoration(),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(widget.buttonConfig.borderRadius),
-                    splashColor: widget.buttonConfig.backgroundColor.withOpacity(0.3),
-                    highlightColor: widget.buttonConfig.backgroundColor.withOpacity(0.1),
-                    child: Center(child: _buildChild()),
+                    borderRadius: BorderRadius.circular(
+                      widget.buttonConfig.borderRadius,
+                    ),
+                    splashColor: widget.buttonConfig.backgroundColor
+                        .withOpacity(0.3),
+                    highlightColor: widget.buttonConfig.backgroundColor
+                        .withOpacity(0.1),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Center(heightFactor: 1, child: _buildChild()),
+                    ),
                   ),
                 ),
               ),
@@ -83,7 +96,8 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
             : widget.buttonConfig.backgroundColor,
         border: Border.all(
           color: widget.behavior.isEnabled
-              ? (widget.buttonConfig.borderColor ?? widget.buttonConfig.backgroundColor)
+              ? (widget.buttonConfig.borderColor ??
+                    widget.buttonConfig.backgroundColor)
               : widget.buttonConfig.disabledColor,
           width: .3,
         ),
@@ -91,17 +105,19 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
       );
     } else {
       return BoxDecoration(
-        gradient: widget.behavior.isEnabled ? widget.buttonConfig.gradient : null,
+        gradient: widget.behavior.isEnabled
+            ? widget.buttonConfig.gradient
+            : null,
         color: widget.buttonConfig.gradient != null && widget.behavior.isEnabled
             ? null
             : widget.behavior.isEnabled
-                ? widget.buttonConfig.backgroundColor
-                : widget.buttonConfig.disabledColor,
+            ? widget.buttonConfig.backgroundColor
+            : widget.buttonConfig.disabledColor,
         border: !widget.behavior.isEnabled
             ? Border.all(color: Colors.white.withOpacity(0.1), width: 1)
             : widget.buttonConfig.borderColor != null
-                ? Border.all(color: widget.buttonConfig.borderColor!, width: 1)
-                : null,
+            ? Border.all(color: widget.buttonConfig.borderColor!, width: 1)
+            : null,
         borderRadius: BorderRadius.circular(widget.buttonConfig.borderRadius),
         boxShadow: widget.behavior.isEnabled
             ? [
@@ -127,10 +143,8 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
   Widget _buildChild() {
     return AnimatedSwitcher(
       duration: widget.buttonConfig.animationDuration,
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: child,
-      ),
+      transitionBuilder: (child, animation) =>
+          FadeTransition(opacity: animation, child: child),
       child: widget.behavior.isLoading
           ? AppLoader(
               key: const ValueKey('loading'),
@@ -149,8 +163,8 @@ class _AppButtonState extends State<AppButton> with SingleTickerProviderStateMix
                 color: !widget.behavior.isEnabled
                     ? Colors.white.withOpacity(0.2)
                     : widget.buttonConfig.gradient != null
-                        ? Colors.black
-                        : null,
+                    ? Colors.black
+                    : null,
               ),
             ),
     );

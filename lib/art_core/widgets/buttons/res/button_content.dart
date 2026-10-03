@@ -1,14 +1,13 @@
-
 import 'package:flutter/material.dart';
 
 import '../../text/app_text.dart';
 
 class ButtonContent {
-  final String ?label;
+  final String? label;
   final Widget? icon;
   final Widget? body;
 
-  const ButtonContent({ this.label, this.icon , this.body});
+  const ButtonContent({this.label, this.icon, this.body});
 }
 
 class ButtonContentWidget extends StatelessWidget {
@@ -22,6 +21,8 @@ class ButtonContentWidget extends StatelessWidget {
     if (content.body != null) return content.body!;
     return Row(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (content.icon != null) ...[
           content.icon!,
@@ -30,6 +31,7 @@ class ButtonContentWidget extends StatelessWidget {
         Flexible(
           child: AppText(
             text: content.label ?? 'Button',
+            textAlign: TextAlign.center,
             style: textStyle ?? Theme.of(context).textTheme.bodyMedium,
           ),
         ),
