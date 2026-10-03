@@ -20,34 +20,26 @@ class LoungeInfoSection extends StatelessWidget {
     return SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.035),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              LoungeRatingSummary(lounge: lounge),
-              if (description.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Text(
-                    description,
-                    style: const TextStyle(height: 1.5, color: Colors.white70),
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LoungeRatingSummary(lounge: lounge),
+            if (description.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  description,
+                  style: const TextStyle(height: 1.5, color: Colors.white70),
                 ),
-              const Divider(height: 24, color: Colors.white12),
-              LoungeLocationSummary(lounge: lounge),
-              const SizedBox(height: 12),
-              LoungeOperatingHours(lounge: lounge),
-              const SizedBox(height: 12),
-              LoungePaymentSummary(lounge: lounge),
-              const LoungeRoomComparison(),
-            ],
-          ),
+              ),
+            const Divider(height: 24, color: Colors.white12),
+            LoungeLocationSummary(lounge: lounge),
+            const SizedBox(height: 12),
+            LoungeOperatingHours(lounge: lounge),
+            const SizedBox(height: 12),
+            LoungePaymentSummary(lounge: lounge),
+            const LoungeRoomComparison(),
+          ],
         ),
       ),
     );

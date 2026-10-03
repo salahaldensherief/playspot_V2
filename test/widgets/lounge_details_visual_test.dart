@@ -248,6 +248,45 @@ void main() {
     }
   }
 
+  for (final width in [360.0, 600.0, 768.0, 1024.0, 1440.0]) {
+    for (final locale in ['ar', 'en']) {
+      for (final scale in [1.0, 1.6]) {
+        testWidgets(
+          'closed lounge retains room comparison $width $locale scale=$scale',
+          (tester) async {
+            addTearDown(tester.view.resetPhysicalSize);
+            addTearDown(tester.view.resetDevicePixelRatio);
+            await mount(tester, width, locale, scale);
+            final closed = LoungeModel.fromJson({
+              ...lounge.toJson(),
+              'is_open': false,
+            });
+            states.add(initial.copyWith(lounge: closed));
+            await tester.pumpAndSettle();
+            expectClean(tester);
+            await screenshot(
+              tester,
+              'lounge-closed-${width.toInt()}-$locale-$scale-overview',
+            );
+            final controller = tester
+                .widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent))
+                .controller;
+            controller.jumpTo(controller.position.maxScrollExtent);
+            await tester.pumpAndSettle();
+            expect(find.byKey(const ValueKey('busy')), findsOneWidget);
+            expect(find.byKey(const ValueKey('r')), findsOneWidget);
+            expectClean(tester);
+            await screenshot(
+              tester,
+              'lounge-closed-${width.toInt()}-$locale-$scale-rooms',
+            );
+            await tester.pumpWidget(const SizedBox.shrink());
+          },
+        );
+      }
+    }
+  }
+
   testWidgets(
     'room selection changes do not rebuild the lounge page or its overview',
     (tester) async {

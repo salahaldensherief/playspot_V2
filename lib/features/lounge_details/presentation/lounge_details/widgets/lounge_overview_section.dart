@@ -6,7 +6,6 @@ import 'package:playspot/art_core/widgets/shimmer/room_card_shimmer.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
-import 'lounge_hero_header.dart';
 import 'lounge_closed_banner.dart';
 import 'lounge_discount_banner.dart';
 import 'lounge_info_section.dart';
@@ -47,17 +46,6 @@ class LoungeOverviewSection extends StatelessWidget {
           }
           return SliverMainAxisGroup(
             slivers: [
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height:
-                      (lounge.galleryImages.isEmpty ? 96 : 224) *
-                      MediaQuery.textScalerOf(context).scale(1),
-                  child: LoungeHeroHeader(
-                    lounge: lounge,
-                    heroTag: heroTag ?? 'lounge_image_${lounge.id}',
-                  ),
-                ),
-              ),
               if (!lounge.isOpen)
                 const SliverToBoxAdapter(child: LoungeClosedBanner()),
               if (lounge.isDiscountActive)
