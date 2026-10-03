@@ -4,8 +4,9 @@ The `dev` integration contains all backend source while keeping the 16 newly
 introduced SQL candidates under `review/migrations/`, outside the Supabase CLI
 and GitHub integration's automatic `supabase/migrations/` discovery path.
 Existing migrations already present on `dev` remain in their original directory.
-The candidate files were moved byte-for-byte; native fixture imports now use
-their review paths. `supabase/repairs/` remains review-only too.
+The candidate files were initially moved byte-for-byte; subsequent security
+reviews amend candidates explicitly (including the slot-waitlist view boundary).
+Native fixture imports use their review paths. `supabase/repairs/` remains review-only too.
 
 Do not treat this source integration as database deployment. The hosted migration
 history was inspected read-only on 2026-10-02 and ends with

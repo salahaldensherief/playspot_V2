@@ -91,7 +91,7 @@ WHERE (status = 'notified');
 -- 2. View public.slot_waitlist (Resilience Fallback for Mobile Client)
 -- ----------------------------------------------------------------------------
 
-CREATE OR REPLACE VIEW public.slot_waitlist AS
+CREATE OR REPLACE VIEW public.slot_waitlist WITH (security_invoker = true) AS
 SELECT
   id,
   user_id,
@@ -104,45 +104,39 @@ SELECT
 FROM public.booking_waitlist;
 
 CREATE OR REPLACE FUNCTION public.fn_slot_waitlist_insert()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO ''
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path = ''
 AS $function$
 DECLARE
-  v_user_id uuid := COALESCE(NEW.user_id, auth.uid());
-  v_date date := NEW.date;
+  v_actor uuid := auth.uid();
   v_time time without time zone := COALESCE(NEW.slot_time, '18:00:00'::time);
-  v_start_at timestamp without time zone := v_date + v_time;
-  v_end_at timestamp without time zone := v_start_at + interval '60 minutes';
 BEGIN
-  IF v_user_id IS NULL THEN
+  IF v_actor IS NULL THEN
     RAISE EXCEPTION 'Authentication required' USING ERRCODE = '28000';
   END IF;
-
+  IF NEW.user_id IS NOT NULL AND NEW.user_id IS DISTINCT FROM v_actor THEN
+    RAISE EXCEPTION 'Cannot create another customer request' USING ERRCODE = '42501';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.profiles AS actor
+    WHERE actor.id = v_actor AND actor.is_active IS TRUE AND actor.is_banned IS FALSE) THEN
+    RAISE EXCEPTION 'Active account required' USING ERRCODE = '42501';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.rooms AS resource
+    WHERE resource.id = NEW.room_id AND resource.lounge_id = NEW.lounge_id) THEN
+    RAISE EXCEPTION 'Room does not belong to the lounge' USING ERRCODE = '42501';
+  END IF;
+  IF COALESCE(NEW.status, 'waiting') NOT IN ('waiting', 'active') THEN
+    RAISE EXCEPTION 'Cannot create a claimed or completed request' USING ERRCODE = '42501';
+  END IF;
   INSERT INTO public.booking_waitlist (
-    user_id,
-    lounge_id,
-    room_id,
-    requested_date,
-    duration_minutes,
-    preferred_start_time,
-    start_at,
-    end_at,
-    status
+    user_id, lounge_id, room_id, requested_date, duration_minutes,
+    preferred_start_time, start_at, end_at, status
   ) VALUES (
-    v_user_id,
-    NEW.lounge_id,
-    NEW.room_id,
-    v_date,
-    60,
-    v_time,
-    v_start_at,
-    v_end_at,
+    v_actor, NEW.lounge_id, NEW.room_id, NEW.date, 60,
+    v_time, NEW.date + v_time, NEW.date + v_time + interval '60 minutes',
     COALESCE(NEW.status, 'waiting')
-  )
-  RETURNING id INTO NEW.id;
-
+  ) RETURNING id INTO NEW.id;
+  NEW.user_id := v_actor;
+  NEW.slot_time := v_time;
   RETURN NEW;
 END;
 $function$;
@@ -153,7 +147,7 @@ CREATE TRIGGER trg_slot_waitlist_insert
   FOR EACH ROW
   EXECUTE FUNCTION public.fn_slot_waitlist_insert();
 
-REVOKE ALL ON public.slot_waitlist FROM PUBLIC, anon;
+REVOKE ALL ON public.slot_waitlist FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT ON public.slot_waitlist TO authenticated;
 GRANT ALL ON public.slot_waitlist TO service_role;
 
