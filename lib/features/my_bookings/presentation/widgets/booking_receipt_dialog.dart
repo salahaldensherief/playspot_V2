@@ -23,16 +23,14 @@ import 'booking_timeline_widget.dart';
 class BookingReceiptDialog extends StatelessWidget {
   final BookingModel booking;
 
-  const BookingReceiptDialog({
-    super.key,
-    required this.booking,
-  });
+  const BookingReceiptDialog({super.key, required this.booking});
 
   static Future<void> show(BuildContext context, BookingModel booking) {
     return showDialog(
       context: context,
       builder: (_) => BlocProvider<BookingTimelineCubit>(
-        create: (context) => BookingTimelineCubit(sl<GetBookingTimelineUseCase>()),
+        create: (context) =>
+            BookingTimelineCubit(sl<GetBookingTimelineUseCase>()),
         child: BookingReceiptDialog(booking: booking),
       ),
     );
@@ -47,7 +45,10 @@ class BookingReceiptDialog extends StatelessWidget {
       if (clean.startsWith('http://') || clean.startsWith('https://')) {
         return clean;
       }
-      final cleanPath = clean.replaceAll(RegExp(r'^(receipts/|payment-proofs/)'), '');
+      final cleanPath = clean.replaceAll(
+        RegExp(r'^(receipts/|payment-proofs/)'),
+        '',
+      );
       return '${AppConfig.supabaseUrl}/storage/v1/object/public/receipts/$cleanPath';
     }
     return null;
@@ -68,16 +69,19 @@ class BookingReceiptDialog extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: imageUrl,
                   fit: BoxFit.contain,
-                  placeholder: (context, url) => const Center(
-                    child: AppLoader(),
-                  ),
+                  placeholder: (context, url) =>
+                      const Center(child: AppLoader()),
                   errorWidget: (context, url, error) => Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.broken_image_rounded, color: AppColors.danger, size: 48.sp),
+                      Icon(
+                        Icons.broken_image_rounded,
+                        color: AppColors.danger,
+                        size: 48.sp,
+                      ),
                       SizedBox(height: 8.h),
                       AppText(
-                        text: "تعذر تحميل صورة الإيصال",
+                        text: 'receipt_image_load_error'.tr(),
                         color: Colors.white70,
                         fontSize: 14.sp,
                       ),
@@ -107,7 +111,8 @@ class BookingReceiptDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
     final effectiveReceiptUrl = _getEffectiveReceiptUrl();
-    final hasReceiptImage = effectiveReceiptUrl != null && effectiveReceiptUrl.isNotEmpty;
+    final hasReceiptImage =
+        effectiveReceiptUrl != null && effectiveReceiptUrl.isNotEmpty;
     final isCash = booking.paymentMethod?.toLowerCase() == 'cash';
 
     return Dialog(
@@ -128,7 +133,11 @@ class BookingReceiptDialog extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.receipt_long_rounded, color: AppColors.neonBlue, size: 22.sp),
+                        Icon(
+                          Icons.receipt_long_rounded,
+                          color: AppColors.neonBlue,
+                          size: 22.sp,
+                        ),
                         SizedBox(width: 8.w),
                         AppText(
                           text: AppStrings.bookingDetailsAndReceipt.tr(),
@@ -140,7 +149,10 @@ class BookingReceiptDialog extends StatelessWidget {
                     ),
                     IconButton(
                       tooltip: AppStrings.close.tr(),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white70,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -150,14 +162,17 @@ class BookingReceiptDialog extends StatelessWidget {
                 // Receipt Image Container or Fallback
                 if (hasReceiptImage) ...[
                   GestureDetector(
-                    onTap: () => _showFullScreenImage(context, effectiveReceiptUrl),
+                    onTap: () =>
+                        _showFullScreenImage(context, effectiveReceiptUrl),
                     child: Container(
                       width: double.infinity,
                       height: 240.h,
                       decoration: BoxDecoration(
                         color: Colors.black45,
                         borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: AppColors.neonBlue.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16.r),
@@ -169,14 +184,21 @@ class BookingReceiptDialog extends StatelessWidget {
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(child: AppLoader()),
+                              placeholder: (context, url) =>
+                                  const Center(child: AppLoader()),
                               errorWidget: (context, url, error) => Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.broken_image_outlined, color: AppColors.textSecondary, size: 36.sp),
+                                  Icon(
+                                    Icons.broken_image_outlined,
+                                    color: AppColors.textSecondary,
+                                    size: 36.sp,
+                                  ),
                                   SizedBox(height: 6.h),
                                   AppText(
-                                    text: isArabic ? "عفواً، فشل تحميل صورة الإيصال" : "Failed to load receipt image",
+                                    text: isArabic
+                                        ? "عفواً، فشل تحميل صورة الإيصال"
+                                        : "Failed to load receipt image",
                                     fontSize: 12.sp,
                                     color: AppColors.textSecondary,
                                   ),
@@ -188,7 +210,10 @@ class BookingReceiptDialog extends StatelessWidget {
                               bottom: 10.h,
                               right: 10.w,
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w,
+                                  vertical: 5.h,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withValues(alpha: 0.7),
                                   borderRadius: BorderRadius.circular(12.r),
@@ -197,10 +222,16 @@ class BookingReceiptDialog extends StatelessWidget {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.zoom_in_rounded, color: AppColors.neonBlue, size: 14.sp),
+                                    Icon(
+                                      Icons.zoom_in_rounded,
+                                      color: AppColors.neonBlue,
+                                      size: 14.sp,
+                                    ),
                                     SizedBox(width: 4.w),
                                     AppText(
-                                      text: isArabic ? "تكبير الصورة" : "Tap to zoom",
+                                      text: isArabic
+                                          ? "تكبير الصورة"
+                                          : "Tap to zoom",
                                       fontSize: 10.sp,
                                       color: Colors.white,
                                     ),
@@ -225,15 +256,21 @@ class BookingReceiptDialog extends StatelessWidget {
                     child: Column(
                       children: [
                         Icon(
-                          isCash ? Icons.payments_outlined : Icons.receipt_long_outlined,
+                          isCash
+                              ? Icons.payments_outlined
+                              : Icons.receipt_long_outlined,
                           color: AppColors.textSecondary,
                           size: 40.sp,
                         ),
                         SizedBox(height: 8.h),
                         AppText(
                           text: isCash
-                              ? (isArabic ? "الدفع نقداً داخل الفرع" : "Cash payment at lounge")
-                              : (isArabic ? "لم يتم إرفاق صورة إيصال لهذا الحجز" : "No receipt image attached"),
+                              ? (isArabic
+                                    ? "الدفع نقداً داخل الفرع"
+                                    : "Cash payment at lounge")
+                              : (isArabic
+                                    ? "لم يتم إرفاق صورة إيصال لهذا الحجز"
+                                    : "No receipt image attached"),
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
                           color: Colors.white70,
@@ -252,7 +289,9 @@ class BookingReceiptDialog extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.black26,
                     borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(color: AppColors.borderDefault.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: AppColors.borderDefault.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -265,21 +304,28 @@ class BookingReceiptDialog extends StatelessWidget {
                       _buildDetailRow(
                         icon: Icons.confirmation_number_outlined,
                         label: isArabic ? "رقم الحجز" : "Booking ID",
-                        value: "#${booking.id.substring(0, booking.id.length > 8 ? 8 : booking.id.length)}",
+                        value:
+                            "#${booking.id.substring(0, booking.id.length > 8 ? 8 : booking.id.length)}",
                       ),
-                      if (booking.senderAccount != null && booking.senderAccount!.isNotEmpty) ...[
+                      if (booking.senderAccount != null &&
+                          booking.senderAccount!.isNotEmpty) ...[
                         Divider(color: Colors.white10, height: 16.h),
                         _buildDetailRow(
                           icon: Icons.phone_android_rounded,
-                          label: isArabic ? "حساب/محفظة المحول" : "Sender Account",
+                          label: isArabic
+                              ? "حساب/محفظة المحول"
+                              : "Sender Account",
                           value: booking.senderAccount!,
                         ),
                       ],
-                      if (booking.transactionReference != null && booking.transactionReference!.isNotEmpty) ...[
+                      if (booking.transactionReference != null &&
+                          booking.transactionReference!.isNotEmpty) ...[
                         Divider(color: Colors.white10, height: 16.h),
                         _buildDetailRow(
                           icon: Icons.pin_outlined,
-                          label: isArabic ? "رقم المرجع / التحويل" : "Reference No.",
+                          label: isArabic
+                              ? "رقم المرجع / التحويل"
+                              : "Reference No.",
                           value: booking.transactionReference!,
                         ),
                       ],
@@ -287,7 +333,8 @@ class BookingReceiptDialog extends StatelessWidget {
                       _buildDetailRow(
                         icon: Icons.attach_money_rounded,
                         label: isArabic ? "المبلغ الإجمالي" : "Total Amount",
-                        value: "${booking.totalPrice.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
+                        value:
+                            "${booking.totalPrice.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
                         valueColor: AppColors.neonBlue,
                         isBold: true,
                       ),
@@ -310,9 +357,7 @@ class BookingReceiptDialog extends StatelessWidget {
 
                 // Action Close Button
                 AppButton(
-                  content: ButtonContent(
-                    label: isArabic ? "إغلاق" : "Close",
-                  ),
+                  content: ButtonContent(label: isArabic ? "إغلاق" : "Close"),
                   buttonConfig: ButtonConfig(
                     height: 44.h,
                     backgroundColor: AppColors.transparent,
@@ -342,11 +387,7 @@ class BookingReceiptDialog extends StatelessWidget {
       children: [
         Icon(icon, color: AppColors.textSecondary, size: 16.sp),
         SizedBox(width: 8.w),
-        AppText(
-          text: label,
-          fontSize: 12.sp,
-          color: AppColors.textSecondary,
-        ),
+        AppText(text: label, fontSize: 12.sp, color: AppColors.textSecondary),
         const Spacer(),
         Flexible(
           child: AppText(

@@ -689,5 +689,11 @@
   "lounge_comparison_from": "السعر الأساسي يبدأ من {price} ج.م / ساعة؛ السعر النهائي حسب موعدك واختياراتك",
   "lounge_rooms_section": "الغرف والأجهزة",
   "lounge_no_matching_rooms": "لا توجد غرف مطابقة للاختيارات الحالية",
-  "lounge_distance_estimate": "تقدير {distance} من آخر موقع متاح؛ قد تختلف المسافة وطريق الوصول"
+  "lounge_distance_estimate": "تقدير {distance} من آخر موقع متاح؛ قد تختلف المسافة وطريق الوصول",
+  "favorites_title": "المفضلة",
+  "favorites_empty_title": "لم تضف صالات للمفضلة بعد",
+  "favorites_empty_description": "الصالات التي تضيفها للمفضلة ستظهر هنا",
+  "favorites_load_error": "تعذر تحميل المفضلة. تحقق من الاتصال وحاول مجددًا.",
+  "receipt_image_load_error": "تعذر تحميل صورة الإيصال",
+  "splash_tagline": "احجز • العب • اكسب"
 }

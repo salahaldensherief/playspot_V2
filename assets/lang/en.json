@@ -689,5 +689,11 @@
   "lounge_comparison_from": "Base rates from EGP {price} / hour; final pricing depends on your time and choices",
   "lounge_rooms_section": "Rooms and stations",
   "lounge_no_matching_rooms": "No rooms match your current choices",
-  "lounge_distance_estimate": "Estimated {distance} from the last available location; actual distance and route may differ"
+  "lounge_distance_estimate": "Estimated {distance} from the last available location; actual distance and route may differ",
+  "favorites_title": "My Favorites",
+  "favorites_empty_title": "No favorites yet",
+  "favorites_empty_description": "Your favorite lounges will appear here",
+  "favorites_load_error": "Could not load favorites. Check your connection and retry.",
+  "receipt_image_load_error": "Could not load the receipt image",
+  "splash_tagline": "BOOK • PLAY • WIN"
 }

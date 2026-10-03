@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:ui' as ui;
@@ -186,7 +187,7 @@ class _SplashScreenState extends State<SplashScreen>
               FadeTransition(
                 opacity: _fadeAnim,
                 child: Text(
-                  'BOOK • PLAY • WIN',
+                  'splash_tagline'.tr(),
                   style: TextStyle(
                     shadows: [
                       Shadow(
