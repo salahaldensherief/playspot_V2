@@ -34,9 +34,12 @@ class LoungeHeroHeader extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
+            stops: const [0, 0.35, 0.72, 1],
             colors: [
-              Colors.black26,
-              AppColors.scaffoldBackground.withValues(alpha: 0.9),
+              Colors.black.withValues(alpha: 0.18),
+              Colors.transparent,
+              AppColors.scaffoldBackground.withValues(alpha: 0.55),
+              AppColors.scaffoldBackground,
             ],
           ),
         ),

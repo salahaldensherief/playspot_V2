@@ -30,6 +30,7 @@ class RoomSelectButton extends StatelessWidget {
               ? Icons.check_circle_rounded
               : Icons.add_circle_outline_rounded,
           color: selected ? AppColors.black : color,
+          size: 18,
         ),
       ),
       behavior: ButtonBehavior.tap(
@@ -37,6 +38,7 @@ class RoomSelectButton extends StatelessWidget {
             context.read<LoungeDetailsCubit>().toggleRoomSelection(roomId),
       ),
       buttonConfig: ButtonConfig(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
         height: 48 * MediaQuery.textScalerOf(context).scale(1),
         borderRadius: 12,
         backgroundColor: selected ? color : color.withValues(alpha: 0.12),

@@ -13,6 +13,24 @@ class LoungeGalleryAction extends StatelessWidget {
   final String? heroTag;
   const LoungeGalleryAction({super.key, this.initialLounge, this.heroTag});
 
+  static void openGallery(
+    BuildContext context,
+    LoungeModel lounge,
+    String? heroTag,
+  ) {
+    if (lounge.galleryImages.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FullScreenGallery(
+          images: lounge.galleryImages,
+          initialIndex: 0,
+          heroTag: heroTag ?? 'lounge_image_${lounge.id}',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) =>
       BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
@@ -26,16 +44,7 @@ class LoungeGalleryAction extends StatelessWidget {
             tooltip: AppStrings.viewPhotos.tr(),
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             icon: PhotoIndicator(totalImages: lounge.galleryImages.length),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FullScreenGallery(
-                  images: lounge.galleryImages,
-                  initialIndex: 0,
-                  heroTag: heroTag ?? 'lounge_image_${lounge.id}',
-                ),
-              ),
-            ),
+            onPressed: () => openGallery(context, lounge, heroTag),
           );
         },
       );

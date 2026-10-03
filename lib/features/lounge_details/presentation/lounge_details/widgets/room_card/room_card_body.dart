@@ -27,8 +27,8 @@ class RoomCardBody extends StatelessWidget {
       : data.hasOffer(room)
       ? AppColors.warning.withValues(alpha: 0.4)
       : data.isAvailable
-      ? AppColors.borderDefault
-      : AppColors.danger.withValues(alpha: 0.15);
+      ? room.themeColor.withValues(alpha: 0.45)
+      : AppColors.danger.withValues(alpha: 0.4);
 
   @override
   Widget build(BuildContext context) => GestureDetector(

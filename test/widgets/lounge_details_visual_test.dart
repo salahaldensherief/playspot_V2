@@ -22,6 +22,8 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/lou
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_screen.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_details_content.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_gallery_action.dart';
+import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
 import '../support/local_translations_loader.dart';
 import '../support/mock_locale_cubit.dart';
 import '../support/mock_lounge_details_cubit.dart';
@@ -196,6 +198,51 @@ void main() {
       picture.dispose();
     });
   }
+
+  testWidgets('hero opens the gallery and keeps its action after collapsing', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await mount(tester, 360, 'ar', 1);
+    final photos = LoungeModel.fromJson({
+      ...lounge.toJson(),
+      'image_url': 'assets/images/splash_logo.png',
+      'images': ['assets/images/vodafone_cash_logo.png'],
+    });
+    states.add(initial.copyWith(lounge: photos));
+    await tester.pumpAndSettle();
+    final bar = tester.widget<SliverAppBar>(find.byType(SliverAppBar));
+    final background =
+        (bar.flexibleSpace as FlexibleSpaceBar).background as Semantics;
+    final gesture = background.child! as GestureDetector;
+    expect(gesture.onTap, isNotNull);
+    gesture.onTap!();
+    await tester.pumpAndSettle();
+    expect(find.byType(FullScreenGallery), findsOneWidget);
+    expect(
+      tester.widget<FullScreenGallery>(find.byType(FullScreenGallery)).images,
+      photos.galleryImages,
+    );
+    Navigator.of(tester.element(find.byType(FullScreenGallery))).pop();
+    await tester.pumpAndSettle();
+    final controller = tester
+        .widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent))
+        .controller;
+    controller.jumpTo(controller.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    expect(
+      find
+          .descendant(
+            of: find.byType(LoungeGalleryAction),
+            matching: find.byType(IconButton),
+          )
+          .hitTestable(),
+      findsOneWidget,
+    );
+    expectClean(tester);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   for (final width in [360.0, 600.0, 768.0, 1024.0, 1440.0]) {
     for (final locale in ['ar', 'en']) {

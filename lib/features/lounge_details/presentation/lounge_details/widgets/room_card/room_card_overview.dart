@@ -29,7 +29,7 @@ class RoomCardOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final arabic = context.locale.languageCode == 'ar';
     return Padding(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -56,7 +56,7 @@ class RoomCardOverview extends StatelessWidget {
               if (data.hasOffer(room)) RoomPromoBadge(tag: _offer(arabic)),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           RoomHeader(
             room: room,
             isArabic: arabic,
