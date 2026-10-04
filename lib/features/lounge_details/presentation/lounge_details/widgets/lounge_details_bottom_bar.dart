@@ -72,6 +72,10 @@ class LoungeDetailsBottomBar extends StatelessWidget {
       );
 
   String _label(LoungeDetailsState state, LoungeModel lounge) {
+    if (state.operatingStatus == null ||
+        state.operatingStatus?.status == 'unavailable') {
+      return 'operating_status_unavailable'.tr();
+    }
     if (state.operatingStatus?.isTechnicalIssue == true) {
       return AppStrings.technicalIssue.tr();
     }

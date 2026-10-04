@@ -396,18 +396,13 @@ class LoungeDetailsRemoteDataSourceImpl
   Future<LoungeOperatingStatus?> getLoungeOperatingStatus(
     String loungeId,
   ) async {
-    try {
-      final res = await _client.rpc(
-        'get_lounge_operating_status',
-        params: {'p_lounge_id': loungeId},
-      );
-      if (res != null && res is Map) {
-        return LoungeOperatingStatus.fromJson(Map<String, dynamic>.from(res));
-      }
-      return null;
-    } catch (e) {
-      dev.log('[LOUNGE_DS] get_lounge_operating_status error: $e');
-      return null;
+    final res = await _client.rpc(
+      'get_lounge_operating_status',
+      params: {'p_lounge_id': loungeId},
+    );
+    if (res != null && res is Map) {
+      return LoungeOperatingStatus.fromJson(Map<String, dynamic>.from(res));
     }
+    throw const FormatException('invalid_lounge_operating_status');
   }
 }

@@ -1,4 +1,5 @@
 {
+  "operating_status_unavailable": "Unable to confirm online booking availability. Please refresh.",
   "auth": {
     "secure_storage_unverified": "Could not verify secure sign-in storage. Please try again.",
     "invalid_storage_scope": "Sign-in configuration is invalid. Please contact support.",

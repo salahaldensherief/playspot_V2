@@ -13,6 +13,10 @@ void main() {
     lounge: lounge,
     rooms: [room],
     selectedRoomIds: {'r'},
+    operatingStatus: const LoungeOperatingStatus(
+      status: 'open',
+      canBookOnline: true,
+    ),
   );
   test('booking reads the current selected date and per-room settings', () {
     final date = DateTime(2026, 11, 12);
@@ -65,5 +69,28 @@ void main() {
     );
     expect(LoungeBookingSelection(openStatus, lounge).isEnabled, isTrue);
     expect(LoungeBookingSelection(openStatus, lounge).params, isNotNull);
+  });
+  test('missing status never falls back to a cached open lounge', () {
+    expect(lounge.isOpen, isTrue);
+    final unknown = state.copyWith(clearOperatingStatus: true);
+    expect(LoungeBookingSelection(unknown, lounge).params, isNull);
+  });
+  test('invalid or contradictory server statuses are rejected', () {
+    for (final value in [
+      <String, dynamic>{},
+      {'status': 'new_unknown', 'can_book_online': true},
+      {'status': 'closed', 'can_book_online': true},
+      {'status': 'open', 'can_book_online': 'true'},
+      {
+        'status': 'technical_issue',
+        'can_book_online': false,
+        'contact_phone': 123,
+      },
+    ]) {
+      expect(
+        () => LoungeOperatingStatus.fromJson(value),
+        throwsFormatException,
+      );
+    }
   });
 }

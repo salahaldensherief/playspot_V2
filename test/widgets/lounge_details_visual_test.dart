@@ -26,6 +26,7 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_gallery_action.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_technical_issue_banner.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_closed_banner.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
 import '../support/local_translations_loader.dart';
 import '../support/mock_locale_cubit.dart';
@@ -86,6 +87,10 @@ void main() {
     lounge: lounge,
     rooms: [room, busy],
     selectedDate: DateTime.now(),
+    operatingStatus: const LoungeOperatingStatus(
+      status: 'open',
+      canBookOnline: true,
+    ),
   );
   late MockLoungeDetailsCubit cubit;
   late MockLocaleCubit localeCubit;
@@ -311,8 +316,17 @@ void main() {
               ...lounge.toJson(),
               'is_open': false,
             });
-            states.add(initial.copyWith(lounge: closed));
+            states.add(
+              initial.copyWith(
+                lounge: closed,
+                operatingStatus: const LoungeOperatingStatus(
+                  status: 'closed',
+                  canBookOnline: false,
+                ),
+              ),
+            );
             await tester.pumpAndSettle();
+            expect(find.byType(LoungeClosedBanner), findsOneWidget);
             expectClean(tester);
             await screenshot(
               tester,
