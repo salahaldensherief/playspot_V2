@@ -14,12 +14,14 @@ import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
+import 'profile_reward_labels.dart';
 
 class PointsHistoryScreen extends StatelessWidget {
   const PointsHistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
@@ -50,7 +52,8 @@ class PointsHistoryScreen extends StatelessWidget {
                   previous.pointsHistory != current.pointsHistory ||
                   previous.status != current.status,
               builder: (context, state) {
-                if (state.status == ProfileStatus.loading && state.pointsHistory.isEmpty) {
+                if (state.status == ProfileStatus.loading &&
+                    state.pointsHistory.isEmpty) {
                   return const AppLoader(size: 40);
                 }
 
@@ -82,7 +85,8 @@ class PointsHistoryScreen extends StatelessWidget {
 
   Widget _buildBalanceHeader() {
     return BlocBuilder<ProfileCubit, ProfileState>(
-      buildWhen: (previous, current) => previous.pointsBalance != current.pointsBalance,
+      buildWhen: (previous, current) =>
+          previous.pointsBalance != current.pointsBalance,
       builder: (context, state) {
         return Container(
           width: double.infinity,
@@ -120,13 +124,23 @@ class PointsHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildTransactionCard(
+    BuildContext context,
+    Map<String, dynamic> item,
+  ) {
     final points = (item['points'] as num?)?.toInt() ?? 0;
     final isPositive = points >= 0;
     final isArabic = context.locale.languageCode == 'ar';
 
     final type = (item['type'] ?? item['transaction_type'] ?? '').toString();
-    final description = _getTransactionTitle(type, item['description']?.toString(), isArabic);
+    final localizedDescription =
+        item[isArabic ? 'description_ar' : 'description_en']?.toString();
+    final description = localizedDescription?.trim().isNotEmpty == true
+        ? localizedDescription!
+        : ProfileRewardLabels.transaction(
+            type,
+            item['description']?.toString(),
+          );
     final createdAtStr = item['created_at']?.toString();
 
     DateTime? createdAt;
@@ -143,11 +157,14 @@ class PointsHistoryScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(10.w),
               decoration: BoxDecoration(
-                color: (isPositive ? AppColors.success : AppColors.danger).withValues(alpha: 0.15),
+                color: (isPositive ? AppColors.success : AppColors.danger)
+                    .withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isPositive ? Icons.add_circle_outline : Icons.remove_circle_outline,
+                isPositive
+                    ? Icons.add_circle_outline
+                    : Icons.remove_circle_outline,
                 color: isPositive ? AppColors.success : AppColors.danger,
                 size: 22.sp,
               ),
@@ -166,7 +183,9 @@ class PointsHistoryScreen extends StatelessWidget {
                   if (createdAt != null) ...[
                     SizedBox(height: 4.h),
                     AppText(
-                      text: DateFormat('dd MMM yyyy, hh:mm a').format(createdAt),
+                      text: DateFormat.yMMMd(
+                        context.locale.toString(),
+                      ).add_jm().format(createdAt.toLocal()),
                       fontSize: 11.sp,
                       color: AppColors.textSecondary,
                     ),
@@ -185,32 +204,5 @@ class PointsHistoryScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _getTransactionTitle(String type, String? rawDescription, bool isArabic) {
-    if (rawDescription != null && rawDescription.trim().isNotEmpty) {
-      return rawDescription;
-    }
-
-    switch (type.toLowerCase()) {
-      case 'booking_completed':
-      case 'booking':
-        return isArabic ? 'حجز مكتمل' : 'Completed Booking';
-      case 'first_booking':
-        return isArabic ? 'مكافأة أول حجز' : 'First Booking Bonus';
-      case 'review':
-        return isArabic ? 'تقييم صالة' : 'Venue Review';
-      case 'referral':
-        return isArabic ? 'دعوة صديق' : 'Referral Bonus';
-      case 'redemption':
-        return isArabic ? 'استبدال نقاط' : 'Points Redeemed';
-      case 'admin_adjust':
-        return isArabic ? 'تعديل إداري' : 'Admin Adjustment';
-      case 'refund':
-      case 'booking_reversal':
-        return isArabic ? 'عكس نقاط حجز' : 'Booking Points Reversal';
-      default:
-        return isArabic ? 'معاملة نقاط' : 'Points Transaction';
-    }
   }
 }

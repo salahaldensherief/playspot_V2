@@ -1,4 +1,14 @@
 {
+  "profile_rewards": {
+    "used_on": "استخدمت في {date}", "expired_on": "انتهت في {date}",
+    "valid_until": "صالحة حتى {date}", "date_unknown": "التاريخ غير متاح",
+    "days_left": "متبقي {count} يوم", "booking": "حجز مكتمل",
+    "first_booking": "مكافأة أول حجز", "review": "تقييم صالة",
+    "referral": "مكافأة دعوة صديق", "redemption": "استبدال نقاط",
+    "admin_adjust": "تعديل إداري", "reversal": "عكس نقاط حجز",
+    "transaction": "معاملة نقاط", "bronze": "برونزي", "silver": "فضي",
+    "gold": "ذهبي", "platinum": "بلاتيني", "diamond": "ماسي"
+  },
   "operating_status_unavailable": "تعذر التأكد من إتاحة الحجز أونلاين. يرجى التحديث.",
   "auth": {
     "secure_storage_unverified": "تعذر التأكد من حفظ تسجيل الدخول بأمان. حاول مرة أخرى.",

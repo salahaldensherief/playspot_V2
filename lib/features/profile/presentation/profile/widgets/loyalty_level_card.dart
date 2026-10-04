@@ -8,6 +8,7 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import '../profile_cubit.dart';
 import '../profile_state.dart';
+import '../profile_reward_labels.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
 class LoyaltyLevelCard extends StatelessWidget {
@@ -29,9 +30,11 @@ class LoyaltyLevelCard extends StatelessWidget {
 
         final levelColor = _getLevelColor(currentLevel);
         final levelIcon = _getLevelIcon(currentLevel);
-        final progressRatio = status?.progressRatio ??
+        final progressRatio =
+            status?.progressRatio ??
             (nextPoints > 0 ? (points / nextPoints).clamp(0.0, 1.0) : 1.0);
-        final remainingPoints = status?.pointsRemaining ??
+        final remainingPoints =
+            status?.pointsRemaining ??
             (nextPoints > points ? (nextPoints - points) : 0);
 
         return Container(
@@ -61,7 +64,10 @@ class LoyaltyLevelCard extends StatelessWidget {
                 children: [
                   // Level Badge
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 6.h,
+                    ),
                     decoration: BoxDecoration(
                       color: levelColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20.r),
@@ -73,7 +79,7 @@ class LoyaltyLevelCard extends StatelessWidget {
                         Icon(levelIcon, color: levelColor, size: 16.sp),
                         SizedBox(width: 6.w),
                         AppText(
-                          text: currentLevel,
+                          text: ProfileRewardLabels.level(currentLevel),
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,
                           color: levelColor,
@@ -85,7 +91,10 @@ class LoyaltyLevelCard extends StatelessWidget {
                   // Multiplier Badge
                   if (multiplier > 1.0)
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.warning.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(20.r),
@@ -96,10 +105,15 @@ class LoyaltyLevelCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(TablerIcons.bolt, color: AppColors.warning, size: 14.sp),
+                          Icon(
+                            TablerIcons.bolt,
+                            color: AppColors.warning,
+                            size: 14.sp,
+                          ),
                           SizedBox(width: 4.w),
                           AppText(
-                            text: "${multiplier}x ${AppStrings.multiplier.tr()}",
+                            text:
+                                "${multiplier}x ${AppStrings.multiplier.tr()}",
                             fontSize: 12.sp,
                             fontWeight: FontWeight.bold,
                             color: AppColors.warning,
@@ -167,7 +181,9 @@ class LoyaltyLevelCard extends StatelessWidget {
                   SizedBox(height: 8.h),
                   if (remainingPoints > 0)
                     AppText(
-                      text: AppStrings.pointsRemaining.tr(args: [remainingPoints.toString()]),
+                      text: AppStrings.pointsRemaining.tr(
+                        args: [remainingPoints.toString()],
+                      ),
                       fontSize: 11.sp,
                       color: AppColors.textSecondary,
                     ),

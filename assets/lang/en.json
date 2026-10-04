@@ -1,4 +1,14 @@
 {
+  "profile_rewards": {
+    "used_on": "Used on {date}", "expired_on": "Expired on {date}",
+    "valid_until": "Valid until {date}", "date_unknown": "Date unavailable",
+    "days_left": "{count} days remaining", "booking": "Completed booking",
+    "first_booking": "First booking bonus", "review": "Venue review",
+    "referral": "Referral bonus", "redemption": "Points redeemed",
+    "admin_adjust": "Admin adjustment", "reversal": "Booking points reversal",
+    "transaction": "Points transaction", "bronze": "Bronze", "silver": "Silver",
+    "gold": "Gold", "platinum": "Platinum", "diamond": "Diamond"
+  },
   "operating_status_unavailable": "Unable to confirm online booking availability. Please refresh.",
   "auth": {
     "secure_storage_unverified": "Could not verify secure sign-in storage. Please try again.",
