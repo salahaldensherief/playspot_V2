@@ -93,6 +93,8 @@ jobs:
           PLAYSPOT_NATIVE_PG_PORT: '55439'
           PLAYSPOT_OFFLINE_PROTOCOL_SQL: supabase/migrations/20261004132112_coordinated_offline_cashier_protocol.sql
           PLAYSPOT_ROOM_GUARD_SQL: supabase/migrations/20261004035454_room_active_session_invariants.sql
+          PLAYSPOT_WRITER_RELEASE_SQL: supabase/migrations/20261004151006_cashier_writer_generation_handover.sql
         run: |
           node supabase/tests/offline_fixed_session_reconciliation.test.mjs
           node supabase/tests/offline_cashier_bootstrap.test.mjs
+          node supabase/tests/cashier_writer_release.test.mjs
