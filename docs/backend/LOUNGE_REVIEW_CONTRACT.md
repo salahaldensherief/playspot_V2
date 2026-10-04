@@ -1,8 +1,13 @@
 # Lounge review contract
 
-Source: 20261001110000_versioned_lounge_review.sql. Not applied live.
-Tested with 20 sequential synthetic PostgreSQL checks. PostGIS, production triggers
-and concurrent writers remain staging requirements.
+Originally authored as 20261001110000_versioned_lounge_review.sql. Its rollout,
+final submission and draft re-entry contracts were deployed together in the recorded
+20261003104630_live_versioned_onboarding_kyc migration. Do not replay the original
+review drafts against the hosted database.
+
+Rechecked on 2026-10-04: 30 isolated PGlite/PostgreSQL 18.3 lifecycle checks passed.
+The fixture substitutes geography and does not mirror every production trigger or
+concurrent writer; actual browser approval/rejection remains a separate integration check.
 
 submit_lounge_review(p_lounge_id uuid, p_id_document_path text,
 p_business_document_path text default null) -> jsonb:
@@ -29,8 +34,9 @@ as a complete KYC release: retire old review route after the versioned client is
 reconcile historical requests explicitly, verify Storage bucket is private, and verify
 all existing lounge/resource writers and shift triggers against review freeze locks.
 
-Known legacy onboarding issue: initial onboard_lounge creation does not provide the
-payment destination required by the current lounge constraint; draft creation must
-be repaired before enabling the complete registration flow. New user registration
+The legacy payment-destination bootstrap defect was corrected in the same live
+rollout: pending/rejected drafts may omit it, while final submission/activation keeps
+the destination invariant. The isolated bootstrap and atomic resource-save suites
+were rechecked on 2026-10-04: 10 and 13 checks passed respectively. New user registration
 must preserve access to pending/rejected onboarding rather than treat pending review
 as a suspended account. This migration alone does not solve that bootstrap flow.

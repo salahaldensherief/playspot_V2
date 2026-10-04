@@ -11,7 +11,10 @@ when that lounge is owned by the caller. Draft setup no longer suspends the owne
 identity, draft constraint behavior and replay/rollback, not PostGIS behavior. Production
 triggers, geography calls, grants/RLS and concurrent owner creation require staging.
 Existing inactive profiles are not blindly reactivated: suspension and old pending-account
-states need explicit reconciliation. No live application has taken place.
+states need explicit reconciliation. This contract was included in the recorded live migration
+20261003104630_live_versioned_onboarding_kyc; do not apply the original draft again.
+Rechecked 2026-10-04: 10 isolated bootstrap checks and 13 atomic resource-save checks
+passed, with the fixture limitations above still applying.
 
 Client dependencies remain: collect transfer details before final submission, include
 stable resource IDs and use atomic/idempotent final submission, submit KYC after saving
