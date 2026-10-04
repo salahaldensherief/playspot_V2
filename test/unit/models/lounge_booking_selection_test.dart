@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_booking_selection.dart';
 
@@ -45,4 +46,24 @@ void main() {
       }
     },
   );
+  test('technical issue or non-bookable operating status disables booking', () {
+    final techIssue = state.copyWith(
+      operatingStatus: const LoungeOperatingStatus(
+        status: 'technical_issue',
+        canBookOnline: false,
+        contactPhone: '01012345678',
+      ),
+    );
+    expect(LoungeBookingSelection(techIssue, lounge).isEnabled, isFalse);
+    expect(LoungeBookingSelection(techIssue, lounge).params, isNull);
+
+    final openStatus = state.copyWith(
+      operatingStatus: const LoungeOperatingStatus(
+        status: 'open',
+        canBookOnline: true,
+      ),
+    );
+    expect(LoungeBookingSelection(openStatus, lounge).isEnabled, isTrue);
+    expect(LoungeBookingSelection(openStatus, lounge).params, isNotNull);
+  });
 }

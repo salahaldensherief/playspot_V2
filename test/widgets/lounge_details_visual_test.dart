@@ -22,7 +22,10 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/lou
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_screen.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_details_content.dart';
+import 'package:playspot/art_core/widgets/buttons/app_button.dart';
+import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_gallery_action.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_technical_issue_banner.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
 import '../support/local_translations_loader.dart';
 import '../support/mock_locale_cubit.dart';
@@ -333,6 +336,64 @@ void main() {
       }
     }
   }
+
+  for (final width in [360.0, 600.0, 768.0, 1024.0, 1440.0]) {
+    for (final locale in ['ar', 'en']) {
+      for (final scale in [1.0, 1.6]) {
+        testWidgets(
+          'technical issue lounge displays warning and dialer $width $locale scale=$scale',
+          (tester) async {
+            addTearDown(tester.view.resetPhysicalSize);
+            addTearDown(tester.view.resetDevicePixelRatio);
+            await mount(tester, width, locale, scale);
+            final techState = initial.copyWith(
+              operatingStatus: const LoungeOperatingStatus(
+                status: 'technical_issue',
+                canBookOnline: false,
+                contactPhone: '01012345678',
+              ),
+            );
+            states.add(techState);
+            await tester.pumpAndSettle();
+            expectClean(tester);
+            expect(find.byType(LoungeTechnicalIssueBanner), findsOneWidget);
+            await screenshot(
+              tester,
+              'lounge-technical-issue-${width.toInt()}-$locale-$scale-overview',
+            );
+            await tester.pumpWidget(const SizedBox.shrink());
+          },
+        );
+      }
+    }
+  }
+
+  testWidgets('technical issue lounge without phone hides call button', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await mount(tester, 360, 'ar', 1.0);
+    final techNoPhone = initial.copyWith(
+      operatingStatus: const LoungeOperatingStatus(
+        status: 'technical_issue',
+        canBookOnline: false,
+        contactPhone: null,
+      ),
+    );
+    states.add(techNoPhone);
+    await tester.pumpAndSettle();
+    expectClean(tester);
+    expect(find.byType(LoungeTechnicalIssueBanner), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(LoungeTechnicalIssueBanner),
+        matching: find.byType(AppButton),
+      ),
+      findsNothing,
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets(
     'room selection changes do not rebuild the lounge page or its overview',
