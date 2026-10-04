@@ -27,6 +27,7 @@ class LoungeDetailsBottomBar extends StatelessWidget {
             a.selectedRoomIds != b.selectedRoomIds ||
             a.rooms != b.rooms ||
             a.lounge != b.lounge ||
+            a.operatingStatus != b.operatingStatus ||
             a.isDateLoading != b.isDateLoading ||
             a.status != b.status ||
             a.bookedRoomIds != b.bookedRoomIds,
@@ -71,7 +72,12 @@ class LoungeDetailsBottomBar extends StatelessWidget {
       );
 
   String _label(LoungeDetailsState state, LoungeModel lounge) {
-    if (!lounge.isOpen) return AppStrings.closed.tr();
+    if (state.operatingStatus?.isTechnicalIssue == true) {
+      return AppStrings.technicalIssue.tr();
+    }
+    if (state.operatingStatus?.isOpen == false || !lounge.isOpen) {
+      return AppStrings.closed.tr();
+    }
     if (state.selectedRooms.isEmpty) return AppStrings.selectRoomsPrompt.tr();
     if (state.selectedRooms.length == 1) return AppStrings.bookARoom.tr();
     return '${AppStrings.bookRoomsCount.tr()} (${state.selectedRooms.length})';

@@ -1,3 +1,4 @@
+import '../../domain/entities/lounge_operating_status.dart';
 import '../../../home/data/models/category_model.dart';
 import '../../../home/data/models/lounge_model.dart';
 import 'extra_model.dart';
@@ -13,6 +14,7 @@ class UpdateBookingsParams {
   final LoungeModel lounge;
   final List<CategoryModel>? deviceCategories;
   final List<ReviewModel>? reviews;
+  final LoungeOperatingStatus? operatingStatus;
 
   UpdateBookingsParams({
     required this.loungeId,
@@ -22,5 +24,6 @@ class UpdateBookingsParams {
     required this.lounge,
     this.deviceCategories,
     this.reviews,
+    this.operatingStatus,
   });
 }

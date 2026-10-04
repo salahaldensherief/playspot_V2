@@ -9,6 +9,7 @@ import '../lounge_details_state.dart';
 import 'lounge_closed_banner.dart';
 import 'lounge_discount_banner.dart';
 import 'lounge_info_section.dart';
+import 'lounge_technical_issue_banner.dart';
 
 class LoungeOverviewSection extends StatelessWidget {
   final LoungeModel? initialLounge;
@@ -25,7 +26,9 @@ class LoungeOverviewSection extends StatelessWidget {
   Widget build(BuildContext context) =>
       BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
         buildWhen: (a, b) =>
-            a.lounge != b.lounge || (a.lounge == null && a.status != b.status),
+            a.lounge != b.lounge ||
+            a.operatingStatus != b.operatingStatus ||
+            (a.lounge == null && a.status != b.status),
         builder: (context, state) {
           final lounge = state.lounge ?? initialLounge;
           if (lounge == null) {
@@ -44,9 +47,22 @@ class LoungeOverviewSection extends StatelessWidget {
               ),
             );
           }
+
+          final opStatus = state.operatingStatus;
+          final isTechnicalIssue = opStatus?.isTechnicalIssue ?? false;
+          final isClosed = opStatus != null
+              ? (!opStatus.isOpen && !isTechnicalIssue)
+              : !lounge.isOpen;
+
           return SliverMainAxisGroup(
             slivers: [
-              if (!lounge.isOpen)
+              if (isTechnicalIssue)
+                SliverToBoxAdapter(
+                  child: LoungeTechnicalIssueBanner(
+                    contactPhone: opStatus?.contactPhone,
+                  ),
+                )
+              else if (isClosed)
                 const SliverToBoxAdapter(child: LoungeClosedBanner()),
               if (lounge.isDiscountActive)
                 SliverToBoxAdapter(child: LoungeDiscountBanner(lounge: lounge)),

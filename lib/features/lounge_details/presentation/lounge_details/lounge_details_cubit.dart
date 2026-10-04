@@ -14,6 +14,7 @@ import 'package:playspot/features/lounge_details/data/models/lounge_details_para
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/domain/repositories/lounge_details_repository.dart';
+import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 import 'package:playspot/features/tournaments/domain/usecases/get_tournaments_usecase.dart';
 
@@ -77,6 +78,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         _loungeDetailsRepository.getLoungeCategories(loungeId),
         _loungeDetailsRepository.getLoungeReviews(loungeId),
         _getTournamentsUseCase(loungeId: loungeId),
+        _loungeDetailsRepository.getLoungeOperatingStatus(loungeId),
       ]);
 
       final roomsRes = results[0] as Either<Failure, List<RoomModel>>;
@@ -85,12 +87,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       final reviewsRes = results[3] as Either<Failure, List<ReviewModel>>;
       final tournamentsRes =
           results[4] as Either<Failure, List<TournamentEntity>>;
+      final operatingStatusRes =
+          results[5] as Either<Failure, LoungeOperatingStatus?>;
 
       List<RoomModel>? rooms;
       List<ExtraModel>? extras;
       List<CategoryModel>? deviceCategories;
       List<ReviewModel>? reviews;
       List<TournamentEntity> tournaments = [];
+      LoungeOperatingStatus? operatingStatus;
 
       roomsRes.fold(
         (l) {
@@ -137,6 +142,10 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           tournaments = t;
         },
       );
+      operatingStatusRes.fold(
+        (_) => operatingStatus = null,
+        (s) => operatingStatus = s,
+      );
 
       if (rooms == null) {
         if (state.rooms.isNotEmpty) {
@@ -156,6 +165,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         lounge: state.lounge!,
         deviceCategories: deviceCategories ?? [],
         reviews: reviews ?? [],
+        operatingStatus: operatingStatus,
       );
 
       await _updateBookings(updateParams, tournaments: tournaments);
@@ -218,11 +228,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     bookingsResult.fold(
       (failure) {
         log("CRITICAL BOOKINGS ERROR: ${failure.message}");
-        final currentRooms = state.rooms.isNotEmpty ? state.rooms : params.rooms;
+        final currentRooms = state.rooms.isNotEmpty
+            ? state.rooms
+            : params.rooms;
         emit(
           state.copyWith(
             isDateLoading: false,
-            status: currentRooms.isNotEmpty ? LoungeDetailsStatus.success : LoungeDetailsStatus.error,
+            status: currentRooms.isNotEmpty
+                ? LoungeDetailsStatus.success
+                : LoungeDetailsStatus.error,
             rooms: currentRooms,
             extras: state.extras.isNotEmpty ? state.extras : params.extras,
             lounge: params.lounge,
@@ -263,8 +277,9 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           return a.compareTo(b);
         });
 
-        final Set<String> updatedSelectedRooms = Set<String>.from(state.selectedRoomIds)
-          ..removeWhere((id) => fullyBookedIds.contains(id));
+        final Set<String> updatedSelectedRooms = Set<String>.from(
+          state.selectedRoomIds,
+        )..removeWhere((id) => fullyBookedIds.contains(id));
 
         emit(
           state.copyWith(
@@ -283,6 +298,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
             selectedCategory: state.selectedCategory,
             selectedRoomIds: updatedSelectedRooms,
             lounge: params.lounge,
+            operatingStatus: params.operatingStatus ?? state.operatingStatus,
           ),
         );
       },

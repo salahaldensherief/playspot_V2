@@ -666,4 +666,9 @@ class AppStrings {
   static const String allSlotsBookedOrPast = "allSlotsBookedOrPast";
   static const String retryPriceCalculation = "retryPriceCalculation";
   static const String holdExpiredLabel = "holdExpiredLabel";
+  static const String loungeTechnicalIssue = "lounge_technical_issue";
+  static const String loungeTechnicalIssueCallToBook =
+      "lounge_technical_issue_call_to_book";
+  static const String callLounge = "call_lounge";
+  static const String technicalIssue = "technical_issue";
 }

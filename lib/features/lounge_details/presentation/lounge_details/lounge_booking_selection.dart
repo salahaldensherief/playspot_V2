@@ -8,17 +8,22 @@ class LoungeBookingSelection extends Equatable {
   final LoungeModel lounge;
   const LoungeBookingSelection(this.state, this.lounge);
 
-  bool get isEnabled =>
-      lounge.isOpen &&
-      !state.isDateLoading &&
-      state.status == LoungeDetailsStatus.success &&
-      state.selectedRooms.isNotEmpty &&
-      state.selectedRooms.every(
-        (room) =>
-            room.isAvailable &&
-            !room.isOccupied &&
-            !state.bookedRoomIds.contains(room.id),
-      );
+  bool get isEnabled {
+    final opStatus = state.operatingStatus;
+    final canBook = opStatus != null
+        ? (opStatus.canBookOnline && opStatus.isOpen)
+        : lounge.isOpen;
+    return canBook &&
+        !state.isDateLoading &&
+        state.status == LoungeDetailsStatus.success &&
+        state.selectedRooms.isNotEmpty &&
+        state.selectedRooms.every(
+          (room) =>
+              room.isAvailable &&
+              !room.isOccupied &&
+              !state.bookedRoomIds.contains(room.id),
+        );
+  }
 
   BookingDetailsParams? get params {
     if (!isEnabled) return null;

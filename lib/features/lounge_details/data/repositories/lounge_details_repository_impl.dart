@@ -3,6 +3,7 @@ import '../../../../core/datasources/local/app_cache_local_data_source.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/models/paginated_response.dart';
 import '../../../../core/utils/repository_helper.dart';
+import '../../domain/entities/lounge_operating_status.dart';
 import '../../domain/repositories/lounge_details_repository.dart';
 import '../datasources/remote/lounge_details_remote_data_source.dart';
 import '../models/extra_model.dart';
@@ -10,7 +11,9 @@ import '../models/room_model.dart';
 import '../models/review_model.dart';
 import '../../../home/data/models/category_model.dart';
 
-class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetailsRepository {
+class LoungeDetailsRepositoryImpl
+    with RepositoryHelper
+    implements LoungeDetailsRepository {
   final LoungeDetailsRemoteDataSource _remoteDataSource;
   final AppCacheLocalDataSource _cacheLocalDataSource;
 
@@ -25,24 +28,33 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
     String? categoryId,
     bool forceRefresh = false,
   }) async {
-    final bool isUnfiltered = categoryId == null || categoryId.isEmpty || categoryId.toLowerCase() == 'all';
+    final bool isUnfiltered =
+        categoryId == null ||
+        categoryId.isEmpty ||
+        categoryId.toLowerCase() == 'all';
 
     if (!forceRefresh && isUnfiltered) {
       final cached = _cacheLocalDataSource.getCachedLoungeRooms(loungeId);
       if (cached != null && cached.isNotEmpty) {
         // Background fetch to refresh local cache
-        _remoteDataSource.getRoomsByLoungeId(loungeId, categoryId: categoryId).then((rooms) {
-          if (rooms.isNotEmpty) {
-            _cacheLocalDataSource.cacheLoungeRooms(loungeId, rooms);
-          }
-        }).catchError((_) {});
+        _remoteDataSource
+            .getRoomsByLoungeId(loungeId, categoryId: categoryId)
+            .then((rooms) {
+              if (rooms.isNotEmpty) {
+                _cacheLocalDataSource.cacheLoungeRooms(loungeId, rooms);
+              }
+            })
+            .catchError((_) {});
 
         return Right(cached);
       }
     }
 
     final result = await callRepository(
-      () => _remoteDataSource.getRoomsByLoungeId(loungeId, categoryId: categoryId),
+      () => _remoteDataSource.getRoomsByLoungeId(
+        loungeId,
+        categoryId: categoryId,
+      ),
     );
 
     result.fold(
@@ -73,17 +85,22 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
       final cached = _cacheLocalDataSource.getCachedLoungeMenu(loungeId);
       if (cached != null && cached.isNotEmpty) {
         // Background fetch to keep local cache updated
-        _remoteDataSource.getExtras(loungeId).then((extras) {
-          if (extras.isNotEmpty) {
-            _cacheLocalDataSource.cacheLoungeMenu(loungeId, extras);
-          }
-        }).catchError((_) {});
+        _remoteDataSource
+            .getExtras(loungeId)
+            .then((extras) {
+              if (extras.isNotEmpty) {
+                _cacheLocalDataSource.cacheLoungeMenu(loungeId, extras);
+              }
+            })
+            .catchError((_) {});
 
         return Right(cached);
       }
     }
 
-    final result = await callRepository(() => _remoteDataSource.getExtras(loungeId));
+    final result = await callRepository(
+      () => _remoteDataSource.getExtras(loungeId),
+    );
 
     result.fold(
       (_) {
@@ -107,7 +124,9 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
     String loungeId, {
     bool forceRefresh = false,
   }) async {
-    return await callRepository(() => _remoteDataSource.getLoungeCategories(loungeId));
+    return await callRepository(
+      () => _remoteDataSource.getLoungeCategories(loungeId),
+    );
   }
 
   @override
@@ -115,7 +134,9 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
     String loungeId, {
     bool forceRefresh = false,
   }) async {
-    return await callRepository(() => _remoteDataSource.getLoungeReviews(loungeId));
+    return await callRepository(
+      () => _remoteDataSource.getLoungeReviews(loungeId),
+    );
   }
 
   @override
@@ -125,18 +146,27 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
     int pageSize = 20,
   }) async {
     return await callRepository(
-      () => _remoteDataSource.getLoungeReviewsPage(loungeId, page: page, pageSize: pageSize),
+      () => _remoteDataSource.getLoungeReviewsPage(
+        loungeId,
+        page: page,
+        pageSize: pageSize,
+      ),
     );
   }
 
   @override
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getLoungeRolePermissionsPage(
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getLoungeRolePermissionsPage(
     String loungeId, {
     int page = 1,
     int pageSize = 50,
   }) async {
     return await callRepository(
-      () => _remoteDataSource.getLoungeRolePermissionsPage(loungeId, page: page, pageSize: pageSize),
+      () => _remoteDataSource.getLoungeRolePermissionsPage(
+        loungeId,
+        page: page,
+        pageSize: pageSize,
+      ),
     );
   }
 
@@ -146,5 +176,15 @@ class LoungeDetailsRepositoryImpl with RepositoryHelper implements LoungeDetails
     bool forceRefresh = false,
   }) async {
     return await callRepository(() => _remoteDataSource.getRoomById(roomId));
+  }
+
+  @override
+  Future<Either<Failure, LoungeOperatingStatus?>> getLoungeOperatingStatus(
+    String loungeId, {
+    bool forceRefresh = false,
+  }) async {
+    return await callRepository(
+      () => _remoteDataSource.getLoungeOperatingStatus(loungeId),
+    );
   }
 }
