@@ -13,7 +13,16 @@ export async function fixedSessionFixture() {
  try {
   for(const file of ['partial_cash_fixture.sql','offline_order_fixture.sql','offline_fixed_session_fixture.sql',
    'hosted_booking_price_trigger.sql','hosted_fixed_session_contract.sql']) await db.exec(await read('../fixtures/'+file));
-  for(const file of ['active_super_admin_boundary.sql','offline_walk_in_customer_policy.sql','partial_cash_collection.sql',
+  if (process.env.PLAYSPOT_OFFLINE_PROTOCOL_SQL) {
+   // Supabase can grant system roles on newly created objects by default.
+   // Exercise the canonical migration's explicit revocations against that
+   // environment, not only PostgreSQL's narrower vanilla defaults.
+   await db.exec(`ALTER DEFAULT PRIVILEGES IN SCHEMA private GRANT ALL ON TABLES TO service_role,supabase_auth_admin;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA private GRANT EXECUTE ON FUNCTIONS TO service_role,supabase_auth_admin;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO service_role,supabase_auth_admin;`);
+   await db.exec(await read('../../repairs/active_super_admin_boundary.sql'));
+   await db.exec(await readFile(process.env.PLAYSPOT_OFFLINE_PROTOCOL_SQL, 'utf8'));
+  } else for(const file of ['active_super_admin_boundary.sql','offline_walk_in_customer_policy.sql','partial_cash_collection.sql',
    'cashier_writer_permits.sql','cashier_writer_availability.sql','offline_fixed_session_capacity.sql','offline_fixed_session_reservation.sql',
    'offline_fixed_session_transitions.sql','offline_canteen_reconciliation.sql','offline_cash_reconciliation.sql'])
    await db.exec(await read('../../repairs/'+file));

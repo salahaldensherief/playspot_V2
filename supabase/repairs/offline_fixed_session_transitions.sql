@@ -28,12 +28,14 @@ BEGIN
   IF NOT FOUND OR v_lounge IS DISTINCT FROM (p_operation->>'lounge_id')::uuid THEN
     RAISE EXCEPTION 'OFFLINE_BOOKING_SCOPE_MISMATCH' USING ERRCODE='42501';
   END IF;
-  PERFORM 1 FROM public.rooms WHERE id=v_room AND lounge_id=v_lounge FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'OFFLINE_ROOM_UNAVAILABLE' USING ERRCODE='55000'; END IF;
+  -- Existing online lifecycle RPCs lock the booking before its room. Match
+  -- that order rather than retaining a room while waiting on their booking.
   SELECT * INTO STRICT v_booking FROM public.bookings WHERE id=(p_operation->>'booking_id')::uuid FOR UPDATE;
   IF v_booking.room_id IS DISTINCT FROM v_room OR v_booking.lounge_id IS DISTINCT FROM v_lounge OR v_booking.is_open_time IS TRUE THEN
     RAISE EXCEPTION 'OFFLINE_FIXED_SESSION_SCOPE_CHANGED' USING ERRCODE='55000';
   END IF;
+  PERFORM 1 FROM public.rooms WHERE id=v_room AND lounge_id=v_lounge FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'OFFLINE_ROOM_UNAVAILABLE' USING ERRCODE='55000'; END IF;
   PERFORM private.lock_cash_collection_shift((p_operation->>'shift_id')::uuid,v_lounge);
   IF v_booking.shift_id IS DISTINCT FROM (p_operation->>'shift_id')::uuid THEN
     RAISE EXCEPTION 'OFFLINE_BOOKING_SHIFT_MISMATCH' USING ERRCODE='55000';

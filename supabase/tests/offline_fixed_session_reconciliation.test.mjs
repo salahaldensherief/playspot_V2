@@ -216,7 +216,32 @@ try {
   assert.equal(a.rows[0].receipt.status,'applied');assert.equal(b.error,undefined);assert.equal(b.value.rows[0].receipt.status,'replayed');
   assert.equal((await snapshot()).bookings.length,1);
  });
- console.log(JSON.stringify({passed,limitations:['Source only; no hosted writes or UI enablement',
+ if(db.connect) await check('an online booking lock cannot deadlock the offline lounge-first writer',async()=>{
+  await reserve(); await login();
+  await db.query('SELECT public.refresh_cashier_writer($1,$2,true)',[lounge,f.device]);
+  const writer=await db.connect(), online=await db.connect();
+  try {
+   await writer.query(`BEGIN; SET statement_timeout='3s'`);
+   await writer.query('SELECT private.lock_cashier_lounge($1)',[lounge]);
+   await online.query(`BEGIN; SET statement_timeout='3s'`);
+   await online.query('SELECT id FROM public.bookings WHERE id=$1 FOR UPDATE',[booking]);
+   // The old blocking trigger forms a cycle as soon as the writer then needs
+   // this booking. Busy refusal must occur before that second dependency.
+   await assert.rejects(online.query("UPDATE public.bookings SET status='in_progress' WHERE id=$1",[booking]),
+    e=>e.code==='55P03' && e.message==='CASHIER_WRITER_BUSY_RETRY');
+   await online.query('ROLLBACK');
+   await writer.query("SELECT set_config('test.actor',$1,false)",[actor]);
+   await writer.query('SET ROLE authenticated');
+   const op=operation('start',2,{occurred_at:at(1)}), req=request(op);
+   assert.equal((await writer.query(req.sql,req.args)).rows[0].receipt.status,'applied');
+   await writer.query('COMMIT');
+   assert.equal((await snapshot()).bookings[0].status,'in_progress');
+  } finally {
+   await online.query('ROLLBACK'); await writer.query('ROLLBACK');
+   await online.end(); await writer.end();
+  }
+ });
+ console.log(JSON.stringify({passed,limitations:['Synthetic local tests; no hosted writes or UI enablement',
   'Synthetic Auth/permissions and incomplete hosted audit/moderation/loyalty triggers',
   'DST-crossing/ambiguous intervals retained for review; advanced pricing and open time excluded',
   'New capacity index requires deployment planning and discovery adapter changes']}));

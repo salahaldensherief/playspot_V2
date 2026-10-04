@@ -8,13 +8,32 @@ export async function writerBookingRaces(db, {actor, other, lounge, room, device
   const insert = (id, resource) => `INSERT INTO public.bookings(user_id,lounge_id,room_id)
     VALUES('${other}','${id}','${resource}')`;
   const pass = name => {passed++; console.log('PASS ' + name);};
+  // A booking trigger may already hold another row/advisory lock. It must
+  // reject a busy writer without waiting; after commit, a fresh retry must
+  // still respect the committed offline/expired state.
+  const busyBookingRace = async (first, second, firstAsAdmin=false) => {
+    const a=await db.connect(), b=await db.connect();
+    try {
+      for (const peer of [a,b]) {
+        await peer.query("SELECT set_config('test.actor',$1,false)",[actor]);
+        await peer.query("SET ROLE authenticated; SET statement_timeout='3s'");
+      }
+      if (firstAsAdmin) await a.query('RESET ROLE');
+      await a.query('BEGIN'); await a.query(first.sql,first.args);
+      await assert.rejects(b.query(second.sql,second.args), e=>e.code==='55P03');
+      if (first.beforeCommit) await first.beforeCommit(a);
+      await a.query('COMMIT');
+      await assert.rejects(b.query(second.sql,second.args), e=>e.code==='55000' && e.message==='LOUNGE_OFFLINE');
+    } finally {
+      await a.query('ROLLBACK'); await a.end(); await b.end();
+    }
+  };
 
   await db.exec(`RESET ROLE;SET test.actor='${actor}';SET ROLE authenticated;`);
   await db.query(refresh(lounge, true));
-  const [, denied] = await lockedRace(db,
-    {sql: refresh(lounge, false), args: []}, {sql: insert(lounge, room), args: []}, actor);
-  assert.equal(denied.error?.code, '55000');
-  pass('committed offline transition precedes competing customer insertion');
+  await busyBookingRace(
+    {sql: refresh(lounge, false), args: []}, {sql: insert(lounge, room), args: []});
+  pass('busy offline transition refuses insertion and its committed state refuses retry');
 
   await db.query(refresh(lounge, true));
   const [, closed] = await lockedRace(db,
@@ -31,19 +50,22 @@ export async function writerBookingRaces(db, {actor, other, lounge, room, device
       INSERT INTO public.fixture_permissions VALUES('${actor}','${id}','sessions_control');SET ROLE authenticated;`);
     const claim = {sql: refresh(id, false), args: []};
     const booking = {sql: insert(id, resource), args: []};
-    const [, result] = await lockedRace(db, firstBooking ? booking : claim, firstBooking ? claim : booking, actor);
-    assert.equal(result.error?.code, firstBooking ? undefined : '55000');
+    if (firstBooking) {
+      const [, result] = await lockedRace(db, booking, claim, actor);
+      assert.equal(result.error,undefined);
+    } else {
+      await busyBookingRace(claim,booking);
+    }
     pass(firstBooking ? 'first writer claim waits for accepted legacy-venue booking' : 'first writer claim fences a booking before writer row exists');
   }
 
   await db.query(refresh(lounge, true));
-  const [, expired] = await lockedRace(db, {
+  await busyBookingRace({
     sql: `RESET ROLE;UPDATE private.cashier_writer_authorities
       SET heartbeat_expires_at=clock_timestamp()+interval '1 second' WHERE lounge_id='${lounge}'`, args: [],
     beforeCommit: peer => peer.query('SELECT pg_sleep(1.1)'),
-  }, {sql: insert(lounge, room), args: []}, actor, true);
-  assert.equal(expired.error?.code, '55000');
-  pass('booking waiting on writer row rechecks expired heartbeat');
+  }, {sql: insert(lounge, room), args: []}, true);
+  pass('busy writer row refuses booking and fresh retry rechecks expired heartbeat');
 
   await db.exec(`RESET ROLE;UPDATE private.cashier_writer_authorities
     SET heartbeat_expires_at=clock_timestamp()+interval '100 milliseconds' WHERE lounge_id='${lounge}';

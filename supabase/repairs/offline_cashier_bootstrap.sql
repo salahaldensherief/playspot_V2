@@ -69,26 +69,26 @@ BEGIN
         ELSE coalesce(r.hourly_rate_single,r.hourly_rate,50) END AS multi_rate
     FROM public.rooms r WHERE r.lounge_id=p_lounge_id
   ), intervals AS MATERIALIZED (
-    SELECT m.room_id,extract(epoch FROM m.scheduled_at)*1000 AS start_ms,
-      extract(epoch FROM m.scheduled_end_at)*1000 AS end_ms
+    SELECT m.room_id,floor(extract(epoch FROM m.scheduled_at)*1000)::bigint AS start_ms,
+      ceil(extract(epoch FROM m.scheduled_end_at)*1000)::bigint AS end_ms
     FROM public.tournament_matches m JOIN room_rows r ON r.id=m.room_id
     WHERE m.status<>'cancelled' AND m.scheduled_at IS NOT NULL
       AND m.scheduled_end_at>m.scheduled_at
       AND extract(epoch FROM m.scheduled_at)*1000<v_until
       AND extract(epoch FROM m.scheduled_end_at)*1000>v_from
     UNION ALL
-    SELECT h.room_id,extract(epoch FROM (h.start_at AT TIME ZONE v_timezone))*1000,
-      extract(epoch FROM (h.end_at AT TIME ZONE v_timezone))*1000
+    SELECT h.room_id,floor(extract(epoch FROM (h.start_at AT TIME ZONE v_timezone))*1000)::bigint,
+      ceil(extract(epoch FROM (h.end_at AT TIME ZONE v_timezone))*1000)::bigint
     FROM public.booking_holds h JOIN room_rows r ON r.id=h.room_id
     WHERE h.lounge_id=p_lounge_id AND h.released_at IS NULL
       AND h.expires_at>statement_timestamp() AND h.end_at>h.start_at
       AND extract(epoch FROM (h.start_at AT TIME ZONE v_timezone))*1000<v_until
       AND extract(epoch FROM (h.end_at AT TIME ZONE v_timezone))*1000>v_from
   ), booking_rows AS MATERIALIZED (
-    SELECT b.*, extract(epoch FROM ((b.date+b.start_time) AT TIME ZONE v_timezone))*1000 AS start_ms,
-      extract(epoch FROM (((b.date+b.end_time)+CASE WHEN b.end_time<=b.start_time
-        THEN interval '1 day' ELSE interval '0' END) AT TIME ZONE v_timezone))*1000 AS end_ms,
-      extract(epoch FROM (upper(b.cashier_capacity_period) AT TIME ZONE v_timezone))*1000 AS capacity_end_ms,
+    SELECT b.*, floor(extract(epoch FROM ((b.date+b.start_time) AT TIME ZONE v_timezone))*1000)::bigint AS start_ms,
+      ceil(extract(epoch FROM (((b.date+b.end_time)+CASE WHEN b.end_time<=b.start_time
+        THEN interval '1 day' ELSE interval '0' END) AT TIME ZONE v_timezone))*1000)::bigint AS end_ms,
+      ceil(extract(epoch FROM (upper(b.cashier_capacity_period) AT TIME ZONE v_timezone))*1000)::bigint AS capacity_end_ms,
       coalesce(p.amount,0) AS paid_amount,
       (p.id IS NULL OR (p.status='completed' AND p.payment_method='cash'
         AND p.lounge_id=p_lounge_id AND p.payout_id IS NULL
@@ -134,7 +134,7 @@ BEGIN
       'customer_name',b.user_name,'customer_phone',b.user_phone,'play_mode',b.play_mode,
       'timezone',v_timezone,'start_ms',b.start_ms,'end_ms',b.end_ms,
       'capacity_end_ms',coalesce(b.capacity_end_ms,b.start_ms),
-      'started_ms',extract(epoch FROM b.actual_start_time)*1000,
+      'started_ms',floor(extract(epoch FROM b.actual_start_time)*1000)::bigint,
       'total_minor',private.offline_minor_amount(b.total_price),
       'paid_minor',private.offline_minor_amount(b.paid_amount),
       'payment_status',CASE WHEN b.paid_amount=b.total_price THEN 'paid'

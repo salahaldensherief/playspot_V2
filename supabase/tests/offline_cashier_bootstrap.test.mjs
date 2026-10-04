@@ -98,6 +98,32 @@ try {
     await admin(`DELETE FROM public.fixture_permissions WHERE permission='bookings.view'`);
     await assert.rejects(load(), e=>e.code==='42501' && e.message==='OFFLINE_BOOTSTRAP_READ_PERMISSION_DENIED');
   });
+  if (process.env.PLAYSPOT_OFFLINE_PROTOCOL_SQL) {
+    await check('canonical protocol removes inherited default grants from every new private object', async () => {
+      await admin('');
+      const sql=await readFile(process.env.PLAYSPOT_OFFLINE_PROTOCOL_SQL,'utf8');
+      const signatures=[...new Set([...sql.matchAll(/REVOKE ALL ON FUNCTION (private\.\w+\([^)]*\))/g)].map(m=>m[1]))];
+      const tables=[...new Set([...sql.matchAll(/CREATE TABLE IF NOT EXISTS (private\.\w+)/g)].map(m=>m[1]))];
+      assert.equal(signatures.length,32); assert.equal(tables.length,7);
+      for (const role of ['anon','authenticated','service_role','supabase_auth_admin']) {
+        const functions=(await db.query(`SELECT signature FROM unnest($1::text[]) signature
+          WHERE has_function_privilege($2,signature,'execute')`,[signatures,role])).rows;
+        assert.deepEqual(functions,[],role+' private helper execute');
+        const exposed=(await db.query(`SELECT name FROM unnest($1::text[]) name
+          WHERE has_table_privilege($2,name,'select,insert,update,delete')`,[tables,role])).rows;
+        assert.deepEqual(exposed,[],role+' private table access');
+      }
+      for (const role of ['service_role','supabase_auth_admin']) {
+        for (const signature of ['public.refresh_cashier_writer(uuid,uuid,boolean)',
+          'public.apply_offline_cashier_operation(jsonb)',
+          'public.collect_booking_cash_partial(uuid,uuid,numeric,uuid)',
+          'public.get_lounge_online_availability(uuid)']) {
+          assert.equal((await db.query('SELECT has_function_privilege($1,$2,\'execute\') AS allowed',
+            [role,signature])).rows[0].allowed,false,role+' '+signature);
+        }
+      }
+    });
+  }
   await check('menu data and stock are absent when menu viewing is revoked', async () => {
     await admin(`DELETE FROM public.fixture_permissions WHERE permission='menu_view'`);
     const r=await load();
@@ -144,6 +170,21 @@ try {
       now() AT TIME ZONE 'Africa/Cairo',(now()+interval '1 hour') AT TIME ZONE 'Africa/Cairo',
       now()+interval '1 hour',now());`);
     assert.deepEqual((await load()).rooms[room].blocked_intervals,[]);
+  });
+  await check('microsecond timestamps produce integer milliseconds without releasing capacity early', async () => {
+    const start=Math.floor(Date.now()/60000)*60000+3600000, end=start+3600000;
+    await admin(`INSERT INTO public.tournament_matches(room_id,status,scheduled_at,scheduled_end_at)
+      VALUES('${room}','scheduled',to_timestamp(${start}/1000.0)+interval '0.000123 seconds',
+        to_timestamp(${end}/1000.0)+interval '0.000789 seconds');`);
+    const id=await f.seedBooking(randomUUID(),'in_progress',start,end);
+    await admin(`UPDATE public.bookings SET actual_start_time=to_timestamp(${start}/1000.0)+interval '0.000456 seconds'
+      WHERE id='${id}'`);
+    const r=await load(), b=r.bookings[id], i=r.rooms[room].blocked_intervals[0];
+    assert.equal(b.started_ms,start);
+    for (const value of [b.start_ms,b.end_ms,b.capacity_end_ms,b.started_ms,i.start_ms,i.end_ms]) {
+      assert(Number.isSafeInteger(value));
+    }
+    assert.equal(i.start_ms,start); assert.equal(i.end_ms,end+1);
   });
   await check('retained unpaid bookings include exact debt and shift while foreign shifts stay unsupported', async () => {
     const id=await f.seedBooking();

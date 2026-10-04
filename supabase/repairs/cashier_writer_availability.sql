@@ -173,9 +173,19 @@ BEGIN
   IF TG_OP='UPDATE' AND NEW.status::text IN ('cancelled','rejected','completed') THEN
     RETURN NEW;
   END IF;
-  PERFORM private.lock_cashier_lounge(NEW.lounge_id);
+  -- A row trigger can run after an online RPC has already locked its booking
+  -- or room. Waiting here would invert the reconciliation lounge-first order.
+  -- Refuse a busy writer transaction with a retryable error instead of entering
+  -- a deadlock or admitting an unverified online booking.
+  IF current_setting('transaction_isolation')<>'read committed' THEN
+    RAISE EXCEPTION 'CASHIER_REQUIRES_READ_COMMITTED' USING ERRCODE='25001';
+  END IF;
+  IF NOT pg_catalog.pg_try_advisory_xact_lock(
+    pg_catalog.hashtextextended('cashier-online:' || NEW.lounge_id::text,0)) THEN
+    RAISE EXCEPTION 'CASHIER_WRITER_BUSY_RETRY' USING ERRCODE='55P03';
+  END IF;
   -- Also serialize administrative writer updates that do not use the RPC.
-  PERFORM 1 FROM private.cashier_writer_authorities WHERE lounge_id=NEW.lounge_id FOR SHARE;
+  PERFORM 1 FROM private.cashier_writer_authorities WHERE lounge_id=NEW.lounge_id FOR SHARE NOWAIT;
   IF EXISTS (SELECT 1 FROM private.cashier_writer_authorities WHERE lounge_id=NEW.lounge_id)
      AND public.get_lounge_online_availability(NEW.lounge_id) IS NOT TRUE THEN
     IF NOT EXISTS (
