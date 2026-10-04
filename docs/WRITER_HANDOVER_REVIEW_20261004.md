@@ -6,6 +6,8 @@ Each explicit handover rotates an immutable writer generation. Historical permit
 
 Client integration uses encrypted Hive and a shared lifecycle queue for refresh/bootstrap/release. It freezes commands durably before HTTP, retains uncertain release across restart, refuses release with outstanding operations/conflicts, and rebases a drained confirmed journal after another writer advances the venue sequence. The focused offline suite passed 310 checks; the complete Dashboard offline suite passed 1,013 checks (162 seconds), with live-tagged database checks excluded. Analyzer reported no issues in changed feature/test files.
 
+Dashboard JavaScript Web release build passed in 111.3 seconds. The optional Wasm dry run reported existing audioplayers_web/GetStorage dart:html incompatibilities; this build did not target Wasm.
+
 The production presentation has not yet been connected to this offline coordinator. This is a tested backend and client foundation, not proof of complete offline product behavior. Whole-dashboard tests and actual browser/emulator flows must remain separately reported. Open-time/advanced pricing and cross-device LAN operation are not enabled by this protocol.
 
 Live authorization checks for current test accounts: Super Admin RPC true; owner/cashier false. Edge create-lounge-owner with empty validated payload returned 400 for Super Admin and 403 for owner/cashier; it created no records. KYC read returned 200 for Super Admin and 403 for owner/cashier. Successful lounge provisioning and KYC decisions were not submitted. Auth profile reads now reject foreign requested/returned identities and late replies after account change; banned/inactive profiles cannot gain membership-based super-admin role.
