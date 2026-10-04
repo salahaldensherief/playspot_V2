@@ -9,6 +9,7 @@ const outsider = '00000000-0000-0000-0000-000000000003';
 let passed = 0;
 try {
   await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
+    DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_roles WHERE rolname='supabase_auth_admin') THEN CREATE ROLE supabase_auth_admin; END IF; END $$;
     CREATE SCHEMA auth; CREATE SCHEMA private;
     CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT NULLIF(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql AS $$ SELECT current_setting('request.jwt.claim.role',true) $$;
@@ -29,6 +30,7 @@ try {
   await db.exec(await readFile(new URL('../repairs/active_super_admin_boundary.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../migrations/20261003110859_owner_auth_provisioning.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../migrations/20261003185714_owner_lounge_contact_fields_v2.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../migrations/20261004194130_pending_owner_onboarding_access.sql', import.meta.url), 'utf8'));
   const call = (who = actor, target = owner) => `SELECT public.finalize_owner_lounge_provisioning_v2('${who}','${target}','Owner','Venue','Cairo','Address','01234567890','01987654321') AS result`;
   const denied = async (name, sql, code='42501') => {
     await assert.rejects(db.query(sql), e => e.code === code); passed++; console.log('PASS '+name);
@@ -54,6 +56,7 @@ try {
   assert.equal(venue.contact_phone,'01234567890'); passed++;
   const profile=(await db.query(`SELECT * FROM public.profiles WHERE id='${owner}'`)).rows[0];
   assert.equal(profile.phone,'01987654321'); passed++;
+  assert.equal(profile.is_active,true); passed++; console.log('PASS owner account can enter onboarding while venue stays inactive');
   assert.equal(profile.role,'owner'); assert.equal(profile.is_setup_completed,false); assert.equal(profile.lounge_id,first.lounge_id); passed++;
   assert.equal(Number((await db.query('SELECT count(*) FROM public.lounges')).rows[0].count),1); passed++;
   await db.exec('SET ROLE service_role');
@@ -65,5 +68,17 @@ try {
   await denied('existing staff accounts are never reassigned',call(actor,outsider),'22023');
   await db.exec(`RESET ROLE; SET ROLE authenticated;`);
   await denied('clients cannot read provisioning audit records','SELECT * FROM private.owner_lounge_provisioning');
+  await db.exec(`RESET ROLE; UPDATE public.profiles SET is_active=false,is_banned=true WHERE id='${owner}'; SET ROLE service_role;`);
+  assert.deepEqual((await db.query(call())).rows[0].result,first);
+  await db.exec('RESET ROLE');
+  const moderated=(await db.query(`SELECT is_active,is_banned FROM public.profiles WHERE id='${owner}'`)).rows[0];
+  assert.deepEqual(moderated,{is_active:false,is_banned:true}); passed++; console.log('PASS provisioning retry cannot reactivate a moderated owner');
+  const legacyOwner='00000000-0000-0000-0000-000000000004';
+  await db.exec(`INSERT INTO auth.users VALUES('${legacyOwner}','legacy@example.invalid'); INSERT INTO public.profiles(id,role,is_active,is_banned) VALUES('${legacyOwner}','user',true,false); SET ROLE service_role;`);
+  const legacy=(await db.query(`SELECT public.finalize_owner_lounge_provisioning('${actor}','${legacyOwner}','Owner','Legacy venue') AS result`)).rows[0].result;
+  await db.exec('RESET ROLE');
+  assert.equal((await db.query(`SELECT is_active FROM public.profiles WHERE id='${legacyOwner}'`)).rows[0].is_active,true);
+  assert.equal((await db.query(`SELECT is_active FROM public.lounges WHERE id='${legacy.lounge_id}'`)).rows[0].is_active,false); passed++; console.log('PASS v1 also separates account access from venue approval');
   console.log(JSON.stringify({passed,liveMutations:false,fixtureSchema:true}));
 } finally { await db.close(); }
+
