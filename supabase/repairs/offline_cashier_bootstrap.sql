@@ -11,7 +11,8 @@ BEGIN
   END IF;
   RETURN (p_amount*100)::bigint;
 END; $$;
-REVOKE ALL ON FUNCTION private.offline_minor_amount(numeric) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION private.offline_minor_amount(numeric)
+  FROM PUBLIC,anon,authenticated,service_role,supabase_auth_admin;
 
 CREATE OR REPLACE FUNCTION public.bootstrap_offline_cashier(
   p_lounge_id uuid, p_device_id uuid, p_online boolean DEFAULT true
@@ -25,12 +26,17 @@ DECLARE
   v_from bigint;
   v_until bigint;
   v_blind_cash boolean;
+  v_menu_view boolean;
   v_snapshot jsonb;
 BEGIN
   -- refresh performs canonical active/unbanned Auth and scoped permission checks,
   -- then acquires the same lounge mutex as booking/reconciliation mutations.
   -- An error later in bootstrap rolls back a first writer claim as well.
   v_authority := public.refresh_cashier_writer(p_lounge_id,p_device_id,p_online);
+  IF public.is_super_admin() IS NOT TRUE
+    AND public.has_lounge_permission(p_lounge_id,'bookings.view') IS NOT TRUE THEN
+    RAISE EXCEPTION 'OFFLINE_BOOTSTRAP_READ_PERMISSION_DENIED' USING ERRCODE='42501';
+  END IF;
   v_timezone := v_authority->>'timezone';
   IF NOT EXISTS(SELECT 1 FROM pg_catalog.pg_timezone_names WHERE name=v_timezone) THEN
     RAISE EXCEPTION 'INVALID_LOUNGE_TIMEZONE' USING ERRCODE='22023';
@@ -51,6 +57,8 @@ BEGIN
   v_until := (v_authority->>'expires_ms')::bigint;
   v_blind_cash := public.is_super_admin() IS TRUE OR
     public.has_lounge_permission(p_lounge_id,'shifts_view_blind_cash') IS TRUE;
+  v_menu_view := public.is_super_admin() IS TRUE OR
+    public.has_lounge_permission(p_lounge_id,'menu_view') IS TRUE;
 
   -- A single SQL statement gives resources, capacity and receipts one MVCC
   -- snapshot. Do not lock rooms then bookings: existing online start paths take
@@ -120,7 +128,7 @@ BEGIN
       'is_active',e.is_active IS TRUE,'is_available',e.is_available IS TRUE,
       'track_stock',e.track_stock IS TRUE,'stock_quantity',e.stock_quantity,
       'unit_price_minor',private.offline_minor_amount(e.price)
-    )) FROM public.extras e WHERE e.lounge_id=p_lounge_id),'{}'::jsonb),
+    )) FROM public.extras e WHERE e.lounge_id=p_lounge_id AND v_menu_view),'{}'::jsonb),
     'bookings',coalesce((SELECT jsonb_object_agg(b.id::text,jsonb_build_object(
       'id',b.id,'lounge_id',b.lounge_id,'room_id',b.room_id,'shift_id',b.shift_id,
       'customer_name',b.user_name,'customer_phone',b.user_phone,'play_mode',b.play_mode,
@@ -149,6 +157,7 @@ BEGIN
   END IF;
   RETURN v_snapshot;
 END; $$;
-REVOKE ALL ON FUNCTION public.bootstrap_offline_cashier(uuid,uuid,boolean) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.bootstrap_offline_cashier(uuid,uuid,boolean)
+  FROM PUBLIC,anon,service_role,supabase_auth_admin;
 GRANT EXECUTE ON FUNCTION public.bootstrap_offline_cashier(uuid,uuid,boolean) TO authenticated;
 COMMIT;

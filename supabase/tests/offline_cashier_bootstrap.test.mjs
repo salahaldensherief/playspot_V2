@@ -15,6 +15,8 @@ const load = async (venue = lounge, online = false) => {
 const check = async (name, body) => {
   await f.reset();
   await admin(`DELETE FROM public.booking_holds; UPDATE public.rooms SET pricing_model='single_multi_hour';
+    INSERT INTO public.fixture_permissions VALUES('${actor}','${lounge}','bookings.view'),
+      ('${actor}','${lounge}','menu_view');
     UPDATE public.shifts SET cashier_id='${actor}',staff_user_id='${actor}' WHERE id='${shift}';
     UPDATE public.shifts SET cashier_id='${f.customer}',staff_user_id='${f.customer}' WHERE id='${f.otherShift}';`);
   await body(); passed++; console.log('PASS ' + name);
@@ -81,6 +83,27 @@ try {
   await check('lost scoped permission does not reuse a previously issued grant', async () => {
     await admin(`DELETE FROM public.fixture_permissions WHERE permission='sessions_control'`);
     await assert.rejects(load(), e=>e.code==='42501');
+  });
+  await check('bootstrap grants exactly the authenticated API role and keeps the private helper private', async () => {
+    await admin('');
+    for (const [role, expected] of [['anon',false],['authenticated',true],
+      ['service_role',false],['supabase_auth_admin',false]]) {
+      const r=(await db.query(`SELECT has_function_privilege($1,
+        'public.bootstrap_offline_cashier(uuid,uuid,boolean)','execute') AS api,
+        has_function_privilege($1,'private.offline_minor_amount(numeric)','execute') AS helper`,[role])).rows[0];
+      assert.equal(r.api,expected,role); assert.equal(r.helper,false,role);
+    }
+  });
+  await check('session control alone does not grant access to customer booking data', async () => {
+    await admin(`DELETE FROM public.fixture_permissions WHERE permission='bookings.view'`);
+    await assert.rejects(load(), e=>e.code==='42501' && e.message==='OFFLINE_BOOTSTRAP_READ_PERMISSION_DENIED');
+  });
+  await check('menu data and stock are absent when menu viewing is revoked', async () => {
+    await admin(`DELETE FROM public.fixture_permissions WHERE permission='menu_view'`);
+    const r=await load();
+    assert.deepEqual(r.products,{});
+    assert.equal(Object.keys(r.rooms).length,1);
+    assert.equal(r.complete,true);
   });
   await check('online bootstrap requests the matching online heartbeat', async () => {
     const r=await load(lounge,true);
