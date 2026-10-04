@@ -17,10 +17,7 @@ import '../booking_state.dart';
 class BookingSessionSummary extends StatelessWidget {
   final BookingDetailsParams params;
 
-  const BookingSessionSummary({
-    super.key,
-    required this.params,
-  });
+  const BookingSessionSummary({super.key, required this.params});
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +39,12 @@ class BookingSessionSummary extends StatelessWidget {
 
         final offerInfo = state.getOfferInfo(params, isArabic);
         final subtotals = state.getCalculatedSubtotals(params, isArabic);
-        final origRoomSubtotal = (subtotals['originalRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
-        final discRoomSubtotal = (subtotals['discountedRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
-        final roomDiscountAmount = (subtotals['roomDiscountAmount'] as num?)?.toDouble() ?? 0.0;
+        final origRoomSubtotal =
+            (subtotals['originalRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
+        final discRoomSubtotal =
+            (subtotals['discountedRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
+        final roomDiscountAmount =
+            (subtotals['roomDiscountAmount'] as num?)?.toDouble() ?? 0.0;
         final priceQuote = state.priceQuote;
 
         return Container(
@@ -66,7 +66,7 @@ class BookingSessionSummary extends StatelessWidget {
               16.verticalSpace,
               _buildSummaryRow(
                 AppStrings.selectTime.tr(),
-                "${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}",
+                _formatTimeRange(startTime, endTime, isArabic),
               ),
               8.verticalSpace,
               _buildSummaryRow(
@@ -108,7 +108,9 @@ class BookingSessionSummary extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 8.h),
-                ...priceQuote.segments.map((seg) => _buildSegmentRow(seg, isArabic)),
+                ...priceQuote.segments.map(
+                  (seg) => _buildSegmentRow(seg, isArabic),
+                ),
               ],
 
               const Divider(color: AppColors.borderDefault, height: 24),
@@ -188,13 +190,16 @@ class BookingSessionSummary extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            isPeak ? Icons.local_fire_department_rounded : Icons.schedule_rounded,
+            isPeak
+                ? Icons.local_fire_department_rounded
+                : Icons.schedule_rounded,
             color: isPeak ? AppColors.warning : AppColors.neonBlue,
             size: 13.sp,
           ),
           SizedBox(width: 6.w),
           AppText(
-            text: "$fromTime - $toTime ${isPeak ? "(${AppStrings.peak.tr()})" : ''}",
+            text:
+                "$fromTime - $toTime ${isPeak ? "(${AppStrings.peak.tr()})" : ''}",
             fontSize: 11.sp,
             color: Colors.white70,
           ),
@@ -225,10 +230,22 @@ class BookingSessionSummary extends StatelessWidget {
     );
   }
 
-  String _formatTimeOfDay(TimeOfDay time) {
-    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-    return "$hour:$minute $period";
+  String _formatTimeRange(TimeOfDay start, TimeOfDay end, bool isArabic) {
+    final startHour = start.hourOfPeriod == 0 ? 12 : start.hourOfPeriod;
+    final startMin = start.minute.toString().padLeft(2, '0');
+    final startPeriod = start.period == DayPeriod.am
+        ? (isArabic ? 'ص' : 'AM')
+        : (isArabic ? 'م' : 'PM');
+
+    final endHour = end.hourOfPeriod == 0 ? 12 : end.hourOfPeriod;
+    final endMin = end.minute.toString().padLeft(2, '0');
+    final endPeriod = end.period == DayPeriod.am
+        ? (isArabic ? 'ص' : 'AM')
+        : (isArabic ? 'م' : 'PM');
+
+    if (start.period == end.period) {
+      return '$startHour:$startMin – $endHour:$endMin $endPeriod';
+    }
+    return '$startHour:$startMin $startPeriod – $endHour:$endMin $endPeriod';
   }
 }

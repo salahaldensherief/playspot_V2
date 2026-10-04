@@ -195,6 +195,7 @@ class BookingCubit extends Cubit<BookingState> {
 
   /// Atomically acquires a server-side hold for the full requested range.
   Future<bool> verifyAvailabilityBeforeProceed() async {
+    if (state.status == BookingStatus.loading) return false;
     final startTime = state.startTime;
     if (startTime == null) return false;
 
@@ -243,7 +244,9 @@ class BookingCubit extends Cubit<BookingState> {
 
         final holdToken = data['hold_token']?.toString();
         final holdExpiresAt = DateTime.tryParse(
-          data['expires_at']?.toString() ?? '',
+          data['hold_expires_at']?.toString() ??
+              data['expires_at']?.toString() ??
+              '',
         );
 
         if (holdToken == null || holdToken.isEmpty || holdExpiresAt == null) {

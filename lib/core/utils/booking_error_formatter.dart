@@ -10,7 +10,9 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
         : 'تم حظر حسابك لمخالفة الشروط والأحكام.';
   }
 
-  if (message.contains('لا يمكنك الحجز في هذه الصالة بناءً على سياسة الإدارة') ||
+  if (message.contains(
+        'لا يمكنك الحجز في هذه الصالة بناءً على سياسة الإدارة',
+      ) ||
       message.contains('lounge_banned') ||
       message.contains('banned from lounge')) {
     return isEnglish
@@ -100,15 +102,46 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
         : 'الوقت المختار خارج مواعيد عمل الصالة.';
   }
 
+  if (message.contains('lounge_offline') || message.contains('offline')) {
+    return isEnglish
+        ? 'The lounge is currently offline and cannot accept online bookings.'
+        : 'الصالة غير متصلة بالإنترنت حالياً ولا يمكن استقبال حجوزات أونلاين.';
+  }
+
+  if (message.contains('cashier_writer_busy_retry')) {
+    return isEnglish
+        ? 'The lounge is currently syncing data. Please try again in a moment.'
+        : 'جاري مزامنة بيانات الصالة حالياً، يرجى إعادة المحاولة بعد لحظات.';
+  }
+
+  if (message.contains('lounge is not accepting bookings') ||
+      message.contains('lounge_closed')) {
+    return isEnglish
+        ? 'This lounge is currently closed and not accepting bookings.'
+        : 'الصالة مغلقة حالياً ولا تستقبل حجوزات.';
+  }
+
+  if (message.contains('slot_held_by_another_user')) {
+    return isEnglish
+        ? 'This time slot is temporarily held by another user. Please try again shortly or choose another time.'
+        : 'هذا الوقت محجوز مؤقتاً لمستخدم آخر. يرجى المحاولة بعد قليل أو اختيار وقت آخر.';
+  }
+
   if (message.contains('overlappingbookingerror') ||
       message.contains('slot_overlap_conflict') ||
-      message.contains('slot_held_by_another_user') ||
+      message.contains('slot_overlap') ||
       message.contains('exclusion constraint') ||
       message.contains('no_overlapping_room_bookings') ||
       message.contains('prevent_room_booking_overlap')) {
     return isEnglish
         ? 'This time slot is already booked. Please select another time or room.'
         : 'هذا الوقت محجوز بالفعل. يرجى اختيار وقت آخر أو غرفة أخرى.';
+  }
+
+  if (message.contains('bookingholdfailed')) {
+    return isEnglish
+        ? 'Could not hold this time slot. Please try again.'
+        : 'تعذر تأكيد حجز الوقت مؤقتاً، يرجى المحاولة مرة أخرى.';
   }
 
   if (message.contains('timeout') || message.contains('socketexception')) {

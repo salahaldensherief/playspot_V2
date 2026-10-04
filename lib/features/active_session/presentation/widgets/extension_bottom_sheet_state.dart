@@ -9,8 +9,9 @@ class _ExtensionBottomSheetState extends State<ExtensionBottomSheet> {
     if (_submitted ||
         minutes == null ||
         cubit.state.session?.bookingId != widget.bookingId ||
-        cubit.state.session?.isExtensionPending == true)
+        cubit.state.session?.isExtensionPending == true) {
       return;
+    }
     setState(() => _submitted = true);
     await cubit.requestExtension(minutes);
     if (!mounted) return;
