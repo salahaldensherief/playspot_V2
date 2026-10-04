@@ -168,7 +168,18 @@ try {
   assert.equal(Date.parse(r.session_receipt.closed_at),start+600123);
  });
  await check('maintenance stays maintenance after close',async()=>{
-  await begin();await admin(`UPDATE public.rooms SET status='maintenance',is_available=false`);
+  await begin();
+  if (process.env.PLAYSPOT_ROOM_GUARD_SQL) {
+   // The deployed invariant rejects new corruption. Still verify closure of a
+   // legacy inconsistent row, seeded only inside this disposable fixture.
+   await assert.rejects(admin(`UPDATE public.rooms SET status='maintenance',is_available=false`),
+    error=>error.code==='55000' && error.message==='ROOM_HAS_ACTIVE_SESSION');
+   await admin(`BEGIN; ALTER TABLE public.rooms DISABLE TRIGGER trg_guard_active_room_state;
+    UPDATE public.rooms SET status='maintenance',is_available=false;
+    ALTER TABLE public.rooms ENABLE TRIGGER trg_guard_active_room_state; COMMIT;`);
+  } else {
+   await admin(`UPDATE public.rooms SET status='maintenance',is_available=false`);
+  }
   assert.equal((await send(operation('close',3,{occurred_at:at(10)}))).status,'applied');assert.equal((await snapshot()).rooms[0].status,'maintenance');
  });
  await check('changed tariff during close rolls back status and capacity release',async()=>{

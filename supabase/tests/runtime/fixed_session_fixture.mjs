@@ -17,6 +17,10 @@ export async function fixedSessionFixture() {
    'cashier_writer_permits.sql','cashier_writer_availability.sql','offline_fixed_session_capacity.sql','offline_fixed_session_reservation.sql',
    'offline_fixed_session_transitions.sql','offline_canteen_reconciliation.sql','offline_cash_reconciliation.sql'])
    await db.exec(await read('../../repairs/'+file));
+  // Optional current deployed invariants for native rollout compatibility checks.
+  if (process.env.PLAYSPOT_ROOM_GUARD_SQL) {
+   await db.exec(await readFile(process.env.PLAYSPOT_ROOM_GUARD_SQL, 'utf8'));
+  }
   await admin(`INSERT INTO auth.users VALUES('${actor}'),('${customer}');
    INSERT INTO public.profiles(id,role,is_active,is_banned) VALUES('${actor}','cashier',true,false),('${customer}','user',true,false);
    INSERT INTO public.lounges(id,is_active,status) VALUES('${lounge}',true,'active'),('${otherLounge}',true,'active');
