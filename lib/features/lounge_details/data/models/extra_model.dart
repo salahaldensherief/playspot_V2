@@ -18,23 +18,37 @@ class ExtraModel extends Equatable {
     required this.price,
     required this.category,
     this.icon,
-  })  : nameAr = nameAr ?? name,
-        nameEn = nameEn ?? name;
+  }) : nameAr = nameAr ?? name,
+       nameEn = nameEn ?? name;
 
   @override
   List<Object?> get props => [id, name, nameAr, nameEn, price, category, icon];
 
   factory ExtraModel.fromJson(Map<String, dynamic> json) {
     try {
-      final nameArStr = json['name_ar']?.toString() ?? json['name']?.toString() ?? json['title']?.toString() ?? json['item_name']?.toString() ?? '';
-      final nameEnStr = json['name_en']?.toString() ?? json['name']?.toString() ?? json['title']?.toString() ?? json['item_name']?.toString() ?? '';
-      final nameStr = json['name']?.toString() ?? (nameArStr.isNotEmpty ? nameArStr : nameEnStr);
+      final nameArStr =
+          json['name_ar']?.toString() ??
+          json['name']?.toString() ??
+          json['title']?.toString() ??
+          json['item_name']?.toString() ??
+          '';
+      final nameEnStr =
+          json['name_en']?.toString() ??
+          json['name']?.toString() ??
+          json['title']?.toString() ??
+          json['item_name']?.toString() ??
+          '';
+      final nameStr =
+          json['name']?.toString() ??
+          (nameArStr.isNotEmpty ? nameArStr : nameEnStr);
 
-      final iconStr = json['icon']?.toString() ??
+      final iconStr =
+          json['icon']?.toString() ??
           json['image']?.toString() ??
           json['image_url']?.toString();
 
-      final rawCategory = json['category']?.toString() ??
+      final rawCategory =
+          json['category']?.toString() ??
           json['category_name']?.toString() ??
           json['category_slug']?.toString() ??
           'other';

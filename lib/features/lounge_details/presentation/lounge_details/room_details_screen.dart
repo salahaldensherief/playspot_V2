@@ -33,22 +33,38 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
   }
 
   Future<void> _loadData() async {
-    final roomRes = await sl<LoungeDetailsRepository>().getRoomById(widget.roomId);
-    
+    final roomRes = await sl<LoungeDetailsRepository>().getRoomById(
+      widget.roomId,
+    );
+
     roomRes.fold(
-      (l) => setState(() { _error = l.message; _isLoading = false; }),
+      (l) => setState(() {
+        _error = l.message;
+        _isLoading = false;
+      }),
       (room) async {
         if (room == null) {
-          setState(() { _error = AppStrings.roomNotFound.tr(); _isLoading = false; });
+          setState(() {
+            _error = AppStrings.roomNotFound.tr();
+            _isLoading = false;
+          });
           return;
         }
-        
-        final loungeRes = await sl<HomeRepository>().getLoungeById(room.loungeId);
+
+        final loungeRes = await sl<HomeRepository>().getLoungeById(
+          room.loungeId,
+        );
         loungeRes.fold(
-          (l) => setState(() { _error = l.message; _isLoading = false; }),
+          (l) => setState(() {
+            _error = l.message;
+            _isLoading = false;
+          }),
           (lounge) {
             if (lounge == null) {
-              setState(() { _error = AppStrings.loungeNotFound.tr(); _isLoading = false; });
+              setState(() {
+                _error = AppStrings.loungeNotFound.tr();
+                _isLoading = false;
+              });
               return;
             }
             if (mounted) {
@@ -63,9 +79,9 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
                 cubit.toggleRoomSelection(_roomIdToSelect!);
               }
             }
-          }
+          },
         );
-      }
+      },
     );
   }
 
@@ -81,7 +97,9 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
     if (_error != null) {
       return Scaffold(
         backgroundColor: AppColors.scaffoldBackground,
-        body: Center(child: AppText(text: _error!, color: Colors.white)),
+        body: Center(
+          child: AppText(text: _error!, color: Colors.white),
+        ),
       );
     }
 

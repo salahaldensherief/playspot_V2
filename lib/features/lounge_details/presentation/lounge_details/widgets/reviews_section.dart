@@ -21,17 +21,15 @@ class ReviewsSection extends StatelessWidget {
   final List<ReviewModel>? reviews;
   final bool isLimitApplied;
 
-  const ReviewsSection({
-    super.key,
-    this.reviews,
-    this.isLimitApplied = false,
-  });
+  const ReviewsSection({super.key, this.reviews, this.isLimitApplied = false});
 
   @override
   Widget build(BuildContext context) {
     final currentReviews = reviews;
     if (currentReviews != null) {
-      return currentReviews.isEmpty ? _buildEmptyState() : _buildList(context, currentReviews, limit: isLimitApplied);
+      return currentReviews.isEmpty
+          ? _buildEmptyState()
+          : _buildList(context, currentReviews, limit: isLimitApplied);
     }
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       buildWhen: (previous, current) => previous.reviews != current.reviews,
@@ -46,9 +44,14 @@ class ReviewsSection extends StatelessWidget {
     return const SliverToBoxAdapter(child: SizedBox.shrink());
   }
 
-  Widget _buildList(BuildContext context, List<ReviewModel> reviewsList, {bool limit = false}) {
+  Widget _buildList(
+    BuildContext context,
+    List<ReviewModel> reviewsList, {
+    bool limit = false,
+  }) {
     final double avgRating = reviewsList.isNotEmpty
-        ? (reviewsList.fold(0.0, (sum, item) => sum + item.rating) / reviewsList.length)
+        ? (reviewsList.fold(0.0, (sum, item) => sum + item.rating) /
+              reviewsList.length)
         : 0.0;
 
     final bool shouldLimit = limit && reviewsList.length > 2;
@@ -57,24 +60,25 @@ class ReviewsSection extends StatelessWidget {
     return SliverPadding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            if (index == 0) {
-              return _buildRatingSummaryHeader(context, avgRating, reviewsList.length);
-            }
+        delegate: SliverChildBuilderDelegate((context, index) {
+          if (index == 0) {
+            return _buildRatingSummaryHeader(
+              context,
+              avgRating,
+              reviewsList.length,
+            );
+          }
 
-            final reviewIndex = index - 1;
-            final review = reviewsList[reviewIndex];
+          final reviewIndex = index - 1;
+          final review = reviewsList[reviewIndex];
 
-            // If we are at index 3 (the 3rd comment) and limiting, apply the gradient shadow fade
-            if (shouldLimit && index == 3) {
-              return _buildFadedReviewCard(context, review, reviewsList.length);
-            }
+          // If we are at index 3 (the 3rd comment) and limiting, apply the gradient shadow fade
+          if (shouldLimit && index == 3) {
+            return _buildFadedReviewCard(context, review, reviewsList.length);
+          }
 
-            return _buildReviewCard(review);
-          },
-          childCount: displayCount,
-        ),
+          return _buildReviewCard(review);
+        }, childCount: displayCount),
       ),
     );
   }
@@ -95,14 +99,18 @@ class ReviewsSection extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 16.r,
-                backgroundImage: review.userAvatar != null && review.userAvatar!.trim().isNotEmpty
+                backgroundImage:
+                    review.userAvatar != null &&
+                        review.userAvatar!.trim().isNotEmpty
                     ? CachedNetworkImageProvider(
                         review.userAvatar!.trim(),
                         maxHeight: 64,
                         maxWidth: 64,
                       )
                     : null,
-                child: review.userAvatar == null || review.userAvatar!.trim().isEmpty
+                child:
+                    review.userAvatar == null ||
+                        review.userAvatar!.trim().isEmpty
                     ? const Icon(Icons.person, size: 16, color: AppColors.white)
                     : null,
               ),
@@ -147,7 +155,11 @@ class ReviewsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildFadedReviewCard(BuildContext context, ReviewModel review, int totalCount) {
+  Widget _buildFadedReviewCard(
+    BuildContext context,
+    ReviewModel review,
+    int totalCount,
+  ) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       child: Stack(
@@ -211,7 +223,11 @@ class ReviewsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildRatingSummaryHeader(BuildContext context, double avgRating, int totalCount) {
+  Widget _buildRatingSummaryHeader(
+    BuildContext context,
+    double avgRating,
+    int totalCount,
+  ) {
     return Container(
       margin: EdgeInsets.only(bottom: 16.h, top: 12.h),
       padding: EdgeInsets.all(16.w),
@@ -227,7 +243,9 @@ class ReviewsSection extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.warning.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14.r),
-              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.warning.withValues(alpha: 0.3),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -260,7 +278,9 @@ class ReviewsSection extends StatelessWidget {
                 ),
                 SizedBox(height: 4.h),
                 AppText(
-                  text: AppStrings.basedOnUserReviews.tr(args: [totalCount.toString()]),
+                  text: AppStrings.basedOnUserReviews.tr(
+                    args: [totalCount.toString()],
+                  ),
                   fontSize: 12.sp,
                   color: AppColors.textSecondary,
                 ),

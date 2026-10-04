@@ -37,15 +37,18 @@ class CategorySelector extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
               scrollDirection: Axis.horizontal,
               itemCount: itemCount,
-              separatorBuilder: (context, index) => SizedBox(width: AppSizes.w12),
+              separatorBuilder: (context, index) =>
+                  SizedBox(width: AppSizes.w12),
               itemBuilder: (context, index) {
                 final bool isAll = index == 0;
-                final String id = isAll ? '' : state.deviceCategories[index - 1].id;
+                final String id = isAll
+                    ? ''
+                    : state.deviceCategories[index - 1].id;
                 final String name = isAll
                     ? AppStrings.all.tr()
                     : (isArabic
-                        ? state.deviceCategories[index - 1].nameAr
-                        : state.deviceCategories[index - 1].nameEn);
+                          ? state.deviceCategories[index - 1].nameAr
+                          : state.deviceCategories[index - 1].nameEn);
 
                 final isSelected = state.selectedCategory == id;
 
@@ -53,7 +56,8 @@ class CategorySelector extends StatelessWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(AppSizes.r25),
-                    onTap: () => context.read<LoungeDetailsCubit>().setCategory(id),
+                    onTap: () =>
+                        context.read<LoungeDetailsCubit>().setCategory(id),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       constraints: BoxConstraints(minHeight: 48.h),
@@ -77,8 +81,9 @@ class CategorySelector extends StatelessWidget {
                         child: AppText(
                           text: name.toUpperCase(),
                           fontSize: 13.sp,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                           color: isSelected
                               ? AppColors.neonBlue
                               : AppColors.textSecondary,

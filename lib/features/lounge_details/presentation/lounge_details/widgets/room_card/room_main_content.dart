@@ -16,39 +16,25 @@ class RoomMainContent extends StatelessWidget {
     required this.expanded,
   });
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final overview = RoomCardOverview(
-        room: room,
-        data: data,
-        expanded: expanded,
-      );
-      final actions = RoomActionArea(
-        room: room,
-        isAvailable: data.isAvailable,
-        isSelected: data.isSelected,
-        themeColor: room.themeColor,
-      );
-      // Restore the compact side-by-side card. Large text uses the full width
-      // so room specifications and the booking action remain readable.
-      if (constraints.maxWidth >= 300 &&
-          MediaQuery.textScalerOf(context).scale(1) <= 1.3) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(child: overview),
-            SizedBox(width: 128, child: actions),
-          ],
-        );
-      }
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          overview,
-          Divider(height: 1, color: room.themeColor.withValues(alpha: 0.16)),
-          actions,
-        ],
-      );
-    },
-  );
+  Widget build(BuildContext context) {
+    final overview = RoomCardOverview(
+      room: room,
+      data: data,
+      expanded: expanded,
+    );
+    final actions = RoomActionArea(
+      room: room,
+      isAvailable: data.isAvailable,
+      isSelected: data.isSelected,
+      themeColor: room.themeColor,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        overview,
+        Divider(height: 1, color: room.themeColor.withValues(alpha: 0.16)),
+        actions,
+      ],
+    );
+  }
 }

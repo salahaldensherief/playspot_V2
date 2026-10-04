@@ -16,8 +16,12 @@ class RoomPromoBadge extends StatelessWidget {
         color: AppColors.warning,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(8.r),
-          topRight: context.locale.languageCode == 'ar' ? Radius.zero : Radius.circular(18.r),
-          topLeft: context.locale.languageCode == 'ar' ? Radius.circular(18.r) : Radius.zero,
+          topRight: context.locale.languageCode == 'ar'
+              ? Radius.zero
+              : Radius.circular(18.r),
+          topLeft: context.locale.languageCode == 'ar'
+              ? Radius.circular(18.r)
+              : Radius.zero,
         ),
         boxShadow: [
           BoxShadow(
