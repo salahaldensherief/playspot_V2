@@ -19,7 +19,7 @@ export async function createFixtureDatabase() {
   await control.connect();
   const database = `playspot_fixture_${randomUUID().replaceAll('-', '')}`;
   try {
-    for (const role of ['anon', 'authenticated', 'service_role']) {
+    for (const role of ['anon', 'authenticated', 'service_role', 'supabase_auth_admin']) {
       await control.query(`DO $$ BEGIN CREATE ROLE ${role}; EXCEPTION WHEN duplicate_object THEN NULL; END $$`);
     }
     await control.query(`CREATE DATABASE "${database}"`);
