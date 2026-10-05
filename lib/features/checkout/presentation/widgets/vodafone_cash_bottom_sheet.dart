@@ -213,6 +213,8 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
   }
 
   void _handleSubmit() {
+    if (_isUploading) return;
+
     final isArabic = context.locale.languageCode == 'ar';
     final senderAccount = _senderAccountController.text.trim();
     final transRef = _transactionRefController.text.trim();

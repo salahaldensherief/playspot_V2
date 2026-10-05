@@ -115,4 +115,68 @@ void main() {
       );
     },
   );
+
+  test(
+    'processPayment ignores concurrent invocation when already in loading state',
+    () async {
+      final params = MockCheckoutParams();
+      final room = MockRoomModel();
+      when(() => params.holdToken).thenReturn('hold-token');
+      when(() => params.rooms).thenReturn([room]);
+      when(() => params.roomsBreakdown).thenReturn(const []);
+      when(() => params.playMode).thenReturn('single');
+      when(() => params.extraControllers).thenReturn(0);
+      when(() => params.addOns).thenReturn(const []);
+      when(() => room.id).thenReturn('room-1');
+      when(() => preferenceManager.userId()).thenReturn('user-1');
+
+      when(
+        () => bookingRepository.createBookingCheckout(
+          holdToken: any(named: 'holdToken'),
+          roomRequests: any(named: 'roomRequests'),
+          extraItems: any(named: 'extraItems'),
+          voucherCode: any(named: 'voucherCode'),
+          paymentMethod: any(named: 'paymentMethod'),
+          senderWalletPhone: any(named: 'senderWalletPhone'),
+          receiptUrl: any(named: 'receiptUrl'),
+        ),
+      ).thenAnswer(
+        (_) async {
+          await Future.delayed(const Duration(milliseconds: 50));
+          return const Right({
+            'primary_booking_id': 'booking-guard-1',
+            'quote': <String, dynamic>{'final_total': 100},
+          });
+        },
+      );
+      when(
+        () => bookingRepository.watchBookingStatus('booking-guard-1'),
+      ).thenAnswer((_) => const Stream<BookingModel>.empty());
+
+      // Trigger two simultaneous payment calls
+      final call1 = cubit.processPayment(
+        params,
+        paymentMethod: 'cash',
+      );
+      final call2 = cubit.processPayment(
+        params,
+        paymentMethod: 'cash',
+      );
+
+      await Future.wait([call1, call2]);
+
+      // Exactly ONE createBookingCheckout call should be executed
+      verify(
+        () => bookingRepository.createBookingCheckout(
+          holdToken: any(named: 'holdToken'),
+          roomRequests: any(named: 'roomRequests'),
+          extraItems: any(named: 'extraItems'),
+          voucherCode: any(named: 'voucherCode'),
+          paymentMethod: any(named: 'paymentMethod'),
+          senderWalletPhone: any(named: 'senderWalletPhone'),
+          receiptUrl: any(named: 'receiptUrl'),
+        ),
+      ).called(1);
+    },
+  );
 }

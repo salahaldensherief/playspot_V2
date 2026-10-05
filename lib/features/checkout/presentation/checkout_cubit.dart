@@ -372,6 +372,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     String? senderAccount,
     String? transactionReference,
   }) async {
+    if (state.status == CheckoutStatus.loading) return;
+
     final holdToken = state.holdToken ?? checkoutParams.holdToken;
     if (state.isHoldExpired || holdToken == null || holdToken.isEmpty) {
       emit(
