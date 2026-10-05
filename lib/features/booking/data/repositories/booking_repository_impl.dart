@@ -10,7 +10,6 @@ import 'package:playspot/features/booking/domain/entities/lounge_price_range.dar
 import 'package:playspot/features/booking/domain/entities/room_slot_price.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/booking/data/datasources/remote/booking_remote_data_source.dart';
-import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 
 class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
@@ -186,25 +185,6 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
         receiptPath: receiptPath,
       ),
     );
-  }
-
-  @override
-  Future<Either<Failure, Map<String, dynamic>>> createBooking(
-    CreateBookingParams params,
-  ) async {
-    try {
-      final res = await _remoteDataSource.createBooking(params);
-      return Right(res);
-    } catch (e) {
-      if (e.toString().contains('PRICE_CHANGED')) {
-        return Left(PriceChangedFailure(
-          message: 'تغير سعر الساعات بناءً على قواعد الذروة الحالية',
-          oldPrice: params.totalPrice,
-          newPrice: params.totalPrice,
-        ));
-      }
-      return await callRepository(() => throw e);
-    }
   }
 
   @override

@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import 'package:playspot/core/error/failures.dart';
-import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/entities/booking_price_quote.dart';
 import 'package:playspot/features/booking/domain/entities/lounge_price_range.dart';
 import 'package:playspot/features/booking/domain/entities/room_slot_price.dart';
@@ -59,9 +58,6 @@ abstract class BookingRepository {
     required String bookingId,
     required String receiptPath,
   });
-  Future<Either<Failure, Map<String, dynamic>>> createBooking(
-    CreateBookingParams params,
-  );
   Stream<BookingModel> watchBookingStatus(String bookingId);
   Future<Either<Failure, void>> extendSession({
     required String bookingId,
