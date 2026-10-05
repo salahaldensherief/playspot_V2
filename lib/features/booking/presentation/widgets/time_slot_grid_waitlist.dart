@@ -12,39 +12,35 @@ extension _TimeSlotWaitlist on _TimeSlotGridState {
         _showWaitlistMessage(AppStrings.waitlistFailed);
         return;
       }
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(
-            (activeId == null
-                    ? AppStrings.waitlistNotify
-                    : AppStrings.waitlistCancel)
-                .tr(),
-          ),
-          content: Text(
-            (activeId == null
-                    ? AppStrings.waitlistExplain
-                    : AppStrings.waitlistCancelExplain)
-                .tr(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(AppStrings.cancel.tr()),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(
-                (activeId == null
-                        ? AppStrings.waitlistNotify
-                        : AppStrings.waitlistCancel)
-                    .tr(),
-              ),
-            ),
-          ],
-        ),
+      final titleKey = activeId == null
+          ? AppStrings.waitlistNotify
+          : AppStrings.waitlistCancel;
+      final descKey = activeId == null
+          ? AppStrings.waitlistExplain
+          : AppStrings.waitlistCancelExplain;
+
+      AppDialog.show(
+        context,
+        type: AppDialogType.confirm,
+        title: titleKey,
+        description: descKey,
+        confirmText: titleKey,
+        cancelText: AppStrings.cancel,
+        onConfirm: () => _executeWaitlistAction(cubit, slot, activeId),
       );
-      if (confirmed != true || !mounted) return;
+    } finally {
+      _waitlistBusy = false;
+    }
+  }
+
+  Future<void> _executeWaitlistAction(
+    BookingCubit cubit,
+    TimeOfDay slot,
+    String? activeId,
+  ) async {
+    if (_waitlistBusy) return;
+    _waitlistBusy = true;
+    try {
       final messageKey = activeId == null
           ? await cubit.joinWaitlist(slot)
           : await cubit.cancelWaitlist(activeId);

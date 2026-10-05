@@ -15,6 +15,7 @@ import '../../../../art_core/widgets/buttons/directions_button.dart';
 import '../../../../art_core/widgets/buttons/res/button_behavior.dart';
 import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
+import '../../../../art_core/widgets/layout/app_dialog.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -70,9 +71,11 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
         }
         final successMsg = state.successMessage;
         if (successMsg != null) {
-          if (successMsg == 'registeredSuccessfully' &&
-              state.tournament != null) {
-            _showRegistrationSuccessDialog(context, state.tournament!);
+          if (successMsg == 'registeredSuccessfully') {
+            final tournament = state.tournament;
+            if (tournament != null) {
+              _showRegistrationSuccessDialog(context, tournament);
+            }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -136,7 +139,13 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
           );
         }
 
-        final tournament = state.tournament!;
+        final tournament = state.tournament;
+        if (tournament == null) {
+          return const Scaffold(
+            backgroundColor: AppColors.scaffoldBackground,
+            body: SizedBox.shrink(),
+          );
+        }
 
         return Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
@@ -198,7 +207,7 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                     children: [
                       if (tournament.imageUrl?.isNotEmpty == true)
                         CachedNetworkImage(
-                          imageUrl: tournament.imageUrl!,
+                          imageUrl: tournament.imageUrl ?? '',
                           fit: BoxFit.cover,
                           memCacheWidth: 800,
                           memCacheHeight: 500,
@@ -278,9 +287,9 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                       TournamentParticipantsCard(tournament: tournament),
                       SizedBox(height: 16.h),
                       TournamentRulesCard(tournament: tournament),
-                      if (_buildActionButtons(context, state) != null) ...[
+                      if (_buildActionButtons(context, state) case final actionButtons?) ...[
                         SizedBox(height: 20.h),
-                        _buildActionButtons(context, state)!,
+                        actionButtons,
                       ],
                     ],
                   ),
@@ -321,9 +330,9 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
     final participant = state.userParticipant;
     if (tournament == null) return null;
 
+    final regClosesAt = tournament.registrationClosesAt;
     final isRegistrationClosed =
-        (tournament.registrationClosesAt != null &&
-            DateTime.now().isAfter(tournament.registrationClosesAt!)) ||
+        (regClosesAt != null && DateTime.now().isAfter(regClosesAt)) ||
         tournament.status == TournamentStatus.registrationClosed ||
         tournament.status == TournamentStatus.completed ||
         tournament.status == TournamentStatus.cancelled;
@@ -507,12 +516,11 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                     fontWeight: FontWeight.bold,
                     fontSize: 14.sp,
                   ),
-                  if (participant.paymentRejectionReason != null &&
-                      participant.paymentRejectionReason!.isNotEmpty) ...[
+                  if (participant.paymentRejectionReason case final reason? when reason.isNotEmpty) ...[
                     SizedBox(height: 4.h),
                     AppText(
                       text: AppStrings.paymentRejectedReason.tr(
-                        args: [participant.paymentRejectionReason!],
+                        args: [reason],
                       ),
                       color: AppColors.textSecondary,
                       fontSize: 12.sp,
@@ -676,60 +684,15 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
   }
 
   void _confirmWithdrawal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.cardBackground,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: AppText(
-          text: AppStrings.withdrawFromTournament.tr(),
-          color: Colors.white,
-        ),
-        content: AppText(
-          text: AppStrings.withdrawConfirmation.tr(),
-          color: AppColors.textSecondary,
-        ),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              AppButton(
-                buttonConfig: ButtonConfig(
-                  backgroundColor: Colors.transparent,
-                  height: 38.h,
-                  width: 80.w,
-                ),
-                content: ButtonContent(label: AppStrings.cancel.tr()),
-                behavior: TapBehavior(
-                  onTap: () => Navigator.pop(dialogContext),
-                ),
-              ),
-              SizedBox(width: 8.w),
-              AppButton(
-                buttonConfig: ButtonConfig(
-                  backgroundColor: AppColors.danger.withValues(alpha: 0.15),
-                  borderColor: AppColors.danger.withValues(alpha: 0.4),
-                  height: 38.h,
-                  width: 130.w,
-                ),
-                content: ButtonContent(
-                  label: AppStrings.withdrawFromTournament.tr(),
-                ),
-                behavior: TapBehavior(
-                  onTap: () {
-                    Navigator.pop(dialogContext);
-                    context
-                        .read<TournamentDetailsCubit>()
-                        .withdrawFromTournament();
-                  },
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+    AppDialog.show(
+      context,
+      type: AppDialogType.confirm,
+      title: AppStrings.withdrawFromTournament,
+      description: AppStrings.withdrawConfirmation,
+      confirmText: AppStrings.withdrawFromTournament,
+      cancelText: AppStrings.cancel,
+      onConfirm: () =>
+          context.read<TournamentDetailsCubit>().withdrawFromTournament(),
     );
   }
 
@@ -737,50 +700,13 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
     BuildContext context,
     TournamentEntity tournament,
   ) {
-    showDialog(
-      context: context,
+    AppDialog.show(
+      context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppColors.cardBackground,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GlassContainer(
-              padding: EdgeInsets.all(16.w),
-              borderRadius: 50.r,
-              blur: 8,
-              borderColor: AppColors.successBorder,
-              color: AppColors.success.withValues(alpha: 0.15),
-              child: Icon(
-                TablerIcons.circle_check,
-                color: AppColors.success,
-                size: 48.sp,
-              ),
-            ),
-            SizedBox(height: 16.h),
-            AppText(
-              text: AppStrings.registeredSuccessfully.tr(),
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 20.h),
-            AppButton(
-              buttonConfig: ButtonConfig.gradient(
-                gradient: AppColors.primaryGradient,
-                glowColor: AppColors.neonBlueAlt,
-                width: double.infinity,
-              ),
-              content: ButtonContent(label: AppStrings.close.tr()),
-              behavior: TapBehavior(onTap: () => Navigator.pop(dialogContext)),
-            ),
-          ],
-        ),
-      ),
+      type: AppDialogType.success,
+      title: AppStrings.registeredSuccessfully,
+      description: tournament.title,
+      confirmText: AppStrings.close,
     );
   }
 }

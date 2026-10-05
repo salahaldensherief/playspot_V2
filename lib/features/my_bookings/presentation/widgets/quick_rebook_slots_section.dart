@@ -2,10 +2,13 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../../art_core/app_strings.dart';
 import '../../../../../art_core/theme/app_colors.dart';
+import '../../../../../art_core/widgets/buttons/app_button.dart';
+import '../../../../../art_core/widgets/buttons/res/button_behavior.dart';
+import '../../../../../art_core/widgets/buttons/res/button_content.dart';
+import '../../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../../art_core/widgets/text/app_text.dart';
 import '../quick_rebook_cubit.dart';
 import '../quick_rebook_state.dart';
@@ -26,22 +29,34 @@ class QuickRebookSlotsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        OutlinedButton.icon(
-          onPressed: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: state.selectedDate,
-              firstDate: firstDate,
-              lastDate: lastDate,
-            );
-            if (picked != null && context.mounted) {
-              await context.read<QuickRebookCubit>().changeDate(picked);
-            }
-          },
-          icon: const Icon(Icons.calendar_month_outlined),
-          label: Text(
-            DateFormat.yMMMEd(context.locale.languageCode)
+        AppButton(
+          content: ButtonContent(
+            label: DateFormat.yMMMEd(context.locale.languageCode)
                 .format(state.selectedDate),
+            icon: Icon(
+              Icons.calendar_month_outlined,
+              size: 18.sp,
+              color: AppColors.neonBlue,
+            ),
+          ),
+          buttonConfig: ButtonConfig(
+            height: 40.h,
+            backgroundColor: Colors.transparent,
+            borderColor: AppColors.borderDefault,
+            borderRadius: 10.r,
+          ),
+          behavior: ButtonBehavior.tap(
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: state.selectedDate,
+                firstDate: firstDate,
+                lastDate: lastDate,
+              );
+              if (picked != null && context.mounted) {
+                await context.read<QuickRebookCubit>().changeDate(picked);
+              }
+            },
           ),
         ),
         SizedBox(height: 10.h),

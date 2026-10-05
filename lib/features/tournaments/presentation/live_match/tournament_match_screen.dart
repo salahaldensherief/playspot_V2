@@ -79,83 +79,92 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
     _disputeReasonController.clear();
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: AppColors.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
           side: const BorderSide(color: AppColors.danger),
         ),
-        title: Text(
-          AppStrings.disputeResult.tr(),
-          style: TextStyle(
-            color: AppColors.danger,
-            fontWeight: FontWeight.bold,
-            fontSize: 16.sp,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppStrings.disputeReason.tr(),
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
-            ),
-            SizedBox(height: 8.h),
-            TextField(
-              controller: _disputeReasonController,
-              maxLines: 3,
-              style: TextStyle(color: AppColors.textPrimary, fontSize: 13.sp),
-              decoration: InputDecoration(
-                hintText: AppStrings.enterDisputeReason.tr(),
-                hintStyle: TextStyle(
-                  color: AppColors.hintText,
-                  fontSize: 12.sp,
-                ),
-                filled: true,
-                fillColor: AppColors.mutedBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: const BorderSide(color: AppColors.borderDefault),
+        child: Padding(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                AppStrings.disputeResult.tr(),
+                style: TextStyle(
+                  color: AppColors.danger,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: 16.h),
+              Text(
+                AppStrings.disputeReason.tr(),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
+              ),
+              SizedBox(height: 8.h),
+              TextField(
+                controller: _disputeReasonController,
+                maxLines: 3,
+                style: TextStyle(color: AppColors.textPrimary, fontSize: 13.sp),
+                decoration: InputDecoration(
+                  hintText: AppStrings.enterDisputeReason.tr(),
+                  hintStyle: TextStyle(
+                    color: AppColors.hintText,
+                    fontSize: 12.sp,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.mutedBackground,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: const BorderSide(color: AppColors.borderDefault),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  AppButton(
+                    buttonConfig: ButtonConfig(
+                      backgroundColor: Colors.transparent,
+                      borderColor: AppColors.borderDefault,
+                      isOutlined: true,
+                      width: 90.w,
+                    ),
+                    content: ButtonContent(label: AppStrings.close.tr()),
+                    behavior: TapBehavior(onTap: () => Navigator.pop(dialogContext)),
+                  ),
+                  SizedBox(width: 8.w),
+                  AppButton(
+                    buttonConfig: ButtonConfig(
+                      backgroundColor: AppColors.danger,
+                      width: 120.w,
+                    ),
+                    content: ButtonContent(label: AppStrings.disputeResult.tr()),
+                    behavior: TapBehavior(
+                      onTap: () {
+                        final reason = _disputeReasonController.text.trim();
+                        if (reason.isEmpty) {
+                          GameHudToast.show(
+                            context,
+                            AppStrings.enterDisputeReason.tr(),
+                            type: ToastType.error,
+                          );
+                          return;
+                        }
+                        Navigator.pop(dialogContext);
+                        context.read<TournamentMatchCubit>().disputeResult(reason);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        actions: [
-          AppButton(
-            buttonConfig: ButtonConfig(
-              backgroundColor: Colors.transparent,
-              borderColor: AppColors.borderDefault,
-              isOutlined: true,
-              width: 90.w,
-            ),
-            content: ButtonContent(label: AppStrings.close.tr()),
-            behavior: TapBehavior(onTap: () => Navigator.pop(dialogContext)),
-          ),
-          AppButton(
-            buttonConfig: ButtonConfig(
-              backgroundColor: AppColors.danger,
-              width: 120.w,
-            ),
-            content: ButtonContent(label: AppStrings.disputeResult.tr()),
-            behavior: TapBehavior(
-              onTap: () {
-                final reason = _disputeReasonController.text.trim();
-                if (reason.isEmpty) {
-                  GameHudToast.show(
-                    context,
-                    AppStrings.enterDisputeReason.tr(),
-                    type: ToastType.error,
-                  );
-                  return;
-                }
-                Navigator.pop(dialogContext);
-                context.read<TournamentMatchCubit>().disputeResult(reason);
-              },
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -167,14 +176,14 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
         if (state.errorMessage != null) {
           GameHudToast.show(
             context,
-            state.errorMessage!,
+            state.errorMessage ?? '',
             type: ToastType.error,
           );
         }
         if (state.successMessage != null) {
           GameHudToast.show(
             context,
-            state.successMessage!.tr(),
+            (state.successMessage ?? '').tr(),
             type: ToastType.success,
           );
         }
@@ -187,7 +196,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           );
         }
 
-        if (state.match == null) {
+        final match = state.match;
+        if (match == null) {
           return Scaffold(
             backgroundColor: AppColors.scaffoldBackground,
             appBar: AppBar(leading: const BackButtonWidget()),
@@ -202,8 +212,6 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             ),
           );
         }
-
-        final match = state.match!;
 
         return Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
@@ -231,7 +239,7 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                   if (match.status == MatchStatus.pendingConfirmation &&
                       match.confirmationDeadline != null) ...[
                     MatchCountdownTimer(
-                      deadline: match.confirmationDeadline!,
+                      deadline: match.confirmationDeadline ?? DateTime.now(),
                       onExpired: () {
                         context.read<TournamentMatchCubit>().confirmResult();
                       },
@@ -360,13 +368,13 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                     ),
                     SizedBox(height: 8.h),
 
-                    if (state.proofFile != null) ...[
+                    if (state.proofFile case final proofFile?) ...[
                       Stack(
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12.r),
                             child: Image.file(
-                              state.proofFile!,
+                              proofFile,
                               height: 180.h,
                               width: double.infinity,
                               fit: BoxFit.cover,
