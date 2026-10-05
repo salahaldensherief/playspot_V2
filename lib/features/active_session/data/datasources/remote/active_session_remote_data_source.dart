@@ -401,31 +401,12 @@ class ActiveSessionRemoteDataSourceImpl
     double additionalCost,
   ) async {
     dev.log(
-      "[LIVESESSION_DS] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$additionalCost",
+      "[LIVESESSION_DS] EXTEND_TIME delegating to requestExtension: bookingId=$bookingId, minutes=$additionalMinutes",
     );
-    try {
-      await _client.rpc(
-        'extend_booking_session',
-        params: {
-          'p_booking_id': bookingId,
-          'p_additional_minutes': additionalMinutes,
-          'p_additional_cost': additionalCost,
-        },
-      );
-      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC SUCCESS");
-    } catch (e) {
-      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC error: $e");
-      final errorStr = e.toString();
-      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||
-          errorStr.contains('conflict') ||
-          errorStr.contains('23P01') ||
-          errorStr.contains('exclusion constraint')) {
-        throw Exception(
-          "لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.",
-        );
-      }
-      rethrow;
-    }
+    await requestExtension(
+      bookingId: bookingId,
+      requestedMinutes: additionalMinutes,
+    );
   }
 
   @override
@@ -437,13 +418,34 @@ class ActiveSessionRemoteDataSourceImpl
       "[LIVESESSION_DS] REQUEST_EXTENSION: bookingId=$bookingId, requestedMinutes=$requestedMinutes",
     );
 
-    await _client.rpc(
-      'request_booking_extension',
-      params: {
-        'p_booking_id': bookingId,
-        'p_requested_minutes': requestedMinutes,
-      },
-    );
+    try {
+      await _client.rpc(
+        'request_booking_extension',
+        params: {
+          'p_booking_id': bookingId,
+          'p_requested_minutes': requestedMinutes,
+        },
+      );
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] REQUEST_BOOKING_EXTENSION RPC error: $e");
+      final errorStr = e.toString();
+      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||
+          errorStr.contains('conflict') ||
+          errorStr.contains('23P01') ||
+          errorStr.contains('exclusion constraint')) {
+        throw Exception(
+          "لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.",
+        );
+      }
+      if (errorStr.contains('Extension request already pending') ||
+          errorStr.contains('already pending') ||
+          errorStr.contains('55000')) {
+        throw Exception(
+          "يوجد طلب تمديد قيد المراجعة بالفعل لهذا الحجز.",
+        );
+      }
+      rethrow;
+    }
   }
 
   @override

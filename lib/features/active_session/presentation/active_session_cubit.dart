@@ -44,7 +44,6 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
   final GetActiveSessionUseCase _getActiveSessionUseCase;
   final WatchUserActiveSessionUseCase _watchUserActiveSessionUseCase;
   final StreamActiveSessionUseCase _streamActiveSessionUseCase;
-  final ExtendSessionTimeUseCase _extendSessionTimeUseCase;
   final RequestSessionExtensionUseCase _requestSessionExtensionUseCase;
   final PlaceSessionOrderUseCase _placeSessionOrderUseCase;
   final GetCanteenMenuUseCase _getCanteenMenuUseCase;
@@ -68,7 +67,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
     required GetActiveSessionUseCase getActiveSessionUseCase,
     required WatchUserActiveSessionUseCase watchUserActiveSessionUseCase,
     required StreamActiveSessionUseCase streamActiveSessionUseCase,
-    required ExtendSessionTimeUseCase extendSessionTimeUseCase,
+    ExtendSessionTimeUseCase? extendSessionTimeUseCase,
     required RequestSessionExtensionUseCase requestSessionExtensionUseCase,
     required PlaceSessionOrderUseCase placeSessionOrderUseCase,
     GetLoungeMenuUseCase? getLoungeMenuUseCase,
@@ -80,7 +79,6 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
   }) : _getActiveSessionUseCase = getActiveSessionUseCase,
        _watchUserActiveSessionUseCase = watchUserActiveSessionUseCase,
        _streamActiveSessionUseCase = streamActiveSessionUseCase,
-       _extendSessionTimeUseCase = extendSessionTimeUseCase,
        _requestSessionExtensionUseCase = requestSessionExtensionUseCase,
        _placeSessionOrderUseCase = placeSessionOrderUseCase,
        _getCanteenMenuUseCase = getCanteenMenuUseCase,
@@ -269,7 +267,7 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
   }) =>
       _acceptUpsellSuggestionImpl(suggestion, orderId: orderId, amount: amount);
   Future<void> extendTime(int additionalMinutes, [double? precalculatedCost]) =>
-      _extendTimeImpl(additionalMinutes, precalculatedCost);
+      requestExtension(additionalMinutes);
   Future<void> requestExtension(int requestedMinutes) =>
       _requestExtensionImpl(requestedMinutes);
   Future<void> requestStaffAssistance(String type, String? notes) =>

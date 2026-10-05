@@ -1,62 +1,13 @@
 part of 'active_session_cubit.dart';
 
 extension _ActiveSessionExtension on ActiveSessionCubit {
-  Future<void> _extendTimeImpl(
-    int additionalMinutes, [
-    double? precalculatedCost,
-  ]) async {
-    final active = state.session;
-    if (isClosed ||
-        active == null ||
-        state.extendStatus == ActionStatus.loading)
-      return;
-
-    HapticFeedback.mediumImpact();
-
-    final cost = precalculatedCost ?? calculateExtensionCost(additionalMinutes);
-    final bookingId = active.bookingId;
-    final epoch = _sessionEpoch;
-    dev.log(
-      "[LIVESESSION_CUBIT] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$cost",
-    );
-
-    _publish(state.copyWith(extendStatus: ActionStatus.loading));
-
-    final result = await _extendSessionTimeUseCase(
-      bookingId: bookingId,
-      additionalMinutes: additionalMinutes,
-      additionalCost: cost,
-    );
-
-    if (isClosed ||
-        epoch != _sessionEpoch ||
-        state.session?.bookingId != bookingId)
-      return;
-
-    result.fold(
-      (failure) {
-        dev.log("[LIVESESSION_CUBIT] EXTEND_TIME FAILURE: ${failure.message}");
-        _publish(
-          state.copyWith(
-            extendStatus: ActionStatus.error,
-            errorMessage: failure.message,
-          ),
-        );
-      },
-      (_) {
-        dev.log("[LIVESESSION_CUBIT] EXTEND_TIME SUCCESS");
-        _publish(state.copyWith(extendStatus: ActionStatus.success));
-        loadActiveSession(bookingId: bookingId);
-      },
-    );
-  }
-
   Future<void> _requestExtensionImpl(int requestedMinutes) async {
     final active = state.session;
     if (isClosed ||
         active == null ||
-        state.extendStatus == ActionStatus.loading)
+        state.extendStatus == ActionStatus.loading) {
       return;
+    }
 
     HapticFeedback.mediumImpact();
 
@@ -75,8 +26,9 @@ extension _ActiveSessionExtension on ActiveSessionCubit {
 
     if (isClosed ||
         epoch != _sessionEpoch ||
-        state.session?.bookingId != bookingId)
+        state.session?.bookingId != bookingId) {
       return;
+    }
 
     result.fold(
       (failure) {
@@ -102,8 +54,9 @@ extension _ActiveSessionExtension on ActiveSessionCubit {
     final session = state.session;
     if (isClosed ||
         session == null ||
-        state.staffRequestStatus == ActionStatus.loading)
+        state.staffRequestStatus == ActionStatus.loading) {
       return;
+    }
 
     HapticFeedback.mediumImpact();
 
@@ -123,8 +76,9 @@ extension _ActiveSessionExtension on ActiveSessionCubit {
 
     if (isClosed ||
         epoch != _sessionEpoch ||
-        state.session?.bookingId != bookingId)
+        state.session?.bookingId != bookingId) {
       return;
+    }
 
     result.fold(
       (failure) {

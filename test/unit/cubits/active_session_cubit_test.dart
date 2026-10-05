@@ -240,5 +240,85 @@ void main() {
         ),
       ).called(2);
     });
+
+    test(
+      'requestExtension emits success and reloads session when repository succeeds',
+      () async {
+        await cubit.loadActiveSession(bookingId: 'b_100');
+
+        when(
+          () => mockRepository.requestExtension(
+            bookingId: 'b_100',
+            requestedMinutes: 30,
+          ),
+        ).thenAnswer((_) async => const Right(null));
+
+        await cubit.requestExtension(30);
+
+        expect(cubit.state.extendStatus, ActionStatus.success);
+        verify(
+          () => mockRepository.requestExtension(
+            bookingId: 'b_100',
+            requestedMinutes: 30,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'requestExtension emits error with failure message when repository fails',
+      () async {
+        await cubit.loadActiveSession(bookingId: 'b_100');
+
+        when(
+          () => mockRepository.requestExtension(
+            bookingId: 'b_100',
+            requestedMinutes: 15,
+          ),
+        ).thenAnswer(
+          (_) async => const Left(
+            ServerFailure('Extension request already pending'),
+          ),
+        );
+
+        await cubit.requestExtension(15);
+
+        expect(cubit.state.extendStatus, ActionStatus.error);
+        expect(
+          cubit.state.errorMessage,
+          'Extension request already pending',
+        );
+        verify(
+          () => mockRepository.requestExtension(
+            bookingId: 'b_100',
+            requestedMinutes: 15,
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'extendTime delegates directly to requestExtension without client pricing',
+      () async {
+        await cubit.loadActiveSession(bookingId: 'b_100');
+
+        when(
+          () => mockRepository.requestExtension(
+            bookingId: 'b_100',
+            requestedMinutes: 60,
+          ),
+        ).thenAnswer((_) async => const Right(null));
+
+        await cubit.extendTime(60);
+
+        expect(cubit.state.extendStatus, ActionStatus.success);
+        verify(
+          () => mockRepository.requestExtension(
+            bookingId: 'b_100',
+            requestedMinutes: 60,
+          ),
+        ).called(1);
+      },
+    );
   });
 }
