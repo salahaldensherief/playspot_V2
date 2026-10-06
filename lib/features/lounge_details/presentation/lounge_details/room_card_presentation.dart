@@ -20,18 +20,16 @@ class RoomCardPresentation extends Equatable {
     LoungeDetailsState state,
   ) {
     final open = state.lounge?.isOpen ?? false;
-    final busy = room.isOccupied || state.bookedRoomIds.contains(room.id);
+    final busy = state.bookedRoomIds.contains(room.id);
     return RoomCardPresentation(
-      isAvailable: open && !busy && room.isAvailable,
+      isAvailable: open && !busy,
       isSelected: state.isRoomSelected(room.id),
       lounge: state.lounge,
       availabilityKey: !open
           ? 'room_closed'
           : busy
           ? 'room_busy'
-          : room.isAvailable
-          ? 'room_available'
-          : 'room_unavailable',
+          : 'room_available',
     );
   }
 
