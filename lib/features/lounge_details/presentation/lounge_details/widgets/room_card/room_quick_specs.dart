@@ -13,17 +13,17 @@ class RoomQuickSpecs extends StatelessWidget {
     spacing: 12,
     runSpacing: 8,
     children: [
-      if (room.isOpenArea || room.hourlyRateMulti > 0)
+      if (room.supportsPlayModePricing)
         RoomSpec(
           icon: Icons.sports_esports_outlined,
           value: '${AppStrings.singlePlay.tr()} / ${AppStrings.multiPlay.tr()}',
         ),
-      if (room.controllersCount > 0)
+      if (room.requiresControllers && room.controllersCount > 0)
         RoomSpec(
           icon: Icons.videogame_asset_outlined,
           value: '${room.controllersCount} ${AppStrings.controllers.tr()}',
         ),
-      if (room.screenSize.trim().isNotEmpty)
+      if (room.requiresScreen && room.screenSize.trim().isNotEmpty)
         RoomSpec(icon: Icons.tv, value: room.screenSize),
       if (room.maxCapacity > 0)
         RoomSpec(
