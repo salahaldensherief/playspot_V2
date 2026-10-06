@@ -82,11 +82,16 @@ class SpaceTypeSelector extends StatelessWidget {
             .where((slug) => slug != null && slug.isNotEmpty)
             .toSet();
 
-        final List<String> activeKeys = _orderedKeys
+        final activeKeys = _orderedKeys
             .where((key) => key == 'all' || availableTypeSlugs.contains(key))
             .toList();
+        final dynamicKeys = availableTypeSlugs
+            .whereType<String>()
+            .where((key) => key != 'all' && !_orderedKeys.contains(key))
+            .toList()
+          ..sort();
 
-        final List<String> displayKeys = activeKeys;
+        final displayKeys = [...activeKeys, ...dynamicKeys];
 
         return Container(
           height: 48 * MediaQuery.textScalerOf(context).scale(1),
