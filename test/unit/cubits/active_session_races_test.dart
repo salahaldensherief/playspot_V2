@@ -238,9 +238,7 @@ void main() {
         await cubit.close();
         pending.complete(const Right(null));
         await request;
-        if (action == 'extend')
-          verify(() => repo.extendTime('a', 15, 25)).called(1);
-        if (action == 'request')
+        if (action == 'extend' || action == 'request')
           verify(
             () => repo.requestExtension(bookingId: 'a', requestedMinutes: 15),
           ).called(1);
