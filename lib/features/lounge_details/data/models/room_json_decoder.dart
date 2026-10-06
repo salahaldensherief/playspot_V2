@@ -50,21 +50,50 @@ class RoomJsonDecoder {
   }
 
   List<String> get activities {
+    final activityNames = _activityTypeNames();
+    if (activityNames.isNotEmpty) return activityNames;
+
+    final legacyNames = _legacyCategoryNames();
+    if (legacyNames.isNotEmpty) return legacyNames;
+
+    return _strings(json['activity_names']);
+  }
+
+  List<String> _activityTypeNames() {
+    final activities = json['room_activities'];
+    if (activities is! List) return const [];
+
+    return activities
+        .whereType<Map>()
+        .map((item) {
+          final data = item['activity_types'];
+          if (data is! Map) return null;
+          return (data['label'] ?? data['name'])?.toString();
+        })
+        .whereType<String>()
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  List<String> _legacyCategoryNames() {
     final categories = json['room_categories'];
-    final names = categories is List
-        ? categories
-              .whereType<Map>()
-              .map((item) {
-                final data = item['categories'];
-                return data is Map
-                    ? (data['name_en'] ?? data['name'])?.toString()
-                    : null;
-              })
-              .whereType<String>()
-              .where((name) => name.trim().isNotEmpty)
-              .toList()
-        : <String>[];
-    return names.isNotEmpty ? names : _strings(json['activity_names']);
+    if (categories is! List) return const [];
+
+    return categories
+        .whereType<Map>()
+        .map((item) {
+          final data = item['categories'];
+          return data is Map
+              ? (data['name_en'] ?? data['name'])?.toString()
+              : null;
+        })
+        .whereType<String>()
+        .map((name) => name.trim())
+        .where((name) => name.isNotEmpty)
+        .toSet()
+        .toList();
   }
 
   List<String> _strings(Object? data) => data is List
