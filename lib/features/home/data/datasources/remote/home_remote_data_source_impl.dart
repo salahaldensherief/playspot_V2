@@ -195,7 +195,26 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<CategoryModel>> getCategories() async {
-    final res = await _client.from('categories').select().order('id');
-    return (res as List).map((e) => CategoryModel.fromJson(e)).toList();
+    try {
+      final response = await _client.rpc('get_discovery_activities');
+      if (response is List) {
+        return response
+            .map(
+              (item) => CategoryModel.fromJson(
+                Map<String, dynamic>.from(item as Map),
+              ),
+            )
+            .toList();
+      }
+    } catch (error) {
+      AppLogger.warning(
+        'DISCOVERY_ACTIVITIES_RPC_ERROR: $error',
+      );
+    }
+
+    final response = await _client.from('categories').select().order('id');
+    return (response as List)
+        .map((item) => CategoryModel.fromJson(item))
+        .toList();
   }
 }
