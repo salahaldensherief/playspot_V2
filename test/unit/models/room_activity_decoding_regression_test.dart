@@ -26,6 +26,9 @@ void main() {
       'hourly_rate_multi': 80,
       'is_available': true,
       'status': 'available',
+      'requires_screen': false,
+      'requires_controllers': false,
+      'pricing_model': 'per_room_hour',
       'images': <String>[],
       'features_ar': <String>[],
       'features_en': <String>[],
@@ -33,6 +36,10 @@ void main() {
 
     expect(room.activityNames, ['Billiard / Pool']);
     expect(room.spaceTypeName, 'open_area');
+    expect(room.requiresScreen, isFalse);
+    expect(room.requiresControllers, isFalse);
+    expect(room.pricingModel, 'per_room_hour');
+    expect(room.supportsPlayModePricing, isFalse);
     expect(room.hasExpandableDetails, isTrue);
   });
 }
