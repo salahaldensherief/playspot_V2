@@ -42,7 +42,7 @@ class LoungeDetailsRemoteDataSourceImpl
       final response = await _client
           .from('rooms')
           .select(
-            '*, space_types(name, label), room_categories(category_id, categories(name_en)), promotions:promotions!room_id(*)',
+            '*, space_types(name, label), room_activities(activity_type_id, activity_types(id, name, label, category, icon_name)), promotions:promotions!room_id(*)',
           )
           .eq('id', roomId)
           .neq('status', 'deleted')
@@ -127,18 +127,20 @@ class LoungeDetailsRemoteDataSourceImpl
         categoryId.isNotEmpty &&
         categoryId.toLowerCase() != 'all';
 
-    final joinType = hasFilter ? 'room_categories!inner' : 'room_categories';
+    final activityJoin = hasFilter
+        ? 'room_activities!inner'
+        : 'room_activities';
     var query = _client
         .from('rooms')
         .select(
-          '*, space_types(name, label), $joinType(category_id, categories(name_en)), promotions:promotions!room_id(*)',
+          '*, space_types(name, label), $activityJoin(activity_type_id, activity_types(id, name, label, category, icon_name)), promotions:promotions!room_id(*)',
         )
         .eq('lounge_id', loungeId)
         .eq('is_available', true)
         .neq('status', 'deleted');
 
     if (hasFilter) {
-      query = query.eq('room_categories.category_id', categoryId);
+      query = query.eq('room_activities.activity_type_id', categoryId);
     }
 
     try {
@@ -191,10 +193,24 @@ class LoungeDetailsRemoteDataSourceImpl
   @override
   Future<List<CategoryModel>> getLoungeCategories(String loungeId) async {
     final response = await _client.rpc(
-      'get_lounge_categories',
+      'get_lounge_activities',
       params: {'p_lounge_id': loungeId},
     );
-    return (response as List).map((e) => CategoryModel.fromJson(e)).toList();
+    if (response is! List) return const [];
+
+    return response.map((item) {
+      final activity = Map<String, dynamic>.from(item as Map);
+      final label =
+          activity['label']?.toString() ??
+          activity['name']?.toString() ??
+          '';
+      return CategoryModel(
+        id: activity['activity_id']?.toString() ?? '',
+        nameAr: label,
+        nameEn: label,
+        iconKey: activity['icon_name']?.toString() ?? '',
+      );
+    }).where((activity) => activity.id.isNotEmpty).toList();
   }
 
   @override
