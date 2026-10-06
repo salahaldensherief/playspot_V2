@@ -24,13 +24,13 @@ class RoomSelectionConfiguration extends StatelessWidget {
         builder: (context, state) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (room.isOpenArea)
+            if (room.supportsPlayModePricing)
               RoomPlayModeSelector(
                 roomId: room.id,
                 mode: state.roomPlayModes[room.id] ?? 'single',
                 color: themeColor,
               ),
-            if (room.extraControllerPrice > 0)
+            if (room.requiresControllers && room.extraControllerPrice > 0)
               RoomControllerSelector(
                 room: room,
                 count: state.roomExtraControllers[room.id] ?? 0,
