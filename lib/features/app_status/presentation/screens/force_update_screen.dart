@@ -47,8 +47,11 @@ class ForceUpdateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = AppStrings.updateRequiredTitle.tr();
-    final message = statusEntity?.updateMessage?.isNotEmpty == true
-        ? statusEntity!.updateMessage!
+    final localizedMessage = statusEntity?.updateMessageFor(
+      context.locale.languageCode,
+    );
+    final message = localizedMessage?.isNotEmpty == true
+        ? localizedMessage!
         : AppStrings.updateRequiredDesc.tr();
 
     final minVersion = statusEntity?.minSupportedVersion ?? '1.0.0';
