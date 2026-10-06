@@ -136,8 +136,9 @@ class LoungeDetailsRemoteDataSourceImpl
           '*, space_types(name, label), $activityJoin(activity_type_id, activity_types(id, name, label, category, icon_name)), promotions:promotions!room_id(*)',
         )
         .eq('lounge_id', loungeId)
-        .eq('is_available', true)
-        .neq('status', 'deleted');
+        .eq('is_active', true)
+        .neq('status', 'deleted')
+        .neq('status', 'maintenance');
 
     if (hasFilter) {
       query = query.eq('room_activities.activity_type_id', categoryId);
