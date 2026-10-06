@@ -31,7 +31,7 @@ class LoungeBookingSelection extends Equatable {
       extras: _extras(),
       playMode:
           state.roomPlayModes[room.id] ??
-          (room.isOpenArea ? 'single' : 'multi'),
+          (room.supportsPlayModePricing ? 'single' : 'single'),
       extraControllers: state.roomExtraControllers[room.id] ?? 0,
       roomPlayModes: Map.of(state.roomPlayModes),
       roomExtraControllers: Map.of(state.roomExtraControllers),
