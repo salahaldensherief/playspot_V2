@@ -444,6 +444,7 @@ class AppStrings {
   static const String walkover = "walkover";
   static const String noTournamentsFound = "noTournamentsFound";
   static const String filterByGame = "filterByGame";
+  static const String filterByActivity = "filterByActivity";
   static const String filterByCity = "filterByCity";
   static const String filterByStatus = "filterByStatus";
   static const String paymentSubmittedSuccess = "paymentSubmittedSuccess";
