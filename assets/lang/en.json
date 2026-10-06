@@ -496,6 +496,7 @@
   "walkover": "Walkover",
   "noTournamentsFound": "No tournaments found",
   "filterByGame": "Game",
+  "filterByActivity": "Activity",
   "filterByCity": "City",
   "filterByStatus": "Status",
   "paymentSubmittedSuccess": "Payment receipt submitted successfully!",
