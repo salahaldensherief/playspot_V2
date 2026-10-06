@@ -20,6 +20,9 @@ class RoomModel extends Equatable {
   final List<String> featuresEn;
   final int controllersCount;
   final String screenSize;
+  final bool requiresScreen;
+  final bool requiresControllers;
+  final String pricingModel;
   final bool hasActivePromo;
   final String? promoTagAr;
   final String? promoTagEn;
@@ -45,6 +48,9 @@ class RoomModel extends Equatable {
     required this.featuresEn,
     this.controllersCount = 0,
     this.screenSize = '',
+    this.requiresScreen = true,
+    this.requiresControllers = true,
+    this.pricingModel = 'single_multi_hour',
     this.hasActivePromo = false,
     this.promoTagAr,
     this.promoTagEn,
@@ -72,6 +78,9 @@ class RoomModel extends Equatable {
     featuresEn,
     controllersCount,
     screenSize,
+    requiresScreen,
+    requiresControllers,
+    pricingModel,
     hasActivePromo,
     promoTagAr,
     promoTagEn,
@@ -172,6 +181,7 @@ class RoomModel extends Equatable {
   bool get isVIP => spaceTypeName == 'vip_room';
   bool get isStandard => spaceTypeName == 'standard_room';
   bool get isOccupied => status.trim().toLowerCase() == 'occupied';
+  bool get supportsPlayModePricing => pricingModel == 'single_multi_hour';
 
   String getDisplayTitle(bool isArabic) => getName(isArabic);
 
@@ -203,6 +213,9 @@ class RoomModel extends Equatable {
       'features_en': featuresEn,
       'controllers_count': controllersCount,
       'screen_size': screenSize,
+      'requires_screen': requiresScreen,
+      'requires_controllers': requiresControllers,
+      'pricing_model': pricingModel,
     };
   }
 
