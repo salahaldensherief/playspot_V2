@@ -28,7 +28,7 @@ class CategoryModel extends Equatable {
       case 'view_in_ar':
         return Icons.view_in_ar;
       case 'sports_pool':
-        return Icons.sports_golf;
+        return Icons.sports;
       case 'sports_tennis':
         return Icons.sports_tennis;
       case 'sports_soccer':
