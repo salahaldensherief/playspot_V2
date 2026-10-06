@@ -40,16 +40,26 @@ void main() {
         state.copyWith(status: LoungeDetailsStatus.error),
         state.copyWith(rooms: []),
         state.copyWith(bookedRoomIds: ['r']),
-        state.copyWith(
-          rooms: [
-            RoomModel.fromJson({'id': 'r', 'status': 'occupied'}),
-          ],
-        ),
       ]) {
         expect(LoungeBookingSelection(invalid, lounge).params, isNull);
       }
     },
   );
+  test('current room occupancy does not block a later booking', () {
+    final occupied = state.copyWith(
+      rooms: [
+        RoomModel.fromJson({
+          'id': 'r',
+          'status': 'occupied',
+          'is_available': false,
+        }),
+      ],
+    );
+
+    expect(LoungeBookingSelection(occupied, lounge).isEnabled, isTrue);
+    expect(LoungeBookingSelection(occupied, lounge).params, isNotNull);
+  });
+
   test('technical issue or non-bookable operating status disables booking', () {
     final techIssue = state.copyWith(
       operatingStatus: const LoungeOperatingStatus(
