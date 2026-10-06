@@ -9,6 +9,7 @@ import 'lounge_overview_section.dart';
 import 'lounge_details_app_bar.dart';
 import 'lounge_tournaments_section.dart';
 import 'date_selection_section.dart';
+import 'category_selector.dart';
 import 'space_type_selector.dart';
 import 'rooms_grid.dart';
 import 'lounge_extras_section.dart';
@@ -51,6 +52,8 @@ class LoungeDetailsContent extends StatelessWidget {
             const LoungeTournamentsSection(),
             const SliverSectionHeader(title: AppStrings.selectDate),
             const DateSelectionSection(),
+            const SliverSectionHeader(title: AppStrings.filterByActivity),
+            const CategorySelector(),
             const SliverToBoxAdapter(child: SpaceTypeSelector()),
             const SliverSectionHeader(title: 'lounge_rooms_section'),
             const RoomsGrid(),
