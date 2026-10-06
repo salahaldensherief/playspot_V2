@@ -17,10 +17,7 @@ class LoungeBookingSelection extends Equatable {
         state.status == LoungeDetailsStatus.success &&
         state.selectedRooms.isNotEmpty &&
         state.selectedRooms.every(
-          (room) =>
-              room.isAvailable &&
-              !room.isOccupied &&
-              !state.bookedRoomIds.contains(room.id),
+          (room) => !state.bookedRoomIds.contains(room.id),
         );
   }
 
