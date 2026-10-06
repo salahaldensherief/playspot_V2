@@ -127,29 +127,23 @@ class LoungeDetailsRemoteDataSourceImpl
         categoryId.isNotEmpty &&
         categoryId.toLowerCase() != 'all';
 
-    final activityJoin = hasFilter
-        ? 'room_activities!inner'
-        : 'room_activities';
-    var query = _client
-        .from('rooms')
-        .select(
-          '*, space_types(name, label), $activityJoin(activity_type_id, activity_types(id, name, label, category, icon_name)), promotions:promotions!room_id(*)',
-        )
-        .eq('lounge_id', loungeId)
-        .eq('is_active', true)
-        .neq('status', 'deleted')
-        .neq('status', 'maintenance');
-
-    if (hasFilter) {
-      query = query.eq('room_activities.activity_type_id', categoryId);
-    }
-
     try {
-      final response = await query;
-      return await _hydrateRoomsWithPromotions(loungeId, response as List);
+      final response = await _client.rpc(
+        'get_lounge_booking_rooms',
+        params: {
+          'p_lounge_id': loungeId,
+          'p_activity_id': hasFilter ? categoryId : null,
+        },
+      );
+      if (response is! List) {
+        throw const FormatException('Invalid lounge room catalog response');
+      }
+      return response
+          .map((item) => RoomModel.fromJson(Map<String, dynamic>.from(item)))
+          .toList();
     } catch (e) {
       dev.log(
-        "[ROOMS_DS] Error getting rooms with promo join: $e, trying simpler fallback query",
+        "[ROOMS_DS] Booking room catalog RPC failed: $e, trying direct fallback query",
       );
       try {
         var fallbackQuery = _client
