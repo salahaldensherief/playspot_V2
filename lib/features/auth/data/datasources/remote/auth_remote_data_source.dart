@@ -365,13 +365,10 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
   Future<void> deleteAccount() async {
     try {
       AppLogger.debug(' [Auth] Calling delete-account Edge Function...');
-      try {
-        await _supabase.functions.invoke('delete-account');
-      } catch (e) {
-        AppLogger.debug(
-          ' [Auth] Edge Function delete-account error ($e), falling back to RPC...',
-        );
-        await _supabase.rpc('delete_user_account');
+      final response = await _supabase.functions.invoke('delete-account');
+      if (response.status < 200 || response.status >= 300 ||
+          response.data is! Map || response.data['success'] != true) {
+        throw const AppException('Account deletion was not confirmed. Please try again.');
       }
       AppLogger.debug(' [Auth] Account deletion executed successfully.');
       await signOut();
