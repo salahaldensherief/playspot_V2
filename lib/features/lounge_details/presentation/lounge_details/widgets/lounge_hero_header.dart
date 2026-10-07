@@ -17,6 +17,11 @@ class LoungeHeroHeader extends StatelessWidget {
     required this.heroTag,
   });
 
+  bool _photoActionVisible(BuildContext context) {
+    final settings = context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
+    return settings == null || settings.currentExtent > settings.minExtent + 60;
+  }
+
   @override
   Widget build(BuildContext context) => Stack(
     fit: StackFit.expand,
@@ -45,7 +50,7 @@ class LoungeHeroHeader extends StatelessWidget {
           ),
         ),
       ),
-      if (lounge.galleryImages.isNotEmpty)
+      if (lounge.galleryImages.isNotEmpty && _photoActionVisible(context))
         PositionedDirectional(
           top: MediaQuery.paddingOf(context).top + kToolbarHeight + 4,
           end: 12,
