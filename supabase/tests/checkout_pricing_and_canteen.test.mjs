@@ -50,7 +50,7 @@ try {
     ['20261007000016_checkout_pricing_rule_integration.sql','private.build_my_booking_checkout_quote'],
     ['20260927000011_server_authoritative_booking_checkout.sql','public.quote_my_booking_checkout'],
   ]) await db.exec(await source(file,name));
-  for (const file of ['20261007100822_checkout_voucher_allocation_and_price_stability.sql','20261007101011_canteen_combo_order_integrity.sql','20261007101554_pricing_weekly_conflict_integrity.sql'])
+  for (const file of ['20261007103018_checkout_voucher_allocation_and_price_stability.sql','20261007103019_canteen_combo_order_integrity.sql','20261007103029_pricing_weekly_conflict_integrity.sql'])
     await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));
   await db.exec(`CREATE TRIGGER clamp BEFORE INSERT OR UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION fn_validate_and_clamp_booking_price();
     CREATE TRIGGER normalize BEFORE INSERT OR UPDATE OF items ON canteen_orders FOR EACH ROW EXECUTE FUNCTION normalize_canteen_order_items();
