@@ -399,6 +399,8 @@ void main() {
     await tester.pumpAndSettle();
     expectClean(tester);
     expect(find.byType(LoungeTechnicalIssueBanner), findsOneWidget);
+    expect(find.text('lounge_technical_issue'.tr()), findsOneWidget);
+    expect(find.text('technical_issue'.tr()), findsOneWidget);
     expect(
       find.descendant(
         of: find.byType(LoungeTechnicalIssueBanner),

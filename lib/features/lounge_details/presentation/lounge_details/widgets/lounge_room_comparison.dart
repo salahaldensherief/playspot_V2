@@ -6,6 +6,7 @@ import '../lounge_details_state.dart';
 import '../lounge_comparison_facts.dart';
 import 'room_card/room_feature_item.dart';
 import 'room_card/room_detail_chip.dart';
+import 'lounge_detail_panel.dart';
 
 class LoungeRoomComparison extends StatelessWidget {
   const LoungeRoomComparison({super.key});
@@ -21,15 +22,12 @@ class LoungeRoomComparison extends StatelessWidget {
             isArabic: context.locale.languageCode == 'ar',
           );
           final rate = facts.minimumBaseRate;
-          return Column(
+          return LoungeDetailPanel(
+            titleKey: 'lounge_comparison_title',
+            icon: Icons.sports_esports_outlined,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Divider(height: 24, color: Colors.white12),
-              Text(
-                'lounge_comparison_title'.tr(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
               Wrap(
                 spacing: 12,
                 runSpacing: 8,
@@ -88,6 +86,7 @@ class LoungeRoomComparison extends StatelessWidget {
                   ),
                 ),
             ],
+            ),
           );
         },
       );

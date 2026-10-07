@@ -29,10 +29,18 @@ class RoomCardOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final arabic = context.locale.languageCode == 'ar';
     return Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          RoomHeader(
+            room: room,
+            isArabic: arabic,
+            isAvailable: data.isAvailable,
+            isExpanded: expanded,
+            themeColor: room.themeColor,
+          ),
+          const SizedBox(height: 14),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -54,23 +62,14 @@ class RoomCardOverview extends StatelessWidget {
                 ),
               ),
               if (data.hasOffer(room)) RoomPromoBadge(tag: _offer(arabic)),
+              RoomSpaceTypeBadge(
+                room: room,
+                isArabic: arabic,
+                themeColor: room.themeColor,
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          RoomHeader(
-            room: room,
-            isArabic: arabic,
-            isAvailable: data.isAvailable,
-            isExpanded: expanded,
-            themeColor: room.themeColor,
-          ),
-          const SizedBox(height: 8),
-          RoomSpaceTypeBadge(
-            room: room,
-            isArabic: arabic,
-            themeColor: room.themeColor,
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           RoomQuickSpecs(room: room),
         ],
       ),

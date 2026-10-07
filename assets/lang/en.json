@@ -709,8 +709,11 @@
   "favorites_load_error": "Could not load favorites. Check your connection and retry.",
   "receipt_image_load_error": "Could not load the receipt image",
   "splash_tagline": "BOOK • PLAY • WIN",
-  "lounge_technical_issue": "There is a temporary technical issue.",
-  "lounge_technical_issue_call_to_book": "There is a temporary technical issue. You can book by calling the lounge at {phone}",
+  "lounge_about_section": "About the lounge",
+  "lounge_visit_section": "Plan your visit",
+  "lounge_payment_section": "Payment options",
+  "lounge_technical_issue": "Online booking is temporarily unavailable. The lounge may still be open; check with the venue before visiting.",
+  "lounge_technical_issue_call_to_book": "Online booking is temporarily unavailable. Call the lounge at {phone} to check availability and book.",
   "call_lounge": "Call lounge",
-  "technical_issue": "Technical issue"
+  "technical_issue": "Online booking unavailable"
 }

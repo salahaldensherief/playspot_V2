@@ -709,8 +709,11 @@
   "favorites_load_error": "تعذر تحميل المفضلة. تحقق من الاتصال وحاول مجددًا.",
   "receipt_image_load_error": "تعذر تحميل صورة الإيصال",
   "splash_tagline": "احجز • العب • اكسب",
-  "lounge_technical_issue": "هناك عطل فني مؤقت.",
-  "lounge_technical_issue_call_to_book": "هناك عطل فني مؤقت. يمكنك الحجز بالاتصال بالصالة على {phone}",
+  "lounge_about_section": "عن الصالة",
+  "lounge_visit_section": "خطط لزيارتك",
+  "lounge_payment_section": "طرق الدفع",
+  "lounge_technical_issue": "الحجز الأونلاين غير متاح مؤقتًا. قد تكون الصالة مفتوحة؛ تأكد منها قبل الزيارة.",
+  "lounge_technical_issue_call_to_book": "الحجز الأونلاين غير متاح مؤقتًا. اتصل بالصالة على {phone} للتأكد من التوفر والحجز.",
   "call_lounge": "اتصال بالصالة",
-  "technical_issue": "عطل فني مؤقت"
+  "technical_issue": "الحجز الأونلاين غير متاح"
 }

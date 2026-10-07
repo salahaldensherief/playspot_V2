@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../room_card_presentation.dart';
 import 'room_constants.dart';
@@ -36,12 +35,19 @@ class RoomCardBody extends StatelessWidget {
     child: AnimatedContainer(
       duration: RoomConstants.animationDuration,
       margin: const EdgeInsets.only(bottom: 12),
-      child: GlassContainer(
-        borderRadius: RoomConstants.borderRadius,
-        borderOpacity: data.isSelected || expanded ? 0.3 : 0.05,
-        useBorderColorForGradient: false,
-        color: Colors.white.withValues(alpha: 0.02),
-        borderColor: borderColor,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: borderColor, width: data.isSelected ? 1.5 : 1),
+        gradient: LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomEnd,
+          colors: [
+            Color.alphaBlend(room.themeColor.withValues(alpha: data.isSelected ? 0.15 : 0.07), const Color(0xFF161622)),
+            const Color(0xFF11111B),
+          ],
+        ),
+      ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -54,7 +60,6 @@ class RoomCardBody extends StatelessWidget {
             ),
           ],
         ),
-      ),
     ),
   );
 }

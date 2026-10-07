@@ -7,7 +7,6 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/services/contact_launcher_service.dart';
 
 class LoungeTechnicalIssueBanner extends StatelessWidget {
@@ -42,19 +41,21 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
-                Icons.warning_amber_rounded,
+                Icons.wifi_off_rounded,
                 color: AppColors.warning,
                 size: 22.sp,
               ),
               SizedBox(width: 10.w),
               Expanded(
-                child: AppText(
-                  text: message,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.warning,
-                  maxLines: 4,
-                  height: 1.4,
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    fontFamily: 'Tajawal',
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.warning,
+                    height: 1.5,
+                  ),
                 ),
               ),
             ],
