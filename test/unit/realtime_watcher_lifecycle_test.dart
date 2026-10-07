@@ -17,8 +17,9 @@ void main() {
     await subscription.cancel();
     await tester.pump(const Duration(milliseconds: 20));
     expect(calls, 1);
-    await source.close();
-  });
+    expect(source.hasListener, isFalse);
+    unawaited(source.close());
+  }, timeout: const Timeout(Duration(seconds: 30)));
 
   testWidgets('returned subscription cancels the replacement stream after retry', (tester) async {
     final first = StreamController<int>();
@@ -41,9 +42,9 @@ void main() {
     second.add(2);
     await tester.pump();
     expect(values, [1]);
-    await first.close();
-    await second.close();
-  });
+    unawaited(first.close());
+    unawaited(second.close());
+  }, timeout: const Timeout(Duration(seconds: 30)));
 
   testWidgets('permission failures do not start a retry loop', (tester) async {
     final source = StreamController<int>();
@@ -57,6 +58,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 20));
     expect(calls, 1);
     await subscription.cancel();
-    await source.close();
-  });
+    expect(source.hasListener, isFalse);
+    unawaited(source.close());
+  }, timeout: const Timeout(Duration(seconds: 30)));
 }
