@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:get_storage/get_storage.dart';
 import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,6 +27,21 @@ import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'active_session_cubit_test.dart' show MockActiveSessionRepository;
 
 void main() {
+  late Directory storageDirectory;
+  const storageChannel = MethodChannel('plugins.flutter.io/path_provider');
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    storageDirectory = await Directory.systemTemp.createTemp('playspot_session_test_');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(storageChannel, (_) async => storageDirectory.path);
+    await GetStorage.init();
+  });
+  tearDownAll(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(storageChannel, null);
+    await storageDirectory.delete(recursive: true);
+  });
+
   TestWidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
   late MockActiveSessionRepository repo;

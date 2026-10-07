@@ -5,6 +5,16 @@ import 'package:playspot/features/active_session/domain/entities/out_of_stock_it
 import 'package:playspot/features/active_session/domain/entities/upsell_suggestion.dart';
 
 void main() {
+  test('upsell order payload passes only the rule and target to server pricing', () {
+    const item = OrderItemModel(id: 'combo', name: 'Offer', price: 1,
+      quantity: 1, isCombo: true, upsellRuleId: 'rule');
+    expect(item.toOrderPayload(), {
+      'combo_id': 'combo', 'quantity': 1, 'upsell_rule_id': 'rule',
+    });
+    final restored = OrderItemModel.fromJson(item.toJson());
+    expect(restored.upsellRuleId, 'rule');
+    expect(restored.isCombo, isTrue);
+  });
   group('Canteen Combos & Upsell Engine Tests', () {
     test('1. Combo without image handles null safely and provides fallback', () {
       const comboNoImg = CanteenCombo(

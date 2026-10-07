@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
@@ -31,6 +34,21 @@ class MockActiveSessionRepository extends Mock
     implements ActiveSessionRepository {}
 
 void main() {
+  late Directory storageDirectory;
+  const storageChannel = MethodChannel('plugins.flutter.io/path_provider');
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    storageDirectory = await Directory.systemTemp.createTemp('playspot_session_test_');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(storageChannel, (_) async => storageDirectory.path);
+    await GetStorage.init();
+  });
+  tearDownAll(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(storageChannel, null);
+    await storageDirectory.delete(recursive: true);
+  });
+
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     tz.initializeTimeZones();

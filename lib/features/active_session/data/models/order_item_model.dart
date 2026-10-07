@@ -12,6 +12,7 @@ class OrderItemModel extends OrderItem {
     super.note,
     super.isCombo,
     super.status,
+    super.upsellRuleId,
   });
 
   factory OrderItemModel.fromEntity(OrderItem entity) {
@@ -26,6 +27,7 @@ class OrderItemModel extends OrderItem {
       note: entity.note,
       isCombo: entity.isCombo,
       status: entity.status,
+      upsellRuleId: entity.upsellRuleId,
     );
   }
 
@@ -86,6 +88,7 @@ class OrderItemModel extends OrderItem {
       note: json['note']?.toString() ?? json['notes']?.toString(),
       isCombo: isCombo,
       status: json['status']?.toString(),
+      upsellRuleId: json['upsell_rule_id']?.toString(),
     );
   }
 
@@ -100,17 +103,20 @@ class OrderItemModel extends OrderItem {
         if (note != null) 'note': note,
         'is_combo': isCombo,
         if (status != null) 'status': status,
+        if (upsellRuleId != null) 'upsell_rule_id': upsellRuleId,
       };
 
   Map<String, dynamic> toOrderPayload() {
     if (isCombo) {
       return {
         'combo_id': id,
+        if (upsellRuleId != null) 'upsell_rule_id': upsellRuleId,
         'quantity': quantity,
       };
     }
     return {
       'extra_id': id,
+      if (upsellRuleId != null) 'upsell_rule_id': upsellRuleId,
       'quantity': quantity,
     };
   }

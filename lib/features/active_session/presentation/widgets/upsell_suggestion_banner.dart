@@ -29,9 +29,10 @@ class _UpsellSuggestionBannerState extends State<UpsellSuggestionBanner> {
     return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
       buildWhen: (prev, curr) =>
           prev.upsellSuggestions != curr.upsellSuggestions ||
-          prev.upsellImpressionsCount != curr.upsellImpressionsCount,
+          prev.upsellImpressionsCount != curr.upsellImpressionsCount ||
+          prev.orderStatus != curr.orderStatus,
       builder: (context, state) {
-        if (state.upsellSuggestions.isEmpty || state.upsellImpressionsCount >= 2) {
+        if (state.upsellSuggestions.isEmpty) {
           return const SizedBox.shrink();
         }
 
@@ -155,9 +156,8 @@ class _UpsellSuggestionBannerState extends State<UpsellSuggestionBanner> {
                   icon: Icon(Icons.add, size: 14.sp, color: AppColors.white),
                 ),
                 behavior: TapBehavior(
-                  isEnabled: true,
+                  isEnabled: state.orderStatus != ActionStatus.loading,
                   onTap: () {
-                    cubit.acceptUpsellSuggestion(suggestion);
                     final orderItem = OrderItem(
                       id: suggestion.targetId,
                       name: title,
@@ -166,6 +166,7 @@ class _UpsellSuggestionBannerState extends State<UpsellSuggestionBanner> {
                       price: price,
                       quantity: 1,
                       isCombo: suggestion.isCombo,
+                      upsellRuleId: suggestion.ruleId,
                     );
                     cubit.placeOrder([orderItem]);
                   },

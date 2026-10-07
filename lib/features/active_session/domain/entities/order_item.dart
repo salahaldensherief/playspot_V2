@@ -11,6 +11,7 @@ class OrderItem extends Equatable {
   final String? note;
   final bool isCombo;
   final String? status;
+  final String? upsellRuleId;
 
   const OrderItem({
     required this.id,
@@ -23,10 +24,11 @@ class OrderItem extends Equatable {
     this.note,
     this.isCombo = false,
     this.status,
+    this.upsellRuleId,
   });
 
   @override
-  List<Object?> get props => [id, name, nameAr, nameEn, price, quantity, totalPriceOverride, note, isCombo, status];
+  List<Object?> get props => [id, name, nameAr, nameEn, price, quantity, totalPriceOverride, note, isCombo, status, upsellRuleId];
 
   double get total {
     final override = totalPriceOverride;
