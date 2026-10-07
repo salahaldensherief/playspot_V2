@@ -35,5 +35,5 @@ Future<void> initCoreModule() async {
   sl.registerLazySingleton<DirectionsService>(
     () => const DirectionsServiceImpl(),
   );
-  sl.registerLazySingleton<DeepLinkService>(() => DeepLinkService(sl(), sl()));
+  sl.registerLazySingleton<DeepLinkService>(() => DeepLinkService(sl()));
 }

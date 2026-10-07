@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +9,7 @@ import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/time/app_clock.dart';
 import 'package:playspot/core/utils/localized_duration_formatter.dart';
 import 'package:playspot/features/active_session/presentation/active_session_cubit.dart';
 import 'package:playspot/features/active_session/presentation/active_session_state.dart';
@@ -45,7 +45,11 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
     return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
       buildWhen: (previous, current) =>
           previous.status != current.status ||
-          previous.session != current.session,
+          previous.session?.bookingId != current.session?.bookingId ||
+          previous.session?.startTime != current.session?.startTime ||
+          previous.session?.endTime != current.session?.endTime ||
+          previous.session?.loungeName != current.session?.loungeName ||
+          previous.session?.deviceName != current.session?.deviceName,
       builder: (context, state) {
         if (state.status != ActiveSessionStatus.loaded ||
             state.session == null) {
@@ -82,7 +86,7 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
                   ),
                 ],
               ),
-              child: _SessionTicker(
+              child: AppClock(
                 child: Row(
                   children: [
                     // Isolated Ticking Progress Arc
@@ -190,60 +194,6 @@ class _ActiveSessionBannerState extends State<ActiveSessionBanner>
   }
 }
 
-class _SessionTicker extends StatefulWidget {
-  final Widget child;
-
-  const _SessionTicker({required this.child});
-
-  @override
-  State<_SessionTicker> createState() => _SessionTickerState();
-}
-
-class _SessionTickerState extends State<_SessionTicker> {
-  final ValueNotifier<DateTime> _now = ValueNotifier(DateTime.now());
-  Timer? _timer;
-  bool? _tickerEnabled;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final enabled = TickerMode.valuesOf(context).enabled;
-    if (_tickerEnabled == enabled) return;
-    _tickerEnabled = enabled;
-    _timer?.cancel();
-    _timer = null;
-    if (enabled) {
-      _now.value = DateTime.now();
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        _now.value = DateTime.now();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _now.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return _SessionTickerScope(notifier: _now, child: widget.child);
-  }
-}
-
-class _SessionTickerScope extends InheritedNotifier<ValueNotifier<DateTime>> {
-  const _SessionTickerScope({required super.notifier, required super.child});
-
-  static ValueNotifier<DateTime> of(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<_SessionTickerScope>();
-    assert(scope != null, 'No session ticker found in context.');
-    return scope!.notifier!;
-  }
-}
-
 class _SessionCountdownText extends StatelessWidget {
   final DateTime endTime;
 
@@ -251,8 +201,7 @@ class _SessionCountdownText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<DateTime>(
-      valueListenable: _SessionTickerScope.of(context),
+    return AppClockBuilder(
       builder: (context, now, child) {
         final remaining = endTime.difference(now);
         if (remaining.inSeconds <= 0) {
@@ -290,8 +239,7 @@ class _SessionCircularProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<DateTime>(
-      valueListenable: _SessionTickerScope.of(context),
+    return AppClockBuilder(
       builder: (context, now, child) {
         final totalDuration = endTime.difference(startTime).inSeconds;
         final remainingSeconds = endTime.difference(now).inSeconds;

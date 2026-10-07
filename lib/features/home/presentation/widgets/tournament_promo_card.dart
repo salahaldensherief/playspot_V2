@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +11,7 @@ import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/time/app_clock.dart';
 import '../../../tournaments/domain/entities/tournament_entity.dart';
 
 class TournamentPromoCard extends StatelessWidget {
@@ -241,51 +241,20 @@ class TournamentPromoCard extends StatelessWidget {
   }
 }
 
-/// Isolated sub-widget for 1-second ticker badge (prevents rebuilding parent promo card)
-class _TournamentCountdownTimer extends StatefulWidget {
+class _TournamentCountdownTimer extends StatelessWidget {
   final DateTime targetDate;
 
   const _TournamentCountdownTimer({required this.targetDate});
 
   @override
-  State<_TournamentCountdownTimer> createState() =>
-      _TournamentCountdownTimerState();
-}
-
-class _TournamentCountdownTimerState extends State<_TournamentCountdownTimer> {
-  Timer? _timer;
-  Duration _timeLeft = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTimeLeft();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateTimeLeft();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _updateTimeLeft() {
-    final now = DateTime.now();
-    final difference = widget.targetDate.difference(now);
-    if (mounted) {
-      setState(() {
-        _timeLeft = difference.isNegative ? Duration.zero : difference;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final hours = _timeLeft.inHours;
-    final minutes = _timeLeft.inMinutes.remainder(60);
-    final seconds = _timeLeft.inSeconds.remainder(60);
+    return AppClockBuilder(
+      builder: (context, now, child) {
+        final difference = targetDate.difference(now);
+        final timeLeft = difference.isNegative ? Duration.zero : difference;
+        final hours = timeLeft.inHours;
+        final minutes = timeLeft.inMinutes.remainder(60);
+        final seconds = timeLeft.inSeconds.remainder(60);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
@@ -302,6 +271,8 @@ class _TournamentCountdownTimerState extends State<_TournamentCountdownTimer> {
 
         color: AppColors.neonBlue,
       ),
+    );
+      },
     );
   }
 }

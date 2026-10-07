@@ -8,8 +8,8 @@ void main() {
       'lib/features/home/presentation/widgets/active_session_banner.dart',
     ).readAsStringSync();
 
-    expect(RegExp(r'Timer\.periodic').allMatches(source), hasLength(1));
-    expect(source, contains('TickerMode.valuesOf(context).enabled'));
+    expect(source, contains('AppClockBuilder('));
+    expect(source, isNot(contains('Timer.periodic')));
     expect(source, contains('AppStrings.liveNow.tr()'));
     expect(source, contains('AppStrings.joinNow.tr()'));
     expect(source, contains('LocalizedDurationFormatter'));

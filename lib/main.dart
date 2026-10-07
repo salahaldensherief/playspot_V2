@@ -15,7 +15,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:playspot/firebase_options.dart';
 import 'art_core/router/app_router.dart';
 import 'core/di.dart';
-import 'core/services/deep_link_service.dart';
 import 'core/services/network_connectivity_service.dart';
 import 'art_core/widgets/notifications/network_status_banner.dart';
 import 'core/notifications/firebase_background_handler.dart';
@@ -76,7 +75,6 @@ void main() async {
 
   NetworkConnectivityService().initialize();
 
-  sl<DeepLinkService>().initialize();
 
   if (!kIsWeb) {
     FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);

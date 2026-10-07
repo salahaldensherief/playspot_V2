@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+import 'package:playspot/art_core/widgets/time/app_clock.dart';
 import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/layout/sliver_bottom_spacing.dart';
@@ -28,7 +29,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _HomeView(isActive: isActive);
+    return TickerMode(
+      enabled: isActive,
+      child: AppClock(child: _HomeView(isActive: isActive)),
+    );
   }
 }
 

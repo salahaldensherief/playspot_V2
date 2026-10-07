@@ -1,108 +1,35 @@
-import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/widgets/time/app_clock.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
 import 'timer_widget.dart';
 
-class TimerSection extends StatefulWidget {
+class TimerSection extends StatelessWidget {
   const TimerSection({super.key});
 
   @override
-  State<TimerSection> createState() => _TimerSectionState();
-}
-
-class _TimerSectionState extends State<TimerSection> {
-  Timer? _ticker;
-  final ValueNotifier<Duration> _remainingNotifier = ValueNotifier(
-    Duration.zero,
-  );
-  DateTime? _startTime;
-  DateTime? _endTime;
-
-  @override
-  void initState() {
-    super.initState();
-    _initTimerData();
-  }
-
-  void _initTimerData() {
-    final state = context.read<ActiveSessionCubit>().state;
-    final session = state.session;
-    if (session != null) {
-      _startTime = session.startTime;
-      _endTime = session.endTime;
-      _updateRemaining();
-    }
-
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted && _startTime != null && _endTime != null) {
-        _updateRemaining();
-      }
-    });
-  }
-
-  void _updateRemaining() {
-    final now = DateTime.now();
-    final startTime = _startTime;
-    final endTime = _endTime;
-    if (startTime != null && endTime != null) {
-      if (now.isBefore(startTime)) {
-        _remainingNotifier.value = startTime.difference(now);
-      } else {
-        _remainingNotifier.value = endTime.difference(now);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    _remainingNotifier.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocConsumer<ActiveSessionCubit, ActiveSessionState>(
-      listenWhen: (prev, curr) =>
-          prev.session?.bookingId != curr.session?.bookingId ||
-          prev.session?.startTime != curr.session?.startTime ||
-          prev.session?.endTime != curr.session?.endTime,
-      listener: (context, state) {
-        final session = state.session;
-        if (session != null) {
-          _startTime = session.startTime;
-          _endTime = session.endTime;
-          _updateRemaining();
-        } else {
-          _startTime = null;
-          _endTime = null;
-          _remainingNotifier.value = Duration.zero;
-        }
-      },
+    return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
       buildWhen: (prev, curr) =>
           prev.session?.bookingId != curr.session?.bookingId ||
           prev.session?.endTime != curr.session?.endTime ||
-          prev.session?.startTime != curr.session?.startTime ||
-          prev.session?.extensionStatus != curr.session?.extensionStatus,
+          prev.session?.startTime != curr.session?.startTime,
       builder: (context, state) {
         final session = state.session;
         if (session == null) return const SizedBox.shrink();
 
-        _startTime = session.startTime;
-        _endTime = session.endTime;
-
         return RepaintBoundary(
-          child: ValueListenableBuilder<Duration>(
-            valueListenable: _remainingNotifier,
-            builder: (context, remaining, child) {
-              final now = DateTime.now();
-              final currentStart = _startTime ?? session.startTime;
-              final currentEnd = _endTime ?? session.endTime;
+          child: AppClockBuilder(
+            builder: (context, now, child) {
+              final currentStart = session.startTime;
+              final currentEnd = session.endTime;
+              final remaining = now.isBefore(currentStart)
+                  ? currentStart.difference(now)
+                  : currentEnd.difference(now);
               final hasStarted = !now.isBefore(currentStart);
 
               if (!hasStarted) {

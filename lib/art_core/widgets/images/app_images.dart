@@ -10,6 +10,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../core/cache/app_cache_manager.dart';
 import '../../theme/app_colors.dart';
+import 'image_decode_size.dart';
 
 class AppImage extends StatelessWidget {
   /// The URL or path of the image (e.g., HTTP URL, asset path, or file path).
@@ -90,12 +91,21 @@ class AppImage extends StatelessWidget {
         color: backgroundColor,
         width: width,
         height: height,
-        child: enableZoom
-            ? GestureDetector(
-          onTap: () => _showZoomDialog(context),
-          child: _buildImageBasedOnSource(),
-        )
-            : _buildImageBasedOnSource(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final cacheWidth = imageDecodeWidth(
+              width ?? (constraints.hasBoundedWidth ? constraints.maxWidth : null),
+              MediaQuery.devicePixelRatioOf(context),
+            );
+            final image = _buildImageBasedOnSource(cacheWidth: cacheWidth);
+            return enableZoom
+                ? GestureDetector(
+                    onTap: () => _showZoomDialog(context),
+                    child: image,
+                  )
+                : image;
+          },
+        ),
       ),
     );
   }
@@ -171,19 +181,19 @@ class AppImage extends StatelessWidget {
   }
 
   /// Determines the image source and delegates to the appropriate builder.
-  Widget _buildImageBasedOnSource() {
+  Widget _buildImageBasedOnSource({int? cacheWidth}) {
     final cleanUrl = urlImg.trim();
     if (cleanUrl.isEmpty || cleanUrl == 'null') {
       return _buildError();
     }
     if (cleanUrl.startsWith('http')) {
-      return _buildNetworkImage();
+      return _buildNetworkImage(cacheWidth: cacheWidth);
     }
     return _buildLocalImage();
   }
 
   /// Builds the network image using CachedNetworkImage with 7-day disk cache.
-  Widget _buildNetworkImage() {
+  Widget _buildNetworkImage({int? cacheWidth}) {
     final cleanUrl = urlImg.trim();
     if (cleanUrl.isEmpty || cleanUrl == 'null') {
       return _buildError();
@@ -199,8 +209,7 @@ class AppImage extends StatelessWidget {
       errorWidget: (_, _, _) => errorWidget ?? _buildError(),
       fadeInDuration: const Duration(milliseconds: 300),
       fadeOutDuration: const Duration(milliseconds: 200),
-      memCacheWidth: (width != null && width! > 0 && width!.isFinite) ? (width! * 2).toInt() : null,
-      memCacheHeight: (height != null && height! > 0 && height!.isFinite) ? (height! * 2).toInt() : null,
+      memCacheWidth: cacheWidth,
     );
   }
 
