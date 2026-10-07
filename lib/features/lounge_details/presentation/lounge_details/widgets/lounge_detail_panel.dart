@@ -24,7 +24,12 @@ class LoungeDetailPanel extends StatelessWidget {
       border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
     ),
     child: DefaultTextStyle.merge(
-      style: const TextStyle(fontFamily: 'Tajawal', fontSize: 14, height: 1.5),
+      style: const TextStyle(
+        color: Colors.white,
+        fontFamily: 'Tajawal',
+        fontSize: 14,
+        height: 1.5,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
