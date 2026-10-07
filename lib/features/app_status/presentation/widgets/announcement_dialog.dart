@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -73,12 +73,13 @@ class AnnouncementDialog extends StatelessWidget {
             if (imageUrl != null && imageUrl!.isNotEmpty) ...[
               ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl!,
+                child: AppImage(
+                              borderRadius: 0,
+                  urlImg: imageUrl!,
                   height: 180.h,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                  errorWidget: const SizedBox.shrink(),
                 ),
               ),
               16.verticalSpace,

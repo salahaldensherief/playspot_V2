@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -179,14 +180,15 @@ class BookingReceiptDialog extends StatelessWidget {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
-                            CachedNetworkImage(
-                              imageUrl: effectiveReceiptUrl,
+                            AppImage(
+                              borderRadius: 0,
+                              urlImg: effectiveReceiptUrl,
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) =>
+                              placeholderWidget:
                                   const Center(child: AppLoader()),
-                              errorWidget: (context, url, error) => Column(
+                              errorWidget: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(

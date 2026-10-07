@@ -93,9 +93,11 @@ class AppImage extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final cacheWidth = imageDecodeWidth(
-              width ??
-                  (constraints.hasBoundedWidth ? constraints.maxWidth : null),
+              width,
               MediaQuery.devicePixelRatioOf(context),
+              fallbackWidth: constraints.hasBoundedWidth
+                  ? constraints.maxWidth
+                  : null,
             );
             final image = _buildImageBasedOnSource(cacheWidth: cacheWidth);
             return enableZoom

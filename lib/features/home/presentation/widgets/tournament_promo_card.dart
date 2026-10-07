@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -72,10 +72,11 @@ class TournamentPromoCard extends StatelessWidget {
                 child:
                     tournament.imageUrl != null &&
                         tournament.imageUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: tournament.imageUrl!,
+                    ? AppImage(
+                              borderRadius: 0,
+                        urlImg: tournament.imageUrl!,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
+                        placeholderWidget: Container(
                           color: AppColors.tournamentHeaderBg,
                           child: const Center(
                             child: AppLoader(
@@ -85,7 +86,7 @@ class TournamentPromoCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
+                        errorWidget: Container(
                           decoration: const BoxDecoration(
                             gradient: AppColors.tournamentPromoGradient,
                           ),

@@ -15,4 +15,12 @@ void main() {
     expect(imageDecodeWidth(0, 3), isNull);
     expect(imageDecodeWidth(100, double.nan), 100);
   });
+
+  test('fill-width images use their bounded parent for decode sizing', () {
+    expect(imageDecodeWidth(double.infinity, 3, fallbackWidth: 320), 960);
+    expect(imageDecodeWidth(null, 2, fallbackWidth: 240), 480);
+    expect(imageDecodeWidth(120, 2, fallbackWidth: 320), 240);
+    expect(imageDecodeWidth(0, 2, fallbackWidth: 320), isNull);
+    expect(imageDecodeWidth(double.infinity, 2, fallbackWidth: double.infinity), isNull);
+  });
 }
