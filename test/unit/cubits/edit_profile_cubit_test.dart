@@ -11,6 +11,7 @@ import 'package:playspot/features/profile/domain/repositories/profile_repository
 import 'package:playspot/features/profile/presentation/edit_profile/edit_profile_cubit.dart';
 
 class MockProfileRepository extends Mock implements ProfileRepository {}
+
 class MockAuthRepository extends Mock implements AuthRepository {}
 
 void main() {
@@ -48,7 +49,8 @@ void main() {
   group('Batch 3 — EditProfileCubit Unit Tests', () {
     test('late initial profile does not write disposed controllers', () async {
       final response = Completer<Either<Failure, UserModel>>();
-      when(() => mockProfileRepository.getUserProfile()).thenAnswer((_) => response.future);
+      when(() => mockProfileRepository.getUserProfile())
+          .thenAnswer((_) => response.future);
       final loading = cubit.init();
       await cubit.close();
       response.complete(Right(testUser.copyWith(name: 'Late')));
@@ -58,8 +60,10 @@ void main() {
 
     test('late location profile does not write disposed controllers', () async {
       final response = Completer<Either<Failure, UserModel>>();
-      when(() => mockProfileRepository.updateUserLocation()).thenAnswer((_) async => const Right(null));
-      when(() => mockProfileRepository.getUserProfile()).thenAnswer((_) => response.future);
+      when(() => mockProfileRepository.updateUserLocation())
+          .thenAnswer((_) async => const Right(null));
+      when(() => mockProfileRepository.getUserProfile())
+          .thenAnswer((_) => response.future);
       final loading = cubit.updateLocation();
       await Future<void>.delayed(Duration.zero);
       verify(() => mockProfileRepository.getUserProfile()).called(1);
@@ -79,21 +83,24 @@ void main() {
       expect(cubit.emailController.text, equals('test@playspot.app'));
     });
 
-    test('updateProfile prevents duplicate calls when already loading', () async {
-      when(() => mockProfileRepository.updateProfile(any()))
-          .thenAnswer((_) async {
-            await Future.delayed(const Duration(milliseconds: 100));
-            return Right(testUser.copyWith(name: 'New Name'));
-          });
+    test(
+      'updateProfile prevents duplicate calls when already loading',
+      () async {
+        when(() => mockProfileRepository.updateProfile(any()))
+            .thenAnswer((_) async {
+              await Future.delayed(const Duration(milliseconds: 100));
+              return Right(testUser.copyWith(name: 'New Name'));
+            });
 
-      cubit.nameController.text = 'New Name';
-      cubit.phoneController.text = '01000000000';
+        cubit.nameController.text = 'New Name';
+        cubit.phoneController.text = '01000000000';
 
-      cubit.updateProfile();
-      cubit.updateProfile(); // duplicate invocation
+        cubit.updateProfile();
+        cubit.updateProfile(); // duplicate invocation
 
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      verify(() => mockProfileRepository.updateProfile(any())).called(1);
-    });
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+        verify(() => mockProfileRepository.updateProfile(any())).called(1);
+      },
+    );
   });
 }

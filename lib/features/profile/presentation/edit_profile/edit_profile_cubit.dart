@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,6 +8,7 @@ import 'package:playspot/features/auth/domain/repositories/auth_repository.dart'
 import 'package:playspot/features/profile/data/models/profile_params.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import 'package:playspot/features/profile/presentation/profile/profile_cubit.dart';
+
 import 'edit_profile_state.dart';
 
 class EditProfileCubit extends Cubit<EditProfileState> {
@@ -19,7 +21,8 @@ class EditProfileCubit extends Cubit<EditProfileState> {
   final TextEditingController locationController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  EditProfileCubit(this._profileRepository, this._authRepository) : super(const EditProfileState());
+  EditProfileCubit(this._profileRepository, this._authRepository)
+    : super(const EditProfileState());
 
   Future<void> init({bool isArabic = false}) async {
     if (isClosed) return;
@@ -34,18 +37,16 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     // Fetch full profile
     final profileRes = await _profileRepository.getUserProfile();
     if (isClosed) return;
-    profileRes.fold(
-      (_) {},
-      (user) {
-        nameController.text = user.name ?? nameController.text;
-        phoneController.text = user.phone ?? phoneController.text;
-        emailController.text = user.email ?? emailController.text;
-        locationController.text = user.getCityName(isArabic) ?? locationController.text;
-        if (!isClosed) {
-          emit(state.copyWith(user: user));
-        }
-      },
-    );
+    profileRes.fold((_) {}, (user) {
+      nameController.text = user.name ?? nameController.text;
+      phoneController.text = user.phone ?? phoneController.text;
+      emailController.text = user.email ?? emailController.text;
+      locationController.text =
+          user.getCityName(isArabic) ?? locationController.text;
+      if (!isClosed) {
+        emit(state.copyWith(user: user));
+      }
+    });
   }
 
   Future<void> updateLocation({bool isArabic = false}) async {
@@ -56,10 +57,12 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     await result.fold<Future<void>>(
       (failure) async {
         if (!isClosed) {
-          emit(state.copyWith(
-            status: EditProfileStatus.error,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: EditProfileStatus.error,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (_) async {
@@ -72,12 +75,15 @@ class EditProfileCubit extends Cubit<EditProfileState> {
             }
           },
           (user) {
-            locationController.text = user.getCityName(isArabic) ?? locationController.text;
+            locationController.text =
+                user.getCityName(isArabic) ?? locationController.text;
             if (!isClosed) {
-              emit(state.copyWith(
-                status: EditProfileStatus.locationUpdated,
-                user: user,
-              ));
+              emit(
+                state.copyWith(
+                  status: EditProfileStatus.locationUpdated,
+                  user: user,
+                ),
+              );
             }
           },
         );
@@ -89,10 +95,12 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null && !isClosed) {
-      emit(state.copyWith(
-        avatarFile: File(pickedFile.path),
-        status: EditProfileStatus.initial,
-      ));
+      emit(
+        state.copyWith(
+          avatarFile: File(pickedFile.path),
+          status: EditProfileStatus.initial,
+        ),
+      );
     }
   }
 
@@ -113,10 +121,12 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     result.fold(
       (failure) {
         if (!isClosed) {
-          emit(state.copyWith(
-            status: EditProfileStatus.error,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: EditProfileStatus.error,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (user) {
@@ -124,11 +134,13 @@ class EditProfileCubit extends Cubit<EditProfileState> {
           try {
             sl<ProfileCubit>().updateUser(user);
           } catch (_) {}
-          emit(state.copyWith(
-            status: EditProfileStatus.success,
-            user: user,
-            clearAvatarFile: true,
-          ));
+          emit(
+            state.copyWith(
+              status: EditProfileStatus.success,
+              user: user,
+              clearAvatarFile: true,
+            ),
+          );
         }
       },
     );
@@ -142,10 +154,12 @@ class EditProfileCubit extends Cubit<EditProfileState> {
     result.fold(
       (failure) {
         if (!isClosed) {
-          emit(state.copyWith(
-            status: EditProfileStatus.error,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: EditProfileStatus.error,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (_) {
