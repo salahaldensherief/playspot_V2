@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:playspot/core/models/paginated_response.dart';
+import 'package:playspot/core/error/failures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dartz/dartz.dart';
@@ -43,6 +46,46 @@ void main() {
   });
 
   group('Batch 1 — ProfileCubit Unit Tests', () {
+    test('history loads next page, deduplicates IDs and stops at the end', () async {
+      when(() => mockProfileRepository.getPointsHistory(page: 1)).thenAnswer((_) async =>
+        const Right(PaginatedResponse(items: [{'id': 'one'}], totalCount: 40, page: 1, pageSize: 20)));
+      when(() => mockProfileRepository.getPointsHistory(page: 2)).thenAnswer((_) async =>
+        const Right(PaginatedResponse(items: [{'id': 'one'}, {'id': 'two'}], totalCount: 40, page: 2, pageSize: 20)));
+      await cubit.loadPointsHistory(refresh: true);
+      await cubit.loadPointsHistory();
+      await cubit.loadPointsHistory();
+      expect(cubit.state.pointsHistory.map((x) => x['id']), ['one', 'two']);
+      expect(cubit.state.hasMorePointsHistory, false);
+      verify(() => mockProfileRepository.getPointsHistory(page: 2)).called(1);
+    });
+
+    test('failure remains visible and retry repeats the failed page', () async {
+      when(() => mockProfileRepository.getPointsHistory(page: 1)).thenAnswer((_) async =>
+        const Left(ServerFailure('synthetic failure')));
+      await cubit.loadPointsHistory(refresh: true);
+      expect(cubit.state.pointsHistoryFailed, true);
+      expect(cubit.state.isLoadingMorePointsHistory, false);
+      await cubit.loadPointsHistory();
+      verify(() => mockProfileRepository.getPointsHistory(page: 1)).called(2);
+    });
+
+    test('parallel load-more is suppressed and stale refresh cannot overwrite newer results', () async {
+      final pending = Completer<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>();
+      var calls = 0;
+      when(() => mockProfileRepository.getPointsHistory(page: 1)).thenAnswer((_) {
+        calls++;
+        if (calls == 1) return pending.future;
+        return Future.value(const Right(PaginatedResponse(items: [{'id': 'fresh'}], totalCount: 1, page: 1, pageSize: 20)));
+      });
+      final first = cubit.loadPointsHistory(refresh: true);
+      await cubit.loadPointsHistory();
+      expect(calls, 1);
+      await cubit.loadPointsHistory(refresh: true);
+      pending.complete(const Right(PaginatedResponse(items: [{'id': 'stale'}], totalCount: 1, page: 1, pageSize: 20)));
+      await first;
+      expect(cubit.state.pointsHistory.single['id'], 'fresh');
+    });
+
     test('initial state is correct', () {
       expect(cubit.state.status, equals(ProfileStatus.initial));
       expect(cubit.state.pointsBalance, equals(0));

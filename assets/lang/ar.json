@@ -1,4 +1,5 @@
 {
+  "pointsHistoryLoadMore": "عرض المزيد من المعاملات",
   "profile_rewards": {
     "used_on": "استخدمت في {date}", "expired_on": "انتهت في {date}",
     "valid_until": "صالحة حتى {date}", "date_unknown": "التاريخ غير متاح",

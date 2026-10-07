@@ -1,4 +1,5 @@
 {
+  "pointsHistoryLoadMore": "Load more transactions",
   "profile_rewards": {
     "used_on": "Used on {date}", "expired_on": "Expired on {date}",
     "valid_until": "Valid until {date}", "date_unknown": "Date unavailable",

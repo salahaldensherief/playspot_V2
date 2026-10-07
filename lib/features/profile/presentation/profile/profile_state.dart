@@ -29,6 +29,7 @@ class ProfileState extends Equatable {
   final bool hasMorePointsHistory;
   final bool isLoadingMorePointsHistory;
   final int pointsTotalCount;
+  final bool pointsHistoryFailed;
   final LoyaltyStatusModel? loyaltyStatus;
   final List<LoyaltyMissionModel> loyaltyMissions;
   final UserReferralStatsModel? referralStats;
@@ -47,6 +48,7 @@ class ProfileState extends Equatable {
     this.hasMorePointsHistory = true,
     this.isLoadingMorePointsHistory = false,
     this.pointsTotalCount = 0,
+    this.pointsHistoryFailed = false,
     this.loyaltyStatus,
     this.loyaltyMissions = const [],
     this.referralStats,
@@ -66,6 +68,7 @@ class ProfileState extends Equatable {
     bool? hasMorePointsHistory,
     bool? isLoadingMorePointsHistory,
     int? pointsTotalCount,
+    bool? pointsHistoryFailed,
     LoyaltyStatusModel? loyaltyStatus,
     List<LoyaltyMissionModel>? loyaltyMissions,
     UserReferralStatsModel? referralStats,
@@ -84,6 +87,7 @@ class ProfileState extends Equatable {
       hasMorePointsHistory: hasMorePointsHistory ?? this.hasMorePointsHistory,
       isLoadingMorePointsHistory: isLoadingMorePointsHistory ?? this.isLoadingMorePointsHistory,
       pointsTotalCount: pointsTotalCount ?? this.pointsTotalCount,
+      pointsHistoryFailed: pointsHistoryFailed ?? this.pointsHistoryFailed,
       loyaltyStatus: loyaltyStatus ?? this.loyaltyStatus,
       loyaltyMissions: loyaltyMissions ?? this.loyaltyMissions,
       referralStats: referralStats ?? this.referralStats,
@@ -105,6 +109,7 @@ class ProfileState extends Equatable {
         hasMorePointsHistory,
         isLoadingMorePointsHistory,
         pointsTotalCount,
+        pointsHistoryFailed,
         loyaltyStatus,
         loyaltyMissions,
         referralStats,

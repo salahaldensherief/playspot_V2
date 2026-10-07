@@ -153,13 +153,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
         requestedPage: page,
         requestedPageSize: pageSize,
       );
-    } catch (e) {
-      return PaginatedResponse(
-        items: const [],
-        totalCount: 0,
-        page: page,
-        pageSize: pageSize,
-      );
+    } catch (_) {
+      rethrow;
     }
   }
 

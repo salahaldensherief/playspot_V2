@@ -20,6 +20,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   final AuthRepository _authRepository;
   final ProfileRepository _profileRepository;
   final PreferenceManager _preferenceManager;
+  int _pointsHistoryGeneration = 0;
 
   ProfileCubit(
     this._authRepository,
@@ -31,6 +32,32 @@ class ProfileCubit extends Cubit<ProfileState> {
     if (!isClosed) {
       emit(state.copyWith(user: updatedUser));
     }
+  }
+
+  Future<void> loadPointsHistory({bool refresh = false}) async {
+    if (isClosed || (!refresh &&
+        (state.isLoadingMorePointsHistory || !state.hasMorePointsHistory))) return;
+    final generation = ++_pointsHistoryGeneration;
+    final page = refresh || state.pointsHistory.isEmpty ? 1 : state.pointsPage + 1;
+    emit(state.copyWith(isLoadingMorePointsHistory: true, pointsHistoryFailed: false));
+    final result = await _profileRepository.getPointsHistory(page: page);
+    if (isClosed || generation != _pointsHistoryGeneration) return;
+    result.fold<void>((_) {
+      emit(state.copyWith(isLoadingMorePointsHistory: false, pointsHistoryFailed: true));
+    }, (response) {
+      final items = <Map<String, dynamic>>[
+        if (!refresh) ...state.pointsHistory,
+        ...response.items,
+      ];
+      final seen = <String>{};
+      final unique = items.where((item) {
+        final id = item['id']?.toString();
+        return id == null || seen.add(id);
+      }).toList();
+      emit(state.copyWith(pointsHistory: unique, pointsPage: response.page,
+        pointsTotalCount: response.totalCount, hasMorePointsHistory: response.hasMore,
+        isLoadingMorePointsHistory: false, pointsHistoryFailed: false));
+    });
   }
 
   void getUserData() async {
@@ -57,6 +84,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
     if (user != null) {
       try {
+        final historyGeneration = _pointsHistoryGeneration;
         final results = await Future.wait([
           _profileRepository.getPointsBalance(),
           _profileRepository.getRedemptionOptions(),
@@ -105,7 +133,17 @@ class ProfileCubit extends Cubit<ProfileState> {
               totalBookingsCount: totalBookings,
               redemptionOptions: optionsRes.fold((l) => [], (r) => r),
               myVouchers: vouchersRes.fold((l) => [], (r) => r),
-              pointsHistory: historyRes.fold((l) => [], (r) => r.items),
+              pointsHistory: historyGeneration == _pointsHistoryGeneration
+                  ? historyRes.fold((l) => state.pointsHistory, (r) => r.items)
+                  : state.pointsHistory,
+              pointsPage: historyGeneration == _pointsHistoryGeneration
+                  ? historyRes.fold((l) => state.pointsPage, (r) => r.page) : state.pointsPage,
+              pointsTotalCount: historyGeneration == _pointsHistoryGeneration
+                  ? historyRes.fold((l) => state.pointsTotalCount, (r) => r.totalCount) : state.pointsTotalCount,
+              hasMorePointsHistory: historyGeneration == _pointsHistoryGeneration
+                  ? historyRes.fold((l) => true, (r) => r.hasMore) : state.hasMorePointsHistory,
+              pointsHistoryFailed: historyGeneration == _pointsHistoryGeneration
+                  ? historyRes.isLeft() : state.pointsHistoryFailed,
               loyaltyStatus: loyaltyStatus,
               loyaltyMissions: missionsRes.fold((l) => [], (r) => r),
               referralStats: statsRes.fold((l) => null, (r) => r),
