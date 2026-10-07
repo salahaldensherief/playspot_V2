@@ -42,19 +42,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
           response.map((item) => Map<String, dynamic>.from(item as Map)),
         );
       }
-    } catch (_) {
-      try {
-        final response = await _supabase.rpc(
-          'get_public_policies',
-          params: {'lang': lang},
-        );
-        if (response is List) {
-          return List<Map<String, dynamic>>.from(
-            response.map((item) => Map<String, dynamic>.from(item as Map)),
-          );
-        }
-      } catch (_) {}
-    }
+    } catch (_) {}
     return [];
   }
 
@@ -70,19 +58,7 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
           response.map((item) => Map<String, dynamic>.from(item as Map)),
         );
       }
-    } catch (_) {
-      try {
-        final response = await _supabase.rpc(
-          'get_public_faqs',
-          params: {'lang': lang},
-        );
-        if (response is List) {
-          return List<Map<String, dynamic>>.from(
-            response.map((item) => Map<String, dynamic>.from(item as Map)),
-          );
-        }
-      } catch (_) {}
-    }
+    } catch (_) {}
     return [];
   }
 

@@ -19,6 +19,20 @@ void main() {
   });
 
   group('Batch 1 — Tournaments Data & Domain Unit Tests', () {
+    test('dispute uses the deployed reason parameter without retry', () async {
+      when(() => mockSupabase.rpc('dispute_match_result', params: any(named: 'params')))
+          .thenAnswer((_) => mockFilterBuilder);
+      when(() => mockFilterBuilder.then<dynamic>(any(), onError: any(named: 'onError')))
+          .thenAnswer((invocation) async {
+            final callback = invocation.positionalArguments.first as Function;
+            return callback({'success': true});
+          });
+      await dataSource.disputeMatchResult(matchId: 'match', disputeReason: 'Wrong score');
+      verify(() => mockSupabase.rpc('dispute_match_result', params: {
+        'p_match_id': 'match', 'p_reason': 'Wrong score',
+      })).called(1);
+    });
+
     test('TournamentStatus fromString parses valid and fallback statuses', () {
       expect(TournamentStatus.fromString('registration_open'), equals(TournamentStatus.registrationOpen));
       expect(TournamentStatus.fromString('completed'), equals(TournamentStatus.completed));

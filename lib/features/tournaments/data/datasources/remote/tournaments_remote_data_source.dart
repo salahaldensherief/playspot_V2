@@ -450,7 +450,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     try {
       await _client.rpc(
         'dispute_match_result',
-        params: {'p_match_id': matchId, 'p_dispute_reason': disputeReason},
+        params: {'p_match_id': matchId, 'p_reason': disputeReason},
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC dispute_match_result error: $e');

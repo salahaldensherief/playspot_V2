@@ -67,6 +67,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
     try {
       final dataSource = sl<SupportRemoteDataSource>();
       final settings = await dataSource.getSupportSettings();
+      if (!mounted) return;
       if (settings.isNotEmpty) {
         setState(() {
           if (settings['whatsapp_phone'] != null && settings['whatsapp_phone'].toString().isNotEmpty) {
@@ -84,6 +85,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       if (!mounted) return;
       final lang = context.locale.languageCode;
       final remoteFaqs = await dataSource.getFaqs(lang);
+      if (!mounted) return;
       if (remoteFaqs.isNotEmpty) {
         final parsedFaqs = remoteFaqs.map((item) {
           final q = item['question_$lang'] ?? item['question_ar'] ?? item['question_en'] ?? item['question'] ?? '';

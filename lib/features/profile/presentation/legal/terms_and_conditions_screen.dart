@@ -36,12 +36,16 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen>
     try {
       final lang = context.locale.languageCode;
       final policies = await sl<SupportRemoteDataSource>().getPolicies(lang);
+      if (!mounted) return;
       if (policies.isNotEmpty) {
         for (final policy in policies) {
-          final type = (policy['type'] ?? policy['policy_type'])?.toString();
+          final type = (policy['policy_key'] ?? policy['type'] ?? policy['policy_type'])?.toString();
           final content = policy['content_$lang'] ?? policy['content_ar'] ?? policy['content_en'] ?? policy['content'];
 
           List<Map<String, String>> parsedItems = [];
+          if (content is String && content.trim().isNotEmpty) {
+            parsedItems.add({'t': policy['title']?.toString() ?? '', 'c': content});
+          }
           if (content is List) {
             for (final item in content) {
               if (item is Map) {

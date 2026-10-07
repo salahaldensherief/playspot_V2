@@ -143,26 +143,16 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           pageSize: pageSize,
         );
       }
-      try {
-        final response = await _supabase.rpc('get_points_transactions_page', params: {
-          'p_page': page,
-          'p_page_size': pageSize,
-        });
-        return PaginatedResponse.fromRpc(
-          response: response,
-          fromJson: (json) => json,
-          requestedPage: page,
-          requestedPageSize: pageSize,
-        );
-      } catch (_) {
-        final response = await _supabase.rpc('get_points_history');
-        return PaginatedResponse.fromRpc(
-          response: response,
-          fromJson: (json) => json,
-          requestedPage: page,
-          requestedPageSize: pageSize,
-        );
-      }
+      final response = await _supabase.rpc('get_points_transactions_page', params: {
+        'p_page': page,
+        'p_page_size': pageSize,
+      });
+      return PaginatedResponse.fromRpc(
+        response: response,
+        fromJson: (json) => json,
+        requestedPage: page,
+        requestedPageSize: pageSize,
+      );
     } catch (e) {
       return PaginatedResponse(
         items: const [],
