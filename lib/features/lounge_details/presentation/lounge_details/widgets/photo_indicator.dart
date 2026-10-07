@@ -49,16 +49,15 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: AnimatedSize(
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 400),
         child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(25.r),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(25.r),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1,
         ),
         boxShadow: [
           BoxShadow(
