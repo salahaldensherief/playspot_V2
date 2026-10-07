@@ -16,7 +16,11 @@ class DeadlineCountdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AppClock(
-    child: _DeadlineView(deadline: deadline, onExpired: onExpired, builder: builder),
+    child: _DeadlineView(
+      deadline: deadline,
+      onExpired: onExpired,
+      builder: builder,
+    ),
   );
 }
 
@@ -25,7 +29,11 @@ class _DeadlineView extends StatefulWidget {
   final VoidCallback? onExpired;
   final Widget Function(BuildContext, Duration) builder;
 
-  const _DeadlineView({required this.deadline, required this.builder, this.onExpired});
+  const _DeadlineView({
+    required this.deadline,
+    required this.builder,
+    this.onExpired,
+  });
 
   @override
   State<_DeadlineView> createState() => _DeadlineViewState();
@@ -63,7 +71,10 @@ class _DeadlineViewState extends State<_DeadlineView> {
   }
 
   void _notifyExpiry() {
-    if (!_enabled || widget.onExpired == null || _notifiedDeadline == widget.deadline) return;
+    if (!_enabled ||
+        widget.onExpired == null ||
+        _notifiedDeadline == widget.deadline)
+      return;
     final now = _clock!.value;
     if (now.isBefore(widget.deadline)) return;
     _notifiedDeadline = widget.deadline;
@@ -80,7 +91,10 @@ class _DeadlineViewState extends State<_DeadlineView> {
   Widget build(BuildContext context) => AppClockBuilder(
     builder: (context, now, child) {
       final remaining = widget.deadline.difference(now);
-      return widget.builder(context, remaining.isNegative ? Duration.zero : remaining);
+      return widget.builder(
+        context,
+        remaining.isNegative ? Duration.zero : remaining,
+      );
     },
   );
 }
