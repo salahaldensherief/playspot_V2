@@ -35,7 +35,11 @@ class LoungeDetailPanel extends StatelessWidget {
       child: collapsible
           ? Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+                clipBehavior: Clip.antiAlias,
+                child: ExpansionTile(
                 tilePadding: const EdgeInsets.symmetric(horizontal: 12),
                 childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                 iconColor: AppColors.neonBlue,
@@ -46,6 +50,7 @@ class LoungeDetailPanel extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 )),
                 children: [child],
+                ),
               ),
             )
           : Column(

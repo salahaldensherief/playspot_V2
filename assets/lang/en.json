@@ -713,7 +713,7 @@
   "lounge_about_section": "About the lounge",
   "lounge_visit_section": "Plan your visit",
   "lounge_payment_section": "Payment options",
-  "lounge_technical_issue": "Online booking is temporarily unavailable. The lounge may still be open; check with the venue before visiting.",
+  "lounge_technical_issue": "The lounge is open, but online reservations are paused. Please contact the venue to book.",
   "lounge_technical_issue_call_to_book": "Online booking is temporarily unavailable. Call the lounge at {phone} to check availability and book.",
   "call_lounge": "Call lounge",
   "technical_issue": "Online booking unavailable"
