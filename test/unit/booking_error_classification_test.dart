@@ -10,4 +10,8 @@ void main() {
     expect(getBookingErrorMessage('JWT expired', true), contains('Session expired'));
     expect(getBookingErrorMessage('Unauthorized', true), isNot(contains('Session expired')));
   });
+  test('missing login and invalid claims are not reported as expired', () {
+    expect(getBookingErrorMessage('PGRST302', true), 'Please log in to complete this action.');
+    expect(getBookingErrorMessage('PGRST303', true), contains('session is invalid'));
+  });
 }

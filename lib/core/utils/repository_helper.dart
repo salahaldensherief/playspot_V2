@@ -32,9 +32,12 @@ mixin RepositoryHelper {
         return Left(const ServerFailure("This record already exists."));
       }
 
-      if (e.code == 'PGRST301' || e.code == 'PGRST302' ||
+      if (e.code == 'PGRST302') {
+        return Left(const AuthFailure('يرجى تسجيل الدخول لإتمام العملية'));
+      }
+      if (e.code == 'PGRST301' || e.code == 'PGRST303' ||
           e.message.toLowerCase().contains('jwt expired')) {
-        return Left(const AuthFailure('انتهت صلاحية الجلسة، يرجى تسجيل الدخول مجددًا'));
+        return Left(const AuthFailure('الجلسة غير صالحة أو منتهية، يرجى تسجيل الدخول مجددًا'));
       }
       if (e.code == '42501' ||
           e.message.toLowerCase().contains('permission denied') ||

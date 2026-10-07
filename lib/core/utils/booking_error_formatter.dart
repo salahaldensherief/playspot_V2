@@ -82,10 +82,16 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
         : 'لا تملك صلاحية تنفيذ هذا الإجراء.';
   }
 
+  if (message.contains('pgrst301') || message.contains('pgrst303')) {
+    return isEnglish
+        ? 'Your sign-in session is invalid. Please log in again.'
+        : 'جلسة تسجيل الدخول غير صالحة. يرجى تسجيل الدخول مجددًا.';
+  }
+  if (message.contains('pgrst302') || message.contains('not authenticated')) {
+    return isEnglish ? 'Please log in to complete this action.'
+        : 'يرجى تسجيل الدخول لإتمام العملية.';
+  }
   if (message.contains('jwt expired') ||
-      message.contains('pgrst301') ||
-      message.contains('pgrst302') ||
-      message.contains('not authenticated') ||
       message.contains('session_expired')) {
     return isEnglish
         ? 'Session expired. Please log in again to complete your action.'
