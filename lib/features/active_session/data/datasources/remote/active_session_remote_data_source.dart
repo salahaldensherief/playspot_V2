@@ -4,6 +4,7 @@ import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/active_session_model.dart';
+import 'active_session_watcher.dart';
 import '../../models/canteen_menu_data_model.dart';
 import '../../models/order_item_model.dart';
 import '../../models/upsell_suggestion_model.dart';
@@ -269,130 +270,8 @@ class ActiveSessionRemoteDataSourceImpl
   }
 
   @override
-  Stream<ActiveSessionModel?> watchUserActiveSession() {
-    dev.log("[LIVESESSION_DS] WATCH_USER_ACTIVE_SESSION");
-    final controller = StreamController<ActiveSessionModel?>.broadcast();
-    RealtimeChannel? bookingChannel;
-    RealtimeChannel? userBookingsChannel;
-    StreamSubscription<AuthState>? authSubscription;
-    String? currentBookingId;
-    String? subscribedUserId;
-
-    Future<void> clearChannels() async {
-      final booking = bookingChannel;
-      if (booking != null) {
-        await _client.removeChannel(booking);
-        bookingChannel = null;
-      }
-
-      final userBookings = userBookingsChannel;
-      if (userBookings != null) {
-        await _client.removeChannel(userBookings);
-        userBookingsChannel = null;
-      }
-
-      currentBookingId = null;
-    }
-
-    Future<void> syncSession() async {
-      try {
-        final session = await getActiveSession();
-        if (controller.isClosed) return;
-
-        controller.add(session);
-
-        if (session != null && session.bookingId != currentBookingId) {
-          final previous = bookingChannel;
-          if (previous != null) {
-            await _client.removeChannel(previous);
-          }
-
-          currentBookingId = session.bookingId;
-          bookingChannel = _client.channel('booking_${session.bookingId}');
-          bookingChannel!
-              .onPostgresChanges(
-                event: PostgresChangeEvent.all,
-                schema: 'public',
-                table: 'bookings',
-                filter: PostgresChangeFilter(
-                  type: PostgresChangeFilterType.eq,
-                  column: 'id',
-                  value: session.bookingId,
-                ),
-                callback: (_) => syncSession(),
-              )
-              .onPostgresChanges(
-                event: PostgresChangeEvent.all,
-                schema: 'public',
-                table: 'canteen_orders',
-                filter: PostgresChangeFilter(
-                  type: PostgresChangeFilterType.eq,
-                  column: 'booking_id',
-                  value: session.bookingId,
-                ),
-                callback: (_) => syncSession(),
-              )
-              .subscribe();
-        } else if (session == null && bookingChannel != null) {
-          await _client.removeChannel(bookingChannel!);
-          bookingChannel = null;
-          currentBookingId = null;
-        }
-      } catch (e) {
-        dev.log("[LIVESESSION_DS] Error in watchUserActiveSession sync: $e");
-      }
-    }
-
-    Future<void> bindUser(String? userId) async {
-      if (subscribedUserId == userId) {
-        await syncSession();
-        return;
-      }
-
-      await clearChannels();
-      subscribedUserId = userId;
-
-      if (userId == null) {
-        if (!controller.isClosed) {
-          controller.add(null);
-        }
-        return;
-      }
-
-      userBookingsChannel = _client.channel('user_bookings_$userId');
-      userBookingsChannel!
-          .onPostgresChanges(
-            event: PostgresChangeEvent.all,
-            schema: 'public',
-            table: 'bookings',
-            filter: PostgresChangeFilter(
-              type: PostgresChangeFilterType.eq,
-              column: 'user_id',
-              value: userId,
-            ),
-            callback: (_) => syncSession(),
-          )
-          .subscribe();
-
-      await syncSession();
-    }
-
-    authSubscription = _client.auth.onAuthStateChange.listen((authState) {
-      unawaited(bindUser(authState.session?.user.id));
-    });
-
-    unawaited(bindUser(_client.auth.currentUser?.id));
-
-    controller.onCancel = () async {
-      await authSubscription?.cancel();
-      await clearChannels();
-      if (!controller.isClosed) {
-        await controller.close();
-      }
-    };
-
-    return controller.stream;
-  }
+  Stream<ActiveSessionModel?> watchUserActiveSession() =>
+      ActiveSessionWatcher(_client, fetch: () => getActiveSession()).stream;
 
   @override
   Future<void> extendTime(
