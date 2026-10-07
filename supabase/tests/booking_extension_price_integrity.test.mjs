@@ -38,6 +38,7 @@ try {
       VALUES('${room}','${lounge}','Room',80,120,10);
     INSERT INTO shifts(id,lounge_id,status) VALUES('${shift}','${lounge}','open');`);
   await db.exec(await readFile(new URL('../migrations/20261007114816_client_request_contract_completion.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../migrations/20261007115950_approved_extension_payment_integrity.sql',import.meta.url),'utf8'));
   await db.exec(`CREATE TRIGGER clamp BEFORE INSERT OR UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION fn_validate_and_clamp_booking_price();
     INSERT INTO bookings(id,user_id,lounge_id,room_id,date,start_time,end_time,duration_minutes,status,
       room_price,total_price,discount_amount,extra_controllers,shift_id)
@@ -82,6 +83,14 @@ try {
     await denied(()=>extend(),'55000');
     assert.equal((await stored()).duration_minutes,120);
     assert.equal((await db.query('SELECT * FROM shift_payments')).rows.length,0);
+  });
+  await check('paid approval creates missing payment summary and agrees with collected extension',async()=>{
+    await db.exec(`UPDATE bookings SET payment_status='paid',extension_status='pending',requested_extension_minutes=30`);
+    const r=(await db.query('SELECT approve_booking_extension($1,0) r',[booking])).rows[0].r;
+    const summaries=(await db.query('SELECT amount FROM payments WHERE booking_id=$1',[booking])).rows;
+    assert.equal(summaries.length,1);
+    assert.equal(Number(summaries[0].amount),r.new_total);
+    assert.equal(Number((await db.query('SELECT amount FROM shift_payments')).rows[0].amount),r.extension_cost);
   });
   await check('reserved next slot rejects extension without changing duration',async()=>{
     await db.exec(`INSERT INTO bookings(user_id,lounge_id,room_id,date,start_time,end_time,
