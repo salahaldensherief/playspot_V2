@@ -6,17 +6,19 @@ class LoungeDetailPanel extends StatelessWidget {
   final String titleKey;
   final IconData icon;
   final Widget child;
+  final bool collapsible;
 
   const LoungeDetailPanel({
     super.key,
     required this.titleKey,
     required this.icon,
     required this.child,
+    this.collapsible = false,
   });
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(12),
+    padding: collapsible ? EdgeInsets.zero : const EdgeInsets.all(12),
     margin: const EdgeInsets.only(bottom: 10),
     decoration: BoxDecoration(
       color: const Color(0xFF13131E),
@@ -30,7 +32,23 @@ class LoungeDetailPanel extends StatelessWidget {
         fontSize: 13,
         height: 1.4,
       ),
-      child: Column(
+      child: collapsible
+          ? Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                iconColor: AppColors.neonBlue,
+                collapsedIconColor: Colors.white70,
+                leading: Icon(icon, size: 18, color: AppColors.neonBlue),
+                title: Text(titleKey.tr(), style: const TextStyle(
+                  color: Colors.white, fontFamily: 'Tajawal', fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                )),
+                children: [child],
+              ),
+            )
+          : Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(

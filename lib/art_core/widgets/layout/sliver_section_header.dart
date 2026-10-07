@@ -5,12 +5,14 @@ class SliverSectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAllTap;
   final String? seeAllText;
+  final bool compact;
 
   const SliverSectionHeader({
     super.key,
     required this.title,
     this.onSeeAllTap,
     this.seeAllText,
+    this.compact = false,
   });
 
   @override
@@ -20,6 +22,7 @@ class SliverSectionHeader extends StatelessWidget {
         title: title,
         onSeeAllTap: onSeeAllTap,
         seeAllText: seeAllText,
+        compact: compact,
       ),
     );
   }

@@ -17,7 +17,7 @@ class LoungeTournamentsSection extends StatelessWidget {
             ? const SliverToBoxAdapter(child: SizedBox.shrink())
             : SliverMainAxisGroup(
                 slivers: [
-                  const SliverSectionHeader(title: AppStrings.tournaments),
+                  const SliverSectionHeader(title: AppStrings.tournaments, compact: true),
                   LoungeTournamentBanner(tournament: state.tournaments.first),
                 ],
               ),

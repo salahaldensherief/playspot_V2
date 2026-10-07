@@ -18,7 +18,7 @@ class LoungeExtrasSection extends StatelessWidget {
             ? const SliverToBoxAdapter(child: SizedBox.shrink())
             : const SliverMainAxisGroup(
                 slivers: [
-                  SliverSectionHeader(title: AppStrings.extras),
+                  SliverSectionHeader(title: AppStrings.extras, compact: true),
                   ExtrasList(),
                 ],
               ),

@@ -27,6 +27,8 @@ import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_gallery_action.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/photo_indicator.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/space_type_selector.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_hero_header.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_technical_issue_banner.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_closed_banner.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
@@ -221,6 +223,7 @@ void main() {
       });
       states.add(initial.copyWith(lounge: photos));
       await tester.pump();
+      await tester.pump();
       final indicator = find.byType(PhotoIndicator);
       final collapsedWidth = tester.getSize(indicator).width;
       await tester.pump(const Duration(milliseconds: 600));
@@ -244,16 +247,19 @@ void main() {
     final privateRoom = RoomModel.fromJson({...room.toJson(), 'space_type_slug': 'private'});
     states.add(initial.copyWith(rooms: [privateRoom]));
     await tester.pumpAndSettle();
+    final controller = tester.widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent)).controller;
+    controller.jumpTo(controller.position.maxScrollExtent);
+    await tester.pumpAndSettle();
     expectClean(tester);
-    final label = find.text('room_private'.tr());
-    expect(label, findsWidgets);
+    final label = find.descendant(of: find.byType(SpaceTypeSelector), matching: find.text('room_private'.tr()));
+    expect(label, findsOneWidget);
     await tester.ensureVisible(label.first);
     await tester.tap(label.first);
     verify(() => cubit.setSpaceType('private')).called(1);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('hero opens the gallery and keeps its action after collapsing', (
+  testWidgets('gallery action is on the photo and absent from the collapsed app bar', (
     tester,
   ) async {
     addTearDown(tester.view.resetPhysicalSize);
@@ -267,11 +273,14 @@ void main() {
     states.add(initial.copyWith(lounge: photos));
     await tester.pumpAndSettle();
     final bar = tester.widget<SliverAppBar>(find.byType(SliverAppBar));
+    expect(bar.actions, isNull);
     final background =
         (bar.flexibleSpace as FlexibleSpaceBar).background as Semantics;
     final gesture = background.child! as GestureDetector;
     expect(gesture.onTap, isNotNull);
-    gesture.onTap!();
+    expect(find.descendant(of: find.byType(LoungeHeroHeader), matching: find.byType(LoungeGalleryAction)), findsOneWidget);
+    final photoButton = find.descendant(of: find.byType(LoungeGalleryAction), matching: find.byType(InkWell)).first;
+    await tester.tap(photoButton);
     await tester.pumpAndSettle();
     expect(find.byType(FullScreenGallery), findsOneWidget);
     expect(
@@ -292,8 +301,26 @@ void main() {
             matching: find.byType(InkWell),
           )
           .hitTestable(),
-      findsOneWidget,
+      findsNothing,
     );
+    expectClean(tester);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('compact disclosures retain address, hours and payment information', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await mount(tester, 360, 'ar', 1.6);
+    final visit = find.text('lounge_visit_section'.tr());
+    await tester.ensureVisible(visit);
+    await tester.tap(visit);
+    await tester.pumpAndSettle();
+    expect(find.text(lounge.address!), findsOneWidget);
+    final payment = find.text('lounge_payment_section'.tr());
+    await tester.ensureVisible(payment);
+    await tester.tap(payment);
+    await tester.pumpAndSettle();
+    expect(find.text('lounge_first_booking_prepaid'.tr()), findsOneWidget);
     expectClean(tester);
     await tester.pumpWidget(const SizedBox.shrink());
   });

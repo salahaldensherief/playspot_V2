@@ -17,8 +17,8 @@ class CategorySelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: Container(
-        height: 70.h,
-        padding: EdgeInsets.symmetric(vertical: 11.h),
+        height: 56 * MediaQuery.textScalerOf(context).scale(1),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
           buildWhen: (previous, current) =>
               previous.status != current.status ||

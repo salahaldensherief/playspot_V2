@@ -14,24 +14,26 @@ class SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAllTap;
   final String? seeAllText;
+  final bool compact;
   const SectionHeader({
     super.key,
     required this.title,
     this.onSeeAllTap,
     this.seeAllText,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: compact ? 8 : 12),
       child: Row(
         children: [
           Expanded(
             child: AppText(
               text: title.tr(),
-              fontSize: 20,
+              fontSize: compact ? 16 : 20,
               fontWeight: FontWeight.bold,
               color: AppColors.white,
             ),

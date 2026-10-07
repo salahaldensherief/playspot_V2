@@ -8,6 +8,7 @@ import 'lounge_operating_hours.dart';
 import 'lounge_payment_summary.dart';
 import 'lounge_room_comparison.dart';
 import 'lounge_detail_panel.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 
 class LoungeInfoSection extends StatelessWidget {
   final LoungeModel lounge;
@@ -34,13 +35,21 @@ class LoungeInfoSection extends StatelessWidget {
                   if (description.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 12),
-                      child: Text(description, style: const TextStyle(color: Colors.white70)),
+                      child: AppText(
+                        text: description,
+                        fontFamily: 'Tajawal',
+                        fontSize: 13,
+                        color: Colors.white70,
+                        maxLines: 2,
+                        showAllTextOnTap: true,
+                      ),
                     ),
                 ],
               ),
             ),
             LoungeDetailPanel(
               titleKey: 'lounge_visit_section',
+              collapsible: true,
               icon: Icons.near_me_outlined,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -57,6 +66,7 @@ class LoungeInfoSection extends StatelessWidget {
                 lounge.requirePrepaidFirstTime)
               LoungeDetailPanel(
                 titleKey: 'lounge_payment_section',
+                collapsible: true,
                 icon: Icons.account_balance_wallet_outlined,
                 child: LoungePaymentSummary(lounge: lounge),
               ),

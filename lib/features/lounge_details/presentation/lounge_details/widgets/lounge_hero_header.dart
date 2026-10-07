@@ -6,6 +6,7 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'lounge_gallery_action.dart';
 
 class LoungeHeroHeader extends StatelessWidget {
   final LoungeModel lounge;
@@ -44,6 +45,12 @@ class LoungeHeroHeader extends StatelessWidget {
           ),
         ),
       ),
+      if (lounge.galleryImages.isNotEmpty)
+        PositionedDirectional(
+          top: MediaQuery.paddingOf(context).top + kToolbarHeight + 4,
+          end: 12,
+          child: LoungeGalleryAction(initialLounge: lounge, heroTag: heroTag),
+        ),
       Align(
         alignment: Alignment.bottomCenter,
         child: Padding(
@@ -56,7 +63,7 @@ class LoungeHeroHeader extends StatelessWidget {
               children: [
                 AppText(
                   text: lounge.name,
-                  fontSize: 24,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
@@ -64,7 +71,7 @@ class LoungeHeroHeader extends StatelessWidget {
                   const SizedBox(height: 6),
                   AppText(
                     text: lounge.location!,
-                    fontSize: 13,
+                    fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
                 ],
@@ -72,7 +79,7 @@ class LoungeHeroHeader extends StatelessWidget {
                 AppText(
                   text:
                       '${AppStrings.openHours.tr()} ${lounge.opensAt.toAppTimeString(locale: context.locale.languageCode)} – ${lounge.closesAt.toAppTimeString(locale: context.locale.languageCode)}',
-                  fontSize: 13,
+                  fontSize: 12,
                   color: AppColors.neonBlue,
                 ),
               ],

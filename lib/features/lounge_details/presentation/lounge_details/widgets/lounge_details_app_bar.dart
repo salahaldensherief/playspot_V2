@@ -26,8 +26,8 @@ class LoungeDetailsAppBar extends StatelessWidget {
         stretch: true,
         expandedHeight: currentLounge == null
             ? null
-            : (currentLounge.galleryImages.isEmpty ? 180 : 300) *
-                  MediaQuery.textScalerOf(context).scale(1),
+            : (currentLounge.galleryImages.isEmpty ? 160.0 : 240.0) +
+                  60.0 * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0.0, 1.0),
         backgroundColor: AppColors.scaffoldBackground,
         leadingWidth: 64,
         leading: const Padding(
@@ -61,7 +61,6 @@ class LoungeDetailsAppBar extends StatelessWidget {
                   ),
                 ),
               ),
-        actions: [LoungeGalleryAction(initialLounge: lounge, heroTag: heroTag)],
       );
     },
   );

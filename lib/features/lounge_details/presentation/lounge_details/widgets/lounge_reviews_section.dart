@@ -26,6 +26,7 @@ class LoungeReviewsSection extends StatelessWidget {
           return SliverMainAxisGroup(
             slivers: [
               SliverSectionHeader(
+                compact: true,
                 title: AppStrings.reviews,
                 seeAllText: AppStrings.seeAll,
                 onSeeAllTap: () => context.pushNamed(
