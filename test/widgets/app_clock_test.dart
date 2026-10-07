@@ -9,6 +9,7 @@ void main() {
     var reads = 0;
     var staticBuilds = 0;
     var liveBuilds = 0;
+    var hiddenBuilds = 0;
     final initial = DateTime(2026);
     DateTime clock() => initial.add(Duration(seconds: reads++));
     await tester.pumpWidget(
@@ -17,15 +18,28 @@ void main() {
           clock: clock,
           child: Column(
             children: [
-              Builder(builder: (_) {
-                staticBuilds++;
-                return const Text('static');
-              }),
+              TickerMode(
+                enabled: false,
+                child: AppClockBuilder(
+                  builder: (_, now, child) {
+                    hiddenBuilds++;
+                    return const SizedBox();
+                  },
+                ),
+              ),
+              Builder(
+                builder: (_) {
+                  staticBuilds++;
+                  return const Text('static');
+                },
+              ),
               AppClock(
-                child: AppClockBuilder(builder: (_, now, child) {
-                  liveBuilds++;
-                  return Text(now.toIso8601String());
-                }),
+                child: AppClockBuilder(
+                  builder: (_, now, child) {
+                    liveBuilds++;
+                    return Text(now.toIso8601String());
+                  },
+                ),
               ),
             ],
           ),
@@ -37,6 +51,7 @@ void main() {
     await tester.pump(const Duration(seconds: 3));
     expect(reads - before, 3);
     expect(staticBuilds, 1);
+    expect(hiddenBuilds, 1);
     expect(liveBuilds, greaterThan(builds));
     await tester.pumpWidget(const SizedBox());
     final disposedReads = reads;
@@ -54,10 +69,8 @@ void main() {
       MaterialApp(
         home: ValueListenableBuilder<bool>(
           valueListenable: visible,
-          builder: (_, enabled, child) => TickerMode(
-            enabled: enabled,
-            child: child!,
-          ),
+          builder: (_, enabled, child) =>
+              TickerMode(enabled: enabled, child: child!),
           child: AppClock(clock: clock, child: const SizedBox()),
         ),
       ),

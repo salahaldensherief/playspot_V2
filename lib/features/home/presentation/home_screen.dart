@@ -92,7 +92,9 @@ class _HomeViewState extends State<_HomeView> {
     _initialized = true;
     _homeCubit.init();
     _homeCubit.startLocationListening();
-    context.read<NotificationsCubit>().getNotifications(context.locale.languageCode);
+    context.read<NotificationsCubit>().getNotifications(
+      context.locale.languageCode,
+    );
   }
 
   @override
@@ -128,7 +130,8 @@ class _HomeViewState extends State<_HomeView> {
 
     if (maxScroll > 100 && currentPixels >= maxScroll - 200) {
       final state = context.read<HomeCubit>().state;
-      final canLoadMore = !_isLoadingMoreTriggered &&
+      final canLoadMore =
+          !_isLoadingMoreTriggered &&
           !state.isLoungesLoading &&
           state.status != HomeStatus.loading &&
           state.status != HomeStatus.refreshing &&
@@ -193,7 +196,9 @@ class _HomeViewState extends State<_HomeView> {
                             ),
                           );
                         }
-                        return const SliverToBoxAdapter(child: SizedBox.shrink());
+                        return const SliverToBoxAdapter(
+                          child: SizedBox.shrink(),
+                        );
                       },
                     ),
                     SliverBottomSpacing(height: 150.h),

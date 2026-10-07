@@ -6,13 +6,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+
 import 'dart:developer' as dev;
+
 import 'package:flutter/foundation.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:playspot/firebase_options.dart';
+
 import 'art_core/router/app_router.dart';
 import 'core/di.dart';
 import 'core/services/network_connectivity_service.dart';
@@ -21,7 +24,9 @@ import 'core/notifications/firebase_background_handler.dart';
 import 'core/notifications/local_notification_service.dart';
 import 'core/notifications/push_notification_service.dart';
 import 'core/utils/app_bloc_observer.dart';
+
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
+
 import 'core/services/play_spot_live_activity_service.dart';
 
 void main() async {
@@ -74,7 +79,6 @@ void main() async {
   }
 
   NetworkConnectivityService().initialize();
-
 
   if (!kIsWeb) {
     FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);

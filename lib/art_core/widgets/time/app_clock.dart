@@ -88,7 +88,12 @@ class AppClockBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_ClockScope>();
     if (scope == null) {
-      return AppClock(child: AppClockBuilder(builder: builder, child: child));
+      return AppClock(
+        child: AppClockBuilder(builder: builder, child: child),
+      );
+    }
+    if (!TickerMode.of(context)) {
+      return builder(context, scope.now.value, child);
     }
     return ValueListenableBuilder<DateTime>(
       valueListenable: scope.now,

@@ -1,4 +1,3 @@
-
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -94,7 +93,8 @@ class AppImage extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final cacheWidth = imageDecodeWidth(
-              width ?? (constraints.hasBoundedWidth ? constraints.maxWidth : null),
+              width ??
+                  (constraints.hasBoundedWidth ? constraints.maxWidth : null),
               MediaQuery.devicePixelRatioOf(context),
             );
             final image = _buildImageBasedOnSource(cacheWidth: cacheWidth);
@@ -219,39 +219,39 @@ class AppImage extends StatelessWidget {
         urlImg.startsWith('assets') || (path?.startsWith('assets') ?? false);
     final imageWidget = isAsset
         ? Image.asset(
-      path ?? urlImg,
-      width: width,
-      height: height,
-      fit: fit,
-      color: color,
-      errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: child,
-        );
-      },
-    )
+            path ?? urlImg,
+            width: width,
+            height: height,
+            fit: fit,
+            color: color,
+            errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) return child;
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },
+          )
         : Image.file(
-      File(urlImg),
-      width: width,
-      height: height,
-      fit: fit,
-      color: color,
-      errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: child,
-        );
-      },
-    );
+            File(urlImg),
+            width: width,
+            height: height,
+            fit: fit,
+            color: color,
+            errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) return child;
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },
+          );
     return imageWidget;
   }
 
@@ -280,12 +280,7 @@ class AppImage extends StatelessWidget {
       return errorWidget!;
     }
     if (useLogo60IXIfError) {
-      return Icon(
-        TablerIcons.device_gamepad,
-        weight: width,
-        color: color,
-
-      );
+      return Icon(TablerIcons.device_gamepad, weight: width, color: color);
     }
     if (useFirstNameIfError) {
       return _buildImageForFirstName();
@@ -338,12 +333,14 @@ class AppImage extends StatelessWidget {
       ),
       child: FittedBox(
         child: Text(
-           nameIfError ==null || nameIfError!.isEmpty  ? "G":nameIfError?.substring(0, 1).toUpperCase() ?? "G",
-       style: TextStyle(
-    color: AppColors.primary,
-         fontWeight: FontWeight.w600,
-         fontSize: 20.sp,
-       )
+          nameIfError == null || nameIfError!.isEmpty
+              ? "G"
+              : nameIfError?.substring(0, 1).toUpperCase() ?? "G",
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+            fontSize: 20.sp,
+          ),
         ),
       ),
     );

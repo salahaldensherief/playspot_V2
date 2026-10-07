@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../cache/preference_manager.dart';
 import '../../datasources/local/app_cache_local_data_source.dart';
 import '../../services/supabase_storage_service.dart';

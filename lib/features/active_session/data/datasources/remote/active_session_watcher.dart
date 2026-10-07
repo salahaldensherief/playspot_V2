@@ -21,8 +21,10 @@ class ActiveSessionWatcher {
   static int _nextId = 0;
   final int _id = _nextId++;
 
-  ActiveSessionWatcher(this._client, {required Future<ActiveSessionModel?> Function() fetch})
-      : _fetch = fetch {
+  ActiveSessionWatcher(
+    this._client, {
+    required Future<ActiveSessionModel?> Function() fetch,
+  }) : _fetch = fetch {
     _controller = StreamController<ActiveSessionModel?>.broadcast(
       onListen: _start,
       onCancel: () => unawaited(_stop()),
@@ -41,11 +43,17 @@ class ActiveSessionWatcher {
   }
 
   void _enqueue(Future<void> Function() work) {
-    _queue = _queue.then((_) async {
-      if (!_closed) await work();
-    }).catchError((Object error, StackTrace stack) {
-      dev.log('[LIVESESSION_DS] Session watcher error', error: error, stackTrace: stack);
-    });
+    _queue = _queue
+        .then((_) async {
+          if (!_closed) await work();
+        })
+        .catchError((Object error, StackTrace stack) {
+          dev.log(
+            '[LIVESESSION_DS] Session watcher error',
+            error: error,
+            stackTrace: stack,
+          );
+        });
   }
 
   void _bind(String? userId) {
@@ -130,7 +138,10 @@ class ActiveSessionWatcher {
   }
 
   Future<void> _clearChannels() async {
-    final channels = [_bookingChannel, _userChannel].whereType<RealtimeChannel>().toList();
+    final channels = [
+      _bookingChannel,
+      _userChannel,
+    ].whereType<RealtimeChannel>().toList();
     _bookingChannel = null;
     _userChannel = null;
     _bookingId = null;
@@ -145,7 +156,11 @@ class ActiveSessionWatcher {
     try {
       await _clearChannels();
     } catch (error, stack) {
-      dev.log('[LIVESESSION_DS] Session cleanup error', error: error, stackTrace: stack);
+      dev.log(
+        '[LIVESESSION_DS] Session cleanup error',
+        error: error,
+        stackTrace: stack,
+      );
     } finally {
       unawaited(_controller.close());
     }

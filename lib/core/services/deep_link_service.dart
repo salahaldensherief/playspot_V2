@@ -8,16 +8,18 @@ class DeepLinkService {
   void handleIncomingUri(Uri uri) {
     AppLogger.debug('[DeepLinkService] Handling URI: $uri');
     final queryParams = uri.queryParameters;
-    final code = queryParams['code'] ??
+    final code =
+        queryParams['code'] ??
         queryParams['ref'] ??
         queryParams['referral'] ??
         queryParams['p_referral_code'];
 
     if (code != null && code.trim().isNotEmpty) {
       final cleanCode = code.trim().toUpperCase();
-      AppLogger.debug('[DeepLinkService] Extracted referral code from URI: $cleanCode');
+      AppLogger.debug(
+        '[DeepLinkService] Extracted referral code from URI: $cleanCode',
+      );
       _preferenceManager.savePendingReferralCode(cleanCode);
     }
   }
-
 }

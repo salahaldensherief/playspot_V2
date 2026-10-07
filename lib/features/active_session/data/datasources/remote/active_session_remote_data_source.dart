@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../models/active_session_model.dart';
 import 'active_session_watcher.dart';
 import '../../models/canteen_menu_data_model.dart';
@@ -319,9 +321,7 @@ class ActiveSessionRemoteDataSourceImpl
       if (errorStr.contains('Extension request already pending') ||
           errorStr.contains('already pending') ||
           errorStr.contains('55000')) {
-        throw Exception(
-          "يوجد طلب تمديد قيد المراجعة بالفعل لهذا الحجز.",
-        );
+        throw Exception("يوجد طلب تمديد قيد المراجعة بالفعل لهذا الحجز.");
       }
       rethrow;
     }
@@ -331,12 +331,13 @@ class ActiveSessionRemoteDataSourceImpl
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items) async {
     if (items.isEmpty) return;
 
-    final formattedItems = items
-        .map((item) => item.toOrderPayload())
-        .toList();
+    final formattedItems = items.map((item) => item.toOrderPayload()).toList();
 
     final notes = items
-        .where((item) => item.note != null && (item.note?.trim().isNotEmpty ?? false))
+        .where(
+          (item) =>
+              item.note != null && (item.note?.trim().isNotEmpty ?? false),
+        )
         .map((item) => item.note?.trim() ?? '')
         .where((n) => n.isNotEmpty)
         .join(', ');
@@ -355,9 +356,10 @@ class ActiveSessionRemoteDataSourceImpl
   Future<CanteenMenuData> getCanteenMenu(String loungeId) async {
     dev.log("[LIVESESSION_DS] GET_CANTEEN_MENU: loungeId=$loungeId");
     try {
-      final response = await _client.rpc('get_canteen_menu', params: {
-        'p_lounge_id': loungeId,
-      });
+      final response = await _client.rpc(
+        'get_canteen_menu',
+        params: {'p_lounge_id': loungeId},
+      );
 
       if (response != null && response is Map<String, dynamic>) {
         return CanteenMenuData.fromJson(response);
@@ -373,16 +375,23 @@ class ActiveSessionRemoteDataSourceImpl
   }
 
   @override
-  Future<List<UpsellSuggestionModel>> getUpsellSuggestions(String bookingId) async {
+  Future<List<UpsellSuggestionModel>> getUpsellSuggestions(
+    String bookingId,
+  ) async {
     dev.log("[LIVESESSION_DS] GET_UPSELL_SUGGESTIONS: bookingId=$bookingId");
     try {
-      final response = await _client.rpc('get_upsell_suggestions', params: {
-        'p_booking_id': bookingId,
-      });
+      final response = await _client.rpc(
+        'get_upsell_suggestions',
+        params: {'p_booking_id': bookingId},
+      );
 
       if (response != null && response is List) {
         return response
-            .map((e) => UpsellSuggestionModel.fromJson(Map<String, dynamic>.from(e as Map)))
+            .map(
+              (e) => UpsellSuggestionModel.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
             .toList();
       }
       return const [];
@@ -400,15 +409,20 @@ class ActiveSessionRemoteDataSourceImpl
     String? canteenOrderId,
     double? amount,
   }) async {
-    dev.log("[LIVESESSION_DS] RECORD_UPSELL_EVENT: ruleId=$ruleId, event=$event");
+    dev.log(
+      "[LIVESESSION_DS] RECORD_UPSELL_EVENT: ruleId=$ruleId, event=$event",
+    );
     try {
-      await _client.rpc('record_upsell_event', params: {
-        'p_rule_id': ruleId,
-        'p_booking_id': bookingId,
-        'p_event': event,
-        'p_canteen_order_id': canteenOrderId,
-        'p_amount': amount,
-      });
+      await _client.rpc(
+        'record_upsell_event',
+        params: {
+          'p_rule_id': ruleId,
+          'p_booking_id': bookingId,
+          'p_event': event,
+          'p_canteen_order_id': canteenOrderId,
+          'p_amount': amount,
+        },
+      );
     } catch (e) {
       dev.log("[LIVESESSION_DS] RECORD_UPSELL_EVENT ERROR: $e");
     }

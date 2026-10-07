@@ -1,9 +1,11 @@
 import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 
 class NetworkConnectivityService {
-  static final NetworkConnectivityService _instance = NetworkConnectivityService._internal();
+  static final NetworkConnectivityService _instance =
+      NetworkConnectivityService._internal();
   factory NetworkConnectivityService() => _instance;
   NetworkConnectivityService._internal() : _connectivity = Connectivity();
   NetworkConnectivityService.withConnectivity(this._connectivity);
@@ -21,7 +23,8 @@ class NetworkConnectivityService {
 
     _subscription = _connectivity.onConnectivityChanged.listen((results) {
       _revision++;
-      final isOffline = results.isEmpty || results.contains(ConnectivityResult.none);
+      final isOffline =
+          results.isEmpty || results.contains(ConnectivityResult.none);
       isConnectedNotifier.value = !isOffline;
     });
   }
@@ -30,7 +33,8 @@ class NetworkConnectivityService {
     try {
       final results = await _connectivity.checkConnectivity();
       if (revision != _revision) return;
-      final isOffline = results.isEmpty || results.contains(ConnectivityResult.none);
+      final isOffline =
+          results.isEmpty || results.contains(ConnectivityResult.none);
       isConnectedNotifier.value = !isOffline;
     } catch (_) {
       if (revision != _revision) return;

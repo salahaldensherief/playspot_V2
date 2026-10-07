@@ -10,6 +10,7 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/time/app_clock.dart';
 import '../../../tournaments/domain/entities/tournament_entity.dart';
@@ -256,22 +257,24 @@ class _TournamentCountdownTimer extends StatelessWidget {
         final minutes = timeLeft.inMinutes.remainder(60);
         final seconds = timeLeft.inSeconds.remainder(60);
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-      decoration: BoxDecoration(
-        color: AppColors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
-      ),
-      child: AppText(
-        text:
-            '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-        fontSize: 11.sp,
-        fontWeight: FontWeight.bold,
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+          decoration: BoxDecoration(
+            color: AppColors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(6.r),
+            border: Border.all(
+              color: AppColors.neonBlue.withValues(alpha: 0.3),
+            ),
+          ),
+          child: AppText(
+            text:
+                '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+            fontSize: 11.sp,
+            fontWeight: FontWeight.bold,
 
-        color: AppColors.neonBlue,
-      ),
-    );
+            color: AppColors.neonBlue,
+          ),
+        );
       },
     );
   }
