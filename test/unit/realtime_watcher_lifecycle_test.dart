@@ -5,7 +5,7 @@ import 'package:playspot/core/mixins/realtime_watcher_mixin.dart';
 class Watcher with RealtimeWatcherMixin {}
 
 void main() {
-  testWidgets('cancellation during retry delay prevents resubscription', (tester) async {
+  test('cancellation during retry delay prevents resubscription', () async {
     final source = StreamController<int>();
     var calls = 0;
     final subscription = Watcher().subscribeWithRetry<int>(
@@ -13,15 +13,15 @@ void main() {
       onData: (_) {}, onError: (_) {}, retryDelay: const Duration(milliseconds: 10),
     );
     source.addError(Exception('network disconnected'));
-    await tester.pump();
+    await Future<void>.delayed(Duration.zero);
     await subscription.cancel();
-    await tester.pump(const Duration(milliseconds: 20));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(calls, 1);
     expect(source.hasListener, isFalse);
     unawaited(source.close());
   }, timeout: const Timeout(Duration(seconds: 30)));
 
-  testWidgets('returned subscription cancels the replacement stream after retry', (tester) async {
+  test('returned subscription cancels the replacement stream after retry', () async {
     final first = StreamController<int>();
     final second = StreamController<int>();
     var calls = 0;
@@ -31,22 +31,22 @@ void main() {
       onData: values.add, onError: (_) {}, retryDelay: const Duration(milliseconds: 10),
     );
     first.addError(Exception('network disconnected'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 20));
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(calls, 2);
     second.add(1);
-    await tester.pump();
+    await Future<void>.delayed(Duration.zero);
     expect(values, [1]);
     await subscription.cancel();
     expect(second.hasListener, isFalse);
     second.add(2);
-    await tester.pump();
+    await Future<void>.delayed(Duration.zero);
     expect(values, [1]);
     unawaited(first.close());
     unawaited(second.close());
   }, timeout: const Timeout(Duration(seconds: 30)));
 
-  testWidgets('permission failures do not start a retry loop', (tester) async {
+  test('permission failures do not start a retry loop', () async {
     final source = StreamController<int>();
     var calls = 0;
     final subscription = Watcher().subscribeWithRetry<int>(
@@ -54,8 +54,8 @@ void main() {
       onData: (_) {}, onError: (_) {}, retryDelay: const Duration(milliseconds: 10),
     );
     source.addError(Exception('42501 row-level security denied'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 20));
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
     expect(calls, 1);
     await subscription.cancel();
     expect(source.hasListener, isFalse);
