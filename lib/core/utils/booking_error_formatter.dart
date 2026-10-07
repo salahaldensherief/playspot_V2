@@ -71,7 +71,9 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
         : 'يجب إدخال رقم المحفظة الذي تم التحويل منه.';
   }
 
-  if (message.contains('permission denied') ||
+  if (message.contains('42501') ||
+      message.contains('not authorized') ||
+      message.contains('permission denied') ||
       message.contains('row-level security') ||
       message.contains('rls policy') ||
       message.contains('rls')) {
@@ -81,7 +83,8 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
   }
 
   if (message.contains('jwt expired') ||
-      message.contains('unauthorized') ||
+      message.contains('pgrst301') ||
+      message.contains('pgrst302') ||
       message.contains('not authenticated') ||
       message.contains('session_expired')) {
     return isEnglish

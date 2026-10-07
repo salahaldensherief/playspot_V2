@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'tournament_evidence_upload.dart';
 
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
@@ -316,9 +317,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     required String paymentMethod,
     required File receiptFile,
   }) async {
-    final fileExt = receiptFile.path.split('.').last;
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-    final storagePath = '$tournamentId/$userId/$fileName';
+    final upload = TournamentEvidenceUpload(tournamentId: tournamentId,
+        scopeId: userId, filePath: receiptFile.path);
+    final storagePath = upload.path;
 
     final bytes = await receiptFile.readAsBytes();
     await _client.storage
@@ -326,7 +327,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         .uploadBinary(
           storagePath,
           bytes,
-          fileOptions: FileOptions(contentType: 'image/$fileExt', upsert: true),
+          fileOptions: upload.options,
         );
 
     final signedUrl = await _client.storage
@@ -392,9 +393,9 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String? proofUrl;
 
     if (proofFile != null) {
-      final fileExt = proofFile.path.split('.').last;
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final storagePath = '$tournamentId/$matchId/$fileName';
+      final upload = TournamentEvidenceUpload(tournamentId: tournamentId,
+          scopeId: matchId, filePath: proofFile.path);
+      final storagePath = upload.path;
 
       final bytes = await proofFile.readAsBytes();
       await _client.storage
@@ -402,10 +403,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .uploadBinary(
             storagePath,
             bytes,
-            fileOptions: FileOptions(
-              contentType: 'image/$fileExt',
-              upsert: true,
-            ),
+            fileOptions: upload.options,
           );
 
       proofUrl = await _client.storage
