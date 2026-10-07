@@ -709,6 +709,7 @@
   "favorites_load_error": "Could not load favorites. Check your connection and retry.",
   "receipt_image_load_error": "Could not load the receipt image",
   "splash_tagline": "BOOK • PLAY • WIN",
+  "room_private": "Private room",
   "lounge_about_section": "About the lounge",
   "lounge_visit_section": "Plan your visit",
   "lounge_payment_section": "Payment options",

@@ -16,19 +16,19 @@ class LoungeDetailPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    margin: const EdgeInsets.only(bottom: 14),
+    padding: const EdgeInsets.all(12),
+    margin: const EdgeInsets.only(bottom: 10),
     decoration: BoxDecoration(
       color: const Color(0xFF13131E),
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(16),
       border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
     ),
     child: DefaultTextStyle.merge(
       style: const TextStyle(
         color: Colors.white,
         fontFamily: 'Tajawal',
-        fontSize: 14,
-        height: 1.5,
+        fontSize: 13,
+        height: 1.4,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -36,23 +36,23 @@ class LoungeDetailPanel extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.neonBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, size: 18, color: AppColors.neonBlue),
+                child: Icon(icon, size: 16, color: AppColors.neonBlue),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   titleKey.tr(),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           child,
         ],
       ),

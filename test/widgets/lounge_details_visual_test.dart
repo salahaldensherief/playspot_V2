@@ -14,6 +14,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
 import 'package:playspot/art_core/helper/screens_size_handler.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -25,6 +26,7 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/wid
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_gallery_action.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/photo_indicator.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_technical_issue_banner.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_closed_banner.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
@@ -207,6 +209,50 @@ void main() {
     });
   }
 
+  for (final locale in ['ar', 'en']) {
+    testWidgets('photo button expands its label and contracts without overflow $locale', (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await mount(tester, 360, locale, 1.6);
+      final photos = LoungeModel.fromJson({
+        ...lounge.toJson(),
+        'image_url': 'assets/images/splash_logo.png',
+        'images': ['assets/images/vodafone_cash_logo.png'],
+      });
+      states.add(initial.copyWith(lounge: photos));
+      await tester.pump();
+      final indicator = find.byType(PhotoIndicator);
+      final collapsedWidth = tester.getSize(indicator).width;
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(milliseconds: 650));
+      expect(find.text(AppStrings.viewPhotos.tr()), findsOneWidget);
+      expect(tester.getSize(indicator).width, greaterThan(collapsedWidth));
+      expectClean(tester);
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 650));
+      expect(find.text(AppStrings.viewPhotos.tr()), findsNothing);
+      expect(tester.getSize(indicator).width, closeTo(collapsedWidth, 1));
+      expectClean(tester);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
+  testWidgets('private rooms have a localized selectable space type', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await mount(tester, 360, 'ar', 1);
+    final privateRoom = RoomModel.fromJson({...room.toJson(), 'space_type_slug': 'private'});
+    states.add(initial.copyWith(rooms: [privateRoom]));
+    await tester.pumpAndSettle();
+    expectClean(tester);
+    final label = find.text('room_private'.tr());
+    expect(label, findsWidgets);
+    await tester.ensureVisible(label.first);
+    await tester.tap(label.first);
+    verify(() => cubit.setSpaceType('private')).called(1);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   testWidgets('hero opens the gallery and keeps its action after collapsing', (
     tester,
   ) async {
@@ -243,7 +289,7 @@ void main() {
       find
           .descendant(
             of: find.byType(LoungeGalleryAction),
-            matching: find.byType(IconButton),
+            matching: find.byType(InkWell),
           )
           .hitTestable(),
       findsOneWidget,

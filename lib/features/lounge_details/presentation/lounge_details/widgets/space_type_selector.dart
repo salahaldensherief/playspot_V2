@@ -18,6 +18,7 @@ class SpaceTypeSelector extends StatelessWidget {
     'all',
     'vip_room',
     'standard_room',
+    'private',
     'open_area',
     'simulator',
     'vr',
@@ -27,6 +28,7 @@ class SpaceTypeSelector extends StatelessWidget {
     'all': Icons.grid_view,
     'vip_room': Icons.stars,
     'standard_room': Icons.meeting_room,
+    'private': Icons.lock_outline,
     'open_area': Icons.monitor,
     'simulator': Icons.speed,
     'vr': Icons.view_in_ar,
@@ -36,6 +38,7 @@ class SpaceTypeSelector extends StatelessWidget {
     'all': AppColors.neonBlue,
     'vip_room': AppColors.warning,
     'standard_room': AppColors.neonPurple,
+    'private': AppColors.neonPurple,
     'open_area': AppColors.neonBlue,
     'simulator': AppColors.cyan,
     'vr': AppColors.neonPurple,
@@ -47,6 +50,8 @@ class SpaceTypeSelector extends StatelessWidget {
         return AppStrings.all.tr();
       case 'vip_room':
         return AppStrings.vipRoom.tr();
+      case 'private':
+        return 'room_private'.tr();
       case 'standard_room':
         return AppStrings.standardRoom.tr();
       case 'open_area':
@@ -94,8 +99,8 @@ class SpaceTypeSelector extends StatelessWidget {
         final displayKeys = [...activeKeys, ...dynamicKeys];
 
         return Container(
-          height: 48 * MediaQuery.textScalerOf(context).scale(1),
-          margin: EdgeInsets.symmetric(vertical: 12.h),
+          height: 40 * MediaQuery.textScalerOf(context).scale(1),
+          margin: EdgeInsets.symmetric(vertical: 8.h),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
@@ -113,7 +118,7 @@ class SpaceTypeSelector extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: EdgeInsetsDirectional.only(end: 10.w),
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  padding: EdgeInsets.symmetric(horizontal: 12.w),
                   decoration: BoxDecoration(
                     color: isSelected ? themeColor : AppColors.cardBackground,
                     borderRadius: BorderRadius.circular(12.r),
@@ -134,13 +139,13 @@ class SpaceTypeSelector extends StatelessWidget {
                     children: [
                       Icon(
                         icon,
-                        size: 18,
+                        size: 16,
                         color: isSelected ? AppColors.black : themeColor,
                       ),
                       SizedBox(width: 8.w),
                       AppText(
                         text: label,
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,

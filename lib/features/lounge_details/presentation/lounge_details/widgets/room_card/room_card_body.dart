@@ -35,7 +35,7 @@ class RoomCardBody extends StatelessWidget {
     onTap: onToggle,
     child: AnimatedContainer(
       duration: RoomConstants.animationDuration,
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: GlassContainer(
         borderRadius: RoomConstants.borderRadius,
         borderOpacity: data.isSelected || expanded ? 0.3 : 0.05,

@@ -20,6 +20,7 @@ class RoomSpaceTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = switch (room.spaceTypeName) {
+      'private' => 'room_private'.tr(),
       'open_area' => AppStrings.openArea.tr(),
       'vip_room' => AppStrings.vipRoom.tr(),
       'standard_room' => AppStrings.standardRoom.tr(),

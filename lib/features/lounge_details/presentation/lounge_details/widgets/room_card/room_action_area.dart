@@ -29,7 +29,7 @@ class RoomActionArea extends StatelessWidget {
         a.roomExtraControllers[room.id] != b.roomExtraControllers[room.id] ||
         a.lounge != b.lounge,
     builder: (context, state) => Padding(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(10),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final price = RoomPriceSummary(
@@ -46,7 +46,7 @@ class RoomActionArea extends StatelessWidget {
               MediaQuery.textScalerOf(context).scale(1) > 1.3) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [price, const SizedBox(height: 12), select],
+              children: [price, const SizedBox(height: 8), select],
             );
           }
           return Row(
@@ -54,7 +54,7 @@ class RoomActionArea extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(child: price),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               ConstrainedBox(
                 constraints: const BoxConstraints(minWidth: 100, maxWidth: 140),
                 child: select,

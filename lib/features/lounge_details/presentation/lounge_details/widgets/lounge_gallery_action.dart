@@ -40,11 +40,24 @@ class LoungeGalleryAction extends StatelessWidget {
           if (lounge == null || lounge.galleryImages.isEmpty) {
             return const SizedBox.shrink();
           }
-          return IconButton(
-            tooltip: AppStrings.viewPhotos.tr(),
-            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-            icon: PhotoIndicator(totalImages: lounge.galleryImages.length),
-            onPressed: () => openGallery(context, lounge, heroTag),
+          return Tooltip(
+            message: AppStrings.viewPhotos.tr(),
+            child: Semantics(
+              button: true,
+              label: AppStrings.viewPhotos.tr(),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(25),
+                onTap: () => openGallery(context, lounge, heroTag),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48, maxWidth: 180),
+                  child: Center(
+                    widthFactor: 1,
+                    heightFactor: 1,
+                    child: PhotoIndicator(totalImages: lounge.galleryImages.length),
+                  ),
+                ),
+              ),
+            ),
           );
         },
       );

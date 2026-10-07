@@ -25,13 +25,13 @@ class RoomPriceSummary extends StatelessWidget {
         ),
       PriceWidget(
         price: rate.effective,
-        fontSize: 18,
-        currencyFontSize: 12,
+        fontSize: 16,
+        currencyFontSize: 11,
         color: rate.hasOffer ? AppColors.success : color,
       ),
       AppText(
         text: AppStrings.perHour.tr(),
-        fontSize: 12,
+        fontSize: 11,
         color: AppColors.textSecondary,
       ),
     ],

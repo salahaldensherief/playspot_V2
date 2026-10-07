@@ -46,9 +46,12 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
     final count = widget.totalImages ?? 0;
     if (count <= 0) return const SizedBox.shrink();
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOutBack,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+        child: Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.7),
@@ -69,22 +72,15 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.zoom_out_map_rounded, color: Colors.white, size: 16.sp),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 400),
-            child: Row(
-              children: [
-                if (_isExpanded) ...[
-                  SizedBox(width: 8.w),
-                  AppText(
-                    text: AppStrings.viewPhotos.tr(),
-                    fontSize: 10.sp,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ],
-              ],
+          if (_isExpanded) ...[
+            SizedBox(width: 8.w),
+            AppText(
+              text: AppStrings.viewPhotos.tr(),
+              fontSize: 10.sp,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
-          ),
+          ],
           if (count > 1) ...[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -102,6 +98,8 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
             ),
           ],
         ],
+      ),
+        ),
       ),
     );
   }
