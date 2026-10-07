@@ -10,6 +10,7 @@ This review inspected rebuild boundaries, image decoding, timer/subscription own
 | Connectivity | Initialization is idempotent. Late initial checks cannot overwrite a newer network event or a disposed service. | Delayed-response regression tests. The service reports network interfaces, not verified internet reachability. |
 | Referral links | Remove the unused authentication subscription and Supabase dependency. URI/referral parsing remains in its own service. | Analyze and existing authentication/router tests. |
 | Live session ownership | Extract `ActiveSessionWatcher` from the remote data source. Serialize refresh/channel replacement, invalidate old-account results and stop channel creation after cancellation. Resources start on listening. | Cancel-during-fetch regression with a late session response. |
+| Match confirmation deadline | Reuse the clock through `DeadlineCountdown`; fire expiry once per deadline, defer initial expiry until after layout, and rearm when the deadline changes. Hidden deadlines wait until shown. | Expired-on-mount, repeat ticks, hidden/resume and changed-deadline regressions. Server confirmation rules remain authoritative. |
 
 The architectural changes apply single responsibility and injected dependencies at real boundaries: clock ownership versus clock consumers, image decode policy versus presentation, and subscription ownership versus RPC hydration. Existing Cubit/repository contracts and server authority remain intact. No universal repository or placeholder strategy was introduced.
 

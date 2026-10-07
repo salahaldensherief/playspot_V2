@@ -1,12 +1,12 @@
-import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/time/deadline_countdown.dart';
 
-class MatchCountdownTimer extends StatefulWidget {
+class MatchCountdownTimer extends StatelessWidget {
   final DateTime deadline;
   final VoidCallback? onExpired;
 
@@ -17,57 +17,18 @@ class MatchCountdownTimer extends StatefulWidget {
   });
 
   @override
-  State<MatchCountdownTimer> createState() => _MatchCountdownTimerState();
-}
+  Widget build(BuildContext context) => DeadlineCountdown(
+    deadline: deadline,
+    onExpired: onExpired,
+    builder: _buildRemaining,
+  );
 
-class _MatchCountdownTimerState extends State<MatchCountdownTimer> {
-  Timer? _timer;
-  Duration _remaining = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _updateRemaining();
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateRemaining();
-    });
-  }
-
-  void _updateRemaining() {
-    final now = DateTime.now().toUtc();
-    final diff = widget.deadline.toUtc().difference(now);
-
-    if (diff.isNegative) {
-      _timer?.cancel();
-      if (mounted) {
-        setState(() => _remaining = Duration.zero);
-        widget.onExpired?.call();
-      }
-    } else {
-      if (mounted) {
-        setState(() => _remaining = diff);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final minutes = _remaining.inMinutes
+  Widget _buildRemaining(BuildContext context, Duration remaining) {
+    final minutes = remaining.inMinutes
         .remainder(60)
         .toString()
         .padLeft(2, '0');
-    final seconds = _remaining.inSeconds
+    final seconds = remaining.inSeconds
         .remainder(60)
         .toString()
         .padLeft(2, '0');

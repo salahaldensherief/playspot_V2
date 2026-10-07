@@ -8,6 +8,12 @@ class AppClock extends StatefulWidget {
 
   const AppClock({super.key, required this.child, this.clock});
 
+  static ValueListenable<DateTime> of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<_ClockScope>();
+    assert(scope != null, 'AppClock is required above this context.');
+    return scope!.now;
+  }
+
   @override
   State<AppClock> createState() => _AppClockState();
 }
