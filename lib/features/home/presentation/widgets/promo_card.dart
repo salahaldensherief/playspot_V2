@@ -7,6 +7,7 @@ import 'package:playspot/art_core/presentation/locale_cubit.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../data/models/promo_model.dart';
 
@@ -20,7 +21,8 @@ class PromoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     final isArabic = context.locale.languageCode == 'ar';
-    final hasImage = promo.imageUrl != null && promo.imageUrl!.trim().isNotEmpty;
+    final hasImage =
+        promo.imageUrl != null && promo.imageUrl!.trim().isNotEmpty;
     final tag = promo.getTag(isArabic);
     final title = promo.getTitle(isArabic);
 
@@ -44,7 +46,7 @@ class PromoCard extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.r24),
                   child: AppImage(
-                              borderRadius: 0,
+                    borderRadius: 0,
                     urlImg: promo.imageUrl!,
                     fit: BoxFit.cover,
                     placeholderWidget: Container(

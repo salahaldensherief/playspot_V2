@@ -73,7 +73,7 @@ class TournamentPromoCard extends StatelessWidget {
                     tournament.imageUrl != null &&
                         tournament.imageUrl!.isNotEmpty
                     ? AppImage(
-                              borderRadius: 0,
+                        borderRadius: 0,
                         urlImg: tournament.imageUrl!,
                         fit: BoxFit.cover,
                         placeholderWidget: Container(

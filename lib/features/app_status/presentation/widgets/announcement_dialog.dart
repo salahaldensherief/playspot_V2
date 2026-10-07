@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/app_button.dart';
@@ -74,7 +75,7 @@ class AnnouncementDialog extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
                 child: AppImage(
-                              borderRadius: 0,
+                  borderRadius: 0,
                   urlImg: imageUrl!,
                   height: 180.h,
                   width: double.infinity,
@@ -126,14 +127,14 @@ class AnnouncementDialog extends StatelessWidget {
                         child: AppButton(
                           buttonConfig: ButtonConfig(
                             backgroundColor: Colors.transparent,
-                            borderColor: AppColors.textSecondary.withValues(alpha: 0.3),
+                            borderColor: AppColors.textSecondary.withValues(
+                              alpha: 0.3,
+                            ),
                             isOutlined: true,
                             height: 44.h,
                             borderRadius: 12.r,
                           ),
-                          content: ButtonContent(
-                            label: AppStrings.close.tr(),
-                          ),
+                          content: ButtonContent(label: AppStrings.close.tr()),
                           behavior: TapBehavior(
                             onTap: () => Navigator.of(context).pop(),
                           ),
@@ -143,9 +144,7 @@ class AnnouncementDialog extends StatelessWidget {
                         12.horizontalSpace,
                         Expanded(
                           child: AppButton(
-                            content: ButtonContent(
-                              label: AppStrings.next.tr(),
-                            ),
+                            content: ButtonContent(label: AppStrings.next.tr()),
                             behavior: TapBehavior(
                               isEnabled: true,
                               onTap: () {

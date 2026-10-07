@@ -22,6 +22,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
   EditProfileCubit(this._profileRepository, this._authRepository) : super(const EditProfileState());
 
   Future<void> init({bool isArabic = false}) async {
+    if (isClosed) return;
     final currentUser = _profileRepository.getCurrentUser();
     nameController.text = currentUser?.name ?? '';
     phoneController.text = currentUser?.phone ?? '';
@@ -32,6 +33,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
 
     // Fetch full profile
     final profileRes = await _profileRepository.getUserProfile();
+    if (isClosed) return;
     profileRes.fold(
       (_) {},
       (user) {
@@ -47,10 +49,12 @@ class EditProfileCubit extends Cubit<EditProfileState> {
   }
 
   Future<void> updateLocation({bool isArabic = false}) async {
+    if (isClosed || state.status == EditProfileStatus.loading) return;
     emit(state.copyWith(status: EditProfileStatus.loading));
     final result = await _profileRepository.updateUserLocation();
-    result.fold(
-      (failure) {
+    if (isClosed) return;
+    await result.fold<Future<void>>(
+      (failure) async {
         if (!isClosed) {
           emit(state.copyWith(
             status: EditProfileStatus.error,
@@ -60,6 +64,7 @@ class EditProfileCubit extends Cubit<EditProfileState> {
       },
       (_) async {
         final profileRes = await _profileRepository.getUserProfile();
+        if (isClosed) return;
         profileRes.fold(
           (_) {
             if (!isClosed) {

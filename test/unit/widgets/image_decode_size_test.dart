@@ -21,6 +21,9 @@ void main() {
     expect(imageDecodeWidth(null, 2, fallbackWidth: 240), 480);
     expect(imageDecodeWidth(120, 2, fallbackWidth: 320), 240);
     expect(imageDecodeWidth(0, 2, fallbackWidth: 320), isNull);
-    expect(imageDecodeWidth(double.infinity, 2, fallbackWidth: double.infinity), isNull);
+    expect(
+      imageDecodeWidth(double.infinity, 2, fallbackWidth: double.infinity),
+      isNull,
+    );
   });
 }

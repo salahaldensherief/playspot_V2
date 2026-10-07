@@ -50,4 +50,6 @@ Fill-width thumbnails now use bounded parent width for decode sizing, including 
 
 ## Verification limits
 
+Additional ownership checks traced lounge scroll/photo-animation timers, search debounce disposal, onboarding page controller, booking/notification scroll controllers and edit-profile controller cleanup. EditProfileCubit now rejects late profile/location results before touching disposed controllers and awaits the location follow-up load; two delayed-response regressions cover closing during each operation. These are selected lifecycle paths, not complete feature reviews.
+
 Flutter CI runs analysis, the full automated tests and release compilation. Physical-device/browser CPU/GPU profiling and retained-heap measurements are unavailable locally. Every screen's appearance, every live role/backend flow and all duplicated UI have **not** been exhaustively verified. See [performance_architecture_audit.md](performance_architecture_audit.md) for the profiling procedure and earlier changes.

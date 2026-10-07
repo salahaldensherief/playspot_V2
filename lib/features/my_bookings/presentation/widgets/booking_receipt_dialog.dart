@@ -16,6 +16,7 @@ import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/constants/app_config.dart';
 import 'package:playspot/core/di.dart';
+
 import '../../data/models/booking_model.dart';
 import '../../domain/usecases/get_booking_timeline_usecase.dart';
 import '../booking_timeline_cubit.dart';
@@ -186,8 +187,9 @@ class BookingReceiptDialog extends StatelessWidget {
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.cover,
-                              placeholderWidget:
-                                  const Center(child: AppLoader()),
+                              placeholderWidget: const Center(
+                                child: AppLoader(),
+                              ),
                               errorWidget: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
