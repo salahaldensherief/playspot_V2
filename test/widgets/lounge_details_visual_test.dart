@@ -124,6 +124,7 @@ void main() {
     whenListen(cubit, states.stream, initialState: initial);
     when(() => localeCubit.state).thenReturn(const Locale('ar'));
     when(() => cubit.init(lounge)).thenAnswer((_) {});
+    when(() => cubit.getLoungeDetails(any())).thenAnswer((_) async {});
   });
   tearDown(() async {
     await states.close();
@@ -623,6 +624,11 @@ void main() {
           'discount_percentage': 20,
         });
         states.add(initial.copyWith(lounge: offer));
+        await tester.pumpAndSettle();
+        final controller = tester
+            .widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent))
+            .controller;
+        controller.jumpTo(controller.position.maxScrollExtent);
         await tester.pumpAndSettle();
         final card = find.byKey(const ValueKey('r'));
         await tester.ensureVisible(card);
