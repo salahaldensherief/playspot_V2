@@ -15,6 +15,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   final NotificationsRepository _repository;
   StreamSubscription? _subscription;
   String? _lastLang;
+  int _requestVersion = 0;
+  bool _closing = false;
+  bool get _inactive => _closing || isClosed;
 
   // Set to track processed active session IDs so navigation triggers only once per session
   final Set<String> _processedActiveSessionIds = {};
@@ -26,13 +29,20 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   Future<void> loadNotifications(String lang, {bool silent = false}) async {
+    if (_inactive) return;
+    final requestVersion = ++_requestVersion;
     _lastLang = lang;
+    if (silent && state.isLoadingMore) {
+      emit(state.copyWith(isLoadingMore: false));
+    }
     if (!silent && !isClosed) {
-      emit(state.copyWith(
-        status: NotificationsStatus.loading,
-        page: 1,
-        hasMore: true,
-      ));
+      emit(
+        state.copyWith(
+          status: NotificationsStatus.loading,
+          page: 1,
+          hasMore: true,
+        ),
+      );
     }
 
     final result = await _repository.getNotifications(
@@ -41,27 +51,32 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       pageSize: _pageSize,
     );
 
-    if (isClosed) return;
+    if (_inactive || requestVersion != _requestVersion) return;
 
     result.fold(
       (failure) {
         if (!isClosed && !silent) {
-          emit(state.copyWith(
-            status: NotificationsStatus.error,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: NotificationsStatus.error,
+              errorMessage: failure.message,
+              isLoadingMore: false,
+            ),
+          );
         }
       },
       (PaginatedResponse<NotificationModel> paginatedRes) {
         if (!isClosed) {
-          emit(state.copyWith(
-            status: NotificationsStatus.success,
-            notifications: paginatedRes.items,
-            page: paginatedRes.page,
-            totalCount: paginatedRes.totalCount,
-            hasMore: paginatedRes.hasMore,
-            isLoadingMore: false,
-          ));
+          emit(
+            state.copyWith(
+              status: NotificationsStatus.success,
+              notifications: paginatedRes.items,
+              page: paginatedRes.page,
+              totalCount: paginatedRes.totalCount,
+              hasMore: paginatedRes.hasMore,
+              isLoadingMore: false,
+            ),
+          );
           if (!silent && !isClosed) {
             _subscribeToNotifications();
           }
@@ -71,11 +86,15 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   Future<void> loadMoreNotifications(String lang) async {
-    if (!state.hasMore || state.isLoadingMore || state.status == NotificationsStatus.loading) {
+    if (_inactive ||
+        !state.hasMore ||
+        state.isLoadingMore ||
+        state.status == NotificationsStatus.loading) {
       return;
     }
 
     _lastLang = lang;
+    final requestVersion = _requestVersion;
     final nextPage = state.page + 1;
     if (!isClosed) {
       emit(state.copyWith(isLoadingMore: true));
@@ -87,31 +106,34 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       pageSize: _pageSize,
     );
 
-    if (isClosed) return;
+    if (_inactive || requestVersion != _requestVersion) return;
 
     result.fold(
       (failure) {
         if (!isClosed) {
-          emit(state.copyWith(
-            isLoadingMore: false,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(isLoadingMore: false, errorMessage: failure.message),
+          );
         }
       },
       (PaginatedResponse<NotificationModel> paginatedRes) {
         if (!isClosed) {
           final existingIds = state.notifications.map((n) => n.id).toSet();
-          final newItems = paginatedRes.items.where((n) => !existingIds.contains(n.id)).toList();
+          final newItems = paginatedRes.items
+              .where((n) => !existingIds.contains(n.id))
+              .toList();
           final updatedList = List<NotificationModel>.from(state.notifications)
             ..addAll(newItems);
 
-          emit(state.copyWith(
-            notifications: updatedList,
-            page: paginatedRes.page,
-            totalCount: paginatedRes.totalCount,
-            hasMore: paginatedRes.hasMore,
-            isLoadingMore: false,
-          ));
+          emit(
+            state.copyWith(
+              notifications: updatedList,
+              page: paginatedRes.page,
+              totalCount: paginatedRes.totalCount,
+              hasMore: paginatedRes.hasMore,
+              isLoadingMore: false,
+            ),
+          );
         }
       },
     );
@@ -122,19 +144,24 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   void _subscribeToNotifications() {
-    _subscription?.cancel();
+    if (_inactive || _subscription != null) return;
     _subscription = _repository.subscribeToNewNotifications().listen((record) {
-      if (isClosed) return;
+      if (_inactive) return;
       if (_lastLang != null) {
-        final newNotification = NotificationModel.fromRawRecord(record, _lastLang!);
+        final newNotification = NotificationModel.fromRawRecord(
+          record,
+          _lastLang!,
+        );
 
         // Add to list locally
         final updatedList = [newNotification, ...state.notifications];
         if (!isClosed) {
-          emit(state.copyWith(
-            notifications: updatedList,
-            totalCount: state.totalCount + 1,
-          ));
+          emit(
+            state.copyWith(
+              notifications: updatedList,
+              totalCount: state.totalCount + 1,
+            ),
+          );
         }
 
         // Show Toast safely
@@ -172,6 +199,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
         _processedActiveSessionIds.add(sessionKey);
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_inactive) return;
           final context = AppRouter.navigatorKey.currentContext;
           if (context != null) {
             context.pushNamed(RouterKeys.activeSession);
@@ -203,16 +231,18 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   @override
-  Future<void> close() {
-    _subscription?.cancel();
-    return super.close();
+  Future<void> close() async {
+    _closing = true;
+    _requestVersion++;
+    await _subscription?.cancel();
+    await super.close();
   }
 
   final Set<String> _inFlightMarkAsReadIds = {};
   bool _isMarkingAllAsRead = false;
 
   void markAsRead(String id) async {
-    if (isClosed || _inFlightMarkAsReadIds.contains(id)) return;
+    if (_inactive || _inFlightMarkAsReadIds.contains(id)) return;
 
     final targetIndex = state.notifications.indexWhere((n) => n.id == id);
     if (targetIndex != -1 && state.notifications[targetIndex].isRead) {
@@ -231,52 +261,59 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final result = await _repository.markAsRead(id);
     _inFlightMarkAsReadIds.remove(id);
 
-    if (isClosed) return;
+    if (_inactive) return;
 
-    result.fold(
-      (failure) {
-        // Rollback local optimistic update on failure
-        final revertedList = state.notifications.map((n) {
-          if (n.id == id) return n.copyWith(isRead: false);
-          return n;
-        }).toList();
-        if (!isClosed) {
-          emit(state.copyWith(
+    result.fold((failure) {
+      // Rollback local optimistic update on failure
+      final revertedList = state.notifications.map((n) {
+        if (n.id == id) return n.copyWith(isRead: false);
+        return n;
+      }).toList();
+      if (!isClosed) {
+        emit(
+          state.copyWith(
             notifications: revertedList,
             errorMessage: failure.message,
-          ));
-        }
-      },
-      (_) {},
-    );
+          ),
+        );
+      }
+    }, (_) {});
   }
 
   void markAllAsRead() async {
-    if (isClosed || _isMarkingAllAsRead) return;
+    if (_inactive || _isMarkingAllAsRead) return;
     if (state.unreadCount == 0) return; // Skip if all already read
 
     _isMarkingAllAsRead = true;
-    final previousList = List<NotificationModel>.from(state.notifications);
-    final updatedList = state.notifications.map((n) => n.copyWith(isRead: true)).toList();
+    final previousReadStates = {
+      for (final notification in state.notifications)
+        notification.id: notification.isRead,
+    };
+    final updatedList = state.notifications
+        .map((n) => n.copyWith(isRead: true))
+        .toList();
 
     emit(state.copyWith(notifications: updatedList));
 
     final result = await _repository.markAllAsRead();
     _isMarkingAllAsRead = false;
 
-    if (isClosed) return;
+    if (_inactive) return;
 
-    result.fold(
-      (failure) {
-        if (!isClosed) {
-          emit(state.copyWith(
-            notifications: previousList,
+    result.fold((failure) {
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            notifications: state.notifications.map((notification) {
+              final previous = previousReadStates[notification.id];
+              return previous == null
+                  ? notification
+                  : notification.copyWith(isRead: previous);
+            }).toList(),
             errorMessage: failure.message,
-          ));
-        }
-      },
-      (_) {},
-    );
+          ),
+        );
+      }
+    }, (_) {});
   }
 }
-
