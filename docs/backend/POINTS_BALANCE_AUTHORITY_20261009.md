@@ -1,0 +1,9 @@
+# Points balance caller authority
+
+The observed hosted `get_user_points_balance(uuid)` checked only authentication and a `profiles.role='super_admin'` label when reading another user's balance. It did not reject inactive/banned callers or an Auth identity removed while its profile remained. It also disagreed with the canonical `is_super_admin()` function, which recognizes active, unbanned Auth-backed roles and platform membership.
+
+Migration `20261009000003_points_balance_active_account_authority.sql` requires an active, unbanned, Auth-backed caller for every balance read and uses canonical authority for another user's balance. Ordinary users remain scoped to their own UUID. The integer return type, null-target behavior, sum and negative transactions remain unchanged. An empty search path and authenticated-only execute grants narrow the API boundary.
+
+The baseline regression allowed a banned super-admin to read another account. Ten PostgreSQL 17.11 checks pass after the change: own sum, null target, other-user denial, banned/inactive/orphaned identities, canonical platform membership and superadmin alias, missing authentication and grants. These are synthetic server authorization tests, not hosted test-account mutations.
+
+This is source only. Compare the current hosted definition, privileges and callers before deploying this single migration to isolated staging. Test the actual mobile/dashboard balance requests with each role and eligibility state. Production application requires explicit approval. The reviewed rollback `supabase/review/rollbacks/20261009000003_points_balance_active_account_authority.sql` restores the observed function body without modifying points transactions; it restores the original eligibility weakness and retains the narrowed grants. Review later function changes before using it. No real balances or point transactions were changed.
