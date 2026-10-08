@@ -31,6 +31,7 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/wid
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_hero_header.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_technical_issue_banner.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_closed_banner.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_discount_banner.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
 
 import '../support/local_translations_loader.dart';
@@ -644,6 +645,16 @@ void main() {
         });
         states.add(initial.copyWith(lounge: offer));
         await tester.pumpAndSettle();
+        final offerBanner = find.byType(LoungeDiscountBanner);
+        expect(offerBanner, findsOneWidget);
+        expect(
+          find.descendant(of: offerBanner, matching: find.text('20%')),
+          findsOneWidget,
+        );
+        await tester.ensureVisible(offerBanner);
+        await tester.pumpAndSettle();
+        expectClean(tester);
+        await screenshot(tester, 'lounge-offer-banner-$locale');
         final controller = tester
             .widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent))
             .controller;
