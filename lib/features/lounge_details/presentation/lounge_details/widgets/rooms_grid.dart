@@ -18,6 +18,7 @@ class RoomsGrid extends StatelessWidget {
       buildWhen: (previous, current) =>
           previous.status != current.status ||
           previous.isDateLoading != current.isDateLoading ||
+          previous.availabilityLoadFailed != current.availabilityLoadFailed ||
           previous.rooms != current.rooms ||
           previous.selectedCategory != current.selectedCategory ||
           previous.selectedSpaceType != current.selectedSpaceType ||
@@ -42,10 +43,13 @@ class RoomsGrid extends StatelessWidget {
           );
         }
 
-        if (state.status == LoungeDetailsStatus.error) {
+        if (state.status == LoungeDetailsStatus.error ||
+            state.availabilityLoadFailed) {
           return SliverAppStateView(
             type: AppStateViewType.error,
-            title: AppStrings.errorLoadingRooms,
+            title: state.availabilityLoadFailed
+                ? 'room_availability_unavailable'
+                : AppStrings.errorLoadingRooms,
             onRetry: () => context.read<LoungeDetailsCubit>().getLoungeDetails(
               state.lounge?.id ?? "",
             ),

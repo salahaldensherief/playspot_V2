@@ -1,4 +1,4 @@
-import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
@@ -12,11 +12,13 @@ import 'package:playspot/core/services/contact_launcher_service.dart';
 class LoungeTechnicalIssueBanner extends StatelessWidget {
   final String? contactPhone;
   final VoidCallback? onRetry;
+  final bool statusUnavailable;
 
   const LoungeTechnicalIssueBanner({
     super.key,
     this.contactPhone,
     this.onRetry,
+    this.statusUnavailable = false,
   });
 
   @override
@@ -24,7 +26,9 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
     final phone = contactPhone?.trim() ?? '';
     final hasPhone = phone.isNotEmpty;
 
-    final message = hasPhone
+    final message = statusUnavailable
+        ? 'operating_status_unavailable'.tr()
+        : hasPhone
         ? AppStrings.loungeTechnicalIssueCallToBook.tr(
             namedArgs: {'phone': phone},
           )
@@ -65,6 +69,14 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
               ),
             ],
           ),
+          if (statusUnavailable && hasPhone) ...[
+            const SizedBox(height: 8),
+            Text(
+              phone,
+              textDirection: TextDirection.ltr,
+              textAlign: TextAlign.center,
+            ),
+          ],
           if (hasPhone) ...[
             SizedBox(height: 12.h),
             AppButton(

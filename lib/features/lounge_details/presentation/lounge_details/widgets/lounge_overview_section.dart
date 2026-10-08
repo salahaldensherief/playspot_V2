@@ -61,6 +61,7 @@ class LoungeOverviewSection extends StatelessWidget {
               if (isTechnicalIssue)
                 SliverToBoxAdapter(
                   child: LoungeTechnicalIssueBanner(
+                    statusUnavailable: opStatus.status == 'unavailable',
                     contactPhone:
                         (opStatus.contactPhone?.trim().isNotEmpty ?? false)
                         ? opStatus.contactPhone

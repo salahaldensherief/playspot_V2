@@ -166,8 +166,9 @@ void main() {
                   ),
                 ),
                 builder: (context, child) => MediaQuery(
-                  data: MediaQuery.of(context)
-                      .copyWith(textScaler: TextScaler.linear(scale)),
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(scale)),
                   child: RepaintBoundary(
                     key: capture,
                     child: child ?? const SizedBox.shrink(),
@@ -197,6 +198,22 @@ void main() {
     expect(exception, isNull, reason: exception?.toString());
   }
 
+  testWidgets('resuming lounge details refreshes server operating status', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await mount(tester, 360, 'en', 1);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    verify(() => cubit.getLoungeDetails(lounge.id)).called(1);
+    await tester.pumpWidget(const SizedBox.shrink());
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    verifyNever(() => cubit.getLoungeDetails(lounge.id));
+  });
+
   Future<void> screenshot(WidgetTester tester, String name) async {
     final directory = Platform.environment['PLAYSPOT_SCREENSHOT_DIR'];
     if (directory == null) return;
@@ -209,8 +226,9 @@ void main() {
       final bytes = await picture.toByteData(format: ui.ImageByteFormat.png);
       if (bytes == null) throw StateError('Missing PNG bytes');
       await Directory(directory).create(recursive: true);
-      await File('$directory/$name.png')
-          .writeAsBytes(bytes.buffer.asUint8List());
+      await File(
+        '$directory/$name.png',
+      ).writeAsBytes(bytes.buffer.asUint8List());
       picture.dispose();
     });
   }
@@ -553,7 +571,8 @@ void main() {
       if (directory != null) {
         File('$directory/rebuild-measurement.json').writeAsStringSync(
           jsonEncode({
-            'mode': 'Flutter widget test/debug on Windows; synthetic data; not phone GPU timings',
+            'mode':
+                'Flutter widget test/debug on Windows; synthetic data; not phone GPU timings',
             'selectionChanges': 20,
             'hostElapsedMicroseconds': watch.elapsedMicroseconds,
             'builds': counts,

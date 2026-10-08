@@ -31,6 +31,7 @@ class LoungeDetailsBottomBar extends StatelessWidget {
             a.operatingStatus != b.operatingStatus ||
             a.isDateLoading != b.isDateLoading ||
             a.status != b.status ||
+            a.availabilityLoadFailed != b.availabilityLoadFailed ||
             a.bookedRoomIds != b.bookedRoomIds,
         builder: (context, state) {
           final selection = LoungeBookingSelection(
@@ -84,6 +85,8 @@ class LoungeDetailsBottomBar extends StatelessWidget {
     if (state.operatingStatus?.isOpen == false) {
       return AppStrings.closed.tr();
     }
+    if (state.availabilityLoadFailed)
+      return 'room_availability_unavailable'.tr();
     if (state.selectedRooms.isEmpty) return AppStrings.selectRoomsPrompt.tr();
     if (state.selectedRooms.length == 1) return AppStrings.bookARoom.tr();
     return '${AppStrings.bookRoomsCount.tr()} (${state.selectedRooms.length})';

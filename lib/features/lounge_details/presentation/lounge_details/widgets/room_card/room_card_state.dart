@@ -25,7 +25,10 @@ class RoomCardState extends State<RoomCard> {
               a.bookedRoomIds.contains(widget.room.id) !=
                   b.bookedRoomIds.contains(widget.room.id) ||
               a.lounge != b.lounge ||
-              a.operatingStatus != b.operatingStatus,
+              a.operatingStatus != b.operatingStatus ||
+              a.availabilityLoadFailed != b.availabilityLoadFailed ||
+              a.isDateLoading != b.isDateLoading ||
+              a.status != b.status,
           builder: (context, state) => RoomCardBody(
             room: widget.room,
             data: RoomCardPresentation.fromState(widget.room, state),

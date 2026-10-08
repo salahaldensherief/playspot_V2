@@ -675,6 +675,7 @@
   "room_select": "اختيار الغرفة",
   "room_selected": "تم اختيار الغرفة",
   "room_available": "متاحة للحجز",
+  "room_availability_unavailable": "تعذر تحميل مواعيد الغرف. يرجى التحديث.",
   "room_busy": "مشغولة حاليًا",
   "room_closed": "الصالة مغلقة",
   "room_unavailable": "غير متاحة للحجز",
@@ -713,7 +714,7 @@
   "lounge_about_section": "عن الصالة",
   "lounge_visit_section": "خطط لزيارتك",
   "lounge_payment_section": "طرق الدفع",
-  "lounge_technical_issue": "الحجز الأونلاين غير متاح مؤقتًا. تواصل مع الصالة للتأكد من التوفر والحجز.",
+  "lounge_technical_issue": "الحجز الأونلاين غير متاح مؤقتًا، ولم تسجّل الصالة رقم تواصل. يرجى تحديث الحالة لاحقًا.",
   "lounge_technical_issue_call_to_book": "الحجز الأونلاين متوقف مؤقتًا. تقدر تحجز من خلال رقمنا {phone} لحد ما المشكلة تتحل.",
   "call_lounge": "اتصال بالصالة",
   "technical_issue": "الحجز الأونلاين غير متاح"

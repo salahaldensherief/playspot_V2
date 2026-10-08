@@ -85,6 +85,18 @@ void main() {
     expect(lounge.isOpen, isTrue);
     final unknown = state.copyWith(clearOperatingStatus: true);
     expect(LoungeBookingSelection(unknown, lounge).params, isNull);
+    expect(RoomCardPresentation.fromState(room, unknown).isAvailable, isFalse);
+  });
+  test('room card agrees with online booking during a technical issue', () {
+    final offline = state.copyWith(
+      operatingStatus: const LoungeOperatingStatus(
+        status: 'technical_issue',
+        canBookOnline: false,
+      ),
+    );
+    final card = RoomCardPresentation.fromState(room, offline);
+    expect(card.isAvailable, isFalse);
+    expect(card.availabilityKey, 'technical_issue');
   });
   test('invalid or contradictory server statuses are rejected', () {
     for (final value in [

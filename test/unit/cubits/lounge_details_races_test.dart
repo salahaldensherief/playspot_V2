@@ -11,6 +11,8 @@ import 'package:playspot/features/lounge_details/domain/entities/lounge_operatin
 import 'package:playspot/features/lounge_details/domain/repositories/lounge_details_repository.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_cubit.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_booking_selection.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/room_card_presentation.dart';
 import 'package:playspot/features/tournaments/domain/usecases/get_tournaments_usecase.dart';
 
 import '../../support/mock_home_repository.dart';
@@ -22,6 +24,7 @@ class _Bookings extends Mock implements BookingRepository {}
 class _Tournaments extends Mock implements GetTournamentsUseCase {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() => registerFallbackValue(DateTime(2026)));
   late _Details details;
   late _Bookings bookings;
@@ -30,28 +33,34 @@ void main() {
     details = _Details();
     bookings = _Bookings();
     final tournaments = _Tournaments();
-    when(() => tournaments(loungeId: any(named: 'loungeId')))
-        .thenAnswer((_) async => const Right([]));
+    when(
+      () => tournaments(loungeId: any(named: 'loungeId')),
+    ).thenAnswer((_) async => const Right([]));
     for (final id in ['a', 'b']) {
-      when(() => details.getRoomsByLoungeId(id, forceRefresh: false))
-          .thenAnswer(
-            (_) async => Right([
-              RoomModel.fromJson({'id': '$id-room', 'lounge_id': id}),
-            ]),
-          );
-      when(() => details.getExtras(id))
-          .thenAnswer((_) async => const Right([]));
-      when(() => details.getLoungeCategories(id))
-          .thenAnswer((_) async => const Right([]));
-      when(() => details.getLoungeReviews(id))
-          .thenAnswer((_) async => const Right([]));
+      when(
+        () => details.getRoomsByLoungeId(id, forceRefresh: false),
+      ).thenAnswer(
+        (_) async => Right([
+          RoomModel.fromJson({'id': '$id-room', 'lounge_id': id}),
+        ]),
+      );
+      when(
+        () => details.getExtras(id),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => details.getLoungeCategories(id),
+      ).thenAnswer((_) async => const Right([]));
+      when(
+        () => details.getLoungeReviews(id),
+      ).thenAnswer((_) async => const Right([]));
       when(() => details.getLoungeOperatingStatus(id)).thenAnswer(
         (_) async => const Right(
           LoungeOperatingStatus(status: 'open', canBookOnline: true),
         ),
       );
-      when(() => bookings.getRoomBookingsForDate(id, any()))
-          .thenAnswer((_) async => const Right([]));
+      when(
+        () => bookings.getRoomBookingsForDate(id, any()),
+      ).thenAnswer((_) async => const Right([]));
     }
     cubit = LoungeDetailsCubit(
       details,
@@ -68,10 +77,57 @@ void main() {
     );
   }
 
+  test('late category response cannot replace the latest category', () async {
+    await ready('a');
+    final first = Completer<Either<Failure, List<RoomModel>>>();
+    final second = Completer<Either<Failure, List<RoomModel>>>();
+    when(
+      () => details.getRoomsByLoungeId('a', categoryId: 'ps5'),
+    ).thenAnswer((_) => first.future);
+    when(
+      () => details.getRoomsByLoungeId('a', categoryId: 'vr'),
+    ).thenAnswer((_) => second.future);
+    cubit.setCategory('ps5');
+    cubit.setCategory('vr');
+    second.complete(
+      Right([
+        RoomModel.fromJson({'id': 'vr-room'}),
+      ]),
+    );
+    await Future<void>.delayed(Duration.zero);
+    first.complete(
+      Right([
+        RoomModel.fromJson({'id': 'ps5-room'}),
+      ]),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(cubit.state.selectedCategory, 'vr');
+    expect(cubit.state.rooms.single.id, 'vr-room');
+  });
+
+  test('category response from a previous lounge is ignored', () async {
+    await ready('a');
+    final pending = Completer<Either<Failure, List<RoomModel>>>();
+    when(
+      () => details.getRoomsByLoungeId('a', categoryId: 'ps5'),
+    ).thenAnswer((_) => pending.future);
+    cubit.setCategory('ps5');
+    await ready('b');
+    pending.complete(
+      Right([
+        RoomModel.fromJson({'id': 'a-ps5-room'}),
+      ]),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(cubit.state.lounge?.id, 'b');
+    expect(cubit.state.rooms.single.id, 'b-room');
+  });
+
   test('late room/status response cannot overwrite another lounge', () async {
     final pending = Completer<Either<Failure, List<RoomModel>>>();
-    when(() => details.getRoomsByLoungeId('a', forceRefresh: false))
-        .thenAnswer((_) => pending.future);
+    when(
+      () => details.getRoomsByLoungeId('a', forceRefresh: false),
+    ).thenAnswer((_) => pending.future);
     cubit.init(LoungeModel.fromJson({'id': 'a'}));
     await ready('b');
     pending.complete(
@@ -85,8 +141,9 @@ void main() {
   });
   test('late booking response cannot republish the previous lounge', () async {
     final pending = Completer<Either<Failure, List<Map<String, dynamic>>>>();
-    when(() => bookings.getRoomBookingsForDate('a', any()))
-        .thenAnswer((_) => pending.future);
+    when(
+      () => bookings.getRoomBookingsForDate('a', any()),
+    ).thenAnswer((_) => pending.future);
     cubit.init(LoungeModel.fromJson({'id': 'a'}));
     await Future<void>.delayed(Duration.zero);
     await ready('b');
@@ -98,8 +155,9 @@ void main() {
   test(
     'failed operating status keeps browsing but denies online booking',
     () async {
-      when(() => details.getLoungeOperatingStatus('a'))
-          .thenAnswer((_) async => const Left(ServerFailure('PGRST202')));
+      when(
+        () => details.getLoungeOperatingStatus('a'),
+      ).thenAnswer((_) async => const Left(ServerFailure('PGRST202')));
       await ready('a');
       expect(cubit.state.rooms, isNotEmpty);
       expect(cubit.state.operatingStatus?.status, 'unavailable');
@@ -118,8 +176,9 @@ void main() {
           ),
         ),
       );
-      when(() => bookings.getRoomBookingsForDate('a', any()))
-          .thenAnswer((_) async => const Left(ServerFailure('offline')));
+      when(
+        () => bookings.getRoomBookingsForDate('a', any()),
+      ).thenAnswer((_) async => const Left(ServerFailure('offline')));
       await ready('a');
       expect(cubit.state.operatingStatus?.status, 'technical_issue');
       expect(cubit.state.operatingStatus?.contactPhone, '01012345678');
@@ -127,4 +186,69 @@ void main() {
       expect(cubit.state.rooms, isNotEmpty);
     },
   );
+  test(
+    'failed date availability cannot reuse a previously free room; retry recovers',
+    () async {
+      await ready('a');
+      cubit.toggleRoomSelection('a-room');
+      when(
+        () => bookings.getRoomBookingsForDate('a', any()),
+      ).thenAnswer((_) async => const Left(ServerFailure('offline')));
+      await cubit.selectDate(DateTime(2026, 10, 9));
+      expect(cubit.state.availabilityLoadFailed, isTrue);
+      expect(
+        LoungeBookingSelection(cubit.state, cubit.state.lounge!).params,
+        isNull,
+      );
+      expect(
+        RoomCardPresentation.fromState(
+          cubit.state.rooms.single,
+          cubit.state,
+        ).isAvailable,
+        isFalse,
+      );
+      when(
+        () => bookings.getRoomBookingsForDate('a', any()),
+      ).thenAnswer((_) async => const Right([]));
+      await cubit.selectDate(DateTime(2026, 10, 9));
+      expect(cubit.state.availabilityLoadFailed, isFalse);
+      expect(
+        LoungeBookingSelection(cubit.state, cubit.state.lounge!).params,
+        isNotNull,
+      );
+    },
+  );
+  test('technical issue recovers only after a fresh open status', () async {
+    when(() => details.getLoungeOperatingStatus('a')).thenAnswer(
+      (_) async => const Right(
+        LoungeOperatingStatus(status: 'technical_issue', canBookOnline: false),
+      ),
+    );
+    await ready('a');
+    cubit.toggleRoomSelection('a-room');
+    expect(
+      RoomCardPresentation.fromState(
+        cubit.state.rooms.single,
+        cubit.state,
+      ).isAvailable,
+      isFalse,
+    );
+    when(() => details.getLoungeOperatingStatus('a')).thenAnswer(
+      (_) async => const Right(
+        LoungeOperatingStatus(status: 'open', canBookOnline: true),
+      ),
+    );
+    await cubit.getLoungeDetails('a');
+    expect(
+      RoomCardPresentation.fromState(
+        cubit.state.rooms.single,
+        cubit.state,
+      ).isAvailable,
+      isTrue,
+    );
+    expect(
+      LoungeBookingSelection(cubit.state, cubit.state.lounge!).isEnabled,
+      isTrue,
+    );
+  });
 }

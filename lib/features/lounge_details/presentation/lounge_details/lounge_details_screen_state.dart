@@ -6,12 +6,14 @@ import 'lounge_details_screen.dart';
 import 'lounge_details_cubit.dart';
 import 'widgets/lounge_details_content.dart';
 
-class LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
+class LoungeDetailsScreenState extends State<LoungeDetailsScreen>
+    with WidgetsBindingObserver {
   final ScrollController _controller = ScrollController();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final lounge = widget.lounge;
     final id = widget.loungeId;
     final cubit = context.read<LoungeDetailsCubit>();
@@ -24,8 +26,17 @@ class LoungeDetailsScreenState extends State<LoungeDetailsScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed || !mounted) return;
+    final cubit = context.read<LoungeDetailsCubit>();
+    final id = cubit.state.lounge?.id ?? widget.loungeId;
+    if (id != null && id.isNotEmpty) cubit.getLoungeDetails(id);
   }
 
   @override

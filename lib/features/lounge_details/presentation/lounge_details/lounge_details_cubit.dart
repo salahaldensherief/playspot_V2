@@ -22,6 +22,7 @@ import 'lounge_details_state.dart';
 
 class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   int _detailsEpoch = 0;
+  int _categoryRequestVersion = 0;
   final LoungeDetailsRepository _loungeDetailsRepository;
   final HomeRepository _homeRepository;
   final BookingRepository _bookingRepository;
@@ -69,6 +70,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   Future<void> getLoungeDetails(String loungeId) async {
     if (loungeId.isEmpty) return;
     final epoch = ++_detailsEpoch;
+    ++_categoryRequestVersion;
     emit(
       state.copyWith(
         status: LoungeDetailsStatus.loading,
@@ -164,6 +166,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
               canBookOnline: false,
             ),
       );
+      emit(state.copyWith(operatingStatus: operatingStatus));
 
       if (rooms == null) {
         if (state.rooms.isNotEmpty) {
@@ -190,6 +193,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         updateParams,
         tournaments: tournaments,
         detailsEpoch: epoch,
+        requestToken: _selectDateFetchToken,
       );
       log("getLoungeDetails COMPLETED");
     } catch (e, stack) {
@@ -264,6 +268,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         emit(
           state.copyWith(
             isDateLoading: false,
+            availabilityLoadFailed: true,
             status: currentRooms.isNotEmpty
                 ? LoungeDetailsStatus.success
                 : LoungeDetailsStatus.error,
@@ -316,6 +321,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           state.copyWith(
             status: LoungeDetailsStatus.success,
             isDateLoading: false,
+            availabilityLoadFailed: false,
             rooms: params.rooms,
             extras: params.extras,
             reviews: params.reviews ?? state.reviews,
@@ -375,6 +381,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   void setCategory(String categoryId) async {
     if (state.selectedCategory == categoryId) return;
 
+    final loungeId = state.lounge?.id ?? '';
+    if (loungeId.isEmpty) return;
+    final requestVersion = ++_categoryRequestVersion;
+    final detailsEpoch = _detailsEpoch;
+
     HapticFeedback.selectionClick();
     emit(
       state.copyWith(
@@ -383,13 +394,16 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       ),
     );
 
-    final loungeId = state.lounge?.id ?? '';
-    if (loungeId.isEmpty) return;
-
     final result = await _loungeDetailsRepository.getRoomsByLoungeId(
       loungeId,
       categoryId: categoryId.toLowerCase() == 'all' ? null : categoryId,
     );
+    if (isClosed ||
+        requestVersion != _categoryRequestVersion ||
+        detailsEpoch != _detailsEpoch ||
+        state.lounge?.id != loungeId) {
+      return;
+    }
 
     result.fold(
       (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),

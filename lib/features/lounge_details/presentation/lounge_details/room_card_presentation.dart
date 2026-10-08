@@ -21,18 +21,28 @@ class RoomCardPresentation extends Equatable {
     LoungeDetailsState state,
   ) {
     final operatingStatus = state.operatingStatus;
-    final open = operatingStatus?.status == 'open'
-        ? true
-        : operatingStatus?.status == 'closed'
-        ? false
-        : state.lounge?.isOpen ?? false;
+    final open =
+        operatingStatus?.isOpen == true &&
+        operatingStatus?.canBookOnline == true;
     final busy = state.bookedRoomIds.contains(room.id);
+    final unknownAvailability =
+        state.availabilityLoadFailed ||
+        state.isDateLoading ||
+        state.status != LoungeDetailsStatus.success;
     return RoomCardPresentation(
-      isAvailable: open && !busy,
+      isAvailable: open && !busy && !unknownAvailability,
       isSelected: state.isRoomSelected(room.id),
       lounge: state.lounge,
-      availabilityKey: !open
+      availabilityKey:
+          operatingStatus == null || operatingStatus.status == 'unavailable'
+          ? 'operating_status_unavailable'
+          : operatingStatus.isTechnicalIssue ||
+                (operatingStatus.isOpen && !open)
+          ? 'technical_issue'
+          : !open
           ? 'room_closed'
+          : unknownAvailability
+          ? 'room_availability_unavailable'
           : busy
           ? 'room_busy'
           : 'room_available',
