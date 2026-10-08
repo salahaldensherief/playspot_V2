@@ -1,0 +1,17 @@
+# Automatic renewal must preserve the requested mode
+
+The real dashboard's local workspace opens a journal and starts a 20-second heartbeat only after the cashier explicitly bootstraps Online. Opening a shift or setting the physical lounge switch does not request writer authority. A fresh journal incorrectly disabled the Online button until Offline preparation; the dashboard regression and fix allow an explicit Online request as soon as the local workspace is ready.
+
+An isolated Flutter browser → Supabase client → HTTP fixture → PostgreSQL scenario exposed a second problem. Two tabs share the device ID but Hive retains a tab-local aggregate. After tab A bootstrapped Offline, tab B's old Online heartbeat called `refresh_cashier_writer(...,true)` and reopened online availability about 20 seconds later. No writer flags were manually changed. The original HTTP fixture signed in on every new tab, which closed the first tab's repository through Auth broadcast; it was corrected to restore an initial synthetic session like the actual app before reproducing the mode race.
+
+Migration `20261009000002_cashier_writer_renewal_without_mode_change.sql` prevents a renewal from changing an existing writer's mode unless it is inside the transaction-scoped context created by a complete explicit bootstrap. It patches the installed definition at a known marker, retains its other authorization/permit rules and existing grants, and fails on an unexpected definition. The same lounge mutex already serializes renewal, bootstrap and release. The existing RPC signature remains unchanged, protecting older clients too. A stale heartbeat gets `CASHIER_MODE_CHANGE_REQUIRES_BOOTSTRAP`; it cannot reopen online booking. An expired heartbeat can recover when the saved request is still Online.
+
+Fourteen PostgreSQL 17.11 fixture scenarios cover Online permit stability, stale-tab rejection, explicit Offline → Online bootstrap, network recovery, other device/venue/actor, banned/inactive accounts, revoked permission, released generations, grants, idempotent application and rollback/reapplication. Nine future-hold scenarios also pass with this guard installed, including competing transactions and the Offline hold barrier.
+
+## Rollout
+
+This is source only; `dev` push does not deploy the database migration. Compare the current hosted refresh definition, verify the bootstrap context and mutex implementation, then apply this single migration in isolated staging. Repeat two-tab Online → Offline, outage → recovery, close-tab expiry, release and fresh-claim scenarios there. Do not replay the historical migration chain or edit operational flags manually. Production deployment requires explicit approval.
+
+The reviewed rollback is `supabase/review/rollbacks/20261009000002_cashier_writer_renewal_without_mode_change.sql`. It removes only the exact inserted guard, refuses an unexpected definition and preserves records/grants. It restores the original mode-change vulnerability; use only after reviewing the specific failure and current clients. Native rollback/reapplication was tested on synthetic data.
+
+Browser tests use synthetic Auth and permission fixtures; they do not validate hosted Auth, RLS, payments or Realtime. Cross-tab durable financial writes, background throttling on a real browser/device, and the full booking/checkout journey remain separate validation work. No real customer booking, payment, notification or operational flag was changed.
