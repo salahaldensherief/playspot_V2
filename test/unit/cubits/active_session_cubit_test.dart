@@ -38,15 +38,22 @@ void main() {
   const storageChannel = MethodChannel('plugins.flutter.io/path_provider');
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    storageDirectory = await Directory.systemTemp.createTemp('playspot_session_test_');
+    storageDirectory = await Directory.systemTemp.createTemp(
+      'playspot_session_test_',
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(storageChannel, (_) async => storageDirectory.path);
+        .setMockMethodCallHandler(
+          storageChannel,
+          (_) async => storageDirectory.path,
+        );
     await GetStorage.init();
   });
   tearDownAll(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(storageChannel, null);
-    await storageDirectory.delete(recursive: true);
+    // GetStorage 2.1.1 holds a RandomAccessFile with no public close API.
+    // Windows releases it when this test worker exits; Unix permits unlinking.
+    if (!Platform.isWindows) await storageDirectory.delete(recursive: true);
   });
 
   setUpAll(() {
@@ -294,18 +301,14 @@ void main() {
             requestedMinutes: 15,
           ),
         ).thenAnswer(
-          (_) async => const Left(
-            ServerFailure('Extension request already pending'),
-          ),
+          (_) async =>
+              const Left(ServerFailure('Extension request already pending')),
         );
 
         await cubit.requestExtension(15);
 
         expect(cubit.state.extendStatus, ActionStatus.error);
-        expect(
-          cubit.state.errorMessage,
-          'Extension request already pending',
-        );
+        expect(cubit.state.errorMessage, 'Extension request already pending');
         verify(
           () => mockRepository.requestExtension(
             bookingId: 'b_100',
