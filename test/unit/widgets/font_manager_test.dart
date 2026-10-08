@@ -58,6 +58,10 @@ void main() {
       expect(overridden?.fontSize, closeTo(12 * factor, 0.001));
       expect(inherited?.fontWeight, FontWeight.bold);
       expect(inherited?.fontFamily, language == 'ar' ? 'Tajawal' : 'Orbitron');
+      if (language == 'en') {
+        expect(inherited?.fontFamilyFallback, contains('Tajawal'));
+        expect(overridden?.fontFamilyFallback, contains('Tajawal'));
+      }
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }

@@ -80,6 +80,12 @@ class FontsManager {
     final finalFamily = isAr
         ? arabicFontFamily
         : (fontFamily ?? englishFontFamily);
+    // Lounge names and addresses can contain Arabic in the English interface.
+    // Orbitron does not contain those glyphs; use the bundled family offline.
+    final fallbackFamilies = <String>{
+      ...?baseStyle?.fontFamilyFallback,
+      if (finalFamily != arabicFontFamily) arabicFontFamily,
+    }.toList();
     final finalWeight = getFontWeight(
       context,
       fontWeight ?? baseStyle?.fontWeight,
@@ -103,6 +109,7 @@ class FontsManager {
       return baseStyle.copyWith(
         fontSize: finalSize,
         fontFamily: finalFamily,
+        fontFamilyFallback: fallbackFamilies,
         fontWeight: finalWeight,
         color: defaultColor,
         height: finalHeight,
@@ -118,6 +125,7 @@ class FontsManager {
       fontWeight: finalWeight,
       height: finalHeight,
       fontFamily: finalFamily,
+      fontFamilyFallback: fallbackFamilies,
       letterSpacing: finalLetterSpacing,
       decoration: textDecoration,
       decorationColor: defaultColor,
