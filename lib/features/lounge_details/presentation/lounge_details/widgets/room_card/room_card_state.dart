@@ -23,7 +23,8 @@ class RoomCardState extends State<RoomCard> {
                   b.isRoomSelected(widget.room.id) ||
               a.bookedRoomIds.contains(widget.room.id) !=
                   b.bookedRoomIds.contains(widget.room.id) ||
-              a.lounge != b.lounge,
+              a.lounge != b.lounge ||
+              a.operatingStatus != b.operatingStatus,
           builder: (context, state) => RoomCardBody(
             room: widget.room,
             data: RoomCardPresentation.fromState(widget.room, state),

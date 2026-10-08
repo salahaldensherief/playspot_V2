@@ -33,6 +33,8 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/wid
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_closed_banner.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
 import '../support/local_translations_loader.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/room_card/room_promo_badge.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/room_card/room_select_button.dart';
 import '../support/mock_locale_cubit.dart';
 import '../support/mock_lounge_details_cubit.dart';
 
@@ -477,7 +479,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byType(LoungeTechnicalIssueBanner),
-        matching: find.byType(AppButton),
+        matching: find.text(AppStrings.callLounge.tr()),
       ),
       findsNothing,
     );
@@ -532,4 +534,54 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     },
   );
+  for (final locale in ['ar', 'en']) {
+    testWidgets('unknown online availability shows actual venue phone and retry $locale', (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await mount(tester, 360, locale, 1.6);
+      final contact = LoungeModel.fromJson({...lounge.toJson(), 'contact_phone': '01012345678'});
+      states.add(initial.copyWith(
+        lounge: contact,
+        operatingStatus: const LoungeOperatingStatus(status: 'unavailable', canBookOnline: false),
+      ));
+      await tester.pumpAndSettle();
+      final banner = find.byType(LoungeTechnicalIssueBanner);
+      expect(banner, findsOneWidget);
+      expect(find.descendant(of: banner, matching: find.textContaining('01012345678')), findsOneWidget);
+      expect(find.descendant(of: banner, matching: find.text(AppStrings.callLounge.tr())), findsOneWidget);
+      final retry = find.descendant(of: banner, matching: find.text('retry'.tr()));
+      await tester.ensureVisible(retry);
+      await tester.tap(retry);
+      verify(() => cubit.getLoungeDetails(lounge.id)).called(1);
+      expectClean(tester);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('room offer sits on the directional card edge and compact selector works $locale', (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await mount(tester, 360, locale, 1.6);
+      final offer = LoungeModel.fromJson({...lounge.toJson(), 'has_discount': true, 'discount_percentage': 20});
+      states.add(initial.copyWith(lounge: offer));
+      await tester.pumpAndSettle();
+      final card = find.byKey(const ValueKey('r'));
+      await tester.ensureVisible(card);
+      await tester.pumpAndSettle();
+      final badge = find.descendant(of: card, matching: find.byType(RoomPromoBadge));
+      expect(badge, findsOneWidget);
+      final cardRect = tester.getRect(card);
+      final badgeRect = tester.getRect(badge);
+      expect(locale == 'ar' ? badgeRect.right : badgeRect.left,
+          closeTo(locale == 'ar' ? cardRect.right : cardRect.left, 2));
+      final selector = find.descendant(of: card, matching: find.byType(RoomSelectButton));
+      expect(selector, findsOneWidget);
+      await tester.ensureVisible(selector);
+      await tester.tap(selector);
+      verify(() => cubit.toggleRoomSelection('r')).called(1);
+      expectClean(tester);
+      await screenshot(tester, 'lounge-compact-offer-$locale');
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
 }

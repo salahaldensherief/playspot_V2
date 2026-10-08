@@ -56,7 +56,7 @@ class RoomActionArea extends StatelessWidget {
               Expanded(child: price),
               const SizedBox(width: 12),
               ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 100, maxWidth: 140),
+                constraints: const BoxConstraints(minWidth: 88, maxWidth: 132),
                 child: select,
               ),
             ],

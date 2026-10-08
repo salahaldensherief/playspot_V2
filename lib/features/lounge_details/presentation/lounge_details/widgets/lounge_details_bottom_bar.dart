@@ -40,7 +40,7 @@ class LoungeDetailsBottomBar extends StatelessWidget {
             child: AppButton(
               content: ButtonContent(
                 body: AppText(
-                  text: _label(state, selection.lounge),
+                  text: _label(state),
                   textAlign: TextAlign.center,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -71,15 +71,16 @@ class LoungeDetailsBottomBar extends StatelessWidget {
         },
       );
 
-  String _label(LoungeDetailsState state, LoungeModel lounge) {
+  String _label(LoungeDetailsState state) {
     if (state.operatingStatus == null ||
         state.operatingStatus?.status == 'unavailable') {
       return 'operating_status_unavailable'.tr();
     }
-    if (state.operatingStatus?.isTechnicalIssue == true) {
+    if (state.operatingStatus?.canBookOnline == false &&
+        state.operatingStatus?.status != 'closed') {
       return AppStrings.technicalIssue.tr();
     }
-    if (state.operatingStatus?.isOpen == false || !lounge.isOpen) {
+    if (state.operatingStatus?.isOpen == false) {
       return AppStrings.closed.tr();
     }
     if (state.selectedRooms.isEmpty) return AppStrings.selectRoomsPrompt.tr();

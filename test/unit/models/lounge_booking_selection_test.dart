@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/room_card_presentation.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
@@ -103,4 +104,24 @@ void main() {
       );
     }
   });
+  test('fresh operating status overrides a stale cached lounge flag', () {
+    final cachedClosed = LoungeModel.fromJson({'id': 'l', 'is_open': false});
+    final freshOpen = state.copyWith(lounge: cachedClosed);
+    expect(RoomCardPresentation.fromState(room, freshOpen).isAvailable, isTrue);
+    expect(LoungeBookingSelection(freshOpen, cachedClosed).isEnabled, isTrue);
+    final freshClosed = state.copyWith(
+      operatingStatus: const LoungeOperatingStatus(status: 'closed', canBookOnline: false),
+    );
+    expect(RoomCardPresentation.fromState(room, freshClosed).isAvailable, isFalse);
+    expect(LoungeBookingSelection(freshClosed, lounge).params, isNull);
+  });
+
+  test('contact phone survives parsing, caching and distance updates', () {
+    final contact = LoungeModel.fromJson({'id': 'l', 'contact_phone': ' 01012345678 '});
+    expect(contact.contactPhone, '01012345678');
+    expect(LoungeModel.fromJson(contact.toJson()).contactPhone, '01012345678');
+    expect(contact.withDistanceEstimate(2).contactPhone, '01012345678');
+    expect(LoungeModel.fromJson({'id': 'l'}).contactPhone, isNull);
+  });
+
 }

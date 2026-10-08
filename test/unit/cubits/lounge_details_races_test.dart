@@ -113,4 +113,21 @@ void main() {
       expect(cubit.state.operatingStatus?.canBookOnline, isFalse);
     },
   );
+  test('booking-date failure retains fresh operating status and venue phone', () async {
+    when(() => details.getLoungeOperatingStatus('a')).thenAnswer(
+      (_) async => const Right(LoungeOperatingStatus(
+        status: 'technical_issue',
+        canBookOnline: false,
+        contactPhone: '01012345678',
+      )),
+    );
+    when(() => bookings.getRoomBookingsForDate('a', any())).thenAnswer(
+      (_) async => const Left(ServerFailure('offline')),
+    );
+    await ready('a');
+    expect(cubit.state.operatingStatus?.status, 'technical_issue');
+    expect(cubit.state.operatingStatus?.contactPhone, '01012345678');
+    expect(cubit.state.operatingStatus?.canBookOnline, isFalse);
+    expect(cubit.state.rooms, isNotEmpty);
+  });
 }

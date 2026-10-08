@@ -1,10 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../room_card_presentation.dart';
 import 'room_header.dart';
-import 'room_promo_badge.dart';
 import 'room_quick_specs.dart';
 import 'room_space_type_badge.dart';
 import 'room_theme_extension.dart';
@@ -20,27 +18,22 @@ class RoomCardOverview extends StatelessWidget {
     required this.expanded,
   });
 
-  String _offer(bool arabic) => room.hasActivePromo
-      ? room.getPromoTag(arabic) ?? AppStrings.activeOffer.tr()
-      : data.lounge?.getDiscountTitle(arabic) ??
-            '${AppStrings.discount.tr()} ${data.lounge?.discountPercentage ?? 0}%';
-
   @override
   Widget build(BuildContext context) {
     final arabic = context.locale.languageCode == 'ar';
     return Padding(
-      padding: const EdgeInsets.all(10),
+      padding: EdgeInsetsDirectional.fromSTEB(10, data.hasOffer(room) ? 30 : 10, 10, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 4,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 4,
+                  horizontal: 6,
+                  vertical: 2,
                 ),
                 decoration: BoxDecoration(
                   color: room.themeColor.withValues(alpha: 0.12),
@@ -49,11 +42,12 @@ class RoomCardOverview extends StatelessWidget {
                 child: Text(
                   data.availabilityKey.tr(),
                   style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
                     color: data.isAvailable ? room.themeColor : Colors.white70,
                   ),
                 ),
               ),
-              if (data.hasOffer(room)) RoomPromoBadge(tag: _offer(arabic)),
               RoomSpaceTypeBadge(room: room, isArabic: arabic, themeColor: room.themeColor),
             ],
           ),

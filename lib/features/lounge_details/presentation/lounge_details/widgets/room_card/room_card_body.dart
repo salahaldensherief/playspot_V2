@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../room_card_presentation.dart';
@@ -8,6 +9,7 @@ import 'room_constants.dart';
 import 'room_main_content.dart';
 import 'room_expanded_details.dart';
 import 'room_theme_extension.dart';
+import 'room_promo_badge.dart';
 
 class RoomCardBody extends StatelessWidget {
   final RoomModel room;
@@ -42,9 +44,11 @@ class RoomCardBody extends StatelessWidget {
         useBorderColorForGradient: false,
         color: Colors.white.withValues(alpha: 0.02),
         borderColor: borderColor,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
             RoomMainContent(room: room, data: data, expanded: expanded),
             RoomExpandedDetails(
               room: room,
@@ -52,6 +56,21 @@ class RoomCardBody extends StatelessWidget {
               isExpanded: expanded,
               data: data,
             ),
+              ],
+            ),
+            if (data.hasOffer(room))
+              PositionedDirectional(
+                top: 0,
+                start: 0,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.55),
+                  child: RoomPromoBadge(
+                    tag: room.hasActivePromo
+                        ? room.getPromoTag(context.locale.languageCode == 'ar') ?? AppStrings.activeOffer.tr()
+                        : data.lounge?.getDiscountTitle(context.locale.languageCode == 'ar') ?? '${AppStrings.discount.tr()} ${data.lounge?.discountPercentage ?? 0}%',
+                  ),
+                ),
+              ),
           ],
         ),
       ),

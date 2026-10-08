@@ -12,6 +12,7 @@ class LoungeModel extends Equatable {
   final bool distanceIsApproximate;
   final double pricePerHour;
   final bool isOpen;
+  final String? contactPhone;
   final String? location;
   final String? streetAddress;
   final String? city;
@@ -50,6 +51,7 @@ class LoungeModel extends Equatable {
     this.distanceIsApproximate = false,
     required this.pricePerHour,
     required this.isOpen,
+    this.contactPhone,
     this.location,
     this.streetAddress,
     this.city,
@@ -99,6 +101,7 @@ class LoungeModel extends Equatable {
     distanceIsApproximate,
     pricePerHour,
     isOpen,
+    contactPhone,
     location,
     streetAddress,
     city,
@@ -174,6 +177,7 @@ class LoungeModel extends Equatable {
       distanceIsApproximate: json['distance_is_approximate'] == true,
       pricePerHour: decoder.pricePerHour,
       isOpen: json['is_open'] as bool? ?? true,
+      contactPhone: json['contact_phone']?.toString().trim(),
       location: json['location']?.toString() ?? json['address']?.toString(),
       streetAddress: json['address']?.toString(),
       city: json['city']?.toString() ?? json['city_name']?.toString(),
@@ -239,6 +243,7 @@ class LoungeModel extends Equatable {
       'category_icons': categoryIcons,
       'price_per_hour': pricePerHour,
       'is_open': isOpen,
+      if (contactPhone != null) 'contact_phone': contactPhone,
       'location': location,
       'address': streetAddress,
       'city': city,

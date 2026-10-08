@@ -713,8 +713,8 @@
   "lounge_about_section": "عن الصالة",
   "lounge_visit_section": "خطط لزيارتك",
   "lounge_payment_section": "طرق الدفع",
-  "lounge_technical_issue": "الصالة مفتوحة، لكن استقبال الحجوزات الأونلاين متوقف حاليًا. تواصل مع الصالة للحجز.",
-  "lounge_technical_issue_call_to_book": "الحجز الأونلاين غير متاح مؤقتًا. اتصل بالصالة على {phone} للتأكد من التوفر والحجز.",
+  "lounge_technical_issue": "الحجز الأونلاين غير متاح مؤقتًا. تواصل مع الصالة للتأكد من التوفر والحجز.",
+  "lounge_technical_issue_call_to_book": "الحجز الأونلاين متوقف مؤقتًا. تقدر تحجز من خلال رقمنا {phone} لحد ما المشكلة تتحل.",
   "call_lounge": "اتصال بالصالة",
   "technical_issue": "الحجز الأونلاين غير متاح"
 }

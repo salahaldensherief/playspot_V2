@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
@@ -50,37 +49,19 @@ class LoungeOverviewSection extends StatelessWidget {
           }
 
           final opStatus = state.operatingStatus;
-          final isTechnicalIssue = opStatus?.isTechnicalIssue ?? false;
+          final isTechnicalIssue = opStatus != null &&
+              !opStatus.canBookOnline && opStatus.status != 'closed';
           final isClosed = opStatus?.status == 'closed';
-          final unavailable = opStatus?.status == 'unavailable';
 
           return SliverMainAxisGroup(
             slivers: [
-              if (unavailable)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Text(
-                          'operating_status_unavailable'.tr(),
-                          textAlign: TextAlign.center,
-                        ),
-                        TextButton.icon(
-                          icon: const Icon(Icons.refresh),
-                          label: Text('retry'.tr()),
-                          onPressed: () => context
-                              .read<LoungeDetailsCubit>()
-                              .getLoungeDetails(lounge.id),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               if (isTechnicalIssue)
                 SliverToBoxAdapter(
                   child: LoungeTechnicalIssueBanner(
-                    contactPhone: opStatus?.contactPhone,
+                    contactPhone: (opStatus?.contactPhone?.trim().isNotEmpty ?? false)
+                        ? opStatus?.contactPhone
+                        : lounge.contactPhone,
+                    onRetry: () => context.read<LoungeDetailsCubit>().getLoungeDetails(lounge.id),
                   ),
                 )
               else if (isClosed)

@@ -13,11 +13,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: dart-lang/setup-dart@v1
       - name: Prepare formatting patch
         run: |
           dart format lib test
           git diff --binary > dart-format.patch
+      - name: Report changed-file formatting for remote review
+        shell: bash
+        run: |
+          echo "FORMAT_PATCH_BEGIN"
+          mapfile -t changed < <(git diff-tree --no-commit-id --name-only -r HEAD -- '*.dart')
+          if [ "${#changed[@]}" -gt 0 ]; then
+            git diff -- "${changed[@]}"
+          fi
+          echo "FORMAT_PATCH_END"
       - uses: actions/upload-artifact@v4
         with:
           name: dart-format-review

@@ -270,6 +270,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
             rooms: currentRooms,
             extras: state.extras.isNotEmpty ? state.extras : params.extras,
             lounge: params.lounge,
+            operatingStatus: params.operatingStatus ?? state.operatingStatus,
           ),
         );
       },

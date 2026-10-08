@@ -11,13 +11,14 @@ import 'package:playspot/core/services/contact_launcher_service.dart';
 
 class LoungeTechnicalIssueBanner extends StatelessWidget {
   final String? contactPhone;
+  final VoidCallback? onRetry;
 
-  const LoungeTechnicalIssueBanner({super.key, this.contactPhone});
+  const LoungeTechnicalIssueBanner({super.key, this.contactPhone, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
-    final hasPhone = contactPhone != null && contactPhone!.trim().isNotEmpty;
     final phone = contactPhone?.trim() ?? '';
+    final hasPhone = phone.isNotEmpty;
 
     final message = hasPhone
         ? AppStrings.loungeTechnicalIssueCallToBook.tr(
@@ -83,6 +84,21 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   color: AppColors.black,
                 ),
+              ),
+            ),
+          ],
+          if (onRetry != null) ...[
+            SizedBox(height: 8.h),
+            AppButton(
+              content: ButtonContent(label: 'retry'.tr()),
+              behavior: ButtonBehavior.tap(onTap: onRetry),
+              buttonConfig: ButtonConfig(
+                height: 48,
+                isOutlined: true,
+                backgroundColor: Colors.transparent,
+                borderColor: AppColors.warning,
+                borderRadius: 8.r,
+                textStyle: TextStyle(color: AppColors.warning, fontSize: 12.sp),
               ),
             ),
           ],
