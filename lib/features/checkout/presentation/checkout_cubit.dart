@@ -27,6 +27,10 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   CheckoutParams? _checkoutParams;
   Timer? _holdTimer;
   StreamSubscription<BookingModel>? _realtimeSubscription;
+  bool _closing = false;
+  int _quoteRequestVersion = 0;
+  int _initRequestVersion = 0;
+  bool get _inactive => _closing || isClosed;
 
   CheckoutCubit(
     this._bookingRepository,
@@ -39,8 +43,12 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   @override
   Future<void> close() async {
+    if (_closing) return;
+    _closing = true;
+    ++_quoteRequestVersion;
+    ++_initRequestVersion;
     _holdTimer?.cancel();
-    _realtimeSubscription?.cancel();
+    await _realtimeSubscription?.cancel();
     await _releaseHold();
     return super.close();
   }
@@ -72,7 +80,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     );
 
     _holdTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (isClosed) {
+      if (_inactive) {
         timer.cancel();
         return;
       }
@@ -99,7 +107,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         'Failed to release booking hold: ${failure.message}',
       ),
       (_) {
-        if (!isClosed) {
+        if (!_inactive) {
           emit(state.copyWith(clearHold: true));
         }
       },
@@ -115,6 +123,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     CheckoutParams params, {
     int? completedBookingsCount,
   }) async {
+    if (_inactive) return;
+    final initVersion = ++_initRequestVersion;
     _checkoutParams = params;
 
     final lounge = params.lounge;
@@ -147,6 +157,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         (count) => userBookingsCount = count,
       );
     }
+    if (_inactive || initVersion != _initRequestVersion) return;
 
     final allowCash = lounge.allowCashPayment;
     var isCashEnabled = true;
@@ -188,6 +199,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   void listenToBookingStatus(String bookingId) {
+    if (_inactive) return;
     _realtimeSubscription?.cancel();
     emit(state.copyWith(createdBookingId: bookingId));
 
@@ -195,7 +207,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         .watchBookingStatus(bookingId)
         .listen(
           (updatedBooking) {
-            if (isClosed) return;
+            if (_inactive) return;
 
             if (updatedBooking.status == BookingStatus.upcoming) {
               emit(
@@ -224,7 +236,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
               error,
               stackTrace,
             );
-            if (isClosed) return;
+            if (_inactive) return;
 
             emit(
               state.copyWith(
@@ -269,6 +281,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   Future<void> _refreshServerQuote({String? voucherCode}) async {
+    if (_inactive) return;
+    final requestVersion = ++_quoteRequestVersion;
     final params = _checkoutParams;
     final holdToken = state.holdToken ?? params?.holdToken;
 
@@ -288,7 +302,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           : cleanVoucher,
     );
 
-    if (isClosed) return;
+    if (_inactive || requestVersion != _quoteRequestVersion) return;
 
     result.fold(
       (failure) {
@@ -307,6 +321,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         emit(
           state.copyWith(
             status: CheckoutStatus.initial,
+            clearPriceChangedFailure: true,
             serverQuote: quote,
             selectedVoucher:
                 quotedVoucherCode == null || quotedVoucherCode.isEmpty
@@ -372,7 +387,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     String? senderAccount,
     String? transactionReference,
   }) async {
-    if (state.status == CheckoutStatus.loading) return;
+    if (_inactive || state.status == CheckoutStatus.loading) return;
+    ++_quoteRequestVersion;
 
     final holdToken = state.holdToken ?? checkoutParams.holdToken;
     if (state.isHoldExpired || holdToken == null || holdToken.isEmpty) {
@@ -389,6 +405,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       state.copyWith(
         status: CheckoutStatus.loading,
         paymentProofUploadFailed: false,
+        clearPriceChangedFailure: true,
       ),
     );
 
@@ -418,26 +435,23 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       receiptUrl: null,
     );
 
-    if (isClosed) return;
+    if (_inactive) return;
 
     String? checkoutError;
     Map<String, dynamic>? checkoutData;
-    result.fold(
-      (failure) {
-        if (failure is PriceChangedFailure) {
-          emit(
-            state.copyWith(
-              status: CheckoutStatus.failure,
-              priceChangedFailure: failure,
-              errorMessage: failure.message,
-            ),
-          );
-        } else {
-          checkoutError = failure.message;
-        }
-      },
-      (data) => checkoutData = data,
-    );
+    result.fold((failure) {
+      if (failure is PriceChangedFailure) {
+        emit(
+          state.copyWith(
+            status: CheckoutStatus.failure,
+            priceChangedFailure: failure,
+            errorMessage: failure.message,
+          ),
+        );
+      } else {
+        checkoutError = failure.message;
+      }
+    }, (data) => checkoutData = data);
 
     if (state.priceChangedFailure != null) {
       return;
@@ -480,6 +494,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           bookingId: primaryBookingId,
           file: receiptFile,
         );
+        if (_inactive) return;
 
         if (receiptPath == null || receiptPath.isEmpty) {
           throw StateError('Payment proof upload returned an empty path');
@@ -489,6 +504,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           bookingId: primaryBookingId,
           receiptPath: receiptPath,
         );
+        if (_inactive) return;
 
         String? attachError;
         attachResult.fold((failure) => attachError = failure.message, (_) {});
@@ -498,6 +514,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           throw StateError(resolvedAttachError);
         }
       } catch (error, stackTrace) {
+        if (_inactive) return;
         AppLogger.error(
           'Payment proof attach failed for booking $primaryBookingId',
           error,
