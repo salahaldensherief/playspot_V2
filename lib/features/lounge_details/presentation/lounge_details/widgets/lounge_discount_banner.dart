@@ -19,7 +19,11 @@ class LoungeDiscountBanner extends StatelessWidget {
     ),
     child: Row(
       children: [
-        const Icon(Icons.local_offer_outlined, color: AppColors.warning, size: 18),
+        const Icon(
+          Icons.local_offer_outlined,
+          color: AppColors.warning,
+          size: 18,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

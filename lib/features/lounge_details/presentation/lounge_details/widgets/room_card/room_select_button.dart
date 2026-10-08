@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+
 import '../../lounge_details_cubit.dart';
 
 class RoomSelectButton extends StatelessWidget {
@@ -37,6 +38,7 @@ class RoomSelectButton extends StatelessWidget {
     selectedColor: color,
     side: BorderSide(color: color.withValues(alpha: 0.6)),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    onSelected: (_) => context.read<LoungeDetailsCubit>().toggleRoomSelection(roomId),
+    onSelected: (_) =>
+        context.read<LoungeDetailsCubit>().toggleRoomSelection(roomId),
   );
 }

@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+
 import '../../room_card_presentation.dart';
 import 'room_header.dart';
 import 'room_quick_specs.dart';
@@ -22,7 +23,12 @@ class RoomCardOverview extends StatelessWidget {
   Widget build(BuildContext context) {
     final arabic = context.locale.languageCode == 'ar';
     return Padding(
-      padding: EdgeInsetsDirectional.fromSTEB(10, data.hasOffer(room) ? 30 : 10, 10, 10),
+      padding: EdgeInsetsDirectional.fromSTEB(
+        10,
+        data.hasOffer(room) ? 30 : 10,
+        10,
+        10,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -31,10 +37,7 @@ class RoomCardOverview extends StatelessWidget {
             runSpacing: 4,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color: room.themeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
@@ -48,7 +51,11 @@ class RoomCardOverview extends StatelessWidget {
                   ),
                 ),
               ),
-              RoomSpaceTypeBadge(room: room, isArabic: arabic, themeColor: room.themeColor),
+              RoomSpaceTypeBadge(
+                room: room,
+                isArabic: arabic,
+                themeColor: room.themeColor,
+              ),
             ],
           ),
           const SizedBox(height: 8),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -32,9 +33,12 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/wid
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_technical_issue_banner.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_closed_banner.dart';
 import 'package:playspot/art_core/widgets/layout/full_screen_gallery.dart';
+
 import '../support/local_translations_loader.dart';
+
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/room_card/room_promo_badge.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/room_card/room_select_button.dart';
+
 import '../support/mock_locale_cubit.dart';
 import '../support/mock_lounge_details_cubit.dart';
 
@@ -162,9 +166,8 @@ void main() {
                   ),
                 ),
                 builder: (context, child) => MediaQuery(
-                  data: MediaQuery.of(
-                    context,
-                  ).copyWith(textScaler: TextScaler.linear(scale)),
+                  data: MediaQuery.of(context)
+                      .copyWith(textScaler: TextScaler.linear(scale)),
                   child: RepaintBoundary(
                     key: capture,
                     child: child ?? const SizedBox.shrink(),
@@ -206,54 +209,66 @@ void main() {
       final bytes = await picture.toByteData(format: ui.ImageByteFormat.png);
       if (bytes == null) throw StateError('Missing PNG bytes');
       await Directory(directory).create(recursive: true);
-      await File(
-        '$directory/$name.png',
-      ).writeAsBytes(bytes.buffer.asUint8List());
+      await File('$directory/$name.png')
+          .writeAsBytes(bytes.buffer.asUint8List());
       picture.dispose();
     });
   }
 
   for (final locale in ['ar', 'en']) {
-    testWidgets('photo button expands its label and contracts without overflow $locale', (tester) async {
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      await mount(tester, 360, locale, 1.6);
-      final photos = LoungeModel.fromJson({
-        ...lounge.toJson(),
-        'image_url': 'assets/images/splash_logo.png',
-        'images': ['assets/images/vodafone_cash_logo.png'],
-      });
-      states.add(initial.copyWith(lounge: photos));
-      await tester.pump();
-      await tester.pump();
-      final indicator = find.byType(PhotoIndicator);
-      final collapsedWidth = tester.getSize(indicator).width;
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.pump(const Duration(milliseconds: 650));
-      expect(find.text(AppStrings.viewPhotos.tr()), findsOneWidget);
-      expect(tester.getSize(indicator).width, greaterThan(collapsedWidth));
-      expectClean(tester);
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pump(const Duration(milliseconds: 650));
-      expect(find.text(AppStrings.viewPhotos.tr()), findsNothing);
-      expect(tester.getSize(indicator).width, closeTo(collapsedWidth, 1));
-      expectClean(tester);
-      await tester.pumpWidget(const SizedBox.shrink());
-    });
+    testWidgets(
+      'photo button expands its label and contracts without overflow $locale',
+      (tester) async {
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await mount(tester, 360, locale, 1.6);
+        final photos = LoungeModel.fromJson({
+          ...lounge.toJson(),
+          'image_url': 'assets/images/splash_logo.png',
+          'images': ['assets/images/vodafone_cash_logo.png'],
+        });
+        states.add(initial.copyWith(lounge: photos));
+        await tester.pump();
+        await tester.pump();
+        final indicator = find.byType(PhotoIndicator);
+        final collapsedWidth = tester.getSize(indicator).width;
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pump(const Duration(milliseconds: 650));
+        expect(find.text(AppStrings.viewPhotos.tr()), findsOneWidget);
+        expect(tester.getSize(indicator).width, greaterThan(collapsedWidth));
+        expectClean(tester);
+        await tester.pump(const Duration(seconds: 3));
+        await tester.pump(const Duration(milliseconds: 650));
+        expect(find.text(AppStrings.viewPhotos.tr()), findsNothing);
+        expect(tester.getSize(indicator).width, closeTo(collapsedWidth, 1));
+        expectClean(tester);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
   }
 
-  testWidgets('private rooms have a localized selectable space type', (tester) async {
+  testWidgets('private rooms have a localized selectable space type', (
+    tester,
+  ) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await mount(tester, 360, 'ar', 1);
-    final privateRoom = RoomModel.fromJson({...room.toJson(), 'space_type_slug': 'private'});
+    final privateRoom = RoomModel.fromJson({
+      ...room.toJson(),
+      'space_type_slug': 'private',
+    });
     states.add(initial.copyWith(rooms: [privateRoom]));
     await tester.pumpAndSettle();
-    final controller = tester.widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent)).controller;
+    final controller = tester
+        .widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent))
+        .controller;
     controller.jumpTo(controller.position.maxScrollExtent);
     await tester.pumpAndSettle();
     expectClean(tester);
-    final label = find.descendant(of: find.byType(SpaceTypeSelector), matching: find.text('room_private'.tr()));
+    final label = find.descendant(
+      of: find.byType(SpaceTypeSelector),
+      matching: find.text('room_private'.tr()),
+    );
     expect(label, findsOneWidget);
     await tester.ensureVisible(label.first);
     await tester.tap(label.first);
@@ -261,71 +276,86 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('gallery action is on the photo and absent from the collapsed app bar', (
-    tester,
-  ) async {
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await mount(tester, 360, 'ar', 1);
-    final photos = LoungeModel.fromJson({
-      ...lounge.toJson(),
-      'image_url': 'assets/images/splash_logo.png',
-      'images': ['assets/images/vodafone_cash_logo.png'],
-    });
-    states.add(initial.copyWith(lounge: photos));
-    await tester.pumpAndSettle();
-    final bar = tester.widget<SliverAppBar>(find.byType(SliverAppBar));
-    expect(bar.actions, isNull);
-    final background =
-        (bar.flexibleSpace as FlexibleSpaceBar).background as Semantics;
-    final gesture = background.child! as GestureDetector;
-    expect(gesture.onTap, isNotNull);
-    expect(find.descendant(of: find.byType(LoungeHeroHeader), matching: find.byType(LoungeGalleryAction)), findsOneWidget);
-    final photoButton = find.descendant(of: find.byType(LoungeGalleryAction), matching: find.byType(InkWell)).first;
-    await tester.tap(photoButton);
-    await tester.pumpAndSettle();
-    expect(find.byType(FullScreenGallery), findsOneWidget);
-    expect(
-      tester.widget<FullScreenGallery>(find.byType(FullScreenGallery)).images,
-      photos.galleryImages,
-    );
-    Navigator.of(tester.element(find.byType(FullScreenGallery))).pop();
-    await tester.pumpAndSettle();
-    final controller = tester
-        .widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent))
-        .controller;
-    controller.jumpTo(controller.position.maxScrollExtent);
-    await tester.pumpAndSettle();
-    expect(
-      find
+  testWidgets(
+    'gallery action is on the photo and absent from the collapsed app bar',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await mount(tester, 360, 'ar', 1);
+      final photos = LoungeModel.fromJson({
+        ...lounge.toJson(),
+        'image_url': 'assets/images/splash_logo.png',
+        'images': ['assets/images/vodafone_cash_logo.png'],
+      });
+      states.add(initial.copyWith(lounge: photos));
+      await tester.pumpAndSettle();
+      final bar = tester.widget<SliverAppBar>(find.byType(SliverAppBar));
+      expect(bar.actions, isNull);
+      final background =
+          (bar.flexibleSpace as FlexibleSpaceBar).background as Semantics;
+      final gesture = background.child! as GestureDetector;
+      expect(gesture.onTap, isNotNull);
+      expect(
+        find.descendant(
+          of: find.byType(LoungeHeroHeader),
+          matching: find.byType(LoungeGalleryAction),
+        ),
+        findsOneWidget,
+      );
+      final photoButton = find
           .descendant(
             of: find.byType(LoungeGalleryAction),
             matching: find.byType(InkWell),
           )
-          .hitTestable(),
-      findsNothing,
-    );
-    expectClean(tester);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
+          .first;
+      await tester.tap(photoButton);
+      await tester.pumpAndSettle();
+      expect(find.byType(FullScreenGallery), findsOneWidget);
+      expect(
+        tester.widget<FullScreenGallery>(find.byType(FullScreenGallery)).images,
+        photos.galleryImages,
+      );
+      Navigator.of(tester.element(find.byType(FullScreenGallery))).pop();
+      await tester.pumpAndSettle();
+      final controller = tester
+          .widget<LoungeDetailsContent>(find.byType(LoungeDetailsContent))
+          .controller;
+      controller.jumpTo(controller.position.maxScrollExtent);
+      await tester.pumpAndSettle();
+      expect(
+        find
+            .descendant(
+              of: find.byType(LoungeGalleryAction),
+              matching: find.byType(InkWell),
+            )
+            .hitTestable(),
+        findsNothing,
+      );
+      expectClean(tester);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 
-  testWidgets('compact disclosures retain address, hours and payment information', (tester) async {
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    await mount(tester, 360, 'ar', 1.6);
-    final visit = find.text('lounge_visit_section'.tr());
-    await tester.ensureVisible(visit);
-    await tester.tap(visit);
-    await tester.pumpAndSettle();
-    expect(find.text(lounge.address!), findsOneWidget);
-    final payment = find.text('lounge_payment_section'.tr());
-    await tester.ensureVisible(payment);
-    await tester.tap(payment);
-    await tester.pumpAndSettle();
-    expect(find.text('lounge_first_booking_prepaid'.tr()), findsOneWidget);
-    expectClean(tester);
-    await tester.pumpWidget(const SizedBox.shrink());
-  });
+  testWidgets(
+    'compact disclosures retain address, hours and payment information',
+    (tester) async {
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await mount(tester, 360, 'ar', 1.6);
+      final visit = find.text('lounge_visit_section'.tr());
+      await tester.ensureVisible(visit);
+      await tester.tap(visit);
+      await tester.pumpAndSettle();
+      expect(find.text(lounge.address!), findsOneWidget);
+      final payment = find.text('lounge_payment_section'.tr());
+      await tester.ensureVisible(payment);
+      await tester.tap(payment);
+      await tester.pumpAndSettle();
+      expect(find.text('lounge_first_booking_prepaid'.tr()), findsOneWidget);
+      expectClean(tester);
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 
   for (final width in [360.0, 600.0, 768.0, 1024.0, 1440.0]) {
     for (final locale in ['ar', 'en']) {
@@ -523,8 +553,7 @@ void main() {
       if (directory != null) {
         File('$directory/rebuild-measurement.json').writeAsStringSync(
           jsonEncode({
-            'mode':
-                'Flutter widget test/debug on Windows; synthetic data; not phone GPU timings',
+            'mode': 'Flutter widget test/debug on Windows; synthetic data; not phone GPU timings',
             'selectionChanges': 20,
             'hostElapsedMicroseconds': watch.elapsedMicroseconds,
             'builds': counts,
@@ -535,53 +564,93 @@ void main() {
     },
   );
   for (final locale in ['ar', 'en']) {
-    testWidgets('unknown online availability shows actual venue phone and retry $locale', (tester) async {
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      await mount(tester, 360, locale, 1.6);
-      final contact = LoungeModel.fromJson({...lounge.toJson(), 'contact_phone': '01012345678'});
-      states.add(initial.copyWith(
-        lounge: contact,
-        operatingStatus: const LoungeOperatingStatus(status: 'unavailable', canBookOnline: false),
-      ));
-      await tester.pumpAndSettle();
-      final banner = find.byType(LoungeTechnicalIssueBanner);
-      expect(banner, findsOneWidget);
-      expect(find.descendant(of: banner, matching: find.textContaining('01012345678')), findsOneWidget);
-      expect(find.descendant(of: banner, matching: find.text(AppStrings.callLounge.tr())), findsOneWidget);
-      final retry = find.descendant(of: banner, matching: find.text('retry'.tr()));
-      await tester.ensureVisible(retry);
-      await tester.tap(retry);
-      verify(() => cubit.getLoungeDetails(lounge.id)).called(1);
-      expectClean(tester);
-      await tester.pumpWidget(const SizedBox.shrink());
-    });
+    testWidgets(
+      'unknown online availability shows actual venue phone and retry $locale',
+      (tester) async {
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await mount(tester, 360, locale, 1.6);
+        final contact = LoungeModel.fromJson({
+          ...lounge.toJson(),
+          'contact_phone': '01012345678',
+        });
+        states.add(
+          initial.copyWith(
+            lounge: contact,
+            operatingStatus: const LoungeOperatingStatus(
+              status: 'unavailable',
+              canBookOnline: false,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final banner = find.byType(LoungeTechnicalIssueBanner);
+        expect(banner, findsOneWidget);
+        expect(
+          find.descendant(
+            of: banner,
+            matching: find.textContaining('01012345678'),
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(
+            of: banner,
+            matching: find.text(AppStrings.callLounge.tr()),
+          ),
+          findsOneWidget,
+        );
+        final retry = find.descendant(
+          of: banner,
+          matching: find.text('retry'.tr()),
+        );
+        await tester.ensureVisible(retry);
+        await tester.tap(retry);
+        verify(() => cubit.getLoungeDetails(lounge.id)).called(1);
+        expectClean(tester);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
 
-    testWidgets('room offer sits on the directional card edge and compact selector works $locale', (tester) async {
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      await mount(tester, 360, locale, 1.6);
-      final offer = LoungeModel.fromJson({...lounge.toJson(), 'has_discount': true, 'discount_percentage': 20});
-      states.add(initial.copyWith(lounge: offer));
-      await tester.pumpAndSettle();
-      final card = find.byKey(const ValueKey('r'));
-      await tester.ensureVisible(card);
-      await tester.pumpAndSettle();
-      final badge = find.descendant(of: card, matching: find.byType(RoomPromoBadge));
-      expect(badge, findsOneWidget);
-      final cardRect = tester.getRect(card);
-      final badgeRect = tester.getRect(badge);
-      expect(locale == 'ar' ? badgeRect.right : badgeRect.left,
-          closeTo(locale == 'ar' ? cardRect.right : cardRect.left, 2));
-      final selector = find.descendant(of: card, matching: find.byType(RoomSelectButton));
-      expect(selector, findsOneWidget);
-      await tester.ensureVisible(selector);
-      await tester.tap(selector);
-      verify(() => cubit.toggleRoomSelection('r')).called(1);
-      expectClean(tester);
-      await screenshot(tester, 'lounge-compact-offer-$locale');
-      await tester.pumpWidget(const SizedBox.shrink());
-    });
+    testWidgets(
+      'room offer sits on the directional card edge and compact selector works $locale',
+      (tester) async {
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        await mount(tester, 360, locale, 1.6);
+        final offer = LoungeModel.fromJson({
+          ...lounge.toJson(),
+          'has_discount': true,
+          'discount_percentage': 20,
+        });
+        states.add(initial.copyWith(lounge: offer));
+        await tester.pumpAndSettle();
+        final card = find.byKey(const ValueKey('r'));
+        await tester.ensureVisible(card);
+        await tester.pumpAndSettle();
+        final badge = find.descendant(
+          of: card,
+          matching: find.byType(RoomPromoBadge),
+        );
+        expect(badge, findsOneWidget);
+        final cardRect = tester.getRect(card);
+        final badgeRect = tester.getRect(badge);
+        expect(
+          locale == 'ar' ? badgeRect.right : badgeRect.left,
+          closeTo(locale == 'ar' ? cardRect.right : cardRect.left, 2),
+        );
+        final selector = find.descendant(
+          of: card,
+          matching: find.byType(RoomSelectButton),
+        );
+        expect(selector, findsOneWidget);
+        await tester.ensureVisible(selector);
+        await tester.tap(selector);
+        verify(() => cubit.toggleRoomSelection('r')).called(1);
+        expectClean(tester);
+        await screenshot(tester, 'lounge-compact-offer-$locale');
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
   }
-
 }

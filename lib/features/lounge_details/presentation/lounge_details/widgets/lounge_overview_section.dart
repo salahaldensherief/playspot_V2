@@ -4,6 +4,7 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/layout/app_state_view.dart';
 import 'package:playspot/art_core/widgets/shimmer/room_card_shimmer.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 import 'lounge_closed_banner.dart';
@@ -49,8 +50,10 @@ class LoungeOverviewSection extends StatelessWidget {
           }
 
           final opStatus = state.operatingStatus;
-          final isTechnicalIssue = opStatus != null &&
-              !opStatus.canBookOnline && opStatus.status != 'closed';
+          final isTechnicalIssue =
+              opStatus != null &&
+              !opStatus.canBookOnline &&
+              opStatus.status != 'closed';
           final isClosed = opStatus?.status == 'closed';
 
           return SliverMainAxisGroup(
@@ -58,10 +61,13 @@ class LoungeOverviewSection extends StatelessWidget {
               if (isTechnicalIssue)
                 SliverToBoxAdapter(
                   child: LoungeTechnicalIssueBanner(
-                    contactPhone: (opStatus?.contactPhone?.trim().isNotEmpty ?? false)
+                    contactPhone:
+                        (opStatus?.contactPhone?.trim().isNotEmpty ?? false)
                         ? opStatus?.contactPhone
                         : lounge.contactPhone,
-                    onRetry: () => context.read<LoungeDetailsCubit>().getLoungeDetails(lounge.id),
+                    onRetry: () => context
+                        .read<LoungeDetailsCubit>()
+                        .getLoungeDetails(lounge.id),
                   ),
                 )
               else if (isClosed)

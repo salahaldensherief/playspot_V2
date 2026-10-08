@@ -13,7 +13,11 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
   final String? contactPhone;
   final VoidCallback? onRetry;
 
-  const LoungeTechnicalIssueBanner({super.key, this.contactPhone, this.onRetry});
+  const LoungeTechnicalIssueBanner({
+    super.key,
+    this.contactPhone,
+    this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {

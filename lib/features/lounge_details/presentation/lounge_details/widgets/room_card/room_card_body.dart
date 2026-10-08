@@ -4,6 +4,7 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+
 import '../../room_card_presentation.dart';
 import 'room_constants.dart';
 import 'room_main_content.dart';
@@ -49,13 +50,13 @@ class RoomCardBody extends StatelessWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-            RoomMainContent(room: room, data: data, expanded: expanded),
-            RoomExpandedDetails(
-              room: room,
-              isArabic: context.locale.languageCode == 'ar',
-              isExpanded: expanded,
-              data: data,
-            ),
+                RoomMainContent(room: room, data: data, expanded: expanded),
+                RoomExpandedDetails(
+                  room: room,
+                  isArabic: context.locale.languageCode == 'ar',
+                  isExpanded: expanded,
+                  data: data,
+                ),
               ],
             ),
             if (data.hasOffer(room))
@@ -63,11 +64,19 @@ class RoomCardBody extends StatelessWidget {
                 top: 0,
                 start: 0,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.55),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.55,
+                  ),
                   child: RoomPromoBadge(
                     tag: room.hasActivePromo
-                        ? room.getPromoTag(context.locale.languageCode == 'ar') ?? AppStrings.activeOffer.tr()
-                        : data.lounge?.getDiscountTitle(context.locale.languageCode == 'ar') ?? '${AppStrings.discount.tr()} ${data.lounge?.discountPercentage ?? 0}%',
+                        ? room.getPromoTag(
+                                context.locale.languageCode == 'ar',
+                              ) ??
+                              AppStrings.activeOffer.tr()
+                        : data.lounge?.getDiscountTitle(
+                                context.locale.languageCode == 'ar',
+                              ) ??
+                              '${AppStrings.discount.tr()} ${data.lounge?.discountPercentage ?? 0}%',
                   ),
                 ),
               ),

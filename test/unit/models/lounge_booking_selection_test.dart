@@ -110,18 +110,26 @@ void main() {
     expect(RoomCardPresentation.fromState(room, freshOpen).isAvailable, isTrue);
     expect(LoungeBookingSelection(freshOpen, cachedClosed).isEnabled, isTrue);
     final freshClosed = state.copyWith(
-      operatingStatus: const LoungeOperatingStatus(status: 'closed', canBookOnline: false),
+      operatingStatus: const LoungeOperatingStatus(
+        status: 'closed',
+        canBookOnline: false,
+      ),
     );
-    expect(RoomCardPresentation.fromState(room, freshClosed).isAvailable, isFalse);
+    expect(
+      RoomCardPresentation.fromState(room, freshClosed).isAvailable,
+      isFalse,
+    );
     expect(LoungeBookingSelection(freshClosed, lounge).params, isNull);
   });
 
   test('contact phone survives parsing, caching and distance updates', () {
-    final contact = LoungeModel.fromJson({'id': 'l', 'contact_phone': ' 01012345678 '});
+    final contact = LoungeModel.fromJson({
+      'id': 'l',
+      'contact_phone': ' 01012345678 ',
+    });
     expect(contact.contactPhone, '01012345678');
     expect(LoungeModel.fromJson(contact.toJson()).contactPhone, '01012345678');
     expect(contact.withDistanceEstimate(2).contactPhone, '01012345678');
     expect(LoungeModel.fromJson({'id': 'l'}).contactPhone, isNull);
   });
-
 }

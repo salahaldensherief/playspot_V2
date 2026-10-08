@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/core/models/geo_coordinates.dart';
+
 import 'lounge_distance.dart';
 import 'lounge_json_decoder.dart';
 

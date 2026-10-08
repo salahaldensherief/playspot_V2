@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+
 import 'lounge_details_state.dart';
 
 class RoomCardPresentation extends Equatable {
