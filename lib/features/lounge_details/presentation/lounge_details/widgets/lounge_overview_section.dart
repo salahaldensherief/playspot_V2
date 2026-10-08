@@ -62,8 +62,8 @@ class LoungeOverviewSection extends StatelessWidget {
                 SliverToBoxAdapter(
                   child: LoungeTechnicalIssueBanner(
                     contactPhone:
-                        (opStatus?.contactPhone?.trim().isNotEmpty ?? false)
-                        ? opStatus?.contactPhone
+                        (opStatus.contactPhone?.trim().isNotEmpty ?? false)
+                        ? opStatus.contactPhone
                         : lounge.contactPhone,
                     onRetry: () => context
                         .read<LoungeDetailsCubit>()
