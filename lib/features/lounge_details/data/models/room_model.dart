@@ -181,6 +181,9 @@ class RoomModel extends Equatable {
   bool get isVIP => spaceTypeName == 'vip_room';
   bool get isStandard => spaceTypeName == 'standard_room';
   bool get isOccupied => status.trim().toLowerCase() == 'occupied';
+  bool get isEnabledForBooking =>
+      (isAvailable || isOccupied) &&
+      !['maintenance', 'deleted'].contains(status.trim().toLowerCase());
   bool get supportsPlayModePricing => pricingModel == 'single_multi_hour';
 
   String getDisplayTitle(bool isArabic) => getName(isArabic);

@@ -218,6 +218,34 @@ void main() {
       );
     },
   );
+  for (final roomStatus in ['maintenance', 'available', 'occupied']) {
+    test(
+      'future room preview distinguishes $roomStatus from period occupancy',
+      () async {
+        await ready('a');
+        final room = RoomModel.fromJson({
+          'id': 'a-room',
+          'lounge_id': 'a',
+          'status': roomStatus,
+          'is_available': false,
+        });
+        final state = cubit.state.copyWith(
+          rooms: [room],
+          selectedRoomIds: {'a-room'},
+          selectedDate: DateTime.now().add(const Duration(days: 1)),
+        );
+        final expected = roomStatus == 'occupied';
+        expect(
+          RoomCardPresentation.fromState(room, state).isAvailable,
+          expected,
+        );
+        expect(
+          LoungeBookingSelection(state, state.lounge!).isEnabled,
+          expected,
+        );
+      },
+    );
+  }
   test('technical issue recovers only after a fresh open status', () async {
     when(() => details.getLoungeOperatingStatus('a')).thenAnswer(
       (_) async => const Right(

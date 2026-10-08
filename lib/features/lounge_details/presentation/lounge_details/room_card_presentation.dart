@@ -30,7 +30,8 @@ class RoomCardPresentation extends Equatable {
         state.isDateLoading ||
         state.status != LoungeDetailsStatus.success;
     return RoomCardPresentation(
-      isAvailable: open && !busy && !unknownAvailability,
+      isAvailable:
+          open && room.isEnabledForBooking && !busy && !unknownAvailability,
       isSelected: state.isRoomSelected(room.id),
       lounge: state.lounge,
       availabilityKey:
@@ -43,6 +44,8 @@ class RoomCardPresentation extends Equatable {
           ? 'room_closed'
           : unknownAvailability
           ? 'room_availability_unavailable'
+          : !room.isEnabledForBooking
+          ? 'room_unavailable'
           : busy
           ? 'room_busy'
           : 'room_available',
