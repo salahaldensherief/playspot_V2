@@ -55,6 +55,7 @@ class FixtureSupport implements SupportRemoteDataSource {
   Future<List<Map<String, dynamic>>> getPolicies(String lang) async {
     loads++;
     if (fail) throw StateError('synthetic outage');
+    if (empty) return [];
     return [
       {
         'policy_key': 'terms',
@@ -110,6 +111,32 @@ void main() {
   }
 
   for (final locale in ['ar', 'en']) {
+    testWidgets('unpublished policies show no replacement legal text $locale', (
+      tester,
+    ) async {
+      final fixture = FixtureSupport()
+        ..fail = false
+        ..empty = true;
+      await mount(tester, locale, const TermsAndConditionsScreen(), fixture);
+      expect(find.text('policyContentUnavailable'.tr()), findsOneWidget);
+      expect(find.textContaining('Acceptance of Terms'), findsNothing);
+      expect(find.textContaining('قبول الشروط'), findsNothing);
+    });
+    testWidgets(
+      'language reload clears content absent from the new response $locale',
+      (tester) async {
+        final fixture = FixtureSupport()..fail = false;
+        await mount(tester, locale, const TermsAndConditionsScreen(), fixture);
+        expect(find.text('Fixture reviewed policy'), findsOneWidget);
+        fixture.empty = true;
+        await tester
+            .element(find.byType(TermsAndConditionsScreen))
+            .setLocale(Locale(locale == 'ar' ? 'en' : 'ar'));
+        await tester.pumpAndSettle();
+        expect(find.text('Fixture reviewed policy'), findsNothing);
+        expect(find.text('policyContentUnavailable'.tr()), findsOneWidget);
+      },
+    );
     testWidgets(
       'Quick Rebook request error differs from unavailable setup and permits retry $locale',
       (tester) async {
