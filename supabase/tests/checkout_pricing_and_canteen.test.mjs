@@ -6,6 +6,7 @@ const db = await createFixtureDatabase();
 const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
 const lounge = id(1), room = id(2), roomB = id(3), user = id(4), hold = id(5), extra = id(6), combo = id(7), rule = id(8);
 let passed = 0;
+let originalQuoteDefinition, originalQuoteAcl;
 async function source(file, name) {
   const sql = await readFile(new URL('../migrations/'+file, import.meta.url), 'utf8');
   const start = sql.indexOf('CREATE OR REPLACE FUNCTION '+name+'(');
@@ -52,6 +53,10 @@ try {
   ]) await db.exec(await source(file,name));
   for (const file of ['20261007103018_checkout_voucher_allocation_and_price_stability.sql','20261007103019_canteen_combo_order_integrity.sql','20261007103029_pricing_weekly_conflict_integrity.sql'])
     await db.exec(await readFile(new URL('../migrations/'+file,import.meta.url),'utf8'));
+  originalQuoteDefinition = (await db.query("SELECT pg_get_functiondef('private.build_my_booking_checkout_quote(uuid,uuid,jsonb,jsonb,text)'::regprocedure) AS definition")).rows[0].definition;
+  originalQuoteAcl = (await db.query("SELECT proacl::text AS acl FROM pg_proc WHERE oid='private.build_my_booking_checkout_quote(uuid,uuid,jsonb,jsonb,text)'::regprocedure")).rows[0].acl;
+  if (!process.env.PLAYSPOT_CHECKOUT_ELIGIBILITY_BASELINE)
+    await db.exec(await readFile(new URL('../migrations/20261009000005_checkout_room_booking_eligibility.sql',import.meta.url),'utf8'));
   await db.exec(`CREATE TRIGGER clamp BEFORE INSERT OR UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION fn_validate_and_clamp_booking_price();
     CREATE TRIGGER normalize BEFORE INSERT OR UPDATE OF items ON canteen_orders FOR EACH ROW EXECUTE FUNCTION normalize_canteen_order_items();
     ALTER TABLE canteen_order_items ADD FOREIGN KEY(order_id) REFERENCES canteen_orders(id);
@@ -74,6 +79,23 @@ try {
     assert.equal(Number(await scalar('SELECT sum(total_price) r FROM bookings')),100);
     assert.equal(await scalar("SELECT status r FROM user_vouchers WHERE code='TEST'"),'used');
     assert.equal(Number(await scalar('SELECT count(*) r FROM booking_holds WHERE released_at IS NULL')),0);
+  });
+  await check('administrative disablement after hold prevents checkout',async () => {
+    await seedHold(); await db.query("UPDATE rooms SET is_available=false,status='available' WHERE id=$1",[room]);
+    await assert.rejects(checkout(),e=>e.code==='23514');
+  });
+  await check('occupied room can checkout an eligible future hold',async () => {
+    await seedHold(); await db.query("UPDATE rooms SET is_available=false,status='occupied' WHERE id=$1",[room]);
+    const result=await checkout();assert.ok(result.primary_booking_id);
+    assert.equal(Number(await scalar('SELECT count(*) r FROM bookings')),1);
+  });
+  await check('maintenance after hold prevents checkout even with available flag',async () => {
+    await seedHold(); await db.query("UPDATE rooms SET is_available=true,status='maintenance' WHERE id=$1",[room]);
+    await assert.rejects(checkout(),e=>e.code==='23514');
+  });
+  await check('inactive occupied resource after hold prevents checkout',async () => {
+    await seedHold(); await db.query("UPDATE rooms SET is_available=false,status='occupied',is_active=false WHERE id=$1",[room]);
+    await assert.rejects(checkout(),e=>e.code==='23514');
   });
   await check('fixed voucher can cover extras after covering the room',async () => {
     await seedHold(); await voucher(180);
@@ -229,6 +251,14 @@ try {
       if (pending) await pending;
       await a.end(); await b.end(); await observer.end();
     }
+  }
+  if (!process.env.PLAYSPOT_CHECKOUT_ELIGIBILITY_BASELINE) {
+    await db.exec(await readFile(new URL('../review/rollbacks/20261009000005_checkout_room_booking_eligibility.sql',import.meta.url),'utf8'));
+    assert.equal((await db.query("SELECT pg_get_functiondef('private.build_my_booking_checkout_quote(uuid,uuid,jsonb,jsonb,text)'::regprocedure) AS definition")).rows[0].definition,originalQuoteDefinition);
+    const migration = await readFile(new URL('../migrations/20261009000005_checkout_room_booking_eligibility.sql',import.meta.url),'utf8');
+    await db.exec(migration);await db.exec(migration);
+    assert.equal((await db.query("SELECT proacl::text AS acl FROM pg_proc WHERE oid='private.build_my_booking_checkout_quote(uuid,uuid,jsonb,jsonb,text)'::regprocedure")).rows[0].acl,originalQuoteAcl);
+    passed++;console.log('PASS eligibility rollback, reapply and grants preservation');
   }
   console.log(JSON.stringify({passed,liveMutations:false,productionFunctions:true}));
 } finally {await db.close();}

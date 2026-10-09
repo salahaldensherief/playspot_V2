@@ -18,3 +18,11 @@ This is source only. Pushing `dev` does not apply this migration. Before an appr
 4. If required, use the reviewed rollback `supabase/review/rollbacks/20261009000001_booking_hold_occupied_room_capacity.sql` after comparing any newer function changes. It restores the observed function predicate without deleting bookings, holds, grants or writer state. Existing occupied-room future holds may then be rejected on renewal; inspect them before rollback.
 
 The wider future-request policy (including unconfirmed requests and no-shift operation) is unchanged. Complete checkout and hosted staging validation remain required.
+# Checkout consistency follow-up
+
+Read-only hosted inspection confirmed that private.build_my_booking_checkout_quote checked is_active/status but ignored administrative is_available=false. A hold acquired before administrative disablement could therefore still checkout. Migration 20261009000005 adds the same `(is_available IS TRUE OR status='occupied')` predicate, preserving the installed pricing/voucher function and its grants. It refuses an unexpected definition and supports both LF and CRLF source bodies.
+
+The existing checkout/pricing/canteen native suite now rejects administrative disablement, maintenance and inactive occupancy after hold, and creates an actual synthetic future booking for an occupied room. It also verifies exact function restoration on rollback, idempotent reapplication and unchanged ACL. Its holds are fixture-seeded; acquire-hold and checkout remain separate fixtures. This is not hosted end-to-end Auth/payment/Realtime verification.
+
+Deploy hold and checkout eligibility migrations together in staging. The checkout rollback restores the known administrative-disablement gap, so disabling checkout is safer containment than restoring that behavior. No hosted migration was applied.
+
