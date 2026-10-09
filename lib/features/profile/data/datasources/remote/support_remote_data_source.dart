@@ -17,49 +17,44 @@ class SupportRemoteDataSourceImpl implements SupportRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> getSupportSettings() async {
-    try {
-      final response = await _supabase.rpc('get_public_support_settings');
-      if (response is Map<String, dynamic>) {
-        return response;
-      } else if (response is Map) {
-        return Map<String, dynamic>.from(response);
-      } else if (response is List && response.isNotEmpty) {
-        return Map<String, dynamic>.from(response.first as Map);
-      }
-    } catch (_) {}
-    return {};
+    final response = await _supabase.rpc('get_public_support_settings');
+    if (response is Map<String, dynamic>) {
+      return response;
+    } else if (response is Map) {
+      return Map<String, dynamic>.from(response);
+    } else if (response is List && response.isNotEmpty) {
+      return Map<String, dynamic>.from(response.first as Map);
+    }
+    if (response is List && response.isEmpty) return {};
+    throw const FormatException('Invalid support settings response');
   }
 
   @override
   Future<List<Map<String, dynamic>>> getPolicies(String lang) async {
-    try {
-      final response = await _supabase.rpc(
-        'get_public_policies',
-        params: {'p_lang': lang},
+    final response = await _supabase.rpc(
+      'get_public_policies',
+      params: {'p_lang': lang},
+    );
+    if (response is List) {
+      return List<Map<String, dynamic>>.from(
+        response.map((item) => Map<String, dynamic>.from(item as Map)),
       );
-      if (response is List) {
-        return List<Map<String, dynamic>>.from(
-          response.map((item) => Map<String, dynamic>.from(item as Map)),
-        );
-      }
-    } catch (_) {}
-    return [];
+    }
+    throw const FormatException('Invalid policies response');
   }
 
   @override
   Future<List<Map<String, dynamic>>> getFaqs(String lang) async {
-    try {
-      final response = await _supabase.rpc(
-        'get_public_faqs',
-        params: {'p_lang': lang},
+    final response = await _supabase.rpc(
+      'get_public_faqs',
+      params: {'p_lang': lang},
+    );
+    if (response is List) {
+      return List<Map<String, dynamic>>.from(
+        response.map((item) => Map<String, dynamic>.from(item as Map)),
       );
-      if (response is List) {
-        return List<Map<String, dynamic>>.from(
-          response.map((item) => Map<String, dynamic>.from(item as Map)),
-        );
-      }
-    } catch (_) {}
-    return [];
+    }
+    throw const FormatException('Invalid FAQs response');
   }
 
   @override
