@@ -30,15 +30,9 @@ import 'quick_rebook_slots_section.dart';
 class QuickRebookBottomSheet extends StatelessWidget {
   final BookingModel booking;
 
-  const QuickRebookBottomSheet({
-    super.key,
-    required this.booking,
-  });
+  const QuickRebookBottomSheet({super.key, required this.booking});
 
-  static Future<void> show(
-    BuildContext context,
-    BookingModel booking,
-  ) async {
+  static Future<void> show(BuildContext context, BookingModel booking) async {
     final cubit = sl<QuickRebookCubit>();
     unawaited(cubit.initQuickRebook(booking));
 
@@ -57,26 +51,19 @@ class QuickRebookBottomSheet extends StatelessWidget {
     }
   }
 
-  Future<void> _proceedToQuickCheckout(
-    BuildContext context,
-  ) async {
+  Future<void> _proceedToQuickCheckout(BuildContext context) async {
     final router = GoRouter.of(context);
-    final checkoutParams =
-        await context.read<QuickRebookCubit>().prepareCheckout();
+    final checkoutParams = await context
+        .read<QuickRebookCubit>()
+        .prepareCheckout();
 
     if (!context.mounted || checkoutParams == null) return;
 
     Navigator.of(context).pop();
-    router.pushNamed(
-      RouterKeys.checkout,
-      extra: checkoutParams,
-    );
+    router.pushNamed(RouterKeys.checkout, extra: checkoutParams);
   }
 
-  void _navigateToCustomize(
-    BuildContext context,
-    QuickRebookState state,
-  ) {
+  void _navigateToCustomize(BuildContext context, QuickRebookState state) {
     final lounge = state.lounge;
     final room = state.room;
     if (lounge == null || room == null) return;
@@ -110,10 +97,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
     );
 
     Navigator.of(context).pop();
-    context.pushNamed(
-      RouterKeys.bookingDetails,
-      extra: params,
-    );
+    context.pushNamed(RouterKeys.bookingDetails, extra: params);
   }
 
   void _browseLounge(BuildContext context) {
@@ -144,12 +128,8 @@ class QuickRebookBottomSheet extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: AppColors.scaffoldBackground.withValues(alpha: 0.96),
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(28.r),
-          ),
-          border: Border.all(
-            color: AppColors.neonBlue.withValues(alpha: 0.3),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+          border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
         ),
         child: BlocBuilder<QuickRebookCubit, QuickRebookState>(
           buildWhen: (previous, current) => previous != current,
@@ -194,21 +174,21 @@ class QuickRebookBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.event_busy_rounded,
-            color: AppColors.warning,
-            size: 48.sp,
-          ),
+          Icon(Icons.event_busy_rounded, color: AppColors.warning, size: 48.sp),
           SizedBox(height: 12.h),
           AppText(
-            text: AppStrings.quickRebookUnavailableTitle.tr(),
+            text: state.status == QuickRebookStatus.error
+                ? AppStrings.somethingWentWrong.tr()
+                : AppStrings.quickRebookUnavailableTitle.tr(),
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
           SizedBox(height: 6.h),
           AppText(
-            text: AppStrings.quickRebookUnavailableMessage.tr(),
+            text: state.status == QuickRebookStatus.error
+                ? 'quickRebookSlotsLoadFailed'.tr()
+                : AppStrings.quickRebookUnavailableMessage.tr(),
             fontSize: 12.sp,
             color: AppColors.textSecondary,
             textAlign: TextAlign.center,
@@ -223,8 +203,9 @@ class QuickRebookBottomSheet extends StatelessWidget {
                 borderRadius: 12.r,
               ),
               behavior: ButtonBehavior.tap(
-                onTap: () => context.read<QuickRebookCubit>()
-                    .changeDate(state.selectedDate),
+                onTap: () => context.read<QuickRebookCubit>().changeDate(
+                  state.selectedDate,
+                ),
               ),
             ),
             SizedBox(height: 12.h),
@@ -238,19 +219,14 @@ class QuickRebookBottomSheet extends StatelessWidget {
               backgroundColor: AppColors.neonBlue,
               borderRadius: 12.r,
             ),
-            behavior: ButtonBehavior.tap(
-              onTap: () => _browseLounge(context),
-            ),
+            behavior: ButtonBehavior.tap(onTap: () => _browseLounge(context)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildReady(
-    BuildContext context,
-    QuickRebookState state,
-  ) {
+  Widget _buildReady(BuildContext context, QuickRebookState state) {
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -267,14 +243,9 @@ class QuickRebookBottomSheet extends StatelessWidget {
               ),
             ),
           ),
-          QuickRebookHeader(
-            onClose: () => Navigator.of(context).pop(),
-          ),
+          QuickRebookHeader(onClose: () => Navigator.of(context).pop()),
           SizedBox(height: 18.h),
-          QuickRebookSetupSummary(
-            booking: booking,
-            state: state,
-          ),
+          QuickRebookSetupSummary(booking: booking, state: state),
           SizedBox(height: 16.h),
           QuickRebookSlotsSection(state: state),
           if (state.availableExtras.isNotEmpty) ...[

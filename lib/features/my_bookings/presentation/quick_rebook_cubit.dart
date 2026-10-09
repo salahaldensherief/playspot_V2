@@ -38,6 +38,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
     emit(
       state.copyWith(
         status: QuickRebookStatus.loading,
+        clearErrorMessage: true,
         pastBooking: pastBooking,
         selectedDate: suggestedDate,
       ),
@@ -70,8 +71,9 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
           setup,
           today,
           setup.durationMinutes,
+          request: request,
         );
-        if (isClosed || request != _slotRequest) return;
+        if (todaySlots == null || isClosed || request != _slotRequest) return;
 
         DateTime activeDate = today;
         List<TimeOfDay> activeSlots = todaySlots;
@@ -92,7 +94,9 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
               setup,
               candidate,
               setup.durationMinutes,
+              request: request,
             );
+            if (slots == null || isClosed || request != _slotRequest) return;
             if (slots.isNotEmpty) {
               suggestedDates.add(candidate);
               if (activeSlots.isEmpty) {
@@ -136,10 +140,21 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
     if (setup == null) return;
     final request = ++_slotRequest;
 
-    emit(state.copyWith(status: QuickRebookStatus.loading, selectedDate: date));
+    emit(
+      state.copyWith(
+        status: QuickRebookStatus.loading,
+        selectedDate: date,
+        clearErrorMessage: true,
+      ),
+    );
 
-    final slots = await _fetchSlotsForDate(setup, date, state.durationMinutes);
-    if (isClosed || request != _slotRequest) return;
+    final slots = await _fetchSlotsForDate(
+      setup,
+      date,
+      state.durationMinutes,
+      request: request,
+    );
+    if (slots == null || isClosed || request != _slotRequest) return;
 
     final targetTime = BookingSlotUtils.resolveTargetTime(
       setup.pastBooking.startTime,
@@ -176,6 +191,7 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       state.copyWith(
         status: QuickRebookStatus.loading,
         durationMinutes: normalizedDuration,
+        clearErrorMessage: true,
       ),
     );
 
@@ -183,8 +199,9 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       setup,
       state.selectedDate,
       normalizedDuration,
+      request: request,
     );
-    if (isClosed || request != _slotRequest) return;
+    if (slots == null || isClosed || request != _slotRequest) return;
 
     final targetTime = BookingSlotUtils.resolveTargetTime(
       setup.pastBooking.startTime,
@@ -208,11 +225,12 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
     );
   }
 
-  Future<List<TimeOfDay>> _fetchSlotsForDate(
+  Future<List<TimeOfDay>?> _fetchSlotsForDate(
     QuickRebookSetup setup,
     DateTime date,
-    int durationMinutes,
-  ) async {
+    int durationMinutes, {
+    required int request,
+  }) async {
     final slotsResult = await _getQuickRebookSlots(
       loungeId: setup.lounge.id,
       roomId: setup.room.id,
@@ -222,7 +240,21 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       durationMinutes: durationMinutes,
     );
 
-    return slotsResult.fold((_) => const <TimeOfDay>[], (slots) => slots);
+    if (isClosed || request != _slotRequest) return null;
+    return slotsResult.fold((failure) {
+      emit(
+        state.copyWith(
+          status: QuickRebookStatus.error,
+          errorMessage: failure.message,
+          selectedDate: date,
+          durationMinutes: durationMinutes,
+          availableSlots: const [],
+          suggestedDates: const [],
+          clearSelectedSlot: true,
+        ),
+      );
+      return null;
+    }, (slots) => slots);
   }
 
   void updateAddonQuantity(String extraId, int newQuantity) {

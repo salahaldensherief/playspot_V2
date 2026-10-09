@@ -62,6 +62,7 @@ class QuickRebookState extends Equatable {
     double? addonsTotal,
     double? totalPrice,
     String? errorMessage,
+    bool clearErrorMessage = false,
   }) {
     return QuickRebookState(
       status: status ?? this.status,
@@ -69,37 +70,42 @@ class QuickRebookState extends Equatable {
       lounge: lounge ?? this.lounge,
       room: room ?? this.room,
       availableExtras: availableExtras ?? this.availableExtras,
-      selectedAddonQuantities: selectedAddonQuantities ?? this.selectedAddonQuantities,
+      selectedAddonQuantities:
+          selectedAddonQuantities ?? this.selectedAddonQuantities,
       removedAddonNames: removedAddonNames ?? this.removedAddonNames,
       selectedDate: selectedDate ?? this.selectedDate,
       availableSlots: availableSlots ?? this.availableSlots,
-      selectedSlot: clearSelectedSlot ? null : (selectedSlot ?? this.selectedSlot),
+      selectedSlot: clearSelectedSlot
+          ? null
+          : (selectedSlot ?? this.selectedSlot),
       suggestedDates: suggestedDates ?? this.suggestedDates,
       durationMinutes: durationMinutes ?? this.durationMinutes,
       roomSubtotal: roomSubtotal ?? this.roomSubtotal,
       addonsTotal: addonsTotal ?? this.addonsTotal,
       totalPrice: totalPrice ?? this.totalPrice,
-      errorMessage: errorMessage ?? this.errorMessage,
+      errorMessage: clearErrorMessage
+          ? null
+          : (errorMessage ?? this.errorMessage),
     );
   }
 
   @override
   List<Object?> get props => [
-        status,
-        pastBooking,
-        lounge,
-        room,
-        availableExtras,
-        selectedAddonQuantities,
-        removedAddonNames,
-        selectedDate,
-        availableSlots,
-        selectedSlot,
-        suggestedDates,
-        durationMinutes,
-        roomSubtotal,
-        addonsTotal,
-        totalPrice,
-        errorMessage,
-      ];
+    status,
+    pastBooking,
+    lounge,
+    room,
+    availableExtras,
+    selectedAddonQuantities,
+    removedAddonNames,
+    selectedDate,
+    availableSlots,
+    selectedSlot,
+    suggestedDates,
+    durationMinutes,
+    roomSubtotal,
+    addonsTotal,
+    totalPrice,
+    errorMessage,
+  ];
 }

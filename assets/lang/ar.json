@@ -619,6 +619,8 @@
   "quickRebookChecking": "جاري التحقق من الإتاحة الحالية...",
   "quickRebookUnavailableTitle": "الحجز السريع غير متاح",
   "quickRebookUnavailableMessage": "الغرفة أو التجهيز السابق لم يعد متاحاً للحجز السريع.",
+  "quickRebookSlotsLoadFailed": "تعذّر تحميل المواعيد. جرّب مرة أخرى.",
+  "supportDataLoadFailed": "تعذّر تحميل المعلومات. جرّب مرة أخرى.",
   "quickRebookBrowseLounge": "استعراض الصالة والحجز",
   "quickRebookNearestSlots": "أقرب المواعيد المتاحة",
   "quickRebookNoSlots": "لا توجد مواعيد مناسبة متاحة لهذا التاريخ.",

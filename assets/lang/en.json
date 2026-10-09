@@ -619,6 +619,8 @@
   "quickRebookChecking": "Checking current availability...",
   "quickRebookUnavailableTitle": "Quick Rebook Unavailable",
   "quickRebookUnavailableMessage": "The previous room or setup is no longer available for quick rebooking.",
+  "quickRebookSlotsLoadFailed": "Unable to load available times. Please try again.",
+  "supportDataLoadFailed": "Unable to load this information. Please try again.",
   "quickRebookBrowseLounge": "Browse Lounge & Book",
   "quickRebookNearestSlots": "Nearest Available Slots",
   "quickRebookNoSlots": "No matching slots are available for this date.",
