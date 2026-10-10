@@ -1,0 +1,32 @@
+import {createFixtureDatabase} from './runtime/database.mjs';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const db=await createFixtureDatabase();let passed=0;
+const user='10000000-0000-0000-0000-000000000001';
+const migration=await readFile(new URL('../migrations/20261010120419_durable_auth_disable_recovery.sql',import.meta.url),'utf8');
+async function reset(){await db.exec(`RESET ROLE;TRUNCATE private.auth_disable_tasks;UPDATE public.profiles SET is_active=true,is_banned=false;TRUNCATE private.auth_disable_tasks;`);}
+async function disable(){await db.exec(`UPDATE public.profiles SET is_active=false,is_banned=true WHERE id='${user}'`);}
+async function claim(){return(await db.query('SELECT * FROM public.claim_auth_disable_tasks(10)')).rows;}
+async function finish(job,ok){return db.query('SELECT public.finish_auth_disable_task($1,$2,$3,$4)',[job.user_id,job.lease_id,ok,ok?null:'AUTH_UNAVAILABLE']);}
+async function check(name,body){await reset();await body();passed++;console.log('PASS '+name);}
+try{
+ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA private;
+ CREATE TABLE public.profiles(id uuid PRIMARY KEY,is_active boolean,is_banned boolean);
+ INSERT INTO public.profiles VALUES('${user}',true,false);
+ CREATE TABLE public.account_deletion_requests(user_id uuid PRIMARY KEY,requested_at timestamptz DEFAULT now(),auth_disabled_at timestamptz);
+ GRANT USAGE ON SCHEMA public TO anon,authenticated,service_role;`);
+ await db.exec(migration);
+ await check('deactivation and task enqueue are one transaction',async()=>{await db.exec('BEGIN');await disable();await db.exec('ROLLBACK');assert.equal((await db.query('SELECT count(*)::int n FROM private.auth_disable_tasks')).rows[0].n,0);assert.equal((await db.query('SELECT is_active FROM public.profiles')).rows[0].is_active,true);});
+ await check('one durable job per disabled identity; unchanged update does not reset retry budget',async()=>{await disable();let jobs=await claim();await db.exec(`UPDATE public.profiles SET is_active=false WHERE id='${user}'`);assert.equal((await db.query('SELECT attempts FROM private.auth_disable_tasks')).rows[0].attempts,1);assert.equal(jobs.length,1);});
+ await check('service can claim but client roles cannot claim or acknowledge',async()=>{await disable();for(const role of ['anon','authenticated']){await db.exec(`SET ROLE ${role}`);await assert.rejects(claim(),e=>e.code==='42501');await assert.rejects(db.query('SELECT * FROM private.auth_disable_tasks'),e=>e.code==='42501');await db.exec('RESET ROLE');}await db.exec('SET ROLE service_role');assert.equal((await claim()).length,1);await db.exec('RESET ROLE');});
+ await check('invalid batch limit cannot acquire a task',async()=>{await disable();await assert.rejects(db.query('SELECT * FROM public.claim_auth_disable_tasks(100)'),e=>e.code==='22023');assert.equal((await db.query('SELECT attempts FROM private.auth_disable_tasks')).rows[0].attempts,0);});
+ await check('parallel workers claim disjoint tasks',async()=>{await disable();const peer=await db.connect();try{await db.exec('BEGIN');assert.equal((await claim()).length,1);assert.equal((await peer.query('SELECT * FROM public.claim_auth_disable_tasks(10)')).rows.length,0);await db.exec('COMMIT');}finally{await peer.end();}});
+ await check('successful Auth acknowledgement completes task and deletion record',async()=>{await disable();await db.exec(`INSERT INTO public.account_deletion_requests(user_id) VALUES('${user}') ON CONFLICT DO NOTHING`);const [job]=await claim();await finish(job,true);assert.equal((await claim()).length,0);assert.equal((await db.query('SELECT status FROM private.auth_disable_tasks')).rows[0].status,'completed');assert.ok((await db.query('SELECT auth_disabled_at FROM public.account_deletion_requests')).rows[0].auth_disabled_at);await assert.rejects(finish(job,true),e=>e.code==='55000');});
+ await check('transient Auth failure delays then retries same durable identity',async()=>{await disable();const [job]=await claim();await finish(job,false);assert.equal((await claim()).length,0);assert.equal((await db.query('SELECT next_attempt_at>now() deferred FROM private.auth_disable_tasks')).rows[0].deferred,true);await db.exec("UPDATE private.auth_disable_tasks SET next_attempt_at=now()-interval '1 second'");const [retry]=await claim();assert.equal(retry.user_id,job.user_id);assert.notEqual(retry.lease_id,job.lease_id);assert.equal(retry.attempt,2);});
+ await check('crashed worker lease is reclaimed and stale acknowledgement rejected',async()=>{await disable();const [old]=await claim();await db.exec("UPDATE private.auth_disable_tasks SET leased_until=now()-interval '1 second'");const [fresh]=await claim();assert.equal(fresh.attempt,2);await assert.rejects(finish(old,true),e=>e.code==='55000');await finish(fresh,true);});
+ await check('five failures stop retries and monitoring exposes terminal failure',async()=>{await disable();for(let i=0;i<5;i++){const [job]=await claim();assert.equal(job.attempt,i+1);await finish(job,false);await db.exec("UPDATE private.auth_disable_tasks SET next_attempt_at=now()-interval '1 second'");}assert.equal((await claim()).length,0);assert.equal((await db.query('SELECT public.get_auth_disable_recovery_status() s')).rows[0].s.failed,1);});
+ await check('fifth crashed attempt terminates after lease expiry',async()=>{await disable();await db.exec("UPDATE private.auth_disable_tasks SET status='running',attempts=5,leased_until=now()-interval '1 second'");assert.equal((await claim()).length,0);assert.equal((await db.query('SELECT status FROM private.auth_disable_tasks')).rows[0].status,'failed');});
+ await check('reactivation cancels pending task and invalidates old lease',async()=>{await disable();const [job]=await claim();await db.exec('UPDATE public.profiles SET is_active=true,is_banned=false');assert.equal((await claim()).length,0);await assert.rejects(finish(job,true),e=>e.code==='55000');});
+ await check('error payload cannot persist arbitrary provider or secret text',async()=>{await disable();const [job]=await claim();await assert.rejects(db.query('SELECT public.finish_auth_disable_task($1,$2,false,$3)',[job.user_id,job.lease_id,'secret-provider-response']),e=>e.code==='22023');assert.equal((await db.query('SELECT last_error_code FROM private.auth_disable_tasks')).rows[0].last_error_code,null);});
+ console.log(JSON.stringify({passed}));
+}finally{await db.close();}
