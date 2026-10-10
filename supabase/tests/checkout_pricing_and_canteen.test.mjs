@@ -45,6 +45,7 @@ async function pricingRule(patch = {}) {
 
 try {
   await db.exec(await readFile(new URL('./runtime/checkout_canteen_schema.sql', import.meta.url),'utf8'));
+  await db.exec('CREATE TABLE auth.users(id uuid PRIMARY KEY)');
   // Run production function bodies, never a reimplementation of the pricing rule.
   for (const [file,name] of [
     ['20261007000015_pricing_engine_contract_v2.sql','private.price_room_interval'],
@@ -57,6 +58,8 @@ try {
   originalQuoteAcl = (await db.query("SELECT proacl::text AS acl FROM pg_proc WHERE oid='private.build_my_booking_checkout_quote(uuid,uuid,jsonb,jsonb,text)'::regprocedure")).rows[0].acl;
   if (!process.env.PLAYSPOT_CHECKOUT_ELIGIBILITY_BASELINE)
     await db.exec(await readFile(new URL('../migrations/20261009000005_checkout_room_booking_eligibility.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../migrations/20261009000001_booking_hold_occupied_room_capacity.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../migrations/20261010134409_eligible_booking_hold_and_checkout_actor.sql',import.meta.url),'utf8'));
   await db.exec(`CREATE TRIGGER clamp BEFORE INSERT OR UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION fn_validate_and_clamp_booking_price();
     CREATE TRIGGER normalize BEFORE INSERT OR UPDATE OF items ON canteen_orders FOR EACH ROW EXECUTE FUNCTION normalize_canteen_order_items();
     ALTER TABLE canteen_order_items ADD FOREIGN KEY(order_id) REFERENCES canteen_orders(id);
@@ -66,6 +69,7 @@ try {
     INSERT INTO rooms(id,lounge_id,name,hourly_rate_single,hourly_rate_multi,extra_controller_price)
       VALUES('${room}','${lounge}','Room A',80,120,10),('${roomB}','${lounge}','Room B',70,110,10);
     INSERT INTO profiles(id,role) VALUES('${user}','user');
+    INSERT INTO auth.users(id) VALUES('${user}');
     INSERT INTO extras(id,lounge_id,name,name_ar,name_en,price,category,stock_quantity)
       VALUES('${extra}','${lounge}','Drink','Drink','Drink',40,'drink',20);
     INSERT INTO canteen_combos(id,lounge_id,name_ar,name_en,price) VALUES('${combo}','${lounge}','Combo','Combo',60);
