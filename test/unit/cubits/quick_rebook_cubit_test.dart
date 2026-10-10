@@ -133,6 +133,26 @@ void main() {
     ).thenAnswer(answer);
   }
 
+  test(
+    'setup transport failure offers error recovery instead of unavailable',
+    () async {
+      when(
+        () => mockPrepare(pastBooking),
+      ).thenAnswer((_) async => const Left(NetworkFailure('load failed')));
+      await cubit.initQuickRebook(pastBooking);
+      expect(cubit.state.status, QuickRebookStatus.error);
+      expect(cubit.state.errorMessage, 'load failed');
+    },
+  );
+
+  test('confirmed missing room keeps unavailable status', () async {
+    when(() => mockPrepare(pastBooking)).thenAnswer(
+      (_) async => const Left(ServerFailure('quickRebookRoomUnavailable')),
+    );
+    await cubit.initQuickRebook(pastBooking);
+    expect(cubit.state.status, QuickRebookStatus.unavailable);
+  });
+
   for (final action in ['initial load', 'change date', 'change duration']) {
     test(
       '$action surfaces slot failure instead of an empty calendar',

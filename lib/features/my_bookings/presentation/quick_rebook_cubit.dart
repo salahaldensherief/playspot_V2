@@ -51,7 +51,15 @@ class QuickRebookCubit extends Cubit<QuickRebookState> {
       (failure) async {
         emit(
           state.copyWith(
-            status: QuickRebookStatus.unavailable,
+            status:
+                const {
+                  'quickRebookMissingLounge',
+                  'quickRebookMissingRoom',
+                  'quickRebookLoungeUnavailable',
+                  'quickRebookRoomUnavailable',
+                }.contains(failure.message)
+                ? QuickRebookStatus.unavailable
+                : QuickRebookStatus.error,
             errorMessage: failure.message,
           ),
         );

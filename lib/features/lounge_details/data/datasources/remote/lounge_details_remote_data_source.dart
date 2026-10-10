@@ -61,7 +61,7 @@ class LoungeDetailsRemoteDataSourceImpl
         if (fallback != null) return RoomModel.fromJson(fallback);
         return null;
       } catch (_) {
-        return null;
+        rethrow;
       }
     }
   }
@@ -193,19 +193,22 @@ class LoungeDetailsRemoteDataSourceImpl
     );
     if (response is! List) return const [];
 
-    return response.map((item) {
-      final activity = Map<String, dynamic>.from(item as Map);
-      final label =
-          activity['label']?.toString() ??
-          activity['name']?.toString() ??
-          '';
-      return CategoryModel(
-        id: activity['activity_id']?.toString() ?? '',
-        nameAr: label,
-        nameEn: label,
-        iconKey: activity['icon_name']?.toString() ?? '',
-      );
-    }).where((activity) => activity.id.isNotEmpty).toList();
+    return response
+        .map((item) {
+          final activity = Map<String, dynamic>.from(item as Map);
+          final label =
+              activity['label']?.toString() ??
+              activity['name']?.toString() ??
+              '';
+          return CategoryModel(
+            id: activity['activity_id']?.toString() ?? '',
+            nameAr: label,
+            nameEn: label,
+            iconKey: activity['icon_name']?.toString() ?? '',
+          );
+        })
+        .where((activity) => activity.id.isNotEmpty)
+        .toList();
   }
 
   @override

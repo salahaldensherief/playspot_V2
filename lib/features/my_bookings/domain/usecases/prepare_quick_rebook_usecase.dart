@@ -23,51 +23,55 @@ class PrepareQuickRebookUseCase {
     final roomId = pastBooking.roomId;
 
     if (loungeId == null || loungeId.isEmpty) {
-      return const Left(
-        ServerFailure('quickRebookMissingLounge'),
-      );
+      return const Left(ServerFailure('quickRebookMissingLounge'));
     }
 
     if (roomId == null || roomId.isEmpty) {
-      return const Left(
-        ServerFailure('quickRebookMissingRoom'),
-      );
+      return const Left(ServerFailure('quickRebookMissingRoom'));
     }
 
     final loungeResult = await _homeRepository.getLoungeById(loungeId);
-    final lounge = loungeResult.fold(
-      (_) => null,
-      (value) => value,
-    );
+    if (loungeResult.isLeft()) {
+      return loungeResult.fold(
+        (failure) => Left(failure),
+        (_) => throw StateError('Expected load failure'),
+      );
+    }
+    final lounge = loungeResult.fold((_) => null, (value) => value);
 
     if (lounge == null) {
-      return const Left(
-        ServerFailure('quickRebookLoungeUnavailable'),
-      );
+      return const Left(ServerFailure('quickRebookLoungeUnavailable'));
     }
 
     final roomResult = await _loungeDetailsRepository.getRoomById(
       roomId,
       forceRefresh: true,
     );
-    final room = roomResult.fold(
-      (_) => null,
-      (value) => value,
-    );
+    if (roomResult.isLeft()) {
+      return roomResult.fold(
+        (failure) => Left(failure),
+        (_) => throw StateError('Expected load failure'),
+      );
+    }
+    final room = roomResult.fold((_) => null, (value) => value);
 
     if (room == null ||
         room.loungeId != loungeId ||
         !room.isAvailable ||
         room.status.trim().toLowerCase() == 'deleted') {
-      return const Left(
-        ServerFailure('quickRebookRoomUnavailable'),
-      );
+      return const Left(ServerFailure('quickRebookRoomUnavailable'));
     }
 
     final extrasResult = await _loungeDetailsRepository.getExtras(
       loungeId,
       forceRefresh: true,
     );
+    if (extrasResult.isLeft()) {
+      return extrasResult.fold(
+        (failure) => Left(failure),
+        (_) => throw StateError('Expected load failure'),
+      );
+    }
     final availableExtras = extrasResult.fold(
       (_) => const <ExtraModel>[],
       (value) => value,
@@ -77,9 +81,7 @@ class PrepareQuickRebookUseCase {
     final removedAddonNames = <String>[];
 
     for (final item in pastBooking.canteenItems) {
-      final extraId = (item['extra_id'] ??
-              item['id'] ??
-              item['product_id'])
+      final extraId = (item['extra_id'] ?? item['id'] ?? item['product_id'])
           ?.toString();
       final name = item['name']?.toString() ?? '';
       final quantity = (item['quantity'] as num?)?.toInt() ?? 1;
@@ -89,9 +91,7 @@ class PrepareQuickRebookUseCase {
         continue;
       }
 
-      final matches = availableExtras.where(
-        (extra) => extra.id == extraId,
-      );
+      final matches = availableExtras.where((extra) => extra.id == extraId);
 
       if (matches.isEmpty) {
         if (name.isNotEmpty) removedAddonNames.add(name);
@@ -101,9 +101,7 @@ class PrepareQuickRebookUseCase {
       selectedAddonQuantities[extraId] = quantity.clamp(1, 100).toInt();
     }
 
-    final playMode = pastBooking.playMode == 'multi'
-        ? 'multi'
-        : 'single';
+    final playMode = pastBooking.playMode == 'multi' ? 'multi' : 'single';
 
     return Right(
       QuickRebookSetup(
@@ -111,13 +109,11 @@ class PrepareQuickRebookUseCase {
         lounge: lounge,
         room: room,
         availableExtras: List.unmodifiable(availableExtras),
-        selectedAddonQuantities:
-            Map.unmodifiable(selectedAddonQuantities),
+        selectedAddonQuantities: Map.unmodifiable(selectedAddonQuantities),
         removedAddonNames: List.unmodifiable(removedAddonNames),
         durationMinutes: _durationMinutes(pastBooking),
         playMode: playMode,
-        extraControllers:
-            pastBooking.extraControllers.clamp(0, 20).toInt(),
+        extraControllers: pastBooking.extraControllers.clamp(0, 20).toInt(),
       ),
     );
   }
