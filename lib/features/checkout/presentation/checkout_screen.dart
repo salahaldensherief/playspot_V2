@@ -169,8 +169,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       type: AppDialogType.success,
       title: AppStrings.bookingRequestedTitle,
       description: paymentProofUploadFailed
-          ? AppStrings.bookingCreatedProofUploadFailed.tr()
-          : "${AppStrings.bookingPendingReview.tr()}\n\n${AppStrings.multiRoomAllowedNote.tr()}",
+          ? AppStrings.bookingCreatedProofUploadFailed
+          : AppStrings.bookingPendingReviewWithMultiRoomNote,
       confirmText: AppStrings.viewMyBookings,
       onConfirm: () {
         final navContext = AppRouter.navigatorKey.currentContext ?? context;

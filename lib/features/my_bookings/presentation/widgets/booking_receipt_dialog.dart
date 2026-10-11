@@ -14,15 +14,16 @@ import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/core/constants/app_config.dart';
 import 'package:playspot/core/di.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/models/booking_model.dart';
 import '../../domain/usecases/get_booking_timeline_usecase.dart';
 import '../booking_timeline_cubit.dart';
 import 'booking_timeline_widget.dart';
 
-class BookingReceiptDialog extends StatelessWidget {
+class BookingReceiptDialog extends StatefulWidget {
   final BookingModel booking;
 
   const BookingReceiptDialog({super.key, required this.booking});
@@ -38,22 +39,127 @@ class BookingReceiptDialog extends StatelessWidget {
     );
   }
 
-  String? _getEffectiveReceiptUrl() {
-    if (booking.proofImageUrl != null &&
-        booking.proofImageUrl!.trim().isNotEmpty &&
-        booking.proofImageUrl != 'null' &&
-        booking.proofImageUrl != 'undefined') {
-      final clean = booking.proofImageUrl!.trim();
-      if (clean.startsWith('http://') || clean.startsWith('https://')) {
-        return clean;
-      }
-      final cleanPath = clean.replaceAll(
-        RegExp(r'^(receipts/|payment-proofs/)'),
-        '',
-      );
-      return '${AppConfig.supabaseUrl}/storage/v1/object/public/receipts/$cleanPath';
+  @override
+  State<BookingReceiptDialog> createState() => _BookingReceiptDialogState();
+}
+
+class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
+  String? _resolvedReceiptUrl;
+  bool _isLoadingUrl = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReceiptUrl();
+  }
+
+  Future<void> _loadReceiptUrl() async {
+    String? raw = widget.booking.proofImageUrl;
+    if (raw == null || raw.trim().isEmpty || raw == 'null' || raw == 'undefined') {
+      try {
+        final res = await Supabase.instance.client
+            .from('bookings')
+            .select('receipt_url')
+            .eq('id', widget.booking.id)
+            .maybeSingle();
+        if (res != null) {
+          raw = res['receipt_url']?.toString().trim();
+        }
+      } catch (_) {}
     }
-    return null;
+
+    if (raw == null || raw.trim().isEmpty || raw == 'null' || raw == 'undefined') {
+      if (mounted) setState(() => _isLoadingUrl = false);
+      return;
+    }
+
+    final trimmed = raw.trim();
+
+    final isSupabaseStorageUrl = trimmed.contains('/storage/v1/object/');
+    if ((trimmed.startsWith('http://') || trimmed.startsWith('https://')) &&
+        !isSupabaseStorageUrl) {
+      if (mounted) {
+        setState(() {
+          _resolvedReceiptUrl = trimmed;
+          _isLoadingUrl = false;
+        });
+      }
+      return;
+    }
+
+    String path = trimmed;
+    String? detectedBucket;
+    if (isSupabaseStorageUrl) {
+      final match = RegExp(
+        r'/storage/v1/object/(?:public|sign|authenticated)/([^/]+)/(.+)',
+      ).firstMatch(trimmed);
+      if (match != null) {
+        detectedBucket = match.group(1);
+        path = match.group(2) ?? trimmed;
+        if (path.contains('?')) {
+          path = path.substring(0, path.indexOf('?'));
+        }
+      }
+    }
+
+    while (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+
+    final bucketsToTry = [
+      'payment-proofs',
+      if (detectedBucket != null && detectedBucket != 'receipts') detectedBucket,
+      'receipts',
+      'booking_receipts',
+      'payment_receipts',
+      'wallets',
+      'attachments',
+    ];
+
+    String cleanPath = path;
+    for (final b in bucketsToTry) {
+      if (cleanPath.startsWith('$b/')) {
+        cleanPath = cleanPath.substring(b.length + 1);
+        break;
+      }
+    }
+
+    for (final bucket in bucketsToTry) {
+      for (final p in [cleanPath, path]) {
+        try {
+          final url = await Supabase.instance.client.storage
+              .from(bucket)
+              .createSignedUrl(p, 3600);
+          if (url.isNotEmpty && !url.contains('error')) {
+            if (mounted) {
+              setState(() {
+                _resolvedReceiptUrl = url;
+                _isLoadingUrl = false;
+              });
+            }
+            return;
+          }
+        } catch (_) {}
+
+        try {
+          final pubUrl = Supabase.instance.client.storage
+              .from(bucket)
+              .getPublicUrl(p);
+          if (pubUrl.isNotEmpty && !pubUrl.contains('error')) {
+            // candidate fallback
+          }
+        } catch (_) {}
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _resolvedReceiptUrl = Supabase.instance.client.storage
+            .from('payment-proofs')
+            .getPublicUrl(cleanPath);
+        _isLoadingUrl = false;
+      });
+    }
   }
 
   void _showFullScreenImage(BuildContext context, String imageUrl) {
@@ -111,10 +217,12 @@ class BookingReceiptDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final booking = widget.booking;
     final isArabic = context.locale.languageCode == 'ar';
-    final effectiveReceiptUrl = _getEffectiveReceiptUrl();
     final hasReceiptImage =
-        effectiveReceiptUrl != null && effectiveReceiptUrl.isNotEmpty;
+        !_isLoadingUrl &&
+        _resolvedReceiptUrl != null &&
+        _resolvedReceiptUrl!.trim().isNotEmpty;
     final isCash = booking.paymentMethod?.toLowerCase() == 'cash';
 
     return Dialog(
@@ -131,23 +239,28 @@ class BookingReceiptDialog extends StatelessWidget {
               children: [
                 // Header Bar
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.receipt_long_rounded,
-                          color: AppColors.neonBlue,
-                          size: 22.sp,
-                        ),
-                        SizedBox(width: 8.w),
-                        AppText(
-                          text: AppStrings.bookingDetailsAndReceipt.tr(),
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ],
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.receipt_long_rounded,
+                            color: AppColors.neonBlue,
+                            size: 22.sp,
+                          ),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: AppText(
+                              text: AppStrings.bookingDetailsAndReceipt.tr(),
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     IconButton(
                       tooltip: AppStrings.close.tr(),
@@ -162,10 +275,25 @@ class BookingReceiptDialog extends StatelessWidget {
                 SizedBox(height: 16.h),
 
                 // Receipt Image Container or Fallback
-                if (hasReceiptImage) ...[
+                if (_isLoadingUrl) ...[
+                  Container(
+                    width: double.infinity,
+                    height: 240.h,
+                    decoration: BoxDecoration(
+                      color: Colors.black45,
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(
+                        color: AppColors.neonBlue.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: const Center(
+                      child: AppLoader(),
+                    ),
+                  ),
+                ] else if (hasReceiptImage) ...[
                   GestureDetector(
                     onTap: () =>
-                        _showFullScreenImage(context, effectiveReceiptUrl),
+                        _showFullScreenImage(context, _resolvedReceiptUrl!),
                     child: Container(
                       width: double.infinity,
                       height: 240.h,
@@ -183,7 +311,7 @@ class BookingReceiptDialog extends StatelessWidget {
                           children: [
                             AppImage(
                               borderRadius: 0,
-                              urlImg: effectiveReceiptUrl,
+                              urlImg: _resolvedReceiptUrl!,
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.cover,
@@ -392,13 +520,14 @@ class BookingReceiptDialog extends StatelessWidget {
         Icon(icon, color: AppColors.textSecondary, size: 16.sp),
         SizedBox(width: 8.w),
         AppText(text: label, fontSize: 12.sp, color: AppColors.textSecondary),
-        const Spacer(),
-        Flexible(
+        SizedBox(width: 8.w),
+        Expanded(
           child: AppText(
             text: value,
             fontSize: 12.sp,
             fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
             color: valueColor ?? Colors.white,
+            textAlign: TextAlign.end,
             overflow: TextOverflow.ellipsis,
           ),
         ),

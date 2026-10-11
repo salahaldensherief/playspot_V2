@@ -26,7 +26,7 @@ class DirectionsButtonContent extends StatelessWidget {
   Widget build(BuildContext context) => AppButton(
     content: ButtonContent(
       label: AppStrings.getDirections.tr(),
-      icon: Icon(Icons.directions, size: 20, color: foreground),
+      icon: Icon(Icons.directions, size: 18, color: foreground),
     ),
     behavior: ButtonBehavior.tap(onTap: onTap, isLoading: launching),
     buttonConfig: _config(context),
@@ -37,6 +37,7 @@ class DirectionsButtonContent extends StatelessWidget {
         (button.height ?? 48).clamp(48.0, double.infinity) *
         MediaQuery.textScalerOf(context).scale(1),
     width: button.isFullWidth ? double.infinity : button.width,
+    padding: const EdgeInsets.symmetric(horizontal: 10),
     backgroundColor: button.isPrimary
         ? AppColors.neonBlue
         : AppColors.neonBlue.withValues(alpha: 0.12),
@@ -48,7 +49,7 @@ class DirectionsButtonContent extends StatelessWidget {
     textStyle: TextStyle(
       color: foreground,
       fontWeight: FontWeight.bold,
-      fontSize: 14,
+      fontSize: 13,
     ),
   );
 }

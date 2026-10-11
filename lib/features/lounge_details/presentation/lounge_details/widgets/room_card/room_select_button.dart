@@ -1,9 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-
 import '../../lounge_details_cubit.dart';
+import 'room_constants.dart';
 
 class RoomSelectButton extends StatelessWidget {
   final String roomId;
@@ -17,28 +18,36 @@ class RoomSelectButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => ChoiceChip(
+  Widget build(BuildContext context) => Semantics(
+    button: true,
     selected: selected,
-    showCheckmark: false,
-    materialTapTargetSize: MaterialTapTargetSize.padded,
-    padding: const EdgeInsets.symmetric(horizontal: 4),
-    labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-    avatar: Icon(
-      selected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
-      color: selected ? AppColors.black : color,
-      size: 15,
+    label: (selected ? 'room_selected' : 'room_select').tr(),
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () =>
+          context.read<LoungeDetailsCubit>().toggleRoomSelection(roomId),
+      child: AnimatedContainer(
+        duration: RoomConstants.toggleDuration,
+        padding: EdgeInsets.all(8.w),
+        decoration: BoxDecoration(
+          color: selected ? color : Colors.white.withValues(alpha: 0.05),
+          shape: BoxShape.circle,
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
+        ),
+        child: Icon(
+          selected ? Icons.check : Icons.add,
+          color: selected ? AppColors.black : Colors.white,
+          size: 16.sp,
+        ),
+      ),
     ),
-    label: Text((selected ? 'room_selected' : 'room_select').tr()),
-    labelStyle: TextStyle(
-      color: selected ? AppColors.black : color,
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-    ),
-    backgroundColor: color.withValues(alpha: 0.10),
-    selectedColor: color,
-    side: BorderSide(color: color.withValues(alpha: 0.6)),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    onSelected: (_) =>
-        context.read<LoungeDetailsCubit>().toggleRoomSelection(roomId),
   );
 }

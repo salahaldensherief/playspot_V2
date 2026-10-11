@@ -279,7 +279,13 @@ class _BookingCardState extends State<BookingCard> {
             buttonConfig: ButtonConfig(
               height: 48,
               borderRadius: 12,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               borderColor: AppColors.danger.withValues(alpha: .3),
+              textStyle: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
             ),
           )
         : AppButton(
@@ -298,6 +304,12 @@ class _BookingCardState extends State<BookingCard> {
               height: 48,
               gradient: AppColors.primaryGradient,
               borderRadius: 12,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              textStyle: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
             ),
           );
     return LayoutBuilder(
@@ -320,12 +332,12 @@ class _BookingCardState extends State<BookingCard> {
         return Row(
           children: [
             if (showDirections) ...[
-              Expanded(flex: 2, child: directions),
+              Expanded(child: directions),
               const SizedBox(width: 8),
             ],
             _buildReceiptButton(isPrimary: upcoming),
             const SizedBox(width: 8),
-            Expanded(flex: 2, child: action),
+            Expanded(child: action),
           ],
         );
       },
@@ -633,45 +645,48 @@ class _BookingCardState extends State<BookingCard> {
         widget.booking.proofImageUrl != null &&
         widget.booking.proofImageUrl!.trim().isNotEmpty;
 
-    return InkWell(
-      onTap: () => BookingReceiptDialog.show(context, widget.booking),
-      borderRadius: BorderRadius.circular(12.r),
-      child: Container(
-        width: 44.w,
-        height: 44.h,
-        decoration: BoxDecoration(
-          color: isPrimary
-              ? AppColors.neonBlue.withValues(alpha: 0.12)
-              : Colors.black26,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
+    return Tooltip(
+      message: AppStrings.bookingDetailsAndReceipt.tr(),
+      child: InkWell(
+        onTap: () => BookingReceiptDialog.show(context, widget.booking),
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
             color: isPrimary
-                ? AppColors.neonBlue.withValues(alpha: 0.4)
-                : AppColors.borderDefault,
-          ),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_rounded,
-              color: isPrimary ? AppColors.neonBlue : AppColors.textSecondary,
-              size: 22.sp,
+                ? AppColors.neonBlue.withValues(alpha: 0.12)
+                : Colors.black26,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: isPrimary
+                  ? AppColors.neonBlue.withValues(alpha: 0.4)
+                  : AppColors.borderDefault,
             ),
-            if (hasProofImage)
-              Positioned(
-                top: 6.h,
-                right: 6.w,
-                child: Container(
-                  width: 8.w,
-                  height: 8.w,
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.receipt_long_rounded,
+                color: isPrimary ? AppColors.neonBlue : AppColors.textSecondary,
+                size: 22.sp,
+              ),
+              if (hasProofImage)
+                Positioned(
+                  top: 7.h,
+                  right: 7.w,
+                  child: Container(
+                    width: 8.w,
+                    height: 8.w,
+                    decoration: const BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

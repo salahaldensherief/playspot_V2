@@ -514,6 +514,8 @@ class AppStrings {
   static const String bookingCreatedProofUploadFailed =
       "bookingCreatedProofUploadFailed";
   static const String multiRoomAllowedNote = "multiRoomAllowedNote";
+  static const String bookingPendingReviewWithMultiRoomNote =
+      "bookingPendingReviewWithMultiRoomNote";
   static const String withdrawn = "withdrawn";
   static const String noShow = "noShow";
   static const String unpaid = "unpaid";

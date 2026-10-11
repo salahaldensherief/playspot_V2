@@ -18,7 +18,8 @@ class LoungeHeroHeader extends StatelessWidget {
   });
 
   bool _photoActionVisible(BuildContext context) {
-    final settings = context.dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
+    final settings = context
+        .dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
     return settings == null || settings.currentExtent > settings.minExtent + 60;
   }
 
@@ -59,7 +60,7 @@ class LoungeHeroHeader extends StatelessWidget {
       Align(
         alignment: Alignment.bottomCenter,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: SizedBox(
             width: double.infinity,
             child: Column(
@@ -71,21 +72,27 @@ class LoungeHeroHeader extends StatelessWidget {
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 if ((lounge.location ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   AppText(
                     text: lounge.location!,
                     fontSize: 12,
                     color: AppColors.textSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 AppText(
                   text:
                       '${AppStrings.openHours.tr()} ${lounge.opensAt.toAppTimeString(locale: context.locale.languageCode)} – ${lounge.closesAt.toAppTimeString(locale: context.locale.languageCode)}',
                   fontSize: 12,
                   color: AppColors.neonBlue,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
