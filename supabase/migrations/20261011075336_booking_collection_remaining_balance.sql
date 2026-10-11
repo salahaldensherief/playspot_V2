@@ -126,10 +126,10 @@ BEGIN
   -- Consume attached voucher if exists
   v_voucher_to_consume := COALESCE(
     v_booking.applied_voucher_code,
-    CASE 
-      WHEN v_booking.discount_reason ~* '^voucher:\s*([A-Za-z0-9_-]+)' 
+    CASE
+      WHEN v_booking.discount_reason ~* '^voucher:\s*([A-Za-z0-9_-]+)'
       THEN substring(v_booking.discount_reason from '(?i)^voucher:\s*([A-Za-z0-9_-]+)')
-      ELSE NULL 
+      ELSE NULL
     END
   );
 
