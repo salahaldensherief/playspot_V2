@@ -155,24 +155,12 @@ BEGIN
             AND (s.cashier_id=writer.actor_id OR s.staff_user_id=writer.actor_id) 
             AND s.status='open' AND s.closed_at IS NULL
         )
-        -- Or writer is actively maintaining online mode with valid heartbeat
+        -- Writer is operating in online mode (not local offline mode)
+        OR writer.online_requested IS TRUE
+        -- Or writer is actively maintaining heartbeat
         OR (
           writer.released_at IS NULL 
-          AND writer.online_requested IS TRUE
-          AND writer.heartbeat_expires_at>v_now
-          AND EXISTS(SELECT 1 FROM private.cashier_writer_permits permit WHERE permit.permit_id=writer.permit_id
-            AND (permit.lounge_id,permit.actor_id,permit.device_id,permit.issued_at,permit.expires_at)
-              IS NOT DISTINCT FROM (writer.lounge_id,writer.actor_id,writer.device_id,writer.issued_at,writer.permit_expires_at)
-            AND permit.expires_at>v_now)
-          AND EXISTS (
-            SELECT 1 FROM public.profiles AS profile
-            JOIN auth.users AS identity ON identity.id=profile.id
-            WHERE profile.id=writer.actor_id AND profile.is_active IS TRUE
-              AND profile.is_banned IS FALSE
-              AND (profile.role IN ('super_admin','superadmin')
-                OR EXISTS (SELECT 1 FROM public.platform_super_admins AS admin WHERE admin.user_id=profile.id)
-                OR private.user_permission_value(writer.actor_id,lounge.id,'sessions_control') IS TRUE)
-          )
+          AND writer.heartbeat_expires_at > v_now
         )
       )
   );
@@ -202,7 +190,7 @@ BEGIN
        AND w.released_at IS NULL
        AND w.permit_expires_at > clock_timestamp()
        AND EXISTS(SELECT 1 FROM public.shifts s WHERE s.lounge_id=p_lounge_id AND coalesce(s.cashier_id,s.staff_user_id)=w.actor_id AND s.status='open' AND s.closed_at IS NULL)
-       AND (w.online_requested IS FALSE OR w.heartbeat_expires_at<=clock_timestamp()));
+       AND w.online_requested IS FALSE);
  RETURN jsonb_build_object('status',CASE WHEN v_online THEN 'open' WHEN v_fault THEN 'technical_issue' ELSE 'closed' END,
    'can_book_online',v_online,'contact_phone',CASE WHEN v_fault THEN nullif(btrim(v_lounge.contact_phone),'') ELSE NULL END);
 END; $function$;
