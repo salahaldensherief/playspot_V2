@@ -1,4 +1,6 @@
 class AppStrings {
+  static const String futureBookingsAvailableFrom =
+      'future_bookings_available_from';
   static const String playSpot = 'PlaySpot';
   static const String showMore = "showMore";
   static const String showLess = "showLess";

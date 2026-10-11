@@ -721,5 +721,6 @@
   "lounge_technical_issue_call_to_book": "الحجز الأونلاين متوقف مؤقتًا. تقدر تحجز من خلال رقمنا {phone} لحد ما المشكلة تتحل.",
   "call_lounge": "اتصال بالصالة",
   "technical_issue": "الحجز الأونلاين غير متاح",
-  "policyContentUnavailable": "هذه السياسة غير منشورة حاليًا بهذه اللغة."
+  "policyContentUnavailable": "هذه السياسة غير منشورة حاليًا بهذه اللغة.",
+  "future_bookings_available_from": "يمكنك اختيار تاريخ للحجز المستقبلي بدءًا من {}. مواعيد اليوم تظل متوقفة مؤقتًا."
 }

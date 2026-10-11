@@ -79,10 +79,12 @@ class LoungeDetailsBottomBar extends StatelessWidget {
       return 'operating_status_unavailable'.tr();
     }
     if (state.operatingStatus?.canBookOnline == false &&
+        state.operatingStatus?.canBookOnDate(state.selectedDate) != true &&
         state.operatingStatus?.status != 'closed') {
       return AppStrings.technicalIssue.tr();
     }
-    if (state.operatingStatus?.isOpen == false) {
+    if (state.operatingStatus?.isOpen == false &&
+        state.operatingStatus?.canBookOnDate(state.selectedDate) != true) {
       return AppStrings.closed.tr();
     }
     if (state.availabilityLoadFailed)
