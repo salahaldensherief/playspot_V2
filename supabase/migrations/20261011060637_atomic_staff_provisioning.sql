@@ -1,7 +1,7 @@
 BEGIN;
 SET LOCAL lock_timeout = '5s';
 SET LOCAL statement_timeout = '30s';
-CREATE TABLE private.staff_provisioning_receipts (
+CREATE TABLE IF NOT EXISTS private.staff_provisioning_receipts (
   user_id uuid PRIMARY KEY REFERENCES auth.users(id),
   actor_id uuid NOT NULL,
   lounge_id uuid NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE private.staff_provisioning_receipts (
 );
 ALTER TABLE private.staff_provisioning_receipts ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON private.staff_provisioning_receipts FROM PUBLIC, anon, authenticated, service_role, supabase_auth_admin;
-CREATE FUNCTION public.finalize_lounge_staff_provisioning(
+CREATE OR REPLACE FUNCTION public.finalize_lounge_staff_provisioning(
   p_actor_id uuid, p_user_id uuid, p_lounge_id uuid,
   p_role text, p_full_name text, p_phone text DEFAULT ''
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
@@ -82,7 +82,7 @@ REVOKE ALL ON FUNCTION public.finalize_lounge_staff_provisioning(uuid,uuid,uuid,
 GRANT EXECUTE ON FUNCTION public.finalize_lounge_staff_provisioning(uuid,uuid,uuid,text,text,text) TO service_role;
 -- Recover only accounts created by this workflow's trusted server metadata.
 -- Finalization still repeats current actor authorization before granting access.
-CREATE FUNCTION public.recover_lounge_staff_provisioning(
+CREATE OR REPLACE FUNCTION public.recover_lounge_staff_provisioning(
   p_actor_id uuid, p_email text, p_lounge_id uuid, p_role text
 ) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE v_user_id uuid;
