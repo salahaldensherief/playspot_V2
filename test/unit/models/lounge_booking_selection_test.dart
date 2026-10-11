@@ -19,6 +19,51 @@ void main() {
       canBookOnline: true,
     ),
   );
+  test(
+    'server future date enables later dates while preserving the offline near-term barrier',
+    () {
+      final status = LoungeOperatingStatus.fromJson({
+        'status': 'technical_issue',
+        'can_book_online': false,
+        'future_booking_date_from': '2026-10-14',
+      });
+      final future = state.copyWith(
+        operatingStatus: status,
+        selectedDate: DateTime(2026, 10, 14),
+      );
+      expect(LoungeBookingSelection(future, lounge).isEnabled, isTrue);
+      expect(RoomCardPresentation.fromState(room, future).isAvailable, isTrue);
+      expect(
+        RoomCardPresentation.fromState(room, future).availabilityKey,
+        'room_available',
+      );
+      final nearTerm = future.copyWith(selectedDate: DateTime(2026, 10, 13));
+      expect(LoungeBookingSelection(nearTerm, lounge).isEnabled, isFalse);
+      expect(
+        RoomCardPresentation.fromState(room, nearTerm).isAvailable,
+        isFalse,
+      );
+      expect(
+        LoungeBookingSelection(
+          future.copyWith(availabilityLoadFailed: true),
+          lounge,
+        ).isEnabled,
+        isFalse,
+      );
+    },
+  );
+  test('malformed future eligibility never grants booking permission', () {
+    for (final date in ['2026-02-30', '2026-10-14T00:00:00Z', true, 123]) {
+      expect(
+        () => LoungeOperatingStatus.fromJson({
+          'status': 'technical_issue',
+          'can_book_online': false,
+          'future_booking_date_from': date,
+        }),
+        throwsFormatException,
+      );
+    }
+  });
   test('booking reads the current selected date and per-room settings', () {
     final date = DateTime(2026, 11, 12);
     final current = state.copyWith(
