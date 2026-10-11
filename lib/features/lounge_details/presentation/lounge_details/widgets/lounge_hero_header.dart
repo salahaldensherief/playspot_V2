@@ -52,7 +52,7 @@ class LoungeHeroHeader extends StatelessWidget {
       ),
       if (lounge.galleryImages.isNotEmpty && _photoActionVisible(context))
         PositionedDirectional(
-          top: MediaQuery.paddingOf(context).top + kToolbarHeight + 4,
+          top: MediaQuery.paddingOf(context).top + 12,
           end: 12,
           child: LoungeGalleryAction(initialLounge: lounge, heroTag: heroTag),
         ),
