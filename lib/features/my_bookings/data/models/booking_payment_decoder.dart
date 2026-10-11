@@ -1,4 +1,3 @@
-import 'package:playspot/core/constants/app_config.dart';
 import 'package:playspot/core/models/payment_model.dart';
 
 class BookingPaymentDecoder {
@@ -46,9 +45,7 @@ class BookingPaymentDecoder {
       return null;
     }
     if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-    // receipts/proof.jpg or payment-proofs/proof.jpg -> proof.jpg.
-    final path = raw.replaceAll(RegExp(r'^(receipts/|payment-proofs/)'), '');
-    return '${AppConfig.supabaseUrl}/storage/v1/object/public/receipts/$path';
+    return raw;
   }
 
   String? _proof(Map<String, dynamic> source, List<String> keys) {

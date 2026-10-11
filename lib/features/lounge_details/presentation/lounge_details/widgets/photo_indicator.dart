@@ -58,46 +58,50 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
             border: Border.all(
               color: Colors.white.withValues(alpha: 0.2),
               width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.zoom_out_map_rounded, color: Colors.white, size: 16.sp),
-          if (_isExpanded) ...[
-            SizedBox(width: 8.w),
-            AppText(
-              text: AppStrings.viewPhotos.tr(),
-              fontSize: 10.sp,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
             ),
-          ],
-          if (count > 1) ...[
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              child: Container(
-                height: 10.h,
-                width: 1.w,
-                color: Colors.white.withValues(alpha: 0.3),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
-            ),
-            AppText(
-              text: "1/$count",
-              fontSize: 10.sp,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ],
-        ],
-      ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.zoom_out_map_rounded,
+                color: Colors.white,
+                size: 16.sp,
+              ),
+              if (_isExpanded) ...[
+                SizedBox(width: 8.w),
+                AppText(
+                  text: AppStrings.viewPhotos.tr(),
+                  fontSize: 10.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ],
+              if (count > 1) ...[
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w),
+                  child: Container(
+                    height: 10.h,
+                    width: 1.w,
+                    color: Colors.white.withValues(alpha: 0.3),
+                  ),
+                ),
+                AppText(
+                  text: "1/$count",
+                  fontSize: 10.sp,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

@@ -66,7 +66,6 @@ class SpaceTypeSelector extends StatelessWidget {
             "⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.",
           );
         }
-        // Fallback: Format raw snake_case/slug into human-readable Title Case
         return key.replaceAll('_', ' ').toUpperCase();
     }
   }
@@ -90,17 +89,18 @@ class SpaceTypeSelector extends StatelessWidget {
         final activeKeys = _orderedKeys
             .where((key) => key == 'all' || availableTypeSlugs.contains(key))
             .toList();
-        final dynamicKeys = availableTypeSlugs
-            .whereType<String>()
-            .where((key) => key != 'all' && !_orderedKeys.contains(key))
-            .toList()
-          ..sort();
+        final dynamicKeys =
+            availableTypeSlugs
+                .whereType<String>()
+                .where((key) => key != 'all' && !_orderedKeys.contains(key))
+                .toList()
+              ..sort();
 
         final displayKeys = [...activeKeys, ...dynamicKeys];
 
         return Container(
-          height: 40 * MediaQuery.textScalerOf(context).scale(1),
-          margin: EdgeInsets.symmetric(vertical: 8.h),
+          height: 48 * MediaQuery.textScalerOf(context).scale(1),
+          margin: EdgeInsets.symmetric(vertical: 12.h),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
@@ -118,7 +118,7 @@ class SpaceTypeSelector extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: EdgeInsetsDirectional.only(end: 10.w),
-                  padding: EdgeInsets.symmetric(horizontal: 12.w),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   decoration: BoxDecoration(
                     color: isSelected ? themeColor : AppColors.cardBackground,
                     borderRadius: BorderRadius.circular(12.r),
@@ -139,13 +139,13 @@ class SpaceTypeSelector extends StatelessWidget {
                     children: [
                       Icon(
                         icon,
-                        size: 16,
+                        size: 18,
                         color: isSelected ? AppColors.black : themeColor,
                       ),
                       SizedBox(width: 8.w),
                       AppText(
                         text: label,
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,

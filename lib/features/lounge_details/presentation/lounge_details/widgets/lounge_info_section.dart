@@ -1,14 +1,14 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
-import 'lounge_rating_summary.dart';
+import 'lounge_detail_panel.dart';
 import 'lounge_location_summary.dart';
 import 'lounge_operating_hours.dart';
 import 'lounge_payment_summary.dart';
+import 'lounge_rating_summary.dart';
 import 'lounge_room_comparison.dart';
-import 'lounge_detail_panel.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
 
 class LoungeInfoSection extends StatelessWidget {
   final LoungeModel lounge;

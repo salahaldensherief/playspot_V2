@@ -10,8 +10,8 @@ class RoomQuickSpecs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Wrap(
-    spacing: 10,
-    runSpacing: 6,
+    spacing: 12,
+    runSpacing: 8,
     children: [
       if (room.supportsPlayModePricing)
         RoomSpec(
