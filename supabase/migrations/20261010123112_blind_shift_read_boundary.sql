@@ -599,6 +599,7 @@ EXCEPTION
     RETURN jsonb_populate_record(NULL::public.shifts,private.mask_shift_financials(p_lounge_id,to_jsonb(v_shift)));
 END;
 $function$;
+DROP POLICY IF EXISTS shift_audit_financial_visibility ON public.shift_audit_logs;
 CREATE POLICY shift_audit_financial_visibility ON public.shift_audit_logs AS RESTRICTIVE FOR SELECT TO authenticated USING (private.can_view_shift_financials(lounge_id));
 GRANT USAGE ON SCHEMA private TO authenticated;
 GRANT EXECUTE ON FUNCTION private.can_view_shift_financials(uuid) TO authenticated;
