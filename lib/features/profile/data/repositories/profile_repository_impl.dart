@@ -21,7 +21,9 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   ProfileRepositoryImpl(this._remoteSource, this._preferenceManager);
 
   @override
-  Future<Either<Failure, UserModel>> updateProfile(UpdateProfileParams params) async {
+  Future<Either<Failure, UserModel>> updateProfile(
+    UpdateProfileParams params,
+  ) async {
     return await callRepository(() async {
       final user = await _remoteSource.updateProfile(params);
       _saveUserData(user);
@@ -59,22 +61,23 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getPointsHistory({
-    int page = 1,
-    int pageSize = 20,
-  }) async {
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getPointsHistory({int page = 1, int pageSize = 20}) async {
     return await callRepository<PaginatedResponse<Map<String, dynamic>>>(
       () => _remoteSource.getPointsHistory(page: page, pageSize: pageSize),
     );
   }
 
   @override
-  Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions() async {
+  Future<Either<Failure, List<RedemptionOptionModel>>>
+  getRedemptionOptions() async {
     return await callRepository(() => _remoteSource.getRedemptionOptions());
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId) async {
+  Future<Either<Failure, Map<String, dynamic>>> redeemPoints(
+    String optionId,
+  ) async {
     return await callRepository(() => _remoteSource.redeemPoints(optionId));
   }
 
@@ -84,23 +87,43 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> validateVoucher(String voucherId) async {
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucher(
+    String voucherId,
+  ) async {
     return await callRepository(() => _remoteSource.validateVoucher(voucherId));
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(String code) async {
-    return await callRepository(() => _remoteSource.validateVoucherByCode(code));
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(
+    String code,
+  ) async {
+    return await callRepository(
+      () => _remoteSource.validateVoucherByCode(code),
+    );
   }
 
   @override
-  Future<Either<Failure, void>> consumeVoucher({required String voucherId, required String bookingId}) async {
-    return await callRepository(() => _remoteSource.consumeVoucher(voucherId: voucherId, bookingId: bookingId));
+  Future<Either<Failure, void>> consumeVoucher({
+    required String voucherId,
+    required String bookingId,
+  }) async {
+    return await callRepository(
+      () => _remoteSource.consumeVoucher(
+        voucherId: voucherId,
+        bookingId: bookingId,
+      ),
+    );
   }
 
   @override
-  Future<Either<Failure, void>> consumeVoucherByCode({required String code, required String bookingId}) async {
-    return await callRepository(() => _remoteSource.consumeVoucherByCode(code: code, bookingId: bookingId));
+  Future<Either<Failure, void>> consumeVoucherByCode({
+    required String code,
+    required String bookingId,
+  }) async {
+    return await callRepository(
+      () =>
+          _remoteSource.consumeVoucherByCode(code: code, bookingId: bookingId),
+    );
   }
 
   @override
@@ -110,13 +133,18 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, NotificationSettingsModel>> getNotificationSettings() async {
+  Future<Either<Failure, NotificationSettingsModel>>
+  getNotificationSettings() async {
     return await callRepository(() => _remoteSource.getNotificationSettings());
   }
 
   @override
-  Future<Either<Failure, void>> updateNotificationSettings(NotificationSettingsModel settings) async {
-    return await callRepository(() => _remoteSource.updateNotificationSettings(settings));
+  Future<Either<Failure, void>> updateNotificationSettings(
+    NotificationSettingsModel settings,
+  ) async {
+    return await callRepository(
+      () => _remoteSource.updateNotificationSettings(settings),
+    );
   }
 
   @override
@@ -125,7 +153,8 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, List<LoyaltyMissionModel>>> getLoyaltyMissions() async {
+  Future<Either<Failure, List<LoyaltyMissionModel>>>
+  getLoyaltyMissions() async {
     return await callRepository(() => _remoteSource.getLoyaltyMissions());
   }
 
@@ -135,8 +164,12 @@ class ProfileRepositoryImpl with RepositoryHelper implements ProfileRepository {
   }
 
   @override
-  Future<Either<Failure, ClaimReferralResult>> claimReferralCode(String referralCode) async {
-    return await callRepository(() => _remoteSource.claimReferralCode(referralCode));
+  Future<Either<Failure, ClaimReferralResult>> claimReferralCode(
+    String referralCode,
+  ) async {
+    return await callRepository(
+      () => _remoteSource.claimReferralCode(referralCode),
+    );
   }
 
   @override

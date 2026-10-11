@@ -33,12 +33,13 @@ class _PromoCarouselState extends State<PromoCarousel> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
-      buildWhen: (previous, current) => 
-        previous.isPromosLoading != current.isPromosLoading ||
-        previous.promotions != current.promotions ||
-        previous.nearbyTournament != current.nearbyTournament ||
-        previous.activeRegisteredTournament != current.activeRegisteredTournament ||
-        previous.activeUserParticipant != current.activeUserParticipant,
+      buildWhen: (previous, current) =>
+          previous.isPromosLoading != current.isPromosLoading ||
+          previous.promotions != current.promotions ||
+          previous.nearbyTournament != current.nearbyTournament ||
+          previous.activeRegisteredTournament !=
+              current.activeRegisteredTournament ||
+          previous.activeUserParticipant != current.activeUserParticipant,
       builder: (context, state) {
         final hasTournament = state.nearbyTournament != null;
         final totalCount = (hasTournament ? 1 : 0) + state.promotions.length;
@@ -58,8 +59,11 @@ class _PromoCarouselState extends State<PromoCarousel> {
                 if (hasTournament && index == 0) {
                   final tournament = state.nearbyTournament;
                   if (tournament == null) return const SizedBox.shrink();
-                  final isRegistered = state.activeRegisteredTournament?.id == tournament.id;
-                  final participant = isRegistered ? state.activeUserParticipant : null;
+                  final isRegistered =
+                      state.activeRegisteredTournament?.id == tournament.id;
+                  final participant = isRegistered
+                      ? state.activeUserParticipant
+                      : null;
                   return TournamentPromoCard(
                     tournament: tournament,
                     isRegistered: isRegistered,
@@ -84,7 +88,8 @@ class _PromoCarouselState extends State<PromoCarousel> {
                         RouterKeys.roomDetails,
                         pathParameters: {'roomId': roomId},
                       );
-                    } else if (promo.deepLink != null && promo.deepLink!.contains('/room/')) {
+                    } else if (promo.deepLink != null &&
+                        promo.deepLink!.contains('/room/')) {
                       final parts = promo.deepLink!.split('/room/');
                       if (parts.length > 1 && parts[1].trim().isNotEmpty) {
                         context.pushNamed(
@@ -92,9 +97,11 @@ class _PromoCarouselState extends State<PromoCarousel> {
                           pathParameters: {'roomId': parts[1].trim()},
                         );
                       }
-                    } else if (promo.deepLink == 'tournaments' || promo.id == 'tournaments') {
+                    } else if (promo.deepLink == 'tournaments' ||
+                        promo.id == 'tournaments') {
                       context.pushNamed(RouterKeys.tournaments);
-                    } else if (promo.loungeId != null && promo.loungeId!.isNotEmpty) {
+                    } else if (promo.loungeId != null &&
+                        promo.loungeId!.isNotEmpty) {
                       context.pushNamed(
                         RouterKeys.loungeDetails,
                         extra: {'loungeId': promo.loungeId},

@@ -39,7 +39,9 @@ class StationInfo extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.neonBlue.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.25)),
+              border: Border.all(
+                color: AppColors.neonBlue.withValues(alpha: 0.25),
+              ),
             ),
             child: Icon(
               Icons.sports_esports_rounded,
@@ -84,7 +86,9 @@ class StationInfo extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.neonBlue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.neonBlue.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -100,7 +104,11 @@ class StationInfo extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.copy_rounded, size: 12.sp, color: AppColors.neonBlue),
+                      Icon(
+                        Icons.copy_rounded,
+                        size: 12.sp,
+                        color: AppColors.neonBlue,
+                      ),
                       SizedBox(width: 4.w),
                       AppText(
                         text: "#$bookingCode",

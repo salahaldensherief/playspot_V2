@@ -14,8 +14,8 @@ class RoomPromoBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.warning,
         borderRadius: BorderRadiusDirectional.only(
-          topStart: Radius.circular(16.r),
-          bottomEnd: Radius.circular(8.r),
+          topEnd: Radius.circular(16.r),
+          bottomStart: Radius.circular(8.r),
         ),
         boxShadow: [
           BoxShadow(

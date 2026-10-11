@@ -146,8 +146,18 @@ class LoungeModel extends Equatable {
       descriptionAr ??
       descriptionEn;
 
-  String? getDiscountTitle(bool isArabic) =>
-      isArabic ? discountTitleAr : discountTitleEn;
+  String? getDiscountTitle(bool isArabic) {
+    final title = isArabic ? discountTitleAr : discountTitleEn;
+    if (!isArabic &&
+        title != null &&
+        RegExp(r'[\u0600-\u06FF]').hasMatch(title)) {
+      if (discountPercentage > 0) {
+        return '$discountPercentage% OFF';
+      }
+      return null;
+    }
+    return title;
+  }
 
   bool get isDiscountActive =>
       hasDiscount &&

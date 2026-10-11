@@ -94,7 +94,9 @@ class ProfileMenuSection extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
           decoration: BoxDecoration(
             border: showBorder
-                ? const Border(bottom: BorderSide(color: AppColors.borderDefault))
+                ? const Border(
+                    bottom: BorderSide(color: AppColors.borderDefault),
+                  )
                 : null,
           ),
           child: Row(

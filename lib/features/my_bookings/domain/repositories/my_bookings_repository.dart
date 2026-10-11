@@ -6,11 +6,14 @@ import '../entities/booking_timeline_item.dart';
 
 abstract class MyBookingsRepository {
   Future<Either<Failure, List<BookingModel>>> getMyBookings();
-  Future<Either<Failure, PaginatedResponse<BookingModel>>> getLoungeBookingsPage({
+  Future<Either<Failure, PaginatedResponse<BookingModel>>>
+  getLoungeBookingsPage({
     required String loungeId,
     int page = 1,
     int pageSize = 20,
   });
   Future<Either<Failure, void>> cancelBooking(String bookingId);
-  Future<Either<Failure, List<BookingTimelineItem>>> getBookingTimeline(String bookingId);
+  Future<Either<Failure, List<BookingTimelineItem>>> getBookingTimeline(
+    String bookingId,
+  );
 }

@@ -106,10 +106,7 @@ class SocialButtons extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.transparent,
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(
-            color: AppColors.borderDefault,
-            width: 0.5,
-          ),
+          border: Border.all(color: AppColors.borderDefault, width: 0.5),
         ),
         child: Padding(
           padding: const EdgeInsets.all(12.0),

@@ -111,11 +111,13 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
       return Right(res);
     } catch (e) {
       if (e.toString().contains('PRICE_CHANGED')) {
-        return const Left(PriceChangedFailure(
-          message: AppStrings.priceUpdatedDesc,
-          oldPrice: 0.0,
-          newPrice: 0.0,
-        ));
+        return const Left(
+          PriceChangedFailure(
+            message: AppStrings.priceUpdatedDesc,
+            oldPrice: 0.0,
+            newPrice: 0.0,
+          ),
+        );
       }
       return await callRepository(() => throw e);
     }

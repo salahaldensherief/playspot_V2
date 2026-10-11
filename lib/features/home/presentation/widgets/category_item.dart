@@ -37,22 +37,32 @@ class CategoryItem extends StatelessWidget {
                 height: 75.h,
                 width: 80.w,
                 borderOpacity: isSelected ? 0.3 : 0.05,
-                borderColor: isSelected ? AppColors.neonBlue : Colors.white.withValues(alpha: 0.1),
-                color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.08) : null,
+                borderColor: isSelected
+                    ? AppColors.neonBlue
+                    : Colors.white.withValues(alpha: 0.1),
+                color: isSelected
+                    ? AppColors.neonBlue.withValues(alpha: 0.08)
+                    : null,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       icon,
-                      color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                      color: isSelected
+                          ? AppColors.neonBlue
+                          : AppColors.textSecondary,
                       size: 26.sp,
                     ),
                     6.verticalSpace,
                     AppText(
                       text: name.toUpperCase(),
                       fontSize: 9.sp,
-                      color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.neonBlue
+                          : AppColors.textSecondary,
+                      fontWeight: isSelected
+                          ? FontWeight.w900
+                          : FontWeight.w600,
                       letterSpacing: 0.5,
                       textAlign: TextAlign.center,
                     ),

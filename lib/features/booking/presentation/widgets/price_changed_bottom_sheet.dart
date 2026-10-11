@@ -142,7 +142,11 @@ class PriceChangedBottomSheet extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Icon(Icons.arrow_forward_rounded, color: AppColors.neonBlue, size: 18.sp),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: AppColors.neonBlue,
+                          size: 18.sp,
+                        ),
                       ],
                       Expanded(
                         child: Column(
@@ -154,7 +158,8 @@ class PriceChangedBottomSheet extends StatelessWidget {
                             ),
                             SizedBox(height: 4.h),
                             AppText(
-                              text: "${newPrice.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
+                              text:
+                                  "${newPrice.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                               fontSize: 18.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.success,
@@ -177,15 +182,23 @@ class PriceChangedBottomSheet extends StatelessWidget {
                   ),
                   SizedBox(height: 6.h),
                   ...quote.segments.map((seg) {
-                    final fromTime = seg.from.length >= 5 ? seg.from.substring(0, 5) : seg.from;
-                    final toTime = seg.to.length >= 5 ? seg.to.substring(0, 5) : seg.to;
+                    final fromTime = seg.from.length >= 5
+                        ? seg.from.substring(0, 5)
+                        : seg.from;
+                    final toTime = seg.to.length >= 5
+                        ? seg.to.substring(0, 5)
+                        : seg.to;
                     return Padding(
                       padding: EdgeInsets.symmetric(vertical: 2.h),
                       child: Row(
                         children: [
                           Icon(
-                            seg.isPeak ? Icons.local_fire_department_rounded : Icons.schedule_rounded,
-                            color: seg.isPeak ? AppColors.warning : AppColors.neonBlue,
+                            seg.isPeak
+                                ? Icons.local_fire_department_rounded
+                                : Icons.schedule_rounded,
+                            color: seg.isPeak
+                                ? AppColors.warning
+                                : AppColors.neonBlue,
                             size: 14.sp,
                           ),
                           SizedBox(width: 6.w),
@@ -196,7 +209,8 @@ class PriceChangedBottomSheet extends StatelessWidget {
                           ),
                           const Spacer(),
                           AppText(
-                            text: "${seg.amount.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
+                            text:
+                                "${seg.amount.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                             fontSize: 11.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -214,9 +228,7 @@ class PriceChangedBottomSheet extends StatelessWidget {
                   children: [
                     Expanded(
                       child: AppButton(
-                        content: ButtonContent(
-                          label: AppStrings.cancel.tr(),
-                        ),
+                        content: ButtonContent(label: AppStrings.cancel.tr()),
                         buttonConfig: ButtonConfig(
                           height: 44.h,
                           backgroundColor: Colors.transparent,

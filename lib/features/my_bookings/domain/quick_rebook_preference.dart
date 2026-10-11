@@ -15,8 +15,12 @@ class QuickRebookPreference {
     if (parts.length < 2) return slots.first;
     final hour = int.tryParse(parts[0]);
     final minute = int.tryParse(parts[1]);
-    if (hour == null || minute == null || hour < 0 || hour > 23 ||
-        minute < 0 || minute > 59) {
+    if (hour == null ||
+        minute == null ||
+        hour < 0 ||
+        hour > 23 ||
+        minute < 0 ||
+        minute > 59) {
       return slots.first;
     }
     final target = hour * 60 + minute;

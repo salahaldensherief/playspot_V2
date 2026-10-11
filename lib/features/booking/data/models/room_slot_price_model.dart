@@ -14,7 +14,8 @@ class RoomSlotPriceModel extends RoomSlotPrice {
     final rate = (json['hourly_rate'] as num?)?.toDouble() ?? 0.0;
     final rType = json['rule_type']?.toString() ?? 'standard';
     final rawPeak = json['is_peak'];
-    final computedIsPeak = rawPeak == true || rType.toLowerCase().trim() == 'peak';
+    final computedIsPeak =
+        rawPeak == true || rType.toLowerCase().trim() == 'peak';
 
     return RoomSlotPriceModel(
       slotStart: json['slot_start']?.toString() ?? '',

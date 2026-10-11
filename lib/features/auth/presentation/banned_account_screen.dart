@@ -21,10 +21,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class BannedAccountScreen extends StatefulWidget {
   final String? reason;
 
-  const BannedAccountScreen({
-    super.key,
-    this.reason,
-  });
+  const BannedAccountScreen({super.key, this.reason});
 
   @override
   State<BannedAccountScreen> createState() => _BannedAccountScreenState();
@@ -38,7 +35,8 @@ class _BannedAccountScreenState extends State<BannedAccountScreen> {
     String targetPhone = '';
     try {
       final settings = await sl<SupportRemoteDataSource>().getSupportSettings();
-      targetPhone = settings['whatsapp_phone']?.toString().trim() ??
+      targetPhone =
+          settings['whatsapp_phone']?.toString().trim() ??
           settings['support_phone']?.toString().trim() ??
           '';
     } catch (_) {}
@@ -50,7 +48,8 @@ class _BannedAccountScreenState extends State<BannedAccountScreen> {
     if (targetPhone.isNotEmpty) {
       await ContactLauncherService.launchWhatsApp(
         phone: targetPhone,
-        message: 'مرحباً فِريق دعم PlaySpot 👋\nتم حظر حسابي وأود الاستفسار حول ذلك.',
+        message:
+            'مرحباً فِريق دعم PlaySpot 👋\nتم حظر حسابي وأود الاستفسار حول ذلك.',
       );
     } else if (mounted) {
       GameHudToast.show(
@@ -111,7 +110,8 @@ class _BannedAccountScreenState extends State<BannedAccountScreen> {
                 textAlign: TextAlign.center,
                 height: 1.5,
               ),
-              if (widget.reason != null && widget.reason!.trim().isNotEmpty) ...[
+              if (widget.reason != null &&
+                  widget.reason!.trim().isNotEmpty) ...[
                 SizedBox(height: 24.h),
                 GlassContainer(
                   borderRadius: 16,
@@ -142,7 +142,10 @@ class _BannedAccountScreenState extends State<BannedAccountScreen> {
               AppButton(
                 content: ButtonContent(
                   label: AppStrings.supportContactUs.tr(),
-                  icon: const Icon(Icons.support_agent_rounded, color: Colors.white),
+                  icon: const Icon(
+                    Icons.support_agent_rounded,
+                    color: Colors.white,
+                  ),
                 ),
                 behavior: ButtonBehavior.tap(
                   isLoading: _isLoadingSupport,
@@ -158,9 +161,7 @@ class _BannedAccountScreenState extends State<BannedAccountScreen> {
               ),
               SizedBox(height: 12.h),
               AppButton(
-                content: ButtonContent(
-                  label: AppStrings.logOut.tr(),
-                ),
+                content: ButtonContent(label: AppStrings.logOut.tr()),
                 behavior: ButtonBehavior.tap(
                   onTap: () async {
                     await Supabase.instance.client.auth.signOut();

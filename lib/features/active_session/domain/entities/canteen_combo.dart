@@ -69,16 +69,16 @@ class CanteenCombo extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        nameAr,
-        nameEn,
-        descriptionAr,
-        descriptionEn,
-        price,
-        separateItemsPrice,
-        savings,
-        imageUrl,
-        isAvailable,
-        items,
-      ];
+    id,
+    nameAr,
+    nameEn,
+    descriptionAr,
+    descriptionEn,
+    price,
+    separateItemsPrice,
+    savings,
+    imageUrl,
+    isAvailable,
+    items,
+  ];
 }

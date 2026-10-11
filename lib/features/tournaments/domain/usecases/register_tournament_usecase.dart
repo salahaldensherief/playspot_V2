@@ -8,7 +8,9 @@ class RegisterTournamentUseCase {
 
   RegisterTournamentUseCase(this.repository);
 
-  Future<Either<Failure, TournamentParticipantEntity?>> call(String tournamentId) {
+  Future<Either<Failure, TournamentParticipantEntity?>> call(
+    String tournamentId,
+  ) {
     return repository.registerForTournament(tournamentId);
   }
 }

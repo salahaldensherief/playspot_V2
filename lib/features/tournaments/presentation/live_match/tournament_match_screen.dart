@@ -102,7 +102,10 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
               SizedBox(height: 16.h),
               Text(
                 AppStrings.disputeReason.tr(),
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13.sp,
+                ),
               ),
               SizedBox(height: 8.h),
               TextField(
@@ -119,7 +122,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                   fillColor: AppColors.mutedBackground,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
-                    borderSide: const BorderSide(color: AppColors.borderDefault),
+                    borderSide: const BorderSide(
+                      color: AppColors.borderDefault,
+                    ),
                   ),
                 ),
               ),
@@ -135,7 +140,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                       width: 90.w,
                     ),
                     content: ButtonContent(label: AppStrings.close.tr()),
-                    behavior: TapBehavior(onTap: () => Navigator.pop(dialogContext)),
+                    behavior: TapBehavior(
+                      onTap: () => Navigator.pop(dialogContext),
+                    ),
                   ),
                   SizedBox(width: 8.w),
                   AppButton(
@@ -143,7 +150,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                       backgroundColor: AppColors.danger,
                       width: 120.w,
                     ),
-                    content: ButtonContent(label: AppStrings.disputeResult.tr()),
+                    content: ButtonContent(
+                      label: AppStrings.disputeResult.tr(),
+                    ),
                     behavior: TapBehavior(
                       onTap: () {
                         final reason = _disputeReasonController.text.trim();
@@ -156,7 +165,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                           return;
                         }
                         Navigator.pop(dialogContext);
-                        context.read<TournamentMatchCubit>().disputeResult(reason);
+                        context.read<TournamentMatchCubit>().disputeResult(
+                          reason,
+                        );
                       },
                     ),
                   ),

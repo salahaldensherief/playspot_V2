@@ -17,9 +17,9 @@ class ActivityCategories extends StatelessWidget {
     final isArabic = context.locale.languageCode == 'ar';
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) =>
-        previous.isCategoriesLoading != current.isCategoriesLoading ||
-        previous.categories != current.categories ||
-        previous.selectedCategoryIds != current.selectedCategoryIds,
+          previous.isCategoriesLoading != current.isCategoriesLoading ||
+          previous.categories != current.categories ||
+          previous.selectedCategoryIds != current.selectedCategoryIds,
       builder: (context, state) {
         if (state.categories.isEmpty && state.isCategoriesLoading) {
           return SizedBox(
@@ -40,12 +40,15 @@ class ActivityCategories extends StatelessWidget {
             separatorBuilder: (context, index) => 12.horizontalSpace,
             itemBuilder: (context, index) {
               final category = state.categories[index];
-              final isSelected = state.selectedCategoryIds.contains(category.id);
+              final isSelected = state.selectedCategoryIds.contains(
+                category.id,
+              );
               return CategoryItem(
                 name: category.getName(isArabic),
                 icon: category.icon,
                 isSelected: isSelected,
-                onTap: () => context.read<HomeCubit>().toggleCategory(category.id),
+                onTap: () =>
+                    context.read<HomeCubit>().toggleCategory(category.id),
               );
             },
           ),

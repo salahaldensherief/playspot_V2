@@ -14,8 +14,9 @@ class BookingDetailsParams extends Equatable {
   final Map<String, String> roomPlayModes;
   final Map<String, int> roomExtraControllers;
 
-  RoomModel get room =>
-      rooms.isNotEmpty ? rooms.first : throw StateError('No room in BookingDetailsParams');
+  RoomModel get room => rooms.isNotEmpty
+      ? rooms.first
+      : throw StateError('No room in BookingDetailsParams');
 
   BookingDetailsParams({
     required this.lounge,
@@ -31,23 +32,25 @@ class BookingDetailsParams extends Equatable {
 
   @override
   List<Object?> get props => [
-        lounge,
-        rooms,
-        selectedDate,
-        extras,
-        playMode,
-        extraControllers,
-        roomPlayModes,
-        roomExtraControllers,
-      ];
+    lounge,
+    rooms,
+    selectedDate,
+    extras,
+    playMode,
+    extraControllers,
+    roomPlayModes,
+    roomExtraControllers,
+  ];
 
   factory BookingDetailsParams.fromMap(Map<String, dynamic> map) {
     List<RoomModel> parsedRooms = [];
     if (map['rooms'] is List) {
       parsedRooms = (map['rooms'] as List)
-          .map((e) => e is RoomModel
-              ? e
-              : RoomModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (e) => e is RoomModel
+                ? e
+                : RoomModel.fromJson(Map<String, dynamic>.from(e as Map)),
+          )
           .toList();
     } else if (map['room'] != null) {
       final r = map['room'] is RoomModel
@@ -65,19 +68,25 @@ class BookingDetailsParams extends Equatable {
     final rawControllers = map['roomExtraControllers'];
     final Map<String, int> controllers = {};
     if (rawControllers is Map) {
-      rawControllers.forEach((k, v) => controllers[k.toString()] = (v as num).toInt());
+      rawControllers.forEach(
+        (k, v) => controllers[k.toString()] = (v as num).toInt(),
+      );
     }
 
     return BookingDetailsParams(
       lounge: map['lounge'] is LoungeModel
           ? map['lounge'] as LoungeModel
-          : LoungeModel.fromJson(Map<String, dynamic>.from(map['lounge'] as Map)),
+          : LoungeModel.fromJson(
+              Map<String, dynamic>.from(map['lounge'] as Map),
+            ),
       rooms: parsedRooms,
       selectedDate: map['selectedDate'] is DateTime
           ? map['selectedDate'] as DateTime
           : DateTime.parse(map['selectedDate'].toString()),
       extras: map['extras'] != null
-          ? (map['extras'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()
+          ? (map['extras'] as List)
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList()
           : [],
       playMode: map['playMode']?.toString() ?? 'single',
       extraControllers: (map['extraControllers'] as num?)?.toInt() ?? 0,
@@ -131,8 +140,9 @@ class CheckoutParams extends Equatable {
   final DateTime? holdExpiresAt;
   final DateTime? resolvedStartAt;
 
-  RoomModel get room =>
-      rooms.isNotEmpty ? rooms.first : throw StateError('No room in CheckoutParams');
+  RoomModel get room => rooms.isNotEmpty
+      ? rooms.first
+      : throw StateError('No room in CheckoutParams');
 
   double get extraControllersChargePerHour =>
       (extraControllers ?? 0) * (extraControllerPrice ?? 0.0);
@@ -176,30 +186,30 @@ class CheckoutParams extends Equatable {
 
   @override
   List<Object?> get props => [
-        lounge,
-        rooms,
-        roomsBreakdown,
-        date,
-        startTime,
-        duration,
-        originalRoomSubtotal,
-        discountedRoomSubtotal,
-        discountAmount,
-        discountPercentage,
-        discountLabel,
-        discountSource,
-        addonsTotal,
-        totalPrice,
-        originalTotalPrice,
-        addOns,
-        playMode,
-        appliedHourlyRate,
-        extraControllers,
-        extraControllerPrice,
-        holdToken,
-        holdExpiresAt,
-        resolvedStartAt,
-      ];
+    lounge,
+    rooms,
+    roomsBreakdown,
+    date,
+    startTime,
+    duration,
+    originalRoomSubtotal,
+    discountedRoomSubtotal,
+    discountAmount,
+    discountPercentage,
+    discountLabel,
+    discountSource,
+    addonsTotal,
+    totalPrice,
+    originalTotalPrice,
+    addOns,
+    playMode,
+    appliedHourlyRate,
+    extraControllers,
+    extraControllerPrice,
+    holdToken,
+    holdExpiresAt,
+    resolvedStartAt,
+  ];
 
   factory CheckoutParams.fromMap(Map<String, dynamic> map) {
     final rawStartTime = map['startTime'];
@@ -222,14 +232,17 @@ class CheckoutParams extends Equatable {
     }
 
     final double totPrice = (map['totalPrice'] as num?)?.toDouble() ?? 0.0;
-    final double origTotPrice = (map['originalTotalPrice'] as num?)?.toDouble() ?? totPrice;
+    final double origTotPrice =
+        (map['originalTotalPrice'] as num?)?.toDouble() ?? totPrice;
 
     List<RoomModel> parsedRooms = [];
     if (map['rooms'] is List) {
       parsedRooms = (map['rooms'] as List)
-          .map((e) => e is RoomModel
-              ? e
-              : RoomModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .map(
+            (e) => e is RoomModel
+                ? e
+                : RoomModel.fromJson(Map<String, dynamic>.from(e as Map)),
+          )
           .toList();
     } else if (map['room'] != null) {
       final r = map['room'] is RoomModel
@@ -240,14 +253,16 @@ class CheckoutParams extends Equatable {
 
     final List<Map<String, dynamic>> breakdown = map['roomsBreakdown'] != null
         ? (map['roomsBreakdown'] as List)
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .toList()
+              .map((e) => Map<String, dynamic>.from(e as Map))
+              .toList()
         : [];
 
     return CheckoutParams(
       lounge: map['lounge'] is LoungeModel
           ? map['lounge'] as LoungeModel
-          : LoungeModel.fromJson(Map<String, dynamic>.from(map['lounge'] as Map)),
+          : LoungeModel.fromJson(
+              Map<String, dynamic>.from(map['lounge'] as Map),
+            ),
       rooms: parsedRooms,
       roomsBreakdown: breakdown,
       date: map['date'] is DateTime
@@ -255,17 +270,24 @@ class CheckoutParams extends Equatable {
           : DateTime.parse(map['date'].toString()),
       startTime: parsedStartTime,
       duration: (map['duration'] as num?)?.toInt() ?? 60,
-      originalRoomSubtotal: (map['originalRoomSubtotal'] as num?)?.toDouble() ?? origTotPrice,
-      discountedRoomSubtotal: (map['discountedRoomSubtotal'] as num?)?.toDouble() ?? totPrice,
-      discountAmount: (map['discountAmount'] as num?)?.toDouble() ?? (origTotPrice - totPrice).clamp(0.0, double.infinity),
-      discountPercentage: (map['discountPercentage'] as num?)?.toDouble() ?? 0.0,
+      originalRoomSubtotal:
+          (map['originalRoomSubtotal'] as num?)?.toDouble() ?? origTotPrice,
+      discountedRoomSubtotal:
+          (map['discountedRoomSubtotal'] as num?)?.toDouble() ?? totPrice,
+      discountAmount:
+          (map['discountAmount'] as num?)?.toDouble() ??
+          (origTotPrice - totPrice).clamp(0.0, double.infinity),
+      discountPercentage:
+          (map['discountPercentage'] as num?)?.toDouble() ?? 0.0,
       discountLabel: map['discountLabel']?.toString(),
       discountSource: map['discountSource']?.toString() ?? 'none',
       addonsTotal: (map['addonsTotal'] as num?)?.toDouble() ?? 0.0,
       totalPrice: totPrice,
       originalTotalPrice: origTotPrice,
       addOns: map['addOns'] != null
-          ? (map['addOns'] as List).map((e) => Map<String, dynamic>.from(e as Map)).toList()
+          ? (map['addOns'] as List)
+                .map((e) => Map<String, dynamic>.from(e as Map))
+                .toList()
           : [],
       playMode: map['playMode']?.toString() ?? map['play_mode']?.toString(),
       appliedHourlyRate: (map['appliedHourlyRate'] as num?)?.toDouble(),
@@ -330,8 +352,10 @@ extension CheckoutPricingX on CheckoutParams {
     required double voucherDiscount,
     required bool isPrimaryRoom,
   }) {
-    final double rawPrice = discountedRoomPrice + roomAddonsTotal - (isPrimaryRoom ? voucherDiscount : 0.0);
+    final double rawPrice =
+        discountedRoomPrice +
+        roomAddonsTotal -
+        (isPrimaryRoom ? voucherDiscount : 0.0);
     return rawPrice.clamp(0.0, double.infinity);
   }
 }
-

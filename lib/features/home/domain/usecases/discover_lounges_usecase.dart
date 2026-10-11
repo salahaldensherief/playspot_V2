@@ -9,9 +9,7 @@ class DiscoverLoungesUseCase {
 
   DiscoverLoungesUseCase(this.repository);
 
-  Future<Either<Failure, List<LoungeModel>>> call(
-    GetLoungesParams params,
-  ) {
+  Future<Either<Failure, List<LoungeModel>>> call(GetLoungesParams params) {
     return repository.getLounges(params);
   }
 }

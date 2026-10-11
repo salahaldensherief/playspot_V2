@@ -26,11 +26,14 @@ class TimerWidget extends StatelessWidget {
     final minutes = remaining.inMinutes.remainder(60);
     final seconds = remaining.inSeconds.remainder(60);
 
-    final timeStr = "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+    final timeStr =
+        "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
 
-    final label = labelOverride ?? (remaining.isNegative 
-        ? AppStrings.overtime.tr().toUpperCase() 
-        : AppStrings.remaining.tr().toUpperCase());
+    final label =
+        labelOverride ??
+        (remaining.isNegative
+            ? AppStrings.overtime.tr().toUpperCase()
+            : AppStrings.remaining.tr().toUpperCase());
 
     return Center(
       child: Stack(

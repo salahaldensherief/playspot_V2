@@ -29,9 +29,7 @@ class SignupButton extends StatelessWidget {
             width: double.infinity,
             height: 50.h,
           ),
-          content: ButtonContent(
-            label: AppStrings.createAcc.tr(),
-          ),
+          content: ButtonContent(label: AppStrings.createAcc.tr()),
           behavior: TapBehavior(
             isEnabled: !isLoading,
             isLoading: isLoading,

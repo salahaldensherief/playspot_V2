@@ -25,15 +25,15 @@ class PricingSegment extends Equatable {
 
   @override
   List<Object?> get props => [
-        from,
-        to,
-        minutes,
-        baseRate,
-        appliedRuleId,
-        ruleType,
-        rate,
-        amount,
-      ];
+    from,
+    to,
+    minutes,
+    baseRate,
+    appliedRuleId,
+    ruleType,
+    rate,
+    amount,
+  ];
 }
 
 class BookingPriceQuote extends Equatable {
@@ -59,13 +59,13 @@ class BookingPriceQuote extends Equatable {
 
   @override
   List<Object?> get props => [
-        segments,
-        roomSubtotal,
-        extraControllersAmount,
-        discountAmount,
-        total,
-        currency,
-        hasPeak,
-        pricingVersion,
-      ];
+    segments,
+    roomSubtotal,
+    extraControllersAmount,
+    discountAmount,
+    total,
+    currency,
+    hasPeak,
+    pricingVersion,
+  ];
 }

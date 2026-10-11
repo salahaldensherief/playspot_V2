@@ -12,10 +12,7 @@ import '../quick_rebook_state.dart';
 class QuickRebookAddonsSection extends StatelessWidget {
   final QuickRebookState state;
 
-  const QuickRebookAddonsSection({
-    super.key,
-    required this.state,
-  });
+  const QuickRebookAddonsSection({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +43,7 @@ class QuickRebookAddonsSection extends StatelessWidget {
           ),
           child: Column(
             children: state.availableExtras.map((extra) {
-              final quantity =
-                  state.selectedAddonQuantities[extra.id] ?? 0;
+              final quantity = state.selectedAddonQuantities[extra.id] ?? 0;
               final name = isArabic ? extra.nameAr : extra.nameEn;
 
               return Padding(
@@ -84,10 +80,7 @@ class QuickRebookAddonsSection extends StatelessWidget {
                         icon: Icons.remove,
                         onTap: () => context
                             .read<QuickRebookCubit>()
-                            .updateAddonQuantity(
-                              extra.id,
-                              quantity - 1,
-                            ),
+                            .updateAddonQuantity(extra.id, quantity - 1),
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8.w),
@@ -105,10 +98,7 @@ class QuickRebookAddonsSection extends StatelessWidget {
                       isPrimary: true,
                       onTap: () => context
                           .read<QuickRebookCubit>()
-                          .updateAddonQuantity(
-                            extra.id,
-                            quantity + 1,
-                          ),
+                          .updateAddonQuantity(extra.id, quantity + 1),
                     ),
                   ],
                 ),

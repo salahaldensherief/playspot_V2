@@ -12,9 +12,6 @@ class GetRoomSlotsWithPricesUseCase {
     required String roomId,
     required String date,
   }) {
-    return _repository.getRoomSlotsWithPrices(
-      roomId: roomId,
-      date: date,
-    );
+    return _repository.getRoomSlotsWithPrices(roomId: roomId, date: date);
   }
 }

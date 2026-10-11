@@ -207,9 +207,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
             .toList();
       }
     } catch (error) {
-      AppLogger.warning(
-        'DISCOVERY_ACTIVITIES_RPC_ERROR: $error',
-      );
+      AppLogger.warning('DISCOVERY_ACTIVITIES_RPC_ERROR: $error');
     }
 
     final response = await _client.from('categories').select().order('id');

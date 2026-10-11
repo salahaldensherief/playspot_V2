@@ -46,8 +46,13 @@ class CanteenComboModel extends CanteenCombo {
   });
 
   factory CanteenComboModel.fromJson(Map<String, dynamic> json) {
-    final itemsList = (json['items'] as List?)
-            ?.map((e) => CanteenComboComponentModel.fromJson(e as Map<String, dynamic>))
+    final itemsList =
+        (json['items'] as List?)
+            ?.map(
+              (e) => CanteenComboComponentModel.fromJson(
+                e as Map<String, dynamic>,
+              ),
+            )
             .toList() ??
         const [];
 
@@ -58,7 +63,8 @@ class CanteenComboModel extends CanteenCombo {
       descriptionAr: json['description_ar']?.toString(),
       descriptionEn: json['description_en']?.toString(),
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      separateItemsPrice: (json['separate_items_price'] as num?)?.toDouble() ?? 0.0,
+      separateItemsPrice:
+          (json['separate_items_price'] as num?)?.toDouble() ?? 0.0,
       savings: (json['savings'] as num?)?.toDouble() ?? 0.0,
       imageUrl: json['image_url']?.toString(),
       isAvailable: json['is_available'] == true,
@@ -78,7 +84,9 @@ class CanteenComboModel extends CanteenCombo {
       'savings': savings,
       'image_url': imageUrl,
       'is_available': isAvailable,
-      'items': items.map((e) => (e as CanteenComboComponentModel).toJson()).toList(),
+      'items': items
+          .map((e) => (e as CanteenComboComponentModel).toJson())
+          .toList(),
     };
   }
 }

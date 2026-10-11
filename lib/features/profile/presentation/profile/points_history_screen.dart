@@ -28,7 +28,8 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<ProfileCubit>().loadPointsHistory(refresh: true);
+      if (mounted)
+        context.read<ProfileCubit>().loadPointsHistory(refresh: true);
     });
   }
 
@@ -64,19 +65,25 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
               buildWhen: (previous, current) =>
                   previous.pointsHistory != current.pointsHistory ||
                   previous.status != current.status ||
-                  previous.isLoadingMorePointsHistory != current.isLoadingMorePointsHistory ||
-                  previous.hasMorePointsHistory != current.hasMorePointsHistory ||
+                  previous.isLoadingMorePointsHistory !=
+                      current.isLoadingMorePointsHistory ||
+                  previous.hasMorePointsHistory !=
+                      current.hasMorePointsHistory ||
                   previous.pointsHistoryFailed != current.pointsHistoryFailed,
               builder: (context, state) {
-                if ((state.status == ProfileStatus.loading || state.isLoadingMorePointsHistory) &&
+                if ((state.status == ProfileStatus.loading ||
+                        state.isLoadingMorePointsHistory) &&
                     state.pointsHistory.isEmpty) {
                   return const AppLoader(size: 40);
                 }
 
                 if (state.pointsHistory.isEmpty) {
                   if (state.pointsHistoryFailed) {
-                    return AppStateView.error(onRetry: () =>
-                      context.read<ProfileCubit>().loadPointsHistory(refresh: true));
+                    return AppStateView.error(
+                      onRetry: () => context
+                          .read<ProfileCubit>()
+                          .loadPointsHistory(refresh: true),
+                    );
                   }
                   return AppStateView.empty(
                     title: AppStrings.noPointsHistory.tr(),
@@ -84,26 +91,42 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () => context.read<ProfileCubit>().loadPointsHistory(refresh: true),
+                  onRefresh: () => context
+                      .read<ProfileCubit>()
+                      .loadPointsHistory(refresh: true),
                   child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.all(20.w),
-                  itemCount: state.pointsHistory.length + 1,
-                  separatorBuilder: (context, index) => SizedBox(height: 12.h),
-                  itemBuilder: (context, index) {
-                    if (index == state.pointsHistory.length) {
-                      return Column(children: [
-                        if (state.isLoadingMorePointsHistory) const AppLoader(size: 24)
-                        else if (state.hasMorePointsHistory || state.pointsHistoryFailed)
-                          TextButton(onPressed: () => context.read<ProfileCubit>().loadPointsHistory(),
-                            child: Text(state.pointsHistoryFailed ? AppStrings.retry.tr() : 'pointsHistoryLoadMore'.tr())),
-                        const SafeBottomSpacer(),
-                      ]);
-                    }
-                    final item = state.pointsHistory[index];
-                    return _buildTransactionCard(context, item);
-                  },
-                ));
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(20.w),
+                    itemCount: state.pointsHistory.length + 1,
+                    separatorBuilder: (context, index) =>
+                        SizedBox(height: 12.h),
+                    itemBuilder: (context, index) {
+                      if (index == state.pointsHistory.length) {
+                        return Column(
+                          children: [
+                            if (state.isLoadingMorePointsHistory)
+                              const AppLoader(size: 24)
+                            else if (state.hasMorePointsHistory ||
+                                state.pointsHistoryFailed)
+                              TextButton(
+                                onPressed: () => context
+                                    .read<ProfileCubit>()
+                                    .loadPointsHistory(),
+                                child: Text(
+                                  state.pointsHistoryFailed
+                                      ? AppStrings.retry.tr()
+                                      : 'pointsHistoryLoadMore'.tr(),
+                                ),
+                              ),
+                            const SafeBottomSpacer(),
+                          ],
+                        );
+                      }
+                      final item = state.pointsHistory[index];
+                      return _buildTransactionCard(context, item);
+                    },
+                  ),
+                );
               },
             ),
           ),

@@ -287,7 +287,8 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                       TournamentParticipantsCard(tournament: tournament),
                       SizedBox(height: 16.h),
                       TournamentRulesCard(tournament: tournament),
-                      if (_buildActionButtons(context, state) case final actionButtons?) ...[
+                      if (_buildActionButtons(context, state)
+                          case final actionButtons?) ...[
                         SizedBox(height: 20.h),
                         actionButtons,
                       ],
@@ -516,12 +517,11 @@ class _TournamentDetailsScreenState extends State<TournamentDetailsScreen>
                     fontWeight: FontWeight.bold,
                     fontSize: 14.sp,
                   ),
-                  if (participant.paymentRejectionReason case final reason? when reason.isNotEmpty) ...[
+                  if (participant.paymentRejectionReason case final reason?
+                      when reason.isNotEmpty) ...[
                     SizedBox(height: 4.h),
                     AppText(
-                      text: AppStrings.paymentRejectedReason.tr(
-                        args: [reason],
-                      ),
+                      text: AppStrings.paymentRejectedReason.tr(args: [reason]),
                       color: AppColors.textSecondary,
                       fontSize: 12.sp,
                       textAlign: TextAlign.center,

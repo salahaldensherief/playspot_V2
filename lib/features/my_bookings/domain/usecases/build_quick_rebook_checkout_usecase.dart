@@ -9,9 +9,7 @@ import '../entities/quick_rebook_setup.dart';
 class BuildQuickRebookCheckoutUseCase {
   final BookingRepository _bookingRepository;
 
-  const BuildQuickRebookCheckoutUseCase(
-    this._bookingRepository,
-  );
+  const BuildQuickRebookCheckoutUseCase(this._bookingRepository);
 
   Future<Either<Failure, CheckoutParams>> call({
     required QuickRebookSetup setup,
@@ -26,9 +24,7 @@ class BuildQuickRebookCheckoutUseCase {
       setup.lounge.openingTime,
       setup.lounge.closingTime,
     );
-    final endAt = startAt.add(
-      Duration(minutes: durationMinutes),
-    );
+    final endAt = startAt.add(Duration(minutes: durationMinutes));
 
     final holdResult = await _bookingRepository.acquireBookingHold(
       roomIds: [setup.room.id],
@@ -36,14 +32,11 @@ class BuildQuickRebookCheckoutUseCase {
       endTime: endAt,
     );
 
-    return holdResult.fold(
-      (failure) => Left(failure),
-      (hold) {
+    return holdResult.fold((failure) => Left(failure), (hold) {
       if (hold['success'] != true) {
         return Left(
           ServerFailure(
-            hold['error_code']?.toString() ??
-                'quickRebookHoldFailed',
+            hold['error_code']?.toString() ?? 'quickRebookHoldFailed',
           ),
         );
       }
@@ -53,12 +46,8 @@ class BuildQuickRebookCheckoutUseCase {
         hold['hold_expires_at']?.toString() ?? '',
       );
 
-      if (holdToken == null ||
-          holdToken.isEmpty ||
-          holdExpiresAt == null) {
-        return const Left(
-          ServerFailure('quickRebookHoldFailed'),
-        );
+      if (holdToken == null || holdToken.isEmpty || holdExpiresAt == null) {
+        return const Left(ServerFailure('quickRebookHoldFailed'));
       }
 
       final addons = <Map<String, dynamic>>[];
@@ -111,8 +100,7 @@ class BuildQuickRebookCheckoutUseCase {
           resolvedStartAt: startAt,
         ),
       );
-    },
-    );
+    });
   }
 
   DateTime _resolveOperationalDateTime(

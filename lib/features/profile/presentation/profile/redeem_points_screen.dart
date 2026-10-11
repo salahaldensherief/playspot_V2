@@ -37,7 +37,9 @@ class RedeemPointsScreen extends StatelessWidget {
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == ProfileStatus.redeemSuccess) {
-          final lastVoucher = state.myVouchers.isNotEmpty ? state.myVouchers.last : null;
+          final lastVoucher = state.myVouchers.isNotEmpty
+              ? state.myVouchers.last
+              : null;
           final code = lastVoucher?['code'] ?? "";
 
           AppDialog.show(
@@ -47,9 +49,11 @@ class RedeemPointsScreen extends StatelessWidget {
             description: AppStrings.rewardRedeemedDesc.tr(args: [code]),
             confirmText: AppStrings.continueText.tr(),
           );
-        } else if (state.status == ProfileStatus.claimReferralResult && state.claimResult != null) {
+        } else if (state.status == ProfileStatus.claimReferralResult &&
+            state.claimResult != null) {
           _handleClaimReferralResult(context, state.claimResult!);
-        } else if (state.status == ProfileStatus.error && (state.errorMessage?.isNotEmpty ?? false)) {
+        } else if (state.status == ProfileStatus.error &&
+            (state.errorMessage?.isNotEmpty ?? false)) {
           GameHudToast.show(
             context,
             state.errorMessage ?? '',
@@ -73,7 +77,10 @@ class RedeemPointsScreen extends StatelessWidget {
           ),
           title: Text(
             AppStrings.loyaltyDashboard.tr(),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         body: BlocBuilder<ProfileCubit, ProfileState>(
@@ -94,10 +101,16 @@ class RedeemPointsScreen extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 50.sp),
+                      Icon(
+                        Icons.error_outline_rounded,
+                        color: AppColors.danger,
+                        size: 50.sp,
+                      ),
                       SizedBox(height: 16.h),
                       AppText(
-                        text: state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                        text:
+                            state.errorMessage ??
+                            AppStrings.somethingWentWrong.tr(),
                         fontSize: 16.sp,
                         color: Colors.white,
                         textAlign: TextAlign.center,
@@ -107,11 +120,10 @@ class RedeemPointsScreen extends StatelessWidget {
                         buttonConfig: ButtonConfig(
                           gradient: AppColors.primaryGradient,
                         ),
-                        content: ButtonContent(
-                          label: AppStrings.retry.tr(),
-                        ),
+                        content: ButtonContent(label: AppStrings.retry.tr()),
                         behavior: ButtonBehavior.tap(
-                          onTap: () => context.read<ProfileCubit>().getUserData(),
+                          onTap: () =>
+                              context.read<ProfileCubit>().getUserData(),
                         ),
                       ),
                     ],
@@ -162,7 +174,12 @@ class RedeemPointsScreen extends StatelessWidget {
                       children: state.redemptionOptions.map((option) {
                         return Padding(
                           padding: EdgeInsets.only(bottom: 16.h),
-                          child: _buildRedemptionCard(context, option, state.pointsBalance, isArabic),
+                          child: _buildRedemptionCard(
+                            context,
+                            option,
+                            state.pointsBalance,
+                            isArabic,
+                          ),
                         );
                       }).toList(),
                     ),
@@ -176,7 +193,10 @@ class RedeemPointsScreen extends StatelessWidget {
     );
   }
 
-  void _handleClaimReferralResult(BuildContext context, ClaimReferralResult claimResult) {
+  void _handleClaimReferralResult(
+    BuildContext context,
+    ClaimReferralResult claimResult,
+  ) {
     switch (claimResult.status) {
       case ClaimReferralStatus.success:
         GameHudToast.show(
@@ -230,8 +250,8 @@ class RedeemPointsScreen extends StatelessWidget {
     bool isArabic,
   ) {
     final canAfford = currentBalance >= option.pointsCost;
-    final rewardIcon = option.rewardType == 'free_hour' 
-        ? Icons.timer_outlined 
+    final rewardIcon = option.rewardType == 'free_hour'
+        ? Icons.timer_outlined
         : Icons.confirmation_number_outlined;
 
     return GlassContainer(
@@ -256,7 +276,11 @@ class RedeemPointsScreen extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.stars_rounded, color: AppColors.warning, size: 14.sp),
+                  Icon(
+                    Icons.stars_rounded,
+                    color: AppColors.warning,
+                    size: 14.sp,
+                  ),
                   SizedBox(width: 4.w),
                   AppText(
                     text: "${option.pointsCost}",
@@ -268,7 +292,7 @@ class RedeemPointsScreen extends StatelessWidget {
               ),
             ),
           ),
-          
+
           Padding(
             padding: EdgeInsets.all(20.w),
             child: Column(
@@ -281,9 +305,15 @@ class RedeemPointsScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.neonBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16.r),
-                        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: AppColors.neonBlue.withValues(alpha: 0.2),
+                        ),
                       ),
-                      child: Icon(rewardIcon, color: AppColors.neonBlue, size: 24.sp),
+                      child: Icon(
+                        rewardIcon,
+                        color: AppColors.neonBlue,
+                        size: 24.sp,
+                      ),
                     ),
                     SizedBox(width: 16.w),
                     Expanded(
@@ -298,9 +328,13 @@ class RedeemPointsScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 2.h),
                           AppText(
-                            text: option.rewardType == 'free_hour' 
-                                ? AppStrings.oneHourSession.tr() 
-                                : AppStrings.egpDiscount.tr(args: [option.rewardValue.toInt().toString()]),
+                            text: option.rewardType == 'free_hour'
+                                ? AppStrings.oneHourSession.tr()
+                                : AppStrings.egpDiscount.tr(
+                                    args: [
+                                      option.rewardValue.toInt().toString(),
+                                    ],
+                                  ),
                             fontSize: 12.sp,
                             fontWeight: FontWeight.w600,
                             color: AppColors.neonBlue,
@@ -323,12 +357,11 @@ class RedeemPointsScreen extends StatelessWidget {
                     height: 48.h,
                     gradient: canAfford ? AppColors.primaryGradient : null,
                   ),
-                  content: ButtonContent(
-                    label: AppStrings.redeem.tr(),
-                  ),
+                  content: ButtonContent(label: AppStrings.redeem.tr()),
                   behavior: ButtonBehavior.tap(
                     isEnabled: canAfford,
-                    onTap: () => context.read<ProfileCubit>().redeemPoints(option.id),
+                    onTap: () =>
+                        context.read<ProfileCubit>().redeemPoints(option.id),
                   ),
                 ),
               ],

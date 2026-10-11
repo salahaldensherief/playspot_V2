@@ -17,10 +17,7 @@ import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 class BookingConfirmedDialog extends StatelessWidget {
   final BookingModel booking;
 
-  const BookingConfirmedDialog({
-    super.key,
-    required this.booking,
-  });
+  const BookingConfirmedDialog({super.key, required this.booking});
 
   static Future<void> show(BuildContext context, BookingModel booking) {
     return showDialog(
@@ -58,7 +55,9 @@ class BookingConfirmedDialog extends StatelessWidget {
               ),
               SizedBox(height: 16.h),
               AppText(
-                text: isArabic ? 'تم تأكيد حجزك بنجاح! 🎉' : 'Booking Confirmed!',
+                text: isArabic
+                    ? 'تم تأكيد حجزك بنجاح! 🎉'
+                    : 'Booking Confirmed!',
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -107,9 +106,7 @@ class BookingConfirmedDialog extends StatelessWidget {
               SizedBox(height: 24.h),
 
               AppButton(
-                content: ButtonContent(
-                  label: AppStrings.viewMyBookings.tr(),
-                ),
+                content: ButtonContent(label: AppStrings.viewMyBookings.tr()),
                 buttonConfig: ButtonConfig(
                   height: 48.h,
                   gradient: AppColors.primaryGradient,

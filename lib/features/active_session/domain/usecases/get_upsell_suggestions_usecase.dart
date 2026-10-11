@@ -8,7 +8,9 @@ class GetUpsellSuggestionsUseCase {
 
   GetUpsellSuggestionsUseCase(this.repository);
 
-  Future<Either<Failure, List<UpsellSuggestion>>> call({required String bookingId}) {
+  Future<Either<Failure, List<UpsellSuggestion>>> call({
+    required String bookingId,
+  }) {
     return repository.getUpsellSuggestions(bookingId);
   }
 }

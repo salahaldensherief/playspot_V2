@@ -17,7 +17,8 @@ class QuickActions extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
       buildWhen: (prev, curr) =>
-          prev.extendStatus != curr.extendStatus || prev.session != curr.session,
+          prev.extendStatus != curr.extendStatus ||
+          prev.session != curr.session,
       builder: (context, state) {
         final isLoading = state.extendStatus == ActionStatus.loading;
         final session = state.session;
@@ -82,7 +83,9 @@ class QuickActions extends StatelessWidget {
                       ),
                       SizedBox(height: 4.h),
                       AppText(
-                        text: AppStrings.extensionPendingSubtitle.tr(args: [pendingMins.toString()]),
+                        text: AppStrings.extensionPendingSubtitle.tr(
+                          args: [pendingMins.toString()],
+                        ),
                         fontSize: 12.5.sp,
                         color: AppColors.textSecondary,
                       ),

@@ -55,16 +55,13 @@ class SignupCubit extends Cubit<SignupState> {
     if (pendingCode.isEmpty) return;
 
     final result = await _profileRepository.claimReferralCode(pendingCode);
-    await result.fold(
-      (_) async {},
-      (claimResult) async {
-        if (claimResult.status == ClaimReferralStatus.success ||
-            claimResult.status == ClaimReferralStatus.alreadyClaimed ||
-            claimResult.status == ClaimReferralStatus.invalidCode) {
-          await preferences.clearPendingReferralCode();
-        }
-      },
-    );
+    await result.fold((_) async {}, (claimResult) async {
+      if (claimResult.status == ClaimReferralStatus.success ||
+          claimResult.status == ClaimReferralStatus.alreadyClaimed ||
+          claimResult.status == ClaimReferralStatus.invalidCode) {
+        await preferences.clearPendingReferralCode();
+      }
+    });
   }
 
   Future<void> _updateLocationAfterAuth() async {

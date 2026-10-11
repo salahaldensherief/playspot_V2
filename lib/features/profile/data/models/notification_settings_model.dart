@@ -53,10 +53,10 @@ class NotificationSettingsModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        pushEnabled,
-        bookingUpdates,
-        offersEnabled,
-        eventsEnabled,
-        systemNotifications,
-      ];
+    pushEnabled,
+    bookingUpdates,
+    offersEnabled,
+    eventsEnabled,
+    systemNotifications,
+  ];
 }

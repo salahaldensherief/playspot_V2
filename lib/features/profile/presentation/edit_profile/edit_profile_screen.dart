@@ -168,9 +168,7 @@ class _SaveButton extends StatelessWidget {
             isLoading: isLoading,
             onTap: cubit.updateProfile,
           ),
-          content: ButtonContent(
-            label: AppStrings.saveChanges.tr(),
-          ),
+          content: ButtonContent(label: AppStrings.saveChanges.tr()),
         );
       },
     );
@@ -183,9 +181,7 @@ class _DeleteAccountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppButton(
-      content: ButtonContent(
-        label: AppStrings.deleteAccount.tr(),
-      ),
+      content: ButtonContent(label: AppStrings.deleteAccount.tr()),
       behavior: ButtonBehavior.tap(
         onTap: () => _showDeleteConfirmation(context),
       ),

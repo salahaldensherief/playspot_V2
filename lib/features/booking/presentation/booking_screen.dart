@@ -78,8 +78,9 @@ class _BookingScreenState extends State<BookingScreen> {
           leading: const BackButtonWidget(),
           title: AppText(
             text: widget.params.rooms.length > 1
-                ? AppStrings.bookRoomsCount
-                    .tr(args: [widget.params.rooms.length.toString()])
+                ? AppStrings.bookRoomsCount.tr(
+                    args: [widget.params.rooms.length.toString()],
+                  )
                 : "${AppStrings.book.tr()} ${widget.params.room.getDisplayTitle(context.locale.languageCode == 'ar')}",
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,

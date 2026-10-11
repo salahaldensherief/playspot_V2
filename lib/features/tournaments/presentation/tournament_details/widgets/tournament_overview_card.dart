@@ -12,10 +12,7 @@ import 'tournament_info_tile.dart';
 class TournamentOverviewCard extends StatelessWidget {
   final TournamentEntity tournament;
 
-  const TournamentOverviewCard({
-    super.key,
-    required this.tournament,
-  });
+  const TournamentOverviewCard({super.key, required this.tournament});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +40,11 @@ class TournamentOverviewCard extends StatelessWidget {
                 blur: 6,
                 borderColor: AppColors.purple.withValues(alpha: 0.3),
                 color: AppColors.purple.withValues(alpha: 0.15),
-                child: Icon(TablerIcons.info_circle, color: AppColors.neonPurple, size: 20.sp),
+                child: Icon(
+                  TablerIcons.info_circle,
+                  color: AppColors.neonPurple,
+                  size: 20.sp,
+                ),
               ),
               SizedBox(width: 12.w),
               AppText(
@@ -81,7 +82,9 @@ class TournamentOverviewCard extends StatelessWidget {
             TournamentInfoTile(
               icon: TablerIcons.calendar_event,
               label: AppStrings.tournamentDate.tr(),
-              value: DateFormat('yyyy-MM-dd HH:mm').format(tournament.startDate!),
+              value: DateFormat(
+                'yyyy-MM-dd HH:mm',
+              ).format(tournament.startDate!),
             ),
           ],
           SizedBox(height: 10.h),

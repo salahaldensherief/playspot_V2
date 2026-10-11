@@ -17,10 +17,7 @@ import 'booking_timeline_widget.dart';
 class BookingTimelineBottomSheet extends StatelessWidget {
   final String bookingId;
 
-  const BookingTimelineBottomSheet({
-    super.key,
-    required this.bookingId,
-  });
+  const BookingTimelineBottomSheet({super.key, required this.bookingId});
 
   static Future<void> show(BuildContext context, String bookingId) {
     return showModalBottomSheet(
@@ -73,7 +70,10 @@ class BookingTimelineBottomSheet extends StatelessWidget {
                   ),
                   IconButton(
                     tooltip: AppStrings.close.tr(),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white70,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -89,13 +89,8 @@ class BookingTimelineBottomSheet extends StatelessWidget {
                 width: double.infinity,
                 height: 44.h,
                 child: AppButton(
-                  content: ButtonContent(
-                    label: AppStrings.done.tr(),
-                  ),
-                  buttonConfig: ButtonConfig(
-                    height: 44.h,
-                    borderRadius: 12.r,
-                  ),
+                  content: ButtonContent(label: AppStrings.done.tr()),
+                  buttonConfig: ButtonConfig(height: 44.h, borderRadius: 12.r),
                   behavior: ButtonBehavior.tap(
                     onTap: () => Navigator.pop(context),
                   ),

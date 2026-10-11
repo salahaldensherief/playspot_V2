@@ -21,11 +21,11 @@ class RoomSlotPrice extends Equatable {
 
   @override
   List<Object?> get props => [
-        slotStart,
-        slotEnd,
-        isAvailable,
-        hourlyRate,
-        ruleType,
-        isPeak,
-      ];
+    slotStart,
+    slotEnd,
+    isAvailable,
+    hourlyRate,
+    ruleType,
+    isPeak,
+  ];
 }

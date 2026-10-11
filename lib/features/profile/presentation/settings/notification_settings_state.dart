@@ -32,7 +32,8 @@ class NotificationSettingsState extends Equatable {
   }) {
     return NotificationSettingsState(
       status: status ?? this.status,
-      pushNotificationsEnabled: pushNotificationsEnabled ?? this.pushNotificationsEnabled,
+      pushNotificationsEnabled:
+          pushNotificationsEnabled ?? this.pushNotificationsEnabled,
       bookingUpdates: bookingUpdates ?? this.bookingUpdates,
       offersPromotions: offersPromotions ?? this.offersPromotions,
       systemStatus: systemStatus ?? this.systemStatus,
@@ -43,12 +44,12 @@ class NotificationSettingsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        pushNotificationsEnabled,
-        bookingUpdates,
-        offersPromotions,
-        systemStatus,
-        tournamentsAndEvents,
-        errorMessage,
-      ];
+    status,
+    pushNotificationsEnabled,
+    bookingUpdates,
+    offersPromotions,
+    systemStatus,
+    tournamentsAndEvents,
+    errorMessage,
+  ];
 }

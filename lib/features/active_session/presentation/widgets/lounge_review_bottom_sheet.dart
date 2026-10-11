@@ -23,7 +23,8 @@ class LoungeReviewBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<LoungeReviewBottomSheet> createState() => _LoungeReviewBottomSheetState();
+  State<LoungeReviewBottomSheet> createState() =>
+      _LoungeReviewBottomSheetState();
 }
 
 class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
@@ -107,7 +108,10 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
                 ),
                 8.horizontalSpace,
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
                     color: _getRatingColor(_rating).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12.r),
@@ -140,10 +144,7 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
                 onTap: () {
                   if (_rating <= 0) return;
                   final comment = _commentController.text.trim();
-                  widget.onSubmit(
-                    _rating,
-                    comment.isEmpty ? null : comment,
-                  );
+                  widget.onSubmit(_rating, comment.isEmpty ? null : comment);
                   GameHudToast.show(
                     context,
                     AppStrings.reviewSubmittedSuccess.tr(),

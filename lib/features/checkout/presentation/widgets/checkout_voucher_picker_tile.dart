@@ -12,10 +12,7 @@ import '../checkout_cubit.dart';
 class CheckoutVoucherPickerTile extends StatelessWidget {
   final List<Map<String, dynamic>> vouchers;
 
-  const CheckoutVoucherPickerTile({
-    super.key,
-    required this.vouchers,
-  });
+  const CheckoutVoucherPickerTile({super.key, required this.vouchers});
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +40,17 @@ class CheckoutVoucherPickerTile extends StatelessWidget {
     );
   }
 
-  void _showVoucherPickerSheet(BuildContext context, List<Map<String, dynamic>> vouchers) {
+  void _showVoucherPickerSheet(
+    BuildContext context,
+    List<Map<String, dynamic>> vouchers,
+  ) {
     final checkoutCubit = context.read<CheckoutCubit>();
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.scaffoldBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25.r))),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
+      ),
       builder: (sheetContext) => Container(
         padding: EdgeInsets.all(24.w),
         child: Column(
@@ -97,7 +99,11 @@ class CheckoutVoucherPickerTile extends StatelessWidget {
                               ],
                             ),
                             const Spacer(),
-                            Icon(Icons.arrow_forward_ios, size: 14.sp, color: AppColors.textSecondary),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14.sp,
+                              color: AppColors.textSecondary,
+                            ),
                           ],
                         ),
                       ),

@@ -18,7 +18,8 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     Duration staleDuration = const Duration(seconds: 10),
     bool force = false,
   }) async {
-    final isStale = _lastFetchTime == null ||
+    final isStale =
+        _lastFetchTime == null ||
         DateTime.now().difference(_lastFetchTime!) > staleDuration;
 
     if (!force && !isStale && state.status == MyBookingsStatus.success) {
@@ -36,7 +37,8 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     _isFetching = true;
 
     try {
-      final hasExistingData = state.upcomingBookings.isNotEmpty ||
+      final hasExistingData =
+          state.upcomingBookings.isNotEmpty ||
           state.pastBookings.isNotEmpty ||
           state.cancelledBookings.isNotEmpty;
 
@@ -48,35 +50,43 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       final result = await _repository.getMyBookings();
 
       result.fold(
-        (failure) => emit(state.copyWith(
-          status: MyBookingsStatus.failure,
-          errorMessage: failure.message,
-        )),
+        (failure) => emit(
+          state.copyWith(
+            status: MyBookingsStatus.failure,
+            errorMessage: failure.message,
+          ),
+        ),
         (bookings) {
           _lastFetchTime = DateTime.now();
           final upcoming = bookings.where((b) => b.isUpcoming).toList();
           final past = bookings
-              .where((b) =>
-                  b.status == BookingStatus.completed ||
-                  b.status == BookingStatus.inProgress)
+              .where(
+                (b) =>
+                    b.status == BookingStatus.completed ||
+                    b.status == BookingStatus.inProgress,
+              )
               .toList();
           final cancelled = bookings
               .where((b) => b.status == BookingStatus.cancelled)
               .toList();
 
-          emit(state.copyWith(
-            status: MyBookingsStatus.success,
-            upcomingBookings: upcoming,
-            pastBookings: past,
-            cancelledBookings: cancelled,
-          ));
+          emit(
+            state.copyWith(
+              status: MyBookingsStatus.success,
+              upcomingBookings: upcoming,
+              pastBookings: past,
+              cancelledBookings: cancelled,
+            ),
+          );
         },
       );
     } catch (e) {
-      emit(state.copyWith(
-        status: MyBookingsStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: MyBookingsStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     } finally {
       _isFetching = false;
       if (_hasPendingFetch) {
@@ -93,16 +103,20 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     emit(state.copyWith(cancellingBookingId: bookingId));
     final result = await _repository.cancelBooking(bookingId);
     result.fold(
-      (failure) => emit(state.copyWith(
-        clearCancelling: true,
-        status: MyBookingsStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (_) {
-        emit(state.copyWith(
+      (failure) => emit(
+        state.copyWith(
           clearCancelling: true,
-          status: MyBookingsStatus.success,
-        ));
+          status: MyBookingsStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (_) {
+        emit(
+          state.copyWith(
+            clearCancelling: true,
+            status: MyBookingsStatus.success,
+          ),
+        );
         getMyBookings(force: true);
       },
     );

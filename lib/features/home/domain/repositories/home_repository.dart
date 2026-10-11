@@ -6,10 +6,20 @@ import '../../data/models/category_model.dart';
 import '../../data/models/home_params.dart';
 
 abstract class HomeRepository {
-  Future<Either<Failure, List<LoungeModel>>> getLounges(GetLoungesParams params);
+  Future<Either<Failure, List<LoungeModel>>> getLounges(
+    GetLoungesParams params,
+  );
   Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities();
-  Future<Either<Failure, List<PromoModel>>> getPromotions({String? loungeId, bool forceRefresh = false});
-  Future<Either<Failure, List<CategoryModel>>> getCategories({bool forceRefresh = false});
+  Future<Either<Failure, List<PromoModel>>> getPromotions({
+    String? loungeId,
+    bool forceRefresh = false,
+  });
+  Future<Either<Failure, List<CategoryModel>>> getCategories({
+    bool forceRefresh = false,
+  });
   Future<Either<Failure, int>> getUserPoints(String userId);
-  Future<Either<Failure, LoungeModel?>> getLoungeById(String id, {bool forceRefresh = false});
+  Future<Either<Failure, LoungeModel?>> getLoungeById(
+    String id, {
+    bool forceRefresh = false,
+  });
 }

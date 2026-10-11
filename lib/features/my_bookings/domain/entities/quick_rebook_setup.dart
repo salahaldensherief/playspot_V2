@@ -30,14 +30,14 @@ class QuickRebookSetup extends Equatable {
 
   @override
   List<Object?> get props => [
-        pastBooking,
-        lounge,
-        room,
-        availableExtras,
-        selectedAddonQuantities,
-        removedAddonNames,
-        durationMinutes,
-        playMode,
-        extraControllers,
-      ];
+    pastBooking,
+    lounge,
+    room,
+    availableExtras,
+    selectedAddonQuantities,
+    removedAddonNames,
+    durationMinutes,
+    playMode,
+    extraControllers,
+  ];
 }

@@ -61,33 +61,64 @@ class LoyaltyMissionModel extends Equatable {
     return description;
   }
 
-  factory LoyaltyMissionModel.fromJson(Map<String, dynamic> json, {Map<String, dynamic>? progressJson}) {
+  factory LoyaltyMissionModel.fromJson(
+    Map<String, dynamic> json, {
+    Map<String, dynamic>? progressJson,
+  }) {
     final currentProg = progressJson != null
-        ? ((progressJson['current_progress'] ?? progressJson['progress'] ?? progressJson['current_count'] ?? progressJson['current']) as num?)?.toInt() ?? 0
+        ? ((progressJson['current_progress'] ??
+                          progressJson['progress'] ??
+                          progressJson['current_count'] ??
+                          progressJson['current'])
+                      as num?)
+                  ?.toInt() ??
+              0
         : 0;
-    final targetProg = ((json['target_progress'] ?? json['target_count'] ?? json['target'] ?? json['goal']) as num?)?.toInt() ?? 1;
+    final targetProg =
+        ((json['target_progress'] ??
+                    json['target_count'] ??
+                    json['target'] ??
+                    json['goal'])
+                as num?)
+            ?.toInt() ??
+        1;
     final completed = progressJson != null
-        ? (progressJson['is_completed'] as bool? ?? (currentProg >= targetProg && targetProg > 0))
+        ? (progressJson['is_completed'] as bool? ??
+              (currentProg >= targetProg && targetProg > 0))
         : false;
 
-    final rawCode = (json['code'] ?? json['mission_code'] ?? json['type'] ?? json['id'] ?? '')?.toString().toLowerCase() ?? '';
+    final rawCode =
+        (json['code'] ??
+                json['mission_code'] ??
+                json['type'] ??
+                json['id'] ??
+                '')
+            ?.toString()
+            .toLowerCase() ??
+        '';
 
     String fallbackTitleAr = '';
     String fallbackTitleEn = '';
     String fallbackDescAr = '';
     String fallbackDescEn = '';
 
-    if (rawCode.contains('two_completed') || rawCode.contains('regular') || rawCode.contains('9897752f')) {
+    if (rawCode.contains('two_completed') ||
+        rawCode.contains('regular') ||
+        rawCode.contains('9897752f')) {
       fallbackTitleAr = 'زائر منتظم';
       fallbackTitleEn = 'Regular Visitor';
       fallbackDescAr = 'أكمل حجزين في الصالات واحصل على مكافأة إضافية';
       fallbackDescEn = 'Complete 2 bookings to earn bonus points';
-    } else if (rawCode.contains('off_peak') || rawCode.contains('quiet') || rawCode.contains('8de14986')) {
+    } else if (rawCode.contains('off_peak') ||
+        rawCode.contains('quiet') ||
+        rawCode.contains('8de14986')) {
       fallbackTitleAr = 'بطل الأوقات الهادئة';
       fallbackTitleEn = 'Off-Peak Hero';
       fallbackDescAr = 'احجز في الأوقات الهادئة للحصول على نقاط مضاعفة';
       fallbackDescEn = 'Book during off-peak hours for extra points';
-    } else if (rawCode.contains('first') || rawCode.contains('welcome') || rawCode.contains('ad857ac2')) {
+    } else if (rawCode.contains('first') ||
+        rawCode.contains('welcome') ||
+        rawCode.contains('ad857ac2')) {
       fallbackTitleAr = 'بداية المغامرة';
       fallbackTitleEn = 'First Booking';
       fallbackDescAr = 'قم بإنشاء أول حجز لك عبر التطبيق';
@@ -104,21 +135,46 @@ class LoyaltyMissionModel extends Equatable {
       fallbackDescEn = 'Complete this mission to earn bonus points';
     }
 
-    final rawTitleAr = json['title_ar']?.toString() ?? json['name_ar']?.toString() ?? '';
-    final rawTitleEn = json['title_en']?.toString() ?? json['name_en']?.toString() ?? '';
-    final rawTitle = json['title']?.toString() ?? json['name']?.toString() ?? json['mission_name']?.toString() ?? json['label']?.toString() ?? '';
+    final rawTitleAr =
+        json['title_ar']?.toString() ?? json['name_ar']?.toString() ?? '';
+    final rawTitleEn =
+        json['title_en']?.toString() ?? json['name_en']?.toString() ?? '';
+    final rawTitle =
+        json['title']?.toString() ??
+        json['name']?.toString() ??
+        json['mission_name']?.toString() ??
+        json['label']?.toString() ??
+        '';
 
-    final parsedTitleAr = rawTitleAr.ifEmpty(rawTitle.isNotEmpty ? rawTitle : fallbackTitleAr);
-    final parsedTitleEn = rawTitleEn.ifEmpty(rawTitle.isNotEmpty ? rawTitle : fallbackTitleEn);
-    final parsedTitle = rawTitle.ifEmpty(parsedTitleAr.isNotEmpty ? parsedTitleAr : fallbackTitleAr);
+    final parsedTitleAr = rawTitleAr.ifEmpty(
+      rawTitle.isNotEmpty ? rawTitle : fallbackTitleAr,
+    );
+    final parsedTitleEn = rawTitleEn.ifEmpty(
+      rawTitle.isNotEmpty ? rawTitle : fallbackTitleEn,
+    );
+    final parsedTitle = rawTitle.ifEmpty(
+      parsedTitleAr.isNotEmpty ? parsedTitleAr : fallbackTitleAr,
+    );
 
-    final rawDescAr = json['description_ar']?.toString() ?? json['desc_ar']?.toString() ?? '';
-    final rawDescEn = json['description_en']?.toString() ?? json['desc_en']?.toString() ?? '';
-    final rawDesc = json['description']?.toString() ?? json['desc']?.toString() ?? json['details']?.toString() ?? '';
+    final rawDescAr =
+        json['description_ar']?.toString() ?? json['desc_ar']?.toString() ?? '';
+    final rawDescEn =
+        json['description_en']?.toString() ?? json['desc_en']?.toString() ?? '';
+    final rawDesc =
+        json['description']?.toString() ??
+        json['desc']?.toString() ??
+        json['details']?.toString() ??
+        '';
 
-    final parsedDescAr = rawDescAr.ifEmpty(rawDesc.isNotEmpty ? rawDesc : fallbackDescAr);
-    final parsedDescEn = rawDescEn.ifEmpty(rawDesc.isNotEmpty ? rawDesc : fallbackDescEn);
-    final parsedDesc = rawDesc.ifEmpty(parsedDescAr.isNotEmpty ? parsedDescAr : fallbackDescAr);
+    final parsedDescAr = rawDescAr.ifEmpty(
+      rawDesc.isNotEmpty ? rawDesc : fallbackDescAr,
+    );
+    final parsedDescEn = rawDescEn.ifEmpty(
+      rawDesc.isNotEmpty ? rawDesc : fallbackDescEn,
+    );
+    final parsedDesc = rawDesc.ifEmpty(
+      parsedDescAr.isNotEmpty ? parsedDescAr : fallbackDescAr,
+    );
 
     return LoyaltyMissionModel(
       id: json['id']?.toString() ?? '',
@@ -129,7 +185,14 @@ class LoyaltyMissionModel extends Equatable {
       description: parsedDesc,
       descriptionAr: parsedDescAr,
       descriptionEn: parsedDescEn,
-      pointsReward: ((json['points_reward'] ?? json['reward_points'] ?? json['points'] ?? json['reward']) as num?)?.toInt() ?? 0,
+      pointsReward:
+          ((json['points_reward'] ??
+                      json['reward_points'] ??
+                      json['points'] ??
+                      json['reward'])
+                  as num?)
+              ?.toInt() ??
+          0,
       iconUrl: json['icon_url']?.toString(),
       targetProgress: targetProg,
       currentProgress: currentProg,
@@ -138,35 +201,35 @@ class LoyaltyMissionModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'code': code,
-        'title': title,
-        'title_ar': titleAr,
-        'title_en': titleEn,
-        'description': description,
-        'description_ar': descriptionAr,
-        'description_en': descriptionEn,
-        'points_reward': pointsReward,
-        'icon_url': iconUrl,
-        'target_progress': targetProgress,
-        'current_progress': currentProgress,
-        'is_completed': isCompleted,
-      };
+    'id': id,
+    'code': code,
+    'title': title,
+    'title_ar': titleAr,
+    'title_en': titleEn,
+    'description': description,
+    'description_ar': descriptionAr,
+    'description_en': descriptionEn,
+    'points_reward': pointsReward,
+    'icon_url': iconUrl,
+    'target_progress': targetProgress,
+    'current_progress': currentProgress,
+    'is_completed': isCompleted,
+  };
 
   @override
   List<Object?> get props => [
-        id,
-        code,
-        title,
-        titleAr,
-        titleEn,
-        description,
-        descriptionAr,
-        descriptionEn,
-        pointsReward,
-        iconUrl,
-        targetProgress,
-        currentProgress,
-        isCompleted,
-      ];
+    id,
+    code,
+    title,
+    titleAr,
+    titleEn,
+    description,
+    descriptionAr,
+    descriptionEn,
+    pointsReward,
+    iconUrl,
+    targetProgress,
+    currentProgress,
+    isCompleted,
+  ];
 }

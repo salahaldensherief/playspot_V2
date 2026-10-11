@@ -21,21 +21,21 @@ class LogoutButton extends StatelessWidget {
       builder: (context, state) {
         final isLoggingOut = state.status == ProfileStatus.loggingOut;
         return GestureDetector(
-          onTap: isLoggingOut
-              ? null
-              : () => _showLogoutConfirmation(context),
+          onTap: isLoggingOut ? null : () => _showLogoutConfirmation(context),
           child: Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(vertical: 16.h),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.danger.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (isLoggingOut)
-                   SizedBox(
+                  SizedBox(
                     width: 20.w,
                     height: 20.w,
                     child: const AppLoader(
@@ -45,7 +45,7 @@ class LogoutButton extends StatelessWidget {
                     ),
                   )
                 else ...[
-                   Icon(
+                  Icon(
                     TablerIcons.logout,
                     color: AppColors.danger,
                     size: 22.sp,

@@ -13,9 +13,14 @@ class BookingTimelineItemModel extends BookingTimelineItem {
 
   factory BookingTimelineItemModel.fromJson(Map<String, dynamic> json) {
     final rawId = json['id']?.toString() ?? '';
-    final rawCode = json['event_code']?.toString() ?? json['event_type']?.toString() ?? 'unknown_event';
-    final titleAr = json['title_ar']?.toString() ?? json['title']?.toString() ?? '';
-    final titleEn = json['title_en']?.toString() ?? json['title']?.toString() ?? '';
+    final rawCode =
+        json['event_code']?.toString() ??
+        json['event_type']?.toString() ??
+        'unknown_event';
+    final titleAr =
+        json['title_ar']?.toString() ?? json['title']?.toString() ?? '';
+    final titleEn =
+        json['title_en']?.toString() ?? json['title']?.toString() ?? '';
 
     DateTime parsedDate;
     final rawDate = json['occurred_at'] ?? json['created_at'];
@@ -41,7 +46,9 @@ class BookingTimelineItemModel extends BookingTimelineItem {
     }
 
     return BookingTimelineItemModel(
-      id: rawId.isNotEmpty ? rawId : DateTime.now().microsecondsSinceEpoch.toString(),
+      id: rawId.isNotEmpty
+          ? rawId
+          : DateTime.now().microsecondsSinceEpoch.toString(),
       eventCode: rawCode,
       titleAr: titleAr,
       titleEn: titleEn,

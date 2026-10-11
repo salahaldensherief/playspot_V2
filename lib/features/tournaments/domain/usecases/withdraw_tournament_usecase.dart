@@ -8,7 +8,13 @@ class WithdrawTournamentUseCase {
 
   WithdrawTournamentUseCase(this.repository);
 
-  Future<Either<Failure, TournamentParticipantEntity?>> call(String participantId, {String? tournamentId}) {
-    return repository.withdrawFromTournament(participantId, tournamentId: tournamentId);
+  Future<Either<Failure, TournamentParticipantEntity?>> call(
+    String participantId, {
+    String? tournamentId,
+  }) {
+    return repository.withdrawFromTournament(
+      participantId,
+      tournamentId: tournamentId,
+    );
   }
 }

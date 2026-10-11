@@ -93,7 +93,9 @@ class _UpsellSuggestionBannerState extends State<UpsellSuggestionBanner> {
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Icon(
-                    suggestion.isCombo ? Icons.fastfood_rounded : Icons.local_cafe_rounded,
+                    suggestion.isCombo
+                        ? Icons.fastfood_rounded
+                        : Icons.local_cafe_rounded,
                     color: AppColors.neonPurple,
                     size: 22.sp,
                   ),
@@ -108,7 +110,10 @@ class _UpsellSuggestionBannerState extends State<UpsellSuggestionBanner> {
                     Row(
                       children: [
                         Container(
-                          padding: EdgeInsetsDirectional.symmetric(horizontal: 6.w, vertical: 2.h),
+                          padding: EdgeInsetsDirectional.symmetric(
+                            horizontal: 6.w,
+                            vertical: 2.h,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.neonPurple.withValues(alpha: 0.25),
                             borderRadius: BorderRadius.circular(6.r),
@@ -141,7 +146,8 @@ class _UpsellSuggestionBannerState extends State<UpsellSuggestionBanner> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     AppText(
-                      text: "${price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                      text:
+                          "${price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
                       fontSize: 11.5.sp,
                       fontWeight: FontWeight.w600,
                       color: AppColors.neonBlue,
@@ -185,7 +191,11 @@ class _UpsellSuggestionBannerState extends State<UpsellSuggestionBanner> {
               ),
               SizedBox(width: 4.w),
               IconButton(
-                icon: Icon(Icons.close_rounded, size: 18.sp, color: AppColors.textSecondary),
+                icon: Icon(
+                  Icons.close_rounded,
+                  size: 18.sp,
+                  color: AppColors.textSecondary,
+                ),
                 padding: EdgeInsets.zero,
                 constraints: BoxConstraints(minWidth: 28.w, minHeight: 28.w),
                 onPressed: () => cubit.dismissUpsellSuggestion(suggestion),

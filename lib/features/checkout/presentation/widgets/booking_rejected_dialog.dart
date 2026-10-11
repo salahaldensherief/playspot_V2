@@ -81,13 +81,17 @@ class BookingRejectedDialog extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.danger.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.danger.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      text: isArabic ? 'سبب الرفض الصادر من الصالة:' : 'Reason from venue:',
+                      text: isArabic
+                          ? 'سبب الرفض الصادر من الصالة:'
+                          : 'Reason from venue:',
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.danger,
@@ -96,7 +100,9 @@ class BookingRejectedDialog extends StatelessWidget {
                     AppText(
                       text: rejectionReason.isNotEmpty
                           ? rejectionReason
-                          : (isArabic ? 'لم يتم تحديد سبب الرفض' : 'No specific reason provided.'),
+                          : (isArabic
+                                ? 'لم يتم تحديد سبب الرفض'
+                                : 'No specific reason provided.'),
                       fontSize: 13.sp,
                       color: Colors.white,
                       height: 1.4,

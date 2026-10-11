@@ -39,7 +39,10 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<SignupCubit>().initWithUser(widget.initialUser, userId: widget.userId);
+    context.read<SignupCubit>().initWithUser(
+      widget.initialUser,
+      userId: widget.userId,
+    );
   }
 
   @override
@@ -103,7 +106,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         width: double.infinity,
                         height: 50.h,
                       ),
-                      content: ButtonContent(label: AppStrings.continueText.tr()),
+                      content: ButtonContent(
+                        label: AppStrings.continueText.tr(),
+                      ),
                       behavior: TapBehavior(
                         isEnabled: !isLoading,
                         isLoading: isLoading,

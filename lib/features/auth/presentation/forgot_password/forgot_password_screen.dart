@@ -63,7 +63,8 @@ class ForgotPasswordScreen extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: BlocBuilder<ForgotPasswordCubit, ForgotPasswordState>(
-                    buildWhen: (previous, current) => previous.status != current.status,
+                    buildWhen: (previous, current) =>
+                        previous.status != current.status,
                     builder: (context, state) {
                       return AppButton(
                         buttonConfig: ButtonConfig.gradient(
@@ -73,11 +74,14 @@ class ForgotPasswordScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 50.h,
                         ),
-                        content: ButtonContent(label: AppStrings.sendResetLink.tr()),
+                        content: ButtonContent(
+                          label: AppStrings.sendResetLink.tr(),
+                        ),
                         behavior: TapBehavior(
                           isLoading: state.status.isLoading,
                           onTap: () {
-                            if (cubit.forgotFormKey.currentState?.validate() ?? false) {
+                            if (cubit.forgotFormKey.currentState?.validate() ??
+                                false) {
                               cubit.sendResetEmail();
                             }
                           },

@@ -26,7 +26,8 @@ class RoomExpandedDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final features = room.getFeatures(isArabic);
     final configuration =
-        data.isSelected && (room.isOpenArea || room.extraControllerPrice > 0);
+        (isExpanded || data.isSelected) &&
+        (room.supportsPlayModePricing || room.extraControllerPrice > 0);
     final sections = <Widget>[
       if (configuration)
         RoomSelectionConfiguration(room: room, themeColor: themeColor),
@@ -57,7 +58,7 @@ class RoomExpandedDetails extends StatelessWidget {
           ],
         ),
       ),
-      crossFadeState: isExpanded
+      crossFadeState: isExpanded || data.isSelected
           ? CrossFadeState.showSecond
           : CrossFadeState.showFirst,
       duration: RoomConstants.animationDuration,

@@ -26,16 +26,16 @@ class CanteenOrderModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        bookingId,
-        loungeId,
-        userId,
-        items,
-        totalPrice,
-        note,
-        status,
-        createdAt,
-      ];
+    id,
+    bookingId,
+    loungeId,
+    userId,
+    items,
+    totalPrice,
+    note,
+    status,
+    createdAt,
+  ];
 
   factory CanteenOrderModel.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'];
@@ -74,14 +74,14 @@ class CanteenOrderModel extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        if (id != null) 'id': id,
-        'booking_id': bookingId,
-        'lounge_id': loungeId,
-        'user_id': userId,
-        'items': items.map((e) => e.toJson()).toList(),
-        'total_price': totalPrice,
-        if (note != null) 'note': note,
-        if (status != null) 'status': status,
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-      };
+    if (id != null) 'id': id,
+    'booking_id': bookingId,
+    'lounge_id': loungeId,
+    'user_id': userId,
+    'items': items.map((e) => e.toJson()).toList(),
+    'total_price': totalPrice,
+    if (note != null) 'note': note,
+    if (status != null) 'status': status,
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+  };
 }

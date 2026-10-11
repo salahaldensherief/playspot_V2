@@ -53,10 +53,12 @@ class TournamentPaymentBottomSheet extends StatefulWidget {
   }
 
   @override
-  State<TournamentPaymentBottomSheet> createState() => _TournamentPaymentBottomSheetState();
+  State<TournamentPaymentBottomSheet> createState() =>
+      _TournamentPaymentBottomSheetState();
 }
 
-class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSheet> {
+class _TournamentPaymentBottomSheetState
+    extends State<TournamentPaymentBottomSheet> {
   String _selectedMethod = 'Vodafone Cash';
   String _vodafoneCashNumber = '';
   String _instaPayAccount = '';
@@ -83,7 +85,9 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
     }
   }
 
-  String get _activeDestination => _selectedMethod == 'Vodafone Cash' ? _vodafoneCashNumber : _instaPayAccount;
+  String get _activeDestination => _selectedMethod == 'Vodafone Cash'
+      ? _vodafoneCashNumber
+      : _instaPayAccount;
 
   void _copyDestination() {
     Clipboard.setData(ClipboardData(text: _activeDestination));
@@ -154,7 +158,11 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                   color: AppColors.neonBlue.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(TablerIcons.receipt_2, color: AppColors.neonBlue, size: 24.sp),
+                child: Icon(
+                  TablerIcons.receipt_2,
+                  color: AppColors.neonBlue,
+                  size: 24.sp,
+                ),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -194,7 +202,9 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                     children: [
                       Expanded(
                         child: AppText(
-                          text: _activeDestination.isNotEmpty ? _activeDestination : AppStrings.noInternetConnection.tr(),
+                          text: _activeDestination.isNotEmpty
+                              ? _activeDestination
+                              : AppStrings.noInternetConnection.tr(),
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.neonBlue,
@@ -205,16 +215,27 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                         GestureDetector(
                           onTap: _copyDestination,
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 6.h,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.neonBlue.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8.r),
-                              border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                color: AppColors.neonBlue.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(TablerIcons.copy, size: 14.sp, color: AppColors.neonBlue),
+                                Icon(
+                                  TablerIcons.copy,
+                                  size: 14.sp,
+                                  color: AppColors.neonBlue,
+                                ),
                                 SizedBox(width: 4.w),
                                 AppText(
                                   text: AppStrings.copyNumber.tr(),
@@ -240,7 +261,8 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                         color: AppColors.textSecondary,
                       ),
                       AppText(
-                        text: "${widget.entryFee.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                        text:
+                            "${widget.entryFee.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.white,
@@ -270,7 +292,8 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                       title: 'Vodafone Cash',
                       isSelected: _selectedMethod == 'Vodafone Cash',
                       icon: TablerIcons.wallet,
-                      onTap: () => setState(() => _selectedMethod = 'Vodafone Cash'),
+                      onTap: () =>
+                          setState(() => _selectedMethod = 'Vodafone Cash'),
                     ),
                   ),
                 if (_hasVodafoneCash && _hasInstaPay) SizedBox(width: 12.w),
@@ -317,7 +340,11 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                     radius: 16,
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                       onPressed: () => setState(() => _receiptFile = null),
                     ),
                   ),
@@ -340,7 +367,11 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                       ),
                       child: Column(
                         children: [
-                          Icon(TablerIcons.photo, color: AppColors.neonBlue, size: 24.sp),
+                          Icon(
+                            TablerIcons.photo,
+                            color: AppColors.neonBlue,
+                            size: 24.sp,
+                          ),
                           SizedBox(height: 6.h),
                           AppText(
                             text: AppStrings.selectReceiptImage.tr(),
@@ -366,7 +397,11 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
                       ),
                       child: Column(
                         children: [
-                          Icon(TablerIcons.camera, color: AppColors.neonPurple, size: 24.sp),
+                          Icon(
+                            TablerIcons.camera,
+                            color: AppColors.neonPurple,
+                            size: 24.sp,
+                          ),
                           SizedBox(height: 6.h),
                           AppText(
                             text: AppStrings.camera.tr(),
@@ -430,7 +465,9 @@ class _TournamentPaymentBottomSheetState extends State<TournamentPaymentBottomSh
       child: Container(
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.1) : AppColors.cardBackground,
+          color: isSelected
+              ? AppColors.neonBlue.withValues(alpha: 0.1)
+              : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,

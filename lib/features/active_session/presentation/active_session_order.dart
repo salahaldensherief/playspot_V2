@@ -58,9 +58,11 @@ extension _ActiveSessionOrder on ActiveSessionCubit {
           state.copyWith(
             orderStatus: ActionStatus.success,
             upsellSuggestions: state.upsellSuggestions
-                .where((suggestion) => !items.any(
-                      (item) => item.upsellRuleId == suggestion.ruleId,
-                    ))
+                .where(
+                  (suggestion) => !items.any(
+                    (item) => item.upsellRuleId == suggestion.ruleId,
+                  ),
+                )
                 .toList(),
             unavailableItems: [],
           ),

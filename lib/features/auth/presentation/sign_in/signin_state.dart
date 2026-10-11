@@ -1,4 +1,3 @@
-
 import 'package:equatable/equatable.dart';
 import 'package:playspot/features/auth/data/models/user_model.dart';
 
@@ -9,11 +8,11 @@ enum LoginStatus {
   successSocial,
   failure;
 
-  bool get isInitial       => this == LoginStatus.initial;
-  bool get isLoading       => this == LoginStatus.loading;
-  bool get isSuccess       => this == LoginStatus.success;
+  bool get isInitial => this == LoginStatus.initial;
+  bool get isLoading => this == LoginStatus.loading;
+  bool get isSuccess => this == LoginStatus.success;
   bool get isSuccessSocial => this == LoginStatus.successSocial;
-  bool get isFailure       => this == LoginStatus.failure;
+  bool get isFailure => this == LoginStatus.failure;
 }
 
 class LoginState extends Equatable {

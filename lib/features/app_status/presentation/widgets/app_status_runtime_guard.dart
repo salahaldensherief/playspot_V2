@@ -12,10 +12,7 @@ import '../../domain/entities/app_status_type.dart';
 class AppStatusRuntimeGuard extends StatelessWidget {
   final Widget child;
 
-  const AppStatusRuntimeGuard({
-    super.key,
-    required this.child,
-  });
+  const AppStatusRuntimeGuard({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {

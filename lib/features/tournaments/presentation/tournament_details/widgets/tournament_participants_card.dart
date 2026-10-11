@@ -12,16 +12,16 @@ import 'tournament_info_tile.dart';
 class TournamentParticipantsCard extends StatelessWidget {
   final TournamentEntity tournament;
 
-  const TournamentParticipantsCard({
-    super.key,
-    required this.tournament,
-  });
+  const TournamentParticipantsCard({super.key, required this.tournament});
 
   @override
   Widget build(BuildContext context) {
-    final remainingSeats = (tournament.maxParticipants - tournament.registeredParticipantsCount).clamp(0, tournament.maxParticipants);
+    final remainingSeats =
+        (tournament.maxParticipants - tournament.registeredParticipantsCount)
+            .clamp(0, tournament.maxParticipants);
     final double fillPercentage = tournament.bracketSize > 0
-        ? (tournament.registeredParticipantsCount / tournament.bracketSize).clamp(0.0, 1.0)
+        ? (tournament.registeredParticipantsCount / tournament.bracketSize)
+              .clamp(0.0, 1.0)
         : 0.0;
 
     return GlassContainer(
@@ -41,7 +41,11 @@ class TournamentParticipantsCard extends StatelessWidget {
                 blur: 6,
                 borderColor: AppColors.neonBlue.withValues(alpha: 0.3),
                 color: AppColors.neonBlue.withValues(alpha: 0.15),
-                child: Icon(TablerIcons.users, color: AppColors.neonBlue, size: 20.sp),
+                child: Icon(
+                  TablerIcons.users,
+                  color: AppColors.neonBlue,
+                  size: 20.sp,
+                ),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -56,13 +60,17 @@ class TournamentParticipantsCard extends StatelessWidget {
                 borderRadius: 8.r,
                 blur: 6,
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                borderColor: remainingSeats > 0 ? AppColors.successBorder : AppColors.dangerBorder,
+                borderColor: remainingSeats > 0
+                    ? AppColors.successBorder
+                    : AppColors.dangerBorder,
                 color: remainingSeats > 0
                     ? AppColors.success.withValues(alpha: 0.15)
                     : AppColors.danger.withValues(alpha: 0.15),
                 child: AppText(
                   text: '$remainingSeats ${AppStrings.remainingSeats.tr()}',
-                  color: remainingSeats > 0 ? AppColors.success : AppColors.danger,
+                  color: remainingSeats > 0
+                      ? AppColors.success
+                      : AppColors.danger,
                   fontWeight: FontWeight.bold,
                   fontSize: 11.sp,
                 ),
@@ -79,7 +87,8 @@ class TournamentParticipantsCard extends StatelessWidget {
                 fontSize: 12.sp,
               ),
               AppText(
-                text: '${tournament.registeredParticipantsCount} / ${tournament.bracketSize}',
+                text:
+                    '${tournament.registeredParticipantsCount} / ${tournament.bracketSize}',
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 13.sp,
@@ -93,10 +102,13 @@ class TournamentParticipantsCard extends StatelessWidget {
               value: fillPercentage,
               minHeight: 8.h,
               backgroundColor: AppColors.mutedBackground,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.neonBlue),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.neonBlue,
+              ),
             ),
           ),
-          if (tournament.registrationClosesAt != null || tournament.checkInOpensAt != null) ...[
+          if (tournament.registrationClosesAt != null ||
+              tournament.checkInOpensAt != null) ...[
             SizedBox(height: 16.h),
             const Divider(color: AppColors.divider, height: 1),
             SizedBox(height: 12.h),
@@ -105,7 +117,9 @@ class TournamentParticipantsCard extends StatelessWidget {
             TournamentInfoTile(
               icon: TablerIcons.clock,
               label: AppStrings.registrationClosesAt.tr(),
-              value: DateFormat('yyyy-MM-dd HH:mm').format(tournament.registrationClosesAt!),
+              value: DateFormat(
+                'yyyy-MM-dd HH:mm',
+              ).format(tournament.registrationClosesAt!),
             ),
             SizedBox(height: 10.h),
           ],
@@ -113,7 +127,8 @@ class TournamentParticipantsCard extends StatelessWidget {
             TournamentInfoTile(
               icon: TablerIcons.clock_play,
               label: AppStrings.checkInWindow.tr(),
-              value: '${DateFormat('HH:mm').format(tournament.checkInOpensAt!)} - ${tournament.checkInClosesAt != null ? DateFormat('HH:mm').format(tournament.checkInClosesAt!) : ''}',
+              value:
+                  '${DateFormat('HH:mm').format(tournament.checkInOpensAt!)} - ${tournament.checkInClosesAt != null ? DateFormat('HH:mm').format(tournament.checkInClosesAt!) : ''}',
             ),
           ],
         ],

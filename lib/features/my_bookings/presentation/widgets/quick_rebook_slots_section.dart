@@ -16,10 +16,7 @@ import '../quick_rebook_state.dart';
 class QuickRebookSlotsSection extends StatelessWidget {
   final QuickRebookState state;
 
-  const QuickRebookSlotsSection({
-    super.key,
-    required this.state,
-  });
+  const QuickRebookSlotsSection({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +28,9 @@ class QuickRebookSlotsSection extends StatelessWidget {
       children: [
         AppButton(
           content: ButtonContent(
-            label: DateFormat.yMMMEd(context.locale.languageCode)
-                .format(state.selectedDate),
+            label: DateFormat.yMMMEd(
+              context.locale.languageCode,
+            ).format(state.selectedDate),
             icon: Icon(
               Icons.calendar_month_outlined,
               size: 18.sp,
@@ -76,7 +74,8 @@ class QuickRebookSlotsSection extends StatelessWidget {
               separatorBuilder: (_, _) => SizedBox(width: 8.w),
               itemBuilder: (context, index) {
                 final date = state.suggestedDates[index];
-                final isSelected = date.year == state.selectedDate.year &&
+                final isSelected =
+                    date.year == state.selectedDate.year &&
                     date.month == state.selectedDate.month &&
                     date.day == state.selectedDate.day;
                 final dateStr = DateFormat('E, d MMM').format(date);
@@ -189,9 +188,7 @@ class QuickRebookSlotsSection extends StatelessWidget {
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
-                        color: isSelected
-                            ? AppColors.neonBlue
-                            : Colors.white,
+                        color: isSelected ? AppColors.neonBlue : Colors.white,
                       ),
                     ),
                   ),

@@ -49,7 +49,9 @@ class DurationSelector extends StatelessWidget {
                           : AppColors.textSecondary.withValues(alpha: 0.2),
                       size: 28.sp,
                     ),
-                    onPressed: canDecrease ? () => bookingCubit.updateDuration(-30) : null,
+                    onPressed: canDecrease
+                        ? () => bookingCubit.updateDuration(-30)
+                        : null,
                   ),
                   SizedBox(width: 20.w),
                   Column(
@@ -71,7 +73,9 @@ class DurationSelector extends StatelessWidget {
                           : AppColors.textSecondary.withValues(alpha: 0.2),
                       size: 28.sp,
                     ),
-                    onPressed: canIncrease ? () => bookingCubit.updateDuration(30) : null,
+                    onPressed: canIncrease
+                        ? () => bookingCubit.updateDuration(30)
+                        : null,
                   ),
                 ],
               ),
@@ -80,7 +84,11 @@ class DurationSelector extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.info_outline, color: AppColors.warning, size: 12.sp),
+                    Icon(
+                      Icons.info_outline,
+                      color: AppColors.warning,
+                      size: 12.sp,
+                    ),
                     SizedBox(width: 4.w),
                     AppText(
                       text: isArabic

@@ -22,11 +22,15 @@ class TournamentEvidenceUpload {
       'png' => 'image/png',
       'webp' => 'image/webp',
       'pdf' => 'application/pdf',
-      _ => throw const FormatException('Use a JPG, PNG, WebP or PDF evidence file'),
+      _ => throw const FormatException(
+        'Use a JPG, PNG, WebP or PDF evidence file',
+      ),
     };
     final random = Random.secure();
-    final nonce = List.generate(16, (_) => random.nextInt(256)
-        .toRadixString(16).padLeft(2, '0')).join();
+    final nonce = List.generate(
+      16,
+      (_) => random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+    ).join();
     return TournamentEvidenceUpload._(
       '$tournamentId/$scopeId/$nonce.$extension',
       FileOptions(contentType: contentType, upsert: false),

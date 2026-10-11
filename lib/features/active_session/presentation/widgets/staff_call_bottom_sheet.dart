@@ -166,7 +166,9 @@ class _StaffCallBottomSheetState extends State<StaffCallBottomSheet> {
                   : Colors.white.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
-                color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+                color: isSelected
+                    ? AppColors.neonBlue
+                    : AppColors.borderDefault,
                 width: isSelected ? 1.5 : 1.0,
               ),
               boxShadow: isSelected
@@ -191,7 +193,9 @@ class _StaffCallBottomSheetState extends State<StaffCallBottomSheet> {
                   ),
                   child: Icon(
                     type.icon,
-                    color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                    color: isSelected
+                        ? AppColors.neonBlue
+                        : AppColors.textSecondary,
                     size: 20.sp,
                   ),
                 ),
@@ -205,8 +209,12 @@ class _StaffCallBottomSheetState extends State<StaffCallBottomSheet> {
                   ),
                 ),
                 Icon(
-                  isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                  color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                  isSelected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  color: isSelected
+                      ? AppColors.neonBlue
+                      : AppColors.textSecondary,
                   size: 20.sp,
                 ),
               ],

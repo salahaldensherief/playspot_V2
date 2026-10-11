@@ -110,7 +110,10 @@ class HomeHeader extends StatelessWidget {
                   child: GlassContainer(
                     borderRadius: AppSizes.r12,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 10.h,
+                      ),
                       child: Row(
                         children: [
                           Icon(
@@ -200,16 +203,13 @@ class HomeHeader extends StatelessWidget {
           width: 38.w,
           height: 38.h,
           child: BlocBuilder<NotificationsCubit, NotificationsState>(
-            buildWhen: (previous, current) => previous.unreadCount != current.unreadCount,
+            buildWhen: (previous, current) =>
+                previous.unreadCount != current.unreadCount,
             builder: (context, state) {
               return Stack(
                 alignment: Alignment.center,
                 children: [
-                  Icon(
-                    TablerIcons.bell,
-                    color: Colors.white,
-                    size: 19.sp,
-                  ),
+                  Icon(TablerIcons.bell, color: Colors.white, size: 19.sp),
                   if (state.unreadCount > 0)
                     Positioned(
                       right: 8.w,

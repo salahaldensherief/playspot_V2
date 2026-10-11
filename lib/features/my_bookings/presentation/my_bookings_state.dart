@@ -34,18 +34,20 @@ class MyBookingsState extends Equatable {
       upcomingBookings: upcomingBookings ?? this.upcomingBookings,
       pastBookings: pastBookings ?? this.pastBookings,
       cancelledBookings: cancelledBookings ?? this.cancelledBookings,
-      cancellingBookingId: clearCancelling ? null : (cancellingBookingId ?? this.cancellingBookingId),
+      cancellingBookingId: clearCancelling
+          ? null
+          : (cancellingBookingId ?? this.cancellingBookingId),
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
   List<Object?> get props => [
-        status,
-        upcomingBookings,
-        pastBookings,
-        cancelledBookings,
-        cancellingBookingId,
-        errorMessage,
-      ];
+    status,
+    upcomingBookings,
+    pastBookings,
+    cancelledBookings,
+    cancellingBookingId,
+    errorMessage,
+  ];
 }
