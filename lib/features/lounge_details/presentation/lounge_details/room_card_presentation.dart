@@ -21,9 +21,7 @@ class RoomCardPresentation extends Equatable {
     LoungeDetailsState state,
   ) {
     final operatingStatus = state.operatingStatus;
-    final open =
-        operatingStatus?.isOpen == true &&
-        operatingStatus?.canBookOnline == true;
+    final open = operatingStatus?.canBookOnDate(state.selectedDate) == true;
     final busy = state.bookedRoomIds.contains(room.id);
     final unknownAvailability =
         state.availabilityLoadFailed ||
@@ -37,7 +35,7 @@ class RoomCardPresentation extends Equatable {
       availabilityKey:
           operatingStatus == null || operatingStatus.status == 'unavailable'
           ? 'operating_status_unavailable'
-          : operatingStatus.isTechnicalIssue ||
+          : (!open && operatingStatus.isTechnicalIssue) ||
                 (operatingStatus.isOpen && !open)
           ? 'technical_issue'
           : !open

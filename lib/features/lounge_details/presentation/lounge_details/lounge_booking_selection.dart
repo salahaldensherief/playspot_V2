@@ -11,7 +11,7 @@ class LoungeBookingSelection extends Equatable {
   bool get isEnabled {
     final opStatus = state.operatingStatus;
     // A cached lounge flag is not an online-booking authorization.
-    final canBook = opStatus?.canBookOnline == true && opStatus?.isOpen == true;
+    final canBook = opStatus?.canBookOnDate(state.selectedDate) == true;
     return canBook &&
         !state.availabilityLoadFailed &&
         !state.isDateLoading &&

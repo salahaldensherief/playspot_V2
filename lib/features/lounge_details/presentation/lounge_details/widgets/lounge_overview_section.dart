@@ -11,6 +11,7 @@ import 'lounge_closed_banner.dart';
 import 'lounge_discount_banner.dart';
 import 'lounge_info_section.dart';
 import 'lounge_technical_issue_banner.dart';
+import 'lounge_future_booking_banner.dart';
 
 class LoungeOverviewSection extends StatelessWidget {
   final LoungeModel? initialLounge;
@@ -55,6 +56,7 @@ class LoungeOverviewSection extends StatelessWidget {
               !opStatus.canBookOnline &&
               opStatus.status != 'closed';
           final isClosed = opStatus?.status == 'closed';
+          final futureDate = opStatus?.futureBookingDateFrom;
 
           return SliverMainAxisGroup(
             slivers: [
@@ -73,6 +75,10 @@ class LoungeOverviewSection extends StatelessWidget {
                 )
               else if (isClosed)
                 const SliverToBoxAdapter(child: LoungeClosedBanner()),
+              if (futureDate != null && opStatus?.canBookOnline != true)
+                SliverToBoxAdapter(
+                  child: LoungeFutureBookingBanner(availableFrom: futureDate),
+                ),
               if (lounge.isDiscountActive)
                 SliverToBoxAdapter(child: LoungeDiscountBanner(lounge: lounge)),
               LoungeInfoSection(lounge: lounge),
