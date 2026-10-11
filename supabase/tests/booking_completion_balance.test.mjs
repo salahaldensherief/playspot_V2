@@ -1,3 +1,4 @@
+import {installLatestFunctions} from './runtime/latest_contracts.mjs';
 import {createFixtureDatabase} from './runtime/database.mjs';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -45,6 +46,7 @@ try{
       END IF;RETURN NEW;END$$;
     CREATE TRIGGER completion_observation AFTER UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION observe_loyalty();`);
   await db.exec(await readFile(new URL('../migrations/20261011075336_booking_collection_remaining_balance.sql',import.meta.url),'utf8'));
+  await installLatestFunctions(db,["public.complete_booking_session", "public.complete_booking_payment"]);
   await check('prepaid open-time growth leaves a real balance and never inserts phantom cash',async()=>{
     await prepay();const r=await complete();assert.equal(r.final_total,120);assert.equal(r.amount_paid,60);
     assert.equal(r.amount_due,60);assert.equal(r.payment_status,'partial');

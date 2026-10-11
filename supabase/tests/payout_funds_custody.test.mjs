@@ -1,3 +1,4 @@
+import {installLatestFunctions} from './runtime/latest_contracts.mjs';
 import {createFixtureDatabase} from './runtime/database.mjs';
 import {lockedRace} from './runtime/locked_race.mjs';
 import {readFile} from 'node:fs/promises';
@@ -55,6 +56,7 @@ try {
     GRANT USAGE ON SCHEMA public,auth,private TO authenticated;
     GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;`);
   await db.exec(await readFile(new URL('../migrations/20261011065428_payout_cash_commission_settlement.sql',import.meta.url),'utf8'));
+  await installLatestFunctions(db,["public.get_pending_payouts_overview", "public.create_payout"]);
   await db.exec(`CREATE TRIGGER cash_guard BEFORE INSERT OR UPDATE ON payments
     FOR EACH ROW EXECUTE FUNCTION private.guard_partial_cash_payment();`);
   await check('cash alone never creates an 85% payout',async()=>{

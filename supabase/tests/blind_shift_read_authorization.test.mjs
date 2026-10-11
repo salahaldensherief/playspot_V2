@@ -1,3 +1,4 @@
+import {installLatestFunctions} from './runtime/latest_contracts.mjs';
 import {createFixtureDatabase} from './runtime/database.mjs';
 import {readFile,readdir} from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -30,6 +31,10 @@ try {
  await db.exec(await readFile(new URL('fixtures/blind_shift_read_deployed_definitions.sql',import.meta.url),'utf8'));
  const migration=(await readdir(migrations)).find(x=>x.endsWith('_blind_shift_read_boundary.sql'));
  if (!process.env.PLAYSPOT_BLIND_BASELINE) await db.exec(await readFile(new URL(migration,migrations),'utf8'));
+ await db.exec(`CREATE TABLE private.cashier_writer_authorities(lounge_id uuid PRIMARY KEY,actor_id uuid,released_at timestamptz);
+ CREATE FUNCTION private.lock_cashier_lounge(l uuid) RETURNS void LANGUAGE sql AS $$SELECT pg_advisory_xact_lock(hashtextextended(l::text,0))$$;
+ INSERT INTO private.cashier_writer_authorities VALUES('${lounge}','${actor}',NULL);`);
+ await installLatestFunctions(db,['public.blind_close_shift']);
  await db.exec(`SET test.actor='${actor}';SET ROLE authenticated;`);
  await assert.rejects(db.query('SELECT expected_cash FROM public.shifts'),e=>e.code==='42501');passed++;console.log('PASS direct expected-cash projection denied');
  await assert.rejects(db.query('SELECT * FROM public.shifts'),e=>e.code==='42501');passed++;
@@ -47,6 +52,8 @@ try {
  const opened=(await db.query('SELECT (public.open_lounge_shift($1)).expected_cash masked',[lounge])).rows[0];assert.equal(opened.masked,null);passed++;
  const closed=(await db.query('SELECT public.blind_close_shift($1,$2,130,NULL) data',[shift,actor])).rows[0].data;assert.equal(closed.expected_cash,null);assert.equal(closed.difference,null);assert.equal(closed.financials_visible,false);passed++;
  assert.equal((await db.query('SELECT * FROM public.shift_audit_logs')).rows.length,0);passed++;console.log('PASS blind closure persists without audit read leakage');
+ await db.exec('RESET ROLE');assert.equal((await db.query('SELECT released_at FROM private.cashier_writer_authorities')).rows[0].released_at,null);
+ passed++;console.log('PASS blind shift closure cannot silently release queued writer work');
  await db.exec(`RESET ROLE;SET test.actor='${manager}';SET ROLE authenticated;`);
  data=await get();assert.equal(data.expected_cash,140);assert.equal(data.difference,-10);assert.equal(data.financials_visible,true);passed++;
  await assert.rejects(db.query('SELECT * FROM public.get_lounge_comparison()'),e=>e.code==='42501');passed++;
