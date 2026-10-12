@@ -14,7 +14,10 @@ class RemoteNotificationContent {
     required this.data,
   });
 
-  factory RemoteNotificationContent.fromMessage(RemoteMessage message, [String? lang]) {
+  factory RemoteNotificationContent.fromMessage(
+    RemoteMessage message, [
+    String? lang,
+  ]) {
     final data = Map<String, dynamic>.from(message.data);
     final identifier =
         message.messageId ??
@@ -78,7 +81,8 @@ class RemoteNotificationContent {
     }
 
     return RemoteNotificationContent(
-      id: identifier?.hashCode.toUnsigned(31) ??
+      id:
+          identifier?.hashCode.toUnsigned(31) ??
           DateTime.now().millisecondsSinceEpoch.toUnsigned(31),
       title: resolvedTitle,
       body: resolvedBody,

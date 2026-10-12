@@ -27,50 +27,53 @@ void main() {
         data: MediaQueryData(size: screenSize),
         child: ScreenUtilInit(
           designSize: Size(screenSize.width, screenSize.height),
-          builder: (context, _) => Scaffold(
-            body: child,
-          ),
+          builder: (context, _) => Scaffold(body: child),
         ),
       ),
     );
   }
 
   group('PriceChangedBottomSheet Widget Tests', () {
-    testWidgets('renders price updated alert with old & new prices and action buttons without overflow', (tester) async {
-      const sampleQuote = BookingPriceQuote(
-        segments: [
-          PricingSegment(
-            from: '16:00:00',
-            to: '18:00:00',
-            minutes: 120,
-            baseRate: 50.0,
-            ruleType: 'peak',
-            rate: 75.0,
-            amount: 150.0,
+    testWidgets(
+      'renders price updated alert with old & new prices and action buttons without overflow',
+      (tester) async {
+        const sampleQuote = BookingPriceQuote(
+          segments: [
+            PricingSegment(
+              from: '16:00:00',
+              to: '18:00:00',
+              minutes: 120,
+              baseRate: 50.0,
+              ruleType: 'peak',
+              rate: 75.0,
+              amount: 150.0,
+            ),
+          ],
+          roomSubtotal: 150.0,
+          extraControllersAmount: 0.0,
+          discountAmount: 0.0,
+          total: 150.0,
+          hasPeak: true,
+          pricingVersion: 1,
+        );
+
+        await tester.pumpWidget(
+          buildTestableWidget(
+            const PriceChangedBottomSheet(
+              oldPrice: 100.0,
+              newPrice: 150.0,
+              newQuote: sampleQuote,
+            ),
+            const Size(390, 844),
           ),
-        ],
-        roomSubtotal: 150.0,
-        extraControllersAmount: 0.0,
-        discountAmount: 0.0,
-        total: 150.0,
-        hasPeak: true,
-        pricingVersion: 1,
-      );
+        );
+        await tester.pumpAndSettle();
 
-      await tester.pumpWidget(buildTestableWidget(
-        const PriceChangedBottomSheet(
-          oldPrice: 100.0,
-          newPrice: 150.0,
-          newQuote: sampleQuote,
-        ),
-        const Size(390, 844),
-      ));
-      await tester.pumpAndSettle();
-
-      expect(find.text(AppStrings.priceUpdated.tr()), findsOneWidget);
-      expect(find.text(AppStrings.proceedWithNewPrice.tr()), findsOneWidget);
-      expect(find.text(AppStrings.cancel.tr()), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    });
+        expect(find.text(AppStrings.priceUpdated.tr()), findsOneWidget);
+        expect(find.text(AppStrings.proceedWithNewPrice.tr()), findsOneWidget);
+        expect(find.text(AppStrings.cancel.tr()), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
   });
 }

@@ -34,14 +34,15 @@ class LocalNotificationService {
     enableVibration: true,
   );
 
-  static const AndroidNotificationChannel _sessionChannel = AndroidNotificationChannel(
-    sessionChannelId,
-    sessionChannelName,
-    description: sessionChannelDescription,
-    importance: Importance.max,
-    playSound: true,
-    enableVibration: true,
-  );
+  static const AndroidNotificationChannel _sessionChannel =
+      AndroidNotificationChannel(
+        sessionChannelId,
+        sessionChannelName,
+        description: sessionChannelDescription,
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
 
   String? _pendingInitialPayload;
   bool _initialized = false;
@@ -132,7 +133,11 @@ class LocalNotificationService {
 
       NotificationRouter.navigate({});
     } catch (e, st) {
-      AppLogger.error('Error decoding local notification response payload', e, st);
+      AppLogger.error(
+        'Error decoding local notification response payload',
+        e,
+        st,
+      );
       NotificationRouter.navigate({});
     }
   }
@@ -290,7 +295,11 @@ class LocalNotificationService {
         payload: jsonEncode({'type': 'active_session'}),
       );
     } catch (e, st) {
-      AppLogger.error('Error showing active session ongoing notification', e, st);
+      AppLogger.error(
+        'Error showing active session ongoing notification',
+        e,
+        st,
+      );
     }
   }
 

@@ -14,8 +14,12 @@ import '../../di.dart';
 void initAuthModule() {
   // Auth Strategies
   sl.registerLazySingleton<EmailAuthStrategy>(() => EmailAuthStrategy(sl()));
-  sl.registerLazySingleton<GoogleAuthStrategy>(() => GoogleAuthStrategy(sl(), sl()));
-  sl.registerLazySingleton<FacebookAuthStrategy>(() => FacebookAuthStrategy(sl()));
+  sl.registerLazySingleton<GoogleAuthStrategy>(
+    () => GoogleAuthStrategy(sl(), sl()),
+  );
+  sl.registerLazySingleton<FacebookAuthStrategy>(
+    () => FacebookAuthStrategy(sl()),
+  );
 
   sl.registerLazySingleton<AuthContext>(
     () => AuthContext([

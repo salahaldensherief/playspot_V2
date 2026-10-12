@@ -130,15 +130,15 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
   }
 
   bool _hasBeenReviewedOrPrompted(String bookingId) {
-    final rawList = GetStorage().read<List>(CachingKey.REVIEWED_BOOKINGS) ?? [];
+    final rawList = GetStorage().read<List>(CachingKey.reviewedBookings) ?? [];
     return rawList.contains(bookingId);
   }
 
   void _markAsReviewedOrPrompted(String bookingId) {
-    final rawList = GetStorage().read<List>(CachingKey.REVIEWED_BOOKINGS) ?? [];
+    final rawList = GetStorage().read<List>(CachingKey.reviewedBookings) ?? [];
     if (!rawList.contains(bookingId)) {
       rawList.add(bookingId);
-      GetStorage().write(CachingKey.REVIEWED_BOOKINGS, rawList);
+      GetStorage().write(CachingKey.reviewedBookings, rawList);
     }
   }
 

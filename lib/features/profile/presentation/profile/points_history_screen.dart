@@ -28,8 +28,9 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted)
+      if (mounted) {
         context.read<ProfileCubit>().loadPointsHistory(refresh: true);
+      }
     });
   }
 

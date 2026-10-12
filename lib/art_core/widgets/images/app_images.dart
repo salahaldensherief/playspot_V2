@@ -306,7 +306,9 @@ class AppImage extends StatelessWidget {
       width: width,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: borderColor?.withAlpha(64) ?? Colors.grey.withOpacity(0.25),
+        color:
+            borderColor?.withAlpha(64) ??
+            Colors.grey.withAlpha((255 * 0.25).round()),
         borderRadius: boxShape == BoxShape.circle
             ? null
             : BorderRadius.circular(borderRadius),
@@ -329,7 +331,9 @@ class AppImage extends StatelessWidget {
       width: width,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: borderColor?.withAlpha(64) ?? Colors.grey.withOpacity(0.25),
+        color:
+            borderColor?.withAlpha(64) ??
+            Colors.grey.withAlpha((255 * 0.25).round()),
         borderRadius: isCircle ? null : BorderRadius.circular(borderRadius),
         shape: boxShape ?? BoxShape.rectangle,
       ),

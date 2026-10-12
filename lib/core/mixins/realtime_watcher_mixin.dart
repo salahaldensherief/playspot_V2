@@ -43,6 +43,7 @@ mixin RealtimeWatcherMixin {
         if (!cancelled && !(isClosedCheck?.call() ?? false)) startListening();
       });
     }
+
     startListening = () {
       if (cancelled || (isClosedCheck?.call() ?? false)) return;
       try {

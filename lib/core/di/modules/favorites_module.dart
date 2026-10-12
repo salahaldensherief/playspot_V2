@@ -15,7 +15,5 @@ void initFavoritesModule() {
     () => FavoritesRepositoryImpl(sl()),
   );
 
-  sl.registerFactory<FavoritesCubit>(
-    () => FavoritesCubit(sl()),
-  );
+  sl.registerFactory<FavoritesCubit>(() => FavoritesCubit(sl()));
 }

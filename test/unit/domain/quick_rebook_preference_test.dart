@@ -3,22 +3,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:playspot/features/my_bookings/domain/quick_rebook_preference.dart';
 
 void main() {
-  test('suggests the next matching weekday, including seven days from today', () {
-    expect(
-      QuickRebookPreference.nextVisitDate(
-        DateTime(2026, 9, 18),
-        DateTime(2026, 9, 28, 20),
-      ),
-      DateTime(2026, 10, 2),
-    );
-    expect(
-      QuickRebookPreference.nextVisitDate(
-        DateTime(2026, 9, 21),
-        DateTime(2026, 9, 28),
-      ),
-      DateTime(2026, 10, 5),
-    );
-  });
+  test(
+    'suggests the next matching weekday, including seven days from today',
+    () {
+      expect(
+        QuickRebookPreference.nextVisitDate(
+          DateTime(2026, 9, 18),
+          DateTime(2026, 9, 28, 20),
+        ),
+        DateTime(2026, 10, 2),
+      );
+      expect(
+        QuickRebookPreference.nextVisitDate(
+          DateTime(2026, 9, 21),
+          DateTime(2026, 9, 28),
+        ),
+        DateTime(2026, 10, 5),
+      );
+    },
+  );
 
   test('prefers the previous time and falls back for invalid time', () {
     final slots = [

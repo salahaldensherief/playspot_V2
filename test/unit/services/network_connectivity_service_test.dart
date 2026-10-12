@@ -14,10 +14,12 @@ void main() {
       final connectivity = _Connectivity();
       final initial = Completer<List<ConnectivityResult>>();
       final events = StreamController<List<ConnectivityResult>>(sync: true);
-      when(() => connectivity.checkConnectivity())
-          .thenAnswer((_) => initial.future);
-      when(() => connectivity.onConnectivityChanged)
-          .thenAnswer((_) => events.stream);
+      when(
+        () => connectivity.checkConnectivity(),
+      ).thenAnswer((_) => initial.future);
+      when(
+        () => connectivity.onConnectivityChanged,
+      ).thenAnswer((_) => events.stream);
       final service = NetworkConnectivityService.withConnectivity(connectivity);
       service.initialize();
       service.initialize();
@@ -37,10 +39,12 @@ void main() {
     final connectivity = _Connectivity();
     final initial = Completer<List<ConnectivityResult>>();
     final events = StreamController<List<ConnectivityResult>>();
-    when(() => connectivity.checkConnectivity())
-        .thenAnswer((_) => initial.future);
-    when(() => connectivity.onConnectivityChanged)
-        .thenAnswer((_) => events.stream);
+    when(
+      () => connectivity.checkConnectivity(),
+    ).thenAnswer((_) => initial.future);
+    when(
+      () => connectivity.onConnectivityChanged,
+    ).thenAnswer((_) => events.stream);
     final service = NetworkConnectivityService.withConnectivity(connectivity);
     service.initialize();
     service.dispose();

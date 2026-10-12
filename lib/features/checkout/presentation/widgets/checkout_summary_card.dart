@@ -49,7 +49,7 @@ class CheckoutSummaryCard extends StatelessWidget {
           {
             'label': AppStrings.duration.tr(),
             'value': params.duration >= 60
-                ? "${params.duration / 60.0} ${AppStrings.hour_plural.tr(args: [''])}"
+                ? "${params.duration / 60.0} ${AppStrings.hourPlural.tr(args: [''])}"
                 : "${params.duration} ${AppStrings.min30.tr()}",
           },
         ];

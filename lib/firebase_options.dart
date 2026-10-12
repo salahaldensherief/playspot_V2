@@ -64,7 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1070210806389',
     projectId: 'playspot-83bcb',
     storageBucket: 'playspot-83bcb.firebasestorage.app',
-    iosClientId: '1070210806389-juipdsj2bbvqotrue4fc9nnqf36plhrt.apps.googleusercontent.com',
+    iosClientId:
+        '1070210806389-juipdsj2bbvqotrue4fc9nnqf36plhrt.apps.googleusercontent.com',
     iosBundleId: 'com.example.playspot',
   );
 
@@ -74,7 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1070210806389',
     projectId: 'playspot-83bcb',
     storageBucket: 'playspot-83bcb.firebasestorage.app',
-    iosClientId: '1070210806389-juipdsj2bbvqotrue4fc9nnqf36plhrt.apps.googleusercontent.com',
+    iosClientId:
+        '1070210806389-juipdsj2bbvqotrue4fc9nnqf36plhrt.apps.googleusercontent.com',
     iosBundleId: 'com.example.playspot',
   );
 

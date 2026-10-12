@@ -52,7 +52,9 @@ class _InteractiveRatingInputState extends State<InteractiveRatingInput> {
   }
 
   double _snapRating(double rawRating) {
-    if (widget.step <= 0) return rawRating.clamp(widget.minRating, widget.maxRating.toDouble());
+    if (widget.step <= 0) {
+      return rawRating.clamp(widget.minRating, widget.maxRating.toDouble());
+    }
     final snapped = (rawRating / widget.step).round() * widget.step;
     return snapped.clamp(widget.minRating, widget.maxRating.toDouble());
   }
@@ -83,13 +85,21 @@ class _InteractiveRatingInputState extends State<InteractiveRatingInput> {
           onTapDown: (details) {
             final renderBox = context.findRenderObject() as RenderBox?;
             if (renderBox != null) {
-              _updateRatingFromOffset(details.localPosition, renderBox.size, isRtl);
+              _updateRatingFromOffset(
+                details.localPosition,
+                renderBox.size,
+                isRtl,
+              );
             }
           },
           onPanUpdate: (details) {
             final renderBox = context.findRenderObject() as RenderBox?;
             if (renderBox != null) {
-              _updateRatingFromOffset(details.localPosition, renderBox.size, isRtl);
+              _updateRatingFromOffset(
+                details.localPosition,
+                renderBox.size,
+                isRtl,
+              );
             }
           },
           child: RatingDisplayWidget(

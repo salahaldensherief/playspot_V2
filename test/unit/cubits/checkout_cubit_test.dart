@@ -418,4 +418,43 @@ void main() {
       expect(cubit.state.serverFinalTotal, 200);
     },
   );
+  test('expired hold release cannot clear a newer checkout hold', () async {
+    final first = validParams(), second = validParams();
+    final lounge = MockLoungeModel();
+    when(() => lounge.allowCashPayment).thenReturn(true);
+    when(() => lounge.requirePrepaidFirstTime).thenReturn(false);
+    for (final params in [first, second]) {
+      when(() => params.lounge).thenReturn(lounge);
+    }
+    when(
+      () => first.holdExpiresAt,
+    ).thenReturn(DateTime.now().add(const Duration(milliseconds: 1500)));
+    when(
+      () => second.holdExpiresAt,
+    ).thenReturn(DateTime.now().add(const Duration(minutes: 10)));
+    when(() => second.holdToken).thenReturn('replacement-hold');
+    final release = Completer<Either<Failure, void>>();
+    when(
+      () => bookingRepository.releaseBookingHold('hold-token'),
+    ).thenAnswer((_) => release.future);
+    when(
+      () => bookingRepository.releaseBookingHold('replacement-hold'),
+    ).thenAnswer((_) async => const Right(null));
+    when(
+      () => bookingRepository.quoteBookingCheckout(
+        holdToken: any(named: 'holdToken'),
+        roomRequests: any(named: 'roomRequests'),
+        extraItems: any(named: 'extraItems'),
+        voucherCode: any(named: 'voucherCode'),
+      ),
+    ).thenAnswer((_) async => const Right({'final_total': 100}));
+    await cubit.initCheckout(first, completedBookingsCount: 1);
+    await Future<void>.delayed(const Duration(milliseconds: 1100));
+    verify(() => bookingRepository.releaseBookingHold('hold-token')).called(1);
+    await cubit.initCheckout(second, completedBookingsCount: 1);
+    release.complete(const Right(null));
+    await Future<void>.delayed(Duration.zero);
+    expect(cubit.state.holdToken, 'replacement-hold');
+    expect(cubit.state.isHoldExpired, isFalse);
+  });
 }

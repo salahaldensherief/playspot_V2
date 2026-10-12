@@ -24,22 +24,25 @@ void main() {
       expect(model.getTitle('en'), 'Booking Placed');
     });
 
-    test('2. fromJson safely handles missing or null payload without breaking', () {
-      final json = {
-        'id': 'evt_102',
-        'event_code': 'booking_approved',
-        'title_ar': 'تمت الموافقة',
-        'title_en': 'Approved',
-        'occurred_at': '2026-09-29T10:05:00Z',
-        'payload': null,
-      };
+    test(
+      '2. fromJson safely handles missing or null payload without breaking',
+      () {
+        final json = {
+          'id': 'evt_102',
+          'event_code': 'booking_approved',
+          'title_ar': 'تمت الموافقة',
+          'title_en': 'Approved',
+          'occurred_at': '2026-09-29T10:05:00Z',
+          'payload': null,
+        };
 
-      final model = BookingTimelineItemModel.fromJson(json);
+        final model = BookingTimelineItemModel.fromJson(json);
 
-      expect(model.id, 'evt_102');
-      expect(model.payload, null);
-      expect(model.getTitle('ar'), 'تمت الموافقة');
-    });
+        expect(model.id, 'evt_102');
+        expect(model.payload, null);
+        expect(model.getTitle('ar'), 'تمت الموافقة');
+      },
+    );
 
     test('3. unknown event_code renders localized fallback title cleanly', () {
       final json = {
@@ -57,19 +60,22 @@ void main() {
       expect(model.getTitle('en'), 'Booking Activity');
     });
 
-    test('4. fromJson handles raw payload string or invalid JSON string defensively', () {
-      final json = {
-        'id': 'evt_103',
-        'event_code': 'check_in',
-        'occurred_at': null,
-        'payload': 'invalid_json_string',
-      };
+    test(
+      '4. fromJson handles raw payload string or invalid JSON string defensively',
+      () {
+        final json = {
+          'id': 'evt_103',
+          'event_code': 'check_in',
+          'occurred_at': null,
+          'payload': 'invalid_json_string',
+        };
 
-      final model = BookingTimelineItemModel.fromJson(json);
+        final model = BookingTimelineItemModel.fromJson(json);
 
-      expect(model.id, 'evt_103');
-      expect(model.payload, null);
-      expect(model.occurredAt, isA<DateTime>());
-    });
+        expect(model.id, 'evt_103');
+        expect(model.payload, null);
+        expect(model.occurredAt, isA<DateTime>());
+      },
+    );
   });
 }

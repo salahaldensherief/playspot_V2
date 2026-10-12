@@ -24,8 +24,9 @@ extension _ActiveSessionMenu on ActiveSessionCubit {
     final result = await _getCanteenMenuUseCase(loungeId: loungeId);
     if (isClosed ||
         menuVersion != _menuLoadVersion ||
-        (state.session != null && state.session?.loungeId != loungeId))
+        (state.session != null && state.session?.loungeId != loungeId)) {
       return;
+    }
     result.fold(
       (f) {
         dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU FAILURE: ${f.message}");
@@ -55,8 +56,9 @@ extension _ActiveSessionMenu on ActiveSessionCubit {
     final result = await _getUpsellSuggestionsUseCase(bookingId: bookingId);
     if (isClosed ||
         upsellVersion != _upsellLoadVersion ||
-        state.session?.bookingId != bookingId)
+        state.session?.bookingId != bookingId) {
       return;
+    }
 
     result.fold(
       (f) => dev.log("[LIVESESSION_CUBIT] LOAD_UPSELL FAILURE: ${f.message}"),

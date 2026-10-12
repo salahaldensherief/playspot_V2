@@ -70,10 +70,11 @@ class _AppButtonState extends State<AppButton>
                     borderRadius: BorderRadius.circular(
                       widget.buttonConfig.borderRadius,
                     ),
-                    splashColor: widget.buttonConfig.backgroundColor
-                        .withOpacity(0.3),
+                    splashColor: widget.buttonConfig.backgroundColor.withAlpha(
+                      (255 * 0.3).round(),
+                    ),
                     highlightColor: widget.buttonConfig.backgroundColor
-                        .withOpacity(0.1),
+                        .withAlpha((255 * 0.1).round()),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Center(heightFactor: 1, child: _buildChild()),
@@ -114,7 +115,10 @@ class _AppButtonState extends State<AppButton>
             ? widget.buttonConfig.backgroundColor
             : widget.buttonConfig.disabledColor,
         border: !widget.behavior.isEnabled
-            ? Border.all(color: Colors.white.withOpacity(0.1), width: 1)
+            ? Border.all(
+                color: Colors.white.withAlpha((255 * 0.1).round()),
+                width: 1,
+              )
             : widget.buttonConfig.borderColor != null
             ? Border.all(color: widget.buttonConfig.borderColor!, width: 1)
             : null,
@@ -123,14 +127,16 @@ class _AppButtonState extends State<AppButton>
             ? [
                 if (widget.buttonConfig.glowColor != null)
                   BoxShadow(
-                    color: widget.buttonConfig.glowColor!.withOpacity(0.5),
+                    color: widget.buttonConfig.glowColor!.withAlpha(
+                      (255 * 0.5).round(),
+                    ),
                     blurRadius: 20,
                     spreadRadius: 1,
                     offset: const Offset(0, 0),
                   )
                 else
                   BoxShadow(
-                    color: AppColors.black.withOpacity(0.04),
+                    color: AppColors.black.withAlpha((255 * 0.04).round()),
                     blurRadius: 3.0,
                     offset: const Offset(0, 2),
                   ),
@@ -161,7 +167,7 @@ class _AppButtonState extends State<AppButton>
               ),
               textStyle: widget.buttonConfig.textStyle.copyWith(
                 color: !widget.behavior.isEnabled
-                    ? Colors.white.withOpacity(0.2)
+                    ? Colors.white.withAlpha((255 * 0.2).round())
                     : widget.buttonConfig.gradient != null
                     ? Colors.black
                     : null,

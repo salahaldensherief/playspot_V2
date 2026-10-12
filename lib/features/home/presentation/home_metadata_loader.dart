@@ -41,7 +41,7 @@ class HomeMetadataLoader {
   }
 
   List<CategoryModel> _getCachedCategories() {
-    final raw = pref.getValue(CachingKey.CATEGORIES_CACHE);
+    final raw = pref.getValue(CachingKey.categoriesCache);
     if (raw.isEmpty) return [];
     try {
       final list = jsonDecode(raw) as List;
@@ -93,7 +93,7 @@ class HomeMetadataLoader {
       }
       update(state.copyWith(categories: cats, isCategoriesLoading: false));
       pref.saveValue(
-        CachingKey.CATEGORIES_CACHE,
+        CachingKey.categoriesCache,
         jsonEncode(cats.map((e) => e.toJson()).toList()),
       );
       pref.saveValue(
@@ -109,7 +109,7 @@ class HomeMetadataLoader {
       update(state.copyWith(promotions: promos, isPromosLoading: false));
       if (promos.isNotEmpty) {
         pref.saveValue(
-          CachingKey.PROMOTIONS_CACHE,
+          CachingKey.promotionsCache,
           jsonEncode(promos.map((e) => e.toJson()).toList()),
         );
       }
@@ -123,9 +123,9 @@ class HomeMetadataLoader {
   }
 
   void loadCached() {
-    final cachedPromos = pref.getValue(CachingKey.PROMOTIONS_CACHE);
-    final cachedCats = pref.getValue(CachingKey.CATEGORIES_CACHE);
-    final cachedLounges = pref.getValue(CachingKey.CACHED_LOUNGES);
+    final cachedPromos = pref.getValue(CachingKey.promotionsCache);
+    final cachedCats = pref.getValue(CachingKey.categoriesCache);
+    final cachedLounges = pref.getValue(CachingKey.cachedLounges);
 
     if (cachedPromos.isNotEmpty ||
         cachedCats.isNotEmpty ||

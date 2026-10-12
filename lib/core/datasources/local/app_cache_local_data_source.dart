@@ -41,9 +41,9 @@ class AppCacheLocalDataSourceImpl implements AppCacheLocalDataSource {
 
   AppCacheLocalDataSourceImpl([GetStorage? box]) : _box = box ?? GetStorage();
 
-  String _loungeKey(String id) => '${CachingKey.LOUNGE_PROFILES_PREFIX}$id';
-  String _roomsKey(String id) => '${CachingKey.LOUNGE_ROOMS_PREFIX}$id';
-  String _extrasKey(String id) => '${CachingKey.LOUNGE_EXTRAS_PREFIX}$id';
+  String _loungeKey(String id) => '${CachingKey.loungeProfilesPrefix}$id';
+  String _roomsKey(String id) => '${CachingKey.loungeRoomsPrefix}$id';
+  String _extrasKey(String id) => '${CachingKey.loungeExtrasPrefix}$id';
 
   @override
   Future<void> cacheLoungeProfile(String loungeId, LoungeModel lounge) async {
@@ -117,12 +117,12 @@ class AppCacheLocalDataSourceImpl implements AppCacheLocalDataSource {
   @override
   Future<void> cacheCategories(List<CategoryModel> categories) async {
     final jsonList = categories.map((c) => c.toJson()).toList();
-    await _box.write(CachingKey.CATEGORIES_CACHE, jsonList);
+    await _box.write(CachingKey.categoriesCache, jsonList);
   }
 
   @override
   List<CategoryModel>? getCachedCategories() {
-    final rawList = _box.read(CachingKey.CATEGORIES_CACHE);
+    final rawList = _box.read(CachingKey.categoriesCache);
     if (rawList == null || rawList is! List) return null;
     try {
       return rawList
@@ -135,18 +135,18 @@ class AppCacheLocalDataSourceImpl implements AppCacheLocalDataSource {
 
   @override
   Future<void> invalidateCategories() async {
-    await _box.remove(CachingKey.CATEGORIES_CACHE);
+    await _box.remove(CachingKey.categoriesCache);
   }
 
   @override
   Future<void> cachePromotions(List<PromoModel> promotions) async {
     final jsonList = promotions.map((p) => p.toJson()).toList();
-    await _box.write(CachingKey.PROMOTIONS_CACHE, jsonList);
+    await _box.write(CachingKey.promotionsCache, jsonList);
   }
 
   @override
   List<PromoModel>? getCachedPromotions() {
-    final rawList = _box.read(CachingKey.PROMOTIONS_CACHE);
+    final rawList = _box.read(CachingKey.promotionsCache);
     if (rawList == null || rawList is! List) return null;
     try {
       return rawList
@@ -159,18 +159,22 @@ class AppCacheLocalDataSourceImpl implements AppCacheLocalDataSource {
 
   @override
   Future<void> invalidatePromotions() async {
-    await _box.remove(CachingKey.PROMOTIONS_CACHE);
+    await _box.remove(CachingKey.promotionsCache);
   }
 
   @override
   Future<void> clearAllCache() async {
     final keys = _box.getKeys<Iterable<String>>();
-    final keysToRemove = keys.where((k) =>
-        k.startsWith(CachingKey.LOUNGE_PROFILES_PREFIX) ||
-        k.startsWith(CachingKey.LOUNGE_ROOMS_PREFIX) ||
-        k.startsWith(CachingKey.LOUNGE_EXTRAS_PREFIX) ||
-        k == CachingKey.CATEGORIES_CACHE ||
-        k == CachingKey.PROMOTIONS_CACHE).toList();
+    final keysToRemove = keys
+        .where(
+          (k) =>
+              k.startsWith(CachingKey.loungeProfilesPrefix) ||
+              k.startsWith(CachingKey.loungeRoomsPrefix) ||
+              k.startsWith(CachingKey.loungeExtrasPrefix) ||
+              k == CachingKey.categoriesCache ||
+              k == CachingKey.promotionsCache,
+        )
+        .toList();
 
     for (final key in keysToRemove) {
       await _box.remove(key);

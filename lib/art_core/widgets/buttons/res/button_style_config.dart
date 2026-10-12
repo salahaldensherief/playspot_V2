@@ -54,7 +54,9 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
 
   ButtonConfig({
     this.backgroundColor = Colors.transparent,
-    this.disabledColor = const Color(0x0DFFFFFF), // white.withOpacity(0.05)
+    this.disabledColor = const Color(
+      0x0DFFFFFF,
+    ), // white.withAlpha((255 * 0.05).round())
     this.gradient,
     this.glowColor,
     this.borderColor,
@@ -123,8 +125,8 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
            );
 
   ButtonConfig.gradient({
-    required Gradient gradient,
-    Color? glowColor,
+    required Gradient this.gradient,
+    this.glowColor,
     this.disabledColor = AppColors.disableButton,
     TextStyle? textStyle,
     this.borderRadius = 12.0,
@@ -138,8 +140,6 @@ class ButtonConfig implements ButtonStyleConfig, ButtonAnimationConfig {
     this.animationDuration = const Duration(milliseconds: 200),
   }) : backgroundColor = Colors.transparent,
        isOutlined = false,
-       gradient = gradient,
-       glowColor = glowColor,
 
        textStyle =
            textStyle ??

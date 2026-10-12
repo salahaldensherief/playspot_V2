@@ -16,11 +16,7 @@ class PromoShimmer extends StatelessWidget {
         itemCount: 2,
         separatorBuilder: (context, index) => SizedBox(width: 16.w),
         itemBuilder: (context, index) {
-          return BaseShimmer(
-            width: 320.w,
-            height: 160.h,
-            borderRadius: 24.r,
-          );
+          return BaseShimmer(width: 320.w, height: 160.h, borderRadius: 24.r);
         },
       ),
     );

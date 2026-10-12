@@ -136,7 +136,7 @@ void main() {
             );
           }
           final directory = Platform.environment['PLAYSPOT_SCREENSHOT_DIR'];
-          if (directory != null)
+          if (directory != null) {
             await tester.runAsync(() async {
               final image =
                   await (capture.currentContext!.findRenderObject()
@@ -151,6 +151,7 @@ void main() {
               ).writeAsBytes(bytes!.buffer.asUint8List());
               image.dispose();
             });
+          }
           await tester.pumpWidget(const SizedBox.shrink());
         });
       }

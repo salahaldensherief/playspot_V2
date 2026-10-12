@@ -139,17 +139,22 @@ class UserModel extends UserEntity {
     if (phone != null && phone!.trim().isNotEmpty) map['phone'] = phone;
     if (avatarUrl != null &&
         avatarUrl!.trim().isNotEmpty &&
-        avatarUrl != 'undefined')
+        avatarUrl != 'undefined') {
       map['avatar_url'] = avatarUrl;
-    if (referralCode != null && referralCode!.trim().isNotEmpty)
+    }
+    if (referralCode != null && referralCode!.trim().isNotEmpty) {
       map['referral_code'] = referralCode;
+    }
     if (validCityId != null) map['city_id'] = validCityId;
-    if (cityNameAr != null && cityNameAr!.trim().isNotEmpty)
+    if (cityNameAr != null && cityNameAr!.trim().isNotEmpty) {
       map['city_name_ar'] = cityNameAr;
-    if (cityNameEn != null && cityNameEn!.trim().isNotEmpty)
+    }
+    if (cityNameEn != null && cityNameEn!.trim().isNotEmpty) {
       map['city_name_en'] = cityNameEn;
-    if (bannedReason != null && bannedReason!.trim().isNotEmpty)
+    }
+    if (bannedReason != null && bannedReason!.trim().isNotEmpty) {
       map['banned_reason'] = bannedReason;
+    }
     if (createdAt != null) map['created_at'] = createdAt?.toIso8601String();
     return map;
   }

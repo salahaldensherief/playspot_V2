@@ -88,11 +88,11 @@ String getBookingErrorMessage(Object error, bool isEnglish) {
         : 'جلسة تسجيل الدخول غير صالحة. يرجى تسجيل الدخول مجددًا.';
   }
   if (message.contains('pgrst302') || message.contains('not authenticated')) {
-    return isEnglish ? 'Please log in to complete this action.'
+    return isEnglish
+        ? 'Please log in to complete this action.'
         : 'يرجى تسجيل الدخول لإتمام العملية.';
   }
-  if (message.contains('jwt expired') ||
-      message.contains('session_expired')) {
+  if (message.contains('jwt expired') || message.contains('session_expired')) {
     return isEnglish
         ? 'Session expired. Please log in again to complete your action.'
         : 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجدداً لإتمام العملية.';

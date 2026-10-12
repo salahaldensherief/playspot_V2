@@ -36,5 +36,3 @@ Future<void> handleFirebaseBackgroundMessage(RemoteMessage message) async {
     dev.log('Error handling background Firebase message: $e', stackTrace: st);
   }
 }
-
-

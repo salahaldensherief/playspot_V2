@@ -4,9 +4,12 @@ import '../../art_core/utils/app_logger.dart';
 
 class NativeNotificationService {
   NativeNotificationService._();
-  static final NativeNotificationService instance = NativeNotificationService._();
+  static final NativeNotificationService instance =
+      NativeNotificationService._();
 
-  static const MethodChannel _channel = MethodChannel('com.playspot.app/native_notification');
+  static const MethodChannel _channel = MethodChannel(
+    'com.playspot.app/native_notification',
+  );
 
   Future<void> showCustomNotification({
     required String loungeName,

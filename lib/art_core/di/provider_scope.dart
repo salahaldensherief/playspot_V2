@@ -14,9 +14,6 @@ class AppProviderScope extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: providers.cast(),
-      child: child,
-    );
+    return MultiBlocProvider(providers: providers.cast(), child: child);
   }
 }

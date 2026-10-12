@@ -31,19 +31,23 @@ class NotificationStrategyHelper {
   static bool isAuthenticated() {
     if (!sl.isRegistered<PreferenceManager>()) return false;
     final pref = sl<PreferenceManager>();
-    final supabase = sl.isRegistered<SupabaseClient>() ? sl<SupabaseClient>() : null;
+    final supabase = sl.isRegistered<SupabaseClient>()
+        ? sl<SupabaseClient>()
+        : null;
     final hasSession = supabase?.auth.currentSession != null;
     return pref.isLoggedIn && hasSession;
   }
 
   /// Safely extracts booking ID without confusing it with notification row ID.
   static String? getBookingId(Map<String, dynamic> data) {
-    final directBookingId = cleanString(data['booking_id']) ?? cleanString(data['bookingId']);
+    final directBookingId =
+        cleanString(data['booking_id']) ?? cleanString(data['bookingId']);
     if (directBookingId != null) return directBookingId;
 
     if (data['data'] is Map) {
       final nested = Map<String, dynamic>.from(data['data'] as Map);
-      final nestedBookingId = cleanString(nested['booking_id']) ?? cleanString(nested['bookingId']);
+      final nestedBookingId =
+          cleanString(nested['booking_id']) ?? cleanString(nested['bookingId']);
       if (nestedBookingId != null) return nestedBookingId;
     }
     return null;
@@ -51,18 +55,22 @@ class NotificationStrategyHelper {
 
   /// Safely extracts session ID without confusing it with plain booking notifications.
   static String? getSessionId(Map<String, dynamic> data) {
-    final directSessionId = cleanString(data['session_id']) ?? cleanString(data['sessionId']);
+    final directSessionId =
+        cleanString(data['session_id']) ?? cleanString(data['sessionId']);
     if (directSessionId != null) return directSessionId;
 
     if (data['data'] is Map) {
       final nested = Map<String, dynamic>.from(data['data'] as Map);
-      final nestedSessionId = cleanString(nested['session_id']) ?? cleanString(nested['sessionId']);
+      final nestedSessionId =
+          cleanString(nested['session_id']) ?? cleanString(nested['sessionId']);
       if (nestedSessionId != null) return nestedSessionId;
     }
 
     // Only fallback to booking_id if payload type is explicitly a session notification
     final type = cleanString(data['type'])?.toLowerCase();
-    if (type == 'session' || type == 'active_session' || type == 'active-session') {
+    if (type == 'session' ||
+        type == 'active_session' ||
+        type == 'active-session') {
       return getBookingId(data);
     }
 
@@ -71,12 +79,15 @@ class NotificationStrategyHelper {
 
   /// Safely extracts tournament ID.
   static String? getTournamentId(Map<String, dynamic> data) {
-    final directTournamentId = cleanString(data['tournament_id']) ?? cleanString(data['tournamentId']);
+    final directTournamentId =
+        cleanString(data['tournament_id']) ?? cleanString(data['tournamentId']);
     if (directTournamentId != null) return directTournamentId;
 
     if (data['data'] is Map) {
       final nested = Map<String, dynamic>.from(data['data'] as Map);
-      final nestedTournamentId = cleanString(nested['tournament_id']) ?? cleanString(nested['tournamentId']);
+      final nestedTournamentId =
+          cleanString(nested['tournament_id']) ??
+          cleanString(nested['tournamentId']);
       if (nestedTournamentId != null) return nestedTournamentId;
     }
     return null;
@@ -84,12 +95,14 @@ class NotificationStrategyHelper {
 
   /// Safely extracts match ID.
   static String? getMatchId(Map<String, dynamic> data) {
-    final directMatchId = cleanString(data['match_id']) ?? cleanString(data['matchId']);
+    final directMatchId =
+        cleanString(data['match_id']) ?? cleanString(data['matchId']);
     if (directMatchId != null) return directMatchId;
 
     if (data['data'] is Map) {
       final nested = Map<String, dynamic>.from(data['data'] as Map);
-      final nestedMatchId = cleanString(nested['match_id']) ?? cleanString(nested['matchId']);
+      final nestedMatchId =
+          cleanString(nested['match_id']) ?? cleanString(nested['matchId']);
       if (nestedMatchId != null) return nestedMatchId;
     }
     return null;
@@ -97,14 +110,16 @@ class NotificationStrategyHelper {
 
   /// Safely extracts room ID.
   static String? getRoomId(Map<String, dynamic> data) {
-    final directRoomId = cleanString(data['room_id']) ??
+    final directRoomId =
+        cleanString(data['room_id']) ??
         cleanString(data['roomId']) ??
         cleanString(data['target_room_id']);
     if (directRoomId != null) return directRoomId;
 
     if (data['data'] is Map) {
       final nested = Map<String, dynamic>.from(data['data'] as Map);
-      final nestedRoomId = cleanString(nested['room_id']) ??
+      final nestedRoomId =
+          cleanString(nested['room_id']) ??
           cleanString(nested['roomId']) ??
           cleanString(nested['target_room_id']);
       if (nestedRoomId != null) return nestedRoomId;
@@ -114,14 +129,16 @@ class NotificationStrategyHelper {
 
   /// Safely extracts lounge ID.
   static String? getLoungeId(Map<String, dynamic> data) {
-    final directLoungeId = cleanString(data['lounge_id']) ??
+    final directLoungeId =
+        cleanString(data['lounge_id']) ??
         cleanString(data['loungeId']) ??
         cleanString(data['target_lounge_id']);
     if (directLoungeId != null) return directLoungeId;
 
     if (data['data'] is Map) {
       final nested = Map<String, dynamic>.from(data['data'] as Map);
-      final nestedLoungeId = cleanString(nested['lounge_id']) ??
+      final nestedLoungeId =
+          cleanString(nested['lounge_id']) ??
           cleanString(nested['loungeId']) ??
           cleanString(nested['target_lounge_id']);
       if (nestedLoungeId != null) return nestedLoungeId;
@@ -146,4 +163,3 @@ class NotificationStrategyHelper {
     return null;
   }
 }
-

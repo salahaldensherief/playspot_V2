@@ -244,16 +244,13 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'full_name': fullName,
         'email': user.email,
         'phone': params.phone,
-        if (finalAvatarUrl != null) 'avatar_url': finalAvatarUrl,
+        'avatar_url': ?finalAvatarUrl,
       });
 
       try {
         await _supabase.auth.updateUser(
           UserAttributes(
-            data: {
-              'phone': params.phone,
-              if (finalAvatarUrl != null) 'avatar_url': finalAvatarUrl,
-            },
+            data: {'phone': params.phone, 'avatar_url': ?finalAvatarUrl},
           ),
         );
       } catch (e) {

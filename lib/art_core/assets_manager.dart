@@ -3,7 +3,6 @@ class AssetsManager {
   static const String _imagePath = "assets/images";
   static const String _jsonPath = "assets/json";
 
-
   ///---- Json
   static const String cancelGif = '$_jsonPath/cancel_gif.gif';
   static const String congratsGif = '$_jsonPath/congrats.json';
@@ -77,7 +76,6 @@ class AssetsManager {
   static const String flagEngIcon = '$_iconPath/eng_flag.svg';
   static const String flagArIcon = '$_iconPath/ar_flag.svg';
 
-
   static const String infoIcon = '$_iconPath/info_icon.svg';
 
   static const String termsConditionIcon =
@@ -150,7 +148,7 @@ class AssetsManager {
   static const String clock = '$_iconPath/clock.svg';
   static const String send = '$_iconPath/send.svg';
   static const String sendIcon = '$_iconPath/send_icon.svg';
-   static const String iconSend = '$_iconPath/icon_send.svg';
+  static const String iconSend = '$_iconPath/icon_send.svg';
   static const String star = '$_iconPath/star.svg';
   static const String starRating = '$_iconPath/star_rating.svg';
   static const String starEmpty = '$_iconPath/star_border.svg';
@@ -161,9 +159,9 @@ class AssetsManager {
   static const String directRight = '$_iconPath/direct-right.svg';
   static const String variant = '$_iconPath/variant.svg';
   static const String vendorPostsCount = '$_iconPath/vendor_posts_count.svg';
-  static const String vendorFollowersCount = '$_iconPath/vendors_followers_count.svg';
+  static const String vendorFollowersCount =
+      '$_iconPath/vendors_followers_count.svg';
   static const String qrFrame = '$_iconPath/qr_frame.svg';
-
 
   //animals
   static const String birds = '$_iconPath/birds.svg';
@@ -209,16 +207,16 @@ class AssetsManager {
   static const String categories = '$_iconPath/categories.svg';
   static const String emptyServices = '$_iconPath/empty_services.svg';
 
-
-
   /// notifications
   //
   // static const String clickNotifications = '$_iconPath/arrow_icon.svg';
   // static const String messageNotifications =
   //     '$_iconPath/message_notifications.svg';
-   static const String markReadNotifications = '$_iconPath/mark_read.svg';
-   static const String defaultNotificationUnread = '$_iconPath/default_notification_unread.svg';
-   static const String newNotificationUnread = '$_iconPath/new_notification_unread.svg';
+  static const String markReadNotifications = '$_iconPath/mark_read.svg';
+  static const String defaultNotificationUnread =
+      '$_iconPath/default_notification_unread.svg';
+  static const String newNotificationUnread =
+      '$_iconPath/new_notification_unread.svg';
 
   // Chat
   static const String pin = '$_iconPath/pin.svg';

@@ -5,7 +5,7 @@ import '../../theme/app_sizes.dart';
 
 class LoungeCategoryIcon extends StatelessWidget {
   final IconData icon;
-  
+
   const LoungeCategoryIcon({super.key, required this.icon});
 
   @override

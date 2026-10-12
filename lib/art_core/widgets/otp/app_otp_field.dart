@@ -27,7 +27,10 @@ class _AppOtpFieldState extends State<AppOtpField> {
   void initState() {
     super.initState();
     _focusNodes = List.generate(widget.length, (index) => FocusNode());
-    _controllers = List.generate(widget.length, (index) => TextEditingController());
+    _controllers = List.generate(
+      widget.length,
+      (index) => TextEditingController(),
+    );
   }
 
   @override
@@ -70,7 +73,9 @@ class _AppOtpFieldState extends State<AppOtpField> {
         (index) => Expanded(
           child: Container(
             height: 45.h,
-            margin: EdgeInsets.symmetric(horizontal: 2.w), // تقليل المسافات الجانبية
+            margin: EdgeInsets.symmetric(
+              horizontal: 2.w,
+            ), // تقليل المسافات الجانبية
             child: RawKeyboardListener(
               focusNode: FocusNode(),
               onKey: (event) {

@@ -17,7 +17,9 @@ class FakeActiveSessionRepository implements ActiveSessionRepository {
   Failure? mockFailure;
 
   @override
-  Future<Either<Failure, ActiveSession?>> getActiveSession({String? bookingId}) async {
+  Future<Either<Failure, ActiveSession?>> getActiveSession({
+    String? bookingId,
+  }) async {
     if (mockFailure != null) return Left(mockFailure!);
     return Right(mockSession);
   }
@@ -34,25 +36,38 @@ class FakeActiveSessionRepository implements ActiveSessionRepository {
   }
 
   @override
-  Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost) async {
+  Future<Either<Failure, void>> extendTime(
+    String bookingId,
+    int additionalMinutes,
+    double additionalCost,
+  ) async {
     if (mockFailure != null) return Left(mockFailure!);
     return const Right(null);
   }
 
   @override
-  Future<Either<Failure, void>> requestExtension({required String bookingId, required int requestedMinutes}) async {
+  Future<Either<Failure, void>> requestExtension({
+    required String bookingId,
+    required int requestedMinutes,
+  }) async {
     if (mockFailure != null) return Left(mockFailure!);
     return const Right(null);
   }
 
   @override
-  Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItem> items) async {
+  Future<Either<Failure, void>> placeOrder(
+    String bookingId,
+    List<OrderItem> items,
+  ) async {
     if (mockFailure != null) return Left(mockFailure!);
     return const Right(null);
   }
 
   @override
-  Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(String loungeId, {bool forceRefresh = false}) async {
+  Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(
+    String loungeId, {
+    bool forceRefresh = false,
+  }) async {
     return const Right([]);
   }
 
@@ -76,21 +91,33 @@ class FakeActiveSessionRepository implements ActiveSessionRepository {
   }
 
   @override
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getActiveLoungeRequestsPage({
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getActiveLoungeRequestsPage({
     required String loungeId,
     int page = 1,
     int pageSize = 20,
   }) async {
-    return Right(PaginatedResponse(items: [], totalCount: 0, page: page, pageSize: pageSize));
+    return Right(
+      PaginatedResponse(
+        items: [],
+        totalCount: 0,
+        page: page,
+        pageSize: pageSize,
+      ),
+    );
   }
 
   @override
-  Future<Either<Failure, CanteenMenuData>> getCanteenMenu(String loungeId) async {
+  Future<Either<Failure, CanteenMenuData>> getCanteenMenu(
+    String loungeId,
+  ) async {
     return const Right(CanteenMenuData(extras: [], combos: []));
   }
 
   @override
-  Future<Either<Failure, List<UpsellSuggestion>>> getUpsellSuggestions(String bookingId) async {
+  Future<Either<Failure, List<UpsellSuggestion>>> getUpsellSuggestions(
+    String bookingId,
+  ) async {
     return const Right([]);
   }
 
@@ -126,7 +153,13 @@ void main() {
       extensionsPrice: 25.0,
       orders: const [
         OrderItem(id: '1', name: 'Pepsi', price: 20.0, quantity: 2),
-        OrderItem(id: '2', name: 'Chips', price: 15.0, quantity: 1, totalPriceOverride: 12.0),
+        OrderItem(
+          id: '2',
+          name: 'Chips',
+          price: 15.0,
+          quantity: 1,
+          totalPriceOverride: 12.0,
+        ),
       ],
       status: 'in_progress',
       extensionStatus: 'pending',
@@ -141,7 +174,12 @@ void main() {
     });
 
     test('OrderItem calculations should respect totalPriceOverride', () {
-      final itemNormal = const OrderItem(id: '1', name: 'Water', price: 10.0, quantity: 3);
+      final itemNormal = const OrderItem(
+        id: '1',
+        name: 'Water',
+        price: 10.0,
+        quantity: 3,
+      );
       expect(itemNormal.total, 30.0);
 
       final itemOverride = const OrderItem(
@@ -193,7 +231,9 @@ void main() {
     test('PlaceSessionOrderUseCase should return success', () async {
       final result = await placeSessionOrderUseCase(
         bookingId: 'booking_1',
-        items: [const OrderItem(id: '1', name: 'Cola', price: 15.0, quantity: 1)],
+        items: [
+          const OrderItem(id: '1', name: 'Cola', price: 15.0, quantity: 1),
+        ],
       );
 
       expect(result.isRight(), isTrue);

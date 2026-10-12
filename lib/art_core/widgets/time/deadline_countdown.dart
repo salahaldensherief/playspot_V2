@@ -48,7 +48,7 @@ class _DeadlineViewState extends State<_DeadlineView> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _enabled = TickerMode.of(context);
+    _enabled = TickerMode.valuesOf(context).enabled;
     final clock = AppClock.of(context);
     if (_clock != clock) {
       _clock?.removeListener(_notifyExpiry);
@@ -74,8 +74,9 @@ class _DeadlineViewState extends State<_DeadlineView> {
   void _notifyExpiry() {
     if (!_enabled ||
         widget.onExpired == null ||
-        _notifiedDeadline == widget.deadline)
+        _notifiedDeadline == widget.deadline) {
       return;
+    }
     final now = _clock!.value;
     if (now.isBefore(widget.deadline)) return;
     _notifiedDeadline = widget.deadline;

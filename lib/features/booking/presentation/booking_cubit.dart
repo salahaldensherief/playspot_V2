@@ -197,8 +197,9 @@ class BookingCubit extends Cubit<BookingState> {
 
   /// Atomically acquires a server-side hold for the full requested range.
   Future<bool> verifyAvailabilityBeforeProceed() async {
-    if (isClosed || _holdInFlight || state.status == BookingStatus.loading)
+    if (isClosed || _holdInFlight || state.status == BookingStatus.loading) {
       return false;
+    }
     final startTime = state.startTime;
     if (startTime == null) return false;
 
@@ -233,7 +234,7 @@ class BookingCubit extends Cubit<BookingState> {
         return false;
       }
 
-      return result.fold(
+      return result.fold<bool>(
         (failure) {
           emit(
             state.copyWith(

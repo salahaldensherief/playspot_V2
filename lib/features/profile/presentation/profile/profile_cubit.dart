@@ -37,8 +37,10 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> loadPointsHistory({bool refresh = false}) async {
     if (isClosed ||
         (!refresh &&
-            (state.isLoadingMorePointsHistory || !state.hasMorePointsHistory)))
+            (state.isLoadingMorePointsHistory ||
+                !state.hasMorePointsHistory))) {
       return;
+    }
     final generation = ++_pointsHistoryGeneration;
     final page = refresh || state.pointsHistory.isEmpty
         ? 1

@@ -47,14 +47,11 @@ void main() {
   });
 
   test('falls back to legacy single-language messages', () {
-    final model = AppStatusModel.fromJson(
-      const {
-        'maintenance_mode': false,
-        'maintenance_message': 'legacy maintenance',
-        'update_message': 'legacy update',
-      },
-      platform: TargetPlatform.android,
-    );
+    final model = AppStatusModel.fromJson(const {
+      'maintenance_mode': false,
+      'maintenance_message': 'legacy maintenance',
+      'update_message': 'legacy update',
+    }, platform: TargetPlatform.android);
 
     expect(model.maintenanceMessageFor('ar'), 'legacy maintenance');
     expect(model.maintenanceMessageFor('en'), 'legacy maintenance');

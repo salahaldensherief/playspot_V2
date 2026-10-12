@@ -263,12 +263,14 @@ void main() {
         await cubit.close();
         pending.complete(const Right(null));
         await request;
-        if (action == 'extend' || action == 'request')
+        if (action == 'extend' || action == 'request') {
           verify(
             () => repo.requestExtension(bookingId: 'a', requestedMinutes: 15),
           ).called(1);
-        if (action == 'order')
+        }
+        if (action == 'order') {
           verify(() => repo.placeOrder('a', any())).called(1);
+        }
       },
     );
   }

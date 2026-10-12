@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 
-import '../../extension/globlX.dart';
+import '../../extension/global_extensions.dart';
 import '../../theme/app_colors.dart';
 import 'font_manager.dart';
 
@@ -85,11 +85,16 @@ class _AppTextState extends State<AppText> {
     );
   }
 
-  bool _isTextOverflowing(String text, TextStyle style, int maxLines, double maxWidth) {
+  bool _isTextOverflowing(
+    String text,
+    TextStyle style,
+    int maxLines,
+    double maxWidth,
+  ) {
     final textPainter = TextPainter(
       text: TextSpan(text: text, style: style),
       maxLines: maxLines,
-      textDirection: widget.textDirection ?? _getTextDirection() ,
+      textDirection: widget.textDirection ?? _getTextDirection(),
     );
     textPainter.layout(maxWidth: maxWidth);
     return textPainter.didExceedMaxLines;
@@ -104,10 +109,10 @@ class _AppTextState extends State<AppText> {
       return LayoutBuilder(
         builder: (context, constraints) {
           final isOverflowing = _isTextOverflowing(
-              displayText,
-              textStyle,
-              widget.maxLines!,
-              constraints.maxWidth
+            displayText,
+            textStyle,
+            widget.maxLines!,
+            constraints.maxWidth,
           );
 
           return Column(
@@ -119,7 +124,9 @@ class _AppTextState extends State<AppText> {
                   displayText,
                   style: textStyle,
                   maxLines: _showAll ? null : widget.maxLines,
-                  overflow: _showAll ? TextOverflow.visible : (widget.overflow ?? TextOverflow.ellipsis),
+                  overflow: _showAll
+                      ? TextOverflow.visible
+                      : (widget.overflow ?? TextOverflow.ellipsis),
                   textAlign: widget.textAlign ?? TextAlign.start,
                 ),
               ),
@@ -130,14 +137,16 @@ class _AppTextState extends State<AppText> {
                   onTap: _handleTap,
                   child: Text(
                     _showAll
-                        ? (widget.showLessText ??AppStrings.showLess)
+                        ? (widget.showLessText ?? AppStrings.showLess)
                         : (widget.showMoreText ?? AppStrings.showMore),
-                    style: widget.showMoreStyle?? textStyle.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                      decoration: TextDecoration.underline,
-                      decorationThickness: 0.5,
-                    ),
+                    style:
+                        widget.showMoreStyle ??
+                        textStyle.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          decoration: TextDecoration.underline,
+                          decorationThickness: 0.5,
+                        ),
                     textAlign: widget.textAlign ?? TextAlign.start,
                   ),
                 ),
@@ -180,7 +189,8 @@ class _AppTextState extends State<AppText> {
           (rune >= 0x0061 && rune <= 0x007A) || // a-z
           (rune >= 0x0600 && rune <= 0x06FF) || // Arabic
           (rune >= 0xFB50 && rune <= 0xFDFF) || // Arabic Presentation Forms-A
-          (rune >= 0xFE70 && rune <= 0xFEFF)) { // Arabic Presentation Forms-B
+          (rune >= 0xFE70 && rune <= 0xFEFF)) {
+        // Arabic Presentation Forms-B
 
         checkedLetters++;
 

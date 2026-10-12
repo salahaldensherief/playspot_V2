@@ -25,15 +25,16 @@ class StickyBottomBar extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: backgroundColor ?? AppColors.scaffoldBackground,
-          border: border ??
-              const Border(
-                top: BorderSide(color: AppColors.borderDefault),
-              ),
+          border:
+              border ??
+              const Border(top: BorderSide(color: AppColors.borderDefault)),
         ),
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: padding ?? EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
+            padding:
+                padding ??
+                EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
             child: child,
           ),
         ),

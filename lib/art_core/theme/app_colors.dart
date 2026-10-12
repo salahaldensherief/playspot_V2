@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class AppColors {
   // ─── Primary - Neon Blue #00D9FF ─────────────────────────────
   static const MaterialColor primary = MaterialColor(0xFF00D9FF, <int, Color>{
-    0:   Color(0xFFE0FAFF),
-    50:  Color(0xFFB3F4FF),
+    0: Color(0xFFE0FAFF),
+    50: Color(0xFFB3F4FF),
     100: Color(0xFF80EEFF),
     200: Color(0xFF4DE8FF),
     300: Color(0xFF1AE2FF),
@@ -19,8 +19,8 @@ class AppColors {
 
   // ─── Secondary - Neon Purple #A855F7 ─────────────────────────
   static const MaterialColor purple = MaterialColor(0xFFA855F7, <int, Color>{
-    0:   Color(0xFFF5E6FF),
-    50:  Color(0xFFEDD5FE),
+    0: Color(0xFFF5E6FF),
+    50: Color(0xFFEDD5FE),
     100: Color(0xFFD9AAFD),
     200: Color(0xFFC57FFB),
     300: Color(0xFFB154F9),
@@ -35,115 +35,114 @@ class AppColors {
 
   // ─── Backgrounds ──────────────────────────────────────────────
   static const Color scaffoldBackground = Color(0xFF0A0A0F);
-  static const Color backgroundAlt      = Color(0xFF0D0D0D);
-  static const Color cardBackground     = Color(0xFF1A1A24);
-  static const Color mutedBackground    = Color(0xFF1F1F2E);
-  static const Color inputField         = Color(0xFF1A1A24);
+  static const Color backgroundAlt = Color(0xFF0D0D0D);
+  static const Color cardBackground = Color(0xFF1A1A24);
+  static const Color mutedBackground = Color(0xFF1F1F2E);
+  static const Color inputField = Color(0xFF1A1A24);
 
   // ─── Text ─────────────────────────────────────────────────────
-  static const Color textPrimary   = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFFFFFFFF);
   static const Color textSecondary = Color(0xFF9CA3AF);
-  static const Color hintText      = Color(0xFF9CA3AF);
-  static const Color splashHint    = Color(0xFF9CA3AF); // alias for hintText
+  static const Color hintText = Color(0xFF9CA3AF);
+  static const Color splashHint = Color(0xFF9CA3AF); // alias for hintText
 
   // ─── Accent / Neon ────────────────────────────────────────────
-  static const Color neonBlue      = Color(0xFF00D9FF);
-  static const Color neonBlueAlt   = Color(0xFF00D4FF);
-  static const Color neonPurple    = Color(0xFFA855F7);
+  static const Color neonBlue = Color(0xFF00D9FF);
+  static const Color neonBlueAlt = Color(0xFF00D4FF);
+  static const Color neonPurple = Color(0xFFA855F7);
   static const Color purpleVariant = Color(0xFF8B5CF6);
-  static const Color cyan          = Color(0xFF06B6D4);
-  static const Color lightPurple   = Color(0xFFC084FC);
+  static const Color cyan = Color(0xFF06B6D4);
+  static const Color lightPurple = Color(0xFFC084FC);
 
   // lightBlue alias — used across onboarding & splash
-  static const Color lightBlue     = Color(0xFF00D9FF);
+  static const Color lightBlue = Color(0xFF00D9FF);
 
   // ─── Gradient ─────────────────────────────────────────────────
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    stops: const [0.8, 1.0],
+    stops: [0.8, 1.0],
     colors: [Color(0xFF00D9FF), Color(0xFFA855F7)],
   );
 
   // ─── Buttons ──────────────────────────────────────────────────
-  static const Color buttonPrimary     = Color(0xFF00D9FF);
-  static const Color buttonPrimary2    = Color(0xFF1B1A24);
+  static const Color buttonPrimary = Color(0xFF00D9FF);
+  static const Color buttonPrimary2 = Color(0xFF1B1A24);
   static const Color buttonPrimaryText = Color(0xFF0A0A0F);
-  static const Color buttonDeactive    = Color(0xFF1F1F2E); // deactivated button bg
-  static const Color disableButton     = Color(0xFF9CA3AF);
+  static const Color buttonDeactive = Color(
+    0xFF1F1F2E,
+  ); // deactivated button bg
+  static const Color disableButton = Color(0xFF9CA3AF);
 
   // ─── Status — Success ─────────────────────────────────────────
-  static const Color success           = Color(0xFF22C55E);
+  static const Color success = Color(0xFF22C55E);
   static const Color successBackground = Color(0x3322C55E);
-  static const Color successBorder     = Color(0x6622C55E);
+  static const Color successBorder = Color(0x6622C55E);
 
   // ─── Status — Error ───────────────────────────────────────────
-  static const Color danger            = Color(0xFFEF4444);
-  static const Color dangerDark        = Color(0xFFD4183D);
-  static const Color dangerBackground  = Color(0x33EF4444);
-  static const Color dangerBorder      = Color(0x66EF4444);
+  static const Color danger = Color(0xFFEF4444);
+  static const Color dangerDark = Color(0xFFD4183D);
+  static const Color dangerBackground = Color(0x33EF4444);
+  static const Color dangerBorder = Color(0x66EF4444);
 
   // ─── Status — Warning ─────────────────────────────────────────
-  static const Color warning   = Color(0xFFFBBF24);
+  static const Color warning = Color(0xFFFBBF24);
   static const Color starColor = Color(0xFFFBBF24);
 
   // ─── Booking Status ───────────────────────────────────────────
-  static const Color statusUpcoming  = Color(0xFF00D9FF);
+  static const Color statusUpcoming = Color(0xFF00D9FF);
   static const Color statusCompleted = Color(0xFF22C55E);
   static const Color statusCancelled = Color(0xFFEF4444);
-  static const Color statusPending   = Color(0xFFFBBF24);
+  static const Color statusPending = Color(0xFFFBBF24);
 
   // ─── Room Status ──────────────────────────────────────────────
-  static const Color roomAvailable   = Color(0xFF22C55E);
-  static const Color roomBooked      = Color(0xFFEF4444);
+  static const Color roomAvailable = Color(0xFF22C55E);
+  static const Color roomBooked = Color(0xFFEF4444);
   static const Color roomMaintenance = Color(0xFFFBBF24);
 
   // ─── Product Categories ───────────────────────────────────────
   static const Color categoryDrinks = Color(0xFF00D9FF);
-  static const Color categoryFood   = Color(0xFFFBBF24);
+  static const Color categoryFood = Color(0xFFFBBF24);
   static const Color categorySnacks = Color(0xFFA855F7);
 
   // ─── Tournaments & Esports ────────────────────────────────────
-  static const Color tournamentGold        = Color(0xFFFFD700);
-  static const Color tournamentCardBg      = Color(0xFF13141F);
-  static const Color tournamentFilterBg    = Color(0xFF181A28);
-  static const Color tournamentHeaderBg    = Color(0xFF1C1E2D);
-  static const Color tournamentTrackBg     = Color(0xFF1E2030);
-  static const Color tournamentGradStart   = Color(0xFF2A0845);
-  static const Color tournamentGradMid     = Color(0xFF1B003A);
-  static const Color tournamentGradEnd     = Color(0xFF003853);
+  static const Color tournamentGold = Color(0xFFFFD700);
+  static const Color tournamentCardBg = Color(0xFF13141F);
+  static const Color tournamentFilterBg = Color(0xFF181A28);
+  static const Color tournamentHeaderBg = Color(0xFF1C1E2D);
+  static const Color tournamentTrackBg = Color(0xFF1E2030);
+  static const Color tournamentGradStart = Color(0xFF2A0845);
+  static const Color tournamentGradMid = Color(0xFF1B003A);
+  static const Color tournamentGradEnd = Color(0xFF003853);
   static const Color tournamentBannerStart = Color(0xFF1E1535);
-  static const Color tournamentBannerEnd   = Color(0xFF0F1E36);
+  static const Color tournamentBannerEnd = Color(0xFF0F1E36);
 
   static const LinearGradient tournamentPromoGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF2A0845),
-      Color(0xFF1B003A),
-      Color(0xFF003853),
-    ],
+    colors: [Color(0xFF2A0845), Color(0xFF1B003A), Color(0xFF003853)],
   );
 
   static const LinearGradient tournamentPlaceholderGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF1E1535),
-      Color(0xFF0F1E36),
-    ],
+    colors: [Color(0xFF1E1535), Color(0xFF0F1E36)],
   );
 
   // ─── Borders & Dividers ───────────────────────────────────────
   static const Color borderDefault = Color(0x1AFFFFFF);
-  static const Color borderSubtle  = Color(0x0DFFFFFF);
-  static const Color divider       = Color(0x1AFFFFFF);
+  static const Color borderSubtle = Color(0x0DFFFFFF);
+  static const Color divider = Color(0x1AFFFFFF);
 
   // ─── Glass & Overlays ─────────────────────────────────────────
-  static final Color glassBackground = Colors.white.withOpacity(0.03);
-  static final Color glassBorder = Colors.white.withOpacity(0.08);
-  static final Color blackOverlay = Colors.black.withOpacity(0.6);
-  static final Color whiteOverlay = Colors.white.withOpacity(0.05);
+  static final Color glassBackground = Colors.white.withAlpha(
+    (255 * 0.03).round(),
+  );
+  static final Color glassBorder = Colors.white.withAlpha((255 * 0.08).round());
+  static final Color blackOverlay = Colors.black.withAlpha((255 * 0.6).round());
+  static final Color whiteOverlay = Colors.white.withAlpha(
+    (255 * 0.05).round(),
+  );
 
   // ─── Neon Blue Overlays ───────────────────────────────────────
   static const Color neonBlue10 = Color(0x1A00D4FF);
@@ -159,20 +158,20 @@ class AppColors {
 
   // ─── Misc ─────────────────────────────────────────────────────
   static const Color transparent = Color(0x00000000);
-  static const Color white       = Color(0xFFFFFFFF);
-  static const Color black       = Color(0xFF000000);
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
   static const Color shadowColor = Color(0x8000D4FF);
 
   // ─── Shimmer ──────────────────────────────────────────────────
-  static const Color shimmerBase      = Color(0xFF1A1A24);
+  static const Color shimmerBase = Color(0xFF1A1A24);
   static const Color shimmerHighlight = Color(0xFF1F1F2E);
 
   // ─── Helper ───────────────────────────────────────────────────
   static Color withOpacity(Color color, double opacity) =>
-      color.withOpacity(opacity);
+      color.withAlpha((255 * opacity).round());
 }
 
 extension ColorExtension on MaterialColor {
-  Color get shade0   => this[0]!;
+  Color get shade0 => this[0]!;
   Color get shade950 => this[950]!;
 }

@@ -26,11 +26,12 @@ extension StringTimeExtensions on String {
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
       final tod = TimeOfDay(hour: hour, minute: minute);
-      if (locale != null)
+      if (locale != null) {
         return DateFormat(
           'h:mm a',
           locale,
         ).format(DateTime(2000, 1, 1, hour, minute));
+      }
 
       final h = tod.hourOfPeriod == 0 ? 12 : tod.hourOfPeriod;
       final period = tod.period == DayPeriod.am ? 'AM' : 'PM';
@@ -60,7 +61,7 @@ extension StringTimeExtensions on String {
     }
   }
 
-  bool get isNotNullOrEmpty => this.isNotEmpty;
+  bool get isNotNullOrEmpty => isNotEmpty;
 }
 
 extension TimeOfDayExtensions on TimeOfDay {

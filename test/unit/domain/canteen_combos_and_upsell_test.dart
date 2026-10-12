@@ -5,61 +5,105 @@ import 'package:playspot/features/active_session/domain/entities/out_of_stock_it
 import 'package:playspot/features/active_session/domain/entities/upsell_suggestion.dart';
 
 void main() {
-  test('upsell order payload passes only the rule and target to server pricing', () {
-    const item = OrderItemModel(id: 'combo', name: 'Offer', price: 1,
-      quantity: 1, isCombo: true, upsellRuleId: 'rule');
-    expect(item.toOrderPayload(), {
-      'combo_id': 'combo', 'quantity': 1, 'upsell_rule_id': 'rule',
-    });
-    final restored = OrderItemModel.fromJson(item.toJson());
-    expect(restored.upsellRuleId, 'rule');
-    expect(restored.isCombo, isTrue);
-  });
+  test(
+    'upsell order payload passes only the rule and target to server pricing',
+    () {
+      const item = OrderItemModel(
+        id: 'combo',
+        name: 'Offer',
+        price: 1,
+        quantity: 1,
+        isCombo: true,
+        upsellRuleId: 'rule',
+      );
+      expect(item.toOrderPayload(), {
+        'combo_id': 'combo',
+        'quantity': 1,
+        'upsell_rule_id': 'rule',
+      });
+      final restored = OrderItemModel.fromJson(item.toJson());
+      expect(restored.upsellRuleId, 'rule');
+      expect(restored.isCombo, isTrue);
+    },
+  );
   group('Canteen Combos & Upsell Engine Tests', () {
-    test('1. Combo without image handles null safely and provides fallback', () {
-      const comboNoImg = CanteenCombo(
-        id: 'combo_1',
-        nameAr: 'كومبو سناك',
-        nameEn: 'Snack Combo',
-        price: 45.0,
-        separateItemsPrice: 55.0,
-        savings: 10.0,
-        imageUrl: null, // No image provided
-        items: [
-          CanteenComboComponent(extraId: 'extra_1', nameAr: 'شيبسي', price: 25.0, quantity: 1),
-          CanteenComboComponent(extraId: 'extra_2', nameAr: 'كولا', price: 30.0, quantity: 1),
-        ],
-      );
+    test(
+      '1. Combo without image handles null safely and provides fallback',
+      () {
+        const comboNoImg = CanteenCombo(
+          id: 'combo_1',
+          nameAr: 'كومبو سناك',
+          nameEn: 'Snack Combo',
+          price: 45.0,
+          separateItemsPrice: 55.0,
+          savings: 10.0,
+          imageUrl: null, // No image provided
+          items: [
+            CanteenComboComponent(
+              extraId: 'extra_1',
+              nameAr: 'شيبسي',
+              price: 25.0,
+              quantity: 1,
+            ),
+            CanteenComboComponent(
+              extraId: 'extra_2',
+              nameAr: 'كولا',
+              price: 30.0,
+              quantity: 1,
+            ),
+          ],
+        );
 
-      expect(comboNoImg.imageUrl, isNull);
-      expect(comboNoImg.savings, 10.0);
-      expect(comboNoImg.getName(true), 'كومبو سناك');
-      expect(comboNoImg.getName(false), 'Snack Combo');
-    });
+        expect(comboNoImg.imageUrl, isNull);
+        expect(comboNoImg.savings, 10.0);
+        expect(comboNoImg.getName(true), 'كومبو سناك');
+        expect(comboNoImg.getName(false), 'Snack Combo');
+      },
+    );
 
-    test('2. Combo with deactivated or out-of-stock component is flagged correctly', () {
-      const combo = CanteenCombo(
-        id: 'combo_2',
-        nameAr: 'عرض التوفير',
-        price: 80.0,
-        savings: 20.0,
-        items: [
-          CanteenComboComponent(extraId: 'extra_active', nameAr: 'ساندوتش', quantity: 1),
-          CanteenComboComponent(extraId: 'extra_deactivated', nameAr: 'عصير برتقال', quantity: 1),
-        ],
-      );
+    test(
+      '2. Combo with deactivated or out-of-stock component is flagged correctly',
+      () {
+        const combo = CanteenCombo(
+          id: 'combo_2',
+          nameAr: 'عرض التوفير',
+          price: 80.0,
+          savings: 20.0,
+          items: [
+            CanteenComboComponent(
+              extraId: 'extra_active',
+              nameAr: 'ساندوتش',
+              quantity: 1,
+            ),
+            CanteenComboComponent(
+              extraId: 'extra_deactivated',
+              nameAr: 'عصير برتقال',
+              quantity: 1,
+            ),
+          ],
+        );
 
-      final unavailableList = [
-        const OutOfStockItem(id: 'extra_deactivated', name: 'عصير برتقال', available: 0, requested: 1),
-      ];
+        final unavailableList = [
+          const OutOfStockItem(
+            id: 'extra_deactivated',
+            name: 'عصير برتقال',
+            available: 0,
+            requested: 1,
+          ),
+        ];
 
-      // Verify that component is in unavailable list
-      bool hasUnavailable = combo.items.any((c) => unavailableList.any((u) => u.id == c.extraId));
-      expect(hasUnavailable, isTrue);
+        // Verify that component is in unavailable list
+        bool hasUnavailable = combo.items.any(
+          (c) => unavailableList.any((u) => u.id == c.extraId),
+        );
+        expect(hasUnavailable, isTrue);
 
-      final unavailComponent = unavailableList.firstWhere((u) => u.id == 'extra_deactivated');
-      expect(unavailComponent.available, 0);
-    });
+        final unavailComponent = unavailableList.firstWhere(
+          (u) => u.id == 'extra_deactivated',
+        );
+        expect(unavailComponent.available, 0);
+      },
+    );
 
     test('3. Upsell suggestion for out-of-stock item is filtered/hidden', () {
       final suggestions = [
@@ -86,49 +130,54 @@ void main() {
       final outOfStockIds = {'extra_out_of_stock'};
 
       // Filter out suggestions whose target is out of stock
-      final visibleSuggestions = suggestions.where((s) => !outOfStockIds.contains(s.targetId)).toList();
+      final visibleSuggestions = suggestions
+          .where((s) => !outOfStockIds.contains(s.targetId))
+          .toList();
 
       expect(visibleSuggestions.length, 1);
       expect(visibleSuggestions.first.targetId, 'extra_instock');
       expect(visibleSuggestions.first.finalPrice, 18.0);
     });
 
-    test('4. Cart with both combo and single extra sharing the same component separates payloads and calculates totals accurately', () {
-      const sharedExtraId = 'extra_pepsi';
+    test(
+      '4. Cart with both combo and single extra sharing the same component separates payloads and calculates totals accurately',
+      () {
+        const sharedExtraId = 'extra_pepsi';
 
-      final comboItem = OrderItemModel(
-        id: 'combo_party',
-        name: 'كومبو الأصدقاء',
-        price: 90.0,
-        quantity: 2,
-        isCombo: true,
-      );
+        final comboItem = OrderItemModel(
+          id: 'combo_party',
+          name: 'كومبو الأصدقاء',
+          price: 90.0,
+          quantity: 2,
+          isCombo: true,
+        );
 
-      final singleItem = OrderItemModel(
-        id: sharedExtraId,
-        name: 'بيبسي كانز',
-        price: 20.0,
-        quantity: 3,
-        isCombo: false,
-      );
+        final singleItem = OrderItemModel(
+          id: sharedExtraId,
+          name: 'بيبسي كانز',
+          price: 20.0,
+          quantity: 3,
+          isCombo: false,
+        );
 
-      final cart = [comboItem, singleItem];
+        final cart = [comboItem, singleItem];
 
-      // Verify total calculation
-      final total = cart.fold<double>(0.0, (sum, item) => sum + item.total);
-      expect(total, 90.0 * 2 + 20.0 * 3); // 180 + 60 = 240.0
+        // Verify total calculation
+        final total = cart.fold<double>(0.0, (sum, item) => sum + item.total);
+        expect(total, 90.0 * 2 + 20.0 * 3); // 180 + 60 = 240.0
 
-      // Verify serialization payloads for place_canteen_order
-      final payloadCombo = comboItem.toOrderPayload();
-      final payloadSingle = singleItem.toOrderPayload();
+        // Verify serialization payloads for place_canteen_order
+        final payloadCombo = comboItem.toOrderPayload();
+        final payloadSingle = singleItem.toOrderPayload();
 
-      expect(payloadCombo['combo_id'], 'combo_party');
-      expect(payloadCombo['extra_id'], isNull);
-      expect(payloadCombo['quantity'], 2);
+        expect(payloadCombo['combo_id'], 'combo_party');
+        expect(payloadCombo['extra_id'], isNull);
+        expect(payloadCombo['quantity'], 2);
 
-      expect(payloadSingle['extra_id'], sharedExtraId);
-      expect(payloadSingle['combo_id'], isNull);
-      expect(payloadSingle['quantity'], 3);
-    });
+        expect(payloadSingle['extra_id'], sharedExtraId);
+        expect(payloadSingle['combo_id'], isNull);
+        expect(payloadSingle['quantity'], 3);
+      },
+    );
   });
 }

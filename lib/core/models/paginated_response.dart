@@ -42,7 +42,8 @@ class PaginatedResponse<T> extends Equatable {
 
     final totalCount = (firstRow['total_count'] as num?)?.toInt() ?? 0;
     final page = (firstRow['page'] as num?)?.toInt() ?? requestedPage;
-    final pageSize = (firstRow['page_size'] as num?)?.toInt() ?? requestedPageSize;
+    final pageSize =
+        (firstRow['page_size'] as num?)?.toInt() ?? requestedPageSize;
 
     final items = list.map((row) {
       final map = Map<String, dynamic>.from(row as Map);

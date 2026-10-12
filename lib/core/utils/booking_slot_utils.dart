@@ -48,7 +48,10 @@ class BookingSlotUtils {
   }
 
   /// Resolves the intended slot time from booking string or DateTime.
-  static TimeOfDay resolveTargetTime(String? rawTime, DateTime fallbackDateTime) {
+  static TimeOfDay resolveTargetTime(
+    String? rawTime,
+    DateTime fallbackDateTime,
+  ) {
     final parsed = parseTimeOfDay(rawTime);
     if (parsed != null) return parsed;
     return TimeOfDay(
@@ -58,7 +61,10 @@ class BookingSlotUtils {
   }
 
   /// Generates ordered candidate dates within 14 days, prioritizing matching weekday.
-  static List<DateTime> buildCandidateDates(DateTime today, int preferredWeekday) {
+  static List<DateTime> buildCandidateDates(
+    DateTime today,
+    int preferredWeekday,
+  ) {
     final list = <DateTime>[];
 
     // 1. Same weekday occurrences in next 14 days

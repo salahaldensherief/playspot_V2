@@ -223,8 +223,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         .watchBookingStatus(bookingId)
         .listen(
           (updatedBooking) {
-            if (_inactive || subscriptionVersion != _bookingStatusVersion)
+            if (_inactive || subscriptionVersion != _bookingStatusVersion) {
               return;
+            }
 
             if (updatedBooking.status == BookingStatus.upcoming) {
               emit(
@@ -253,8 +254,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
               error,
               stackTrace,
             );
-            if (_inactive || subscriptionVersion != _bookingStatusVersion)
+            if (_inactive || subscriptionVersion != _bookingStatusVersion) {
               return;
+            }
 
             emit(
               state.copyWith(
@@ -411,8 +413,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     if (_inactive ||
         _paymentInFlight ||
         state.createdBookingId != null ||
-        state.status == CheckoutStatus.loading)
+        state.status == CheckoutStatus.loading) {
       return;
+    }
     ++_quoteRequestVersion;
 
     final holdToken = state.holdToken ?? checkoutParams.holdToken;

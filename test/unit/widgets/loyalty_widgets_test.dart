@@ -4,22 +4,25 @@ import 'package:playspot/features/profile/data/models/loyalty_status_model.dart'
 
 void main() {
   group('Batch 2 — Loyalty & Referral Models Unit Tests', () {
-    test('LoyaltyStatusModel JSON serialization and progressRatio calculation', () {
-      final json = {
-        'points_balance': 750,
-        'current_level': 'Silver',
-        'next_level_points': 1000,
-        'multiplier': 1.2,
-      };
+    test(
+      'LoyaltyStatusModel JSON serialization and progressRatio calculation',
+      () {
+        final json = {
+          'points_balance': 750,
+          'current_level': 'Silver',
+          'next_level_points': 1000,
+          'multiplier': 1.2,
+        };
 
-      final model = LoyaltyStatusModel.fromJson(json);
+        final model = LoyaltyStatusModel.fromJson(json);
 
-      expect(model.pointsBalance, equals(750));
-      expect(model.currentLevel, equals('Silver'));
-      expect(model.nextLevelPoints, equals(1000));
-      expect(model.progressRatio, equals(0.75));
-      expect(model.pointsRemaining, equals(250));
-    });
+        expect(model.pointsBalance, equals(750));
+        expect(model.currentLevel, equals('Silver'));
+        expect(model.nextLevelPoints, equals(1000));
+        expect(model.progressRatio, equals(0.75));
+        expect(model.pointsRemaining, equals(250));
+      },
+    );
 
     test('LoyaltyMissionModel progress calculation and completion status', () {
       const mission = LoyaltyMissionModel(

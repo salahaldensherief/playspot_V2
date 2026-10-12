@@ -7,9 +7,6 @@ final sl = GetIt.instance;
 
 void initSearchModule() {
   sl.registerFactory(
-    () => SearchCubit(
-      sl<DiscoverLoungesUseCase>(),
-      sl<PreferenceManager>(),
-    ),
+    () => SearchCubit(sl<DiscoverLoungesUseCase>(), sl<PreferenceManager>()),
   );
 }

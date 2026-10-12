@@ -4,12 +4,15 @@ import 'package:playspot/core/utils/booking_slot_utils.dart';
 
 void main() {
   group('BookingSlotUtils Tests', () {
-    test('circularMinuteDistance calculates accurate distance within same half of day', () {
-      const a = TimeOfDay(hour: 18, minute: 0);
-      const b = TimeOfDay(hour: 18, minute: 30);
-      expect(BookingSlotUtils.circularMinuteDistance(a, b), 30);
-      expect(BookingSlotUtils.circularMinuteDistance(b, a), 30);
-    });
+    test(
+      'circularMinuteDistance calculates accurate distance within same half of day',
+      () {
+        const a = TimeOfDay(hour: 18, minute: 0);
+        const b = TimeOfDay(hour: 18, minute: 30);
+        expect(BookingSlotUtils.circularMinuteDistance(a, b), 30);
+        expect(BookingSlotUtils.circularMinuteDistance(b, a), 30);
+      },
+    );
 
     test('circularMinuteDistance correctly wraps around midnight boundary', () {
       // 23:30 to 00:30 is 60 minutes across midnight
@@ -38,18 +41,21 @@ void main() {
       expect(BookingSlotUtils.circularMinuteDistance(a, b), 720);
     });
 
-    test('findClosestSlot picks 00:30 when target is 23:30 rather than far daytime slots', () {
-      const target = TimeOfDay(hour: 23, minute: 30);
-      const slots = [
-        TimeOfDay(hour: 14, minute: 0),
-        TimeOfDay(hour: 16, minute: 0),
-        TimeOfDay(hour: 0, minute: 30), // 60 mins away
-        TimeOfDay(hour: 2, minute: 0),
-      ];
+    test(
+      'findClosestSlot picks 00:30 when target is 23:30 rather than far daytime slots',
+      () {
+        const target = TimeOfDay(hour: 23, minute: 30);
+        const slots = [
+          TimeOfDay(hour: 14, minute: 0),
+          TimeOfDay(hour: 16, minute: 0),
+          TimeOfDay(hour: 0, minute: 30), // 60 mins away
+          TimeOfDay(hour: 2, minute: 0),
+        ];
 
-      final closest = BookingSlotUtils.findClosestSlot(slots, target);
-      expect(closest, const TimeOfDay(hour: 0, minute: 30));
-    });
+        final closest = BookingSlotUtils.findClosestSlot(slots, target);
+        expect(closest, const TimeOfDay(hour: 0, minute: 30));
+      },
+    );
 
     test('parseTimeOfDay parses HH:MM and HH:MM:SS correctly', () {
       expect(

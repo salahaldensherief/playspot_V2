@@ -8,7 +8,9 @@ class BookingNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase();
+    final type = NotificationStrategyHelper.cleanString(
+      data['type'],
+    )?.toLowerCase();
     final bookingId = NotificationStrategyHelper.getBookingId(data);
     return (type != null && type.contains('booking')) || bookingId != null;
   }
@@ -24,13 +26,20 @@ class BookingNotificationStrategy implements NotificationActionStrategy {
     }
 
     final bookingId = NotificationStrategyHelper.getBookingId(data);
-    final status = NotificationStrategyHelper.cleanString(data['status'])?.toLowerCase();
-    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase();
-    final action = NotificationStrategyHelper.cleanString(data['action'])?.toLowerCase();
+    final status = NotificationStrategyHelper.cleanString(
+      data['status'],
+    )?.toLowerCase();
+    final type = NotificationStrategyHelper.cleanString(
+      data['type'],
+    )?.toLowerCase();
+    final action = NotificationStrategyHelper.cleanString(
+      data['action'],
+    )?.toLowerCase();
     final title = data['title']?.toString().toLowerCase() ?? '';
     final body = data['body']?.toString().toLowerCase() ?? '';
 
-    final isCancelled = status == 'cancelled' ||
+    final isCancelled =
+        status == 'cancelled' ||
         status == 'rejected' ||
         status == 'declined' ||
         (type?.contains('cancel') ?? false) ||
@@ -53,12 +62,8 @@ class BookingNotificationStrategy implements NotificationActionStrategy {
         extra: {'initialTab': initialTab},
       );
     } else {
-      context.goNamed(
-        RouterKeys.myBookings,
-        extra: {'initialTab': initialTab},
-      );
+      context.goNamed(RouterKeys.myBookings, extra: {'initialTab': initialTab});
     }
     return true;
   }
 }
-

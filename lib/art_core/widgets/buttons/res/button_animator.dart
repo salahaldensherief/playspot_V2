@@ -1,4 +1,3 @@
-
 import 'package:flutter/animation.dart';
 
 class ButtonAnimator {
@@ -7,13 +6,15 @@ class ButtonAnimator {
   late final Animation<double> hoverAnimation;
 
   ButtonAnimator(TickerProvider vsync, Duration duration)
-      : controller = AnimationController(vsync: vsync, duration: duration) {
-    scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
-    hoverAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
+    : controller = AnimationController(vsync: vsync, duration: duration) {
+    scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+    hoverAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.02,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
   }
 
   void onTapDown() => controller.forward();

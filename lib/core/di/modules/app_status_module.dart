@@ -19,8 +19,12 @@ void initAppStatusModule() {
   );
 
   // UseCases
-  sl.registerLazySingleton(() => CheckAppStatusUseCase(sl<AppStatusRepository>()));
-  sl.registerLazySingleton(() => StreamAppStatusUseCase(sl<AppStatusRepository>()));
+  sl.registerLazySingleton(
+    () => CheckAppStatusUseCase(sl<AppStatusRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => StreamAppStatusUseCase(sl<AppStatusRepository>()),
+  );
 
   // Cubit (LazySingleton so app status can be observed globally)
   sl.registerLazySingleton(
