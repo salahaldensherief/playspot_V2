@@ -25,12 +25,16 @@ class _NetworkStatusWrapperState extends State<NetworkStatusWrapper> {
   @override
   void initState() {
     super.initState();
-    NetworkConnectivityService().isConnectedNotifier.addListener(_onConnectivityChanged);
+    NetworkConnectivityService().isConnectedNotifier.addListener(
+      _onConnectivityChanged,
+    );
   }
 
   @override
   void dispose() {
-    NetworkConnectivityService().isConnectedNotifier.removeListener(_onConnectivityChanged);
+    NetworkConnectivityService().isConnectedNotifier.removeListener(
+      _onConnectivityChanged,
+    );
     _restoredTimer?.cancel();
     super.dispose();
   }
@@ -88,11 +92,13 @@ class _NetworkStatusWrapperState extends State<NetworkStatusWrapper> {
                     ),
                     decoration: BoxDecoration(
                       color: isOffline
-                          ? AppColors.danger.withOpacity(0.92)
-                          : AppColors.success.withOpacity(0.92),
+                          ? AppColors.danger.withAlpha((255 * 0.92).round())
+                          : AppColors.success.withAlpha((255 * 0.92).round()),
                       boxShadow: [
                         BoxShadow(
-                          color: (isOffline ? AppColors.danger : AppColors.success).withOpacity(0.4),
+                          color:
+                              (isOffline ? AppColors.danger : AppColors.success)
+                                  .withAlpha((255 * 0.4).round()),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),

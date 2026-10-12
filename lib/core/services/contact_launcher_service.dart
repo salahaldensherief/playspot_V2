@@ -10,15 +10,21 @@ class ContactLauncherService {
     String message = '',
   }) async {
     final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
-    final formattedPhone = cleanPhone.startsWith('01') ? '2$cleanPhone' : cleanPhone;
+    final formattedPhone = cleanPhone.startsWith('01')
+        ? '2$cleanPhone'
+        : cleanPhone;
     final encodedMessage = Uri.encodeComponent(message);
 
-    final waMeUri = Uri.parse("https://wa.me/$formattedPhone?text=$encodedMessage");
+    final waMeUri = Uri.parse(
+      "https://wa.me/$formattedPhone?text=$encodedMessage",
+    );
     if (await canLaunchUrl(waMeUri)) {
       return await launchUrl(waMeUri, mode: LaunchMode.externalApplication);
     }
 
-    final schemeUri = Uri.parse("whatsapp://send?phone=$formattedPhone&text=$encodedMessage");
+    final schemeUri = Uri.parse(
+      "whatsapp://send?phone=$formattedPhone&text=$encodedMessage",
+    );
     if (await canLaunchUrl(schemeUri)) {
       return await launchUrl(schemeUri, mode: LaunchMode.externalApplication);
     }

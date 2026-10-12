@@ -87,8 +87,9 @@ class LoungeDetailsBottomBar extends StatelessWidget {
         state.operatingStatus?.canBookOnDate(state.selectedDate) != true) {
       return AppStrings.closed.tr();
     }
-    if (state.availabilityLoadFailed)
+    if (state.availabilityLoadFailed) {
       return 'room_availability_unavailable'.tr();
+    }
     if (state.selectedRooms.isEmpty) return AppStrings.selectRoomsPrompt.tr();
     if (state.selectedRooms.length == 1) return AppStrings.bookARoom.tr();
     return '${AppStrings.bookRoomsCount.tr()} (${state.selectedRooms.length})';

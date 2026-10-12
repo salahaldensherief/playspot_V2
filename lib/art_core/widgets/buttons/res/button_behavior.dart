@@ -160,7 +160,8 @@ class DebouncedTapBehavior implements ButtonBehavior {
     if (!isEnabled || isLoading) return;
 
     final now = DateTime.now();
-    if (_lastTapTime != null && now.difference(_lastTapTime!) < debounceDuration) {
+    if (_lastTapTime != null &&
+        now.difference(_lastTapTime!) < debounceDuration) {
       return; // Suppress rapid click
     }
     _lastTapTime = now;

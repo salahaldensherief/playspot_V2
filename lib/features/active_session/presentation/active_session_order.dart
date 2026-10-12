@@ -5,8 +5,9 @@ extension _ActiveSessionOrder on ActiveSessionCubit {
     final session = state.session;
     if (isClosed ||
         session == null ||
-        state.orderStatus == ActionStatus.loading)
+        state.orderStatus == ActionStatus.loading) {
       return;
+    }
 
     HapticFeedback.mediumImpact();
 
@@ -27,8 +28,9 @@ extension _ActiveSessionOrder on ActiveSessionCubit {
 
     if (isClosed ||
         epoch != _sessionEpoch ||
-        state.session?.bookingId != bookingId)
+        state.session?.bookingId != bookingId) {
       return;
+    }
 
     result.fold(
       (failure) {

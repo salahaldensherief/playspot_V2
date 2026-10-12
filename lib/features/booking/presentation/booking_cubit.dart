@@ -15,6 +15,8 @@ class BookingCubit extends Cubit<BookingState> {
   final JoinBookingWaitlistUseCase _joinWaitlist;
   final BookingWaitlistRepository _waitlistRepository;
   bool _waitlistInFlight = false;
+  bool _holdInFlight = false;
+  int _holdRequestVersion = 0;
   int _availabilityRequestVersion = 0;
   int _slotPricesRequestVersion = 0;
   int _quoteRequestVersion = 0;
@@ -195,82 +197,100 @@ class BookingCubit extends Cubit<BookingState> {
 
   /// Atomically acquires a server-side hold for the full requested range.
   Future<bool> verifyAvailabilityBeforeProceed() async {
-    if (state.status == BookingStatus.loading) return false;
+    if (isClosed || _holdInFlight || state.status == BookingStatus.loading) {
+      return false;
+    }
     final startTime = state.startTime;
     if (startTime == null) return false;
 
-    emit(state.copyWith(status: BookingStatus.loading, clearHold: true));
+    _holdInFlight = true;
+    final requestVersion = ++_holdRequestVersion;
+    try {
+      emit(state.copyWith(status: BookingStatus.loading, clearHold: true));
 
-    final startDateTime = _resolveOperationalDateTime(
-      state.selectedDate,
-      startTime,
-    );
-    final endDateTime = startDateTime.add(
-      Duration(minutes: state.durationMinutes),
-    );
+      final startDateTime = _resolveOperationalDateTime(
+        state.selectedDate,
+        startTime,
+      );
+      final endDateTime = startDateTime.add(
+        Duration(minutes: state.durationMinutes),
+      );
 
-    final result = await _bookingRepository.acquireBookingHold(
-      roomIds: roomIds,
-      startTime: startDateTime,
-      endTime: endDateTime,
-    );
+      final result = await _bookingRepository.acquireBookingHold(
+        roomIds: roomIds,
+        startTime: startDateTime,
+        endTime: endDateTime,
+      );
 
-    if (isClosed) return false;
-
-    return result.fold(
-      (failure) {
-        emit(
-          state.copyWith(
-            status: BookingStatus.error,
-            errorMessage: failure.message,
-            clearHold: true,
-          ),
+      if (isClosed || requestVersion != _holdRequestVersion) {
+        final abandonedToken = result.fold<String?>(
+          (_) => null,
+          (data) =>
+              data['success'] == true ? data['hold_token']?.toString() : null,
         );
+        if (abandonedToken != null && abandonedToken.isNotEmpty) {
+          await _bookingRepository.releaseBookingHold(abandonedToken);
+        }
         return false;
-      },
-      (data) {
-        if (data['success'] != true) {
+      }
+
+      return result.fold<bool>(
+        (failure) {
           emit(
             state.copyWith(
               status: BookingStatus.error,
-              clearStartTime: true,
+              errorMessage: failure.message,
               clearHold: true,
-              errorMessage:
-                  data['error_code']?.toString() ?? 'bookingHoldFailed',
             ),
           );
           return false;
-        }
+        },
+        (data) {
+          if (data['success'] != true) {
+            emit(
+              state.copyWith(
+                status: BookingStatus.error,
+                clearStartTime: true,
+                clearHold: true,
+                errorMessage:
+                    data['error_code']?.toString() ?? 'bookingHoldFailed',
+              ),
+            );
+            return false;
+          }
 
-        final holdToken = data['hold_token']?.toString();
-        final holdExpiresAt = DateTime.tryParse(
-          data['hold_expires_at']?.toString() ??
-              data['expires_at']?.toString() ??
-              '',
-        );
+          final holdToken = data['hold_token']?.toString();
+          final holdExpiresAt = DateTime.tryParse(
+            data['hold_expires_at']?.toString() ??
+                data['expires_at']?.toString() ??
+                '',
+          );
 
-        if (holdToken == null || holdToken.isEmpty || holdExpiresAt == null) {
+          if (holdToken == null || holdToken.isEmpty || holdExpiresAt == null) {
+            emit(
+              state.copyWith(
+                status: BookingStatus.error,
+                clearHold: true,
+                errorMessage: 'bookingHoldFailed',
+              ),
+            );
+            return false;
+          }
+
           emit(
             state.copyWith(
-              status: BookingStatus.error,
-              clearHold: true,
-              errorMessage: 'bookingHoldFailed',
+              status: BookingStatus.success,
+              holdToken: holdToken,
+              holdExpiresAt: holdExpiresAt,
+              heldStartAt: startDateTime,
             ),
           );
-          return false;
-        }
-
-        emit(
-          state.copyWith(
-            status: BookingStatus.success,
-            holdToken: holdToken,
-            holdExpiresAt: holdExpiresAt,
-            heldStartAt: startDateTime,
-          ),
-        );
-        return true;
-      },
-    );
+          return true;
+        },
+      );
+    } finally {
+      _holdInFlight = false;
+    }
   }
 
   DateTime _resolveOperationalDateTime(DateTime selectedDate, TimeOfDay time) {
@@ -289,6 +309,7 @@ class BookingCubit extends Cubit<BookingState> {
       return;
     }
 
+    ++_holdRequestVersion;
     HapticFeedback.lightImpact();
     emit(
       state.copyWith(
@@ -363,7 +384,8 @@ class BookingCubit extends Cubit<BookingState> {
     final maxAllowed = getMaxAvailableDurationMinutes(time, tempState);
     final cappedDuration = state.durationMinutes.clamp(15, maxAllowed);
 
-    emit(tempState.copyWith(durationMinutes: cappedDuration));
+    ++_holdRequestVersion;
+    emit(tempState.copyWith(durationMinutes: cappedDuration, clearHold: true));
     fetchPriceQuote();
   }
 
@@ -371,7 +393,8 @@ class BookingCubit extends Cubit<BookingState> {
     final maxAllowed = getMaxAvailableDurationMinutes();
     final cappedMinutes = minutes.clamp(15, maxAllowed);
     HapticFeedback.lightImpact();
-    emit(state.copyWith(durationMinutes: cappedMinutes));
+    ++_holdRequestVersion;
+    emit(state.copyWith(durationMinutes: cappedMinutes, clearHold: true));
     fetchPriceQuote();
   }
 
@@ -388,7 +411,8 @@ class BookingCubit extends Cubit<BookingState> {
     }
 
     HapticFeedback.lightImpact();
-    emit(state.copyWith(durationMinutes: newDuration));
+    ++_holdRequestVersion;
+    emit(state.copyWith(durationMinutes: newDuration, clearHold: true));
     fetchPriceQuote();
   }
 

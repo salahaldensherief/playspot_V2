@@ -21,11 +21,7 @@ void initMyBookingsModule() {
     () => GetBookingTimelineUseCase(sl()),
   );
 
-  sl.registerFactory<MyBookingsCubit>(
-    () => MyBookingsCubit(sl()),
-  );
+  sl.registerFactory<MyBookingsCubit>(() => MyBookingsCubit(sl()));
 
-  sl.registerFactory<BookingTimelineCubit>(
-    () => BookingTimelineCubit(sl()),
-  );
+  sl.registerFactory<BookingTimelineCubit>(() => BookingTimelineCubit(sl()));
 }

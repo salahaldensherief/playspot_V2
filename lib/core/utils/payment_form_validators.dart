@@ -89,7 +89,10 @@ class PaymentFormValidators {
   }
 
   /// Returns error string for transaction reference if invalid, or null if valid.
-  static String? validateTransactionReference(String? value, {bool isArabic = true}) {
+  static String? validateTransactionReference(
+    String? value, {
+    bool isArabic = true,
+  }) {
     if (!isValidTransactionReference(value)) {
       return isArabic
           ? 'يرجى إدخال رقم مرجعي صحيح للعملية (6 أرقام/حروف على الأقل بدون قيم وهمية)'

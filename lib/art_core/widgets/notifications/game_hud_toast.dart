@@ -69,7 +69,8 @@ class GameHudToast extends StatefulWidget {
   State<GameHudToast> createState() => _GameHudToastState();
 }
 
-class _GameHudToastState extends State<GameHudToast> with SingleTickerProviderStateMixin {
+class _GameHudToastState extends State<GameHudToast>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
@@ -84,12 +85,14 @@ class _GameHudToastState extends State<GameHudToast> with SingleTickerProviderSt
     );
 
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-    _slideAnimation = Tween<double>(begin: -50, end: 0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
-    );
+    _slideAnimation = Tween<double>(
+      begin: -50,
+      end: 0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+    _scaleAnimation = Tween<double>(
+      begin: 0.9,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
 
@@ -150,17 +153,20 @@ class _GameHudToastState extends State<GameHudToast> with SingleTickerProviderSt
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
+                        color: Colors.black.withAlpha((255 * 0.7).round()),
                         borderRadius: BorderRadius.circular(16.r),
                         border: Border.all(
-                          color: _statusColor.withOpacity(0.5),
+                          color: _statusColor.withAlpha((255 * 0.5).round()),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: _statusColor.withOpacity(0.2),
+                            color: _statusColor.withAlpha((255 * 0.2).round()),
                             blurRadius: 15,
                             spreadRadius: 2,
                           ),
@@ -171,7 +177,9 @@ class _GameHudToastState extends State<GameHudToast> with SingleTickerProviderSt
                           Container(
                             padding: EdgeInsets.all(6.w),
                             decoration: BoxDecoration(
-                              color: _statusColor.withOpacity(0.1),
+                              color: _statusColor.withAlpha(
+                                (255 * 0.1).round(),
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(

@@ -3,7 +3,10 @@ class LocalizedDurationFormatter {
 
   /// Formats remaining time into natural, grammatically correct phrasing
   /// for both Arabic and English with full plural support.
-  static String formatRemainingTime(Duration remaining, {required bool isArabic}) {
+  static String formatRemainingTime(
+    Duration remaining, {
+    required bool isArabic,
+  }) {
     if (remaining.inSeconds <= 0) {
       return isArabic ? 'انتهت الجلسة' : 'Session ended';
     }
@@ -20,7 +23,10 @@ class LocalizedDurationFormatter {
   }
 
   /// Formats total play duration (e.g. for session summaries)
-  static String formatPlayDuration(int durationMinutes, {required bool isArabic}) {
+  static String formatPlayDuration(
+    int durationMinutes, {
+    required bool isArabic,
+  }) {
     if (durationMinutes <= 0) {
       return isArabic ? '0 دقيقة' : '0 mins';
     }

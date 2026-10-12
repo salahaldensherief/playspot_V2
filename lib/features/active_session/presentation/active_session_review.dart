@@ -25,8 +25,9 @@ extension _ActiveSessionReview on ActiveSessionCubit {
 
     if (isClosed ||
         epoch != _sessionEpoch ||
-        (state.session ?? state.completedSession)?.bookingId != bookingId)
+        (state.session ?? state.completedSession)?.bookingId != bookingId) {
       return;
+    }
 
     result.fold(
       (failure) {

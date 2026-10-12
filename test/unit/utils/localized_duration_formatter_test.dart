@@ -21,43 +21,46 @@ void main() {
         );
       });
 
-      test('formats hours and minutes correctly with Arabic dual and plural', () {
-        // 1 hour and 1 minute
-        expect(
-          LocalizedDurationFormatter.formatRemainingTime(
-            const Duration(hours: 1, minutes: 1),
-            isArabic: true,
-          ),
-          'متبقي ساعة واحدة و دقيقة واحدة',
-        );
+      test(
+        'formats hours and minutes correctly with Arabic dual and plural',
+        () {
+          // 1 hour and 1 minute
+          expect(
+            LocalizedDurationFormatter.formatRemainingTime(
+              const Duration(hours: 1, minutes: 1),
+              isArabic: true,
+            ),
+            'متبقي ساعة واحدة و دقيقة واحدة',
+          );
 
-        // 2 hours and 2 minutes
-        expect(
-          LocalizedDurationFormatter.formatRemainingTime(
-            const Duration(hours: 2, minutes: 2),
-            isArabic: true,
-          ),
-          'متبقي ساعتان و دقيقتان',
-        );
+          // 2 hours and 2 minutes
+          expect(
+            LocalizedDurationFormatter.formatRemainingTime(
+              const Duration(hours: 2, minutes: 2),
+              isArabic: true,
+            ),
+            'متبقي ساعتان و دقيقتان',
+          );
 
-        // 3 hours and 5 minutes (plural 3-10)
-        expect(
-          LocalizedDurationFormatter.formatRemainingTime(
-            const Duration(hours: 3, minutes: 5),
-            isArabic: true,
-          ),
-          'متبقي 3 ساعات و 5 دقائق',
-        );
+          // 3 hours and 5 minutes (plural 3-10)
+          expect(
+            LocalizedDurationFormatter.formatRemainingTime(
+              const Duration(hours: 3, minutes: 5),
+              isArabic: true,
+            ),
+            'متبقي 3 ساعات و 5 دقائق',
+          );
 
-        // 11 hours and 15 minutes (singular accusative > 10)
-        expect(
-          LocalizedDurationFormatter.formatRemainingTime(
-            const Duration(hours: 11, minutes: 15),
-            isArabic: true,
-          ),
-          'متبقي 11 ساعة و 15 دقيقة',
-        );
-      });
+          // 11 hours and 15 minutes (singular accusative > 10)
+          expect(
+            LocalizedDurationFormatter.formatRemainingTime(
+              const Duration(hours: 11, minutes: 15),
+              isArabic: true,
+            ),
+            'متبقي 11 ساعة و 15 دقيقة',
+          );
+        },
+      );
 
       test('formats hours only correctly in Arabic', () {
         expect(

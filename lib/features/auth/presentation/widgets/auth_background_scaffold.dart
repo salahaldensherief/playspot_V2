@@ -60,7 +60,7 @@ class AuthBackgroundScaffold extends StatelessWidget {
               physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
-                  if (appBar != null) appBar!,
+                  ?appBar,
                   SizedBox(height: 12.h),
                   Padding(
                     padding: padding ?? EdgeInsets.symmetric(horizontal: 16.w),

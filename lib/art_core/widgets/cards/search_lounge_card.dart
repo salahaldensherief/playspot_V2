@@ -22,10 +22,7 @@ class SearchLoungeCard extends StatelessWidget {
       onTap: () {
         context.pushNamed(
           RouterKeys.loungeDetails,
-          extra: {
-            'lounge': lounge,
-            'heroTag': heroTag,
-          },
+          extra: {'lounge': lounge, 'heroTag': heroTag},
         );
       },
       child: Container(
@@ -33,10 +30,7 @@ class SearchLoungeCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(AppSizes.r20),
-          border: Border.all(
-            color: AppColors.borderDefault,
-            width: 1,
-          ),
+          border: Border.all(color: AppColors.borderDefault, width: 1),
         ),
         child: Stack(
           children: [
@@ -55,7 +49,10 @@ class SearchLoungeCard extends StatelessWidget {
                 ),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 4.h,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -79,21 +76,31 @@ class SearchLoungeCard extends StatelessWidget {
                         6.verticalSpace,
                         Row(
                           children: [
-                            Icon(Icons.star, color: AppColors.warning, size: 14.sp),
+                            Icon(
+                              Icons.star,
+                              color: AppColors.warning,
+                              size: 14.sp,
+                            ),
                             4.horizontalSpace,
                             AppText(
-                              text: lounge.rating > 0 ? lounge.rating.toStringAsFixed(1) : "N/A",
+                              text: lounge.rating > 0
+                                  ? lounge.rating.toStringAsFixed(1)
+                                  : "N/A",
                               fontSize: 11.sp,
                               color: AppColors.white,
                               fontWeight: FontWeight.bold,
                             ),
                             8.horizontalSpace,
-                            Icon(Icons.location_on_outlined,
-                                color: AppColors.textSecondary, size: 14.sp),
+                            Icon(
+                              Icons.location_on_outlined,
+                              color: AppColors.textSecondary,
+                              size: 14.sp,
+                            ),
                             4.horizontalSpace,
                             Expanded(
                               child: AppText(
-                                text: "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
+                                text:
+                                    "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
                                 fontSize: 11.sp,
                                 color: AppColors.textSecondary,
                                 maxLines: 1,
@@ -124,11 +131,7 @@ class SearchLoungeCard extends StatelessWidget {
               ],
             ),
             if (lounge.isDiscountActive)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: _buildDiscountBadge(context),
-              ),
+              Positioned(top: 0, right: 0, child: _buildDiscountBadge(context)),
           ],
         ),
       ),
@@ -137,8 +140,8 @@ class SearchLoungeCard extends StatelessWidget {
 
   Widget _buildDiscountBadge(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
-    final text = lounge.getDiscountTitle(isArabic) ??
-        "-${lounge.discountPercentage}%";
+    final text =
+        lounge.getDiscountTitle(isArabic) ?? "-${lounge.discountPercentage}%";
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
@@ -166,7 +169,8 @@ class SearchLoungeCard extends StatelessWidget {
   }
 
   Widget _buildPriceInfo() {
-    final bool hasDiscount = lounge.isDiscountActive && lounge.discountPercentage > 0;
+    final bool hasDiscount =
+        lounge.isDiscountActive && lounge.discountPercentage > 0;
     final double discountedPrice = hasDiscount
         ? lounge.pricePerHour * (1 - (lounge.discountPercentage / 100))
         : lounge.pricePerHour;

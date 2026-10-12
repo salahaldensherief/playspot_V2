@@ -102,10 +102,7 @@ class _LogoWidgetState extends State<LogoWidget>
             ? AnimatedBuilder(
                 animation: _wobble,
                 builder: (context, child) {
-                  return Transform.rotate(
-                    angle: _wobble.value,
-                    child: child,
-                  );
+                  return Transform.rotate(angle: _wobble.value, child: child);
                 },
                 child: _icon(effectiveFontSize, joystickIconColor),
               )
@@ -130,10 +127,7 @@ class _LogoWidgetState extends State<LogoWidget>
 
     return SvgPicture.asset(
       AssetsManager.joystickIcon,
-      colorFilter: ColorFilter.mode(
-        iconColor,
-        BlendMode.srcIn,
-      ),
+      colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
       width: iconSize,
       height: iconSize,
     );

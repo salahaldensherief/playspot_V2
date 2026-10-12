@@ -12,7 +12,8 @@ import 'strategies/notification_strategy_registry.dart';
 import 'strategies/offer_notification_strategy.dart';
 import 'strategies/tournament_notification_strategy.dart';
 
-typedef NotificationNavigationHandler = bool Function(Map<String, dynamic> data);
+typedef NotificationNavigationHandler =
+    bool Function(Map<String, dynamic> data);
 
 class NotificationRouter {
   NotificationRouter._();
@@ -23,18 +24,19 @@ class NotificationRouter {
   /// Order matters: announcement payloads carry generic `title`/`body` keys,
   /// and session payloads carry a `booking_id` — both must be matched before
   /// the strategies with looser conditions below them.
-  static final NotificationStrategyRegistry registry = NotificationStrategyRegistry(
-    strategies: [
-      const AnnouncementNotificationStrategy(),
-      const ActiveSessionNotificationStrategy(),
-      const BookingNotificationStrategy(),
-      const RoomNotificationStrategy(),
-      const OfferNotificationStrategy(),
-      const LoyaltyNotificationStrategy(),
-      const TournamentNotificationStrategy(),
-    ],
-    fallbackStrategy: const DefaultNotificationStrategy(),
-  );
+  static final NotificationStrategyRegistry registry =
+      NotificationStrategyRegistry(
+        strategies: [
+          const AnnouncementNotificationStrategy(),
+          const ActiveSessionNotificationStrategy(),
+          const BookingNotificationStrategy(),
+          const RoomNotificationStrategy(),
+          const OfferNotificationStrategy(),
+          const LoyaltyNotificationStrategy(),
+          const TournamentNotificationStrategy(),
+        ],
+        fallbackStrategy: const DefaultNotificationStrategy(),
+      );
 
   static void configure(NotificationNavigationHandler handler) {
     _handler = handler;
@@ -62,7 +64,10 @@ class NotificationRouter {
   }
 
   /// Converts a [NotificationModel] into a normalized payload map and delegates routing to Strategy Registry.
-  static void navigateFromModel(NotificationModel notification, [BuildContext? context]) {
+  static void navigateFromModel(
+    NotificationModel notification, [
+    BuildContext? context,
+  ]) {
     try {
       final Map<String, dynamic> payload = {
         'type': notification.type.name,

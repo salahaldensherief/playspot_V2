@@ -34,19 +34,45 @@ void initActiveSessionModule() {
   );
 
   // UseCases
-  sl.registerLazySingleton(() => GetActiveSessionUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => WatchUserActiveSessionUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => StreamActiveSessionUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => ExtendSessionTimeUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => RequestSessionExtensionUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => PlaceSessionOrderUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => GetLoungeMenuUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => GetCanteenMenuUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => GetUpsellSuggestionsUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => RecordUpsellEventUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => RequestStaffAssistanceUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => SubmitLoungeReviewUseCase(sl<ActiveSessionRepository>()));
-  sl.registerLazySingleton(() => GetActiveLoungeRequestsPageUseCase(sl<ActiveSessionRepository>()));
+  sl.registerLazySingleton(
+    () => GetActiveSessionUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => WatchUserActiveSessionUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => StreamActiveSessionUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => ExtendSessionTimeUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => RequestSessionExtensionUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => PlaceSessionOrderUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => GetLoungeMenuUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => GetCanteenMenuUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => GetUpsellSuggestionsUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => RecordUpsellEventUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => RequestStaffAssistanceUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => SubmitLoungeReviewUseCase(sl<ActiveSessionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => GetActiveLoungeRequestsPageUseCase(sl<ActiveSessionRepository>()),
+  );
 
   // Cubit (LazySingleton: the router redirect reads its live-session state,
   // and a factory would spawn an empty throwaway instance per navigation)

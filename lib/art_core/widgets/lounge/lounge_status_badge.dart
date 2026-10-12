@@ -7,7 +7,6 @@ import '../text/app_text.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/presentation/locale_cubit.dart';
 
-
 class LoungeStatusBadge extends StatefulWidget {
   final bool isOpen;
   const LoungeStatusBadge({super.key, required this.isOpen});
@@ -29,9 +28,10 @@ class _LoungeStatusBadgeState extends State<LoungeStatusBadge>
       duration: const Duration(milliseconds: 1200),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.25).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.85,
+      end: 1.25,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     if (widget.isOpen) {
       _controller.repeat(reverse: true);
@@ -55,7 +55,6 @@ class _LoungeStatusBadgeState extends State<LoungeStatusBadge>
     _controller.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +88,11 @@ class _LoungeStatusBadgeState extends State<LoungeStatusBadge>
                         color: color,
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(color: color, blurRadius: 4, spreadRadius: 1),
+                          BoxShadow(
+                            color: color,
+                            blurRadius: 4,
+                            spreadRadius: 1,
+                          ),
                         ],
                       ),
                     ),
@@ -105,7 +108,11 @@ class _LoungeStatusBadgeState extends State<LoungeStatusBadge>
           ),
           SizedBox(width: 5.w),
           AppText(
-            text: (widget.isOpen ? AppStrings.active.tr() : AppStrings.closed.tr()).toUpperCase(),
+            text:
+                (widget.isOpen
+                        ? AppStrings.active.tr()
+                        : AppStrings.closed.tr())
+                    .toUpperCase(),
             fontSize: 8.sp,
             color: color,
             fontWeight: FontWeight.w800,

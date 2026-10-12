@@ -1,4 +1,4 @@
-import 'package:playspot/art_core/extension/globlX.dart';
+import 'package:playspot/art_core/extension/global_extensions.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/models/geo_coordinates.dart';
 import '../../tournaments/domain/usecases/get_tournaments_usecase.dart';

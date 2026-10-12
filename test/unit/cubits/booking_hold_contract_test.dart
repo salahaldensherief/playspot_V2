@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -138,6 +139,36 @@ void main() {
       response({'success': false});
       expect(await cubit.verifyAvailabilityBeforeProceed(), isFalse);
       expect(cubit.state.errorMessage, 'bookingHoldFailed');
+    },
+  );
+  test(
+    'hold for abandoned selection is released and cannot advance checkout',
+    () async {
+      final pending = Completer<Either<Failure, Map<String, dynamic>>>();
+      when(
+        () => repository.acquireBookingHold(
+          roomIds: any(named: 'roomIds'),
+          startTime: any(named: 'startTime'),
+          endTime: any(named: 'endTime'),
+        ),
+      ).thenAnswer((_) => pending.future);
+      when(
+        () => repository.releaseBookingHold('abandoned'),
+      ).thenAnswer((_) async => const Right(null));
+      final acquire = cubit.verifyAvailabilityBeforeProceed();
+      cubit.selectDate(date.add(const Duration(days: 1)));
+      pending.complete(
+        Right({
+          'success': true,
+          'hold_token': 'abandoned',
+          'expires_at': DateTime.now()
+              .add(const Duration(minutes: 10))
+              .toIso8601String(),
+        }),
+      );
+      expect(await acquire, isFalse);
+      expect(cubit.state.holdToken, isNull);
+      verify(() => repository.releaseBookingHold('abandoned')).called(1);
     },
   );
 }

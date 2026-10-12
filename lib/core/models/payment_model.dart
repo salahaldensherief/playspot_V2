@@ -29,21 +29,25 @@ class PaymentModel extends Equatable {
       discountAmount: (json['discount_amount'] as num?)?.toDouble(),
       paymentMethod: json['payment_method']?.toString() ?? '',
       status: json['status']?.toString() ?? 'pending',
-      paidAt: json['paid_at'] != null ? DateTime.parse(json['paid_at'].toString()) : null,
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'].toString()) : null,
+      paidAt: json['paid_at'] != null
+          ? DateTime.parse(json['paid_at'].toString())
+          : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'booking_id': bookingId,
-        'amount': amount,
-        if (discountAmount != null) 'discount_amount': discountAmount,
-        'payment_method': paymentMethod,
-        'status': status,
-        if (paidAt != null) 'paid_at': paidAt!.toIso8601String(),
-        if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
-      };
+    'id': id,
+    'booking_id': bookingId,
+    'amount': amount,
+    if (discountAmount != null) 'discount_amount': discountAmount,
+    'payment_method': paymentMethod,
+    'status': status,
+    if (paidAt != null) 'paid_at': paidAt!.toIso8601String(),
+    if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+  };
 
   PaymentModel copyWith({
     String? id,
@@ -69,13 +73,13 @@ class PaymentModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        bookingId,
-        amount,
-        discountAmount,
-        paymentMethod,
-        status,
-        paidAt,
-        createdAt,
-      ];
+    id,
+    bookingId,
+    amount,
+    discountAmount,
+    paymentMethod,
+    status,
+    paidAt,
+    createdAt,
+  ];
 }

@@ -49,8 +49,9 @@ void main() {
   group('Batch 3 — EditProfileCubit Unit Tests', () {
     test('late initial profile does not write disposed controllers', () async {
       final response = Completer<Either<Failure, UserModel>>();
-      when(() => mockProfileRepository.getUserProfile())
-          .thenAnswer((_) => response.future);
+      when(
+        () => mockProfileRepository.getUserProfile(),
+      ).thenAnswer((_) => response.future);
       final loading = cubit.init();
       await cubit.close();
       response.complete(Right(testUser.copyWith(name: 'Late')));
@@ -60,10 +61,12 @@ void main() {
 
     test('late location profile does not write disposed controllers', () async {
       final response = Completer<Either<Failure, UserModel>>();
-      when(() => mockProfileRepository.updateUserLocation())
-          .thenAnswer((_) async => const Right(null));
-      when(() => mockProfileRepository.getUserProfile())
-          .thenAnswer((_) => response.future);
+      when(
+        () => mockProfileRepository.updateUserLocation(),
+      ).thenAnswer((_) async => const Right(null));
+      when(
+        () => mockProfileRepository.getUserProfile(),
+      ).thenAnswer((_) => response.future);
       final loading = cubit.updateLocation();
       await Future<void>.delayed(Duration.zero);
       verify(() => mockProfileRepository.getUserProfile()).called(1);
@@ -73,8 +76,9 @@ void main() {
     });
 
     test('init populates text controllers with current user data', () async {
-      when(() => mockProfileRepository.getUserProfile())
-          .thenAnswer((_) async => Right(testUser));
+      when(
+        () => mockProfileRepository.getUserProfile(),
+      ).thenAnswer((_) async => Right(testUser));
 
       await cubit.init(isArabic: false);
 
@@ -86,11 +90,12 @@ void main() {
     test(
       'updateProfile prevents duplicate calls when already loading',
       () async {
-        when(() => mockProfileRepository.updateProfile(any()))
-            .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 100));
-              return Right(testUser.copyWith(name: 'New Name'));
-            });
+        when(() => mockProfileRepository.updateProfile(any())).thenAnswer((
+          _,
+        ) async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return Right(testUser.copyWith(name: 'New Name'));
+        });
 
         cubit.nameController.text = 'New Name';
         cubit.phoneController.text = '01000000000';

@@ -117,7 +117,7 @@ class AppStrings {
   static const String from = "from";
   static const String today = "today";
   static const String hour = "hour";
-  static const String hour_plural = "hour_plural";
+  static const String hourPlural = "hour_plural";
   static const String duration = "duration";
   static const String totalPrice = "totalPrice";
   static const String selectTime = "selectTime";

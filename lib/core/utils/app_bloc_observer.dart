@@ -13,7 +13,8 @@ class AppBlocObserver extends BlocObserver {
 
   // In-memory statistics (active in kDebugMode only)
   final Map<int, String> _activeBlocs = {}; // hashCode -> runtimeType name
-  final Map<String, int> _changeCounts = {}; // Cubit type -> total onChange count
+  final Map<String, int> _changeCounts =
+      {}; // Cubit type -> total onChange count
   final Map<String, int> _errorCounts = {}; // Cubit type -> total onError count
 
   String _timestamp() {
@@ -33,7 +34,9 @@ class AppBlocObserver extends BlocObserver {
     final type = bloc.runtimeType.toString();
     _activeBlocs[bloc.hashCode] = type;
 
-    AppLogger.debug('[BLOC][CREATE] $type at ${_timestamp()} (Active: ${_activeBlocs.length})');
+    AppLogger.debug(
+      '[BLOC][CREATE] $type at ${_timestamp()} (Active: ${_activeBlocs.length})',
+    );
   }
 
   @override
@@ -47,7 +50,9 @@ class AppBlocObserver extends BlocObserver {
     final currentType = change.currentState.runtimeType;
     final nextType = change.nextState.runtimeType;
 
-    AppLogger.debug('[BLOC][CHANGE] $type: $currentType ➔ $nextType at ${_timestamp()}');
+    AppLogger.debug(
+      '[BLOC][CHANGE] $type: $currentType ➔ $nextType at ${_timestamp()}',
+    );
   }
 
   @override
@@ -56,7 +61,9 @@ class AppBlocObserver extends BlocObserver {
     if (!kDebugMode) return;
 
     final type = bloc.runtimeType.toString();
-    AppLogger.debug('[BLOC][EVENT] $type: ${event.runtimeType} at ${_timestamp()}');
+    AppLogger.debug(
+      '[BLOC][EVENT] $type: ${event.runtimeType} at ${_timestamp()}',
+    );
   }
 
   @override
@@ -69,7 +76,9 @@ class AppBlocObserver extends BlocObserver {
     final nextType = transition.nextState.runtimeType;
     final eventType = transition.event.runtimeType;
 
-    AppLogger.debug('[BLOC][TRANSITION] $type: $currentType ➔ $eventType ➔ $nextType at ${_timestamp()}');
+    AppLogger.debug(
+      '[BLOC][TRANSITION] $type: $currentType ➔ $eventType ➔ $nextType at ${_timestamp()}',
+    );
   }
 
   @override
@@ -80,7 +89,11 @@ class AppBlocObserver extends BlocObserver {
     final type = bloc.runtimeType.toString();
     _errorCounts[type] = (_errorCounts[type] ?? 0) + 1;
 
-    AppLogger.error('[BLOC][ERROR] $type: $error at ${_timestamp()}', error, stackTrace);
+    AppLogger.error(
+      '[BLOC][ERROR] $type: $error at ${_timestamp()}',
+      error,
+      stackTrace,
+    );
   }
 
   @override
@@ -91,7 +104,9 @@ class AppBlocObserver extends BlocObserver {
     final type = bloc.runtimeType.toString();
     _activeBlocs.remove(bloc.hashCode);
 
-    AppLogger.debug('[BLOC][CLOSE] $type at ${_timestamp()} (Active: ${_activeBlocs.length})');
+    AppLogger.debug(
+      '[BLOC][CLOSE] $type at ${_timestamp()} (Active: ${_activeBlocs.length})',
+    );
   }
 
   /// Prints an in-memory summary of active Cubits/Blocs, total changes, and errors.
@@ -100,9 +115,13 @@ class AppBlocObserver extends BlocObserver {
 
     final observer = instance;
     final buffer = StringBuffer();
-    buffer.writeln('\n=================== 📊 BLOC / CUBIT MONITOR SUMMARY ===================');
+    buffer.writeln(
+      '\n=================== 📊 BLOC / CUBIT MONITOR SUMMARY ===================',
+    );
     buffer.writeln('⏰ Timestamp: ${observer._timestamp()}');
-    buffer.writeln('🟢 Active Blocs/Cubits Count: ${observer._activeBlocs.length}');
+    buffer.writeln(
+      '🟢 Active Blocs/Cubits Count: ${observer._activeBlocs.length}',
+    );
 
     if (observer._activeBlocs.isNotEmpty) {
       buffer.writeln('📋 Active Instances:');
@@ -137,7 +156,9 @@ class AppBlocObserver extends BlocObserver {
       buffer.writeln('   (No errors recorded)');
     }
 
-    buffer.writeln('========================================================================\n');
+    buffer.writeln(
+      '========================================================================\n',
+    );
     AppLogger.debug(buffer.toString());
   }
 }

@@ -199,7 +199,7 @@ void main() {
     expect(counts['ActiveSessionBody'] ?? 0, 0);
     expect(counts['TimerWidget'] ?? 0, greaterThan(0));
     final directory = Platform.environment['PLAYSPOT_SCREENSHOT_DIR'];
-    if (directory != null)
+    if (directory != null) {
       File('$directory/../mobile-rebuild-measurement.json').writeAsStringSync(
         jsonEncode({
           'mode':
@@ -209,6 +209,7 @@ void main() {
           'builds': counts,
         }),
       );
+    }
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

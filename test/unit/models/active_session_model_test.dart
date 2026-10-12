@@ -26,7 +26,7 @@ void main() {
           'price': 40.0,
           'quantity': 2,
           'note': 'Ice please',
-        }
+        },
       ],
     };
 

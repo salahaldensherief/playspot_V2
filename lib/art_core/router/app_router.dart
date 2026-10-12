@@ -676,12 +676,14 @@ class AppRouter {
                       ? rawReviews
                             .map((e) {
                               if (e is ReviewModel) return e;
-                              if (e is Map<String, dynamic>)
+                              if (e is Map<String, dynamic>) {
                                 return ReviewModel.fromJson(e);
-                              if (e is Map)
+                              }
+                              if (e is Map) {
                                 return ReviewModel.fromJson(
                                   Map<String, dynamic>.from(e),
                                 );
+                              }
                               return null;
                             })
                             .whereType<ReviewModel>()

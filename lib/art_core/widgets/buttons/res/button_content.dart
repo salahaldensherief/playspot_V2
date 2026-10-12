@@ -8,12 +8,7 @@ class ButtonContent {
   final Widget? body;
   final int? maxLines;
 
-  const ButtonContent({
-    this.label,
-    this.icon,
-    this.body,
-    this.maxLines = 1,
-  });
+  const ButtonContent({this.label, this.icon, this.body, this.maxLines = 1});
 }
 
 class ButtonContentWidget extends StatelessWidget {
@@ -45,10 +40,7 @@ class ButtonContentWidget extends StatelessWidget {
         ],
         Flexible(
           child: maxLines == 1
-              ? FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: textWidget,
-                )
+              ? FittedBox(fit: BoxFit.scaleDown, child: textWidget)
               : textWidget,
         ),
       ],

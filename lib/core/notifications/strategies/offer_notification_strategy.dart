@@ -12,8 +12,12 @@ class OfferNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ?? '';
-    return type.contains('offer') || type.contains('promo') || type.contains('voucher');
+    final type =
+        NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ??
+        '';
+    return type.contains('offer') ||
+        type.contains('promo') ||
+        type.contains('voucher');
   }
 
   @override
@@ -28,7 +32,10 @@ class OfferNotificationStrategy implements NotificationActionStrategy {
 
     final loungeId = NotificationStrategyHelper.getLoungeId(data);
     if (loungeId != null) {
-      context.pushNamed(RouterKeys.loungeDetails, extra: {'loungeId': loungeId});
+      context.pushNamed(
+        RouterKeys.loungeDetails,
+        extra: {'loungeId': loungeId},
+      );
     } else {
       context.pushNamed(RouterKeys.myVouchers);
     }

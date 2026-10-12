@@ -12,7 +12,8 @@ class SwipeBackWrapper extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       onHorizontalDragUpdate: (details) {
         // If swiping right starting near the left edge (within 50 pixels)
-        if (details.delta.dx > 8 && (details.globalPosition.dx - details.delta.dx) < 50) {
+        if (details.delta.dx > 8 &&
+            (details.globalPosition.dx - details.delta.dx) < 50) {
           if (context.canPop()) {
             context.pop();
           }

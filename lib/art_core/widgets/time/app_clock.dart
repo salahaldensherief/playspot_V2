@@ -40,7 +40,7 @@ class _AppClockState extends State<AppClock> with WidgetsBindingObserver {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _visible = TickerMode.of(context);
+    _visible = TickerMode.valuesOf(context).enabled;
     _hasParentClock =
         context.dependOnInheritedWidgetOfExactType<_ClockScope>() != null;
     _syncTimer();
@@ -99,7 +99,7 @@ class AppClockBuilder extends StatelessWidget {
         child: AppClockBuilder(builder: builder, child: child),
       );
     }
-    if (!TickerMode.of(context)) {
+    if (!TickerMode.valuesOf(context).enabled) {
       return builder(context, scope.now.value, child);
     }
     return ValueListenableBuilder<DateTime>(

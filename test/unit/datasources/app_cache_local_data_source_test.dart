@@ -9,11 +9,13 @@ import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel channel = MethodChannel('plugins.flutter.io/path_provider');
+  const MethodChannel channel = MethodChannel(
+    'plugins.flutter.io/path_provider',
+  );
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-    return '.';
-  });
+        return '.';
+      });
 
   late AppCacheLocalDataSource localDataSource;
 

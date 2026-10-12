@@ -42,19 +42,19 @@ class AppDialog extends StatelessWidget {
   });
 
   static Future<void> show(
-      BuildContext context, {
-        required AppDialogType type,
-        required String title,
-        required String description,
-        List<String>? titleArgs,
-        List<String>? descriptionArgs,
-        String? confirmText,
-        String? cancelText,
-        VoidCallback? onConfirm,
-        VoidCallback? onCancel,
-        IconData? icon,
-        bool barrierDismissible = true,
-      }) {
+    BuildContext context, {
+    required AppDialogType type,
+    required String title,
+    required String description,
+    List<String>? titleArgs,
+    List<String>? descriptionArgs,
+    String? confirmText,
+    String? cancelText,
+    VoidCallback? onConfirm,
+    VoidCallback? onCancel,
+    IconData? icon,
+    bool barrierDismissible = true,
+  }) {
     return showDialog(
       context: context,
       barrierDismissible: barrierDismissible,
@@ -77,7 +77,9 @@ class AppDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: AppColors.cardBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.r20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.r20),
+      ),
       child: Padding(
         padding: EdgeInsets.all(AppSizes.w24),
         child: Column(
@@ -142,7 +144,9 @@ class AppDialog extends StatelessWidget {
         children: [
           Expanded(
             child: AppButton(
-              content: ButtonContent(label: (cancelText ?? AppStrings.cancel).tr()),
+              content: ButtonContent(
+                label: (cancelText ?? AppStrings.cancel).tr(),
+              ),
               behavior: ButtonBehavior.tap(
                 onTap: () {
                   Navigator.pop(context);
@@ -159,7 +163,9 @@ class AppDialog extends StatelessWidget {
           SizedBox(width: AppSizes.w12),
           Expanded(
             child: AppButton(
-              content: ButtonContent(label: (confirmText ?? AppStrings.next).tr()),
+              content: ButtonContent(
+                label: (confirmText ?? AppStrings.next).tr(),
+              ),
               behavior: ButtonBehavior.tap(
                 onTap: () {
                   Navigator.pop(context);

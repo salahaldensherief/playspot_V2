@@ -1,41 +1,41 @@
 class CachingKey {
-  static const String TOKEN = 'TOKEN';
-  static const String FCM_TOKEN = 'FCM_TOKEN';
-  static const String AUTH_TOKEN = 'AUTH_TOKEN';
-  static const String FullName = 'fullName';
-  static const String PhoneNumber = 'phoneNumber';
-  static const String UserId = 'UserId';
-  static const String UserData = 'UserData';
+  static const String token = 'TOKEN';
+  static const String fcmToken = 'FCM_TOKEN';
+  static const String authToken = 'AUTH_TOKEN';
+  static const String fullName = 'fullName';
+  static const String phoneNumber = 'phoneNumber';
+  static const String userId = 'UserId';
+  static const String userData = 'UserData';
 
-  static const String UserDataBackup = 'UserDataBackup';
-  static const String AppleProfilePrefix = 'AppleProfile_';
+  static const String userDataBackup = 'UserDataBackup';
+  static const String appleProfilePrefix = 'AppleProfile_';
 
-  static const String ActiveCountry = 'ActiveCountry';
-  static const String IS_LOGGED_IN = 'IS_LOGGED_IN';
-  static const String LANGUAGE = 'LANGUAGE';
-  static const String IS_FIRST_TIME = 'IS_FIRST_TIME';
-  static const String IS_GUEST_USER = 'IS_GUEST_USER';
-  static const String USER_MODEL = 'USER_MODEL';
-  static const String IS_DARK_MODE = 'IS_DARK_MODE';
-  static const String PENDING_REFERRAL_CODE = 'PENDING_REFERRAL_CODE';
+  static const String activeCountry = 'ActiveCountry';
+  static const String isLoggedIn = 'IS_LOGGED_IN';
+  static const String language = 'LANGUAGE';
+  static const String isFirstTime = 'IS_FIRST_TIME';
+  static const String isGuestUser = 'IS_GUEST_USER';
+  static const String userModel = 'USER_MODEL';
+  static const String isDarkMode = 'IS_DARK_MODE';
+  static const String pendingReferralCode = 'PENDING_REFERRAL_CODE';
 
-  static const String LATITUDE = 'LATITUDE';
-  static const String LONGITUDE = 'LONGITUDE';
+  static const String latitude = 'LATITUDE';
+  static const String longitude = 'LONGITUDE';
 
   // Notification Settings
-  static const String PUSH_NOTIF_ENABLED = 'PUSH_NOTIF_ENABLED';
-  static const String BOOKING_UPDATES_ENABLED = 'BOOKING_UPDATES_ENABLED';
-  static const String OFFERS_ENABLED = 'OFFERS_ENABLED';
-  static const String SYSTEM_NOTIF_ENABLED = 'SYSTEM_NOTIF_ENABLED';
-  static const String TOURNAMENTS_ENABLED = 'TOURNAMENTS_ENABLED';
+  static const String pushNotifEnabled = 'PUSH_NOTIF_ENABLED';
+  static const String bookingUpdatesEnabled = 'BOOKING_UPDATES_ENABLED';
+  static const String offersEnabled = 'OFFERS_ENABLED';
+  static const String systemNotifEnabled = 'SYSTEM_NOTIF_ENABLED';
+  static const String tournamentsEnabled = 'TOURNAMENTS_ENABLED';
 
   // Cache-First Cache Keys
-  static const String LOUNGE_PROFILES_PREFIX = 'CACHED_LOUNGE_PROFILE_';
-  static const String LOUNGE_ROOMS_PREFIX = 'CACHED_LOUNGE_ROOMS_';
-  static const String LOUNGE_EXTRAS_PREFIX = 'CACHED_LOUNGE_EXTRAS_';
-  static const String CATEGORIES_CACHE = 'CACHED_CATEGORIES';
-  static const String PROMOTIONS_CACHE = 'CACHED_PROMOTIONS';
-  static const String CACHED_LOUNGES = 'CACHED_LOUNGES';
-  static const String CURRENT_ADDRESS = 'CURRENT_ADDRESS';
-  static const String REVIEWED_BOOKINGS = 'REVIEWED_BOOKINGS';
+  static const String loungeProfilesPrefix = 'CACHED_LOUNGE_PROFILE_';
+  static const String loungeRoomsPrefix = 'CACHED_LOUNGE_ROOMS_';
+  static const String loungeExtrasPrefix = 'CACHED_LOUNGE_EXTRAS_';
+  static const String categoriesCache = 'CACHED_CATEGORIES';
+  static const String promotionsCache = 'CACHED_PROMOTIONS';
+  static const String cachedLounges = 'CACHED_LOUNGES';
+  static const String currentAddress = 'CURRENT_ADDRESS';
+  static const String reviewedBookings = 'REVIEWED_BOOKINGS';
 }

@@ -23,11 +23,13 @@ class RoomPlayModeSelector extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        AppText(
-          text: AppStrings.playMode.tr(),
-          fontSize: 12.sp,
-          color: Colors.white70,
-          fontWeight: FontWeight.bold,
+        Flexible(
+          child: AppText(
+            text: AppStrings.playMode.tr(),
+            fontSize: 12.sp,
+            color: Colors.white70,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         Container(
           padding: EdgeInsets.all(3.w),

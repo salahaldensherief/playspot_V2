@@ -9,19 +9,24 @@ class AnnouncementNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ?? '';
-    final hasAnnouncementKeys = data.containsKey('announcement_id') ||
+    final type =
+        NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ??
+        '';
+    final hasAnnouncementKeys =
+        data.containsKey('announcement_id') ||
         data.containsKey('announcement_title');
     if (!type.contains('announcement') && !hasAnnouncementKeys) return false;
 
-    final title = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['announcement_title', 'title', 'heading'],
-    );
-    final body = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['announcement_body', 'body', 'message'],
-    );
+    final title = NotificationStrategyHelper.extractFirst(data, const [
+      'announcement_title',
+      'title',
+      'heading',
+    ]);
+    final body = NotificationStrategyHelper.extractFirst(data, const [
+      'announcement_body',
+      'body',
+      'message',
+    ]);
     return title != null || body != null;
   }
 
@@ -35,22 +40,26 @@ class AnnouncementNotificationStrategy implements NotificationActionStrategy {
       return true;
     }
 
-    final title = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['announcement_title', 'title', 'heading'],
-    );
-    final body = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['announcement_body', 'body', 'message'],
-    );
-    final imageUrl = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['announcement_image_url', 'image_url', 'image'],
-    );
-    final actionUrl = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['announcement_action_url', 'action_url', 'url'],
-    );
+    final title = NotificationStrategyHelper.extractFirst(data, const [
+      'announcement_title',
+      'title',
+      'heading',
+    ]);
+    final body = NotificationStrategyHelper.extractFirst(data, const [
+      'announcement_body',
+      'body',
+      'message',
+    ]);
+    final imageUrl = NotificationStrategyHelper.extractFirst(data, const [
+      'announcement_image_url',
+      'image_url',
+      'image',
+    ]);
+    final actionUrl = NotificationStrategyHelper.extractFirst(data, const [
+      'announcement_action_url',
+      'action_url',
+      'url',
+    ]);
 
     AnnouncementDialog.show(
       context,

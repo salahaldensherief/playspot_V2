@@ -173,7 +173,7 @@ class HomeCubit extends Cubit<HomeState> {
     );
     if (!isLoadMore) {
       _pref.saveValue(
-        CachingKey.CACHED_LOUNGES,
+        CachingKey.cachedLounges,
         jsonEncode(updated.map((e) => e.toJson()).toList()),
       );
     }
@@ -190,7 +190,7 @@ class HomeCubit extends Cubit<HomeState> {
     if (next == state) return;
     _safeEmit(next);
     _pref.saveValue(
-      CachingKey.CACHED_LOUNGES,
+      CachingKey.cachedLounges,
       jsonEncode(lounges.map((lounge) => lounge.toJson()).toList()),
     );
   }
@@ -223,7 +223,7 @@ class HomeCubit extends Cubit<HomeState> {
     await citiesFuture;
 
     if (isClosed || token != _locationReadToken) return;
-    await _pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
+    await _pref.saveValue(CachingKey.currentAddress, address);
     if (isClosed || token != _locationReadToken) return;
     _safeEmit(state.copyWith(currentAddress: address));
   }

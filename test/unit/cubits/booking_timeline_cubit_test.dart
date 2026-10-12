@@ -7,7 +7,8 @@ import 'package:playspot/features/my_bookings/domain/usecases/get_booking_timeli
 import 'package:playspot/features/my_bookings/presentation/booking_timeline_cubit.dart';
 import 'package:playspot/features/my_bookings/presentation/booking_timeline_state.dart';
 
-class MockGetBookingTimelineUseCase extends Mock implements GetBookingTimelineUseCase {}
+class MockGetBookingTimelineUseCase extends Mock
+    implements GetBookingTimelineUseCase {}
 
 void main() {
   late MockGetBookingTimelineUseCase mockUseCase;
@@ -52,29 +53,35 @@ void main() {
       expect(cubit.state.items, isEmpty);
     });
 
-    test('fetchTimeline success filters out duplicate IDs and emits RequestStatus.success', () async {
-      when(() => mockUseCase('booking-123')).thenAnswer(
-        (_) async => Right([item1, item2, item1Duplicate]),
-      );
+    test(
+      'fetchTimeline success filters out duplicate IDs and emits RequestStatus.success',
+      () async {
+        when(
+          () => mockUseCase('booking-123'),
+        ).thenAnswer((_) async => Right([item1, item2, item1Duplicate]));
 
-      await cubit.fetchTimeline('booking-123', isArabic: true);
+        await cubit.fetchTimeline('booking-123', isArabic: true);
 
-      expect(cubit.state.status, RequestStatus.success);
-      expect(cubit.state.items.length, 2);
-      expect(cubit.state.items, [item1, item2]);
-      expect(cubit.state.errorMessage, null);
-    });
+        expect(cubit.state.status, RequestStatus.success);
+        expect(cubit.state.items.length, 2);
+        expect(cubit.state.items, [item1, item2]);
+        expect(cubit.state.errorMessage, null);
+      },
+    );
 
-    test('fetchTimeline failure emits RequestStatus.failure with localized error message', () async {
-      when(() => mockUseCase('booking-999')).thenAnswer(
-        (_) async => const Left(ServerFailure('permission denied')),
-      );
+    test(
+      'fetchTimeline failure emits RequestStatus.failure with localized error message',
+      () async {
+        when(() => mockUseCase('booking-999')).thenAnswer(
+          (_) async => const Left(ServerFailure('permission denied')),
+        );
 
-      await cubit.fetchTimeline('booking-999', isArabic: true);
+        await cubit.fetchTimeline('booking-999', isArabic: true);
 
-      expect(cubit.state.status, RequestStatus.failure);
-      expect(cubit.state.items, isEmpty);
-      expect(cubit.state.errorMessage, contains('صلاحية'));
-    });
+        expect(cubit.state.status, RequestStatus.failure);
+        expect(cubit.state.items, isEmpty);
+        expect(cubit.state.errorMessage, contains('صلاحية'));
+      },
+    );
   });
 }

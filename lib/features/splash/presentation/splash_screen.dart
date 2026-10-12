@@ -130,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen>
             position.longitude,
           );
           if (address != null) {
-            await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
+            await pref.saveValue(CachingKey.currentAddress, address);
           }
         }
       }

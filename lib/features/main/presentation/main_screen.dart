@@ -259,7 +259,7 @@ class _MainScreenState extends State<MainScreen> {
         borderRadius: BorderRadius.circular(34.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withAlpha((255 * 0.4).round()),
             blurRadius: 25,
             offset: const Offset(0, 10),
           ),
@@ -272,13 +272,13 @@ class _MainScreenState extends State<MainScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: isDark
-                  ? Colors.white.withOpacity(0.03)
-                  : Colors.black.withOpacity(0.02),
+                  ? Colors.white.withAlpha((255 * 0.03).round())
+                  : Colors.black.withAlpha((255 * 0.02).round()),
               borderRadius: BorderRadius.circular(34.r),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withOpacity(0.08)
-                    : Colors.black.withOpacity(0.08),
+                    ? Colors.white.withAlpha((255 * 0.08).round())
+                    : Colors.black.withAlpha((255 * 0.08).round()),
                 width: 1.0,
               ),
               gradient: LinearGradient(
@@ -286,11 +286,11 @@ class _MainScreenState extends State<MainScreen> {
                 end: Alignment.bottomRight,
                 colors: [
                   isDark
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.05),
+                      ? Colors.white.withAlpha((255 * 0.08).round())
+                      : Colors.black.withAlpha((255 * 0.05).round()),
                   isDark
-                      ? Colors.white.withOpacity(0.01)
-                      : Colors.black.withOpacity(0.01),
+                      ? Colors.white.withAlpha((255 * 0.01).round())
+                      : Colors.black.withAlpha((255 * 0.01).round()),
                 ],
               ),
             ),
@@ -328,12 +328,14 @@ class _MainScreenState extends State<MainScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSizes.r12),
               color: isSelected
-                  ? AppColors.neonBlue.withOpacity(0.12)
+                  ? AppColors.neonBlue.withAlpha((255 * 0.12).round())
                   : Colors.transparent,
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: AppColors.neonBlue.withOpacity(0.3),
+                        color: AppColors.neonBlue.withAlpha(
+                          (255 * 0.3).round(),
+                        ),
                         blurRadius: 15,
                         spreadRadius: 1,
                       ),
@@ -344,7 +346,7 @@ class _MainScreenState extends State<MainScreen> {
               icon,
               color: isSelected
                   ? AppColors.neonBlue
-                  : Colors.white.withOpacity(0.4),
+                  : Colors.white.withAlpha((255 * 0.4).round()),
               size: 20.sp,
             ),
           ),
@@ -358,7 +360,7 @@ class _MainScreenState extends State<MainScreen> {
                 fontWeight: FontWeight.w600,
                 shadows: [
                   Shadow(
-                    color: AppColors.neonBlue.withOpacity(0.6),
+                    color: AppColors.neonBlue.withAlpha((255 * 0.6).round()),
                     blurRadius: 10,
                   ),
                 ],

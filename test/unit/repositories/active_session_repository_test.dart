@@ -20,7 +20,10 @@ void main() {
   setUp(() {
     mockRemoteDataSource = MockActiveSessionRemoteDataSource();
     mockCacheLocalDataSource = MockAppCacheLocalDataSource();
-    repository = ActiveSessionRepositoryImpl(mockRemoteDataSource, mockCacheLocalDataSource);
+    repository = ActiveSessionRepositoryImpl(
+      mockRemoteDataSource,
+      mockCacheLocalDataSource,
+    );
   });
 
   final testSession = ActiveSessionModel(
@@ -36,50 +39,72 @@ void main() {
   );
 
   group('ActiveSessionRepository Unit Tests', () {
-    test('getActiveSession returns Right(ActiveSessionModel) on success', () async {
-      when(() => mockRemoteDataSource.getActiveSession(bookingId: 'b_123'))
-          .thenAnswer((_) async => testSession);
+    test(
+      'getActiveSession returns Right(ActiveSessionModel) on success',
+      () async {
+        when(
+          () => mockRemoteDataSource.getActiveSession(bookingId: 'b_123'),
+        ).thenAnswer((_) async => testSession);
 
-      final result = await repository.getActiveSession(bookingId: 'b_123');
+        final result = await repository.getActiveSession(bookingId: 'b_123');
 
-      expect(result.isRight(), isTrue);
-      result.fold(
-        (_) => fail('Should have returned Right'),
-        (session) => expect(session?.bookingId, 'b_123'),
-      );
-      verify(() => mockRemoteDataSource.getActiveSession(bookingId: 'b_123')).called(1);
-    });
+        expect(result.isRight(), isTrue);
+        result.fold(
+          (_) => fail('Should have returned Right'),
+          (session) => expect(session?.bookingId, 'b_123'),
+        );
+        verify(
+          () => mockRemoteDataSource.getActiveSession(bookingId: 'b_123'),
+        ).called(1);
+      },
+    );
 
-    test('requestExtension calls remoteDataSource.requestExtension and returns Right(void)', () async {
-      when(() => mockRemoteDataSource.requestExtension(
+    test(
+      'requestExtension calls remoteDataSource.requestExtension and returns Right(void)',
+      () async {
+        when(
+          () => mockRemoteDataSource.requestExtension(
             bookingId: 'b_123',
             requestedMinutes: 30,
-          )).thenAnswer((_) async => {});
+          ),
+        ).thenAnswer((_) async => {});
 
-      final result = await repository.requestExtension(
-        bookingId: 'b_123',
-        requestedMinutes: 30,
-      );
+        final result = await repository.requestExtension(
+          bookingId: 'b_123',
+          requestedMinutes: 30,
+        );
 
-      expect(result.isRight(), isTrue);
-      verify(() => mockRemoteDataSource.requestExtension(
+        expect(result.isRight(), isTrue);
+        verify(
+          () => mockRemoteDataSource.requestExtension(
             bookingId: 'b_123',
             requestedMinutes: 30,
-          )).called(1);
-    });
+          ),
+        ).called(1);
+      },
+    );
 
-    test('placeOrder calls remoteDataSource.placeOrder and returns Right(void)', () async {
-      final items = [
-        const OrderItemModel(id: '1', name: 'Water', price: 10.0, quantity: 2)
-      ];
+    test(
+      'placeOrder calls remoteDataSource.placeOrder and returns Right(void)',
+      () async {
+        final items = [
+          const OrderItemModel(
+            id: '1',
+            name: 'Water',
+            price: 10.0,
+            quantity: 2,
+          ),
+        ];
 
-      when(() => mockRemoteDataSource.placeOrder('b_123', items))
-          .thenAnswer((_) async => {});
+        when(
+          () => mockRemoteDataSource.placeOrder('b_123', items),
+        ).thenAnswer((_) async => {});
 
-      final result = await repository.placeOrder('b_123', items);
+        final result = await repository.placeOrder('b_123', items);
 
-      expect(result.isRight(), isTrue);
-      verify(() => mockRemoteDataSource.placeOrder('b_123', items)).called(1);
-    });
+        expect(result.isRight(), isTrue);
+        verify(() => mockRemoteDataSource.placeOrder('b_123', items)).called(1);
+      },
+    );
   });
 }

@@ -23,4 +23,3 @@ class DefaultNotificationStrategy implements NotificationActionStrategy {
     return true;
   }
 }
-

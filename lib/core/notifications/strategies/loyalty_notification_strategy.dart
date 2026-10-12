@@ -8,8 +8,12 @@ class LoyaltyNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ?? '';
-    return type.contains('loyalty') || type.contains('points') || type.contains('reward');
+    final type =
+        NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ??
+        '';
+    return type.contains('loyalty') ||
+        type.contains('points') ||
+        type.contains('reward');
   }
 
   @override
@@ -26,4 +30,3 @@ class LoyaltyNotificationStrategy implements NotificationActionStrategy {
     return true;
   }
 }
-

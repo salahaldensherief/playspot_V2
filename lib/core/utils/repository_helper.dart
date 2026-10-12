@@ -6,7 +6,9 @@ import '../../art_core/exceptions/app_exceptions.dart';
 import '../error/failures.dart';
 
 mixin RepositoryHelper {
-  Future<Either<Failure, T>> callRepository<T>(Future<T> Function() call) async {
+  Future<Either<Failure, T>> callRepository<T>(
+    Future<T> Function() call,
+  ) async {
     try {
       final result = await call();
       return Right(result);
@@ -24,10 +26,16 @@ mixin RepositoryHelper {
           e.message.toLowerCase().contains('already exists') ||
           e.message.toLowerCase().contains('duplicate key')) {
         if (e.message.contains('favorites')) {
-          return Left(const ServerFailure("This lounge is already in your favorites."));
+          return Left(
+            const ServerFailure("This lounge is already in your favorites."),
+          );
         }
         if (e.message.contains('review') || e.message.contains('booking')) {
-          return Left(const ServerFailure("A review for this session has already been submitted."));
+          return Left(
+            const ServerFailure(
+              "A review for this session has already been submitted.",
+            ),
+          );
         }
         return Left(const ServerFailure("This record already exists."));
       }
@@ -35,9 +43,14 @@ mixin RepositoryHelper {
       if (e.code == 'PGRST302') {
         return Left(const AuthFailure('يرجى تسجيل الدخول لإتمام العملية'));
       }
-      if (e.code == 'PGRST301' || e.code == 'PGRST303' ||
+      if (e.code == 'PGRST301' ||
+          e.code == 'PGRST303' ||
           e.message.toLowerCase().contains('jwt expired')) {
-        return Left(const AuthFailure('الجلسة غير صالحة أو منتهية، يرجى تسجيل الدخول مجددًا'));
+        return Left(
+          const AuthFailure(
+            'الجلسة غير صالحة أو منتهية، يرجى تسجيل الدخول مجددًا',
+          ),
+        );
       }
       if (e.code == '42501' ||
           e.message.toLowerCase().contains('permission denied') ||
@@ -48,7 +61,7 @@ mixin RepositoryHelper {
           e.message.toLowerCase().contains('rls')) {
         return Left(const AuthFailure("ليس لديك صلاحية لتنفيذ هذا الإجراء"));
       }
-      
+
       // Return error code in message for easier filtering in repositories if needed
       return Left(ServerFailure("${e.code}: ${e.message}"));
     } on NetworkException catch (e) {
