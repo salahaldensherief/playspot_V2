@@ -120,7 +120,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       if (targetId != null && targetId.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          final key = _cardKeys[targetId];
+          final key =
+              _cardKeys['${_tabController.index}_$targetId'] ??
+              _cardKeys[targetId];
           if (key != null && key.currentContext != null) {
             Scrollable.ensureVisible(
               key.currentContext!,
@@ -322,7 +324,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                 final isHighlighted = booking.id == widget.highlightedBookingId;
                 final isCancelling = booking.id == cancellingBookingId;
                 final cardKey = _cardKeys.putIfAbsent(
-                  booking.id,
+                  '${_tabController.index}_${booking.id}',
                   () => GlobalKey(),
                 );
 

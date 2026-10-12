@@ -20,7 +20,8 @@ class RedemptionOptionModel {
   });
 
   String getTitle(bool isArabic) => isArabic ? titleAr : titleEn;
-  String getDescription(bool isArabic) => isArabic ? descriptionAr : descriptionEn;
+  String getDescription(bool isArabic) =>
+      isArabic ? descriptionAr : descriptionEn;
 
   factory RedemptionOptionModel.fromJson(Map<String, dynamic> json) {
     return RedemptionOptionModel(

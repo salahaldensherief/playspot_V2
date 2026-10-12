@@ -109,7 +109,11 @@ class ForgotPasswordBottomSheetContent extends StatelessWidget {
     }
   }
 
-  Widget _buildBody(BuildContext context, ForgotPasswordCubit cubit, ForgotPasswordState state) {
+  Widget _buildBody(
+    BuildContext context,
+    ForgotPasswordCubit cubit,
+    ForgotPasswordState state,
+  ) {
     final isLoading = state.status.isLoading;
 
     if (state.status == ForgotPasswordStatus.emailSent) {

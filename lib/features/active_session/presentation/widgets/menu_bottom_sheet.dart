@@ -35,7 +35,9 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
   void initState() {
     super.initState();
     final session = widget.cubit.state.session;
-    if (widget.cubit.state.menu.isEmpty && session != null && session.loungeId.isNotEmpty) {
+    if (widget.cubit.state.menu.isEmpty &&
+        session != null &&
+        session.loungeId.isNotEmpty) {
       widget.cubit.loadMenu(session.loungeId);
     }
   }
@@ -71,14 +73,20 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
     return count;
   }
 
-  OutOfStockItem? _findUnavailableExtra(List<OutOfStockItem> unavailable, String extraId) {
+  OutOfStockItem? _findUnavailableExtra(
+    List<OutOfStockItem> unavailable,
+    String extraId,
+  ) {
     for (final item in unavailable) {
       if (item.id == extraId) return item;
     }
     return null;
   }
 
-  OutOfStockItem? _findUnavailableCombo(List<OutOfStockItem> unavailable, CanteenCombo combo) {
+  OutOfStockItem? _findUnavailableCombo(
+    List<OutOfStockItem> unavailable,
+    CanteenCombo combo,
+  ) {
     for (final comp in combo.items) {
       for (final item in unavailable) {
         if (item.id == comp.extraId) return item;
@@ -116,7 +124,9 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
 
         final filteredExtras = _selectedCategory == 'all'
             ? extras
-            : extras.where((e) => e.category.trim() == _selectedCategory).toList();
+            : extras
+                  .where((e) => e.category.trim() == _selectedCategory)
+                  .toList();
 
         return Container(
           height: 0.88.sh,
@@ -124,7 +134,10 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
             color: AppColors.scaffoldBackground,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
           ),
-          padding: EdgeInsetsDirectional.symmetric(horizontal: 16.w, vertical: 12.h),
+          padding: EdgeInsetsDirectional.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -147,7 +160,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.restaurant_menu_rounded, color: AppColors.neonPurple, size: 22.sp),
+                      Icon(
+                        Icons.restaurant_menu_rounded,
+                        color: AppColors.neonPurple,
+                        size: 22.sp,
+                      ),
                       SizedBox(width: 8.w),
                       AppText(
                         text: AppStrings.canteenMenu.tr(),
@@ -158,7 +175,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                     ],
                   ),
                   IconButton(
-                    icon: Icon(Icons.close_rounded, color: AppColors.textSecondary, size: 22.sp),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: AppColors.textSecondary,
+                      size: 22.sp,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -173,11 +194,17 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                   decoration: BoxDecoration(
                     color: AppColors.danger.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(color: AppColors.danger.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: AppColors.danger.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded, color: AppColors.danger, size: 20.sp),
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: AppColors.danger,
+                        size: 20.sp,
+                      ),
                       SizedBox(width: 8.w),
                       Expanded(
                         child: AppText(
@@ -202,7 +229,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                     if (combos.isNotEmpty) ...[
                       Row(
                         children: [
-                          Icon(Icons.local_fire_department_rounded, color: AppColors.warning, size: 18.sp),
+                          Icon(
+                            Icons.local_fire_department_rounded,
+                            color: AppColors.warning,
+                            size: 18.sp,
+                          ),
                           SizedBox(width: 6.w),
                           AppText(
                             text: AppStrings.combosAndOffers.tr(),
@@ -215,7 +246,10 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                       SizedBox(height: 10.h),
                       ...combos.map((combo) {
                         final qty = _getComboQty(combo.id);
-                        final unavail = _findUnavailableCombo(unavailable, combo);
+                        final unavail = _findUnavailableCombo(
+                          unavailable,
+                          combo,
+                        );
                         return _buildComboCard(combo, qty, unavail, isArabic);
                       }),
                       SizedBox(height: 16.h),
@@ -225,7 +259,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                     if (extras.isNotEmpty) ...[
                       Row(
                         children: [
-                          Icon(Icons.fastfood_rounded, color: AppColors.neonBlue, size: 18.sp),
+                          Icon(
+                            Icons.fastfood_rounded,
+                            color: AppColors.neonBlue,
+                            size: 18.sp,
+                          ),
                           SizedBox(width: 6.w),
                           AppText(
                             text: AppStrings.singleItems.tr(),
@@ -244,24 +282,35 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                           child: Row(
                             children: categories.map((cat) {
                               final isSelected = _selectedCategory == cat;
-                              final label = cat == 'all' ? AppStrings.all.tr() : cat;
+                              final label = cat == 'all'
+                                  ? AppStrings.all.tr()
+                                  : cat;
                               return Padding(
                                 padding: EdgeInsetsDirectional.only(end: 8.w),
                                 child: ChoiceChip(
                                   label: Text(label),
                                   selected: isSelected,
-                                  onSelected: (_) => setState(() => _selectedCategory = cat),
-                                  selectedColor: AppColors.neonBlue.withValues(alpha: 0.25),
+                                  onSelected: (_) =>
+                                      setState(() => _selectedCategory = cat),
+                                  selectedColor: AppColors.neonBlue.withValues(
+                                    alpha: 0.25,
+                                  ),
                                   backgroundColor: AppColors.cardBackground,
                                   labelStyle: TextStyle(
-                                    color: isSelected ? AppColors.neonBlue : AppColors.textSecondary,
+                                    color: isSelected
+                                        ? AppColors.neonBlue
+                                        : AppColors.textSecondary,
                                     fontSize: 12.sp,
-                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8.r),
                                     side: BorderSide(
-                                      color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+                                      color: isSelected
+                                          ? AppColors.neonBlue
+                                          : AppColors.borderDefault,
                                     ),
                                   ),
                                 ),
@@ -274,7 +323,10 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
 
                       ...filteredExtras.map((item) {
                         final qty = _getExtraQty(item.id);
-                        final unavail = _findUnavailableExtra(unavailable, item.id);
+                        final unavail = _findUnavailableExtra(
+                          unavailable,
+                          item.id,
+                        );
                         return _buildExtraItem(item, qty, unavail, isArabic);
                       }),
                     ],
@@ -288,13 +340,21 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 onChanged: (val) => _note = val,
                 decoration: InputDecoration(
                   hintText: AppStrings.orderNoteHint.tr(),
-                  hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp),
+                  hintStyle: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12.sp,
+                  ),
                   filled: true,
                   fillColor: AppColors.cardBackground,
-                  contentPadding: EdgeInsetsDirectional.symmetric(horizontal: 14.w, vertical: 10.h),
+                  contentPadding: EdgeInsetsDirectional.symmetric(
+                    horizontal: 14.w,
+                    vertical: 10.h,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.r),
-                    borderSide: const BorderSide(color: AppColors.borderDefault),
+                    borderSide: const BorderSide(
+                      color: AppColors.borderDefault,
+                    ),
                   ),
                 ),
                 style: TextStyle(color: AppColors.white, fontSize: 13.sp),
@@ -315,7 +375,9 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 ),
                 buttonConfig: ButtonConfig(
                   height: 48.h,
-                  backgroundColor: totalCount > 0 ? AppColors.neonBlue : AppColors.borderDefault,
+                  backgroundColor: totalCount > 0
+                      ? AppColors.neonBlue
+                      : AppColors.borderDefault,
                   borderRadius: 12.r,
                 ),
               ),
@@ -375,7 +437,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                     color: AppColors.neonPurple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10.r),
                   ),
-                  child: Icon(Icons.fastfood_rounded, color: AppColors.neonPurple, size: 24.sp),
+                  child: Icon(
+                    Icons.fastfood_rounded,
+                    color: AppColors.neonPurple,
+                    size: 24.sp,
+                  ),
                 ),
                 SizedBox(width: 12.w),
               ],
@@ -395,13 +461,17 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                         ),
                         if (hasSavings) ...[
                           Container(
-                            padding: EdgeInsetsDirectional.symmetric(horizontal: 6.w, vertical: 2.h),
+                            padding: EdgeInsetsDirectional.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.success.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(6.r),
                             ),
                             child: AppText(
-                              text: "${AppStrings.saveAmount.tr()} ${combo.savings.toStringAsFixed(0)} ${AppStrings.egpSymbol.tr()}",
+                              text:
+                                  "${AppStrings.saveAmount.tr()} ${combo.savings.toStringAsFixed(0)} ${AppStrings.egpSymbol.tr()}",
                               fontSize: 10.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.success,
@@ -424,7 +494,8 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                     Row(
                       children: [
                         AppText(
-                          text: "${combo.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                          text:
+                              "${combo.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
                           fontSize: 13.5.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.neonBlue,
@@ -453,7 +524,9 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 },
                 onRemove: () {
                   widget.cubit.clearUnavailableItems();
-                  setState(() => _comboQuantities[combo.id] = (qty - 1).clamp(0, 99));
+                  setState(
+                    () => _comboQuantities[combo.id] = (qty - 1).clamp(0, 99),
+                  );
                 },
               ),
             ],
@@ -461,13 +534,18 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
           if (unavailableItem != null) ...[
             SizedBox(height: 6.h),
             Container(
-              padding: EdgeInsetsDirectional.symmetric(horizontal: 8.w, vertical: 3.h),
+              padding: EdgeInsetsDirectional.symmetric(
+                horizontal: 8.w,
+                vertical: 3.h,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.danger.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: AppText(
-                text: AppStrings.remainingQuantity.tr(args: [unavailableItem.available.toString()]),
+                text: AppStrings.remainingQuantity.tr(
+                  args: [unavailableItem.available.toString()],
+                ),
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.danger,
@@ -526,7 +604,11 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                     borderRadius: BorderRadius.circular(8.r),
                     border: Border.all(color: AppColors.borderDefault),
                   ),
-                  child: Icon(Icons.local_cafe_rounded, color: AppColors.neonBlue, size: 20.sp),
+                  child: Icon(
+                    Icons.local_cafe_rounded,
+                    color: AppColors.neonBlue,
+                    size: 20.sp,
+                  ),
                 ),
                 SizedBox(width: 10.w),
               ],
@@ -542,7 +624,8 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                     ),
                     SizedBox(height: 3.h),
                     AppText(
-                      text: "${item.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                      text:
+                          "${item.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
                       fontSize: 12.5.sp,
                       fontWeight: FontWeight.w600,
                       color: AppColors.neonBlue,
@@ -558,7 +641,9 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 },
                 onRemove: () {
                   widget.cubit.clearUnavailableItems();
-                  setState(() => _extraQuantities[item.id] = (qty - 1).clamp(0, 99));
+                  setState(
+                    () => _extraQuantities[item.id] = (qty - 1).clamp(0, 99),
+                  );
                 },
               ),
             ],
@@ -566,13 +651,18 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
           if (unavailableItem != null) ...[
             SizedBox(height: 6.h),
             Container(
-              padding: EdgeInsetsDirectional.symmetric(horizontal: 8.w, vertical: 3.h),
+              padding: EdgeInsetsDirectional.symmetric(
+                horizontal: 8.w,
+                vertical: 3.h,
+              ),
               decoration: BoxDecoration(
                 color: AppColors.danger.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: AppText(
-                text: AppStrings.remainingQuantity.tr(args: [unavailableItem.available.toString()]),
+                text: AppStrings.remainingQuantity.tr(
+                  args: [unavailableItem.available.toString()],
+                ),
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.danger,
@@ -638,16 +728,18 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
         final match = extras.where((e) => e.id == id);
         if (match.isNotEmpty) {
           final item = match.first;
-          items.add(OrderItem(
-            id: item.id,
-            name: item.name,
-            nameAr: item.nameAr,
-            nameEn: item.nameEn,
-            price: item.price,
-            quantity: qty,
-            note: _note,
-            isCombo: false,
-          ));
+          items.add(
+            OrderItem(
+              id: item.id,
+              name: item.name,
+              nameAr: item.nameAr,
+              nameEn: item.nameEn,
+              price: item.price,
+              quantity: qty,
+              note: _note,
+              isCombo: false,
+            ),
+          );
         }
       }
     });
@@ -657,16 +749,18 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
         final match = combos.where((c) => c.id == id);
         if (match.isNotEmpty) {
           final combo = match.first;
-          items.add(OrderItem(
-            id: combo.id,
-            name: combo.nameAr,
-            nameAr: combo.nameAr,
-            nameEn: combo.nameEn,
-            price: combo.price,
-            quantity: qty,
-            note: _note,
-            isCombo: true,
-          ));
+          items.add(
+            OrderItem(
+              id: combo.id,
+              name: combo.nameAr,
+              nameAr: combo.nameAr,
+              nameEn: combo.nameEn,
+              price: combo.price,
+              quantity: qty,
+              note: _note,
+              isCombo: true,
+            ),
+          );
         }
       }
     });

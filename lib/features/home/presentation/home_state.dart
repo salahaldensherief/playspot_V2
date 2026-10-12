@@ -98,7 +98,9 @@ class HomeState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       hasReachedMax: hasReachedMax ?? this.hasReachedMax,
       sortType: sortType ?? this.sortType,
-      nearbyTournament: clearNearbyTournament ? null : (nearbyTournament ?? this.nearbyTournament),
+      nearbyTournament: clearNearbyTournament
+          ? null
+          : (nearbyTournament ?? this.nearbyTournament),
       activeRegisteredTournament: clearActiveRegisteredTournament
           ? null
           : (activeRegisteredTournament ?? this.activeRegisteredTournament),

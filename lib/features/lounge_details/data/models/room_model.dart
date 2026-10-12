@@ -101,7 +101,18 @@ class RoomModel extends Equatable {
         .toList();
   }
 
-  String? getPromoTag(bool isArabic) => isArabic ? promoTagAr : promoTagEn;
+  String? getPromoTag(bool isArabic) {
+    final tag = isArabic ? promoTagAr : promoTagEn;
+    if (!isArabic && tag != null && RegExp(r'[\u0600-\u06FF]').hasMatch(tag)) {
+      if (promoDiscountValue > 0) {
+        return promoDiscountType == 'percentage'
+            ? '${promoDiscountValue.toInt()}% OFF'
+            : '${promoDiscountValue.toInt()} EGP OFF';
+      }
+      return null;
+    }
+    return tag;
+  }
 
   int get capacity => maxCapacity;
   double get hourlyRate => hourlyRateSingle;

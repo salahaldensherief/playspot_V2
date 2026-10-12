@@ -10,10 +10,7 @@ import '../../../../../art_core/widgets/text_field/app_text_field.dart';
 
 class SignUpForm extends StatelessWidget {
   final SignupCubit? cubit;
-  const SignUpForm({
-    super.key,
-    this.cubit,
-  });
+  const SignUpForm({super.key, this.cubit});
 
   @override
   Widget build(BuildContext context) {

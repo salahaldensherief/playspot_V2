@@ -8,7 +8,9 @@ class GetUserTournamentHistoryUseCase {
 
   GetUserTournamentHistoryUseCase(this.repository);
 
-  Future<Either<Failure, List<UserTournamentParticipationEntity>>> call(String userId) {
+  Future<Either<Failure, List<UserTournamentParticipationEntity>>> call(
+    String userId,
+  ) {
     return repository.getUserTournamentHistory(userId);
   }
 }

@@ -11,10 +11,7 @@ import '../../../domain/entities/tournament_entity.dart';
 class TournamentPrizesTab extends StatelessWidget {
   final List<TournamentPrizeEntity> prizes;
 
-  const TournamentPrizesTab({
-    super.key,
-    required this.prizes,
-  });
+  const TournamentPrizesTab({super.key, required this.prizes});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +20,11 @@ class TournamentPrizesTab extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(TablerIcons.trophy_off, size: 48.sp, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+            Icon(
+              TablerIcons.trophy_off,
+              size: 48.sp,
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+            ),
             SizedBox(height: 12.h),
             AppText(
               text: AppStrings.noResults.tr(),
@@ -101,7 +102,8 @@ class TournamentPrizesTab extends StatelessWidget {
                 ),
                 SizedBox(height: 4.h),
                 AppText(
-                  text: '${totalAmount.toStringAsFixed(0)} ${AppStrings.egp.tr()}',
+                  text:
+                      '${totalAmount.toStringAsFixed(0)} ${AppStrings.egp.tr()}',
                   color: AppColors.warning,
                   fontSize: 22.sp,
                   fontWeight: FontWeight.bold,
@@ -122,26 +124,26 @@ class TournamentPrizesTab extends StatelessWidget {
     final Color cardAccentColor = isFirst
         ? AppColors.warning
         : isSecond
-            ? const Color(0xFFCBD5E1)
-            : isThird
-                ? const Color(0xFFCD7F32)
-                : AppColors.neonBlue;
+        ? const Color(0xFFCBD5E1)
+        : isThird
+        ? const Color(0xFFCD7F32)
+        : AppColors.neonBlue;
 
     final IconData rankIcon = isFirst
         ? TablerIcons.crown
         : isSecond
-            ? TablerIcons.medal
-            : isThird
-                ? TablerIcons.award
-                : TablerIcons.trophy;
+        ? TablerIcons.medal
+        : isThird
+        ? TablerIcons.award
+        : TablerIcons.trophy;
 
     final String rankLabel = isFirst
         ? AppStrings.firstPlace.tr()
         : isSecond
-            ? AppStrings.secondPlace.tr()
-            : isThird
-                ? AppStrings.thirdPlace.tr()
-                : '#${prize.placement}';
+        ? AppStrings.secondPlace.tr()
+        : isThird
+        ? AppStrings.thirdPlace.tr()
+        : '#${prize.placement}';
 
     return GlassContainer(
       padding: EdgeInsets.all(16.w),
@@ -170,7 +172,8 @@ class TournamentPrizesTab extends StatelessWidget {
                   fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                 ),
-                if (prize.description != null && prize.description!.isNotEmpty) ...[
+                if (prize.description != null &&
+                    prize.description!.isNotEmpty) ...[
                   SizedBox(height: 2.h),
                   AppText(
                     text: prize.description!,

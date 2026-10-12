@@ -31,10 +31,23 @@ class RoomMainContent extends StatelessWidget {
     final verticalPadding = hasOffer ? 18.h : 12.h;
     final horizontalPadding = 14.w;
 
-    final String offerText = room.hasActivePromo
-        ? (room.getPromoTag(isArabic) ?? AppStrings.activeOffer.tr())
-        : (data.lounge?.getDiscountTitle(isArabic) ??
-              '${AppStrings.discount.tr()} ${data.lounge?.discountPercentage ?? 0}%');
+    final String offerText = () {
+      final tag = room.hasActivePromo
+          ? room.getPromoTag(isArabic)
+          : data.lounge?.getDiscountTitle(isArabic);
+      if (tag != null &&
+          tag.trim().isNotEmpty &&
+          (isArabic || !RegExp(r'[\u0600-\u06FF]').hasMatch(tag))) {
+        return tag;
+      }
+      final pct = room.hasActivePromo && room.promoDiscountValue > 0
+          ? room.promoDiscountValue.toInt()
+          : (data.lounge?.discountPercentage ?? 0);
+      if (pct > 0) {
+        return isArabic ? '${AppStrings.discount.tr()} $pct%' : '$pct% OFF';
+      }
+      return AppStrings.activeOffer.tr();
+    }();
 
     return IntrinsicHeight(
       child: Stack(
@@ -82,7 +95,7 @@ class RoomMainContent extends StatelessWidget {
           if (hasOffer)
             PositionedDirectional(
               top: 0,
-              start: 0,
+              end: 0,
               child: RoomPromoBadge(tag: offerText),
             ),
           if (!data.isAvailable) const RoomBookedOverlay(),

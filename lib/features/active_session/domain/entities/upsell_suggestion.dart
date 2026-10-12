@@ -34,14 +34,14 @@ class UpsellSuggestion extends Equatable {
 
   @override
   List<Object?> get props => [
-        ruleId,
-        suggestionType,
-        targetId,
-        nameAr,
-        nameEn,
-        originalPrice,
-        discountPercent,
-        finalPrice,
-        imageUrl,
-      ];
+    ruleId,
+    suggestionType,
+    targetId,
+    nameAr,
+    nameEn,
+    originalPrice,
+    discountPercent,
+    finalPrice,
+    imageUrl,
+  ];
 }

@@ -29,9 +29,8 @@ class ForgotPasswordState extends Equatable {
     this.email,
   });
 
-  factory ForgotPasswordState.initial() => const ForgotPasswordState(
-        status: ForgotPasswordStatus.initial,
-      );
+  factory ForgotPasswordState.initial() =>
+      const ForgotPasswordState(status: ForgotPasswordStatus.initial);
 
   ForgotPasswordState copyWith({
     ForgotPasswordStatus? status,

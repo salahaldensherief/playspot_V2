@@ -8,7 +8,9 @@ class GetBookingTimelineUseCase {
 
   GetBookingTimelineUseCase(this.repository);
 
-  Future<Either<Failure, List<BookingTimelineItem>>> call(String bookingId) async {
+  Future<Either<Failure, List<BookingTimelineItem>>> call(
+    String bookingId,
+  ) async {
     return await repository.getBookingTimeline(bookingId);
   }
 }

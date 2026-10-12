@@ -37,10 +37,7 @@ class SignInScreen extends StatelessWidget {
               180.verticalSpace,
               const SocialSection(),
               20.verticalSpace,
-              Padding(
-                padding: 16.horizontalPadding,
-                child: const SignInForm(),
-              ),
+              Padding(padding: 16.horizontalPadding, child: const SignInForm()),
               20.verticalSpace,
               Padding(
                 padding: 16.horizontalPadding,

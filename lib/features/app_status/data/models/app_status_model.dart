@@ -50,12 +50,11 @@ class AppStatusModel extends AppStatusEntity {
           json['maintenance_message_ar']?.toString() ?? maintenanceMessage,
       maintenanceMessageEn:
           json['maintenance_message_en']?.toString() ?? maintenanceMessage,
-      expectedEndTime:
-          json['maintenance_until'] != null
-              ? DateTime.tryParse(json['maintenance_until'].toString())
-              : json['expected_end_time'] != null
-              ? DateTime.tryParse(json['expected_end_time'].toString())
-              : null,
+      expectedEndTime: json['maintenance_until'] != null
+          ? DateTime.tryParse(json['maintenance_until'].toString())
+          : json['expected_end_time'] != null
+          ? DateTime.tryParse(json['expected_end_time'].toString())
+          : null,
       minSupportedVersion:
           minVersion?.toString() ??
           json['min_supported_version']?.toString() ??
@@ -67,10 +66,8 @@ class AppStatusModel extends AppStatusEntity {
       storeUrlAndroid: json['store_url_android']?.toString(),
       storeUrlIos: json['store_url_ios']?.toString(),
       updateMessage: updateMessage,
-      updateMessageAr:
-          json['update_message_ar']?.toString() ?? updateMessage,
-      updateMessageEn:
-          json['update_message_en']?.toString() ?? updateMessage,
+      updateMessageAr: json['update_message_ar']?.toString() ?? updateMessage,
+      updateMessageEn: json['update_message_en']?.toString() ?? updateMessage,
       announcementId: json['announcement_id']?.toString(),
       announcementTitle: json['announcement_title']?.toString(),
       announcementBody: json['announcement_body']?.toString(),

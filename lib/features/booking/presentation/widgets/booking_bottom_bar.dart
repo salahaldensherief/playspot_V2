@@ -21,10 +21,7 @@ import '../booking_state.dart';
 class BookingBottomBar extends StatefulWidget {
   final BookingDetailsParams params;
 
-  const BookingBottomBar({
-    super.key,
-    required this.params,
-  });
+  const BookingBottomBar({super.key, required this.params});
 
   @override
   State<BookingBottomBar> createState() => _BookingBottomBarState();
@@ -91,7 +88,9 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                               Text(
                                 "${(subtotals['originalTotalPrice'] ?? subtotals['originalRoomSubtotal'] ?? 0.0).toInt()} ${AppStrings.egp.tr()}",
                                 style: TextStyle(
-                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.5,
+                                  ),
                                   fontSize: 12.sp,
                                   fontWeight: FontWeight.bold,
                                   decoration: TextDecoration.lineThrough,
@@ -102,7 +101,9 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                             PriceWidget(
                               price: totalPrice,
                               fontSize: 20.sp,
-                              color: offerInfo.hasOffer ? AppColors.success : AppColors.neonBlue,
+                              color: offerInfo.hasOffer
+                                  ? AppColors.success
+                                  : AppColors.neonBlue,
                             ),
                           ],
                         ),
@@ -149,8 +150,11 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                             }
 
                             final rawBreakdown = subtotals['roomsBreakdown'];
-                            final List<Map<String, dynamic>> roomsBreakdown = (rawBreakdown is List)
-                                ? rawBreakdown.whereType<Map<String, dynamic>>().toList()
+                            final List<Map<String, dynamic>> roomsBreakdown =
+                                (rawBreakdown is List)
+                                ? rawBreakdown
+                                      .whereType<Map<String, dynamic>>()
+                                      .toList()
                                 : <Map<String, dynamic>>[];
 
                             final checkoutParams = CheckoutParams(

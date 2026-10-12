@@ -5,7 +5,9 @@ import '../../../home/data/models/lounge_model.dart';
 import '../../domain/repositories/favorites_repository.dart';
 import '../datasources/remote/favorites_remote_data_source.dart';
 
-class FavoritesRepositoryImpl with RepositoryHelper implements FavoritesRepository {
+class FavoritesRepositoryImpl
+    with RepositoryHelper
+    implements FavoritesRepository {
   final FavoritesRemoteDataSource _remoteDataSource;
 
   FavoritesRepositoryImpl(this._remoteDataSource);
@@ -17,21 +19,23 @@ class FavoritesRepositoryImpl with RepositoryHelper implements FavoritesReposito
 
   @override
   Future<Either<Failure, void>> addFavorite(String loungeId) async {
-    final result = await callRepository(() => _remoteDataSource.addFavorite(loungeId));
-    return result.fold(
-      (failure) {
-        if (failure.message.contains('23505') || failure.message.contains('unique_user_lounge_favorite')) {
-          return const Right(null); // Silent success if already favorited
-        }
-        return Left(failure);
-      },
-      (success) => Right(success),
+    final result = await callRepository(
+      () => _remoteDataSource.addFavorite(loungeId),
     );
+    return result.fold((failure) {
+      if (failure.message.contains('23505') ||
+          failure.message.contains('unique_user_lounge_favorite')) {
+        return const Right(null); // Silent success if already favorited
+      }
+      return Left(failure);
+    }, (success) => Right(success));
   }
 
   @override
   Future<Either<Failure, void>> removeFavorite(String loungeId) async {
-    return await callRepository(() => _remoteDataSource.removeFavorite(loungeId));
+    return await callRepository(
+      () => _remoteDataSource.removeFavorite(loungeId),
+    );
   }
 
   @override

@@ -26,7 +26,9 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
 
     final response = await _client
         .from('bookings')
-        .select('*, lounges(*), rooms(name, name_en, controllers_count, screen_size, space_types(label, name)), canteen_orders(*, canteen_order_items(*, extras(id, name, name_ar, name_en, price)))')
+        .select(
+          '*, lounges(*), rooms(name, name_en, controllers_count, screen_size, space_types(label, name)), canteen_orders(*, canteen_order_items(*, extras(id, name, name_ar, name_en, price)))',
+        )
         .eq('user_id', userId)
         .order('date', ascending: false);
 
@@ -39,11 +41,14 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
     int page = 1,
     int pageSize = 20,
   }) async {
-    final response = await _client.rpc('get_lounge_bookings_page', params: {
-      'p_lounge_id': loungeId,
-      'p_page': page,
-      'p_page_size': pageSize,
-    });
+    final response = await _client.rpc(
+      'get_lounge_bookings_page',
+      params: {
+        'p_lounge_id': loungeId,
+        'p_page': page,
+        'p_page_size': pageSize,
+      },
+    );
 
     return PaginatedResponse.fromRpc(
       response: response,
@@ -60,15 +65,14 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
 
     await _client.rpc(
       'cancel_my_booking',
-      params: {
-        'p_booking_id': bookingId,
-        'p_reason': 'Cancelled by user',
-      },
+      params: {'p_booking_id': bookingId, 'p_reason': 'Cancelled by user'},
     );
   }
 
   @override
-  Future<List<BookingTimelineItemModel>> getBookingTimeline(String bookingId) async {
+  Future<List<BookingTimelineItemModel>> getBookingTimeline(
+    String bookingId,
+  ) async {
     final response = await _client.rpc(
       'get_booking_timeline_for_customer',
       params: {'p_booking_id': bookingId},

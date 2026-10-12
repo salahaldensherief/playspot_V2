@@ -57,7 +57,9 @@ class BookingPriceQuoteModel extends BookingPriceQuote {
     if (rawSegments is List) {
       for (var item in rawSegments) {
         if (item is Map) {
-          segmentsList.add(PricingSegmentModel.fromJson(Map<String, dynamic>.from(item)));
+          segmentsList.add(
+            PricingSegmentModel.fromJson(Map<String, dynamic>.from(item)),
+          );
         }
       }
     }
@@ -65,7 +67,8 @@ class BookingPriceQuoteModel extends BookingPriceQuote {
     return BookingPriceQuoteModel(
       segments: segmentsList,
       roomSubtotal: (json['room_subtotal'] as num?)?.toDouble() ?? 0.0,
-      extraControllersAmount: (json['extra_controllers_amount'] as num?)?.toDouble() ?? 0.0,
+      extraControllersAmount:
+          (json['extra_controllers_amount'] as num?)?.toDouble() ?? 0.0,
       discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
       total: (json['total'] as num?)?.toDouble() ?? 0.0,
       currency: json['currency']?.toString() ?? 'EGP',
@@ -76,7 +79,9 @@ class BookingPriceQuoteModel extends BookingPriceQuote {
 
   Map<String, dynamic> toJson() {
     return {
-      'segments': segments.map((s) => (s as PricingSegmentModel).toJson()).toList(),
+      'segments': segments
+          .map((s) => (s as PricingSegmentModel).toJson())
+          .toList(),
       'room_subtotal': roomSubtotal,
       'extra_controllers_amount': extraControllersAmount,
       'discount_amount': discountAmount,

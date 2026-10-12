@@ -34,7 +34,9 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<ActiveSessionCubit>().loadActiveSession(bookingId: widget.bookingId);
+        context.read<ActiveSessionCubit>().loadActiveSession(
+          bookingId: widget.bookingId,
+        );
       }
     });
   }
@@ -52,7 +54,8 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
               prev.session?.extensionStatus != curr.session?.extensionStatus ||
               prev.session?.endTime != curr.session?.endTime ||
               (prev.status != curr.status &&
-                  (curr.status == ActiveSessionStatus.empty || curr.status == ActiveSessionStatus.loaded)),
+                  (curr.status == ActiveSessionStatus.empty ||
+                      curr.status == ActiveSessionStatus.loaded)),
           listener: (context, state) {
             final session = state.session;
             if (state.status == ActiveSessionStatus.loaded &&
@@ -106,11 +109,7 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
                 (state.extendStatus == ActionStatus.error ||
                     state.orderStatus == ActionStatus.error ||
                     state.staffRequestStatus == ActionStatus.error)) {
-              GameHudToast.show(
-                context,
-                errorMsg,
-                type: ToastType.error,
-              );
+              GameHudToast.show(context, errorMsg, type: ToastType.error);
             }
           },
           child: Scaffold(

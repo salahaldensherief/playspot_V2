@@ -111,9 +111,14 @@ class ReferralCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 10.h,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.cardBackground.withValues(alpha: 0.8),
+                          color: AppColors.cardBackground.withValues(
+                            alpha: 0.8,
+                          ),
                           borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
                             color: AppColors.neonPurple.withValues(alpha: 0.3),
@@ -141,9 +146,14 @@ class ReferralCard extends StatelessWidget {
                     SizedBox(width: 12.w),
                     Expanded(
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 10.h,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.cardBackground.withValues(alpha: 0.8),
+                          color: AppColors.cardBackground.withValues(
+                            alpha: 0.8,
+                          ),
                           borderRadius: BorderRadius.circular(16.r),
                           border: Border.all(
                             color: AppColors.warning.withValues(alpha: 0.3),
@@ -174,7 +184,10 @@ class ReferralCard extends StatelessWidget {
                 // Referral Code Box
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 12.h,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.cardBackground,
                     borderRadius: BorderRadius.circular(16.r),
@@ -261,7 +274,11 @@ class ReferralCard extends StatelessWidget {
                   ),
                   content: ButtonContent(
                     label: AppStrings.shareLink.tr(),
-                    icon: Icon(TablerIcons.share, color: Colors.white, size: 18.sp),
+                    icon: Icon(
+                      TablerIcons.share,
+                      color: Colors.white,
+                      size: 18.sp,
+                    ),
                   ),
                   behavior: ButtonBehavior.tap(
                     onTap: () => _shareReferralLink(context, referralCode),

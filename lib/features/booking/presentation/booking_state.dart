@@ -6,6 +6,7 @@ import '../domain/entities/booking_price_quote.dart';
 import '../domain/entities/room_slot_price.dart';
 
 enum BookingStatus { initial, loading, success, error }
+
 enum PlayMode { single, multi }
 
 class BookingState extends Equatable {
@@ -66,7 +67,8 @@ class BookingState extends Equatable {
       slotPrices: slotPrices ?? this.slotPrices,
       priceQuote: clearPriceQuote ? null : (priceQuote ?? this.priceQuote),
       playMode: playMode ?? this.playMode,
-      extraControllersCount: extraControllersCount ?? this.extraControllersCount,
+      extraControllersCount:
+          extraControllersCount ?? this.extraControllersCount,
       errorMessage: errorMessage,
       holdToken: clearHold ? null : (holdToken ?? this.holdToken),
       holdExpiresAt: clearHold ? null : (holdExpiresAt ?? this.holdExpiresAt),
@@ -76,10 +78,15 @@ class BookingState extends Equatable {
 
   // Helper method to find a priced slot for a given TimeOfDay
   RoomSlotPrice? getSlotPrice(TimeOfDay time) {
-    final startStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00";
+    final startStr =
+        "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:00";
     try {
       return slotPrices.firstWhere(
-        (s) => s.slotStart == startStr || s.slotStart.startsWith("${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}"),
+        (s) =>
+            s.slotStart == startStr ||
+            s.slotStart.startsWith(
+              "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}",
+            ),
       );
     } catch (_) {
       return null;
@@ -96,7 +103,10 @@ class BookingState extends Equatable {
     );
   }
 
-  Map<String, dynamic> getCalculatedSubtotals(BookingDetailsParams params, bool isArabic) {
+  Map<String, dynamic> getCalculatedSubtotals(
+    BookingDetailsParams params,
+    bool isArabic,
+  ) {
     // If dynamic priceQuote exists from server, use its exact server-authoritative numbers!
     if (priceQuote != null) {
       final double serverTotal = priceQuote!.total;
@@ -111,7 +121,11 @@ class BookingState extends Equatable {
         'roomDiscountAmount': discountSub,
         'addonsTotal': calculateExtrasPrice(params),
         'totalPrice': serverTotal,
-        'originalTotalPrice': roomSub + discountSub + calculateExtrasPrice(params) + extraControllersSub,
+        'originalTotalPrice':
+            roomSub +
+            discountSub +
+            calculateExtrasPrice(params) +
+            extraControllersSub,
         'durationHours': durationHours,
         'segments': priceQuote!.segments,
         'hasPeak': priceQuote!.hasPeak,
@@ -129,19 +143,21 @@ class BookingState extends Equatable {
             'originalSubtotal': roomSub,
             'discountedSubtotal': roomSub,
             'discountAmount': discountSub,
-          }
+          },
         ],
       };
     }
 
     if (params.rooms.length <= 1) {
       final offerInfo = getOfferInfo(params, isArabic);
-      final singleSub = Map<String, dynamic>.from(offerInfo.calculateSubtotals(
-        durationMinutes: durationMinutes,
-        extraControllersCount: extraControllersCount,
-        extraControllerPrice: params.room.extraControllerPrice,
-        extras: params.extras,
-      ));
+      final singleSub = Map<String, dynamic>.from(
+        offerInfo.calculateSubtotals(
+          durationMinutes: durationMinutes,
+          extraControllersCount: extraControllersCount,
+          extraControllerPrice: params.room.extraControllerPrice,
+          extras: params.extras,
+        ),
+      );
       singleSub['roomsBreakdown'] = <Map<String, dynamic>>[
         {
           'room': params.room,
@@ -155,7 +171,7 @@ class BookingState extends Equatable {
           'originalSubtotal': singleSub['originalRoomSubtotal'] ?? 0.0,
           'discountedSubtotal': singleSub['discountedRoomSubtotal'] ?? 0.0,
           'discountAmount': singleSub['roomDiscountAmount'] ?? 0.0,
-        }
+        },
       ];
       return singleSub;
     }
@@ -167,8 +183,11 @@ class BookingState extends Equatable {
 
     final List<Map<String, dynamic>> roomsBreakdown = [];
     for (final r in params.rooms) {
-      final mode = params.roomPlayModes[r.id] ??
-          (r.isOpenArea ? (playMode == PlayMode.single ? 'single' : 'multi') : 'single');
+      final mode =
+          params.roomPlayModes[r.id] ??
+          (r.isOpenArea
+              ? (playMode == PlayMode.single ? 'single' : 'multi')
+              : 'single');
       final controllers = params.roomExtraControllers[r.id] ?? 0;
 
       final roomOffer = BookingOfferInfo.resolve(
@@ -224,7 +243,9 @@ class BookingState extends Equatable {
     return params.extras.fold<double>(
       0,
       (sum, item) =>
-          sum + (((item['price'] as num?)?.toDouble() ?? 0.0) * ((item['quantity'] as num?)?.toDouble() ?? 1.0)),
+          sum +
+          (((item['price'] as num?)?.toDouble() ?? 0.0) *
+              ((item['quantity'] as num?)?.toDouble() ?? 1.0)),
     );
   }
 
@@ -296,18 +317,18 @@ class BookingState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        selectedDate,
-        startTime,
-        durationMinutes,
-        bookedTimeSlots,
-        slotPrices,
-        priceQuote,
-        playMode,
-        extraControllersCount,
-        errorMessage,
-        holdToken,
-        holdExpiresAt,
-        heldStartAt,
-      ];
+    status,
+    selectedDate,
+    startTime,
+    durationMinutes,
+    bookedTimeSlots,
+    slotPrices,
+    priceQuote,
+    playMode,
+    extraControllersCount,
+    errorMessage,
+    holdToken,
+    holdExpiresAt,
+    heldStartAt,
+  ];
 }

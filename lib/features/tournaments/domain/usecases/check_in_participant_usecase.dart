@@ -8,7 +8,9 @@ class CheckInParticipantUseCase {
 
   CheckInParticipantUseCase(this.repository);
 
-  Future<Either<Failure, TournamentParticipantEntity?>> call(String participantId) {
+  Future<Either<Failure, TournamentParticipantEntity?>> call(
+    String participantId,
+  ) {
     return repository.checkInParticipant(participantId);
   }
 }

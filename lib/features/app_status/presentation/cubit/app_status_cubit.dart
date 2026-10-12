@@ -17,9 +17,9 @@ class AppStatusCubit extends Cubit<AppStatusState> {
   AppStatusCubit({
     required CheckAppStatusUseCase checkAppStatusUseCase,
     required StreamAppStatusUseCase streamAppStatusUseCase,
-  })  : _checkAppStatusUseCase = checkAppStatusUseCase,
-        _streamAppStatusUseCase = streamAppStatusUseCase,
-        super(const AppStatusState());
+  }) : _checkAppStatusUseCase = checkAppStatusUseCase,
+       _streamAppStatusUseCase = streamAppStatusUseCase,
+       super(const AppStatusState());
 
   /// Initial startup status check and starting realtime listener
   Future<AppStatusType> checkAndListen() async {
@@ -29,7 +29,9 @@ class AppStatusCubit extends Cubit<AppStatusState> {
     try {
       final info = await PackageInfo.fromPlatform();
       currentVersion = info.version;
-      dev.log('[AppStatusCubit] Current Installed App Version: $currentVersion');
+      dev.log(
+        '[AppStatusCubit] Current Installed App Version: $currentVersion',
+      );
     } catch (e) {
       dev.log('[AppStatusCubit] PackageInfo error: $e');
     }
@@ -42,11 +44,13 @@ class AppStatusCubit extends Cubit<AppStatusState> {
     result.fold(
       (failure) {
         dev.log('[AppStatusCubit] Check status failed: ${failure.message}');
-        emit(state.copyWith(
-          isLoading: false,
-          errorMessage: failure.message,
-          statusType: AppStatusType.normal,
-        ));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: failure.message,
+            statusType: AppStatusType.normal,
+          ),
+        );
       },
       (entity) {
         calculatedType = _evaluateStatusType(
@@ -57,11 +61,13 @@ class AppStatusCubit extends Cubit<AppStatusState> {
         );
 
         dev.log('[AppStatusCubit] Evaluated Status Type: $calculatedType');
-        emit(state.copyWith(
-          isLoading: false,
-          statusEntity: entity,
-          statusType: calculatedType,
-        ));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            statusEntity: entity,
+            statusType: calculatedType,
+          ),
+        );
       },
     );
 
@@ -73,7 +79,9 @@ class AppStatusCubit extends Cubit<AppStatusState> {
     _statusSubscription?.cancel();
     _statusSubscription = _streamAppStatusUseCase().listen(
       (updatedEntity) {
-        dev.log('[AppStatusCubit Realtime] Maintenance: ${updatedEntity.maintenanceMode}, MinVersion: ${updatedEntity.minSupportedVersion}');
+        dev.log(
+          '[AppStatusCubit Realtime] Maintenance: ${updatedEntity.maintenanceMode}, MinVersion: ${updatedEntity.minSupportedVersion}',
+        );
 
         final calculatedType = _evaluateStatusType(
           entity: updatedEntity,
@@ -82,10 +90,12 @@ class AppStatusCubit extends Cubit<AppStatusState> {
           isSoftUpdateDismissed: state.isSoftUpdateDismissed,
         );
 
-        emit(state.copyWith(
-          statusEntity: updatedEntity,
-          statusType: calculatedType,
-        ));
+        emit(
+          state.copyWith(
+            statusEntity: updatedEntity,
+            statusType: calculatedType,
+          ),
+        );
       },
       onError: (err) {
         dev.log('[AppStatusCubit Realtime Error] $err');
@@ -97,7 +107,9 @@ class AppStatusCubit extends Cubit<AppStatusState> {
   void updateActiveSessionStatus({required bool hasActiveSession}) {
     if (state.hasActiveSession == hasActiveSession) return;
 
-    dev.log('[AppStatusCubit] Active Session status changed: $hasActiveSession');
+    dev.log(
+      '[AppStatusCubit] Active Session status changed: $hasActiveSession',
+    );
     final entity = state.statusEntity;
 
     if (entity != null) {
@@ -108,20 +120,24 @@ class AppStatusCubit extends Cubit<AppStatusState> {
         isSoftUpdateDismissed: state.isSoftUpdateDismissed,
       );
 
-      emit(state.copyWith(
-        hasActiveSession: hasActiveSession,
-        statusType: calculatedType,
-      ));
+      emit(
+        state.copyWith(
+          hasActiveSession: hasActiveSession,
+          statusType: calculatedType,
+        ),
+      );
     } else {
       emit(state.copyWith(hasActiveSession: hasActiveSession));
     }
   }
 
   void dismissSoftUpdate() {
-    emit(state.copyWith(
-      isSoftUpdateDismissed: true,
-      statusType: AppStatusType.normal,
-    ));
+    emit(
+      state.copyWith(
+        isSoftUpdateDismissed: true,
+        statusType: AppStatusType.normal,
+      ),
+    );
   }
 
   /// Priorities:
@@ -139,7 +155,10 @@ class AppStatusCubit extends Cubit<AppStatusState> {
   }) {
     if (entity.maintenanceMode) {
       if (hasActiveSession) {
-        if (VersionUtils.isLowerThan(currentVersion, entity.minSupportedVersion)) {
+        if (VersionUtils.isLowerThan(
+          currentVersion,
+          entity.minSupportedVersion,
+        )) {
           return AppStatusType.forceUpdate;
         }
         return AppStatusType.maintenanceRestricted;
@@ -151,7 +170,8 @@ class AppStatusCubit extends Cubit<AppStatusState> {
       return AppStatusType.forceUpdate;
     }
 
-    if (VersionUtils.isLowerThan(currentVersion, entity.latestVersion) && !isSoftUpdateDismissed) {
+    if (VersionUtils.isLowerThan(currentVersion, entity.latestVersion) &&
+        !isSoftUpdateDismissed) {
       return AppStatusType.softUpdate;
     }
 

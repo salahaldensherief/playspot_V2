@@ -17,10 +17,7 @@ import '../booking_timeline_state.dart';
 class BookingTimelineWidget extends StatefulWidget {
   final String bookingId;
 
-  const BookingTimelineWidget({
-    super.key,
-    required this.bookingId,
-  });
+  const BookingTimelineWidget({super.key, required this.bookingId});
 
   @override
   State<BookingTimelineWidget> createState() => _BookingTimelineWidgetState();
@@ -61,7 +58,8 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       buildWhen: (previous, current) =>
           previous.status != current.status || previous.items != current.items,
       builder: (context, state) {
-        if (state.status == RequestStatus.loading || state.status == RequestStatus.initial) {
+        if (state.status == RequestStatus.loading ||
+            state.status == RequestStatus.initial) {
           return _buildLoadingShimmer();
         }
 
@@ -152,11 +150,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                         color: Colors.white,
                       ),
                       SizedBox(height: 6.h),
-                      Container(
-                        width: 80.w,
-                        height: 10.h,
-                        color: Colors.white,
-                      ),
+                      Container(width: 80.w, height: 10.h, color: Colors.white),
                     ],
                   ),
                 ),
@@ -181,7 +175,11 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
         children: [
           Row(
             children: [
-              Icon(Icons.error_outline_rounded, color: AppColors.danger, size: 20.sp),
+              Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.danger,
+                size: 20.sp,
+              ),
               SizedBox(width: 8.w),
               Expanded(
                 child: AppText(
@@ -199,9 +197,7 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
               width: 130.w,
               height: 36.h,
               child: AppButton(
-                content: ButtonContent(
-                  label: AppStrings.retry.tr(),
-                ),
+                content: ButtonContent(label: AppStrings.retry.tr()),
                 buttonConfig: ButtonConfig(
                   height: 36.h,
                   backgroundColor: AppColors.danger,
@@ -209,7 +205,10 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
                 ),
                 behavior: ButtonBehavior.tap(
                   onTap: () {
-                    context.read<BookingTimelineCubit>().fetchTimeline(widget.bookingId, isArabic: isArabic);
+                    context.read<BookingTimelineCubit>().fetchTimeline(
+                      widget.bookingId,
+                      isArabic: isArabic,
+                    );
                   },
                 ),
               ),
@@ -230,7 +229,11 @@ class _BookingTimelineWidgetState extends State<BookingTimelineWidget> {
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline_rounded, color: AppColors.warning, size: 20.sp),
+          Icon(
+            Icons.info_outline_rounded,
+            color: AppColors.warning,
+            size: 20.sp,
+          ),
           SizedBox(width: 8.w),
           Expanded(
             child: AppText(
@@ -353,11 +356,7 @@ class _TimelineTileNode extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: color, width: 1.5.w),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 16.sp,
-                ),
+                child: Icon(icon, color: color, size: 16.sp),
               ),
               if (!isLast)
                 Expanded(
@@ -395,7 +394,8 @@ class _TimelineTileNode extends StatelessWidget {
                     fontSize: 11.sp,
                     color: Colors.white60,
                   ),
-                  if (item.payload != null && (item.payload?.isNotEmpty ?? false)) ...[
+                  if (item.payload != null &&
+                      (item.payload?.isNotEmpty ?? false)) ...[
                     SizedBox(height: 6.h),
                     _buildPayloadDetails(item.payload ?? const {}),
                   ],

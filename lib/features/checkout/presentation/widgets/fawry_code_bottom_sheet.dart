@@ -70,7 +70,11 @@ class FawryCodeBottomSheet extends StatelessWidget {
               color: Colors.amber.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(TablerIcons.building_bank, color: Colors.amber, size: 32.sp),
+            child: Icon(
+              TablerIcons.building_bank,
+              color: Colors.amber,
+              size: 32.sp,
+            ),
           ),
           SizedBox(height: 12.h),
           AppText(
@@ -103,14 +107,24 @@ class FawryCodeBottomSheet extends StatelessWidget {
                   AppButton(
                     content: ButtonContent(
                       label: AppStrings.copyCode.tr(),
-                      icon: Icon(TablerIcons.copy, size: 16.sp, color: AppColors.neonBlue),
+                      icon: Icon(
+                        TablerIcons.copy,
+                        size: 16.sp,
+                        color: AppColors.neonBlue,
+                      ),
                     ),
                     buttonConfig: ButtonConfig(
                       height: 40.h,
-                      backgroundColor: AppColors.neonBlue.withValues(alpha: 0.15),
+                      backgroundColor: AppColors.neonBlue.withValues(
+                        alpha: 0.15,
+                      ),
                       borderColor: AppColors.neonBlue.withValues(alpha: 0.3),
                       borderRadius: 10.r,
-                      textStyle: TextStyle(color: AppColors.neonBlue, fontSize: 13.sp, fontWeight: FontWeight.bold),
+                      textStyle: TextStyle(
+                        color: AppColors.neonBlue,
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     behavior: ButtonBehavior.tap(
                       onTap: () => _copyCode(context),
@@ -126,7 +140,9 @@ class FawryCodeBottomSheet extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.warning.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.warning.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
@@ -145,9 +161,7 @@ class FawryCodeBottomSheet extends StatelessWidget {
           ),
           SizedBox(height: 24.h),
           AppButton(
-            content: ButtonContent(
-              label: AppStrings.viewMyBookings.tr(),
-            ),
+            content: ButtonContent(label: AppStrings.viewMyBookings.tr()),
             buttonConfig: ButtonConfig(
               height: 50.h,
               gradient: AppColors.primaryGradient,

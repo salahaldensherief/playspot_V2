@@ -35,29 +35,53 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> loadPointsHistory({bool refresh = false}) async {
-    if (isClosed || (!refresh &&
-        (state.isLoadingMorePointsHistory || !state.hasMorePointsHistory))) return;
+    if (isClosed ||
+        (!refresh &&
+            (state.isLoadingMorePointsHistory || !state.hasMorePointsHistory)))
+      return;
     final generation = ++_pointsHistoryGeneration;
-    final page = refresh || state.pointsHistory.isEmpty ? 1 : state.pointsPage + 1;
-    emit(state.copyWith(isLoadingMorePointsHistory: true, pointsHistoryFailed: false));
+    final page = refresh || state.pointsHistory.isEmpty
+        ? 1
+        : state.pointsPage + 1;
+    emit(
+      state.copyWith(
+        isLoadingMorePointsHistory: true,
+        pointsHistoryFailed: false,
+      ),
+    );
     final result = await _profileRepository.getPointsHistory(page: page);
     if (isClosed || generation != _pointsHistoryGeneration) return;
-    result.fold<void>((_) {
-      emit(state.copyWith(isLoadingMorePointsHistory: false, pointsHistoryFailed: true));
-    }, (response) {
-      final items = <Map<String, dynamic>>[
-        if (!refresh) ...state.pointsHistory,
-        ...response.items,
-      ];
-      final seen = <String>{};
-      final unique = items.where((item) {
-        final id = item['id']?.toString();
-        return id == null || seen.add(id);
-      }).toList();
-      emit(state.copyWith(pointsHistory: unique, pointsPage: response.page,
-        pointsTotalCount: response.totalCount, hasMorePointsHistory: response.hasMore,
-        isLoadingMorePointsHistory: false, pointsHistoryFailed: false));
-    });
+    result.fold<void>(
+      (_) {
+        emit(
+          state.copyWith(
+            isLoadingMorePointsHistory: false,
+            pointsHistoryFailed: true,
+          ),
+        );
+      },
+      (response) {
+        final items = <Map<String, dynamic>>[
+          if (!refresh) ...state.pointsHistory,
+          ...response.items,
+        ];
+        final seen = <String>{};
+        final unique = items.where((item) {
+          final id = item['id']?.toString();
+          return id == null || seen.add(id);
+        }).toList();
+        emit(
+          state.copyWith(
+            pointsHistory: unique,
+            pointsPage: response.page,
+            pointsTotalCount: response.totalCount,
+            hasMorePointsHistory: response.hasMore,
+            isLoadingMorePointsHistory: false,
+            pointsHistoryFailed: false,
+          ),
+        );
+      },
+    );
   }
 
   void getUserData() async {
@@ -66,10 +90,7 @@ class ProfileCubit extends Cubit<ProfileState> {
     // Cache-First Strategy: Instantly render cached user data for 0ms loading
     final cachedUser = _profileRepository.getCurrentUser();
     if (cachedUser != null && state.user == null) {
-      emit(state.copyWith(
-        status: ProfileStatus.success,
-        user: cachedUser,
-      ));
+      emit(state.copyWith(status: ProfileStatus.success, user: cachedUser));
     } else if (state.user == null) {
       emit(state.copyWith(status: ProfileStatus.loading));
     }
@@ -137,13 +158,21 @@ class ProfileCubit extends Cubit<ProfileState> {
                   ? historyRes.fold((l) => state.pointsHistory, (r) => r.items)
                   : state.pointsHistory,
               pointsPage: historyGeneration == _pointsHistoryGeneration
-                  ? historyRes.fold((l) => state.pointsPage, (r) => r.page) : state.pointsPage,
+                  ? historyRes.fold((l) => state.pointsPage, (r) => r.page)
+                  : state.pointsPage,
               pointsTotalCount: historyGeneration == _pointsHistoryGeneration
-                  ? historyRes.fold((l) => state.pointsTotalCount, (r) => r.totalCount) : state.pointsTotalCount,
-              hasMorePointsHistory: historyGeneration == _pointsHistoryGeneration
-                  ? historyRes.fold((l) => true, (r) => r.hasMore) : state.hasMorePointsHistory,
+                  ? historyRes.fold(
+                      (l) => state.pointsTotalCount,
+                      (r) => r.totalCount,
+                    )
+                  : state.pointsTotalCount,
+              hasMorePointsHistory:
+                  historyGeneration == _pointsHistoryGeneration
+                  ? historyRes.fold((l) => true, (r) => r.hasMore)
+                  : state.hasMorePointsHistory,
               pointsHistoryFailed: historyGeneration == _pointsHistoryGeneration
-                  ? historyRes.isLeft() : state.pointsHistoryFailed,
+                  ? historyRes.isLeft()
+                  : state.pointsHistoryFailed,
               loyaltyStatus: loyaltyStatus,
               loyaltyMissions: missionsRes.fold((l) => [], (r) => r),
               referralStats: statsRes.fold((l) => null, (r) => r),

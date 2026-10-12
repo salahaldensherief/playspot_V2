@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../di/provider_scope.dart';
@@ -116,7 +117,7 @@ class AppRouter {
     required Widget child,
   }) {
     return MaterialPage<T>(
-      key: state.pageKey,
+      key: ValueKey('${state.pageKey.value}_${state.uri}'),
       child: SwipeBackWrapper(child: child),
     );
   }
@@ -134,7 +135,11 @@ class AppRouter {
         try {
           sl<DeepLinkService>().handleIncomingUri(state.uri);
         } catch (e, stack) {
-          AppLogger.error('DeepLink handling failed for URI: ${state.uri}', e, stack);
+          AppLogger.error(
+            'DeepLink handling failed for URI: ${state.uri}',
+            e,
+            stack,
+          );
         }
       }
 
@@ -142,7 +147,8 @@ class AppRouter {
       final currentPath = state.uri.path;
       final currentName = state.name;
 
-      final isAuthPath = currentPath == RouterKeys.splash ||
+      final isAuthPath =
+          currentPath == RouterKeys.splash ||
           currentPath == RouterKeys.onboarding ||
           currentPath == RouterKeys.signIn ||
           currentPath == RouterKeys.signUp ||
@@ -150,7 +156,8 @@ class AppRouter {
           currentPath == RouterKeys.completeProfile;
 
       if (user == null) {
-        final isProtected = (currentName != null && _protectedRoutes.contains(currentName)) ||
+        final isProtected =
+            (currentName != null && _protectedRoutes.contains(currentName)) ||
             currentPath.startsWith('/booking-details') ||
             currentPath.startsWith('/tournaments/');
         if (isProtected) {
@@ -160,7 +167,9 @@ class AppRouter {
       }
 
       final isPhoneMissing = user.phone == null || user.phone!.trim().isEmpty;
-      if (isPhoneMissing && !isAuthPath && currentPath != RouterKeys.bannedAccount) {
+      if (isPhoneMissing &&
+          !isAuthPath &&
+          currentPath != RouterKeys.bannedAccount) {
         return RouterKeys.completeProfile;
       }
 
@@ -179,7 +188,8 @@ class AppRouter {
         if (statusEntity != null && statusEntity.maintenanceMode) {
           // Direct live session check at redirect time
           final activeSession = sl<ActiveSessionCubit>().state.session;
-          final hasLiveActiveSession = activeSession != null && activeSession.status == 'in_progress';
+          final hasLiveActiveSession =
+              activeSession != null && activeSession.status == 'in_progress';
 
           if (!hasLiveActiveSession) {
             // User has NO live active session -> send to Maintenance Screen
@@ -189,7 +199,8 @@ class AppRouter {
             return null;
           } else {
             // User HAS a live active session -> allow active session controls, block NEW booking creation
-            final isNewBookingAttempt = currentName == RouterKeys.booking ||
+            final isNewBookingAttempt =
+                currentName == RouterKeys.booking ||
                 currentName == RouterKeys.checkout ||
                 currentPath.startsWith('/booking') ||
                 currentPath.startsWith('/checkout');
@@ -200,7 +211,11 @@ class AppRouter {
           }
         }
       } catch (e, stack) {
-        AppLogger.error('Maintenance guard check failed in router redirect', e, stack);
+        AppLogger.error(
+          'Maintenance guard check failed in router redirect',
+          e,
+          stack,
+        );
       }
 
       return null;
@@ -262,7 +277,10 @@ class AppRouter {
               return _buildPage(
                 context: context,
                 state: state,
-                child: ForceUpdateScreen(statusEntity: entity, currentVersion: version),
+                child: ForceUpdateScreen(
+                  statusEntity: entity,
+                  currentVersion: version,
+                ),
               );
             },
           ),
@@ -339,7 +357,10 @@ class AppRouter {
                 state: state,
                 child: BlocProvider(
                   create: (context) => sl<SignupCubit>(),
-                  child: CompleteProfileScreen(userId: userId, initialUser: userToUse),
+                  child: CompleteProfileScreen(
+                    userId: userId,
+                    initialUser: userToUse,
+                  ),
                 ),
               );
             },
@@ -401,10 +422,17 @@ class AppRouter {
                     path: RouterKeys.myBookings,
                     name: RouterKeys.myBookings,
                     pageBuilder: (context, state) {
-                      final extraMap = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : null;
-                      final initialTab = extraMap?['initialTab'] as int? ??
-                          (state.uri.queryParameters['tab'] != null ? int.tryParse(state.uri.queryParameters['tab']!) : null);
-                      final highlightedId = extraMap?['highlightedBookingId'] as String? ?? state.uri.queryParameters['id'];
+                      final extraMap = state.extra is Map<String, dynamic>
+                          ? state.extra as Map<String, dynamic>
+                          : null;
+                      final initialTab =
+                          extraMap?['initialTab'] as int? ??
+                          (state.uri.queryParameters['tab'] != null
+                              ? int.tryParse(state.uri.queryParameters['tab']!)
+                              : null);
+                      final highlightedId =
+                          extraMap?['highlightedBookingId'] as String? ??
+                          state.uri.queryParameters['id'];
                       return _buildPage(
                         context: context,
                         state: state,
@@ -469,7 +497,8 @@ class AppRouter {
                 name: RouterKeys.booking,
                 redirect: (context, state) {
                   if (state.extra == null) return RouterKeys.home;
-                  if (state.extra is! BookingDetailsParams && state.extra is! Map<String, dynamic>) {
+                  if (state.extra is! BookingDetailsParams &&
+                      state.extra is! Map<String, dynamic>) {
                     return RouterKeys.home;
                   }
                   return null;
@@ -480,9 +509,15 @@ class AppRouter {
                     params = state.extra as BookingDetailsParams;
                   } else if (state.extra is Map<String, dynamic>) {
                     try {
-                      params = BookingDetailsParams.fromMap(state.extra as Map<String, dynamic>);
+                      params = BookingDetailsParams.fromMap(
+                        state.extra as Map<String, dynamic>,
+                      );
                     } catch (e, stack) {
-                      AppLogger.error('Failed to parse BookingDetailsParams from extra map', e, stack);
+                      AppLogger.error(
+                        'Failed to parse BookingDetailsParams from extra map',
+                        e,
+                        stack,
+                      );
                     }
                   }
 
@@ -502,7 +537,8 @@ class AppRouter {
                     context: context,
                     state: state,
                     child: BlocProvider(
-                      create: (context) => sl<BookingCubit>(param1: bookingParams),
+                      create: (context) =>
+                          sl<BookingCubit>(param1: bookingParams),
                       child: BookingScreen(params: bookingParams),
                     ),
                   );
@@ -513,7 +549,8 @@ class AppRouter {
                 name: RouterKeys.checkout,
                 redirect: (context, state) {
                   if (state.extra == null) return RouterKeys.home;
-                  if (state.extra is! CheckoutParams && state.extra is! Map<String, dynamic>) {
+                  if (state.extra is! CheckoutParams &&
+                      state.extra is! Map<String, dynamic>) {
                     return RouterKeys.home;
                   }
                   return null;
@@ -524,9 +561,15 @@ class AppRouter {
                     params = state.extra as CheckoutParams;
                   } else if (state.extra is Map<String, dynamic>) {
                     try {
-                      params = CheckoutParams.fromMap(state.extra as Map<String, dynamic>);
+                      params = CheckoutParams.fromMap(
+                        state.extra as Map<String, dynamic>,
+                      );
                     } catch (e, stack) {
-                      AppLogger.error('Failed to parse CheckoutParams from extra map', e, stack);
+                      AppLogger.error(
+                        'Failed to parse CheckoutParams from extra map',
+                        e,
+                        stack,
+                      );
                     }
                   }
 
@@ -625,15 +668,24 @@ class AppRouter {
                 path: RouterKeys.allReviews,
                 name: RouterKeys.allReviews,
                 pageBuilder: (context, state) {
-                  final extra = state.extra is Map ? (state.extra as Map) : const {};
+                  final extra = state.extra is Map
+                      ? (state.extra as Map)
+                      : const {};
                   final rawReviews = extra['reviews'];
                   final List<ReviewModel> reviews = rawReviews is List
-                      ? rawReviews.map((e) {
-                          if (e is ReviewModel) return e;
-                          if (e is Map<String, dynamic>) return ReviewModel.fromJson(e);
-                          if (e is Map) return ReviewModel.fromJson(Map<String, dynamic>.from(e));
-                          return null;
-                        }).whereType<ReviewModel>().toList()
+                      ? rawReviews
+                            .map((e) {
+                              if (e is ReviewModel) return e;
+                              if (e is Map<String, dynamic>)
+                                return ReviewModel.fromJson(e);
+                              if (e is Map)
+                                return ReviewModel.fromJson(
+                                  Map<String, dynamic>.from(e),
+                                );
+                              return null;
+                            })
+                            .whereType<ReviewModel>()
+                            .toList()
                       : <ReviewModel>[];
                   final loungeName = extra['loungeName']?.toString() ?? '';
 
@@ -675,13 +727,22 @@ class AppRouter {
                     bookingId = state.extra as String;
                   } else if (state.extra is Map<String, dynamic>) {
                     final map = state.extra as Map<String, dynamic>;
-                    bookingId = map['booking_id']?.toString() ?? map['bookingId']?.toString();
-                    extensionMinutes = int.tryParse(map['extension_minutes']?.toString() ?? map['extensionMinutes']?.toString() ?? '');
+                    bookingId =
+                        map['booking_id']?.toString() ??
+                        map['bookingId']?.toString();
+                    extensionMinutes = int.tryParse(
+                      map['extension_minutes']?.toString() ??
+                          map['extensionMinutes']?.toString() ??
+                          '',
+                    );
                   }
                   return _buildPage(
                     context: context,
                     state: state,
-                    child: ActiveSessionScreen(bookingId: bookingId, extensionMinutes: extensionMinutes),
+                    child: ActiveSessionScreen(
+                      bookingId: bookingId,
+                      extensionMinutes: extensionMinutes,
+                    ),
                   );
                 },
               ),
@@ -690,9 +751,14 @@ class AppRouter {
                 name: RouterKeys.bookingDetails,
                 pageBuilder: (context, state) {
                   final bookingId = state.pathParameters['id'];
-                  final extraMap = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : null;
-                  final initialTab = extraMap?['initialTab'] as int? ??
-                      (state.uri.queryParameters['tab'] != null ? int.tryParse(state.uri.queryParameters['tab']!) : null);
+                  final extraMap = state.extra is Map<String, dynamic>
+                      ? state.extra as Map<String, dynamic>
+                      : null;
+                  final initialTab =
+                      extraMap?['initialTab'] as int? ??
+                      (state.uri.queryParameters['tab'] != null
+                          ? int.tryParse(state.uri.queryParameters['tab']!)
+                          : null);
                   return _buildPage(
                     context: context,
                     state: state,
@@ -760,15 +826,14 @@ class AppRouter {
                     child: const TournamentHistoryScreen(),
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ],
       ),
     ],
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(child: Text(AppStrings.pageNotFound.tr())),
-    ),
+    errorBuilder: (context, state) =>
+        Scaffold(body: Center(child: Text(AppStrings.pageNotFound.tr()))),
   );
 }
 
@@ -806,7 +871,11 @@ class _MyExtraEncoder extends Converter<Object?, Object?> {
       return {'__type': 'DateTime', 'value': input.toIso8601String()};
     }
     if (input is TimeOfDay) {
-      return {'__type': 'TimeOfDay', 'hour': input.hour, 'minute': input.minute};
+      return {
+        '__type': 'TimeOfDay',
+        'hour': input.hour,
+        'minute': input.minute,
+      };
     }
     if (input is Map<String, dynamic>) {
       return input.map((key, value) => MapEntry(key, convert(value)));

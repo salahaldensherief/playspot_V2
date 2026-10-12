@@ -23,15 +23,19 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     final result = await _repository.getFavorites();
     if (isClosed) return;
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: FavoritesStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (lounges) => emit(state.copyWith(
-        status: FavoritesStatus.success,
-        favoriteLounges: lounges,
-        favoriteIds: lounges.map((l) => l.id).toList(),
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: FavoritesStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (lounges) => emit(
+        state.copyWith(
+          status: FavoritesStatus.success,
+          favoriteLounges: lounges,
+          favoriteIds: lounges.map((l) => l.id).toList(),
+        ),
+      ),
     );
   }
 
@@ -39,7 +43,7 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     final previousIds = List<String>.from(state.favoriteIds);
     final previousLounges = List<dynamic>.from(state.favoriteLounges);
     final isFavorite = previousIds.contains(loungeId);
-    
+
     final updatedIds = List<String>.from(previousIds);
     final updatedLounges = List<dynamic>.from(previousLounges);
 
@@ -53,13 +57,15 @@ class FavoritesCubit extends Cubit<FavoritesState> {
       }
     }
     if (!isClosed) {
-      emit(state.copyWith(
-        favoriteIds: updatedIds,
-        favoriteLounges: List.from(updatedLounges),
-      ));
+      emit(
+        state.copyWith(
+          favoriteIds: updatedIds,
+          favoriteLounges: List.from(updatedLounges),
+        ),
+      );
     }
 
-    final result = isFavorite 
+    final result = isFavorite
         ? await _repository.removeFavorite(loungeId)
         : await _repository.addFavorite(loungeId);
 
@@ -68,15 +74,17 @@ class FavoritesCubit extends Cubit<FavoritesState> {
     result.fold(
       (failure) {
         if (!isClosed) {
-          emit(state.copyWith(
-            favoriteIds: previousIds,
-            favoriteLounges: List.from(previousLounges),
-          ));
+          emit(
+            state.copyWith(
+              favoriteIds: previousIds,
+              favoriteLounges: List.from(previousLounges),
+            ),
+          );
         }
       },
       (_) {
         if (!isClosed && state.status == FavoritesStatus.success) {
-           getFavoriteLounges();
+          getFavoriteLounges();
         }
       },
     );

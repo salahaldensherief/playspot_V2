@@ -35,7 +35,11 @@ class TournamentBracketView extends StatelessWidget {
     }
     final sortedRoundNumbers = roundsMap.keys.toList()..sort();
     final rounds = sortedRoundNumbers
-        .map((rn) => roundsMap[rn]!..sort((a, b) => a.matchOrder.compareTo(b.matchOrder)))
+        .map(
+          (rn) =>
+              roundsMap[rn]!
+                ..sort((a, b) => a.matchOrder.compareTo(b.matchOrder)),
+        )
         .where((r) => r.isNotEmpty)
         .toList();
 
@@ -80,10 +84,13 @@ class TournamentBracketView extends StatelessWidget {
     ].reduce((a, b) => a > b ? a : b);
 
     final double finalCenterY = branchHeight / 2;
-    final double centerColX = sidePadding + leftRounds.length * (columnWidth + horizontalGap);
+    final double centerColX =
+        sidePadding + leftRounds.length * (columnWidth + horizontalGap);
     final int totalColumns = leftRounds.length + 1 + rightRounds.length;
     final double totalWidth =
-        sidePadding * 2 + totalColumns * columnWidth + (totalColumns - 1) * horizontalGap;
+        sidePadding * 2 +
+        totalColumns * columnWidth +
+        (totalColumns - 1) * horizontalGap;
     final double totalHeight = topOffset + branchHeight + 40;
 
     // حد أدنى للسكيل عشان لو عدد اللاعبين كبر جدًا (32/64...) وعدد الأعمدة زاد،
@@ -93,9 +100,13 @@ class TournamentBracketView extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double availableWidth = constraints.maxWidth > 0 ? constraints.maxWidth : 360;
+        final double availableWidth = constraints.maxWidth > 0
+            ? constraints.maxWidth
+            : 360;
         final double rawScale = availableWidth / totalWidth;
-        final double scale = rawScale < minReadableScale ? minReadableScale : rawScale;
+        final double scale = rawScale < minReadableScale
+            ? minReadableScale
+            : rawScale;
         final double scaledWidth = totalWidth * scale;
         final double scaledHeight = totalHeight * scale;
 
@@ -127,7 +138,8 @@ class TournamentBracketView extends StatelessWidget {
                   ),
                   ..._buildLeftBranch(leftRounds, leftLayout),
                   ..._buildRightBranch(rightRounds, rightLayout, centerColX),
-                  if (finalMatch != null) ..._buildFinal(finalMatch, centerColX, finalCenterY),
+                  if (finalMatch != null)
+                    ..._buildFinal(finalMatch, centerColX, finalCenterY),
                 ],
               ),
             ),
@@ -159,34 +171,36 @@ class TournamentBracketView extends StatelessWidget {
   }
 
   List<Widget> _buildLeftBranch(
-      List<List<TournamentMatchEntity>> leftRounds,
-      BracketLayout layout,
-      ) {
+    List<List<TournamentMatchEntity>> leftRounds,
+    BracketLayout layout,
+  ) {
     final widgets = <Widget>[];
     for (int r = 0; r < leftRounds.length; r++) {
       final colX = sidePadding + r * (columnWidth + horizontalGap);
       final centers = layout.centersY[r];
       for (int i = 0; i < leftRounds[r].length; i++) {
-        widgets.add(Positioned(
-          left: colX,
-          top: topOffset + centers[i] - matchHeight / 2,
-          width: columnWidth,
-          height: matchHeight,
-          child: BracketMatchNode(
-            match: leftRounds[r][i],
-            onTap: () => onMatchTap?.call(leftRounds[r][i]),
+        widgets.add(
+          Positioned(
+            left: colX,
+            top: topOffset + centers[i] - matchHeight / 2,
+            width: columnWidth,
+            height: matchHeight,
+            child: BracketMatchNode(
+              match: leftRounds[r][i],
+              onTap: () => onMatchTap?.call(leftRounds[r][i]),
+            ),
           ),
-        ));
+        );
       }
     }
     return widgets;
   }
 
   List<Widget> _buildRightBranch(
-      List<List<TournamentMatchEntity>> rightRounds,
-      BracketLayout layout,
-      double centerColX,
-      ) {
+    List<List<TournamentMatchEntity>> rightRounds,
+    BracketLayout layout,
+    double centerColX,
+  ) {
     final widgets = <Widget>[];
     final int n = rightRounds.length;
     if (n == 0) return widgets;
@@ -197,26 +211,28 @@ class TournamentBracketView extends StatelessWidget {
       final colX = rightStartX + (n - 1 - k) * (columnWidth + horizontalGap);
       final centers = layout.centersY[k];
       for (int i = 0; i < rightRounds[k].length; i++) {
-        widgets.add(Positioned(
-          left: colX,
-          top: topOffset + centers[i] - matchHeight / 2,
-          width: columnWidth,
-          height: matchHeight,
-          child: BracketMatchNode(
-            match: rightRounds[k][i],
-            onTap: () => onMatchTap?.call(rightRounds[k][i]),
+        widgets.add(
+          Positioned(
+            left: colX,
+            top: topOffset + centers[i] - matchHeight / 2,
+            width: columnWidth,
+            height: matchHeight,
+            child: BracketMatchNode(
+              match: rightRounds[k][i],
+              onTap: () => onMatchTap?.call(rightRounds[k][i]),
+            ),
           ),
-        ));
+        );
       }
     }
     return widgets;
   }
 
   List<Widget> _buildFinal(
-      TournamentMatchEntity finalMatch,
-      double centerColX,
-      double finalCenterY,
-      ) {
+    TournamentMatchEntity finalMatch,
+    double centerColX,
+    double finalCenterY,
+  ) {
     return [
       Positioned(
         left: centerColX,

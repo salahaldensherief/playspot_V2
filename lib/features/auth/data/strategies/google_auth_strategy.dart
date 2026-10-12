@@ -32,16 +32,15 @@ class GoogleAuthStrategy implements AuthStrategy {
       final isNewUser = await _checkIsNewUser(user.id);
       await _upsertUser(user, isNewUser: isNewUser);
 
-      return UserModel.fromSupabaseUser(
-        user.toJson(),
-        isNewUser: isNewUser,
-      );
+      return UserModel.fromSupabaseUser(user.toJson(), isNewUser: isNewUser);
     } on GoogleSignInCancelledException {
       rethrow;
     } on AuthException catch (e) {
       throw AppException(e.message, code: e.statusCode);
     } catch (e) {
-      AppLogger.debug('[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...');
+      AppLogger.debug(
+        '[Auth] Native Google Sign-In failed ($e). Falling back to Supabase OAuth...',
+      );
       return await _signInWithSupabaseOAuth();
     }
   }
@@ -63,10 +62,9 @@ class GoogleAuthStrategy implements AuthStrategy {
           await _upsertUser(user, isNewUser: isNewUser);
           subscription.cancel();
           if (!completer.isCompleted) {
-            completer.complete(UserModel.fromSupabaseUser(
-              user.toJson(),
-              isNewUser: isNewUser,
-            ));
+            completer.complete(
+              UserModel.fromSupabaseUser(user.toJson(), isNewUser: isNewUser),
+            );
           }
         }
       });
@@ -106,13 +104,21 @@ class GoogleAuthStrategy implements AuthStrategy {
         await _supabase.from('profiles').upsert({
           'id': user.id,
           'email': user.email,
-          'full_name': meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'User',
+          'full_name':
+              meta['full_name'] ??
+              meta['name'] ??
+              user.email?.split('@').first ??
+              'User',
           'avatar_url': meta['avatar_url'] ?? meta['picture'],
         });
       } else {
         final updateData = <String, dynamic>{
           'email': user.email,
-          'full_name': meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'User',
+          'full_name':
+              meta['full_name'] ??
+              meta['name'] ??
+              user.email?.split('@').first ??
+              'User',
         };
         final avatar = meta['avatar_url'] ?? meta['picture'];
         if (avatar != null) {

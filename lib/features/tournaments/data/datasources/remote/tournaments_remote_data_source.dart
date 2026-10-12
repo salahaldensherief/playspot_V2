@@ -317,18 +317,17 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     required String paymentMethod,
     required File receiptFile,
   }) async {
-    final upload = TournamentEvidenceUpload(tournamentId: tournamentId,
-        scopeId: userId, filePath: receiptFile.path);
+    final upload = TournamentEvidenceUpload(
+      tournamentId: tournamentId,
+      scopeId: userId,
+      filePath: receiptFile.path,
+    );
     final storagePath = upload.path;
 
     final bytes = await receiptFile.readAsBytes();
     await _client.storage
         .from('tournament-receipts')
-        .uploadBinary(
-          storagePath,
-          bytes,
-          fileOptions: upload.options,
-        );
+        .uploadBinary(storagePath, bytes, fileOptions: upload.options);
 
     final signedUrl = await _client.storage
         .from('tournament-receipts')
@@ -393,18 +392,17 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String? proofUrl;
 
     if (proofFile != null) {
-      final upload = TournamentEvidenceUpload(tournamentId: tournamentId,
-          scopeId: matchId, filePath: proofFile.path);
+      final upload = TournamentEvidenceUpload(
+        tournamentId: tournamentId,
+        scopeId: matchId,
+        filePath: proofFile.path,
+      );
       final storagePath = upload.path;
 
       final bytes = await proofFile.readAsBytes();
       await _client.storage
           .from('tournament-result-proofs')
-          .uploadBinary(
-            storagePath,
-            bytes,
-            fileOptions: upload.options,
-          );
+          .uploadBinary(storagePath, bytes, fileOptions: upload.options);
 
       proofUrl = await _client.storage
           .from('tournament-result-proofs')

@@ -11,18 +11,27 @@ abstract class ActiveSessionRepository {
   Future<Either<Failure, ActiveSession?>> getActiveSession({String? bookingId});
   Stream<ActiveSession> streamActiveSession(String bookingId);
   Stream<ActiveSession?> watchUserActiveSession();
-  Future<Either<Failure, void>> extendTime(String bookingId, int additionalMinutes, double additionalCost);
+  Future<Either<Failure, void>> extendTime(
+    String bookingId,
+    int additionalMinutes,
+    double additionalCost,
+  );
   Future<Either<Failure, void>> requestExtension({
     required String bookingId,
     required int requestedMinutes,
   });
-  Future<Either<Failure, void>> placeOrder(String bookingId, List<OrderItem> items);
+  Future<Either<Failure, void>> placeOrder(
+    String bookingId,
+    List<OrderItem> items,
+  );
   Future<Either<Failure, List<ExtraModel>>> getLoungeMenu(
     String loungeId, {
     bool forceRefresh = false,
   });
   Future<Either<Failure, CanteenMenuData>> getCanteenMenu(String loungeId);
-  Future<Either<Failure, List<UpsellSuggestion>>> getUpsellSuggestions(String bookingId);
+  Future<Either<Failure, List<UpsellSuggestion>>> getUpsellSuggestions(
+    String bookingId,
+  );
   Future<Either<Failure, void>> recordUpsellEvent({
     required String ruleId,
     required String bookingId,
@@ -41,7 +50,8 @@ abstract class ActiveSessionRepository {
     required double rating,
     String? comment,
   });
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getActiveLoungeRequestsPage({
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getActiveLoungeRequestsPage({
     required String loungeId,
     int page = 1,
     int pageSize = 20,

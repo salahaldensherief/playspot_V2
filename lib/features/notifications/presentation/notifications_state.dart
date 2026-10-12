@@ -46,12 +46,12 @@ class NotificationsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        notifications,
-        status,
-        errorMessage,
-        hasMore,
-        isLoadingMore,
-        page,
-        totalCount,
-      ];
+    notifications,
+    status,
+    errorMessage,
+    hasMore,
+    isLoadingMore,
+    page,
+    totalCount,
+  ];
 }

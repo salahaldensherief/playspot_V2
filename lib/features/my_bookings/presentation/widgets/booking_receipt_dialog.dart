@@ -55,7 +55,10 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
 
   Future<void> _loadReceiptUrl() async {
     String? raw = widget.booking.proofImageUrl;
-    if (raw == null || raw.trim().isEmpty || raw == 'null' || raw == 'undefined') {
+    if (raw == null ||
+        raw.trim().isEmpty ||
+        raw == 'null' ||
+        raw == 'undefined') {
       try {
         final res = await Supabase.instance.client
             .from('bookings')
@@ -68,7 +71,10 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
       } catch (_) {}
     }
 
-    if (raw == null || raw.trim().isEmpty || raw == 'null' || raw == 'undefined') {
+    if (raw == null ||
+        raw.trim().isEmpty ||
+        raw == 'null' ||
+        raw == 'undefined') {
       if (mounted) setState(() => _isLoadingUrl = false);
       return;
     }
@@ -108,7 +114,8 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
 
     final bucketsToTry = [
       'payment-proofs',
-      if (detectedBucket != null && detectedBucket != 'receipts') detectedBucket,
+      if (detectedBucket != null && detectedBucket != 'receipts')
+        detectedBucket,
       'receipts',
       'booking_receipts',
       'payment_receipts',
@@ -286,9 +293,7 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                         color: AppColors.neonBlue.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: const Center(
-                      child: AppLoader(),
-                    ),
+                    child: const Center(child: AppLoader()),
                   ),
                 ] else if (hasReceiptImage) ...[
                   GestureDetector(

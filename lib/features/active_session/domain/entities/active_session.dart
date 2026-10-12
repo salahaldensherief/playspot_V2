@@ -34,20 +34,20 @@ class ActiveSession extends Equatable {
 
   @override
   List<Object?> get props => [
-        bookingId,
-        loungeId,
-        loungeName,
-        roomName,
-        deviceName,
-        startTime,
-        endTime,
-        basePrice,
-        extensionsPrice,
-        orders,
-        status,
-        extensionStatus,
-        requestedExtensionMinutes,
-      ];
+    bookingId,
+    loungeId,
+    loungeName,
+    roomName,
+    deviceName,
+    startTime,
+    endTime,
+    basePrice,
+    extensionsPrice,
+    orders,
+    status,
+    extensionStatus,
+    requestedExtensionMinutes,
+  ];
 
   ActiveSession copyWith({
     String? bookingId,
@@ -77,7 +77,8 @@ class ActiveSession extends Equatable {
       orders: orders ?? this.orders,
       status: status ?? this.status,
       extensionStatus: extensionStatus ?? this.extensionStatus,
-      requestedExtensionMinutes: requestedExtensionMinutes ?? this.requestedExtensionMinutes,
+      requestedExtensionMinutes:
+          requestedExtensionMinutes ?? this.requestedExtensionMinutes,
     );
   }
 

@@ -12,10 +12,7 @@ class ClaimReferralResult extends Equatable {
   final ClaimReferralStatus status;
   final String messageKey;
 
-  const ClaimReferralResult({
-    required this.status,
-    required this.messageKey,
-  });
+  const ClaimReferralResult({required this.status, required this.messageKey});
 
   @override
   List<Object?> get props => [status, messageKey];

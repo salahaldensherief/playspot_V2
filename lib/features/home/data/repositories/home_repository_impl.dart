@@ -13,10 +13,7 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   final HomeRemoteDataSource _remoteDataSource;
   final AppCacheLocalDataSource _cacheLocalDataSource;
 
-  HomeRepositoryImpl(
-    this._remoteDataSource,
-    this._cacheLocalDataSource,
-  );
+  HomeRepositoryImpl(this._remoteDataSource, this._cacheLocalDataSource);
 
   @override
   Future<Either<Failure, int>> getUserPoints(String userId) async {
@@ -24,12 +21,15 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, List<LoungeModel>>> getLounges(GetLoungesParams params) async {
+  Future<Either<Failure, List<LoungeModel>>> getLounges(
+    GetLoungesParams params,
+  ) async {
     return await callRepository(() => _remoteDataSource.getLounges(params));
   }
 
   @override
-  Future<Either<Failure, List<Map<String, dynamic>>>> getAvailableCities() async {
+  Future<Either<Failure, List<Map<String, dynamic>>>>
+  getAvailableCities() async {
     return await callRepository(() => _remoteDataSource.getAvailableCities());
   }
 
@@ -42,17 +42,22 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
       final cached = _cacheLocalDataSource.getCachedPromotions();
       if (cached != null && cached.isNotEmpty) {
         // Background fetch to keep cache fresh
-        _remoteDataSource.getPromotions(loungeId: loungeId).then((promos) {
-          if (promos.isNotEmpty) {
-            _cacheLocalDataSource.cachePromotions(promos);
-          }
-        }).catchError((_) {});
+        _remoteDataSource
+            .getPromotions(loungeId: loungeId)
+            .then((promos) {
+              if (promos.isNotEmpty) {
+                _cacheLocalDataSource.cachePromotions(promos);
+              }
+            })
+            .catchError((_) {});
 
         return Right(cached);
       }
     }
 
-    final result = await callRepository(() => _remoteDataSource.getPromotions(loungeId: loungeId));
+    final result = await callRepository(
+      () => _remoteDataSource.getPromotions(loungeId: loungeId),
+    );
     result.fold(
       (_) {
         // Fallback to local cache if network fails
@@ -80,17 +85,22 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
       final cached = _cacheLocalDataSource.getCachedCategories();
       if (cached != null && cached.isNotEmpty) {
         // Background fetch to keep cache fresh
-        _remoteDataSource.getCategories().then((categories) {
-          if (categories.isNotEmpty) {
-            _cacheLocalDataSource.cacheCategories(categories);
-          }
-        }).catchError((_) {});
+        _remoteDataSource
+            .getCategories()
+            .then((categories) {
+              if (categories.isNotEmpty) {
+                _cacheLocalDataSource.cacheCategories(categories);
+              }
+            })
+            .catchError((_) {});
 
         return Right(cached);
       }
     }
 
-    final result = await callRepository(() => _remoteDataSource.getCategories());
+    final result = await callRepository(
+      () => _remoteDataSource.getCategories(),
+    );
     result.fold(
       (_) {
         final cached = _cacheLocalDataSource.getCachedCategories();
@@ -116,17 +126,22 @@ class HomeRepositoryImpl with RepositoryHelper implements HomeRepository {
       final cached = _cacheLocalDataSource.getCachedLoungeProfile(id);
       if (cached != null) {
         // Background fetch to keep cache fresh
-        _remoteDataSource.getLoungeById(id).then((lounge) {
-          if (lounge != null) {
-            _cacheLocalDataSource.cacheLoungeProfile(id, lounge);
-          }
-        }).catchError((_) {});
+        _remoteDataSource
+            .getLoungeById(id)
+            .then((lounge) {
+              if (lounge != null) {
+                _cacheLocalDataSource.cacheLoungeProfile(id, lounge);
+              }
+            })
+            .catchError((_) {});
 
         return Right(cached);
       }
     }
 
-    final result = await callRepository(() => _remoteDataSource.getLoungeById(id));
+    final result = await callRepository(
+      () => _remoteDataSource.getLoungeById(id),
+    );
     result.fold(
       (_) {
         final cached = _cacheLocalDataSource.getCachedLoungeProfile(id);

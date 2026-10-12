@@ -25,12 +25,12 @@ class ProfileHeader extends StatelessWidget {
         final phone = user?.phone ?? "";
         final initials = name.isNotEmpty
             ? name
-                .trim()
-                .split(' ')
-                .map((e) => e[0])
-                .take(2)
-                .join()
-                .toUpperCase()
+                  .trim()
+                  .split(' ')
+                  .map((e) => e[0])
+                  .take(2)
+                  .join()
+                  .toUpperCase()
             : "U";
 
         return Row(
@@ -47,7 +47,8 @@ class ProfileHeader extends StatelessWidget {
                 ),
               ),
               alignment: Alignment.center,
-              child: profileImageUrl != null && profileImageUrl.trim().isNotEmpty
+              child:
+                  profileImageUrl != null && profileImageUrl.trim().isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(40.w),
                       child: CachedNetworkImage(

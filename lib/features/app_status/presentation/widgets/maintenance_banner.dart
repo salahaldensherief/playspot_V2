@@ -7,10 +7,7 @@ import '../../../../art_core/app_strings.dart';
 class MaintenanceBanner extends StatelessWidget {
   final String? customMessage;
 
-  const MaintenanceBanner({
-    super.key,
-    this.customMessage,
-  });
+  const MaintenanceBanner({super.key, this.customMessage});
 
   @override
   Widget build(BuildContext context) {

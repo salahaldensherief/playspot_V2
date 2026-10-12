@@ -8,19 +8,28 @@ class GetTournamentDetailsUseCase {
 
   GetTournamentDetailsUseCase(this.repository);
 
-  Future<Either<Failure, TournamentEntity>> getTournamentById(String tournamentId) {
+  Future<Either<Failure, TournamentEntity>> getTournamentById(
+    String tournamentId,
+  ) {
     return repository.getTournamentById(tournamentId);
   }
 
-  Future<Either<Failure, List<TournamentPrizeEntity>>> getPrizes(String tournamentId) {
+  Future<Either<Failure, List<TournamentPrizeEntity>>> getPrizes(
+    String tournamentId,
+  ) {
     return repository.getTournamentPrizes(tournamentId);
   }
 
-  Future<Either<Failure, List<TournamentMatchEntity>>> getMatches(String tournamentId) {
+  Future<Either<Failure, List<TournamentMatchEntity>>> getMatches(
+    String tournamentId,
+  ) {
     return repository.getTournamentMatches(tournamentId);
   }
 
-  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(String tournamentId, String matchId) {
+  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(
+    String tournamentId,
+    String matchId,
+  ) {
     return repository.getMatchById(tournamentId, matchId);
   }
 

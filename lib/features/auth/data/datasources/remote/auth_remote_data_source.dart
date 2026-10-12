@@ -133,8 +133,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'avatar_url': avatarUrl,
       });
 
-
-
       return UserModel.fromSupabaseUser(
         response.user!.toJson(),
         isNewUser: false,
@@ -181,8 +179,6 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
         'phone': params.phone,
         'avatar_url': avatarUrl,
       });
-
-
 
       return UserModel.fromSupabaseUser(
         user.toJson(),
@@ -366,9 +362,13 @@ class AuthRemoteSourceImpl implements AuthRemoteSource {
     try {
       AppLogger.debug(' [Auth] Calling delete-account Edge Function...');
       final response = await _supabase.functions.invoke('delete-account');
-      if (response.status < 200 || response.status >= 300 ||
-          response.data is! Map || response.data['success'] != true) {
-        throw const AppException('Account deletion was not confirmed. Please try again.');
+      if (response.status < 200 ||
+          response.status >= 300 ||
+          response.data is! Map ||
+          response.data['success'] != true) {
+        throw const AppException(
+          'Account deletion was not confirmed. Please try again.',
+        );
       }
       AppLogger.debug(' [Auth] Account deletion executed successfully.');
       await signOut();

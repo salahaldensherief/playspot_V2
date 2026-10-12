@@ -52,7 +52,8 @@ class EditProfileForm extends StatelessWidget {
           SizedBox(height: 20.h),
           BlocBuilder<EditProfileCubit, EditProfileState>(
             bloc: cubit,
-            buildWhen: (prev, curr) => prev.user != curr.user || prev.status != curr.status,
+            buildWhen: (prev, curr) =>
+                prev.user != curr.user || prev.status != curr.status,
             builder: (context, state) {
               final isArabic = context.locale.languageCode == 'ar';
               final isLoading = state.status == EditProfileStatus.loading;
@@ -63,28 +64,49 @@ class EditProfileForm extends StatelessWidget {
                 hint: AppStrings.tapUpdateLocation.tr(),
                 readOnly: true,
                 suffixIcon: Container(
-                  margin: EdgeInsetsDirectional.only(start: 8.w, end: 8.w, top: 4.h, bottom: 4.h),
+                  margin: EdgeInsetsDirectional.only(
+                    start: 8.w,
+                    end: 8.w,
+                    top: 4.h,
+                    bottom: 4.h,
+                  ),
                   child: AppButton(
                     buttonConfig: ButtonConfig(
                       backgroundColor: const Color(0xFF00E5FF),
-                      textStyle: TextStyle(color: Colors.black, fontSize: 11.sp, fontWeight: FontWeight.bold),
+                      textStyle: TextStyle(
+                        color: Colors.black,
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                       borderRadius: 8.r,
                       height: 32.h,
                     ),
                     content: ButtonContent(
                       label: AppStrings.update.tr(),
-                      icon: isLoading ? null : const Icon(Icons.my_location, size: 14, color: Colors.black),
+                      icon: isLoading
+                          ? null
+                          : const Icon(
+                              Icons.my_location,
+                              size: 14,
+                              color: Colors.black,
+                            ),
                       body: isLoading
                           ? const SizedBox(
                               width: 14,
                               height: 14,
-                              child: AppLoader(size: 14, strokeWidth: 2, color: Colors.black),
+                              child: AppLoader(
+                                size: 14,
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
                             )
                           : null,
                     ),
                     behavior: TapBehavior(
                       isEnabled: !isLoading,
-                      onTap: isLoading ? null : () => cubit.updateLocation(isArabic: isArabic),
+                      onTap: isLoading
+                          ? null
+                          : () => cubit.updateLocation(isArabic: isArabic),
                     ),
                   ),
                 ),

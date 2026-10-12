@@ -41,13 +41,19 @@ class KycModel extends Equatable {
     return KycModel(
       id: json['id']?.toString(),
       userId: json['user_id']?.toString() ?? '',
-      nationalId: json['national_id']?.toString() ?? json['id_number']?.toString(),
-      documentPath: json['document_url']?.toString() ?? json['document_path']?.toString(),
+      nationalId:
+          json['national_id']?.toString() ?? json['id_number']?.toString(),
+      documentPath:
+          json['document_url']?.toString() ?? json['document_path']?.toString(),
       signedUrl: json['signed_url']?.toString(),
       status: status,
       rejectionReason: json['rejection_reason']?.toString(),
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString()) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString())
+          : null,
     );
   }
 
@@ -90,14 +96,14 @@ class KycModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        nationalId,
-        documentPath,
-        signedUrl,
-        status,
-        rejectionReason,
-        createdAt,
-        updatedAt,
-      ];
+    id,
+    userId,
+    nationalId,
+    documentPath,
+    signedUrl,
+    status,
+    rejectionReason,
+    createdAt,
+    updatedAt,
+  ];
 }

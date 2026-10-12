@@ -72,8 +72,10 @@ class UserModel extends UserEntity {
       avatarUrl: json['avatar_url'] as String?,
       referralCode: json['referral_code'] as String?,
       cityId: validCityId,
-      cityNameAr: cityData?['name_ar'] as String? ?? cityData?['name'] as String?,
-      cityNameEn: cityData?['name_en'] as String? ?? cityData?['name'] as String?,
+      cityNameAr:
+          cityData?['name_ar'] as String? ?? cityData?['name'] as String?,
+      cityNameEn:
+          cityData?['name_en'] as String? ?? cityData?['name'] as String?,
       role: normalizeRole(json['role'] as String?),
       isBanned: json['is_banned'] as bool? ?? false,
       bannedReason: json['banned_reason']?.toString(),
@@ -84,9 +86,9 @@ class UserModel extends UserEntity {
   }
 
   factory UserModel.fromSupabaseUser(
-      Map<String, dynamic> supabaseUser, {
-        bool isNewUser = false,
-      }) {
+    Map<String, dynamic> supabaseUser, {
+    bool isNewUser = false,
+  }) {
     final metadata =
         supabaseUser['user_metadata'] as Map<String, dynamic>? ?? {};
 
@@ -94,9 +96,12 @@ class UserModel extends UserEntity {
     final metadataPhone = (metadata['phone'] as String?)?.trim();
     final finalPhone = (phoneVal != null && phoneVal.isNotEmpty)
         ? phoneVal
-        : (metadataPhone != null && metadataPhone.isNotEmpty ? metadataPhone : null);
+        : (metadataPhone != null && metadataPhone.isNotEmpty
+              ? metadataPhone
+              : null);
 
-    final rawCityId = metadata['city_id']?.toString() ?? supabaseUser['city_id']?.toString();
+    final rawCityId =
+        metadata['city_id']?.toString() ?? supabaseUser['city_id']?.toString();
     final validCityId = isValidUuid(rawCityId) ? rawCityId : null;
 
     return UserModel(
@@ -105,7 +110,7 @@ class UserModel extends UserEntity {
       email: supabaseUser['email'] as String?,
       phone: finalPhone,
       avatarUrl:
-      metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
+          metadata['avatar_url'] as String? ?? metadata['picture'] as String?,
       referralCode: metadata['referral_code'] as String?,
       cityId: validCityId,
       cityNameAr: metadata['city_name_ar'] as String?,
@@ -132,12 +137,19 @@ class UserModel extends UserEntity {
     if (name != null && name!.trim().isNotEmpty) map['full_name'] = name;
     if (email != null && email!.trim().isNotEmpty) map['email'] = email;
     if (phone != null && phone!.trim().isNotEmpty) map['phone'] = phone;
-    if (avatarUrl != null && avatarUrl!.trim().isNotEmpty && avatarUrl != 'undefined') map['avatar_url'] = avatarUrl;
-    if (referralCode != null && referralCode!.trim().isNotEmpty) map['referral_code'] = referralCode;
+    if (avatarUrl != null &&
+        avatarUrl!.trim().isNotEmpty &&
+        avatarUrl != 'undefined')
+      map['avatar_url'] = avatarUrl;
+    if (referralCode != null && referralCode!.trim().isNotEmpty)
+      map['referral_code'] = referralCode;
     if (validCityId != null) map['city_id'] = validCityId;
-    if (cityNameAr != null && cityNameAr!.trim().isNotEmpty) map['city_name_ar'] = cityNameAr;
-    if (cityNameEn != null && cityNameEn!.trim().isNotEmpty) map['city_name_en'] = cityNameEn;
-    if (bannedReason != null && bannedReason!.trim().isNotEmpty) map['banned_reason'] = bannedReason;
+    if (cityNameAr != null && cityNameAr!.trim().isNotEmpty)
+      map['city_name_ar'] = cityNameAr;
+    if (cityNameEn != null && cityNameEn!.trim().isNotEmpty)
+      map['city_name_en'] = cityNameEn;
+    if (bannedReason != null && bannedReason!.trim().isNotEmpty)
+      map['banned_reason'] = bannedReason;
     if (createdAt != null) map['created_at'] = createdAt?.toIso8601String();
     return map;
   }

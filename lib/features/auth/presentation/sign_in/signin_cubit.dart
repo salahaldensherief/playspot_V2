@@ -15,11 +15,12 @@ class SignInCubit extends Cubit<LoginState> {
   final AuthRepository _authRepository;
   final ProfileRepository _profileRepository;
 
-  final TextEditingController emailController    = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  SignInCubit(this._authRepository, this._profileRepository) : super(LoginState.init());
+  SignInCubit(this._authRepository, this._profileRepository)
+    : super(LoginState.init());
 
   Future<void> _onLoginSuccess() async {
     final token = await PushNotificationService.instance.getToken();
@@ -70,21 +71,25 @@ class SignInCubit extends Cubit<LoginState> {
     result.fold(
       (failure) {
         if (!isClosed) {
-          emit(state.copyWith(
-            status: LoginStatus.failure,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: LoginStatus.failure,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (user) async {
         if (!user.isNewUser) await _onLoginSuccess();
         if (!isClosed) {
-          emit(state.copyWith(
-            status: user.isNewUser
-                ? LoginStatus.successSocial
-                : LoginStatus.success,
-            params: user,
-          ));
+          emit(
+            state.copyWith(
+              status: user.isNewUser
+                  ? LoginStatus.successSocial
+                  : LoginStatus.success,
+              params: user,
+            ),
+          );
         }
       },
     );
@@ -105,21 +110,25 @@ class SignInCubit extends Cubit<LoginState> {
             failure.message.contains('GoogleSignInCancelledException')) {
           emit(state.copyWith(status: LoginStatus.initial));
         } else {
-          emit(state.copyWith(
-            status: LoginStatus.failure,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              status: LoginStatus.failure,
+              errorMessage: failure.message,
+            ),
+          );
         }
       },
       (user) async {
         if (!user.isNewUser) await _onLoginSuccess();
         if (!isClosed) {
-          emit(state.copyWith(
-            status: user.isNewUser
-                ? LoginStatus.successSocial
-                : LoginStatus.success,
-            params: user,
-          ));
+          emit(
+            state.copyWith(
+              status: user.isNewUser
+                  ? LoginStatus.successSocial
+                  : LoginStatus.success,
+              params: user,
+            ),
+          );
         }
       },
     );
@@ -136,20 +145,24 @@ class SignInCubit extends Cubit<LoginState> {
     result.fold(
       (failure) {
         if (isClosed) return;
-        emit(state.copyWith(
-          status: LoginStatus.failure,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (user) async {
         if (!user.isNewUser) await _onLoginSuccess();
         if (!isClosed) {
-          emit(state.copyWith(
-            status: user.isNewUser
-                ? LoginStatus.successSocial
-                : LoginStatus.success,
-            params: user,
-          ));
+          emit(
+            state.copyWith(
+              status: user.isNewUser
+                  ? LoginStatus.successSocial
+                  : LoginStatus.success,
+              params: user,
+            ),
+          );
         }
       },
     );

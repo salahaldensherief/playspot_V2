@@ -27,7 +27,9 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
   Future<void> loadTournaments({bool isRefresh = false}) async {
     if (!isRefresh && state.status == TournamentsFeedStatus.loading) return;
 
-    emit(state.copyWith(status: TournamentsFeedStatus.loading, errorMessage: null));
+    emit(
+      state.copyWith(status: TournamentsFeedStatus.loading, errorMessage: null),
+    );
 
     Position? position;
     try {
@@ -36,7 +38,8 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
 
     final bool locationDisabled = position == null;
     final String? userCityId = _profileRepository?.getCurrentUser()?.cityId;
-    final String? effectiveCity = state.selectedCityId ?? (locationDisabled ? userCityId : null);
+    final String? effectiveCity =
+        state.selectedCityId ?? (locationDisabled ? userCityId : null);
 
     final result = await _getTournamentsUseCase(
       game: state.selectedGame,
@@ -49,26 +52,31 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          status: TournamentsFeedStatus.failure,
-          isLocationDisabled: locationDisabled,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(
+            status: TournamentsFeedStatus.failure,
+            isLocationDisabled: locationDisabled,
+            errorMessage: failure.message,
+          ),
+        );
       },
       (tournaments) {
-        final availableGames = tournaments
-            .map((t) => t.game)
-            .where((g) => g.isNotEmpty)
-            .toSet()
-            .toList()
-          ..sort();
+        final availableGames =
+            tournaments
+                .map((t) => t.game)
+                .where((g) => g.isNotEmpty)
+                .toSet()
+                .toList()
+              ..sort();
 
-        emit(state.copyWith(
-          status: TournamentsFeedStatus.success,
-          isLocationDisabled: locationDisabled,
-          tournaments: tournaments,
-          availableGames: availableGames,
-        ));
+        emit(
+          state.copyWith(
+            status: TournamentsFeedStatus.success,
+            isLocationDisabled: locationDisabled,
+            tournaments: tournaments,
+            availableGames: availableGames,
+          ),
+        );
       },
     );
   }

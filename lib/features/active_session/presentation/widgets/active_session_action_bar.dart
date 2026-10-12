@@ -47,8 +47,7 @@ class ActiveSessionActionBar extends StatelessWidget {
                   ),
                 ),
                 behavior: TapBehavior(
-                  isEnabled:
-                      state.staffRequestStatus != ActionStatus.loading,
+                  isEnabled: state.staffRequestStatus != ActionStatus.loading,
                   onTap: () => _showStaffCallBottomSheet(context),
                 ),
               ),
@@ -95,8 +94,7 @@ class ActiveSessionActionBar extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => StaffCallBottomSheet(
-        onSubmit: (type, notes) =>
-            cubit.requestStaffAssistance(type, notes),
+        onSubmit: (type, notes) => cubit.requestStaffAssistance(type, notes),
       ),
     );
   }

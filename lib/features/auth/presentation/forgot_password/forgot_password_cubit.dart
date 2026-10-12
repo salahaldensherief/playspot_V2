@@ -9,13 +9,15 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-  
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+
   final GlobalKey<FormState> forgotFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> otpFormKey = GlobalKey<FormState>();
   final GlobalKey<FormState> resetFormKey = GlobalKey<FormState>();
 
-  ForgotPasswordCubit(this._authRepository) : super(ForgotPasswordState.initial());
+  ForgotPasswordCubit(this._authRepository)
+    : super(ForgotPasswordState.initial());
 
   Future<void> sendResetEmail() async {
     if (state.status.isLoading) return;
@@ -28,14 +30,15 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     final result = await _authRepository.sendPasswordResetEmail(email);
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: ForgotPasswordStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (_) => emit(state.copyWith(
-        status: ForgotPasswordStatus.emailSent,
-        email: email,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: ForgotPasswordStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (_) => emit(
+        state.copyWith(status: ForgotPasswordStatus.emailSent, email: email),
+      ),
     );
   }
 
@@ -51,13 +54,13 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     );
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: ForgotPasswordStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (_) => emit(state.copyWith(
-        status: ForgotPasswordStatus.otpVerified,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: ForgotPasswordStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (_) => emit(state.copyWith(status: ForgotPasswordStatus.otpVerified)),
     );
   }
 
@@ -66,10 +69,12 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     final confirmPassword = confirmPasswordController.text.trim();
 
     if (password.isEmpty || password != confirmPassword) {
-      emit(state.copyWith(
-        status: ForgotPasswordStatus.failure,
-        errorMessage: "Passwords don't match",
-      ));
+      emit(
+        state.copyWith(
+          status: ForgotPasswordStatus.failure,
+          errorMessage: "Passwords don't match",
+        ),
+      );
       return;
     }
 
@@ -78,13 +83,13 @@ class ForgotPasswordCubit extends Cubit<ForgotPasswordState> {
     final result = await _authRepository.resetPassword(password);
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: ForgotPasswordStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (_) => emit(state.copyWith(
-        status: ForgotPasswordStatus.success,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: ForgotPasswordStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (_) => emit(state.copyWith(status: ForgotPasswordStatus.success)),
     );
   }
 

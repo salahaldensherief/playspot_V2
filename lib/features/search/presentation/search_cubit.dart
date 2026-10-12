@@ -10,10 +10,8 @@ class SearchCubit extends Cubit<SearchState> {
 
   int _requestToken = 0;
 
-  SearchCubit(
-    this._discoverLoungesUseCase,
-    this._preferenceManager,
-  ) : super(const SearchState());
+  SearchCubit(this._discoverLoungesUseCase, this._preferenceManager)
+    : super(const SearchState());
 
   Future<void> search({
     String query = '',
@@ -22,12 +20,7 @@ class SearchCubit extends Cubit<SearchState> {
   }) async {
     final requestToken = ++_requestToken;
 
-    emit(
-      state.copyWith(
-        status: SearchStatus.loading,
-        clearError: true,
-      ),
-    );
+    emit(state.copyWith(status: SearchStatus.loading, clearError: true));
 
     final lat = double.tryParse(_preferenceManager.latitude());
     final lng = double.tryParse(_preferenceManager.longitude());

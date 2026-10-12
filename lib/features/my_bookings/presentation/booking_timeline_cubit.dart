@@ -7,7 +7,8 @@ import 'booking_timeline_state.dart';
 class BookingTimelineCubit extends Cubit<BookingTimelineState> {
   final GetBookingTimelineUseCase _getBookingTimelineUseCase;
 
-  BookingTimelineCubit(this._getBookingTimelineUseCase) : super(const BookingTimelineState());
+  BookingTimelineCubit(this._getBookingTimelineUseCase)
+    : super(const BookingTimelineState());
 
   Future<void> fetchTimeline(String bookingId, {bool isArabic = true}) async {
     emit(state.copyWith(status: RequestStatus.loading, errorMessage: null));
@@ -17,10 +18,12 @@ class BookingTimelineCubit extends Cubit<BookingTimelineState> {
     result.fold(
       (failure) {
         final localizedMsg = getBookingErrorMessage(failure.message, !isArabic);
-        emit(state.copyWith(
-          status: RequestStatus.failure,
-          errorMessage: localizedMsg,
-        ));
+        emit(
+          state.copyWith(
+            status: RequestStatus.failure,
+            errorMessage: localizedMsg,
+          ),
+        );
       },
       (fetchedItems) {
         final deduplicated = <BookingTimelineItem>[];
@@ -32,11 +35,13 @@ class BookingTimelineCubit extends Cubit<BookingTimelineState> {
           }
         }
 
-        emit(state.copyWith(
-          status: RequestStatus.success,
-          items: deduplicated,
-          errorMessage: null,
-        ));
+        emit(
+          state.copyWith(
+            status: RequestStatus.success,
+            items: deduplicated,
+            errorMessage: null,
+          ),
+        );
       },
     );
   }

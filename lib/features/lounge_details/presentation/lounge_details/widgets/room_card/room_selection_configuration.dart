@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../lounge_details_cubit.dart';
 import '../../lounge_details_state.dart';
@@ -24,12 +25,15 @@ class RoomSelectionConfiguration extends StatelessWidget {
         builder: (context, state) => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (room.supportsPlayModePricing)
+            if (room.supportsPlayModePricing) ...[
               RoomPlayModeSelector(
                 roomId: room.id,
                 mode: state.roomPlayModes[room.id] ?? 'single',
                 color: themeColor,
               ),
+              if (room.requiresControllers && room.extraControllerPrice > 0)
+                12.verticalSpace,
+            ],
             if (room.requiresControllers && room.extraControllerPrice > 0)
               RoomControllerSelector(
                 room: room,

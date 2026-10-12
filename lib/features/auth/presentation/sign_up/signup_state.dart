@@ -1,22 +1,20 @@
-
-
 import 'package:equatable/equatable.dart';
 import '../../data/models/user_model.dart';
 
 enum SignupStatus {
   initial,
   loading,
-  requiresOtp,     // روح شاشة أدخل كود التحقق OTP
-  success,         // روح Home
-  successSocial,   // روح Complete Profile (يوزر جديد)
+  requiresOtp, // روح شاشة أدخل كود التحقق OTP
+  success, // روح Home
+  successSocial, // روح Complete Profile (يوزر جديد)
   failure;
 
-  bool get isInitial       => this == SignupStatus.initial;
-  bool get isLoading       => this == SignupStatus.loading;
-  bool get isRequiresOtp   => this == SignupStatus.requiresOtp;
-  bool get isSuccess       => this == SignupStatus.success;
+  bool get isInitial => this == SignupStatus.initial;
+  bool get isLoading => this == SignupStatus.loading;
+  bool get isRequiresOtp => this == SignupStatus.requiresOtp;
+  bool get isSuccess => this == SignupStatus.success;
   bool get isSuccessSocial => this == SignupStatus.successSocial;
-  bool get isFailure       => this == SignupStatus.failure;
+  bool get isFailure => this == SignupStatus.failure;
 }
 
 class SignupState extends Equatable {

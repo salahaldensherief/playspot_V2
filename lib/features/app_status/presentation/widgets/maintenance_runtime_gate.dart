@@ -14,10 +14,7 @@ import '../screens/maintenance_screen.dart';
 class MaintenanceRuntimeGate extends StatelessWidget {
   final AppStatusEntity? initialStatusEntity;
 
-  const MaintenanceRuntimeGate({
-    super.key,
-    this.initialStatusEntity,
-  });
+  const MaintenanceRuntimeGate({super.key, this.initialStatusEntity});
 
   @override
   Widget build(BuildContext context) {

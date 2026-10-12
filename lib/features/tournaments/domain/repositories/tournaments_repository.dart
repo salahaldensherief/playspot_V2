@@ -16,22 +16,34 @@ abstract class TournamentsRepository {
     String? loungeId,
   });
 
-  Future<Either<Failure, TournamentEntity>> getTournamentById(String tournamentId);
+  Future<Either<Failure, TournamentEntity>> getTournamentById(
+    String tournamentId,
+  );
 
-  Future<Either<Failure, List<TournamentPrizeEntity>>> getTournamentPrizes(String tournamentId);
+  Future<Either<Failure, List<TournamentPrizeEntity>>> getTournamentPrizes(
+    String tournamentId,
+  );
 
-  Future<Either<Failure, List<TournamentMatchEntity>>> getTournamentMatches(String tournamentId);
+  Future<Either<Failure, List<TournamentMatchEntity>>> getTournamentMatches(
+    String tournamentId,
+  );
 
-  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(String tournamentId, String matchId);
+  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(
+    String tournamentId,
+    String matchId,
+  );
 
   Future<Either<Failure, TournamentParticipantEntity?>> getUserParticipant(
     String tournamentId,
     String userId,
   );
 
-  Future<Either<Failure, TournamentParticipantEntity?>> registerForTournament(String tournamentId);
+  Future<Either<Failure, TournamentParticipantEntity?>> registerForTournament(
+    String tournamentId,
+  );
 
-  Future<Either<Failure, TournamentParticipantEntity?>> submitTournamentPayment({
+  Future<Either<Failure, TournamentParticipantEntity?>>
+  submitTournamentPayment({
     required String participantId,
     required String tournamentId,
     required String userId,
@@ -40,7 +52,9 @@ abstract class TournamentsRepository {
     required File receiptFile,
   });
 
-  Future<Either<Failure, TournamentParticipantEntity?>> checkInParticipant(String participantId);
+  Future<Either<Failure, TournamentParticipantEntity?>> checkInParticipant(
+    String participantId,
+  );
 
   Future<Either<Failure, void>> submitMatchResult({
     required String matchId,
@@ -57,21 +71,29 @@ abstract class TournamentsRepository {
     required String disputeReason,
   });
 
-  Stream<List<TournamentMatchEntity>> watchTournamentMatches(String tournamentId);
+  Stream<List<TournamentMatchEntity>> watchTournamentMatches(
+    String tournamentId,
+  );
 
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getTournamentAuditLogsPage({
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getTournamentAuditLogsPage({
     required String tournamentId,
     int page = 1,
     int pageSize = 50,
   });
 
-  Future<Either<Failure, TournamentParticipantEntity?>> withdrawFromTournament(String participantId, {String? tournamentId});
+  Future<Either<Failure, TournamentParticipantEntity?>> withdrawFromTournament(
+    String participantId, {
+    String? tournamentId,
+  });
 
-  Future<Either<Failure, List<UserTournamentParticipationEntity>>> getUserTournamentHistory(String userId);
+  Future<Either<Failure, List<UserTournamentParticipationEntity>>>
+  getUserTournamentHistory(String userId);
 
   Future<Either<Failure, TournamentEntity?>> getHomeTournament();
 
-  Future<Either<Failure, UserTournamentParticipationEntity?>> getMyActiveTournament();
+  Future<Either<Failure, UserTournamentParticipationEntity?>>
+  getMyActiveTournament();
 
   Future<void> updateFcmToken(String token);
 }

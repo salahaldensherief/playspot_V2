@@ -49,14 +49,19 @@ class NotificationItem extends StatelessWidget {
                             child: AppText(
                               text: displayTitle,
                               fontSize: 15.sp,
-                              fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
+                              fontWeight: notification.isRead
+                                  ? FontWeight.w600
+                                  : FontWeight.bold,
                               color: Colors.white,
                               overflow: TextOverflow.visible,
                             ),
                           ),
                           if (!notification.isRead)
                             Padding(
-                              padding: EdgeInsetsDirectional.only(top: 4.h, start: 8.w),
+                              padding: EdgeInsetsDirectional.only(
+                                top: 4.h,
+                                start: 8.w,
+                              ),
                               child: Container(
                                 width: 8.w,
                                 height: 8.h,
@@ -85,7 +90,9 @@ class NotificationItem extends StatelessWidget {
                       ),
                       SizedBox(height: 10.h),
                       AppText(
-                        text: DateFormat('dd MMM, hh:mm a').format(notification.createdAt),
+                        text: DateFormat(
+                          'dd MMM, hh:mm a',
+                        ).format(notification.createdAt),
                         fontSize: 11.sp,
                         color: AppColors.textSecondary.withValues(alpha: 0.6),
                       ),
@@ -155,16 +162,9 @@ class NotificationItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: iconColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14.r),
-        border: Border.all(
-          color: iconColor.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: iconColor.withValues(alpha: 0.2), width: 1),
       ),
-      child: Icon(
-        iconData,
-        color: iconColor,
-        size: 18.sp,
-      ),
+      child: Icon(iconData, color: iconColor, size: 18.sp),
     );
   }
 }

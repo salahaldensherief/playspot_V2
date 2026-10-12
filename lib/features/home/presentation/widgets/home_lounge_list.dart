@@ -35,9 +35,7 @@ class HomeLoungeList extends StatelessWidget {
           return const SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 40),
-              child: Center(
-                child: AppLoader(size: 40),
-              ),
+              child: Center(child: AppLoader(size: 40)),
             ),
           );
         }
@@ -45,7 +43,9 @@ class HomeLoungeList extends StatelessWidget {
         final lounges = state.nearestLounges;
 
         if (lounges.isEmpty) {
-          final hasFilter = state.selectedCity != null || state.selectedCategoryIds.isNotEmpty;
+          final hasFilter =
+              state.selectedCity != null ||
+              state.selectedCategoryIds.isNotEmpty;
           return SliverToBoxAdapter(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

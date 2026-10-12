@@ -25,7 +25,8 @@ class TournamentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double capacityProgress = tournament.bracketSize > 0
-        ? (tournament.registeredParticipantsCount / tournament.bracketSize).clamp(0.0, 1.0)
+        ? (tournament.registeredParticipantsCount / tournament.bracketSize)
+              .clamp(0.0, 1.0)
         : 0.0;
 
     final isFull = capacityProgress >= 1.0;
@@ -53,7 +54,9 @@ class TournamentCard extends StatelessWidget {
                 Stack(
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20.r),
+                      ),
                       child: tournament.imageUrl?.isNotEmpty == true
                           ? CachedNetworkImage(
                               imageUrl: tournament.imageUrl!,
@@ -73,7 +76,8 @@ class TournamentCard extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              errorWidget: (context, url, error) => _buildPlaceholderBanner(),
+                              errorWidget: (context, url, error) =>
+                                  _buildPlaceholderBanner(),
                             )
                           : _buildPlaceholderBanner(),
                     ),
@@ -82,7 +86,9 @@ class TournamentCard extends StatelessWidget {
                     Positioned.fill(
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20.r),
+                          ),
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
@@ -113,9 +119,14 @@ class TournamentCard extends StatelessWidget {
                         borderRadius: 10.r,
                         blur: 8,
                         borderOpacity: 0.4,
-                        borderColor: AppColors.tournamentGold.withValues(alpha: 0.7),
+                        borderColor: AppColors.tournamentGold.withValues(
+                          alpha: 0.7,
+                        ),
                         color: AppColors.black.withValues(alpha: 0.65),
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 5.h,
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -148,7 +159,10 @@ class TournamentCard extends StatelessWidget {
                         borderOpacity: 0.3,
                         borderColor: AppColors.neonBlue.withValues(alpha: 0.5),
                         color: AppColors.neonBlue.withValues(alpha: 0.15),
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -195,7 +209,8 @@ class TournamentCard extends StatelessWidget {
                       SizedBox(height: 8.h),
 
                       // Location & Lounge Row
-                      if (tournament.cityName != null || tournament.loungeName != null) ...[
+                      if (tournament.cityName != null ||
+                          tournament.loungeName != null) ...[
                         Row(
                           children: [
                             Icon(
@@ -206,7 +221,8 @@ class TournamentCard extends StatelessWidget {
                             SizedBox(width: 6.w),
                             Expanded(
                               child: AppText(
-                                text: '${tournament.cityName ?? ''}${tournament.cityName != null && tournament.loungeName != null ? ' • ' : ''}${tournament.loungeName ?? ''}',
+                                text:
+                                    '${tournament.cityName ?? ''}${tournament.cityName != null && tournament.loungeName != null ? ' • ' : ''}${tournament.loungeName ?? ''}',
                                 color: AppColors.textSecondary,
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.w500,
@@ -247,7 +263,10 @@ class TournamentCard extends StatelessWidget {
                           GlassContainer(
                             borderRadius: 6.r,
                             blur: 6,
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.w,
+                              vertical: 2.h,
+                            ),
                             borderColor: isFull
                                 ? AppColors.warning.withValues(alpha: 0.4)
                                 : AppColors.neonBlue.withValues(alpha: 0.3),
@@ -256,7 +275,9 @@ class TournamentCard extends StatelessWidget {
                                 : AppColors.neonBlue.withValues(alpha: 0.15),
                             child: AppText(
                               text: '${(capacityProgress * 100).toInt()}%',
-                              color: isFull ? AppColors.warning : AppColors.neonBlue,
+                              color: isFull
+                                  ? AppColors.warning
+                                  : AppColors.neonBlue,
                               fontSize: 11.sp,
                               fontWeight: FontWeight.bold,
                             ),
@@ -281,8 +302,14 @@ class TournamentCard extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: isFull
-                                        ? [AppColors.warning, AppColors.categoryFood]
-                                        : [AppColors.neonBlue, AppColors.neonPurple],
+                                        ? [
+                                            AppColors.warning,
+                                            AppColors.categoryFood,
+                                          ]
+                                        : [
+                                            AppColors.neonBlue,
+                                            AppColors.neonPurple,
+                                          ],
                                   ),
                                 ),
                               ),

@@ -15,10 +15,31 @@ class LoyaltyStatusModel extends Equatable {
 
   factory LoyaltyStatusModel.fromJson(Map<String, dynamic> json) {
     return LoyaltyStatusModel(
-      pointsBalance: ((json['points_balance'] ?? json['points'] ?? json['total_points']) as num?)?.toInt() ?? 0,
-      currentLevel: json['current_level']?.toString() ?? json['level']?.toString() ?? json['tier_name']?.toString() ?? json['tier']?.toString() ?? 'Bronze',
-      nextLevelPoints: ((json['next_level_points'] ?? json['points_to_next_level'] ?? json['next_tier_points']) as num?)?.toInt() ?? 0,
-      multiplier: ((json['multiplier'] ?? json['level_multiplier'] ?? json['tier_multiplier']) as num?)?.toDouble() ?? 1.0,
+      pointsBalance:
+          ((json['points_balance'] ?? json['points'] ?? json['total_points'])
+                  as num?)
+              ?.toInt() ??
+          0,
+      currentLevel:
+          json['current_level']?.toString() ??
+          json['level']?.toString() ??
+          json['tier_name']?.toString() ??
+          json['tier']?.toString() ??
+          'Bronze',
+      nextLevelPoints:
+          ((json['next_level_points'] ??
+                      json['points_to_next_level'] ??
+                      json['next_tier_points'])
+                  as num?)
+              ?.toInt() ??
+          0,
+      multiplier:
+          ((json['multiplier'] ??
+                      json['level_multiplier'] ??
+                      json['tier_multiplier'])
+                  as num?)
+              ?.toDouble() ??
+          1.0,
     );
   }
 
@@ -47,5 +68,10 @@ class LoyaltyStatusModel extends Equatable {
   };
 
   @override
-  List<Object?> get props => [pointsBalance, currentLevel, nextLevelPoints, multiplier];
+  List<Object?> get props => [
+    pointsBalance,
+    currentLevel,
+    nextLevelPoints,
+    multiplier,
+  ];
 }

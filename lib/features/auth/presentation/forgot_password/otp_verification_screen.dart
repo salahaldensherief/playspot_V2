@@ -22,10 +22,7 @@ import '../sign_up/signup_state.dart';
 class OTPVerificationScreen extends StatefulWidget {
   final bool isSignUp;
 
-  const OTPVerificationScreen({
-    super.key,
-    this.isSignUp = true,
-  });
+  const OTPVerificationScreen({super.key, this.isSignUp = true});
 
   @override
   State<OTPVerificationScreen> createState() => _OTPVerificationScreenState();
@@ -111,7 +108,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 child: BlocBuilder<SignupCubit, SignupState>(
-                  buildWhen: (previous, current) => previous.status != current.status,
+                  buildWhen: (previous, current) =>
+                      previous.status != current.status,
                   builder: (context, state) {
                     return AppButton(
                       buttonConfig: ButtonConfig.gradient(
@@ -139,7 +137,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 text: _cooldownSeconds > 0
                     ? '${AppStrings.resendOTP.tr()} (${_cooldownSeconds}s)'
                     : AppStrings.resendOTP.tr(),
-                color: _cooldownSeconds > 0 ? AppColors.textSecondary : AppColors.white,
+                color: _cooldownSeconds > 0
+                    ? AppColors.textSecondary
+                    : AppColors.white,
                 onTap: _cooldownSeconds > 0
                     ? null
                     : () {

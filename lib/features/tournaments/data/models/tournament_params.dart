@@ -50,13 +50,13 @@ class SubmitTournamentPaymentParams extends Equatable {
 
   @override
   List<Object?> get props => [
-        participantId,
-        tournamentId,
-        userId,
-        amount,
-        paymentMethod,
-        receiptFile,
-      ];
+    participantId,
+    tournamentId,
+    userId,
+    amount,
+    paymentMethod,
+    receiptFile,
+  ];
 }
 
 /// Parameters for submitting match score and proof
@@ -77,12 +77,12 @@ class SubmitMatchResultParams extends Equatable {
 
   @override
   List<Object?> get props => [
-        matchId,
-        tournamentId,
-        player1Score,
-        player2Score,
-        proofFile,
-      ];
+    matchId,
+    tournamentId,
+    player1Score,
+    player2Score,
+    proofFile,
+  ];
 }
 
 /// Parameters for disputing a match result
@@ -120,10 +120,7 @@ class TournamentDetailsNavParams extends Equatable {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'tournamentId': tournamentId,
-      'tournament': tournament,
-    };
+    return {'tournamentId': tournamentId, 'tournament': tournament};
   }
 }
 
@@ -151,10 +148,6 @@ class TournamentMatchNavParams extends Equatable {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'tournamentId': tournamentId,
-      'matchId': matchId,
-      'match': match,
-    };
+    return {'tournamentId': tournamentId, 'matchId': matchId, 'match': match};
   }
 }

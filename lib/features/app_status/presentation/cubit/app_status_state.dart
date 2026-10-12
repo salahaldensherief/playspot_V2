@@ -35,7 +35,8 @@ class AppStatusState extends Equatable {
       statusEntity: statusEntity ?? this.statusEntity,
       statusType: statusType ?? this.statusType,
       currentAppVersion: currentAppVersion ?? this.currentAppVersion,
-      isSoftUpdateDismissed: isSoftUpdateDismissed ?? this.isSoftUpdateDismissed,
+      isSoftUpdateDismissed:
+          isSoftUpdateDismissed ?? this.isSoftUpdateDismissed,
       hasActiveSession: hasActiveSession ?? this.hasActiveSession,
       errorMessage: errorMessage ?? this.errorMessage,
     );
@@ -43,12 +44,12 @@ class AppStatusState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isLoading,
-        statusEntity,
-        statusType,
-        currentAppVersion,
-        isSoftUpdateDismissed,
-        hasActiveSession,
-        errorMessage,
-      ];
+    isLoading,
+    statusEntity,
+    statusType,
+    currentAppVersion,
+    isSoftUpdateDismissed,
+    hasActiveSession,
+    errorMessage,
+  ];
 }

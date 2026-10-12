@@ -41,7 +41,6 @@ class OnBoardingPage extends StatefulWidget {
   State<OnBoardingPage> createState() => _OnBoardingPageState();
 }
 
-
 class _OnBoardingPageState extends State<OnBoardingPage> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
@@ -78,7 +77,9 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     try {
       await sl<PreferenceManager>().saveIsFirstTime(false);
     } catch (e) {
-      AppLogger.debug("ONBOARDING_STORAGE_ERROR: Failed to save isFirstTime(false): $e");
+      AppLogger.debug(
+        "ONBOARDING_STORAGE_ERROR: Failed to save isFirstTime(false): $e",
+      );
     }
     if (mounted) {
       context.goNamed(RouterKeys.signIn);
@@ -106,7 +107,10 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
               children: [
                 // Top Navigation Bar
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 8.h,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -133,10 +137,14 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                                   vertical: 6.h,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.white.withValues(alpha: 0.08),
+                                  color: AppColors.white.withValues(
+                                    alpha: 0.08,
+                                  ),
                                   borderRadius: BorderRadius.circular(20.r),
                                   border: Border.all(
-                                    color: AppColors.white.withValues(alpha: 0.15),
+                                    color: AppColors.white.withValues(
+                                      alpha: 0.15,
+                                    ),
                                     width: 1,
                                   ),
                                 ),
@@ -180,10 +188,14 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                                   height: 260.h,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: item.accentColor.withValues(alpha: 0.25),
+                                    color: item.accentColor.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: item.accentColor.withValues(alpha: 0.35),
+                                        color: item.accentColor.withValues(
+                                          alpha: 0.35,
+                                        ),
                                         blurRadius: 80,
                                         spreadRadius: 20,
                                       ),
@@ -208,7 +220,9 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.5),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.5,
+                                        ),
                                         blurRadius: 20,
                                         offset: const Offset(0, 10),
                                       ),
@@ -237,10 +251,12 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                                                 gradient: LinearGradient(
                                                   colors: [
                                                     Colors.transparent,
-                                                    Colors.black
-                                                        .withValues(alpha: 0.2),
-                                                    Colors.black
-                                                        .withValues(alpha: 0.65),
+                                                    Colors.black.withValues(
+                                                      alpha: 0.2,
+                                                    ),
+                                                    Colors.black.withValues(
+                                                      alpha: 0.65,
+                                                    ),
                                                   ],
                                                   begin: Alignment.topCenter,
                                                   end: Alignment.bottomCenter,
@@ -352,7 +368,9 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                               color: AppColors.white,
                               fontWeight: FontWeight.bold,
                             ),
-                            borderColor: AppColors.textSecondary.withValues(alpha: 0.4),
+                            borderColor: AppColors.textSecondary.withValues(
+                              alpha: 0.4,
+                            ),
                             isOutlined: true,
                             backgroundColor: AppColors.buttonPrimary2,
                             borderRadius: 18.r,

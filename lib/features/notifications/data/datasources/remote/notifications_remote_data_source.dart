@@ -15,7 +15,8 @@ abstract class NotificationsRemoteDataSource {
   Stream<Map<String, dynamic>> subscribeToNewNotifications();
 }
 
-class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource {
+class NotificationsRemoteDataSourceImpl
+    implements NotificationsRemoteDataSource {
   final SupabaseClient _client;
   RealtimeChannel? _channel;
   StreamController<Map<String, dynamic>>? _activeController;
@@ -29,11 +30,13 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
     int pageSize = 20,
   }) async {
     try {
-      dev.log("FETCHING_NOTIFICATIONS_PAGE: lang=$lang, page=$page, pageSize=$pageSize");
-      final response = await _client.rpc('get_notifications_page', params: {
-        'p_page': page,
-        'p_page_size': pageSize,
-      });
+      dev.log(
+        "FETCHING_NOTIFICATIONS_PAGE: lang=$lang, page=$page, pageSize=$pageSize",
+      );
+      final response = await _client.rpc(
+        'get_notifications_page',
+        params: {'p_page': page, 'p_page_size': pageSize},
+      );
 
       return PaginatedResponse.fromRpc(
         response: response,
@@ -91,7 +94,9 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
           .subscribe((status, [error]) {
             if (status == RealtimeSubscribeStatus.timedOut ||
                 status == RealtimeSubscribeStatus.channelError) {
-              dev.log("Realtime subscription error/timeout: status=$status, error=$error");
+              dev.log(
+                "Realtime subscription error/timeout: status=$status, error=$error",
+              );
             }
           });
     } catch (e) {
@@ -118,4 +123,3 @@ class NotificationsRemoteDataSourceImpl implements NotificationsRemoteDataSource
     }
   }
 }
-

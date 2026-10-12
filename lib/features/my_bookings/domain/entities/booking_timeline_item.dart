@@ -67,11 +67,11 @@ class BookingTimelineItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        eventCode,
-        titleAr,
-        titleEn,
-        occurredAt,
-        payload,
-      ];
+    id,
+    eventCode,
+    titleAr,
+    titleEn,
+    occurredAt,
+    payload,
+  ];
 }

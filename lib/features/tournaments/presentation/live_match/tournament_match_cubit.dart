@@ -125,10 +125,7 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
               successMessage: 'resultSubmittedSuccess',
             ),
           );
-          loadMatch(
-            tournamentId: match.tournamentId,
-            matchId: match.id,
-          );
+          loadMatch(tournamentId: match.tournamentId, matchId: match.id);
         },
       );
     } catch (_) {
@@ -166,19 +163,14 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
             successMessage: 'resultConfirmedSuccess',
           ),
         );
-        loadMatch(
-          tournamentId: match.tournamentId,
-          matchId: match.id,
-        );
+        loadMatch(tournamentId: match.tournamentId, matchId: match.id);
       },
     );
   }
 
   Future<void> disputeResult(String reason) async {
     final match = state.match;
-    if (match == null ||
-        state.isSubmittingDispute ||
-        reason.trim().isEmpty) {
+    if (match == null || state.isSubmittingDispute || reason.trim().isEmpty) {
       return;
     }
 
@@ -205,10 +197,7 @@ class TournamentMatchCubit extends Cubit<TournamentMatchState> {
             successMessage: 'disputeSubmittedSuccess',
           ),
         );
-        loadMatch(
-          tournamentId: match.tournamentId,
-          matchId: match.id,
-        );
+        loadMatch(tournamentId: match.tournamentId, matchId: match.id);
       },
     );
   }

@@ -11,10 +11,7 @@ import '../../../domain/entities/tournament_entity.dart';
 class TournamentRulesCard extends StatelessWidget {
   final TournamentEntity tournament;
 
-  const TournamentRulesCard({
-    super.key,
-    required this.tournament,
-  });
+  const TournamentRulesCard({super.key, required this.tournament});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +43,11 @@ class TournamentRulesCard extends StatelessWidget {
                 blur: 6,
                 borderColor: AppColors.neonBlue.withValues(alpha: 0.3),
                 color: AppColors.neonBlue.withValues(alpha: 0.15),
-                child: Icon(TablerIcons.gavel, color: AppColors.neonBlue, size: 20.sp),
+                child: Icon(
+                  TablerIcons.gavel,
+                  color: AppColors.neonBlue,
+                  size: 20.sp,
+                ),
               ),
               SizedBox(width: 12.w),
               AppText(
@@ -65,7 +66,10 @@ class TournamentRulesCard extends StatelessWidget {
               itemCount: lines.length,
               separatorBuilder: (context, index) => SizedBox(height: 10.h),
               itemBuilder: (context, index) {
-                final lineText = lines[index].replaceFirst(RegExp(r'^\d+[.\-)]\s*'), '');
+                final lineText = lines[index].replaceFirst(
+                  RegExp(r'^\d+[.\-)]\s*'),
+                  '',
+                );
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

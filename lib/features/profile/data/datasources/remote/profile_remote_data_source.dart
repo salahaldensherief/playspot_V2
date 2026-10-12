@@ -33,8 +33,14 @@ abstract class ProfileRemoteDataSource {
   Future<List<Map<String, dynamic>>> getMyVouchers();
   Future<Map<String, dynamic>> validateVoucher(String voucherId);
   Future<Map<String, dynamic>> validateVoucherByCode(String code);
-  Future<void> consumeVoucher({required String voucherId, required String bookingId});
-  Future<void> consumeVoucherByCode({required String code, required String bookingId});
+  Future<void> consumeVoucher({
+    required String voucherId,
+    required String bookingId,
+  });
+  Future<void> consumeVoucherByCode({
+    required String code,
+    required String bookingId,
+  });
   Future<void> updateFcmToken(String token);
   Future<NotificationSettingsModel> getNotificationSettings();
   Future<void> updateNotificationSettings(NotificationSettingsModel settings);
@@ -52,28 +58,34 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   ProfileRemoteDataSourceImpl(this._supabase, this._storageService);
 
   @override
-  Future<void> consumeVoucher({required String voucherId, required String bookingId}) async {
-    await _supabase.rpc('consume_voucher', params: {
-      'p_voucher_id': voucherId,
-      'p_booking_id': bookingId,
-    });
+  Future<void> consumeVoucher({
+    required String voucherId,
+    required String bookingId,
+  }) async {
+    await _supabase.rpc(
+      'consume_voucher',
+      params: {'p_voucher_id': voucherId, 'p_booking_id': bookingId},
+    );
   }
 
   @override
-  Future<void> consumeVoucherByCode({required String code, required String bookingId}) async {
+  Future<void> consumeVoucherByCode({
+    required String code,
+    required String bookingId,
+  }) async {
     final cleanCode = code.trim().toUpperCase();
     try {
-      await _supabase.rpc('consume_voucher_by_code', params: {
-        'p_code': cleanCode,
-        'p_booking_id': bookingId,
-      });
+      await _supabase.rpc(
+        'consume_voucher_by_code',
+        params: {'p_code': cleanCode, 'p_booking_id': bookingId},
+      );
     } catch (e) {
       AppLogger.debug('[ProfileDS] consume_voucher_by_code error: $e');
       try {
-        await _supabase.rpc('consume_voucher', params: {
-          'p_voucher_id': code,
-          'p_booking_id': bookingId,
-        });
+        await _supabase.rpc(
+          'consume_voucher',
+          params: {'p_voucher_id': code, 'p_booking_id': bookingId},
+        );
       } catch (_) {}
     }
   }
@@ -91,9 +103,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   @override
   Future<Map<String, dynamic>> validateVoucher(String voucherId) async {
     try {
-      final response = await _supabase.rpc('validate_voucher', params: {
-        'p_voucher_id': voucherId,
-      });
+      final response = await _supabase.rpc(
+        'validate_voucher',
+        params: {'p_voucher_id': voucherId},
+      );
       return Map<String, dynamic>.from(response);
     } catch (e) {
       return {'valid': false, 'error': e.toString()};
@@ -104,9 +117,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   Future<Map<String, dynamic>> validateVoucherByCode(String code) async {
     final cleanCode = code.trim().toUpperCase();
     try {
-      final response = await _supabase.rpc('validate_voucher_by_code', params: {
-        'p_code': cleanCode,
-      });
+      final response = await _supabase.rpc(
+        'validate_voucher_by_code',
+        params: {'p_code': cleanCode},
+      );
       return Map<String, dynamic>.from(response);
     } catch (e) {
       return {'valid': false, 'error': e.toString()};
@@ -118,9 +132,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return 0;
-      final response = await _supabase.rpc('get_user_points_balance', params: {
-        'p_user_id': user.id,
-      });
+      final response = await _supabase.rpc(
+        'get_user_points_balance',
+        params: {'p_user_id': user.id},
+      );
       return (response as num?)?.toInt() ?? 0;
     } catch (e) {
       AppLogger.debug('[Profile] get_user_points_balance RPC error: $e');
@@ -143,10 +158,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           pageSize: pageSize,
         );
       }
-      final response = await _supabase.rpc('get_points_transactions_page', params: {
-        'p_page': page,
-        'p_page_size': pageSize,
-      });
+      final response = await _supabase.rpc(
+        'get_points_transactions_page',
+        params: {'p_page': page, 'p_page_size': pageSize},
+      );
       return PaginatedResponse.fromRpc(
         response: response,
         fromJson: (json) => json,
@@ -178,10 +193,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) throw const UserNotFoundException();
-      final response = await _supabase.rpc('redeem_points', params: {
-        'p_user_id': user.id,
-        'p_redemption_option_id': optionId,
-      });
+      final response = await _supabase.rpc(
+        'redeem_points',
+        params: {'p_user_id': user.id, 'p_redemption_option_id': optionId},
+      );
       return Map<String, dynamic>.from(response);
     } catch (e) {
       return {'success': false, 'error': e.toString()};
@@ -206,35 +221,31 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       final updateData = <String, dynamic>{
         'full_name': params.name,
         'phone': params.phone,
-        'email':? params.email,
-        'avatar_url':? avatarUrl,
+        'email': ?params.email,
+        'avatar_url': ?avatarUrl,
       };
 
-      updateData.removeWhere((key, value) =>
-          value == null ||
-          value.toString() == 'undefined' ||
-          value.toString() == 'null');
+      updateData.removeWhere(
+        (key, value) =>
+            value == null ||
+            value.toString() == 'undefined' ||
+            value.toString() == 'null',
+      );
 
       await _supabase.from('profiles').update(updateData).eq('id', userId);
 
       await _supabase.auth.updateUser(
         UserAttributes(
           email: params.email,
-          data: {
-            'full_name': params.name,
-            'avatar_url':? avatarUrl,
-          },
+          data: {'full_name': params.name, 'avatar_url': ?avatarUrl},
         ),
       );
 
       AppLogger.debug(' [Profile] Profile updated');
 
-      return UserModel.fromSupabaseUser(_supabase.auth.currentUser!.toJson())
-          .copyWith(
-        name: params.name,
-        phone: params.phone,
-        avatarUrl: avatarUrl,
-      );
+      return UserModel.fromSupabaseUser(
+        _supabase.auth.currentUser!.toJson(),
+      ).copyWith(name: params.name, phone: params.phone, avatarUrl: avatarUrl);
     } on AppException {
       rethrow;
     } catch (e) {
@@ -251,16 +262,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     if (permission == LocationPermission.denied) {
       permission = await locationService.requestPermission();
       if (permission == LocationPermission.denied) {
-        throw const AppException('يرجى تفعيل صلاحية الوصول إلى الموقع للاستفادة من خدمات التطبيق');
+        throw const AppException(
+          'يرجى تفعيل صلاحية الوصول إلى الموقع للاستفادة من خدمات التطبيق',
+        );
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      throw const AppException('صلاحية الموقع مرفوضة بشكل دائم. يرجى تفعيلها من إعدادات الجهاز');
+      throw const AppException(
+        'صلاحية الموقع مرفوضة بشكل دائم. يرجى تفعيلها من إعدادات الجهاز',
+      );
     }
 
     final position = await locationService.getCurrentLocation();
     if (position == null) {
-      throw const AppException('تعذر تحديد موقعك الحالي. الموقع غير واضح أو غير مدعوم');
+      throw const AppException(
+        'تعذر تحديد موقعك الحالي. الموقع غير واضح أو غير مدعوم',
+      );
     }
 
     final user = _supabase.auth.currentUser;
@@ -275,11 +292,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
     // 2. Direct update to profiles table so coordinates are always persisted
     try {
-      await _supabase.from('profiles').update({
-        'latitude': position.latitude,
-        'longitude': position.longitude,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', user.id);
+      await _supabase
+          .from('profiles')
+          .update({
+            'latitude': position.latitude,
+            'longitude': position.longitude,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', user.id);
     } catch (e) {
       AppLogger.debug('[Profile] Direct profiles location update error: $e');
     }
@@ -288,10 +308,7 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       await _supabase.functions.invoke(
         'update-user-location',
-        body: {
-          'latitude': position.latitude,
-          'longitude': position.longitude,
-        },
+        body: {'latitude': position.latitude, 'longitude': position.longitude},
       );
     } on FunctionException catch (e) {
       if (e.status == 422) {
@@ -324,17 +341,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .single();
 
       var userModel = UserModel.fromJson(Map<String, dynamic>.from(data));
-      if (userModel.referralCode == null || userModel.referralCode!.trim().isEmpty) {
+      if (userModel.referralCode == null ||
+          userModel.referralCode!.trim().isEmpty) {
         final fallbackCode = 'PLAY-${user.id.substring(0, 6).toUpperCase()}';
         try {
-          await _supabase.from('profiles').update({'referral_code': fallbackCode}).eq('id', user.id);
+          await _supabase
+              .from('profiles')
+              .update({'referral_code': fallbackCode})
+              .eq('id', user.id);
           userModel = userModel.copyWith(referralCode: fallbackCode);
         } catch (_) {}
       }
       return userModel;
     } catch (e) {
       final userModel = UserModel.fromSupabaseUser(user.toJson());
-      if (userModel.referralCode == null || userModel.referralCode!.trim().isEmpty) {
+      if (userModel.referralCode == null ||
+          userModel.referralCode!.trim().isEmpty) {
         return userModel.copyWith(
           referralCode: 'PLAY-${user.id.substring(0, 6).toUpperCase()}',
         );
@@ -348,9 +370,11 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return;
-      await _supabase.from('profiles').update({'fcm_token': token}).eq('id', user.id);
+      await _supabase
+          .from('profiles')
+          .update({'fcm_token': token})
+          .eq('id', user.id);
       AppLogger.debug('[ProfileDS] FCM token updated for user: ${user.id}');
-
     } catch (e) {
       AppLogger.debug('[ProfileDS] Update FCM token error: $e');
     }
@@ -369,7 +393,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .maybeSingle();
 
       if (response != null) {
-        return NotificationSettingsModel.fromJson(Map<String, dynamic>.from(response));
+        return NotificationSettingsModel.fromJson(
+          Map<String, dynamic>.from(response),
+        );
       }
     } catch (e) {
       AppLogger.debug(' [Profile] Error getting notification settings: $e');
@@ -378,17 +404,18 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
   }
 
   @override
-  Future<void> updateNotificationSettings(NotificationSettingsModel settings) async {
+  Future<void> updateNotificationSettings(
+    NotificationSettingsModel settings,
+  ) async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
 
-    final data = {
-      'user_id': user.id,
-      ...settings.toJson(),
-    };
+    final data = {'user_id': user.id, ...settings.toJson()};
 
     try {
-      await _supabase.from('notification_settings').upsert(data, onConflict: 'user_id');
+      await _supabase
+          .from('notification_settings')
+          .upsert(data, onConflict: 'user_id');
     } catch (e) {
       AppLogger.debug(' [Profile] Error updating notification settings: $e');
     }
@@ -407,15 +434,22 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     }
 
     try {
-      final response = await _supabase.rpc('get_loyalty_status', params: {
-        'p_user_id': user.id,
-      });
+      final response = await _supabase.rpc(
+        'get_loyalty_status',
+        params: {'p_user_id': user.id},
+      );
 
       if (response != null) {
         if (response is Map) {
-          return LoyaltyStatusModel.fromJson(Map<String, dynamic>.from(response));
-        } else if (response is List && response.isNotEmpty && response.first is Map) {
-          return LoyaltyStatusModel.fromJson(Map<String, dynamic>.from(response.first));
+          return LoyaltyStatusModel.fromJson(
+            Map<String, dynamic>.from(response),
+          );
+        } else if (response is List &&
+            response.isNotEmpty &&
+            response.first is Map) {
+          return LoyaltyStatusModel.fromJson(
+            Map<String, dynamic>.from(response.first),
+          );
         }
       }
     } catch (e) {
@@ -425,7 +459,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     final points = await getPointsBalance();
     return LoyaltyStatusModel(
       pointsBalance: points,
-      currentLevel: points >= 1000 ? 'Gold' : (points >= 500 ? 'Silver' : 'Bronze'),
+      currentLevel: points >= 1000
+          ? 'Gold'
+          : (points >= 500 ? 'Silver' : 'Bronze'),
       nextLevelPoints: points >= 1000 ? 2000 : (points >= 500 ? 1000 : 500),
       multiplier: points >= 1000 ? 1.5 : (points >= 500 ? 1.2 : 1.0),
     );
@@ -460,7 +496,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       return (missionsRes as List).map((m) {
         final mMap = Map<String, dynamic>.from(m as Map);
         final mId = mMap['id']?.toString() ?? '';
-        return LoyaltyMissionModel.fromJson(mMap, progressJson: progressMap[mId]);
+        return LoyaltyMissionModel.fromJson(
+          mMap,
+          progressJson: progressMap[mId],
+        );
       }).toList();
     } catch (e) {
       AppLogger.debug('[Profile] Error fetching loyalty missions: $e');
@@ -486,7 +525,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
           .select('referral_code')
           .eq('id', user.id)
           .maybeSingle();
-      refCode = profile?['referral_code']?.toString() ??
+      refCode =
+          profile?['referral_code']?.toString() ??
           'PLAY-${user.id.substring(0, 6).toUpperCase()}';
     } catch (_) {
       refCode = 'PLAY-${user.id.substring(0, 6).toUpperCase()}';
@@ -505,10 +545,13 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       count = list.length;
       for (final item in list) {
         if (item is Map) {
-          points += ((item['reward_points'] ??
-                  item['points'] ??
-                  item['points_awarded']) as num?)
-              ?.toInt() ?? 0;
+          points +=
+              ((item['reward_points'] ??
+                          item['points'] ??
+                          item['points_awarded'])
+                      as num?)
+                  ?.toInt() ??
+              0;
         }
       }
     } catch (e) {
@@ -521,7 +564,9 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
             .from('points_transactions')
             .select('points')
             .eq('user_id', user.id)
-            .or('source_type.eq.referral,source_type.eq.referral_bonus,description.ilike.%referral%');
+            .or(
+              'source_type.eq.referral,source_type.eq.referral_bonus,description.ilike.%referral%',
+            );
         for (final tx in (txRes as List)) {
           if (tx is Map) {
             points += ((tx['points']) as num?)?.toInt() ?? 0;
@@ -556,9 +601,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     }
 
     try {
-      final response = await _supabase.rpc('claim_referral_code', params: {
-        'p_referral_code': cleanCode,
-      });
+      final response = await _supabase.rpc(
+        'claim_referral_code',
+        params: {'p_referral_code': cleanCode},
+      );
 
       if (response != null) {
         if (response is Map) {

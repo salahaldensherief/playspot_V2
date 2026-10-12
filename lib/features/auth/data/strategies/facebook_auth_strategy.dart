@@ -30,10 +30,9 @@ class FacebookAuthStrategy implements AuthStrategy {
           await _upsertUser(user);
           subscription.cancel();
           if (!completer.isCompleted) {
-            completer.complete(UserModel.fromSupabaseUser(
-              user.toJson(),
-              isNewUser: isNewUser,
-            ));
+            completer.complete(
+              UserModel.fromSupabaseUser(user.toJson(), isNewUser: isNewUser),
+            );
           }
         }
       });
@@ -71,7 +70,11 @@ class FacebookAuthStrategy implements AuthStrategy {
     await _supabase.from('profiles').upsert({
       'id': user.id,
       'email': user.email,
-      'full_name': meta['full_name'] ?? meta['name'] ?? user.email?.split('@').first ?? 'User',
+      'full_name':
+          meta['full_name'] ??
+          meta['name'] ??
+          user.email?.split('@').first ??
+          'User',
       'avatar_url': meta['avatar_url'] ?? meta['picture'],
     });
   }

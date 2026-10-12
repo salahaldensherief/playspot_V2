@@ -32,7 +32,10 @@ class AppStatusRemoteDataSourceImpl implements AppStatusRemoteDataSource {
 
       return AppStatusModel.fromJson(response);
     } catch (e, stack) {
-      dev.log("[AppStatusRemoteDataSource] Error fetching app_status: $e", stackTrace: stack);
+      dev.log(
+        "[AppStatusRemoteDataSource] Error fetching app_status: $e",
+        stackTrace: stack,
+      );
       return const AppStatusModel(
         maintenanceMode: false,
         minSupportedVersion: '1.0.0',
@@ -43,18 +46,15 @@ class AppStatusRemoteDataSourceImpl implements AppStatusRemoteDataSource {
 
   @override
   Stream<AppStatusModel> streamAppStatus() {
-    return _client
-        .from('app_status')
-        .stream(primaryKey: ['id'])
-        .map((data) {
-          if (data.isEmpty) {
-            return const AppStatusModel(
-              maintenanceMode: false,
-              minSupportedVersion: '1.0.0',
-              latestVersion: '1.0.0',
-            );
-          }
-          return AppStatusModel.fromJson(data.first);
-        });
+    return _client.from('app_status').stream(primaryKey: ['id']).map((data) {
+      if (data.isEmpty) {
+        return const AppStatusModel(
+          maintenanceMode: false,
+          minSupportedVersion: '1.0.0',
+          latestVersion: '1.0.0',
+        );
+      }
+      return AppStatusModel.fromJson(data.first);
+    });
   }
 }

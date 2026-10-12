@@ -52,14 +52,14 @@ class TournamentsFeedState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        tournaments,
-        availableGames,
-        selectedGame,
-        selectedCityId,
-        selectedStatus,
-        searchQuery,
-        isLocationDisabled,
-        errorMessage,
-      ];
+    status,
+    tournaments,
+    availableGames,
+    selectedGame,
+    selectedCityId,
+    selectedStatus,
+    searchQuery,
+    isLocationDisabled,
+    errorMessage,
+  ];
 }

@@ -16,23 +16,35 @@ abstract class ProfileRepository {
   UserModel? getCurrentUser();
   Future<Either<Failure, UserModel>> getUserProfile();
   Future<Either<Failure, int>> getPointsBalance();
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getPointsHistory({
-    int page = 1,
-    int pageSize = 20,
-  });
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getPointsHistory({int page = 1, int pageSize = 20});
   Future<Either<Failure, List<RedemptionOptionModel>>> getRedemptionOptions();
   Future<Either<Failure, Map<String, dynamic>>> redeemPoints(String optionId);
   Future<Either<Failure, List<Map<String, dynamic>>>> getMyVouchers();
-  Future<Either<Failure, Map<String, dynamic>>> validateVoucher(String voucherId);
-  Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(String code);
-  Future<Either<Failure, void>> consumeVoucher({required String voucherId, required String bookingId});
-  Future<Either<Failure, void>> consumeVoucherByCode({required String code, required String bookingId});
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucher(
+    String voucherId,
+  );
+  Future<Either<Failure, Map<String, dynamic>>> validateVoucherByCode(
+    String code,
+  );
+  Future<Either<Failure, void>> consumeVoucher({
+    required String voucherId,
+    required String bookingId,
+  });
+  Future<Either<Failure, void>> consumeVoucherByCode({
+    required String code,
+    required String bookingId,
+  });
   Future<void> updateFcmToken(String token);
   Future<Either<Failure, NotificationSettingsModel>> getNotificationSettings();
-  Future<Either<Failure, void>> updateNotificationSettings(NotificationSettingsModel settings);
+  Future<Either<Failure, void>> updateNotificationSettings(
+    NotificationSettingsModel settings,
+  );
   Future<Either<Failure, LoyaltyStatusModel>> getLoyaltyStatus();
   Future<Either<Failure, List<LoyaltyMissionModel>>> getLoyaltyMissions();
   Future<Either<Failure, UserReferralStatsModel>> getReferralStats();
-  Future<Either<Failure, ClaimReferralResult>> claimReferralCode(String referralCode);
+  Future<Either<Failure, ClaimReferralResult>> claimReferralCode(
+    String referralCode,
+  );
   Future<Either<Failure, int>> getTotalBookingsCount();
 }

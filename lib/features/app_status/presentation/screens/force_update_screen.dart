@@ -29,9 +29,13 @@ class ForceUpdateScreen extends StatelessWidget {
   Future<void> _openStore() async {
     String? url;
     if (!kIsWeb && Platform.isAndroid) {
-      url = statusEntity?.storeUrlAndroid ?? 'https://play.google.com/store/apps/details?id=com.playspot.app';
+      url =
+          statusEntity?.storeUrlAndroid ??
+          'https://play.google.com/store/apps/details?id=com.playspot.app';
     } else if (!kIsWeb && Platform.isIOS) {
-      url = statusEntity?.storeUrlIos ?? 'https://apps.apple.com/app/playspot/id123456789';
+      url =
+          statusEntity?.storeUrlIos ??
+          'https://apps.apple.com/app/playspot/id123456789';
     } else {
       url = statusEntity?.storeUrlAndroid;
     }
@@ -109,7 +113,9 @@ class ForceUpdateScreen extends StatelessWidget {
                     color: AppColors.textPrimary,
                     fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
-                    fontFamily: context.locale.languageCode == 'ar' ? FontsManager.arabicFontFamily : 'Orbitron',
+                    fontFamily: context.locale.languageCode == 'ar'
+                        ? FontsManager.arabicFontFamily
+                        : 'Orbitron',
                   ),
                 ),
                 12.verticalSpace,
@@ -125,7 +131,10 @@ class ForceUpdateScreen extends StatelessWidget {
                 24.verticalSpace,
                 GlassContainer(
                   borderRadius: 16.r,
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 12.h,
+                  ),
                   color: AppColors.cardBackground.withValues(alpha: 0.8),
                   borderColor: AppColors.purple.withValues(alpha: 0.3),
                   child: Flexible(
@@ -166,12 +175,13 @@ class ForceUpdateScreen extends StatelessWidget {
                 AppButton(
                   content: ButtonContent(
                     label: AppStrings.updateNow.tr(),
-                    icon: Icon(TablerIcons.download, color: Colors.white, size: 20.r),
+                    icon: Icon(
+                      TablerIcons.download,
+                      color: Colors.white,
+                      size: 20.r,
+                    ),
                   ),
-                  behavior: TapBehavior(
-                    isEnabled: true,
-                    onTap: _openStore,
-                  ),
+                  behavior: TapBehavior(isEnabled: true, onTap: _openStore),
                   buttonConfig: ButtonConfig(
                     backgroundColor: AppColors.purple,
                     borderRadius: 12.r,
