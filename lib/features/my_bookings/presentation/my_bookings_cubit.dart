@@ -30,6 +30,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   }
 
   Future<void> getMyBookings({bool force = true}) async {
+    if (isClosed) return;
     if (_isFetching) {
       _hasPendingFetch = true;
       return;
@@ -48,6 +49,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       }
 
       final result = await _repository.getMyBookings();
+      if (isClosed) return;
 
       result.fold(
         (failure) => emit(
@@ -81,6 +83,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
         },
       );
     } catch (e) {
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: MyBookingsStatus.failure,
@@ -89,19 +92,20 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       );
     } finally {
       _isFetching = false;
-      if (_hasPendingFetch) {
+      if (!isClosed && _hasPendingFetch) {
         _hasPendingFetch = false;
-        getMyBookings(force: true);
+        unawaited(getMyBookings(force: true));
       }
     }
   }
 
   Future<void> cancelBooking(String bookingId) async {
     // Guard against duplicate / in-flight double-tap cancellation requests
-    if (state.cancellingBookingId != null) return;
+    if (isClosed || state.cancellingBookingId != null) return;
 
     emit(state.copyWith(cancellingBookingId: bookingId));
     final result = await _repository.cancelBooking(bookingId);
+    if (isClosed) return;
     result.fold(
       (failure) => emit(
         state.copyWith(
@@ -117,7 +121,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
             status: MyBookingsStatus.success,
           ),
         );
-        getMyBookings(force: true);
+        unawaited(getMyBookings(force: true));
       },
     );
   }

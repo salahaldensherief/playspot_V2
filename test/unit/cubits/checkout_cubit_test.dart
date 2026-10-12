@@ -309,4 +309,113 @@ void main() {
       ).called(1);
     },
   );
+  void stubCheckoutSuccess() {
+    when(
+      () => bookingRepository.createBookingCheckout(
+        holdToken: any(named: 'holdToken'),
+        roomRequests: any(named: 'roomRequests'),
+        extraItems: any(named: 'extraItems'),
+        voucherCode: any(named: 'voucherCode'),
+        paymentMethod: any(named: 'paymentMethod'),
+        senderWalletPhone: any(named: 'senderWalletPhone'),
+        receiptUrl: any(named: 'receiptUrl'),
+      ),
+    ).thenAnswer((_) async => const Right({'primary_booking_id': 'created'}));
+    when(
+      () => bookingRepository.watchBookingStatus('created'),
+    ).thenAnswer((_) => const Stream<BookingModel>.empty());
+  }
+
+  test(
+    'explicit transfer confirmation overrides a changed cash selection',
+    () async {
+      final params = validParams();
+      stubCheckoutSuccess();
+      cubit.selectPaymentMethod(PaymentMethod.cash);
+      await cubit.processPayment(
+        params,
+        paymentMethod: 'manual_transfer',
+        senderAccount: 'fixture',
+      );
+      final calls = verify(
+        () => bookingRepository.createBookingCheckout(
+          holdToken: any(named: 'holdToken'),
+          roomRequests: any(named: 'roomRequests'),
+          extraItems: any(named: 'extraItems'),
+          voucherCode: any(named: 'voucherCode'),
+          paymentMethod: captureAny(named: 'paymentMethod'),
+          senderWalletPhone: any(named: 'senderWalletPhone'),
+          receiptUrl: any(named: 'receiptUrl'),
+        ),
+      ).captured;
+      expect(calls.single, 'manual_transfer');
+    },
+  );
+
+  test(
+    'successful checkout cannot create another booking on repeated confirmation',
+    () async {
+      final params = validParams();
+      stubCheckoutSuccess();
+      await cubit.processPayment(params, paymentMethod: 'cash');
+      await cubit.processPayment(params, paymentMethod: 'cash');
+      verify(
+        () => bookingRepository.createBookingCheckout(
+          holdToken: any(named: 'holdToken'),
+          roomRequests: any(named: 'roomRequests'),
+          extraItems: any(named: 'extraItems'),
+          voucherCode: any(named: 'voucherCode'),
+          paymentMethod: any(named: 'paymentMethod'),
+          senderWalletPhone: any(named: 'senderWalletPhone'),
+          receiptUrl: any(named: 'receiptUrl'),
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
+    'late quote from previous checkout is ignored while new profile check waits',
+    () async {
+      final first = validParams(), second = validParams();
+      final lounge = MockLoungeModel();
+      when(() => lounge.allowCashPayment).thenReturn(true);
+      when(() => lounge.requirePrepaidFirstTime).thenReturn(false);
+      for (final params in [first, second]) {
+        when(() => params.lounge).thenReturn(lounge);
+        when(
+          () => params.holdExpiresAt,
+        ).thenReturn(DateTime.now().add(const Duration(minutes: 10)));
+      }
+      when(() => second.holdToken).thenReturn('new-hold');
+      when(
+        () => bookingRepository.releaseBookingHold(any()),
+      ).thenAnswer((_) async => const Right(null));
+      final quote = Completer<Either<Failure, Map<String, dynamic>>>();
+      when(
+        () => bookingRepository.quoteBookingCheckout(
+          holdToken: any(named: 'holdToken'),
+          roomRequests: any(named: 'roomRequests'),
+          extraItems: any(named: 'extraItems'),
+          voucherCode: any(named: 'voucherCode'),
+        ),
+      ).thenAnswer(
+        (invocation) => invocation.namedArguments[#holdToken] == 'hold-token'
+            ? quote.future
+            : Future.value(const Right({'final_total': 200})),
+      );
+      final profile = Completer<Either<Failure, int>>();
+      when(
+        () => profileRepository.getTotalBookingsCount(),
+      ).thenAnswer((_) => profile.future);
+      final oldInit = cubit.initCheckout(first, completedBookingsCount: 1);
+      final newInit = cubit.initCheckout(second);
+      quote.complete(const Right({'final_total': 100}));
+      await oldInit;
+      final staleTotal = cubit.state.serverFinalTotal;
+      profile.complete(const Right(1));
+      await newInit;
+      expect(staleTotal, isNull);
+      expect(cubit.state.serverFinalTotal, 200);
+    },
+  );
 }

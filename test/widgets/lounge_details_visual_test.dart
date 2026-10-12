@@ -633,7 +633,7 @@ void main() {
     );
 
     testWidgets(
-      'room offer sits on the directional card edge and compact selector works $locale',
+      'room offer retains the current directional end edge and compact selector works $locale',
       (tester) async {
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
@@ -671,8 +671,8 @@ void main() {
         final cardRect = tester.getRect(card);
         final badgeRect = tester.getRect(badge);
         expect(
-          locale == 'ar' ? badgeRect.right : badgeRect.left,
-          closeTo(locale == 'ar' ? cardRect.right : cardRect.left, 2),
+          locale == 'ar' ? badgeRect.left : badgeRect.right,
+          closeTo(locale == 'ar' ? cardRect.left : cardRect.right, 2),
         );
         final selector = find.descendant(
           of: card,
