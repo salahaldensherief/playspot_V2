@@ -33,10 +33,15 @@ class ActiveSessionBody extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      enableDrag: false,
+      isDismissible: false,
       builder: (context) => LoungeReviewBottomSheet(
         loungeName: session.loungeName,
-        onSubmit: (rating, comment) =>
-            cubit.submitReview(rating: rating, comment: comment),
+        onSubmit: (rating, comment) => cubit.submitReview(
+          rating: rating,
+          comment: comment,
+          reviewSession: session,
+        ),
       ),
     );
   }

@@ -722,5 +722,7 @@
   "call_lounge": "اتصال بالصالة",
   "technical_issue": "الحجز الأونلاين غير متاح",
   "policyContentUnavailable": "هذه السياسة غير منشورة حاليًا بهذه اللغة.",
-  "future_bookings_available_from": "يمكنك اختيار تاريخ للحجز المستقبلي بدءًا من {}. مواعيد اليوم تظل متوقفة مؤقتًا."
+  "future_bookings_available_from": "يمكنك اختيار تاريخ للحجز المستقبلي بدءًا من {}. مواعيد اليوم تظل متوقفة مؤقتًا.",
+  "reviewSubmissionFailed": "تعذر حفظ تقييمك. حاول مرة أخرى.",
+  "reviewSubmissionInProgress": "جارٍ إرسال تقييمك."
 }

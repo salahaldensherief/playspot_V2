@@ -722,5 +722,7 @@
   "call_lounge": "Call lounge",
   "technical_issue": "Online booking unavailable",
   "policyContentUnavailable": "This policy is not currently published in this language.",
-  "future_bookings_available_from": "You can choose a future booking date from {}. Same-day booking is temporarily paused."
+  "future_bookings_available_from": "You can choose a future booking date from {}. Same-day booking is temporarily paused.",
+  "reviewSubmissionFailed": "Could not save your review. Please try again.",
+  "reviewSubmissionInProgress": "Your review is still being submitted."
 }

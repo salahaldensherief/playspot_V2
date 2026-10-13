@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart' hide State;
+import '../../../art_core/app_strings.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
@@ -51,6 +53,10 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
   final RecordUpsellEventUseCase _recordUpsellEventUseCase;
   final RequestStaffAssistanceUseCase _requestStaffAssistanceUseCase;
   final SubmitLoungeReviewUseCase _submitLoungeReviewUseCase;
+
+  final Set<String> _reviewSubmissions = {};
+  final Set<String> _reviewPromptBookings = {};
+  final Set<String> _confirmedReviews = {};
 
   StreamSubscription? _realtimeSubscription;
   StreamSubscription? _userSessionsSubscription;
@@ -129,38 +135,57 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
     return session.calculateExtensionCost(additionalMinutes);
   }
 
-  bool _hasBeenReviewedOrPrompted(String bookingId) {
-    final rawList = GetStorage().read<List>(CachingKey.reviewedBookings) ?? [];
-    return rawList.contains(bookingId);
+  bool _hasBeenReviewed(String bookingId) {
+    final rawList =
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [];
+    return _confirmedReviews.contains(bookingId) || rawList.contains(bookingId);
   }
 
-  void _markAsReviewedOrPrompted(String bookingId) {
-    final rawList = GetStorage().read<List>(CachingKey.reviewedBookings) ?? [];
+  void _markAsReviewed(String bookingId) {
+    _confirmedReviews.add(bookingId);
+    final rawList =
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [];
     if (!rawList.contains(bookingId)) {
       rawList.add(bookingId);
-      GetStorage().write(CachingKey.reviewedBookings, rawList);
+      unawaited(
+        GetStorage()
+            .write(CachingKey.confirmedReviewedBookings, rawList)
+            .catchError((Object _) {
+              dev.log(
+                '[LIVESESSION_CUBIT] Review persisted; local cache write failed',
+              );
+            }),
+      );
     }
   }
 
   void _showGlobalReviewBottomSheet(ActiveSession session) {
-    if (_hasBeenReviewedOrPrompted(session.bookingId)) return;
-    _markAsReviewedOrPrompted(session.bookingId);
-
+    if (isClosed ||
+        _hasBeenReviewed(session.bookingId) ||
+        !_reviewPromptBookings.add(session.bookingId)) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = AppRouter.navigatorKey.currentContext;
-      if (context != null && context.mounted) {
-        AppBottomSheet.show(
-          context: context,
-          child: LoungeReviewBottomSheet(
-            loungeName: session.loungeName.isNotEmpty
-                ? session.loungeName
-                : session.roomName,
-            onSubmit: (rating, comment) {
-              submitReview(rating: rating, comment: comment);
-            },
-          ),
-        );
+      if (isClosed || context == null || !context.mounted) {
+        _reviewPromptBookings.remove(session.bookingId);
+        return;
       }
+      AppBottomSheet.show(
+        context: context,
+        enableDrag: false,
+        isDismissible: false,
+        child: LoungeReviewBottomSheet(
+          loungeName: session.loungeName.isNotEmpty
+              ? session.loungeName
+              : session.roomName,
+          onSubmit: (rating, comment) => submitReview(
+            rating: rating,
+            comment: comment,
+            reviewSession: session,
+          ),
+        ),
+      ).whenComplete(() => _reviewPromptBookings.remove(session.bookingId));
     });
   }
 
@@ -272,8 +297,15 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
       _requestExtensionImpl(requestedMinutes);
   Future<void> requestStaffAssistance(String type, String? notes) =>
       _requestStaffAssistanceImpl(type, notes);
-  Future<void> submitReview({required double rating, String? comment}) =>
-      _submitReviewImpl(rating: rating, comment: comment);
+  Future<Either<Failure, void>> submitReview({
+    required double rating,
+    String? comment,
+    ActiveSession? reviewSession,
+  }) => _submitReviewImpl(
+    rating: rating,
+    comment: comment,
+    reviewSession: reviewSession,
+  );
   Future<void> placeOrder(List<OrderItem> items) => _placeOrderImpl(items);
 
   @override

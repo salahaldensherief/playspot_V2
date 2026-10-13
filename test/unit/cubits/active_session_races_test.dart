@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:playspot/core/error/failures.dart';
+import 'package:playspot/core/cache/caching_key.dart';
 import 'package:playspot/features/active_session/domain/entities/active_session.dart';
 import 'package:playspot/features/active_session/domain/entities/order_item.dart';
 import 'package:playspot/features/active_session/data/models/canteen_menu_data_model.dart';
@@ -274,4 +275,94 @@ void main() {
       },
     );
   }
+  void stubReview(Future<Either<Failure, void>> Function() result) {
+    when(
+      () => repo.submitLoungeReview(
+        loungeId: any(named: 'loungeId'),
+        bookingId: any(named: 'bookingId'),
+        rating: any(named: 'rating'),
+        comment: any(named: 'comment'),
+      ),
+    ).thenAnswer((_) => result());
+  }
+
+  test(
+    'review pending and failure never mark persisted; retry marks only on success',
+    () async {
+      await GetStorage().remove(CachingKey.confirmedReviewedBookings);
+      final pending = Completer<Either<Failure, void>>();
+      stubReview(() => pending.future);
+      final request = cubit.submitReview(rating: 5, reviewSession: a);
+      expect(
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [],
+        isNot(contains('a')),
+      );
+      pending.complete(const Left(ServerFailure('reviewSubmissionFailed')));
+      expect((await request).isLeft(), isTrue);
+      expect(
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [],
+        isNot(contains('a')),
+      );
+      stubReview(() async => const Right(null));
+      expect(
+        (await cubit.submitReview(rating: 5, reviewSession: a)).isRight(),
+        isTrue,
+      );
+      expect(
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings),
+        contains('a'),
+      );
+    },
+  );
+
+  test(
+    'two review sheets cannot concurrently submit the same booking',
+    () async {
+      final pending = Completer<Either<Failure, void>>();
+      var calls = 0;
+      stubReview(() {
+        calls++;
+        return pending.future;
+      });
+      final request = cubit.submitReview(rating: 5, reviewSession: a);
+      expect(
+        (await cubit.submitReview(rating: 4, reviewSession: a)).isLeft(),
+        isTrue,
+      );
+      expect(calls, 1);
+      pending.complete(const Left(ServerFailure('reviewSubmissionFailed')));
+      await request;
+    },
+  );
+
+  test('persisting old review cannot clear a newer active session', () async {
+    final pending = Completer<Either<Failure, void>>();
+    stubReview(() => pending.future);
+    final request = cubit.submitReview(rating: 5, reviewSession: a);
+    await cubit.loadActiveSession(bookingId: 'b');
+    pending.complete(const Right(null));
+    expect((await request).isRight(), isTrue);
+    expect(cubit.state.session?.bookingId, 'b');
+    expect(
+      GetStorage().read<List>(CachingKey.confirmedReviewedBookings),
+      contains('a'),
+    );
+  });
+
+  test(
+    'confirmed persistence survives Cubit disposal without emitting',
+    () async {
+      await GetStorage().remove(CachingKey.confirmedReviewedBookings);
+      final pending = Completer<Either<Failure, void>>();
+      stubReview(() => pending.future);
+      final request = cubit.submitReview(rating: 5, reviewSession: a);
+      await cubit.close();
+      pending.complete(const Right(null));
+      expect((await request).isRight(), isTrue);
+      expect(
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings),
+        contains('a'),
+      );
+    },
+  );
 }

@@ -1,4 +1,6 @@
 class AppStrings {
+  static const reviewSubmissionFailed = 'reviewSubmissionFailed';
+  static const reviewSubmissionInProgress = 'reviewSubmissionInProgress';
   static const String futureBookingsAvailableFrom =
       'future_bookings_available_from';
   static const String playSpot = 'PlaySpot';

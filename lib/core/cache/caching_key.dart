@@ -1,4 +1,7 @@
 class CachingKey {
+  // Legacy reviewedBookings also stored prompts, so it cannot prove persistence.
+  static const String confirmedReviewedBookings =
+      'CONFIRMED_REVIEWED_BOOKINGS_V1';
   static const String token = 'TOKEN';
   static const String fcmToken = 'FCM_TOKEN';
   static const String authToken = 'AUTH_TOKEN';
