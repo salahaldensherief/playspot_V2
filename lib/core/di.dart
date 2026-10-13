@@ -15,6 +15,7 @@ import 'di/modules/lounge_module.dart';
 import 'di/modules/my_bookings_module.dart';
 import 'di/modules/notifications_module.dart';
 import 'di/modules/profile_module.dart';
+import 'di/modules/search_module.dart';
 import 'di/modules/tournaments_module.dart';
 
 final sl = GetIt.instance;
@@ -26,6 +27,7 @@ Future<void> init() async {
   // Feature modules
   initAuthModule();
   initHomeModule();
+  initSearchModule();
   initLoungeModule();
   initBookingModule();
   initMyBookingsModule();
