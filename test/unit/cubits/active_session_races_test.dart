@@ -42,13 +42,13 @@ void main() {
         );
     await GetStorage.init();
   });
-  tearDownAll(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(storageChannel, null);
-    // GetStorage 2.1.1 holds a RandomAccessFile with no public close API.
-    // Windows releases it when this test worker exits; Unix permits unlinking.
-    if (!Platform.isWindows) await storageDirectory.delete(recursive: true);
-  });
+  // Keep the test path_provider channel in place until the test isolate exits.
+  // GetStorage 2.1.1 starts an unawaited .bak backup even after an awaited
+  // write/remove completes. Clearing the handler in tearDownAll races with
+  // that backup and causes a MissingPluginException after test completion.
+  // GetStorage has no public close API; the ephemeral CI worker cleans up
+  // its temporary storage directory when the process exits.
+
 
   TestWidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
