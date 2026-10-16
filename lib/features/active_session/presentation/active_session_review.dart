@@ -27,13 +27,14 @@ extension _ActiveSessionReview on ActiveSessionCubit {
           !isClosed &&
           epoch == _sessionEpoch &&
           (state.completedSession ?? state.session)?.bookingId == bookingId;
-      result.fold(
-        (failure) {
+      await result.fold<Future<void>>(
+        (failure) async {
           if (current) _publish(state.copyWith(errorMessage: failure.message));
         },
-        (_) {
-          // The saved marker represents persistence, never merely showing a prompt.
-          _markAsReviewed(bookingId);
+        (_) async {
+          // Confirmed by the backend; finish the local cache write before
+          // completing the review Future or disposing test plugin channels.
+          await _markAsReviewed(bookingId);
           if (current) {
             _publish(
               state.copyWith(
