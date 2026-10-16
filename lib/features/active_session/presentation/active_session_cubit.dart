@@ -227,6 +227,8 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
           LocalNotificationService.instance.cancelActiveSessionNotification();
           NativeNotificationService.instance.cancelCustomNotification();
           PlaySpotLiveActivityService.instance.endActivity();
+        } else if (_finishTerminalSession(session)) {
+          return;
         } else {
           if (state.session?.bookingId != session.bookingId) {
             _resetSessionScope();
@@ -336,5 +338,30 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
         completedSession: completed,
       ),
     );
+  }
+
+  bool _finishTerminalSession(ActiveSession session) {
+    final status = BookingStatus.fromString(session.status);
+    if (status != BookingStatus.completed &&
+        status != BookingStatus.cancelled) {
+      return false;
+    }
+    final current = state.session;
+    final ended = session.copyWith(
+      loungeName: session.loungeName.isNotEmpty
+          ? session.loungeName
+          : current?.loungeName ?? '',
+      roomName: session.roomName.isNotEmpty
+          ? session.roomName
+          : current?.roomName ?? '',
+    );
+    LocalNotificationService.instance.cancelActiveSessionNotification();
+    NativeNotificationService.instance.cancelCustomNotification();
+    PlaySpotLiveActivityService.instance.endActivity();
+    _clearSession(completed: ended);
+    if (status == BookingStatus.completed) {
+      _showGlobalReviewBottomSheet(ended);
+    }
+    return true;
   }
 }
