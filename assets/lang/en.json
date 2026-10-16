@@ -442,6 +442,8 @@
   "firstPlace": "1st Place",
   "secondPlace": "2nd Place",
   "thirdPlace": "3rd Place",
+  "locationUnavailable": "Location unavailable",
+  "tournamentUpdatesUnavailable": "Tournament updates could not be loaded. Please retry.",
   "tournamentBracket": "Bracket",
   "tournamentFinal": "Final",
   "tournamentSemiFinal": "Semi-Final",

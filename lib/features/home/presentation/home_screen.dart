@@ -63,9 +63,7 @@ class _HomeViewState extends State<_HomeView> {
     userName = pref.fullName() ?? "User";
 
     final savedAddress = pref.getValue('CURRENT_ADDRESS');
-    currentLocation = savedAddress.isNotEmpty
-        ? savedAddress
-        : "Searching location...";
+    currentLocation = savedAddress;
 
     _scrollController.addListener(_onScroll);
 

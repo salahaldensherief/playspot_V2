@@ -24,6 +24,7 @@ class ForgotPasswordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     final cubit = context.read<ForgotPasswordCubit>();
     return BlocListener<ForgotPasswordCubit, ForgotPasswordState>(
       listenWhen: (previous, current) => previous.status != current.status,

@@ -1,3 +1,4 @@
+import '../datasources/remote/auth_profile_initializer.dart';
 import 'dart:async';
 import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,6 +18,7 @@ class GoogleAuthStrategy implements AuthStrategy {
 
   @override
   Future<UserModel> authenticate(Map<String, dynamic> credentials) async {
+    late final User user;
     try {
       final idToken = await _socialAuthService.getGoogleIdToken();
       if (idToken == null) throw const GoogleSignInCancelledException();
@@ -28,11 +30,7 @@ class GoogleAuthStrategy implements AuthStrategy {
 
       if (response.user == null) throw const ServerException('Sign in failed');
 
-      final user = response.user!;
-      final isNewUser = await _checkIsNewUser(user.id);
-      await _upsertUser(user, isNewUser: isNewUser);
-
-      return UserModel.fromSupabaseUser(user.toJson(), isNewUser: isNewUser);
+      user = response.user!;
     } on GoogleSignInCancelledException {
       rethrow;
     } on AuthException catch (e) {
@@ -43,6 +41,10 @@ class GoogleAuthStrategy implements AuthStrategy {
       );
       return await _signInWithSupabaseOAuth();
     }
+    final isNewUser = await AuthProfileInitializer(
+      _supabase,
+    ).ensureProfile(user);
+    return UserModel.fromSupabaseUser(user.toJson(), isNewUser: isNewUser);
   }
 
   Future<UserModel> _signInWithSupabaseOAuth() async {
@@ -58,8 +60,9 @@ class GoogleAuthStrategy implements AuthStrategy {
       subscription = _supabase.auth.onAuthStateChange.listen((data) async {
         if (data.event == AuthChangeEvent.signedIn && data.session != null) {
           final user = data.session!.user;
-          final isNewUser = await _checkIsNewUser(user.id);
-          await _upsertUser(user, isNewUser: isNewUser);
+          final isNewUser = await AuthProfileInitializer(
+            _supabase,
+          ).ensureProfile(user);
           subscription.cancel();
           if (!completer.isCompleted) {
             completer.complete(
@@ -81,56 +84,6 @@ class GoogleAuthStrategy implements AuthStrategy {
         throw AppException(oauthErr.message, code: oauthErr.statusCode);
       }
       throw AppException(oauthErr.toString());
-    }
-  }
-
-  Future<bool> _checkIsNewUser(String userId) async {
-    try {
-      final response = await _supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
-      return response == null;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> _upsertUser(User user, {required bool isNewUser}) async {
-    final meta = user.userMetadata ?? {};
-    try {
-      if (isNewUser) {
-        await _supabase.from('profiles').upsert({
-          'id': user.id,
-          'email': user.email,
-          'full_name':
-              meta['full_name'] ??
-              meta['name'] ??
-              user.email?.split('@').first ??
-              'User',
-          'avatar_url': meta['avatar_url'] ?? meta['picture'],
-        });
-      } else {
-        final updateData = <String, dynamic>{
-          'email': user.email,
-          'full_name':
-              meta['full_name'] ??
-              meta['name'] ??
-              user.email?.split('@').first ??
-              'User',
-        };
-        final avatar = meta['avatar_url'] ?? meta['picture'];
-        if (avatar != null) {
-          updateData['avatar_url'] = avatar;
-        }
-        await _supabase.from('profiles').update(updateData).eq('id', user.id);
-      }
-    } catch (e) {
-      AppLogger.debug('[Auth] Profile sync notice: $e');
-      if (isNewUser) {
-        rethrow;
-      }
     }
   }
 }

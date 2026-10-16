@@ -47,6 +47,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return BlocConsumer<SignupCubit, SignupState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {

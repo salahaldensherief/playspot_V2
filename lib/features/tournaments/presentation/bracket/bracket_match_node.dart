@@ -113,7 +113,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
     required bool isTopPlayer,
     required VoidCallback onTap,
   }) {
-    final displayName = name ?? AppStrings.bye.tr();
+    final displayName =
+        name ?? (widget.match.isBye ? AppStrings.bye : AppStrings.player).tr();
 
     final Color borderColor = isWinner
         ? AppColors.success

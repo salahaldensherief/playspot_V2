@@ -198,7 +198,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                             SizedBox(height: 2.h),
                             AppText(
                               text:
-                                  "${AppStrings.available.tr()} ${maxFreeHours.toStringAsFixed(1)} ${AppStrings.hourPlural.tr()}",
+                                  "${AppStrings.available.tr()} ${AppStrings.hourPlural.tr(args: [maxFreeHours.toStringAsFixed(1)])}",
                               fontSize: 10.sp,
                               color: AppColors.success,
                               fontWeight: FontWeight.w600,

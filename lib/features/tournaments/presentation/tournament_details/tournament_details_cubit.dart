@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,9 +21,11 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
   final CheckInParticipantUseCase _checkInParticipantUseCase;
   final WatchTournamentMatchesUseCase _watchTournamentMatchesUseCase;
   final WithdrawTournamentUseCase _withdrawTournamentUseCase;
+  final String? Function() _currentUserId;
 
   StreamSubscription? _matchesSubscription;
   String? _activeTournamentId;
+  int _loadRevision = 0;
 
   TournamentDetailsCubit(
     this._getTournamentDetailsUseCase,
@@ -30,26 +33,33 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     this._submitTournamentPaymentUseCase,
     this._checkInParticipantUseCase,
     this._watchTournamentMatchesUseCase,
-    this._withdrawTournamentUseCase,
-  ) : super(const TournamentDetailsState());
+    this._withdrawTournamentUseCase, {
+    String? Function()? currentUserId,
+  }) : _currentUserId =
+           currentUserId ??
+           (() => Supabase.instance.client.auth.currentUser?.id),
+       super(const TournamentDetailsState());
 
   @override
   Future<void> close() {
+    _loadRevision++;
     _matchesSubscription?.cancel();
     return super.close();
   }
 
   Future<void> init(String tournamentId) async {
+    final revision = ++_loadRevision;
     _activeTournamentId = tournamentId;
     emit(state.copyWith(status: TournamentDetailsStatus.loading));
 
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId = _currentUserId();
 
     final coreFutures = await Future.wait([
       _getTournamentDetailsUseCase.getTournamentById(tournamentId),
       _getTournamentDetailsUseCase.getPrizes(tournamentId),
       _getTournamentDetailsUseCase.getMatches(tournamentId),
     ]);
+    if (isClosed || revision != _loadRevision) return;
 
     final tournamentRes = coreFutures[0] as Either<Failure, TournamentEntity>;
     final prizesRes =
@@ -64,6 +74,7 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
           .getUserParticipant(tournamentId, currentUserId);
       participant = participantRes.fold((_) => null, (p) => p);
     }
+    if (isClosed || revision != _loadRevision) return;
 
     tournamentRes.fold(
       (failure) => emit(
@@ -73,34 +84,57 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
         ),
       ),
       (tournament) {
-        prizesRes.fold((_) {}, (prizes) {
-          matchesRes.fold((_) {}, (matches) {
-            emit(
-              state.copyWith(
-                status: TournamentDetailsStatus.success,
-                tournament: tournament,
-                prizes: prizes,
-                matches: matches,
-                userParticipant: participant,
+        prizesRes.fold(
+          (failure) => emit(
+            state.copyWith(
+              status: TournamentDetailsStatus.failure,
+              errorMessage: failure.message,
+            ),
+          ),
+          (prizes) {
+            matchesRes.fold(
+              (failure) => emit(
+                state.copyWith(
+                  status: TournamentDetailsStatus.failure,
+                  errorMessage: failure.message,
+                ),
               ),
-            );
+              (matches) {
+                emit(
+                  state.copyWith(
+                    status: TournamentDetailsStatus.success,
+                    tournament: tournament,
+                    prizes: prizes,
+                    matches: matches,
+                    userParticipant: participant,
+                  ),
+                );
 
-            _startWatchingMatches(tournamentId);
-          });
-        });
+                _startWatchingMatches(tournamentId);
+              },
+            );
+          },
+        );
       },
     );
   }
 
   void _startWatchingMatches(String tournamentId) {
     _matchesSubscription?.cancel();
-    _matchesSubscription = _watchTournamentMatchesUseCase(tournamentId).listen((
-      updatedMatches,
-    ) {
-      if (!isClosed) {
-        emit(state.copyWith(matches: updatedMatches));
-      }
-    }, onError: (err) {});
+    _matchesSubscription = _watchTournamentMatchesUseCase(tournamentId).listen(
+      (updatedMatches) {
+        if (!isClosed && _activeTournamentId == tournamentId) {
+          emit(state.copyWith(matches: updatedMatches));
+        }
+      },
+      onError: (Object error) {
+        if (!isClosed && _activeTournamentId == tournamentId) {
+          emit(
+            state.copyWith(errorMessage: 'tournamentUpdatesUnavailable'.tr()),
+          );
+        }
+      },
+    );
   }
 
   Future<void> registerForTournament() async {

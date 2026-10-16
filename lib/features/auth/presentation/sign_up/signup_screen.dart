@@ -24,6 +24,7 @@ class SignUpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return BlocListener<SignupCubit, SignupState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: _handleStateChange,

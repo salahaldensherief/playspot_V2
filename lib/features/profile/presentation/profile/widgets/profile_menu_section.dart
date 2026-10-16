@@ -24,6 +24,20 @@ class ProfileMenuSection extends StatelessWidget {
         children: [
           _buildMenuItem(
             context: context,
+            icon: TablerIcons.trophy,
+            title: AppStrings.tournaments.tr(),
+            onTap: () => context.pushNamed(RouterKeys.tournaments),
+            showBorder: true,
+          ),
+          _buildMenuItem(
+            context: context,
+            icon: TablerIcons.history,
+            title: AppStrings.myTournamentHistory.tr(),
+            onTap: () => context.pushNamed(RouterKeys.tournamentHistory),
+            showBorder: true,
+          ),
+          _buildMenuItem(
+            context: context,
             icon: TablerIcons.heart,
             title: AppStrings.favorite.tr(),
             onTap: () => context.pushNamed(RouterKeys.favorites),

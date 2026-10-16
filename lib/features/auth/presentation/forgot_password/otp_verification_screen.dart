@@ -64,6 +64,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     final cubit = context.read<SignupCubit>();
     return BlocListener<SignupCubit, SignupState>(
       listenWhen: (previous, current) => previous.status != current.status,

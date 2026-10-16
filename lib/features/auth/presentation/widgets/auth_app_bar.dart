@@ -25,6 +25,7 @@ class AuthAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     final canPop = showBackButton && context.canPop();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -40,7 +41,7 @@ class AuthAppBar extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.only(top: 8.h),
           child: SizedBox(
-            height: 20.h,
+            height: 64.h,
             child: Stack(
               clipBehavior: Clip.none,
               children: [

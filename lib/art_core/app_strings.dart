@@ -397,6 +397,7 @@ class AppStrings {
   static const String firstPlace = "firstPlace";
   static const String secondPlace = "secondPlace";
   static const String thirdPlace = "thirdPlace";
+  static const String locationUnavailable = "locationUnavailable";
   static const String tournamentBracket = "tournamentBracket";
   static const String tournamentSchedule = "tournamentSchedule";
   static const String registerForTournament = "registerForTournament";

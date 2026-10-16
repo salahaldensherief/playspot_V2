@@ -62,6 +62,7 @@ class _BannedAccountScreenState extends State<BannedAccountScreen> {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       body: SafeArea(

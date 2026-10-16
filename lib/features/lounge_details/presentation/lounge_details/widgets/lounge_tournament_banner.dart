@@ -35,7 +35,7 @@ class LoungeTournamentBanner extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           AppButton(
-            content: ButtonContent(label: AppStrings.cardDetails.tr()),
+            content: ButtonContent(label: AppStrings.tournamentDetails.tr()),
             behavior: ButtonBehavior.tap(
               onTap: () => context.pushNamed(
                 RouterKeys.tournamentDetails,

@@ -308,6 +308,7 @@ class TournamentMatchModel extends TournamentMatchEntity {
     required super.tournamentId,
     required super.roundNumber,
     required super.matchOrder,
+    super.matchType,
     super.player1Id,
     super.player1Name,
     super.player1Avatar,
@@ -354,6 +355,7 @@ class TournamentMatchModel extends TournamentMatchEntity {
       tournamentId: json['tournament_id']?.toString() ?? '',
       roundNumber: (json['round_number'] as num?)?.toInt() ?? 1,
       matchOrder: (json['match_order'] as num?)?.toInt() ?? 1,
+      matchType: json['match_type']?.toString() ?? 'bracket',
       player1Id: json['player1_id']?.toString(),
       player1Name:
           p1Data?['full_name']?.toString() ?? json['player1_name']?.toString(),

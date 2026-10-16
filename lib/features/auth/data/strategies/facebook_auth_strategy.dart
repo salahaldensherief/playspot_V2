@@ -1,3 +1,4 @@
+import '../datasources/remote/auth_profile_initializer.dart';
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/strategies/auth_strategy.dart';
@@ -26,8 +27,9 @@ class FacebookAuthStrategy implements AuthStrategy {
       subscription = _supabase.auth.onAuthStateChange.listen((data) async {
         if (data.event == AuthChangeEvent.signedIn && data.session != null) {
           final user = data.session!.user;
-          final isNewUser = await _checkIsNewUser(user.id);
-          await _upsertUser(user);
+          final isNewUser = await AuthProfileInitializer(
+            _supabase,
+          ).ensureProfile(user);
           subscription.cancel();
           if (!completer.isCompleted) {
             completer.complete(
@@ -50,32 +52,5 @@ class FacebookAuthStrategy implements AuthStrategy {
       }
       throw AppException(e.toString());
     }
-  }
-
-  Future<bool> _checkIsNewUser(String userId) async {
-    try {
-      final response = await _supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
-      return response == null;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> _upsertUser(User user) async {
-    final meta = user.userMetadata ?? {};
-    await _supabase.from('profiles').upsert({
-      'id': user.id,
-      'email': user.email,
-      'full_name':
-          meta['full_name'] ??
-          meta['name'] ??
-          user.email?.split('@').first ??
-          'User',
-      'avatar_url': meta['avatar_url'] ?? meta['picture'],
-    });
   }
 }

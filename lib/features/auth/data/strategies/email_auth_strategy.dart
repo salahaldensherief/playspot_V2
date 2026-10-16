@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../domain/strategies/auth_strategy.dart';
 import '../models/user_model.dart';
 import '../../../../art_core/exceptions/app_exceptions.dart';
+import '../datasources/remote/auth_profile_initializer.dart';
 
 class EmailAuthStrategy implements AuthStrategy {
   final SupabaseClient _supabase;
@@ -31,8 +32,9 @@ class EmailAuthStrategy implements AuthStrategy {
       }
 
       final user = response.user!;
-      final isNewUser = await _checkIsNewUser(user.id);
-      await _upsertUser(user);
+      final isNewUser = await AuthProfileInitializer(
+        _supabase,
+      ).ensureProfile(user);
 
       return UserModel.fromSupabaseUser(user.toJson(), isNewUser: isNewUser);
     } on AuthException catch (e) {
@@ -44,33 +46,6 @@ class EmailAuthStrategy implements AuthStrategy {
       if (e is AppException) rethrow;
       throw AppException(e.toString());
     }
-  }
-
-  Future<bool> _checkIsNewUser(String userId) async {
-    try {
-      final response = await _supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
-      return response == null;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> _upsertUser(User user) async {
-    final meta = user.userMetadata ?? {};
-    await _supabase.from('profiles').upsert({
-      'id': user.id,
-      'email': user.email,
-      'full_name':
-          meta['full_name'] ??
-          meta['name'] ??
-          user.email?.split('@').first ??
-          'User',
-      'avatar_url': meta['avatar_url'] ?? meta['picture'],
-    });
   }
 
   String _parseAuthExceptionMessage(AuthException e) {

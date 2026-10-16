@@ -17,6 +17,7 @@ class SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return BlocSelector<SignInCubit, LoginState, bool>(
       selector: (state) => state.status.isLoading,
       builder: (context, isLoading) {

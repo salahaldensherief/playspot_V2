@@ -559,6 +559,7 @@ class TournamentMatchEntity extends Equatable {
   final String tournamentId;
   final int roundNumber;
   final int matchOrder;
+  final String matchType;
   final String? player1Id;
   final String? player1Name;
   final String? player1Avatar;
@@ -593,6 +594,7 @@ class TournamentMatchEntity extends Equatable {
     required this.tournamentId,
     required this.roundNumber,
     required this.matchOrder,
+    this.matchType = 'bracket',
     this.player1Id,
     this.player1Name,
     this.player1Avatar,
@@ -623,7 +625,8 @@ class TournamentMatchEntity extends Equatable {
     this.resolutionNotes,
   });
 
-  bool get isBye => player1Id == null || player2Id == null;
+  bool get isBye => status == MatchStatus.walkover;
+  bool get isThirdPlace => matchType == 'third_place';
 
   @override
   List<Object?> get props => [
@@ -631,6 +634,7 @@ class TournamentMatchEntity extends Equatable {
     tournamentId,
     roundNumber,
     matchOrder,
+    matchType,
     player1Id,
     player1Name,
     player1Avatar,

@@ -16,6 +16,7 @@ class SignInForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     final cubit = context.read<SignInCubit>();
     return Form(
       key: cubit.formKey,

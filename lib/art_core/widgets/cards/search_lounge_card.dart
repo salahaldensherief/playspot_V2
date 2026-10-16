@@ -18,6 +18,9 @@ class SearchLoungeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final heroTag = 'lounge_${lounge.id}_search';
+    final distance = lounge.getFormattedDistance(
+      isArabic: context.locale.languageCode == 'ar',
+    );
     return GestureDetector(
       onTap: () {
         context.pushNamed(
@@ -90,23 +93,24 @@ class SearchLoungeCard extends StatelessWidget {
                               color: AppColors.white,
                               fontWeight: FontWeight.bold,
                             ),
-                            8.horizontalSpace,
-                            Icon(
-                              Icons.location_on_outlined,
-                              color: AppColors.textSecondary,
-                              size: 14.sp,
-                            ),
-                            4.horizontalSpace,
-                            Expanded(
-                              child: AppText(
-                                text:
-                                    "${lounge.distance.toStringAsFixed(1)} ${AppStrings.km.tr()}",
-                                fontSize: 11.sp,
+                            if (distance.isNotEmpty) ...[
+                              8.horizontalSpace,
+                              Icon(
+                                Icons.location_on_outlined,
                                 color: AppColors.textSecondary,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                size: 14.sp,
                               ),
-                            ),
+                              4.horizontalSpace,
+                              Expanded(
+                                child: AppText(
+                                  text: distance,
+                                  fontSize: 11.sp,
+                                  color: AppColors.textSecondary,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         8.verticalSpace,

@@ -65,7 +65,6 @@ import '../../features/tournaments/presentation/live_match/tournament_match_scre
 import '../../features/tournaments/presentation/history/tournament_history_cubit.dart';
 import '../../features/tournaments/presentation/history/tournament_history_screen.dart';
 import '../../features/app_status/presentation/widgets/maintenance_runtime_gate.dart';
-import '../../features/app_status/presentation/widgets/app_status_runtime_guard.dart';
 import '../../features/app_status/presentation/screens/force_update_screen.dart';
 import '../../features/app_status/domain/entities/app_status_entity.dart';
 import '../../features/app_status/presentation/cubit/app_status_cubit.dart';
@@ -297,7 +296,7 @@ class AppRouter {
             builder: (context, state, child) {
               return BlocProvider(
                 create: (context) => sl<SignupCubit>(),
-                child: AppStatusRuntimeGuard(child: child),
+                child: child,
               );
             },
             routes: [

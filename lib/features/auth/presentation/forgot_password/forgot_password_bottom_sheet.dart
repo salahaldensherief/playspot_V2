@@ -34,6 +34,7 @@ class ForgotPasswordBottomSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     final cubit = context.read<ForgotPasswordCubit>();
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 

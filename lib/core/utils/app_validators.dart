@@ -33,7 +33,9 @@ class AppValidators {
       return AppStrings.pleaseEnterEmail.tr();
     }
     final clean = value.trim();
-    final emailRegex = RegExp(r'^[\w.+-]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegex = RegExp(
+      r'^[\w.+-]+@([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])$',
+    );
     if (!emailRegex.hasMatch(clean)) {
       return AppStrings.pleaseEnterValidEmail.tr();
     }
