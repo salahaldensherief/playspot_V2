@@ -364,10 +364,9 @@ void main() {
       );
       // The write has completed, so a subsequent update cannot be undone by
       // a delayed fire-and-forget write from the review submission.
-      await GetStorage().write(
-        CachingKey.confirmedReviewedBookings,
-        <String>['another-booking'],
-      );
+      await GetStorage().write(CachingKey.confirmedReviewedBookings, <String>[
+        'another-booking',
+      ]);
       await Future<void>.delayed(Duration.zero);
       expect(
         GetStorage().read<List>(CachingKey.confirmedReviewedBookings),
