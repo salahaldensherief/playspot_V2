@@ -8,8 +8,8 @@ extension _ActiveSessionMenu on ActiveSessionCubit {
     if (loungeId.isEmpty || isClosed) return;
     if (state.session != null && state.session?.loungeId != loungeId) return;
     if (!forceRefresh &&
-        state.menu.isNotEmpty &&
-        _loadedMenuLoungeId == loungeId) {
+        _loadedMenuLoungeId == loungeId &&
+        state.menuStatus == ActionStatus.success) {
       return;
     }
     dev.log("[LIVESESSION_CUBIT] LOAD_CANTEEN_MENU for lounge: $loungeId");
