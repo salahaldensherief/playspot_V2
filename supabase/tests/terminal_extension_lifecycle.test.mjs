@@ -12,7 +12,7 @@ async function check(name,body) {
 try {
   await db.exec(`
     CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;
-    CREATE ROLE supabase_auth_admin; CREATE SCHEMA private;
+    CREATE SCHEMA private;
     CREATE TYPE public.booking_status AS ENUM (
       'pending','upcoming','in_progress','completed','cancelled'
     );
