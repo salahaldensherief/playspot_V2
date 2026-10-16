@@ -1,5 +1,4 @@
 import 'package:get_it/get_it.dart';
-import '../../../features/active_session/domain/usecases/get_canteen_menu_usecase.dart';
 import '../../../features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart';
 import '../../../features/lounge_details/domain/repositories/lounge_details_repository.dart';
 import '../../../features/lounge_details/data/repositories/lounge_details_repository_impl.dart';
@@ -17,13 +16,6 @@ void initLoungeModule() {
   );
 
   sl.registerFactory<LoungeDetailsCubit>(
-    () => LoungeDetailsCubit(
-      sl(),
-      sl(),
-      sl(),
-      sl(),
-      null,
-      sl<GetCanteenMenuUseCase>(),
-    ),
+    () => LoungeDetailsCubit(sl(), sl(), sl(), sl()),
   );
 }

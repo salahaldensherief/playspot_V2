@@ -1,6 +1,8 @@
 import 'dart:developer' as dev;
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:playspot/features/active_session/data/models/canteen_combo_model.dart';
+import 'package:playspot/features/active_session/domain/entities/canteen_combo.dart';
 
 import '../../../../home/data/models/category_model.dart';
 import '../../../domain/entities/lounge_operating_status.dart';
@@ -14,6 +16,7 @@ abstract class LoungeDetailsRemoteDataSource {
     String? categoryId,
   });
   Future<List<ExtraModel>> getExtras(String loungeId);
+  Future<List<CanteenCombo>> getPublicCanteenCombos(String loungeId);
   Future<List<CategoryModel>> getLoungeCategories(String loungeId);
   Future<List<ReviewModel>> getLoungeReviews(String loungeId);
   Future<PaginatedResponse<ReviewModel>> getLoungeReviewsPage(
@@ -173,6 +176,25 @@ class LoungeDetailsRemoteDataSourceImpl
         }
       }
     }
+  }
+
+  @override
+  Future<List<CanteenCombo>> getPublicCanteenCombos(String loungeId) async {
+    final response = await _client.rpc(
+      'get_public_canteen_combos',
+      params: {'p_lounge_id': loungeId},
+    );
+    if (response is! List) {
+      throw const FormatException('Invalid public combo response');
+    }
+    return response
+        .map(
+          (item) => CanteenComboModel.fromJson(
+            Map<String, dynamic>.from(item as Map),
+          ),
+        )
+        .where((combo) => combo.isAvailable)
+        .toList();
   }
 
   @override

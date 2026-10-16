@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:playspot/features/active_session/domain/entities/canteen_combo.dart';
 import '../../../../core/datasources/local/app_cache_local_data_source.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/models/paginated_response.dart';
@@ -74,6 +75,15 @@ class LoungeDetailsRepositoryImpl
     );
 
     return result;
+  }
+
+  @override
+  Future<Either<Failure, List<CanteenCombo>>> getPublicCanteenCombos(
+    String loungeId,
+  ) async {
+    return callRepository(
+      () => _remoteDataSource.getPublicCanteenCombos(loungeId),
+    );
   }
 
   @override
