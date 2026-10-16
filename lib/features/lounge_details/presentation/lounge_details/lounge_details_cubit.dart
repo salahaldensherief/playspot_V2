@@ -176,17 +176,14 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
             ),
       );
       if (_getCanteenMenuUseCase != null) {
-        final menuResult =
-            results[6] as Either<Failure, CanteenMenuData>;
+        final menuResult = results[6] as Either<Failure, CanteenMenuData>;
         menuResult.fold(
-          (failure) => log('Optional combo preview load failed: ${failure.message}'),
+          (failure) =>
+              log('Optional combo preview load failed: ${failure.message}'),
           (menu) => combos = menu.combos.where((c) => c.isAvailable).toList(),
         );
       }
-      emit(state.copyWith(
-        operatingStatus: operatingStatus,
-        combos: combos,
-      ));
+      emit(state.copyWith(operatingStatus: operatingStatus, combos: combos));
 
       if (rooms == null) {
         if (state.rooms.isNotEmpty) {
