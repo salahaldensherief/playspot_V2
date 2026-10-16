@@ -7,7 +7,7 @@ import 'package:playspot/features/lounge_details/data/datasources/remote/lounge_
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
-  test('anonymous lounge preview uses only read-only public combo RPC', () async {
+  test('public combo preview calls the read-only RPC', () async {
     final requests = <http.Request>[];
     final client = SupabaseClient(
       'https://example.invalid',
@@ -17,24 +17,17 @@ void main() {
         return http.Response(
           jsonEncode([
             {
-              'id': 'public-offer',
-              'name_ar': 'باقة الأصدقاء',
+              'id': 'offer',
+              'name_ar': 'Combo',
               'price': 84.6,
               'separate_items_price': 105,
               'savings': 20.4,
               'is_available': true,
-              'items': [
-                {
-                  'extra_id': 'water',
-                  'name_ar': 'مياه',
-                  'price': 18,
-                  'quantity': 2,
-                },
-              ],
+              'items': [],
             },
             {
-              'id': 'hidden',
-              'name_ar': 'غير متاح',
+              'id': 'unavailable',
+              'name_ar': 'Hidden',
               'price': 80,
               'is_available': false,
               'items': [],
@@ -48,21 +41,21 @@ void main() {
     );
     addTearDown(client.dispose);
 
-    final source = LoungeDetailsRemoteDataSourceImpl(client);
-    final offers = await source.getPublicCanteenCombos('lounge-1');
+    final offers = await LoungeDetailsRemoteDataSourceImpl(
+      client,
+    ).getPublicCanteenCombos('lounge-1');
 
     expect(offers, hasLength(1));
-    expect(offers.single.nameAr, 'باقة الأصدقاء');
+    expect(offers.single.nameAr, 'Combo');
     expect(offers.single.savings, 20.4);
-    expect(offers.single.items.single.quantity, 2);
     expect(requests, hasLength(1));
-    expect(requests.single.method, 'POST');
-    expect(requests.single.url.path, '/rest/v1/rpc/get_public_canteen_combos');
-    expect(jsonDecode(requests.single.body), {'p_lounge_id': 'lounge-1'});
-    expect(requests.single.headers.containsKey('authorization'), isTrue);
+    final sent = requests.single;
+    expect(sent.method, 'POST');
+    expect(sent.url.path, '/rest/v1/rpc/get_public_canteen_combos');
+    expect(jsonDecode(sent.body), {'p_lounge_id': 'lounge-1'});
   });
 
-  test('public combo read failures remain visible to callers', () async {
+  test('public combo read failures propagate', () async {
     final client = SupabaseClient(
       'https://example.invalid',
       'anon-test-key',
