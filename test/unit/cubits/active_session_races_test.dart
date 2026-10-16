@@ -49,7 +49,6 @@ void main() {
   // GetStorage has no public close API; the ephemeral CI worker cleans up
   // its temporary storage directory when the process exits.
 
-
   TestWidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
   late MockActiveSessionRepository repo;
