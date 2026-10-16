@@ -350,6 +350,33 @@ void main() {
   });
 
   test(
+    'successful review finishes local cache write before returning',
+    () async {
+      await GetStorage().remove(CachingKey.confirmedReviewedBookings);
+      stubReview(() async => const Right(null));
+
+      final result = await cubit.submitReview(rating: 5, reviewSession: a);
+
+      expect(result.isRight(), isTrue);
+      expect(
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings),
+        contains('a'),
+      );
+      // The write has completed, so a subsequent update cannot be undone by
+      // a delayed fire-and-forget write from the review submission.
+      await GetStorage().write(
+        CachingKey.confirmedReviewedBookings,
+        <String>['another-booking'],
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(
+        GetStorage().read<List>(CachingKey.confirmedReviewedBookings),
+        <String>['another-booking'],
+      );
+    },
+  );
+
+  test(
     'confirmed persistence survives Cubit disposal without emitting',
     () async {
       await GetStorage().remove(CachingKey.confirmedReviewedBookings);
