@@ -20,7 +20,9 @@ class LoungeCombosSection extends StatelessWidget {
     return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
       buildWhen: (previous, current) => previous.combos != current.combos,
       builder: (context, state) {
-        final combos = state.combos.where((combo) => combo.isAvailable).toList();
+        final combos = state.combos
+            .where((combo) => combo.isAvailable)
+            .toList();
         if (combos.isEmpty) {
           return const SliverToBoxAdapter(child: SizedBox.shrink());
         }
@@ -70,9 +72,7 @@ class _ComboPreviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.neonPurple.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
