@@ -18,7 +18,9 @@ abstract class LoungeDetailsRepository {
     String loungeId, {
     bool forceRefresh = false,
   });
-  Future<Either<Failure, List<CanteenCombo>>> getPublicCanteenCombos(String loungeId);
+  Future<Either<Failure, List<CanteenCombo>>> getPublicCanteenCombos(
+    String loungeId,
+  );
   Future<Either<Failure, List<CategoryModel>>> getLoungeCategories(
     String loungeId, {
     bool forceRefresh = false,
