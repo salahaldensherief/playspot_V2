@@ -6,6 +6,7 @@ import '../../data/models/room_model.dart';
 import '../../data/models/review_model.dart';
 import '../../../home/data/models/category_model.dart';
 import '../entities/lounge_operating_status.dart';
+import '../../../active_session/domain/entities/canteen_combo.dart';
 
 abstract class LoungeDetailsRepository {
   Future<Either<Failure, List<RoomModel>>> getRoomsByLoungeId(
@@ -17,6 +18,7 @@ abstract class LoungeDetailsRepository {
     String loungeId, {
     bool forceRefresh = false,
   });
+  Future<Either<Failure, List<CanteenCombo>>> getPublicCanteenCombos(String loungeId);
   Future<Either<Failure, List<CategoryModel>>> getLoungeCategories(
     String loungeId, {
     bool forceRefresh = false,
