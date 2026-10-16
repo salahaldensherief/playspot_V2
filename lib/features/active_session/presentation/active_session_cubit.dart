@@ -147,10 +147,10 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
       final rawList =
           GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [];
       if (!rawList.contains(bookingId)) {
-        await GetStorage().write(
-          CachingKey.confirmedReviewedBookings,
-          [...rawList, bookingId],
-        );
+        await GetStorage().write(CachingKey.confirmedReviewedBookings, [
+          ...rawList,
+          bookingId,
+        ]);
       }
     } catch (_) {
       // The backend review has already succeeded; local cache is best effort.
