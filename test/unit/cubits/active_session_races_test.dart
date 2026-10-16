@@ -43,11 +43,12 @@ void main() {
     await GetStorage.init();
   });
   tearDownAll(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(storageChannel, null);
-    // GetStorage 2.1.1 holds a RandomAccessFile with no public close API.
-    // Windows releases it when this test worker exits; Unix permits unlinking.
-    if (!Platform.isWindows) await storageDirectory.delete(recursive: true);
+    // GetStorage 2.1.1 starts an unawaited .bak write in StorageImpl.flush.
+    // It may request path_provider after write/remove futures have resolved.
+    // Keep this test-worker's mock and its temp directory alive until exit.
+    // Removing the handler here causes intermittent MissingPluginException.
+    await Future<void>.delayed(Duration.zero);
+    await GetStorage().queue.add(() async {});
   });
 
   TestWidgetsFlutterBinding.ensureInitialized();
