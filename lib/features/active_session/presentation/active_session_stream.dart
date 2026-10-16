@@ -20,23 +20,7 @@ extension _ActiveSessionStream on ActiveSessionCubit {
         dev.log(
           "[LIVESESSION_CUBIT] REALTIME EVENT for $bookingId: status=${updatedSession.status}, end_time=${updatedSession.endTime}",
         );
-        final status = BookingStatus.fromString(updatedSession.status);
-        if (status == BookingStatus.completed ||
-            status == BookingStatus.cancelled) {
-          dev.log(
-            "[LIVESESSION_CUBIT] Session ended or cancelled via Realtime",
-          );
-          try {
-            LocalNotificationService.instance.cancelActiveSessionNotification();
-            NativeNotificationService.instance.cancelCustomNotification();
-            PlaySpotLiveActivityService.instance.endActivity();
-          } catch (_) {}
-          final completed = state.session ?? updatedSession;
-          _clearSession(completed: completed);
-          if (status == BookingStatus.completed) {
-            _showGlobalReviewBottomSheet(completed);
-          }
-        } else {
+        if (!_finishTerminalSession(updatedSession)) {
           dev.log(
             "[LIVESESSION_CUBIT] Realtime update applied directly without re-fetching...",
           );
