@@ -141,21 +141,20 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
     return _confirmedReviews.contains(bookingId) || rawList.contains(bookingId);
   }
 
-  void _markAsReviewed(String bookingId) {
+  Future<void> _markAsReviewed(String bookingId) async {
     _confirmedReviews.add(bookingId);
-    final rawList =
-        GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [];
-    if (!rawList.contains(bookingId)) {
-      rawList.add(bookingId);
-      unawaited(
-        GetStorage()
-            .write(CachingKey.confirmedReviewedBookings, rawList)
-            .catchError((Object _) {
-              dev.log(
-                '[LIVESESSION_CUBIT] Review persisted; local cache write failed',
-              );
-            }),
-      );
+    try {
+      final rawList =
+          GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [];
+      if (!rawList.contains(bookingId)) {
+        await GetStorage().write(CachingKey.confirmedReviewedBookings, [
+          ...rawList,
+          bookingId,
+        ]);
+      }
+    } catch (_) {
+      // The backend review has already succeeded; local cache is best effort.
+      dev.log('[LIVESESSION_CUBIT] Review persisted; local cache write failed');
     }
   }
 
