@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:playspot/features/active_session/data/models/order_item_model.dart';
+import 'package:playspot/features/active_session/data/models/canteen_combo_model.dart';
+import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:playspot/features/active_session/domain/entities/canteen_combo.dart';
 import 'package:playspot/features/active_session/domain/entities/out_of_stock_item.dart';
 import 'package:playspot/features/active_session/domain/entities/upsell_suggestion.dart';
@@ -26,6 +28,43 @@ void main() {
       expect(restored.isCombo, isTrue);
     },
   );
+  group('Canteen menu availability contract', () {
+    test('out-of-stock extras preserve the server availability flag', () {
+      final extra = ExtraModel.fromJson({
+        'id': 'extra_sold_out',
+        'name': 'Drink',
+        'name_ar': 'مشروب',
+        'name_en': 'Drink',
+        'price': 25,
+        'category': 'drinks',
+        'is_available': false,
+      });
+
+      expect(extra.isAvailable, isFalse);
+      expect(extra.toJson()['is_available'], isFalse);
+      expect(
+        ExtraModel.fromJson({
+          'id': 'legacy_item',
+          'name': 'Legacy Item',
+          'price': 20,
+        }).isAvailable,
+        isTrue,
+      );
+    });
+
+    test('combos preserve the availability returned by the server', () {
+      final combo = CanteenComboModel.fromJson({
+        'id': 'outside_window',
+        'name_ar': 'عرض لفترة محدودة',
+        'price': 80,
+        'is_available': false,
+        'items': [],
+      });
+      expect(combo.isAvailable, isFalse);
+      expect(combo.toJson()['is_available'], isFalse);
+    });
+  });
+
   group('Canteen Combos & Upsell Engine Tests', () {
     test(
       '1. Combo without image handles null safely and provides fallback',
