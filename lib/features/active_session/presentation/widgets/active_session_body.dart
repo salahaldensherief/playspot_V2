@@ -192,10 +192,9 @@ class ActiveSessionBody extends StatelessWidget {
     BuildContext context,
     ActiveSession session,
   ) {
-    final status = session.extensionStatus?.toLowerCase();
     final mins = session.requestedExtensionMinutes ?? 0;
 
-    if (status != 'pending' && mins <= 0) {
+    if (!session.isExtensionPending) {
       return const SizedBox.shrink();
     }
 
