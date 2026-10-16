@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../home/data/models/category_model.dart';
 import '../../../domain/entities/lounge_operating_status.dart';
 import '../../models/extra_model.dart';
+import '../../../../active_session/data/models/canteen_combo_model.dart';
+import '../../../../active_session/domain/entities/canteen_combo.dart';
 import '../../models/room_model.dart';
 import '../../models/review_model.dart';
 
@@ -14,6 +16,7 @@ abstract class LoungeDetailsRemoteDataSource {
     String? categoryId,
   });
   Future<List<ExtraModel>> getExtras(String loungeId);
+  Future<List<CanteenCombo>> getPublicCanteenCombos(String loungeId);
   Future<List<CategoryModel>> getLoungeCategories(String loungeId);
   Future<List<ReviewModel>> getLoungeReviews(String loungeId);
   Future<PaginatedResponse<ReviewModel>> getLoungeReviewsPage(
@@ -183,6 +186,26 @@ class LoungeDetailsRemoteDataSourceImpl
         .eq('lounge_id', loungeId)
         .eq('is_available', true);
     return (response as List).map((e) => ExtraModel.fromJson(e)).toList();
+  }
+
+  /// Read-only marketing offers visible to guests and signed-in customers.
+  /// This endpoint never returns quantities in stock or grants ordering rights.
+  @override
+  Future<List<CanteenCombo>> getPublicCanteenCombos(String loungeId) async {
+    final response = await _client.rpc(
+      'get_public_canteen_combos',
+      params: {'p_lounge_id': loungeId},
+    );
+    if (response is! List) {
+      throw const FormatException('invalid_public_canteen_combos');
+    }
+    return response
+        .map(
+          (row) => CanteenComboModel.fromJson(
+            Map<String, dynamic>.from(row as Map),
+          ),
+        )
+        .toList();
   }
 
   @override
