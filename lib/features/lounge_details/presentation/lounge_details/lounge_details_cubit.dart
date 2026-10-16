@@ -5,6 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
+import 'package:playspot/features/active_session/domain/entities/canteen_combo.dart';
+import 'package:playspot/features/active_session/data/models/canteen_menu_data_model.dart';
+import 'package:playspot/features/active_session/domain/usecases/get_canteen_menu_usecase.dart';
 import 'package:playspot/features/booking/domain/services/booking_availability_service.dart';
 import 'package:playspot/features/home/data/models/category_model.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -28,6 +31,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   final BookingRepository _bookingRepository;
   final GetTournamentsUseCase _getTournamentsUseCase;
   final BookingAvailabilityService _availabilityService;
+  final GetCanteenMenuUseCase? _getCanteenMenuUseCase;
 
   LoungeDetailsCubit(
     this._loungeDetailsRepository,
@@ -35,8 +39,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     this._bookingRepository,
     this._getTournamentsUseCase, [
     BookingAvailabilityService? availabilityService,
-  ]) : _availabilityService =
+  ], {
+    GetCanteenMenuUseCase? getCanteenMenuUseCase,
+  }) : _availabilityService =
            availabilityService ?? const BookingAvailabilityService(),
+       _getCanteenMenuUseCase = getCanteenMenuUseCase,
        super(const LoungeDetailsState());
 
   @override
@@ -90,6 +97,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         _loungeDetailsRepository.getLoungeReviews(loungeId),
         _getTournamentsUseCase(loungeId: loungeId),
         _loungeDetailsRepository.getLoungeOperatingStatus(loungeId),
+        if (_getCanteenMenuUseCase != null)
+          _getCanteenMenuUseCase!(loungeId: loungeId),
       ]);
       if (isClosed || epoch != _detailsEpoch) return;
 
@@ -108,6 +117,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       List<ReviewModel>? reviews;
       List<TournamentEntity> tournaments = [];
       LoungeOperatingStatus? operatingStatus;
+      List<CanteenCombo> combos = [];
 
       roomsRes.fold(
         (l) {
@@ -166,7 +176,18 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
               canBookOnline: false,
             ),
       );
-      emit(state.copyWith(operatingStatus: operatingStatus));
+      if (_getCanteenMenuUseCase != null) {
+        final menuResult =
+            results[6] as Either<Failure, CanteenMenuData>;
+        menuResult.fold(
+          (failure) => log('Optional combo preview load failed: ${failure.message}'),
+          (menu) => combos = menu.combos.where((c) => c.isAvailable).toList(),
+        );
+      }
+      emit(state.copyWith(
+        operatingStatus: operatingStatus,
+        combos: combos,
+      ));
 
       if (rooms == null) {
         if (state.rooms.isNotEmpty) {
