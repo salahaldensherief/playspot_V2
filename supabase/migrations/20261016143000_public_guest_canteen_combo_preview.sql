@@ -49,7 +49,9 @@ AS $function$
     AND COALESCE(l.is_active, false)
     AND l.status = 'active'
     AND COALESCE(c.is_active, false)
-    AND c.deleted_at IS NULL
+    -- Some older live catalogues predate the deleted_at tombstone migration.
+    -- A missing JSON key behaves as NULL; deployed tombstones stay hidden.
+    AND (to_jsonb(c)->>'deleted_at') IS NULL
     AND private.canteen_combo_window_available(
       c, timezone(COALESCE(l.timezone, 'Africa/Cairo'), now())
     )
