@@ -35,11 +35,10 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
   void initState() {
     super.initState();
     final session = widget.cubit.state.session;
-    if (widget.cubit.state.menu.isEmpty &&
-        widget.cubit.state.combos.isEmpty &&
-        session != null &&
-        session.loungeId.isNotEmpty) {
-      widget.cubit.loadMenu(session.loungeId);
+    if (session != null && session.loungeId.isNotEmpty) {
+      // Combo windows and stock can change while this session stays active.
+      // Always ask the server for the latest menu when the customer opens it.
+      widget.cubit.loadMenu(session.loungeId, forceRefresh: true);
     }
   }
 
