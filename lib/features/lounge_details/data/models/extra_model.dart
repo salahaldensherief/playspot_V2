@@ -9,6 +9,7 @@ class ExtraModel extends Equatable {
   final double price;
   final String category; // drinks, food, snacks, desserts, other
   final String? icon;
+  final bool isAvailable;
 
   const ExtraModel({
     required this.id,
@@ -18,11 +19,21 @@ class ExtraModel extends Equatable {
     required this.price,
     required this.category,
     this.icon,
+    this.isAvailable = true,
   }) : nameAr = nameAr ?? name,
        nameEn = nameEn ?? name;
 
   @override
-  List<Object?> get props => [id, name, nameAr, nameEn, price, category, icon];
+  List<Object?> get props => [
+    id,
+    name,
+    nameAr,
+    nameEn,
+    price,
+    category,
+    icon,
+    isAvailable,
+  ];
 
   factory ExtraModel.fromJson(Map<String, dynamic> json) {
     try {
@@ -61,6 +72,7 @@ class ExtraModel extends Equatable {
         price: (json['price'] as num?)?.toDouble() ?? 0.0,
         category: rawCategory.trim().toLowerCase(),
         icon: iconStr,
+        isAvailable: json['is_available'] != false,
       );
     } catch (e) {
       dev.log("Error parsing ExtraModel: $e");
@@ -77,6 +89,7 @@ class ExtraModel extends Equatable {
       'price': price,
       'category': category.trim().toLowerCase(),
       'icon': icon,
+      'is_available': isAvailable,
     };
   }
 }
