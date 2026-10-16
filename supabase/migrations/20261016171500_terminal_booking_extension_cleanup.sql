@@ -6,7 +6,7 @@ BEGIN;
 CREATE OR REPLACE FUNCTION private.normalize_terminal_booking_extension()
 RETURNS trigger
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = ''
 AS $function$
 BEGIN
