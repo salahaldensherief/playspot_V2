@@ -147,10 +147,15 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
       final rawList =
           GetStorage().read<List>(CachingKey.confirmedReviewedBookings) ?? [];
       if (!rawList.contains(bookingId)) {
-        await GetStorage().write(CachingKey.confirmedReviewedBookings, [
+        final storage = GetStorage();
+        await storage.write(CachingKey.confirmedReviewedBookings, [
           ...rawList,
           bookingId,
         ]);
+        // GetStorage 2.1.1 schedules its disk flush in a microtask; write()
+        // can complete before that queue is fully drained.
+        await Future<void>.delayed(Duration.zero);
+        await storage.queue.add(() async {});
       }
     } catch (_) {
       // The backend review has already succeeded; local cache is best effort.
