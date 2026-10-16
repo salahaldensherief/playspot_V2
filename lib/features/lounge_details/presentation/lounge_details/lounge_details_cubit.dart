@@ -39,9 +39,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     this._bookingRepository,
     this._getTournamentsUseCase, [
     BookingAvailabilityService? availabilityService,
-  ], {
     GetCanteenMenuUseCase? getCanteenMenuUseCase,
-  }) : _availabilityService =
+  ]) : _availabilityService =
            availabilityService ?? const BookingAvailabilityService(),
        _getCanteenMenuUseCase = getCanteenMenuUseCase,
        super(const LoungeDetailsState());
