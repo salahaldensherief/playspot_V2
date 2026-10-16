@@ -201,9 +201,8 @@ class LoungeDetailsRemoteDataSourceImpl
     }
     return response
         .map(
-          (row) => CanteenComboModel.fromJson(
-            Map<String, dynamic>.from(row as Map),
-          ),
+          (row) =>
+              CanteenComboModel.fromJson(Map<String, dynamic>.from(row as Map)),
         )
         .toList();
   }
