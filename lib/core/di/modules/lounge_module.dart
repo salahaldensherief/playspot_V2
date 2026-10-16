@@ -22,7 +22,8 @@ void initLoungeModule() {
       sl(),
       sl(),
       sl(),
-      getCanteenMenuUseCase: sl<GetCanteenMenuUseCase>(),
+      null,
+      sl<GetCanteenMenuUseCase>(),
     ),
   );
 }
