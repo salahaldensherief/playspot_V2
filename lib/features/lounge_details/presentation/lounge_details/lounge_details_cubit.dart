@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
-import 'package:playspot/features/active_session/domain/usecases/get_canteen_menu_usecase.dart';
 import 'package:playspot/features/booking/domain/services/booking_availability_service.dart';
 import 'package:playspot/features/home/data/models/category_model.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -30,7 +29,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   final BookingRepository _bookingRepository;
   final GetTournamentsUseCase _getTournamentsUseCase;
   final BookingAvailabilityService _availabilityService;
-  final GetCanteenMenuUseCase? _getCanteenMenuUseCase;
 
   LoungeDetailsCubit(
     this._loungeDetailsRepository,
@@ -38,10 +36,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     this._bookingRepository,
     this._getTournamentsUseCase, [
     BookingAvailabilityService? availabilityService,
-    GetCanteenMenuUseCase? getCanteenMenuUseCase,
   ]) : _availabilityService =
            availabilityService ?? const BookingAvailabilityService(),
-       _getCanteenMenuUseCase = getCanteenMenuUseCase,
        super(const LoungeDetailsState());
 
   @override
@@ -212,18 +208,17 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   }
 
   Future<void> _loadComboPreview(String loungeId, int epoch) async {
-    final loader = _getCanteenMenuUseCase;
-    if (loader == null) return;
-
     try {
-      final result = await loader(loungeId: loungeId);
+      final result = await _loungeDetailsRepository.getPublicCanteenCombos(
+        loungeId,
+      );
       if (isClosed || epoch != _detailsEpoch) return;
       result.fold(
         (failure) =>
             log('Optional combo preview load failed: ${failure.message}'),
         (menu) => emit(
           state.copyWith(
-            combos: menu.combos.where((combo) => combo.isAvailable).toList(),
+            combos: menu.where((combo) => combo.isAvailable).toList(),
           ),
         ),
       );
