@@ -679,4 +679,23 @@ class AppStrings {
       "lounge_technical_issue_call_to_book";
   static const String callLounge = "call_lounge";
   static const String technicalIssue = "technical_issue";
+
+  // Lounge canteen catalogue
+  static const String canteenMenuTitle = "canteen_menu_title";
+  static const String canteenMenuSubtitle = "canteen_menu_subtitle";
+  static const String canteenItemCount = "canteen_item_count";
+  static const String canteenOfferCount = "canteen_offer_count";
+  static const String canteenSelectedCount = "canteen_selected_count";
+  static const String canteenMenuEmpty = "canteen_menu_empty";
+  static const String canteenBrowseMenu = "canteen_browse_menu";
+  static const String canteenIndividualItems = "canteen_individual_items";
+  static const String canteenComboOffers = "canteen_combo_offers";
+  static const String canteenOtherCategory = "canteen_other_category";
+  static const String canteenComboPreviewHint = "canteen_combo_preview_hint";
+  static const String canteenNoOffers = "canteen_no_offers";
+  static const String canteenItemUnavailable = "canteen_item_unavailable";
+  static const String canteenRemoveItem = "canteen_remove_item";
+  static const String canteenAddItem = "canteen_add_item";
+  static const String canteenRefreshError = "canteen_refresh_error";
+  static const String desserts = "desserts";
 }

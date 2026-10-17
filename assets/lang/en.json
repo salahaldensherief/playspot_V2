@@ -726,5 +726,21 @@
   "policyContentUnavailable": "This policy is not currently published in this language.",
   "future_bookings_available_from": "You can choose a future booking date from {}. Same-day booking is temporarily paused.",
   "reviewSubmissionFailed": "Could not save your review. Please try again.",
-  "reviewSubmissionInProgress": "Your review is still being submitted."
+  "reviewSubmissionInProgress": "Your review is still being submitted.",
+  "canteen_menu_title": "Canteen menu",
+  "canteen_menu_subtitle": "Explore the menu, offers and optional booking extras",
+  "canteen_item_count": "Menu items: {count}",
+  "canteen_offer_count": "Offers: {count}",
+  "canteen_selected_count": "Selected quantity: {count}",
+  "canteen_menu_empty": "The canteen menu is currently unavailable.",
+  "canteen_browse_menu": "Browse menu & offers",
+  "canteen_individual_items": "Menu items",
+  "canteen_combo_offers": "Combo offers",
+  "canteen_other_category": "Other",
+  "canteen_combo_preview_hint": "Explore combo contents and prices. Order offers during your session; availability and price are confirmed when ordering.",
+  "canteen_no_offers": "No combo offers are currently available.",
+  "canteen_item_unavailable": "Currently unavailable",
+  "canteen_remove_item": "Decrease quantity",
+  "canteen_add_item": "Increase quantity",
+  "canteen_refresh_error": "Could not refresh the details. Please try again."
 }

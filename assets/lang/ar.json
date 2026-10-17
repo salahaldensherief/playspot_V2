@@ -726,5 +726,21 @@
   "policyContentUnavailable": "هذه السياسة غير منشورة حاليًا بهذه اللغة.",
   "future_bookings_available_from": "يمكنك اختيار تاريخ للحجز المستقبلي بدءًا من {}. مواعيد اليوم تظل متوقفة مؤقتًا.",
   "reviewSubmissionFailed": "تعذر حفظ تقييمك. حاول مرة أخرى.",
-  "reviewSubmissionInProgress": "جارٍ إرسال تقييمك."
+  "reviewSubmissionInProgress": "جارٍ إرسال تقييمك.",
+  "canteen_menu_title": "قائمة المقصف",
+  "canteen_menu_subtitle": "استعرض الأصناف والعروض واختر إضافات حجزك",
+  "canteen_item_count": "عدد الأصناف: {count}",
+  "canteen_offer_count": "عدد العروض: {count}",
+  "canteen_selected_count": "الكمية المحددة: {count}",
+  "canteen_menu_empty": "قائمة المقصف غير متاحة حاليًا.",
+  "canteen_browse_menu": "استعراض القائمة والعروض",
+  "canteen_individual_items": "الأصناف",
+  "canteen_combo_offers": "عروض الكومبو",
+  "canteen_other_category": "أخرى",
+  "canteen_combo_preview_hint": "استعرض مكونات عروض الكومبو وأسعارها. يمكنك طلب العروض أثناء الجلسة، ويُؤكَّد التوافر والسعر عند الطلب.",
+  "canteen_no_offers": "لا توجد عروض كومبو متاحة حاليًا.",
+  "canteen_item_unavailable": "غير متاح حاليًا",
+  "canteen_remove_item": "تقليل الكمية",
+  "canteen_add_item": "زيادة الكمية",
+  "canteen_refresh_error": "تعذّر تحديث التفاصيل. يرجى إعادة المحاولة."
 }
