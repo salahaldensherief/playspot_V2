@@ -168,6 +168,33 @@ void main() {
     expect(cubit.state.status, ActiveSessionStatus.empty);
   });
 
+  for (final status in ['completed', 'cancelled']) {
+    test('loading a $status booking cannot revive active controls', () async {
+      final ended = a.copyWith(status: status, basePrice: 175);
+      when(
+        () => repo.getActiveSession(bookingId: 'a'),
+      ).thenAnswer((_) async => Right(ended));
+      await cubit.loadActiveSession(bookingId: 'a');
+      expect(cubit.state.status, ActiveSessionStatus.empty);
+      expect(cubit.state.session, isNull);
+      expect(cubit.state.completedSession, ended);
+      verifyNever(() => repo.streamActiveSession(any()));
+      verifyNever(() => repo.getCanteenMenu(any()));
+    });
+  }
+
+  test(
+    'terminal realtime event retains final server totals and status',
+    () async {
+      await cubit.loadActiveSession(bookingId: 'a');
+      updates.add(a.copyWith(status: 'completed', basePrice: 175));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.completedSession?.basePrice, 175);
+      expect(cubit.state.completedSession?.status, 'completed');
+      expect(cubit.state.completedSession?.loungeName, 'A');
+    },
+  );
+
   test('menu from old lounge is hidden and late response discarded', () async {
     const extra = ExtraModel(
       id: 'old',
