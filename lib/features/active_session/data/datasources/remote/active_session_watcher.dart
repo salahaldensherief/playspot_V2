@@ -42,7 +42,7 @@ class ActiveSessionWatcher {
     _bind(_client.auth.currentUser?.id);
   }
 
-  void _enqueue(Future<void> Function() work) {
+  void _enqueue(Future<void> Function() work, int generation) {
     _queue = _queue
         .then((_) async {
           if (!_closed) await work();
@@ -53,7 +53,7 @@ class ActiveSessionWatcher {
             error: error,
             stackTrace: stack,
           );
-          if (!_closed) _controller.addError(error, stack);
+          if (_current(generation)) _controller.addError(error, stack);
         });
   }
 
@@ -88,7 +88,7 @@ class ActiveSessionWatcher {
           )
           .subscribe();
       await _sync(generation);
-    });
+    }, generation);
   }
 
   void _refresh(int generation) {
@@ -97,7 +97,7 @@ class ActiveSessionWatcher {
     _enqueue(() async {
       _refreshQueued = false;
       if (_current(generation)) await _sync(generation);
-    });
+    }, generation);
   }
 
   Future<void> _sync(int generation) async {

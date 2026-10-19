@@ -60,6 +60,7 @@ BEGIN
         FROM public.bookings AS previous
         WHERE previous.lounge_id = bk.lounge_id
           AND previous.created_at < bk.created_at
+          AND previous.status IN ('in_progress'::public.booking_status, 'completed'::public.booking_status)
           AND (
             (bk.user_id IS NOT NULL AND previous.user_id = bk.user_id)
             OR (

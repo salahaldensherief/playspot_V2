@@ -19,10 +19,12 @@ const migration = await readFile(
 
 try {
   await db.exec(`
-    CREATE ROLE anon;
-    CREATE ROLE authenticated;
-    CREATE ROLE service_role;
-    CREATE ROLE supabase_auth_admin;
+    DO $roles$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon; END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated; END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN CREATE ROLE service_role; END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN CREATE ROLE supabase_auth_admin; END IF;
+    END $roles$;
     CREATE SCHEMA auth;
     CREATE SCHEMA private;
     CREATE TYPE public.booking_status AS ENUM ('upcoming','in_progress','completed');
@@ -54,6 +56,7 @@ try {
       ('00000000-0000-0000-0000-000000000031','${lounge}','${customer}','${room}','completed','2026-10-01'),
       ('00000000-0000-0000-0000-000000000032','${lounge}','${customer}','${room}','completed','2026-10-02'),
       ('${returning}','${lounge}','${customer}','${room}','in_progress','2026-10-03'),
+      ('00000000-0000-0000-0000-000000000038','${lounge}','${customer}','${room}','upcoming','2026-10-01 12:00:00+00'),
       ('${firstVisit}','${lounge}','${anotherCustomer}','${room}','in_progress','2026-10-03'),
       ('00000000-0000-0000-0000-000000000037','${otherLounge}','${customer}','${room}','completed','2026-09-01');
     INSERT INTO public.bookings(id,lounge_id,room_id,user_phone,status,created_at) VALUES

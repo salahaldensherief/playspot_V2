@@ -31,10 +31,12 @@ async function owner() {
 
 try {
   await db.exec(`
-    CREATE ROLE anon;
-    CREATE ROLE authenticated;
-    CREATE ROLE service_role;
-    CREATE ROLE supabase_auth_admin;
+    DO $roles$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN CREATE ROLE anon; END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN CREATE ROLE authenticated; END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN CREATE ROLE service_role; END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN CREATE ROLE supabase_auth_admin; END IF;
+    END $roles$;
     CREATE SCHEMA auth;
     CREATE TYPE public.booking_status AS ENUM ('upcoming','in_progress','completed');
     CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS
@@ -63,7 +65,7 @@ try {
       AS $$ SELECT false $$;
     CREATE FUNCTION public.has_lounge_permission(uuid,text) RETURNS boolean
       LANGUAGE sql STABLE AS
-      $$ SELECT auth.uid() = '${staff}'::uuid $$;
+      $ SELECT auth.uid() = '${staff}'::uuid AND $2 = 'sessions_control' $;
     ALTER TABLE public.service_calls ENABLE ROW LEVEL SECURITY;
     CREATE POLICY "Users can create service calls for their bookings"
       ON public.service_calls FOR INSERT TO authenticated

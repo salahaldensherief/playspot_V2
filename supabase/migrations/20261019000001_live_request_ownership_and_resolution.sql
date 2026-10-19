@@ -56,7 +56,7 @@ BEGIN
     END IF;
 
     IF NOT public.is_super_admin()
-       AND NOT public.has_lounge_permission(v_lounge_id, 'pos_create_orders') THEN
+       AND NOT public.has_lounge_permission(v_lounge_id, 'sessions_control') THEN
       RAISE EXCEPTION 'Not authorized' USING ERRCODE = '42501';
     END IF;
 

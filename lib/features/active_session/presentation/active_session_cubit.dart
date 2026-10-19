@@ -213,7 +213,9 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
         );
         emit(
           state.copyWith(
-            status: ActiveSessionStatus.error,
+            status: state.session == null
+                ? ActiveSessionStatus.error
+                : ActiveSessionStatus.loaded,
             errorMessage: failure.message,
           ),
         );
@@ -240,7 +242,11 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
             (state.session?.bookingId == session.bookingId
                     ? state
                     : const ActiveSessionState())
-                .copyWith(status: ActiveSessionStatus.loaded, session: session),
+                .copyWith(
+                  status: ActiveSessionStatus.loaded,
+                  session: session,
+                  errorMessage: null,
+                ),
           );
           _subscribeToRealtime(session.bookingId);
           loadMenu(session.loungeId);
