@@ -1,6 +1,7 @@
 import 'home_metadata_loader.dart';
 import 'home_tournaments_loader.dart';
 import 'home_location_tracker.dart';
+import 'home_city_matcher.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,6 +38,7 @@ class HomeCubit extends Cubit<HomeState> {
   StreamSubscription<Position>? _positionSubscription;
   int _homeDataFetchToken = 0;
   int _locationReadToken = 0;
+  bool _manualCitySelection = false;
 
   HomeCubit(
     this._homeRepository,
@@ -213,19 +215,19 @@ class HomeCubit extends Cubit<HomeState> {
     if (!await _location.save(pos) || isClosed || token != _locationReadToken) {
       return;
     }
-    if (moved) unawaited(getHomeData());
-
     final address = await _locationService.getAddressFromLatLng(
       pos.latitude,
       pos.longitude,
     );
-    if (address == null || isClosed || token != _locationReadToken) return;
-    await citiesFuture;
-
+    final cities = await citiesFuture;
     if (isClosed || token != _locationReadToken) return;
-    await _pref.saveValue(CachingKey.currentAddress, address);
-    if (isClosed || token != _locationReadToken) return;
-    _safeEmit(state.copyWith(currentAddress: address));
+    final cityChanged = _updateDetectedCity(address, cities);
+    if (address != null) {
+      await _pref.saveValue(CachingKey.currentAddress, address);
+      if (isClosed || token != _locationReadToken) return;
+      _safeEmit(state.copyWith(currentAddress: address));
+    }
+    if (moved || cityChanged) unawaited(getHomeData());
   }
 
   Future<void> fetchTournamentsData() => _tournaments.load();
@@ -244,12 +246,46 @@ class HomeCubit extends Cubit<HomeState> {
     if (isClosed || !_location.isValid(position)) return;
     final token = ++_locationReadToken;
     final moved = _location.hasMoved(position);
-    if (await _location.save(position) &&
-        moved &&
-        !isClosed &&
-        token == _locationReadToken) {
-      await getHomeData();
+    if (!await _location.save(position) ||
+        isClosed ||
+        token != _locationReadToken ||
+        !moved) {
+      return;
     }
+    final address = await _locationService.getAddressFromLatLng(
+      position.latitude,
+      position.longitude,
+    );
+    if (isClosed || token != _locationReadToken) return;
+    final cities = state.availableCities.isEmpty
+        ? await _metadata.loadCities()
+        : state.availableCities;
+    if (isClosed || token != _locationReadToken) return;
+    _updateDetectedCity(address, cities);
+    if (address != null) {
+      await _pref.saveValue(CachingKey.currentAddress, address);
+      if (isClosed || token != _locationReadToken) return;
+      _safeEmit(state.copyWith(currentAddress: address));
+    }
+    await getHomeData();
+  }
+
+  bool _updateDetectedCity(
+    String? address,
+    List<Map<String, dynamic>> availableCities,
+  ) {
+    if (_manualCitySelection || address == null) return false;
+    final city = HomeCityMatcher.match(
+      address,
+      availableCities.map((item) => item['city']?.toString() ?? ''),
+    );
+    if (city == state.selectedCity) return false;
+    _safeEmit(
+      city == null
+          ? state.copyWith(clearCity: true)
+          : state.copyWith(selectedCity: city),
+    );
+    return true;
   }
 
   void stopLocationListening() {
@@ -259,6 +295,7 @@ class HomeCubit extends Cubit<HomeState> {
   }
 
   Future<void> selectCity(String? city) async {
+    _manualCitySelection = true;
     if (city == state.selectedCity) return;
     _safeEmit(
       city == null || city.isEmpty

@@ -115,6 +115,53 @@ void main() {
       verifyNever(() => pref.saveLatitude(any()));
     },
   );
+  test('startup location selects and filters the matching city', () async {
+    when(
+      () => location.getCurrentLocation(),
+    ).thenAnswer((_) async => position(31.2, 29.9));
+    when(
+      () => location.getAddressFromLatLng(any(), any()),
+    ).thenAnswer((_) async => 'Sidi Gaber, Alexandria Governorate');
+    when(() => repo.getAvailableCities()).thenAnswer(
+      (_) async => const Right([
+        {'city': 'Cairo'},
+        {'city': 'Alexandria'},
+      ]),
+    );
+
+    await cubit.init();
+    await flush();
+
+    expect(cubit.state.selectedCity, 'Alexandria');
+    expect(cubit.state.currentAddress, 'Sidi Gaber, Alexandria Governorate');
+    final calls = verify(
+      () => discover(captureAny()),
+    ).captured.cast<GetLoungesParams>();
+    expect(calls.last.city, 'Alexandria');
+    expect(calls.last.lat, 31.2);
+  });
+  test('manual city selection survives later location updates', () async {
+    when(() => repo.getAvailableCities()).thenAnswer(
+      (_) async => const Right([
+        {'city': 'Cairo'},
+        {'city': 'Alexandria'},
+      ]),
+    );
+    await cubit.init();
+    await cubit.selectCity('Cairo');
+    when(
+      () => location.getAddressFromLatLng(any(), any()),
+    ).thenAnswer((_) async => 'سيدي جابر، الإسكندرية');
+    cubit.startLocationListening();
+    positions.add(position(31.2, 29.9));
+    await flush();
+
+    expect(cubit.state.selectedCity, 'Cairo');
+    final calls = verify(
+      () => discover(captureAny()),
+    ).captured.cast<GetLoungesParams>();
+    expect(calls.last.city, 'Cairo');
+  });
   test(
     'invalid or partial saved location sends neither half of the pair',
     () async {
@@ -189,6 +236,14 @@ void main() {
     () async {
       final gps = Completer<Position?>();
       when(() => location.getCurrentLocation()).thenAnswer((_) => gps.future);
+      when(() => repo.getAvailableCities()).thenAnswer(
+        (_) async => const Right([
+          {'city': 'Alexandria'},
+        ]),
+      );
+      when(
+        () => location.getAddressFromLatLng(any(), any()),
+      ).thenAnswer((_) async => 'سيدي جابر، الإسكندرية');
       final initializing = cubit.init();
       cubit.startLocationListening();
       positions.add(position(31, 32));
@@ -198,11 +253,13 @@ void main() {
       await flush();
       expect(pref.latitude(), '31.0');
       expect(pref.longitude(), '32.0');
+      expect(cubit.state.selectedCity, 'Alexandria');
       final calls = verify(
         () => discover(captureAny()),
       ).captured.cast<GetLoungesParams>();
       expect(calls.last.lat, 31);
       expect(calls.last.lng, 32);
+      expect(calls.last.city, 'Alexandria');
     },
   );
   test(
