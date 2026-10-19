@@ -35,6 +35,7 @@ class CanteenComboCard extends StatelessWidget {
         .join(" + ");
     final hasSavings = combo.savings > 0;
     final imageUrl = combo.imageUrl;
+    final stockIssue = unavailableItem;
 
     return Container(
       margin: EdgeInsetsDirectional.only(bottom: 12.h),
@@ -189,7 +190,10 @@ class CanteenComboCard extends StatelessWidget {
               CanteenQtyStepper(
                 qty: qty,
                 accentColor: AppColors.neonPurple,
-                onAdd: combo.isAvailable ? onAdd : null,
+                onAdd: combo.isAvailable &&
+                        (stockIssue == null || qty < stockIssue.available)
+                    ? onAdd
+                    : null,
                 onRemove: onRemove,
               ),
             ],
@@ -230,10 +234,10 @@ class CanteenComboCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: AppText(
-                text: !combo.isAvailable
+                text: !combo.isAvailable || stockIssue == null
                     ? AppStrings.canteenItemUnavailable.tr()
                     : AppStrings.remainingQuantity.tr(
-                        args: [unavailableItem!.available.toString()],
+                        args: [stockIssue.available.toString()],
                       ),
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,

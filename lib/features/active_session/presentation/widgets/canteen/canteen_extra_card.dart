@@ -61,6 +61,7 @@ class CanteenExtraCard extends StatelessWidget {
         ? (item.nameAr.isNotEmpty ? item.nameAr : item.name)
         : (item.nameEn.isNotEmpty ? item.nameEn : item.name);
     final icon = item.icon?.trim();
+    final stockIssue = unavailableItem;
 
     return Container(
       margin: EdgeInsetsDirectional.only(bottom: 10.h),
@@ -138,7 +139,10 @@ class CanteenExtraCard extends StatelessWidget {
               CanteenQtyStepper(
                 qty: qty,
                 accentColor: AppColors.neonBlue,
-                onAdd: item.isAvailable ? onAdd : null,
+                onAdd: item.isAvailable &&
+                        (stockIssue == null || qty < stockIssue.available)
+                    ? onAdd
+                    : null,
                 onRemove: onRemove,
               ),
             ],
@@ -186,10 +190,10 @@ class CanteenExtraCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: AppText(
-                text: !item.isAvailable
+                text: !item.isAvailable || stockIssue == null
                     ? AppStrings.canteenItemUnavailable.tr()
                     : AppStrings.remainingQuantity.tr(
-                        args: [unavailableItem!.available.toString()],
+                        args: [stockIssue.available.toString()],
                       ),
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,

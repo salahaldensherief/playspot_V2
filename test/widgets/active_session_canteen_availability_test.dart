@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:playspot/features/active_session/domain/entities/active_session.dart';
 import 'package:playspot/features/active_session/domain/entities/canteen_combo.dart';
+import 'package:playspot/features/active_session/domain/entities/order_item.dart';
+import 'package:playspot/features/active_session/domain/entities/out_of_stock_item.dart';
 import 'package:playspot/features/active_session/presentation/active_session_state.dart';
 import 'package:playspot/features/active_session/presentation/widgets/canteen/canteen_combo_card.dart';
 import 'package:playspot/features/active_session/presentation/widgets/canteen/canteen_dock_bar.dart';
@@ -77,6 +79,7 @@ void main() {
         when(
           () => cubit.loadMenu('lounge', forceRefresh: true),
         ).thenAnswer((_) async {});
+        when(() => cubit.placeOrder(any())).thenAnswer((_) async {});
 
         await tester.pumpWidget(
           EasyLocalization(
@@ -142,6 +145,79 @@ void main() {
         final dock = tester.widget<CanteenDockBar>(find.byType(CanteenDockBar));
         expect(dock.totalCount, 0);
         expect(dock.total, 0);
+
+        // A server stock rejection overrides a still-available menu preview.
+        currentState = state.copyWith(
+          menu: const [
+            ExtraModel(id: 'extra', name: 'Extra', price: 20, category: 'food'),
+            ExtraModel(id: 'other', name: 'Other', price: 10, category: 'food'),
+          ],
+          combos: const [
+            CanteenCombo(
+              id: 'combo',
+              nameAr: 'Combo',
+              price: 30,
+              items: [
+                CanteenComboComponent(
+                  extraId: 'extra',
+                  nameAr: 'Extra',
+                  quantity: 1,
+                ),
+              ],
+            ),
+          ],
+        );
+        states.add(currentState);
+        await tester.pumpAndSettle();
+        final extraCards = tester.widgetList<CanteenExtraCard>(
+          find.byType(CanteenExtraCard),
+        ).toList();
+        final extraCard = extraCards.firstWhere((card) => card.item.id == 'extra');
+        final otherCard = extraCards.firstWhere((card) => card.item.id == 'other');
+        extraCard.onAdd();
+        extraCard.onAdd();
+        otherCard.onAdd();
+        tester.widget<CanteenComboCard>(find.byType(CanteenComboCard)).onAdd();
+        await tester.pump();
+
+        currentState = currentState.copyWith(
+          unavailableItems: const [
+            OutOfStockItem(id: 'extra', name: 'Extra', available: 1, requested: 3),
+          ],
+        );
+        states.add(currentState);
+        await tester.pumpAndSettle();
+        final limitedDock = tester.widget<CanteenDockBar>(
+          find.byType(CanteenDockBar),
+        );
+        expect(limitedDock.totalCount, 2);
+        expect(limitedDock.total, 30);
+        expect(
+          tester.widget<CanteenQtyStepper>(
+            find.descendant(
+              of: find.byType(CanteenComboCard),
+              matching: find.byType(CanteenQtyStepper),
+            ),
+          ).qty,
+          0,
+        );
+
+        currentState = currentState.copyWith(
+          unavailableItems: const [
+            OutOfStockItem(id: 'extra', name: 'Extra', available: 0, requested: 3),
+          ],
+        );
+        states.add(currentState);
+        await tester.pumpAndSettle();
+        final rejectedDock = tester.widget<CanteenDockBar>(
+          find.byType(CanteenDockBar),
+        );
+        expect(rejectedDock.totalCount, 1);
+        expect(rejectedDock.total, 10);
+        rejectedDock.onOrder();
+        final orders = verify(() => cubit.placeOrder(captureAny())).captured;
+        final items = orders.single as List<OrderItem>;
+        expect(items.map((item) => item.id).toList(), ['other']);
       },
     );
   }
