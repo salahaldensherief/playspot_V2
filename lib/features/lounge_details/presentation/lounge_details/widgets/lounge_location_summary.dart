@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/directions_button.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 
@@ -21,8 +22,12 @@ class LoungeLocationSummary extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on_outlined, size: 20),
-              const SizedBox(width: 8),
+              const Icon(
+                Icons.location_on_outlined,
+                size: 20,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 12),
               Expanded(child: Text(address.isNotEmpty ? address : city)),
             ],
           ),

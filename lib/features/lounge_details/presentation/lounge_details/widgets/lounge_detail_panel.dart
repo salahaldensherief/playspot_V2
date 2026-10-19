@@ -51,7 +51,16 @@ class LoungeDetailPanel extends StatelessWidget {
             childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             iconColor: AppColors.neonBlue,
             collapsedIconColor: AppColors.textSecondary,
-            leading: Icon(icon, size: 18, color: AppColors.neonBlue),
+            leading: Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.neonBlue10,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 18, color: AppColors.neonBlue),
+            ),
             title: Text(titleKey.tr(), style: titleStyle),
             children: [child],
           ),

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 
 class LoungeOperatingHours extends StatelessWidget {
@@ -32,8 +33,12 @@ class LoungeOperatingHours extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.schedule, size: 20),
-        const SizedBox(width: 8),
+        const Icon(
+          Icons.schedule_outlined,
+          size: 20,
+          color: AppColors.textSecondary,
+        ),
+        const SizedBox(width: 12),
         Expanded(
           child: Text(
             (overnight ? 'lounge_hours_overnight' : 'lounge_hours').tr(
