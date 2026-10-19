@@ -183,42 +183,42 @@ class CanteenComboCard extends StatelessWidget {
                       ),
                     ],
                     SizedBox(height: 4.h),
-                    Row(
-                      children: [
-                        AppText(
-                          text:
-                              "${combo.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.neonBlue,
-                        ),
-                        if (combo.separateItemsPrice > combo.price) ...[
-                          SizedBox(width: 8.w),
-                          Text(
-                            "${combo.separateItemsPrice.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
-                            style: TextStyle(
-                              fontSize: 11.5.sp,
-                              color: AppColors.textSecondary.withValues(
-                                alpha: 0.6,
-                              ),
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
                   ],
                 ),
               ),
               CanteenQtyStepper(
                 qty: qty,
                 accentColor: AppColors.neonPurple,
-                onAdd: onAdd,
+                onAdd: combo.isAvailable ? onAdd : null,
                 onRemove: onRemove,
               ),
             ],
           ),
-          if (unavailableItem != null) ...[
+          SizedBox(height: 8.h),
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 4.h,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              AppText(
+                text:
+                    "${combo.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.neonBlue,
+              ),
+              if (combo.separateItemsPrice > combo.price)
+                Text(
+                  "${combo.separateItemsPrice.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                  style: TextStyle(
+                    fontSize: 11.5.sp,
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+            ],
+          ),
+          if (!combo.isAvailable || unavailableItem != null) ...[
             SizedBox(height: 8.h),
             Container(
               padding: EdgeInsetsDirectional.symmetric(
@@ -230,9 +230,11 @@ class CanteenComboCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: AppText(
-                text: AppStrings.remainingQuantity.tr(
-                  args: [unavailableItem?.available.toString() ?? '0'],
-                ),
+                text: !combo.isAvailable
+                    ? AppStrings.canteenItemUnavailable.tr()
+                    : AppStrings.remainingQuantity.tr(
+                        args: [unavailableItem!.available.toString()],
+                      ),
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.danger,

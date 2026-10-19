@@ -35,10 +35,8 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
   void initState() {
     super.initState();
     final session = widget.cubit.state.session;
-    if (widget.cubit.state.menu.isEmpty &&
-        session != null &&
-        session.loungeId.isNotEmpty) {
-      widget.cubit.loadMenu(session.loungeId);
+    if (session != null && session.loungeId.isNotEmpty) {
+      widget.cubit.loadMenu(session.loungeId, forceRefresh: true);
     }
   }
 
@@ -50,22 +48,32 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
     _extraQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = extras.where((e) => e.id == id);
-        if (match.isNotEmpty) total += match.first.price * qty;
+        if (match.isNotEmpty && match.first.isAvailable) {
+          total += match.first.price * qty;
+        }
       }
     });
     _comboQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = combos.where((c) => c.id == id);
-        if (match.isNotEmpty) total += match.first.price * qty;
+        if (match.isNotEmpty && match.first.isAvailable) {
+          total += match.first.price * qty;
+        }
       }
     });
     return total;
   }
 
-  int _totalItemCount() {
+  int _totalItemCount(List<ExtraModel> extras, List<CanteenCombo> combos) {
     int count = 0;
-    _extraQuantities.forEach((_, qty) => count += qty);
-    _comboQuantities.forEach((_, qty) => count += qty);
+    _extraQuantities.forEach((id, qty) {
+      if (extras.any((item) => item.id == id && item.isAvailable)) count += qty;
+    });
+    _comboQuantities.forEach((id, qty) {
+      if (combos.any((combo) => combo.id == id && combo.isAvailable)) {
+        count += qty;
+      }
+    });
     return count;
   }
 
@@ -96,7 +104,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
     _extraQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = extras.where((e) => e.id == id);
-        if (match.isNotEmpty) {
+        if (match.isNotEmpty && match.first.isAvailable) {
           final item = match.first;
           items.add(
             OrderItem(
@@ -117,7 +125,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
     _comboQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = combos.where((c) => c.id == id);
-        if (match.isNotEmpty) {
+        if (match.isNotEmpty && match.first.isAvailable) {
           final combo = match.first;
           items.add(
             OrderItem(
@@ -155,7 +163,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
         final combos = state.combos;
         final unavailable = state.unavailableItems;
         final total = _calculateTotal(extras, combos);
-        final totalCount = _totalItemCount();
+        final totalCount = _totalItemCount(extras, combos);
         final isLoading = state.orderStatus == ActionStatus.loading;
         final session = state.session;
 
@@ -235,6 +243,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                         getQty: _getComboQty,
                         findUnavailable: _findUnavailableCombo,
                         onAdd: (combo) {
+                          if (!combo.isAvailable) return;
                           widget.cubit.clearUnavailableItems();
                           setState(
                             () => _comboQuantities[combo.id] =
@@ -257,6 +266,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                         getQty: _getExtraQty,
                         findUnavailable: _findUnavailableExtra,
                         onAdd: (item) {
+                          if (!item.isAvailable) return;
                           widget.cubit.clearUnavailableItems();
                           setState(
                             () => _extraQuantities[item.id] =
