@@ -18,9 +18,16 @@ import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 import 'booking_canteen_offer_dialog.dart';
 
-class LoungeDetailsBottomBar extends StatelessWidget {
+class LoungeDetailsBottomBar extends StatefulWidget {
   final LoungeModel lounge;
   const LoungeDetailsBottomBar({super.key, required this.lounge});
+
+  @override
+  State<LoungeDetailsBottomBar> createState() => _LoungeDetailsBottomBarState();
+}
+
+class _LoungeDetailsBottomBarState extends State<LoungeDetailsBottomBar> {
+  bool _checkingMenu = false;
 
   @override
   Widget build(BuildContext context) =>
@@ -37,23 +44,25 @@ class LoungeDetailsBottomBar extends StatelessWidget {
         builder: (context, state) {
           final selection = LoungeBookingSelection(
             state,
-            state.lounge ?? lounge,
+            state.lounge ?? widget.lounge,
           );
           return StickyBottomBar(
             child: AppButton(
               content: ButtonContent(
                 body: AppText(
-                  text: _label(state),
+                  text: _checkingMenu
+                      ? AppStrings.bookingCanteenCheckingMenu.tr()
+                      : _label(state),
                   textAlign: TextAlign.center,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: selection.isEnabled
+                  color: selection.isEnabled && !_checkingMenu
                       ? AppColors.black
                       : AppColors.textSecondary,
                 ),
               ),
               behavior: ButtonBehavior.tap(
-                isEnabled: selection.isEnabled,
+                isEnabled: selection.isEnabled && !_checkingMenu,
                 onTap: () => _book(context),
               ),
               buttonConfig: ButtonConfig(
@@ -97,30 +106,49 @@ class LoungeDetailsBottomBar extends StatelessWidget {
   }
 
   Future<void> _book(BuildContext context) async {
+    if (_checkingMenu) return;
     final cubit = context.read<LoungeDetailsCubit>();
     final state = cubit.state;
-    if (LoungeBookingSelection(state, state.lounge ?? lounge).params == null) {
+    final lounge = state.lounge ?? widget.lounge;
+    if (LoungeBookingSelection(state, lounge).params == null) {
       return;
     }
+    setState(() => _checkingMenu = true);
+    try {
+      final hasCanteen = await cubit.refreshBookingCanteen(lounge.id);
+      if (!context.mounted) return;
+      if (hasCanteen == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppStrings.canteenRefreshError.tr())),
+        );
+        return;
+      }
+      if (hasCanteen) {
+        final keepExtras = await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          constraints: const BoxConstraints(maxWidth: 600),
+          backgroundColor: Colors.transparent,
+          builder: (_) => BlocProvider.value(
+            value: cubit,
+            child: const BookingCanteenOfferDialog(),
+          ),
+        );
+        if (!context.mounted || keepExtras == null) return;
+        if (!keepExtras) cubit.clearSelectedExtras();
+      }
 
-    if (state.extras.any((extra) => extra.isAvailable)) {
-      final keepExtras = await showDialog<bool>(
-        context: context,
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: const BookingCanteenOfferDialog(),
-        ),
-      );
-      if (!context.mounted || keepExtras == null) return;
-      if (!keepExtras) cubit.clearSelectedExtras();
+      final currentState = cubit.state;
+      final params = LoungeBookingSelection(
+        currentState,
+        currentState.lounge ?? widget.lounge,
+      ).params;
+      if (params != null && context.mounted) {
+        context.pushNamed(RouterKeys.booking, extra: params);
+      }
+    } finally {
+      if (mounted) setState(() => _checkingMenu = false);
     }
-
-    if (!context.mounted) return;
-    final currentState = cubit.state;
-    final params = LoungeBookingSelection(
-      currentState,
-      currentState.lounge ?? lounge,
-    ).params;
-    if (params != null) context.pushNamed(RouterKeys.booking, extra: params);
   }
 }

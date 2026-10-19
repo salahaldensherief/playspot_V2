@@ -1,3 +1,4 @@
+import 'package:dartz/dartz.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,6 +20,7 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/lou
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/booking_canteen_offer_dialog.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_details_bottom_bar.dart';
 import 'package:playspot/features/tournaments/domain/usecases/get_tournaments_usecase.dart';
+import 'package:playspot/core/error/failures.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../support/local_translations_loader.dart';
@@ -43,6 +45,7 @@ void main() {
     category: 'drinks',
   );
   late LoungeDetailsCubit cubit;
+  late _Details details;
   late GoRouter router;
   BookingDetailsParams? destination;
 
@@ -52,8 +55,12 @@ void main() {
   });
   setUp(() {
     destination = null;
+    details = _Details();
+    when(
+      () => details.getExtras('lounge', forceRefresh: true),
+    ).thenAnswer((_) async => const Right([water]));
     cubit = LoungeDetailsCubit(
-      _Details(),
+      details,
       MockHomeRepository(),
       _Bookings(),
       _Tournaments(),
@@ -99,8 +106,12 @@ void main() {
     await cubit.close();
   });
 
-  Future<void> mount(WidgetTester tester, String language) async {
-    tester.view.physicalSize = const Size(390, 844);
+  Future<void> mount(
+    WidgetTester tester,
+    String language, {
+    Size size = const Size(390, 844),
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -138,7 +149,9 @@ void main() {
       expect(find.byType(BookingCanteenOfferDialog), findsOneWidget);
       expect(find.text(language == 'ar' ? 'مياه' : 'Water'), findsOneWidget);
       await tester.tap(
-        find.text(language == 'ar' ? 'لا، شكرًا' : 'No, thanks'),
+        find.text(
+          language == 'ar' ? 'كمّل من غير طلب' : 'Continue without snacks',
+        ),
       );
       await tester.pumpAndSettle();
       expect(destination?.extras, isEmpty);
@@ -154,7 +167,7 @@ void main() {
     await mount(tester, 'en');
     await tester.tap(find.byType(AppButton));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Increase quantity'));
+    await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
     expect(cubit.state.selectedExtras['water'], 1);
     await tester.tap(find.text('Add to booking and continue'));
@@ -173,5 +186,48 @@ void main() {
     await tester.pumpAndSettle();
     expect(destination, isNull);
     expect(find.byType(BookingCanteenOfferDialog), findsNothing);
+  });
+
+  testWidgets('lounge without live canteen items skips the offer', (
+    tester,
+  ) async {
+    when(
+      () => details.getExtras('lounge', forceRefresh: true),
+    ).thenAnswer((_) async => const Right([]));
+    cubit.updateExtraQuantity(water.id, 1);
+    await mount(tester, 'en');
+    await tester.tap(find.byType(AppButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BookingCanteenOfferDialog), findsNothing);
+    expect(destination?.extras, isEmpty);
+    expect(cubit.state.selectedExtras, isEmpty);
+    expect(find.text('booking destination'), findsOneWidget);
+  });
+
+  testWidgets('failed catalogue check keeps booking in place for retry', (
+    tester,
+  ) async {
+    when(
+      () => details.getExtras('lounge', forceRefresh: true),
+    ).thenAnswer((_) async => const Left(ServerFailure('Offline')));
+    await mount(tester, 'en');
+    await tester.tap(find.byType(AppButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BookingCanteenOfferDialog), findsNothing);
+    expect(destination, isNull);
+    expect(
+      find.text('Could not refresh the details. Please try again.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('offer fits a narrow phone in Arabic', (tester) async {
+    await mount(tester, 'ar', size: const Size(320, 640));
+    await tester.tap(find.byType(AppButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(BookingCanteenOfferDialog), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

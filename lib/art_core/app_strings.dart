@@ -708,5 +708,15 @@ class AppStrings {
   static const String bookingCanteenOfferAdd = "booking_canteen_offer_add";
   static const String bookingCanteenOfferPriceNote =
       "booking_canteen_offer_price_note";
+  static const String bookingCanteenOfferEyebrow =
+      "booking_canteen_offer_eyebrow";
+  static const String bookingCanteenOfferSection =
+      "booking_canteen_offer_section";
+  static const String bookingCanteenOfferAddItem =
+      "booking_canteen_offer_add_item";
+  static const String bookingCanteenOfferNothingSelected =
+      "booking_canteen_offer_nothing_selected";
+  static const String bookingCanteenCheckingMenu =
+      "booking_canteen_checking_menu";
   static const String desserts = "desserts";
 }

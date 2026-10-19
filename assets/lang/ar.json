@@ -746,9 +746,14 @@
   "canteen_remove_item": "تقليل الكمية",
   "canteen_add_item": "زيادة الكمية",
   "canteen_refresh_error": "تعذّر تحديث التفاصيل. يرجى إعادة المحاولة.",
-  "booking_canteen_offer_title": "تحب تضيف حاجة من الكانتين؟",
-  "booking_canteen_offer_subtitle": "اختار الأصناف اللي تحبها مع الحجز، أو كمّل من غير طلب.",
-  "booking_canteen_offer_no_thanks": "لا، شكرًا",
+  "booking_canteen_offer_title": "خلّي قعدتك أحلى",
+  "booking_canteen_offer_subtitle": "ضيف مشروب أو سناك مع الحجز قبل ما تختار الوقت.",
+  "booking_canteen_offer_no_thanks": "كمّل من غير طلب",
   "booking_canteen_offer_add": "أضف للحجز وأكمل",
-  "booking_canteen_offer_price_note": "الطلب اختياري، والسعر والتوفر بيتأكدوا قبل الدفع."
+  "booking_canteen_offer_price_note": "السعر النهائي والتوفر بيتأكدوا وقت الدفع.",
+  "booking_canteen_offer_eyebrow": "اختياري · قبل اختيار الوقت",
+  "booking_canteen_offer_section": "اختار اللي تحبه",
+  "booking_canteen_offer_add_item": "إضافة",
+  "booking_canteen_offer_nothing_selected": "لسه ما اخترتش منتجات",
+  "booking_canteen_checking_menu": "جاري التحقق من القائمة..."
 }

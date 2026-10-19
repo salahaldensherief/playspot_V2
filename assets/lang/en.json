@@ -746,9 +746,14 @@
   "canteen_remove_item": "Decrease quantity",
   "canteen_add_item": "Increase quantity",
   "canteen_refresh_error": "Could not refresh the details. Please try again.",
-  "booking_canteen_offer_title": "Want something from the canteen?",
-  "booking_canteen_offer_subtitle": "Choose items for your booking, or continue without an order.",
-  "booking_canteen_offer_no_thanks": "No, thanks",
+  "booking_canteen_offer_title": "Make your session better",
+  "booking_canteen_offer_subtitle": "Add a drink or snack to your booking before choosing a time.",
+  "booking_canteen_offer_no_thanks": "Continue without snacks",
   "booking_canteen_offer_add": "Add to booking and continue",
-  "booking_canteen_offer_price_note": "Ordering is optional. Price and availability are confirmed before payment."
+  "booking_canteen_offer_price_note": "Final price and availability are confirmed at checkout.",
+  "booking_canteen_offer_eyebrow": "OPTIONAL · BEFORE YOU PICK A TIME",
+  "booking_canteen_offer_section": "Pick something you like",
+  "booking_canteen_offer_add_item": "Add",
+  "booking_canteen_offer_nothing_selected": "No items selected yet",
+  "booking_canteen_checking_menu": "Checking menu..."
 }

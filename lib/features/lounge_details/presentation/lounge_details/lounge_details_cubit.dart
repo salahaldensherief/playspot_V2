@@ -462,4 +462,23 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     if (state.selectedExtras.isEmpty) return;
     emit(state.copyWith(selectedExtras: const {}));
   }
+
+  /// Check the live catalogue before offering food with a booking. Cached
+  /// products may belong to a lounge that has stopped serving canteen items.
+  /// Returns null when the catalogue could not be checked.
+  Future<bool?> refreshBookingCanteen(String loungeId) async {
+    final result = await _loungeDetailsRepository.getExtras(
+      loungeId,
+      forceRefresh: true,
+    );
+    if (isClosed || state.lounge?.id != loungeId) return null;
+    return result.fold((_) => null, (extras) {
+      final available = extras.where((extra) => extra.isAvailable).toList();
+      final ids = available.map((extra) => extra.id).toSet();
+      final selected = Map<String, int>.from(state.selectedExtras)
+        ..removeWhere((id, _) => !ids.contains(id));
+      emit(state.copyWith(extras: available, selectedExtras: selected));
+      return available.isNotEmpty;
+    });
+  }
 }
