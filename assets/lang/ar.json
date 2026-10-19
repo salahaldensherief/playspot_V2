@@ -501,6 +501,9 @@
   "bye": "تأهل تلقائي",
   "walkover": "انسحاب الخصم (فوز تلقائي)",
   "noTournamentsFound": "لا توجد بطولات متاحة حاليًا",
+  "searchTournamentsHint": "ابحث عن بطولة أو لعبة أو صالة",
+  "tournamentResultsCount": "{count} بطولة",
+  "clearTournamentFilters": "مسح الفلاتر",
   "filterByGame": "اللعبة",
   "filterByActivity": "النشاط",
   "filterByCity": "المدينة",
@@ -742,5 +745,10 @@
   "canteen_item_unavailable": "غير متاح حاليًا",
   "canteen_remove_item": "تقليل الكمية",
   "canteen_add_item": "زيادة الكمية",
-  "canteen_refresh_error": "تعذّر تحديث التفاصيل. يرجى إعادة المحاولة."
+  "canteen_refresh_error": "تعذّر تحديث التفاصيل. يرجى إعادة المحاولة.",
+  "booking_canteen_offer_title": "تحب تضيف حاجة من الكانتين؟",
+  "booking_canteen_offer_subtitle": "اختار الأصناف اللي تحبها مع الحجز، أو كمّل من غير طلب.",
+  "booking_canteen_offer_no_thanks": "لا، شكرًا",
+  "booking_canteen_offer_add": "أضف للحجز وأكمل",
+  "booking_canteen_offer_price_note": "الطلب اختياري، والسعر والتوفر بيتأكدوا قبل الدفع."
 }

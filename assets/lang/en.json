@@ -498,6 +498,9 @@
   "bye": "BYE",
   "walkover": "Walkover",
   "noTournamentsFound": "No tournaments found",
+  "searchTournamentsHint": "Search tournaments, games or venues",
+  "tournamentResultsCount": "{count} tournaments",
+  "clearTournamentFilters": "Clear filters",
   "filterByGame": "Game",
   "filterByActivity": "Activity",
   "filterByCity": "City",
@@ -742,5 +745,10 @@
   "canteen_item_unavailable": "Currently unavailable",
   "canteen_remove_item": "Decrease quantity",
   "canteen_add_item": "Increase quantity",
-  "canteen_refresh_error": "Could not refresh the details. Please try again."
+  "canteen_refresh_error": "Could not refresh the details. Please try again.",
+  "booking_canteen_offer_title": "Want something from the canteen?",
+  "booking_canteen_offer_subtitle": "Choose items for your booking, or continue without an order.",
+  "booking_canteen_offer_no_thanks": "No, thanks",
+  "booking_canteen_offer_add": "Add to booking and continue",
+  "booking_canteen_offer_price_note": "Ordering is optional. Price and availability are confirmed before payment."
 }

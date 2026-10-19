@@ -16,6 +16,7 @@ import 'package:playspot/features/home/data/models/lounge_model.dart';
 import '../lounge_booking_selection.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
+import 'booking_canteen_offer_dialog.dart';
 
 class LoungeDetailsBottomBar extends StatelessWidget {
   final LoungeModel lounge;
@@ -95,9 +96,31 @@ class LoungeDetailsBottomBar extends StatelessWidget {
     return '${AppStrings.bookRoomsCount.tr()} (${state.selectedRooms.length})';
   }
 
-  void _book(BuildContext context) {
-    final state = context.read<LoungeDetailsCubit>().state;
-    final params = LoungeBookingSelection(state, state.lounge ?? lounge).params;
+  Future<void> _book(BuildContext context) async {
+    final cubit = context.read<LoungeDetailsCubit>();
+    final state = cubit.state;
+    if (LoungeBookingSelection(state, state.lounge ?? lounge).params == null) {
+      return;
+    }
+
+    if (state.extras.any((extra) => extra.isAvailable)) {
+      final keepExtras = await showDialog<bool>(
+        context: context,
+        builder: (_) => BlocProvider.value(
+          value: cubit,
+          child: const BookingCanteenOfferDialog(),
+        ),
+      );
+      if (!context.mounted || keepExtras == null) return;
+      if (!keepExtras) cubit.clearSelectedExtras();
+    }
+
+    if (!context.mounted) return;
+    final currentState = cubit.state;
+    final params = LoungeBookingSelection(
+      currentState,
+      currentState.lounge ?? lounge,
+    ).params;
     if (params != null) context.pushNamed(RouterKeys.booking, extra: params);
   }
 }

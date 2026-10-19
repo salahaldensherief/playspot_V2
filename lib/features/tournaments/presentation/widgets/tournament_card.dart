@@ -59,14 +59,14 @@ class TournamentCard extends StatelessWidget {
                       ),
                       child: tournament.imageUrl?.isNotEmpty == true
                           ? CachedNetworkImage(
-                              imageUrl: tournament.imageUrl!,
-                              height: 165.h,
+                              imageUrl: tournament.imageUrl ?? '',
+                              height: 148.h,
                               width: double.infinity,
                               fit: BoxFit.cover,
                               memCacheWidth: 600,
-                              memCacheHeight: 330,
+                              memCacheHeight: 296,
                               placeholder: (context, url) => Container(
-                                height: 165.h,
+                                height: 148.h,
                                 color: AppColors.tournamentHeaderBg,
                                 child: const Center(
                                   child: AppLoader(
@@ -131,7 +131,7 @@ class TournamentCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              TablerIcons.trophy,
+                              TablerIcons.ticket,
                               size: 13.sp,
                               color: AppColors.tournamentGold,
                             ),
@@ -203,7 +203,7 @@ class TournamentCard extends StatelessWidget {
                         fontSize: 16.5.sp,
                         fontWeight: FontWeight.bold,
                         height: 1.25,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 8.h),
@@ -226,6 +226,31 @@ class TournamentCard extends StatelessWidget {
                                 color: AppColors.textSecondary,
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.w500,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12.h),
+                      ],
+
+                      if (tournament.startDate case final startDate?) ...[
+                        Row(
+                          children: [
+                            Icon(
+                              TablerIcons.calendar_event,
+                              color: AppColors.textSecondary,
+                              size: 14.sp,
+                            ),
+                            SizedBox(width: 6.w),
+                            Expanded(
+                              child: AppText(
+                                text: DateFormat.yMMMd(
+                                  context.locale.toString(),
+                                ).format(startDate),
+                                color: AppColors.textSecondary,
+                                fontSize: 12.sp,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -330,7 +355,7 @@ class TournamentCard extends StatelessWidget {
 
   Widget _buildPlaceholderBanner() {
     return Container(
-      height: 165.h,
+      height: 148.h,
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: AppColors.tournamentPlaceholderGradient,

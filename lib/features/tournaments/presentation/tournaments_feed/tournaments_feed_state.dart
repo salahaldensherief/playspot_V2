@@ -3,6 +3,8 @@ import '../../domain/entities/tournament_entity.dart';
 
 enum TournamentsFeedStatus { initial, loading, success, failure }
 
+const _unchangedFilter = Object();
+
 class TournamentsFeedState extends Equatable {
   final TournamentsFeedStatus status;
   final List<TournamentEntity> tournaments;
@@ -30,9 +32,9 @@ class TournamentsFeedState extends Equatable {
     TournamentsFeedStatus? status,
     List<TournamentEntity>? tournaments,
     List<String>? availableGames,
-    String? selectedGame,
-    String? selectedCityId,
-    String? selectedStatus,
+    Object? selectedGame = _unchangedFilter,
+    Object? selectedCityId = _unchangedFilter,
+    Object? selectedStatus = _unchangedFilter,
     String? searchQuery,
     bool? isLocationDisabled,
     String? errorMessage,
@@ -41,9 +43,15 @@ class TournamentsFeedState extends Equatable {
       status: status ?? this.status,
       tournaments: tournaments ?? this.tournaments,
       availableGames: availableGames ?? this.availableGames,
-      selectedGame: selectedGame ?? this.selectedGame,
-      selectedCityId: selectedCityId ?? this.selectedCityId,
-      selectedStatus: selectedStatus ?? this.selectedStatus,
+      selectedGame: identical(selectedGame, _unchangedFilter)
+          ? this.selectedGame
+          : selectedGame as String?,
+      selectedCityId: identical(selectedCityId, _unchangedFilter)
+          ? this.selectedCityId
+          : selectedCityId as String?,
+      selectedStatus: identical(selectedStatus, _unchangedFilter)
+          ? this.selectedStatus
+          : selectedStatus as String?,
       searchQuery: searchQuery ?? this.searchQuery,
       isLocationDisabled: isLocationDisabled ?? this.isLocationDisabled,
       errorMessage: errorMessage ?? this.errorMessage,
