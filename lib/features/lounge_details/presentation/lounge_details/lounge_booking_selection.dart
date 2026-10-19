@@ -45,7 +45,7 @@ class LoungeBookingSelection extends Equatable {
 
   List<Map<String, dynamic>> _extras() => [
     for (final extra in state.extras)
-      if ((state.selectedExtras[extra.id] ?? 0) > 0)
+      if (extra.isAvailable && (state.selectedExtras[extra.id] ?? 0) > 0)
         {
           'id': extra.id,
           'name': extra.name,

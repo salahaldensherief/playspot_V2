@@ -11,6 +11,7 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
   final LocationService _locationService;
   final ProfileRepository? _profileRepository;
   Timer? _debounceTimer;
+  int _requestGeneration = 0;
 
   TournamentsFeedCubit(
     this._getTournamentsUseCase,
@@ -26,6 +27,7 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
 
   Future<void> loadTournaments({bool isRefresh = false}) async {
     if (!isRefresh && state.status == TournamentsFeedStatus.loading) return;
+    final requestGeneration = ++_requestGeneration;
 
     emit(
       state.copyWith(status: TournamentsFeedStatus.loading, errorMessage: null),
@@ -35,6 +37,7 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
     try {
       position = await _locationService.getCurrentLocation();
     } catch (_) {}
+    if (isClosed || requestGeneration != _requestGeneration) return;
 
     final bool locationDisabled = position == null;
     final String? userCityId = _profileRepository?.getCurrentUser()?.cityId;
@@ -49,6 +52,7 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
       latitude: position?.latitude,
       longitude: position?.longitude,
     );
+    if (isClosed || requestGeneration != _requestGeneration) return;
 
     result.fold(
       (failure) {
@@ -61,13 +65,10 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
         );
       },
       (tournaments) {
-        final availableGames =
-            tournaments
-                .map((t) => t.game)
-                .where((g) => g.isNotEmpty)
-                .toSet()
-                .toList()
-              ..sort();
+        final availableGames = [
+          ...state.availableGames,
+          ...tournaments.map((t) => t.game),
+        ].where((g) => g.isNotEmpty).toSet().toList()..sort();
 
         emit(
           state.copyWith(
@@ -104,6 +105,14 @@ class TournamentsFeedCubit extends Cubit<TournamentsFeedState> {
   void filterByStatus(String? status) {
     if (state.selectedStatus == status) return;
     emit(state.copyWith(selectedStatus: status));
+    loadTournaments(isRefresh: true);
+  }
+
+  void clearFilters() {
+    _debounceTimer?.cancel();
+    emit(
+      state.copyWith(selectedGame: null, selectedStatus: null, searchQuery: ''),
+    );
     loadTournaments(isRefresh: true);
   }
 }

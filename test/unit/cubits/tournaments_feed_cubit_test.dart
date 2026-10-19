@@ -48,6 +48,40 @@ void main() {
   });
 
   group('Batch 2 — TournamentsFeedCubit Unit Tests', () {
+    test('clearing filters sends an unfiltered request', () async {
+      when(
+        () => mockGetTournamentsUseCase(
+          game: any(named: 'game'),
+          cityId: any(named: 'cityId'),
+          statusFilter: any(named: 'statusFilter'),
+          searchQuery: any(named: 'searchQuery'),
+          latitude: any(named: 'latitude'),
+          longitude: any(named: 'longitude'),
+        ),
+      ).thenAnswer((_) async => const Right([testTournament]));
+
+      cubit.filterByGame('EA FC 24');
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.selectedGame, 'EA FC 24');
+      cubit.filterByStatus('registration_open');
+      await Future<void>.delayed(Duration.zero);
+      cubit.clearFilters();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.selectedGame, isNull);
+      expect(cubit.state.selectedStatus, isNull);
+      verify(
+        () => mockGetTournamentsUseCase(
+          game: null,
+          cityId: any(named: 'cityId'),
+          statusFilter: null,
+          searchQuery: '',
+          latitude: any(named: 'latitude'),
+          longitude: any(named: 'longitude'),
+        ),
+      ).called(1);
+    });
+
     test('initial state is correct', () {
       expect(cubit.state.status, equals(TournamentsFeedStatus.initial));
       expect(cubit.state.tournaments, isEmpty);

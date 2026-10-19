@@ -457,4 +457,9 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
     emit(state.copyWith(selectedExtras: updatedExtras));
   }
+
+  void clearSelectedExtras() {
+    if (state.selectedExtras.isEmpty) return;
+    emit(state.copyWith(selectedExtras: const {}));
+  }
 }

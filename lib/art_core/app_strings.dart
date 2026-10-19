@@ -448,6 +448,9 @@ class AppStrings {
   static const String bye = "bye";
   static const String walkover = "walkover";
   static const String noTournamentsFound = "noTournamentsFound";
+  static const String searchTournamentsHint = "searchTournamentsHint";
+  static const String tournamentResultsCount = "tournamentResultsCount";
+  static const String clearTournamentFilters = "clearTournamentFilters";
   static const String filterByGame = "filterByGame";
   static const String filterByActivity = "filterByActivity";
   static const String filterByCity = "filterByCity";
@@ -697,5 +700,13 @@ class AppStrings {
   static const String canteenRemoveItem = "canteen_remove_item";
   static const String canteenAddItem = "canteen_add_item";
   static const String canteenRefreshError = "canteen_refresh_error";
+  static const String bookingCanteenOfferTitle = "booking_canteen_offer_title";
+  static const String bookingCanteenOfferSubtitle =
+      "booking_canteen_offer_subtitle";
+  static const String bookingCanteenOfferNoThanks =
+      "booking_canteen_offer_no_thanks";
+  static const String bookingCanteenOfferAdd = "booking_canteen_offer_add";
+  static const String bookingCanteenOfferPriceNote =
+      "booking_canteen_offer_price_note";
   static const String desserts = "desserts";
 }
