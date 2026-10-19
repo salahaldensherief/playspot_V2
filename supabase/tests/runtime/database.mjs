@@ -36,7 +36,7 @@ export async function createFixtureDatabase() {
       },
       async exec(sql) {
         // Roles are cluster-wide in native PostgreSQL; bootstrap creates only fixture roles.
-        return client.query(sql.replace(/CREATE ROLE (anon|authenticated|service_role)\s*;/gi, ''));
+        return client.query(sql.replace(/CREATE ROLE (anon|authenticated|service_role|supabase_auth_admin)\s*;/gi, ''));
       },
       query: (...args) => client.query(...args),
       async close() {
