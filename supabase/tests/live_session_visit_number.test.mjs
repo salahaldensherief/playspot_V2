@@ -13,7 +13,7 @@ const returning = '00000000-0000-0000-0000-000000000033';
 const firstVisit = '00000000-0000-0000-0000-000000000034';
 const returningGuest = '00000000-0000-0000-0000-000000000036';
 const migration = await readFile(
-  new URL('../migrations/20261019000002_live_session_visit_number.sql', import.meta.url),
+  new URL('../migrations/20261019212750_live_session_visit_number.sql', import.meta.url),
   'utf8',
 );
 

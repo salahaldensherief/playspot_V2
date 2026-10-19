@@ -17,7 +17,7 @@ const orderTwo = '00000000-0000-0000-0000-000000000042';
 const callOne = '00000000-0000-0000-0000-000000000051';
 const callTwo = '00000000-0000-0000-0000-000000000052';
 const migration = await readFile(
-  new URL('../migrations/20261019000001_live_request_ownership_and_resolution.sql', import.meta.url),
+  new URL('../migrations/20261019212746_live_request_ownership_and_resolution.sql', import.meta.url),
   'utf8',
 );
 
