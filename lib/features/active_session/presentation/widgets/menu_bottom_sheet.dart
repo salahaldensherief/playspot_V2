@@ -35,37 +35,115 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
   void initState() {
     super.initState();
     final session = widget.cubit.state.session;
-    if (widget.cubit.state.menu.isEmpty &&
-        session != null &&
-        session.loungeId.isNotEmpty) {
-      widget.cubit.loadMenu(session.loungeId);
+    if (session != null && session.loungeId.isNotEmpty) {
+      widget.cubit.loadMenu(session.loungeId, forceRefresh: true);
     }
   }
 
   int _getExtraQty(String id) => _extraQuantities[id] ?? 0;
   int _getComboQty(String id) => _comboQuantities[id] ?? 0;
 
-  double _calculateTotal(List<ExtraModel> extras, List<CanteenCombo> combos) {
+  ({Map<String, int> extras, Map<String, int> combos}) _effectiveCart(
+    List<ExtraModel> extras,
+    List<CanteenCombo> combos,
+    List<OutOfStockItem> unavailable,
+  ) {
+    final remaining = <String, int>{
+      for (final item in unavailable)
+        item.id: item.available > 0 ? item.available : 0,
+    };
+    final selectedExtras = <String, int>{};
+    final selectedCombos = <String, int>{};
+
+    for (final item in extras) {
+      if (!item.isAvailable) continue;
+      final requested = _getExtraQty(item.id);
+      if (requested <= 0) continue;
+      final stock = remaining[item.id];
+      final qty = stock != null && stock < requested ? stock : requested;
+      if (qty <= 0) continue;
+      selectedExtras[item.id] = qty;
+      if (stock != null) remaining[item.id] = stock - qty;
+    }
+
+    for (final offer in combos) {
+      if (!offer.isAvailable) continue;
+      var qty = _getComboQty(offer.id);
+      if (qty <= 0) continue;
+      final offerStock = remaining[offer.id];
+      if (offerStock != null && offerStock < qty) qty = offerStock;
+
+      final requirements = <String, int>{};
+      for (final component in offer.items) {
+        if (component.quantity <= 0) continue;
+        requirements.update(
+          component.extraId,
+          (current) => current + component.quantity,
+          ifAbsent: () => component.quantity,
+        );
+      }
+      for (final requirement in requirements.entries) {
+        final stock = remaining[requirement.key];
+        if (stock != null) {
+          final capacity = stock ~/ requirement.value;
+          if (capacity < qty) qty = capacity;
+        }
+      }
+      if (qty <= 0) continue;
+      selectedCombos[offer.id] = qty;
+      if (offerStock != null) remaining[offer.id] = offerStock - qty;
+      for (final requirement in requirements.entries) {
+        final stock = remaining[requirement.key];
+        if (stock != null) {
+          remaining[requirement.key] = stock - qty * requirement.value;
+        }
+      }
+    }
+
+    return (extras: selectedExtras, combos: selectedCombos);
+  }
+
+  double _calculateTotal(
+    List<ExtraModel> extras,
+    List<CanteenCombo> combos,
+    Map<String, int> extraQuantities,
+    Map<String, int> comboQuantities,
+  ) {
     double total = 0.0;
-    _extraQuantities.forEach((id, qty) {
+    extraQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = extras.where((e) => e.id == id);
-        if (match.isNotEmpty) total += match.first.price * qty;
+        if (match.isNotEmpty && match.first.isAvailable) {
+          total += match.first.price * qty;
+        }
       }
     });
-    _comboQuantities.forEach((id, qty) {
+    comboQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = combos.where((c) => c.id == id);
-        if (match.isNotEmpty) total += match.first.price * qty;
+        if (match.isNotEmpty && match.first.isAvailable) {
+          total += match.first.price * qty;
+        }
       }
     });
     return total;
   }
 
-  int _totalItemCount() {
+  int _totalItemCount(
+    List<ExtraModel> extras,
+    List<CanteenCombo> combos,
+    Map<String, int> extraQuantities,
+    Map<String, int> comboQuantities,
+  ) {
     int count = 0;
-    _extraQuantities.forEach((_, qty) => count += qty);
-    _comboQuantities.forEach((_, qty) => count += qty);
+    extraQuantities.forEach((id, qty) {
+      if (extras.any((item) => item.id == id && item.isAvailable)) count += qty;
+    });
+    comboQuantities.forEach((id, qty) {
+      if (combos.any((combo) => combo.id == id && combo.isAvailable)) {
+        count += qty;
+      }
+    });
     return count;
   }
 
@@ -91,12 +169,17 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
     return null;
   }
 
-  void _placeOrder(List<ExtraModel> extras, List<CanteenCombo> combos) {
+  void _placeOrder(
+    List<ExtraModel> extras,
+    List<CanteenCombo> combos,
+    Map<String, int> extraQuantities,
+    Map<String, int> comboQuantities,
+  ) {
     final List<OrderItem> items = [];
-    _extraQuantities.forEach((id, qty) {
+    extraQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = extras.where((e) => e.id == id);
-        if (match.isNotEmpty) {
+        if (match.isNotEmpty && match.first.isAvailable) {
           final item = match.first;
           items.add(
             OrderItem(
@@ -114,10 +197,10 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
       }
     });
 
-    _comboQuantities.forEach((id, qty) {
+    comboQuantities.forEach((id, qty) {
       if (qty > 0) {
         final match = combos.where((c) => c.id == id);
-        if (match.isNotEmpty) {
+        if (match.isNotEmpty && match.first.isAvailable) {
           final combo = match.first;
           items.add(
             OrderItem(
@@ -154,8 +237,14 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
         final extras = state.menu;
         final combos = state.combos;
         final unavailable = state.unavailableItems;
-        final total = _calculateTotal(extras, combos);
-        final totalCount = _totalItemCount();
+        final cart = _effectiveCart(extras, combos, unavailable);
+        final total = _calculateTotal(extras, combos, cart.extras, cart.combos);
+        final totalCount = _totalItemCount(
+          extras,
+          combos,
+          cart.extras,
+          cart.combos,
+        );
         final isLoading = state.orderStatus == ActionStatus.loading;
         final session = state.session;
 
@@ -232,20 +321,19 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                         combos: combos,
                         unavailable: unavailable,
                         isArabic: isArabic,
-                        getQty: _getComboQty,
+                        getQty: (id) => cart.combos[id] ?? 0,
                         findUnavailable: _findUnavailableCombo,
                         onAdd: (combo) {
-                          widget.cubit.clearUnavailableItems();
+                          if (!combo.isAvailable) return;
                           setState(
                             () => _comboQuantities[combo.id] =
-                                _getComboQty(combo.id) + 1,
+                                (cart.combos[combo.id] ?? 0) + 1,
                           );
                         },
                         onRemove: (combo) {
-                          widget.cubit.clearUnavailableItems();
                           setState(
                             () => _comboQuantities[combo.id] =
-                                (_getComboQty(combo.id) - 1).clamp(0, 99),
+                                ((cart.combos[combo.id] ?? 0) - 1).clamp(0, 99),
                           );
                         },
                       ),
@@ -254,20 +342,19 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                         extras: filteredExtras,
                         unavailable: unavailable,
                         isArabic: isArabic,
-                        getQty: _getExtraQty,
+                        getQty: (id) => cart.extras[id] ?? 0,
                         findUnavailable: _findUnavailableExtra,
                         onAdd: (item) {
-                          widget.cubit.clearUnavailableItems();
+                          if (!item.isAvailable) return;
                           setState(
                             () => _extraQuantities[item.id] =
-                                _getExtraQty(item.id) + 1,
+                                (cart.extras[item.id] ?? 0) + 1,
                           );
                         },
                         onRemove: (item) {
-                          widget.cubit.clearUnavailableItems();
                           setState(
                             () => _extraQuantities[item.id] =
-                                (_getExtraQty(item.id) - 1).clamp(0, 99),
+                                ((cart.extras[item.id] ?? 0) - 1).clamp(0, 99),
                           );
                         },
                       ),
@@ -280,7 +367,8 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 totalCount: totalCount,
                 total: total,
                 isLoading: isLoading,
-                onOrder: () => _placeOrder(extras, combos),
+                onOrder: () =>
+                    _placeOrder(extras, combos, cart.extras, cart.combos),
               ),
             ],
           ),

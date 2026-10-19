@@ -61,6 +61,7 @@ class CanteenExtraCard extends StatelessWidget {
         ? (item.nameAr.isNotEmpty ? item.nameAr : item.name)
         : (item.nameEn.isNotEmpty ? item.nameEn : item.name);
     final icon = item.icon?.trim();
+    final stockIssue = unavailableItem;
 
     return Container(
       margin: EdgeInsetsDirectional.only(bottom: 10.h),
@@ -132,47 +133,53 @@ class CanteenExtraCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 3.h),
-                    Row(
-                      children: [
-                        AppText(
-                          text:
-                              "${item.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.neonBlue,
-                        ),
-                        if (item.category.isNotEmpty) ...[
-                          SizedBox(width: 6.w),
-                          Container(
-                            padding: EdgeInsetsDirectional.symmetric(
-                              horizontal: 5.w,
-                              vertical: 1.5.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(4.r),
-                            ),
-                            child: AppText(
-                              text: _getTranslatedCategory(item.category),
-                              fontSize: 9.5.sp,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
                   ],
                 ),
               ),
               CanteenQtyStepper(
                 qty: qty,
                 accentColor: AppColors.neonBlue,
-                onAdd: onAdd,
+                onAdd:
+                    item.isAvailable &&
+                        (stockIssue == null || qty < stockIssue.available)
+                    ? onAdd
+                    : null,
                 onRemove: onRemove,
               ),
             ],
           ),
-          if (unavailableItem != null) ...[
+          SizedBox(height: 8.h),
+          Wrap(
+            spacing: 6.w,
+            runSpacing: 4.h,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              AppText(
+                text:
+                    "${item.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                fontSize: 13.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.neonBlue,
+              ),
+              if (item.category.isNotEmpty)
+                Container(
+                  padding: EdgeInsetsDirectional.symmetric(
+                    horizontal: 5.w,
+                    vertical: 1.5.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                  child: AppText(
+                    text: _getTranslatedCategory(item.category),
+                    fontSize: 9.5.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+            ],
+          ),
+          if (!item.isAvailable || unavailableItem != null) ...[
             SizedBox(height: 8.h),
             Container(
               padding: EdgeInsetsDirectional.symmetric(
@@ -184,9 +191,11 @@ class CanteenExtraCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: AppText(
-                text: AppStrings.remainingQuantity.tr(
-                  args: [unavailableItem?.available.toString() ?? '0'],
-                ),
+                text: !item.isAvailable || stockIssue == null
+                    ? AppStrings.canteenItemUnavailable.tr()
+                    : AppStrings.remainingQuantity.tr(
+                        args: [stockIssue.available.toString()],
+                      ),
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.danger,

@@ -69,11 +69,15 @@ class CanteenHeader extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        AppText(
-                          text: AppStrings.canteenMenu.tr(),
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        Expanded(
+                          child: AppText(
+                            text: AppStrings.canteenMenu.tr(),
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         SizedBox(width: 8.w),
                         Container(

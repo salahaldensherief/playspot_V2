@@ -47,11 +47,15 @@ class CanteenCombosSection extends StatelessWidget {
               size: 19.sp,
             ),
             SizedBox(width: 6.w),
-            AppText(
-              text: AppStrings.combosAndOffers.tr(),
-              fontSize: 15.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            Expanded(
+              child: AppText(
+                text: AppStrings.combosAndOffers.tr(),
+                fontSize: 15.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

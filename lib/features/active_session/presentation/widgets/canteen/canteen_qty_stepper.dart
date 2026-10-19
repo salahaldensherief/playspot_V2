@@ -7,7 +7,7 @@ import '../../../../../art_core/widgets/text/app_text.dart';
 
 class CanteenQtyStepper extends StatelessWidget {
   final int qty;
-  final VoidCallback onAdd;
+  final VoidCallback? onAdd;
   final VoidCallback onRemove;
   final Color accentColor;
 
@@ -21,6 +21,7 @@ class CanteenQtyStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canAdd = onAdd != null;
     if (qty == 0) {
       return Material(
         color: Colors.transparent,
@@ -34,23 +35,27 @@ class CanteenQtyStepper extends StatelessWidget {
               vertical: 8.h,
             ),
             decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.16),
+              color: accentColor.withValues(alpha: canAdd ? 0.16 : 0.06),
               borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: accentColor.withValues(alpha: 0.65),
+                color: accentColor.withValues(alpha: canAdd ? 0.65 : 0.2),
                 width: 1.2,
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.add_rounded, size: 16.sp, color: Colors.white),
+                Icon(
+                  Icons.add_rounded,
+                  size: 16.sp,
+                  color: canAdd ? Colors.white : AppColors.textSecondary,
+                ),
                 SizedBox(width: 4.w),
                 AppText(
                   text: AppStrings.addSuggestion.tr(),
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: canAdd ? Colors.white : AppColors.textSecondary,
                 ),
               ],
             ),
@@ -113,11 +118,11 @@ class CanteenQtyStepper extends StatelessWidget {
                 width: 34.w,
                 height: 34.w,
                 decoration: BoxDecoration(
-                  color: accentColor,
+                  color: canAdd ? accentColor : AppColors.textSecondary,
                   borderRadius: BorderRadius.circular(8.r),
                   boxShadow: [
                     BoxShadow(
-                      color: accentColor.withValues(alpha: 0.4),
+                      color: accentColor.withValues(alpha: canAdd ? 0.4 : 0),
                       blurRadius: 6,
                       offset: const Offset(0, 1),
                     ),
