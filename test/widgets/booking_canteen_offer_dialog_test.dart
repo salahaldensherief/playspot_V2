@@ -93,12 +93,18 @@ void main() {
               body: Stack(
                 children: [
                   if (showModeSelector)
-                    BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-                      builder: (context, state) => RoomPlayModeSelector(
-                        roomId: room.id,
-                        mode: state.roomPlayModes[room.id] ?? 'single',
-                        color: AppColors.neonBlue,
-                      ),
+                    Positioned(
+                      top: 100,
+                      left: 0,
+                      right: 0,
+                      child:
+                          BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                            builder: (context, state) => RoomPlayModeSelector(
+                              roomId: room.id,
+                              mode: state.roomPlayModes[room.id] ?? 'single',
+                              color: AppColors.neonBlue,
+                            ),
+                          ),
                     ),
                   LoungeDetailsBottomBar(lounge: lounge),
                 ],
@@ -197,7 +203,7 @@ void main() {
   testWidgets('selected multi mode survives the canteen step', (tester) async {
     showModeSelector = true;
     await mount(tester, 'en');
-    await tester.tap(find.text('Multi'));
+    await tester.tap(find.textContaining('Multi'));
     await tester.pumpAndSettle();
     expect(cubit.state.roomPlayModes[room.id], 'multi');
     await tester.tap(find.byType(AppButton));

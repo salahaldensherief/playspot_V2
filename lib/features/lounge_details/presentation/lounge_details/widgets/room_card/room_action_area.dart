@@ -66,8 +66,8 @@ class RoomActionArea extends StatelessWidget {
                 color: rate.hasOffer ? AppColors.success : themeColor,
               ),
               AppText(
-                text: AppStrings.perHour.tr(),
-                fontSize: 12.sp,
+                text: AppStrings.perHour.tr().toUpperCase(),
+                fontSize: 8.sp,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.bold,
               ),

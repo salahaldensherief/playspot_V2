@@ -26,21 +26,13 @@ class RoomHeader extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: themeColor.withValues(alpha: .14),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(room.icon, color: themeColor, size: 23),
-        ),
+        Icon(room.icon, color: themeColor, size: 20),
         10.horizontalSpace,
         Expanded(
           child: AppText(
             text: room.getDisplayTitle(isArabic),
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
             color: isAvailable ? Colors.white : AppColors.textSecondary,
             maxLines: isExpanded ? 5 : 2,
             overflow: TextOverflow.ellipsis,

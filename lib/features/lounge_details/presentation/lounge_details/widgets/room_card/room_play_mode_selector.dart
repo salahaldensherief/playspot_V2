@@ -20,38 +20,31 @@ class RoomPlayModeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        AppText(
-          text: AppStrings.playMode.tr(),
-          fontSize: 13.sp,
-          color: AppColors.textSecondary,
-          fontWeight: FontWeight.w600,
+        Flexible(
+          child: AppText(
+            text: AppStrings.playMode.tr(),
+            fontSize: 12.sp,
+            color: Colors.white70,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        SizedBox(height: 8.h),
         Container(
-          padding: EdgeInsets.all(4.w),
+          padding: EdgeInsets.all(3.w),
           decoration: BoxDecoration(
-            color: AppColors.mutedBackground,
-            borderRadius: BorderRadius.circular(14.r),
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(10.r),
           ),
           child: Row(
             children: [
-              Expanded(
-                child: _buildOption(
-                  context,
-                  'single',
-                  AppStrings.singlePlay.tr(),
-                ),
+              _buildOption(
+                context,
+                'single',
+                "👤 ${AppStrings.singlePlay.tr()}",
               ),
-              Expanded(
-                child: _buildOption(
-                  context,
-                  'multi',
-                  AppStrings.multiPlay.tr(),
-                ),
-              ),
+              _buildOption(context, 'multi', "👥 ${AppStrings.multiPlay.tr()}"),
             ],
           ),
         ),
@@ -61,27 +54,21 @@ class RoomPlayModeSelector extends StatelessWidget {
 
   Widget _buildOption(BuildContext context, String value, String label) {
     final isSelected = mode == value;
-    return Semantics(
-      button: true,
-      selected: isSelected,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10.r),
-        onTap: () =>
-            context.read<LoungeDetailsCubit>().setRoomPlayMode(roomId, value),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected ? color : Colors.transparent,
-            borderRadius: BorderRadius.circular(10.r),
-          ),
-          child: AppText(
-            text: label,
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w700,
-            color: isSelected ? AppColors.black : AppColors.textSecondary,
-          ),
+    return GestureDetector(
+      onTap: () =>
+          context.read<LoungeDetailsCubit>().setRoomPlayMode(roomId, value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.transparent,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: AppText(
+          text: label,
+          fontSize: 11.sp,
+          fontWeight: FontWeight.bold,
+          color: isSelected ? AppColors.black : AppColors.textSecondary,
         ),
       ),
     );

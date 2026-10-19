@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
-import 'room_theme_extension.dart';
 
 class RoomSpaceTypeBadge extends StatelessWidget {
   final RoomModel room;
@@ -20,23 +19,13 @@ class RoomSpaceTypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final spaceLabel = switch (room.spaceTypeName) {
+    final label = switch (room.spaceTypeName) {
       'private' => 'room_private'.tr(),
       'open_area' => AppStrings.openArea.tr(),
       'vip_room' => AppStrings.vipRoom.tr(),
       'standard_room' => AppStrings.standardRoom.tr(),
       _ => room.spaceType?.trim() ?? '',
     };
-    final activityLabel = room.isBilliards
-        ? AppStrings.billiard.tr()
-        : room.isPingPong
-        ? AppStrings.pingPong.tr()
-        : '';
-    final label = activityLabel.isEmpty
-        ? spaceLabel
-        : spaceLabel.isEmpty
-        ? activityLabel
-        : '$activityLabel · $spaceLabel';
     if (label.isEmpty) return const SizedBox.shrink();
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4.h),
@@ -47,8 +36,8 @@ class RoomSpaceTypeBadge extends StatelessWidget {
       ),
       child: AppText(
         text: label,
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
+        fontSize: 11,
+        fontWeight: FontWeight.w900,
         color: themeColor,
         letterSpacing: 0.3,
       ),
