@@ -154,7 +154,7 @@ class ActiveSessionRemoteDataSourceImpl
         dev.log(
           "[LIVESESSION_DS] Fetching specific booking $bookingId error: $e",
         );
-        return null;
+        rethrow;
       }
     }
 
@@ -186,6 +186,7 @@ class ActiveSessionRemoteDataSourceImpl
       }
     } catch (e) {
       dev.log("[LIVESESSION_DS] Fetching active in_progress session error: $e");
+      rethrow;
     }
 
     dev.log("[LIVESESSION_DS] No active session found");
@@ -208,6 +209,7 @@ class ActiveSessionRemoteDataSourceImpl
         dev.log(
           "[LIVESESSION_DS] Error fetching active session in stream for $bookingId: $e",
         );
+        if (!controller.isClosed) controller.addError(e);
       }
     }
 

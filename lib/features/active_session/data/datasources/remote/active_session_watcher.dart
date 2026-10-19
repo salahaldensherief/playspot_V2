@@ -53,6 +53,7 @@ class ActiveSessionWatcher {
             error: error,
             stackTrace: stack,
           );
+          if (!_closed) _controller.addError(error, stack);
         });
   }
 
