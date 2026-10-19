@@ -139,7 +139,8 @@ class CanteenExtraCard extends StatelessWidget {
               CanteenQtyStepper(
                 qty: qty,
                 accentColor: AppColors.neonBlue,
-                onAdd: item.isAvailable &&
+                onAdd:
+                    item.isAvailable &&
                         (stockIssue == null || qty < stockIssue.available)
                     ? onAdd
                     : null,

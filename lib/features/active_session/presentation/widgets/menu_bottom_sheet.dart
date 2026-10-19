@@ -238,12 +238,7 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
         final combos = state.combos;
         final unavailable = state.unavailableItems;
         final cart = _effectiveCart(extras, combos, unavailable);
-        final total = _calculateTotal(
-          extras,
-          combos,
-          cart.extras,
-          cart.combos,
-        );
+        final total = _calculateTotal(extras, combos, cart.extras, cart.combos);
         final totalCount = _totalItemCount(
           extras,
           combos,
@@ -372,7 +367,8 @@ class _MenuBottomSheetState extends State<MenuBottomSheet> {
                 totalCount: totalCount,
                 total: total,
                 isLoading: isLoading,
-                onOrder: () => _placeOrder(extras, combos, cart.extras, cart.combos),
+                onOrder: () =>
+                    _placeOrder(extras, combos, cart.extras, cart.combos),
               ),
             ],
           ),

@@ -169,11 +169,15 @@ void main() {
         );
         states.add(currentState);
         await tester.pumpAndSettle();
-        final extraCards = tester.widgetList<CanteenExtraCard>(
-          find.byType(CanteenExtraCard),
-        ).toList();
-        final extraCard = extraCards.firstWhere((card) => card.item.id == 'extra');
-        final otherCard = extraCards.firstWhere((card) => card.item.id == 'other');
+        final extraCards = tester
+            .widgetList<CanteenExtraCard>(find.byType(CanteenExtraCard))
+            .toList();
+        final extraCard = extraCards.firstWhere(
+          (card) => card.item.id == 'extra',
+        );
+        final otherCard = extraCards.firstWhere(
+          (card) => card.item.id == 'other',
+        );
         extraCard.onAdd();
         extraCard.onAdd();
         otherCard.onAdd();
@@ -182,7 +186,12 @@ void main() {
 
         currentState = currentState.copyWith(
           unavailableItems: const [
-            OutOfStockItem(id: 'extra', name: 'Extra', available: 1, requested: 3),
+            OutOfStockItem(
+              id: 'extra',
+              name: 'Extra',
+              available: 1,
+              requested: 3,
+            ),
           ],
         );
         states.add(currentState);
@@ -193,18 +202,25 @@ void main() {
         expect(limitedDock.totalCount, 2);
         expect(limitedDock.total, 30);
         expect(
-          tester.widget<CanteenQtyStepper>(
-            find.descendant(
-              of: find.byType(CanteenComboCard),
-              matching: find.byType(CanteenQtyStepper),
-            ),
-          ).qty,
+          tester
+              .widget<CanteenQtyStepper>(
+                find.descendant(
+                  of: find.byType(CanteenComboCard),
+                  matching: find.byType(CanteenQtyStepper),
+                ),
+              )
+              .qty,
           0,
         );
 
         currentState = currentState.copyWith(
           unavailableItems: const [
-            OutOfStockItem(id: 'extra', name: 'Extra', available: 0, requested: 3),
+            OutOfStockItem(
+              id: 'extra',
+              name: 'Extra',
+              available: 0,
+              requested: 3,
+            ),
           ],
         );
         states.add(currentState);
