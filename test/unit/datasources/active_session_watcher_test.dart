@@ -91,4 +91,104 @@ void main() {
       await authEvents.close();
     },
   );
+
+  test('failed refresh emits an error without clearing the session', () async {
+    final client = _Client();
+    final auth = _Auth();
+    final channel = _Channel();
+    final authEvents = StreamController<AuthState>(sync: true);
+    final fetchResult = Completer<ActiveSessionModel?>();
+    when(() => client.auth).thenReturn(auth);
+    when(() => auth.currentUser).thenReturn(
+      User(
+        id: 'fixture-user',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: '2026-01-01T00:00:00Z',
+      ),
+    );
+    when(() => auth.onAuthStateChange).thenAnswer((_) => authEvents.stream);
+    when(() => client.channel(any())).thenReturn(channel);
+    when(() => client.removeChannel(any())).thenAnswer((_) async => 'ok');
+    when(
+      () => channel.onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: any(named: 'table'),
+        filter: any(named: 'filter'),
+        callback: any(named: 'callback'),
+      ),
+    ).thenReturn(channel);
+    when(() => channel.subscribe()).thenReturn(channel);
+
+    final values = <ActiveSessionModel?>[];
+    final errors = <Object>[];
+    final watcher = ActiveSessionWatcher(
+      client,
+      fetch: () => fetchResult.future,
+    );
+    final subscription = watcher.stream.listen(
+      values.add,
+      onError: (Object error) => errors.add(error),
+    );
+    await Future<void>.delayed(Duration.zero);
+    fetchResult.completeError(StateError('network unavailable'));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(values, isEmpty);
+    expect(errors, hasLength(1));
+    expect(errors.single, isA<StateError>());
+    await subscription.cancel();
+    await authEvents.close();
+  });
+
+  test('obsolete auth generation does not surface fetch errors', () async {
+    final client = _Client();
+    final auth = _Auth();
+    final channel = _Channel();
+    final events = StreamController<AuthState>(sync: true);
+    final pendingFetch = Completer<ActiveSessionModel?>();
+    when(() => client.auth).thenReturn(auth);
+    when(() => auth.currentUser).thenReturn(
+      User(
+        id: 'fixture-user',
+        appMetadata: {},
+        userMetadata: {},
+        aud: 'authenticated',
+        createdAt: '2026-01-01T00:00:00Z',
+      ),
+    );
+    when(() => auth.onAuthStateChange).thenAnswer((_) => events.stream);
+    when(() => client.channel(any())).thenReturn(channel);
+    when(() => client.removeChannel(any())).thenAnswer((_) async => 'ok');
+    when(
+      () => channel.onPostgresChanges(
+        event: PostgresChangeEvent.all,
+        schema: 'public',
+        table: any(named: 'table'),
+        filter: any(named: 'filter'),
+        callback: any(named: 'callback'),
+      ),
+    ).thenReturn(channel);
+    when(() => channel.subscribe()).thenReturn(channel);
+    final received = <ActiveSessionModel?>[];
+    final errors = <Object>[];
+    final watcher = ActiveSessionWatcher(
+      client,
+      fetch: () => pendingFetch.future,
+    );
+    final subscription = watcher.stream.listen(
+      received.add,
+      onError: (Object error) => errors.add(error),
+    );
+    await Future<void>.delayed(Duration.zero);
+    events.add(AuthState(AuthChangeEvent.signedOut, null));
+    pendingFetch.completeError(StateError('obsolete error'));
+    await Future<void>.delayed(Duration.zero);
+    expect(received, [null]);
+    expect(errors, isEmpty);
+    await subscription.cancel();
+    await events.close();
+  });
 }
