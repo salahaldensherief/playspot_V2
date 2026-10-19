@@ -65,7 +65,7 @@ try {
       AS $$ SELECT false $$;
     CREATE FUNCTION public.has_lounge_permission(uuid,text) RETURNS boolean
       LANGUAGE sql STABLE AS
-      $ SELECT auth.uid() = '${staff}'::uuid AND $2 = 'sessions_control' $;
+      $$ SELECT auth.uid() = '${staff}'::uuid AND $2 = 'sessions_control' $$;
     ALTER TABLE public.service_calls ENABLE ROW LEVEL SECURITY;
     CREATE POLICY "Users can create service calls for their bookings"
       ON public.service_calls FOR INSERT TO authenticated
