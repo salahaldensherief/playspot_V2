@@ -338,7 +338,12 @@ class _OfferFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    padding: const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 12),
+    padding: EdgeInsetsDirectional.fromSTEB(
+      20,
+      12,
+      20,
+      math.max(MediaQuery.viewPaddingOf(context).bottom, 12),
+    ),
     decoration: BoxDecoration(
       color: AppColors.scaffoldBackground,
       border: Border(top: BorderSide(color: AppColors.borderDefault)),
@@ -393,6 +398,7 @@ class _OfferFooter extends StatelessWidget {
               backgroundColor: AppColors.neonBlue,
               foregroundColor: AppColors.buttonPrimaryText,
               disabledBackgroundColor: AppColors.mutedBackground,
+              disabledForegroundColor: AppColors.textSecondary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/room_card_presentation.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
@@ -77,6 +78,14 @@ void main() {
     expect(params?.extraControllers, 2);
     expect(params?.roomPlayModes, {'r': 'single'});
     expect(params?.roomExtraControllers, {'r': 2});
+  });
+  test('the visible default and explicit multi mode reach booking', () {
+    expect(LoungeBookingSelection(state, lounge).params?.playMode, 'single');
+    final multi = state.copyWith(roomPlayModes: {'r': 'multi'});
+    final params = LoungeBookingSelection(multi, lounge).params;
+    expect(params?.playMode, 'multi');
+    expect(params?.roomPlayModes['r'], 'multi');
+    expect(BookingDetailsParams.fromMap(params!.toJson()).playMode, 'multi');
   });
   test(
     'loading, unavailable, stale or booked room selections cannot proceed',

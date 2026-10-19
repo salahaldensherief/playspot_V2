@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
-import 'package:playspot/art_core/widgets/layout/glass_container.dart';
+import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import '../../room_card_presentation.dart';
 import 'room_constants.dart';
@@ -33,20 +33,43 @@ class RoomCardBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final previewImage = room.images
+        .where((image) => image.trim().isNotEmpty)
+        .firstOrNull;
     return GestureDetector(
       onTap: onToggle,
       child: AnimatedContainer(
         duration: RoomConstants.animationDuration,
         margin: const EdgeInsets.only(bottom: 12),
-        child: GlassContainer(
-          borderRadius: RoomConstants.borderRadius,
-          borderOpacity: data.isSelected || expanded ? 0.3 : 0.05,
-          useBorderColorForGradient: false,
-          color: Colors.white.withValues(alpha: 0.02),
-          borderColor: borderColor,
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(RoomConstants.borderRadius),
+            border: Border.all(color: borderColor),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (previewImage != null)
+                SizedBox(
+                  width: double.infinity,
+                  height: 112,
+                  child: AppImage(
+                    urlImg: previewImage,
+                    fit: BoxFit.cover,
+                    borderRadius: 0,
+                    placeholderWidget: Container(
+                      color: room.themeColor.withValues(alpha: .12),
+                    ),
+                    errorWidget: Container(
+                      color: room.themeColor.withValues(alpha: .12),
+                      child: Icon(room.icon, color: room.themeColor, size: 32),
+                    ),
+                  ),
+                )
+              else
+                Container(height: 4, color: room.themeColor),
               RoomMainContent(room: room, data: data, expanded: expanded),
               RoomExpandedDetails(
                 room: room,

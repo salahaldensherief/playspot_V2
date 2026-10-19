@@ -142,8 +142,8 @@ final _arTheme = ThemeData(
 final _enTheme = ThemeData(
   useMaterial3: false,
   scaffoldBackgroundColor: AppColors.scaffoldBackground,
-  fontFamily: 'Orbitron',
-  textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Orbitron'),
+  fontFamily: 'Roboto',
+  textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Roboto'),
 );
 
 class _MyAppState extends State<MyApp> {

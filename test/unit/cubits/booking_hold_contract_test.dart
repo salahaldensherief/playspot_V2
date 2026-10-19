@@ -23,14 +23,16 @@ class _Slots extends Mock implements BookingSlotStrategy {}
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late _Repository repository;
+  late _Slots slots;
+  late _Waitlist waitlist;
   late BookingCubit cubit;
   final date = DateTime(2030, 1, 10);
 
   setUpAll(() => registerFallbackValue(date));
   setUp(() async {
     repository = _Repository();
-    final slots = _Slots();
-    final waitlist = _Waitlist();
+    slots = _Slots();
+    waitlist = _Waitlist();
     when(
       () => repository.getRoomBookingsForDate(
         any(),
@@ -94,6 +96,45 @@ void main() {
       ),
     ).thenAnswer((_) async => Right(payload));
   }
+
+  test('multi selection reaches the server price quote', () async {
+    final multiCubit = BookingCubit(
+      repository,
+      slots,
+      BookingDetailsParams(
+        lounge: LoungeModel.fromJson({
+          'id': 'l',
+          'opening_time': '10:00:00',
+          'closing_time': '23:00:00',
+        }),
+        room: RoomModel.fromJson({'id': 'r', 'lounge_id': 'l'}),
+        selectedDate: date,
+        extras: const [],
+        playMode: 'multi',
+      ),
+      joinWaitlist: JoinBookingWaitlistUseCase(waitlist),
+      waitlistRepository: waitlist,
+    );
+    addTearDown(multiCubit.close);
+    await Future<void>.delayed(Duration.zero);
+    expect(multiCubit.state.playMode, PlayMode.multi);
+    multiCubit.emit(
+      multiCubit.state.copyWith(
+        startTime: const TimeOfDay(hour: 14, minute: 0),
+      ),
+    );
+    await multiCubit.fetchPriceQuote();
+    verify(
+      () => repository.quoteBookingPrice(
+        roomId: 'r',
+        date: any(named: 'date'),
+        startTime: any(named: 'startTime'),
+        endTime: any(named: 'endTime'),
+        playMode: 'multi',
+        extraControllers: 0,
+      ),
+    ).called(1);
+  });
 
   test(
     'canonical expires_at accepts a successfully reserved empty slot',

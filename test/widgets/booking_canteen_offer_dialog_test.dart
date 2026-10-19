@@ -19,6 +19,8 @@ import 'package:playspot/features/lounge_details/presentation/lounge_details/lou
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/booking_canteen_offer_dialog.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/lounge_details_bottom_bar.dart';
+import 'package:playspot/features/lounge_details/presentation/lounge_details/widgets/room_card/room_play_mode_selector.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/features/tournaments/domain/usecases/get_tournaments_usecase.dart';
 import 'package:playspot/core/error/failures.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,6 +50,7 @@ void main() {
   late _Details details;
   late GoRouter router;
   BookingDetailsParams? destination;
+  bool showModeSelector = false;
 
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
@@ -55,6 +58,7 @@ void main() {
   });
   setUp(() {
     destination = null;
+    showModeSelector = false;
     details = _Details();
     when(
       () => details.getExtras('lounge', forceRefresh: true),
@@ -86,7 +90,19 @@ void main() {
           builder: (context, state) => BlocProvider.value(
             value: cubit,
             child: Scaffold(
-              body: Stack(children: [LoungeDetailsBottomBar(lounge: lounge)]),
+              body: Stack(
+                children: [
+                  if (showModeSelector)
+                    BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+                      builder: (context, state) => RoomPlayModeSelector(
+                        roomId: room.id,
+                        mode: state.roomPlayModes[room.id] ?? 'single',
+                        color: AppColors.neonBlue,
+                      ),
+                    ),
+                  LoungeDetailsBottomBar(lounge: lounge),
+                ],
+              ),
             ),
           ),
         ),
@@ -176,6 +192,22 @@ void main() {
       {'id': 'water', 'name': 'Water', 'price': 18.0, 'quantity': 1},
     ]);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('selected multi mode survives the canteen step', (tester) async {
+    showModeSelector = true;
+    await mount(tester, 'en');
+    await tester.tap(find.text('Multi'));
+    await tester.pumpAndSettle();
+    expect(cubit.state.roomPlayModes[room.id], 'multi');
+    await tester.tap(find.byType(AppButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue without snacks'));
+    await tester.pumpAndSettle();
+
+    expect(destination?.playMode, 'multi');
+    expect(destination?.roomPlayModes[room.id], 'multi');
+    expect(find.text('booking destination'), findsOneWidget);
   });
 
   testWidgets('closing the offer does not start a booking', (tester) async {

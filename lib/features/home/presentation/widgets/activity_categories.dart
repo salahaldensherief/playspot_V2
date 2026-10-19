@@ -32,7 +32,7 @@ class ActivityCategories extends StatelessWidget {
           return const SizedBox.shrink();
         }
         return SizedBox(
-          height: 85.h,
+          height: 116,
           child: ListView.separated(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             scrollDirection: Axis.horizontal,

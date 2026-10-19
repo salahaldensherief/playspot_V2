@@ -14,7 +14,6 @@ import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
 import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
-import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/text_field/app_text_field.dart';
 import '../widgets/tournament_card.dart';
@@ -59,22 +58,13 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         elevation: 0,
         leading: const BackButtonWidget(),
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(TablerIcons.trophy, color: AppColors.neonBlue, size: 20.sp),
-            SizedBox(width: 8.w),
-            Text(
-              AppStrings.tournaments.tr().toUpperCase(),
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w900,
-
-                letterSpacing: 1.0,
-              ),
-            ),
-          ],
+        title: Text(
+          AppStrings.tournaments.tr(),
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 20.sp,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         actions: [
           IconButton(
@@ -100,7 +90,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
           ),
           SizedBox(width: 8.w),
         ],
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: SafeArea(
         child: Column(
@@ -186,9 +176,12 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                   before.availableGames != after.availableGames ||
                   before.selectedGame != after.selectedGame,
               builder: (context, state) {
+                if (state.availableGames.isEmpty) {
+                  return const SizedBox.shrink();
+                }
                 final List<String?> games = [null, ...state.availableGames];
                 return SizedBox(
-                  height: 48.h,
+                  height: 50.h,
                   child: ListView.separated(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     scrollDirection: Axis.horizontal,
@@ -199,7 +192,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                       final selectedGame = state.selectedGame;
                       final isSelected = selectedGame == game;
                       return InkWell(
-                        borderRadius: BorderRadius.circular(12.r),
+                        borderRadius: BorderRadius.circular(24.r),
                         onTap: () {
                           context.read<TournamentsFeedCubit>().filterByGame(
                             game,
@@ -207,31 +200,27 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                         },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          child: GlassContainer(
-                            borderRadius: 12,
-                            blur: 8,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 14.w,
-                              vertical: 8.h,
-                            ),
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.neonBlue.withValues(alpha: 0.85)
-                                : AppColors.tournamentFilterBg.withValues(
-                                    alpha: 0.5,
-                                  ),
-                            borderColor: isSelected
-                                ? AppColors.neonBlue
-                                : AppColors.neonBlue.withValues(alpha: 0.25),
-                            child: Center(
-                              child: AppText(
-                                text: game ?? AppStrings.all.tr(),
+                                ? AppColors.neonBlue.withValues(alpha: .14)
+                                : AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(24.r),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.neonBlue
+                                  : AppColors.borderDefault,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              game ?? AppStrings.all.tr(),
+                              style: TextStyle(
                                 color: isSelected
-                                    ? AppColors.black
-                                    : AppColors.white,
-                                fontSize: 12.sp,
-                                fontWeight: isSelected
-                                    ? FontWeight.w900
-                                    : FontWeight.w600,
+                                    ? AppColors.neonBlue
+                                    : AppColors.textSecondary,
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -246,7 +235,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
 
             // Status Filter Chips
             SizedBox(
-              height: 48.h,
+              height: 50.h,
               child: ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 scrollDirection: Axis.horizontal,
@@ -265,7 +254,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                           (selectedStatus == null && statusKey == 'All') ||
                           selectedStatus == statusKey;
 
-                      return GestureDetector(
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(24.r),
                         onTap: () {
                           context.read<TournamentsFeedCubit>().filterByStatus(
                             statusKey == 'All' ? null : statusKey,
@@ -274,41 +264,31 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
+                            horizontal: 16.w,
                             vertical: 8.h,
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.neonPurple
-                                : AppColors.tournamentFilterBg,
-                            borderRadius: BorderRadius.circular(12.r),
+                                ? AppColors.neonBlue
+                                : AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(24.r),
                             border: Border.all(
                               color: isSelected
-                                  ? AppColors.neonPurple
-                                  : AppColors.neonPurple.withValues(alpha: 0.2),
+                                  ? AppColors.neonBlue
+                                  : AppColors.borderDefault,
                             ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                      color: AppColors.neonPurple.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                      blurRadius: 8.r,
-                                    ),
-                                  ]
-                                : [],
                           ),
                           child: Center(
                             child: Text(
                               _getLocalizedStatus(statusKey),
                               style: TextStyle(
                                 color: isSelected
-                                    ? AppColors.white
+                                    ? AppColors.black
                                     : AppColors.textSecondary,
-                                fontSize: 12.sp,
+                                fontSize: 13.sp,
                                 fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
                               ),
                             ),
                           ),
@@ -327,33 +307,50 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                   before.selectedGame != after.selectedGame ||
                   before.selectedStatus != after.selectedStatus ||
                   before.searchQuery != after.searchQuery,
-              builder: (context, state) => Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16.w, 2.h, 16.w, 4.h),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: AppText(
-                        text: AppStrings.tournamentResultsCount.tr(
-                          namedArgs: {'count': '${state.tournaments.length}'},
-                        ),
-                        color: AppColors.textSecondary,
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
+              builder: (context, state) =>
+                  state.tournaments.isEmpty &&
+                      state.selectedGame == null &&
+                      state.selectedStatus == null &&
+                      state.searchQuery.isEmpty
+                  ? const SizedBox.shrink()
+                  : Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(
+                        16.w,
+                        2.h,
+                        16.w,
+                        4.h,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: AppText(
+                              text: AppStrings.tournamentResultsCount.tr(
+                                namedArgs: {
+                                  'count': '${state.tournaments.length}',
+                                },
+                              ),
+                              color: AppColors.textSecondary,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (state.selectedGame != null ||
+                              state.selectedStatus != null ||
+                              state.searchQuery.isNotEmpty)
+                            TextButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                context
+                                    .read<TournamentsFeedCubit>()
+                                    .clearFilters();
+                              },
+                              child: Text(
+                                AppStrings.clearTournamentFilters.tr(),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    if (state.selectedGame != null ||
-                        state.selectedStatus != null ||
-                        state.searchQuery.isNotEmpty)
-                      TextButton(
-                        onPressed: () {
-                          _searchController.clear();
-                          context.read<TournamentsFeedCubit>().clearFilters();
-                        },
-                        child: Text(AppStrings.clearTournamentFilters.tr()),
-                      ),
-                  ],
-                ),
-              ),
             ),
 
             // Tournaments List / Shimmer / Empty / Error
@@ -417,40 +414,40 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                   }
 
                   if (state.tournaments.isEmpty) {
-                    return AppRefreshIndicator(
-                      onRefresh: () async {
-                        await context
+                    return LayoutBuilder(
+                      builder: (context, constraints) => AppRefreshIndicator(
+                        onRefresh: () => context
                             .read<TournamentsFeedCubit>()
-                            .loadTournaments(isRefresh: true);
-                      },
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          SizedBox(height: 80.h),
-                          Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  TablerIcons.trophy_off,
-                                  size: 64.sp,
-                                  color: AppColors.textSecondary.withValues(
-                                    alpha: 0.5,
-                                  ),
+                            .loadTournaments(isRefresh: true),
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            SizedBox(
+                              height: constraints.maxHeight,
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      TablerIcons.trophy_off,
+                                      size: 48.sp,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                    SizedBox(height: 12.h),
+                                    Text(
+                                      AppStrings.noTournamentsFound.tr(),
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(height: 16.h),
-                                Text(
-                                  AppStrings.noTournamentsFound.tr(),
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   }

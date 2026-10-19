@@ -134,6 +134,7 @@ class AppStrings {
   static const String simulator = "simulator";
   static const String vr = "vr";
   static const String billiard = "billiard";
+  static const String pingPong = "ping_pong";
   static const String browseByCategory = "browseByCategory";
   static const String nearestLounges = "nearestLounges";
   static const String allLounges = "allLounges";
