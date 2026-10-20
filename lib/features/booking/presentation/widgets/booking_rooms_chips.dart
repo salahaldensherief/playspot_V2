@@ -99,8 +99,9 @@ class BookingRoomsChips extends StatelessWidget {
                           2.verticalSpace,
                           Row(
                             children: [
-                              Text(
-                                "${r.hourlyRateSingle.toInt()} ${AppStrings.egp.tr()}",
+                              AppText(
+                                text:
+                                    "${r.hourlyRateSingle.toInt()} ${AppStrings.egp.tr()}",
                                 style: TextStyle(
                                   color: AppColors.textSecondary.withValues(
                                     alpha: 0.5,

@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -44,8 +45,8 @@ class MaintenanceBanner extends StatelessWidget {
           ),
           12.horizontalSpace,
           Expanded(
-            child: Text(
-              message,
+            child: AppText(
+              text: message,
               style: TextStyle(
                 color: const Color(0xFFFF9800),
                 fontSize: 12.sp,

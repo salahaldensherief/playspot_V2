@@ -7,6 +7,7 @@ import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
+import 'package:playspot/features/lounge_details/data/models/review_model.dart';
 import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/lounge_details/domain/repositories/lounge_details_repository.dart';
 import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_cubit.dart';
@@ -278,5 +279,23 @@ void main() {
       LoungeBookingSelection(cubit.state, cubit.state.lounge!).isEnabled,
       isTrue,
     );
+  });
+
+  test('loaded reviews replace a stale lounge rating summary', () async {
+    when(() => details.getLoungeReviews('a')).thenAnswer(
+      (_) async => Right([
+        ReviewModel(id: 'one', rating: 4, createdAt: DateTime(2026)),
+        ReviewModel(id: 'two', rating: 5, createdAt: DateTime(2026)),
+      ]),
+    );
+    cubit.init(
+      LoungeModel.fromJson({'id': 'a', 'rating': 1, 'total_reviews': 0}),
+    );
+    await cubit.stream.firstWhere(
+      (state) => state.status == LoungeDetailsStatus.success,
+    );
+
+    expect(cubit.state.lounge?.totalReviews, 2);
+    expect(cubit.state.lounge?.rating, 4.5);
   });
 }

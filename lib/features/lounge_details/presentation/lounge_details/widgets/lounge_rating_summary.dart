@@ -1,3 +1,5 @@
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/widgets/rating/rating_display_widget.dart';
@@ -15,10 +17,10 @@ class LoungeRatingSummary extends StatelessWidget {
     children: [
       if (lounge.rating > 0 || (lounge.totalReviews ?? 0) > 0) ...[
         RatingDisplayWidget(rating: lounge.rating, starSize: 18, spacing: 2),
-        Text(
-          lounge.totalReviews == null
+        AppText(
+          text: lounge.totalReviews == null
               ? lounge.rating.toStringAsFixed(1)
-              : 'lounge_rating_summary'.tr(
+              : AppStrings.loungeRatingSummary.tr(
                   namedArgs: {
                     'rating': lounge.rating.toStringAsFixed(1),
                     'count': '${lounge.totalReviews}',
@@ -27,8 +29,8 @@ class LoungeRatingSummary extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ] else if (lounge.totalReviews == 0)
-        Text(
-          'lounge_no_reviews'.tr(),
+        AppText(
+          text: AppStrings.loungeNoReviews.tr(),
           style: const TextStyle(color: Colors.white70),
         ),
     ],

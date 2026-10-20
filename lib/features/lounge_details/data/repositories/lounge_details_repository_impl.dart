@@ -10,7 +10,6 @@ import '../models/extra_model.dart';
 import '../models/room_model.dart';
 import '../models/review_model.dart';
 import '../../../home/data/models/category_model.dart';
-import '../../../active_session/domain/entities/canteen_combo.dart';
 
 class LoungeDetailsRepositoryImpl
     with RepositoryHelper
@@ -118,15 +117,6 @@ class LoungeDetailsRepositoryImpl
     );
 
     return result;
-  }
-
-  @override
-  Future<Either<Failure, List<CanteenCombo>>> getPublicCanteenCombos(
-    String loungeId,
-  ) async {
-    return callRepository(
-      () => _remoteDataSource.getPublicCanteenCombos(loungeId),
-    );
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
@@ -186,8 +188,8 @@ class _SplashScreenState extends State<SplashScreen>
               8.verticalSpace,
               FadeTransition(
                 opacity: _fadeAnim,
-                child: Text(
-                  'splash_tagline'.tr(),
+                child: AppText(
+                  text: AppStrings.splashTagline.tr(),
                   style: TextStyle(
                     shadows: [
                       Shadow(

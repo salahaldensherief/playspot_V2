@@ -149,8 +149,9 @@ class BookingSessionSummary extends StatelessWidget {
                   Row(
                     children: [
                       if (offerInfo.hasOffer) ...[
-                        Text(
-                          "${origRoomSubtotal.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
+                        AppText(
+                          text:
+                              "${origRoomSubtotal.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                           style: TextStyle(
                             color: AppColors.textSecondary.withValues(
                               alpha: 0.5,

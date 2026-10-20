@@ -58,8 +58,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         elevation: 0,
         leading: const BackButtonWidget(),
-        title: Text(
-          AppStrings.tournaments.tr(),
+        title: AppText(
+          text: AppStrings.tournaments.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 20.sp,
@@ -123,8 +123,9 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                       ),
                       SizedBox(width: 10.w),
                       Expanded(
-                        child: Text(
-                          AppStrings.enableLocationForNearbyTournaments.tr(),
+                        child: AppText(
+                          text: AppStrings.enableLocationForNearbyTournaments
+                              .tr(),
                           style: TextStyle(
                             color: AppColors.textPrimary,
                             fontSize: 12.sp,
@@ -213,8 +214,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                             ),
                           ),
                           child: Center(
-                            child: Text(
-                              game ?? AppStrings.all.tr(),
+                            child: AppText(
+                              text: game ?? AppStrings.all.tr(),
                               style: TextStyle(
                                 color: isSelected
                                     ? AppColors.neonBlue
@@ -279,8 +280,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                             ),
                           ),
                           child: Center(
-                            child: Text(
-                              _getLocalizedStatus(statusKey),
+                            child: AppText(
+                              text: _getLocalizedStatus(statusKey),
                               style: TextStyle(
                                 color: isSelected
                                     ? AppColors.black
@@ -344,8 +345,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                     .read<TournamentsFeedCubit>()
                                     .clearFilters();
                               },
-                              child: Text(
-                                AppStrings.clearTournamentFilters.tr(),
+                              child: AppText(
+                                text: AppStrings.clearTournamentFilters.tr(),
                               ),
                             ),
                         ],
@@ -380,8 +381,9 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                               color: AppColors.danger,
                             ),
                             SizedBox(height: 12.h),
-                            Text(
-                              state.errorMessage ??
+                            AppText(
+                              text:
+                                  state.errorMessage ??
                                   AppStrings.somethingWentWrong.tr(),
                               style: TextStyle(
                                 color: AppColors.textSecondary,
@@ -434,8 +436,8 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
                                       color: AppColors.textSecondary,
                                     ),
                                     SizedBox(height: 12.h),
-                                    Text(
-                                      AppStrings.noTournamentsFound.tr(),
+                                    AppText(
+                                      text: AppStrings.noTournamentsFound.tr(),
                                       style: TextStyle(
                                         color: AppColors.textPrimary,
                                         fontSize: 16.sp,

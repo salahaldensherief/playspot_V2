@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -106,8 +107,8 @@ class ForceUpdateScreen extends StatelessWidget {
                   ),
                 ),
                 28.verticalSpace,
-                Text(
-                  title,
+                AppText(
+                  text: title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textPrimary,
@@ -119,8 +120,8 @@ class ForceUpdateScreen extends StatelessWidget {
                   ),
                 ),
                 12.verticalSpace,
-                Text(
-                  message,
+                AppText(
+                  text: message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textSecondary,
@@ -143,8 +144,8 @@ class ForceUpdateScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'v$currentVersion',
+                          AppText(
+                            text: 'v$currentVersion',
                             style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 13.sp,
@@ -158,8 +159,8 @@ class ForceUpdateScreen extends StatelessWidget {
                             size: 18.r,
                           ),
                           12.horizontalSpace,
-                          Text(
-                            'v$minVersion+',
+                          AppText(
+                            text: 'v$minVersion+',
                             style: TextStyle(
                               color: AppColors.purple,
                               fontSize: 14.sp,

@@ -563,6 +563,14 @@ class AppStrings {
   static const String issueCategoryOther = "issueCategoryOther";
   static const String describeIssue = "describeIssue";
   static const String ticketSentSuccess = "ticketSentSuccess";
+  static const String ticketSendFailed = "ticketSendFailed";
+  static const String supportFormIntro = "supportFormIntro";
+  static const String supportDataLoadFailed = "supportDataLoadFailed";
+  static const String supportWhatsAppGreeting = "supportWhatsAppGreeting";
+  static const String bannedSupportWhatsAppMessage =
+      "bannedSupportWhatsAppMessage";
+  static const String languageEnglish = "languageEnglish";
+  static const String languageArabic = "languageArabic";
 
   // Legal & Policy Strings
   static const String privacyPolicyTitle = "privacyPolicyTitle";
@@ -719,4 +727,43 @@ class AppStrings {
   static const String bookingCanteenCheckingMenu =
       "booking_canteen_checking_menu";
   static const String desserts = "desserts";
+  // Shared localized labels used across mobile screens.
+  static const String afternoon = "afternoon";
+  static const String chooseSlotHint = "choose_slot_hint";
+  static const String directionsCoordinatesUnavailable =
+      "directions_coordinates_unavailable";
+  static const String evening = "evening";
+  static const String favoritesEmptyDescription = "favorites_empty_description";
+  static const String favoritesEmptyTitle = "favorites_empty_title";
+  static const String favoritesLoadError = "favorites_load_error";
+  static const String favoritesTitle = "favorites_title";
+  static const String loungeComparisonCapacity = "lounge_comparison_capacity";
+  static const String loungeComparisonFrom = "lounge_comparison_from";
+  static const String loungeComparisonRooms = "lounge_comparison_rooms";
+  static const String loungeComparisonTitle = "lounge_comparison_title";
+  static const String loungeFirstBookingPrepaid =
+      "lounge_first_booking_prepaid";
+  static const String loungeNoReviews = "lounge_no_reviews";
+  static const String loungePaymentCash = "lounge_payment_cash";
+  static const String loungePaymentInstapay = "lounge_payment_instapay";
+  static const String loungePaymentMethods = "lounge_payment_methods";
+  static const String loungePaymentWallet = "lounge_payment_wallet";
+  static const String loungeRatingSummary = "lounge_rating_summary";
+  static const String morning = "morning";
+  static const String operatingStatusUnavailable =
+      "operating_status_unavailable";
+  static const String pointsHistoryLoadMore = "pointsHistoryLoadMore";
+  static const String policyContentUnavailable = "policyContentUnavailable";
+  static const String quickRebookSlotsLoadFailed = "quickRebookSlotsLoadFailed";
+  static const String receiptImageLoadError = "receipt_image_load_error";
+  static const String roomActivities = "room_activities";
+  static const String roomAvailabilityUnavailable =
+      "room_availability_unavailable";
+  static const String roomCapacity = "room_capacity";
+  static const String roomPrivate = "room_private";
+  static const String search = "search";
+  static const String slotSelected = "slot_selected";
+  static const String splashTagline = "splash_tagline";
+  static const String tournamentUpdatesUnavailable =
+      "tournamentUpdatesUnavailable";
 }

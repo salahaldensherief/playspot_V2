@@ -64,6 +64,6 @@ extension _TimeSlotWaitlist on _TimeSlotGridState {
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(key.tr())));
+    ).showSnackBar(SnackBar(content: AppText(text: key.tr())));
   }
 }

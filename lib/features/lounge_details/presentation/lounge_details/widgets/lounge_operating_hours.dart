@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
@@ -40,8 +41,8 @@ class LoungeOperatingHours extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            (overnight ? 'lounge_hours_overnight' : 'lounge_hours').tr(
+          child: AppText(
+            text: (overnight ? 'lounge_hours_overnight' : 'lounge_hours').tr(
               namedArgs: {
                 'start': start.format(context),
                 'end': end.format(context),

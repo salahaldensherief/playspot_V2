@@ -1,3 +1,5 @@
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
@@ -9,11 +11,11 @@ class LoungePaymentSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final methods = [
-      if (lounge.allowCashPayment) 'lounge_payment_cash'.tr(),
+      if (lounge.allowCashPayment) AppStrings.loungePaymentCash.tr(),
       if ((lounge.effectiveWalletNumber?.trim().isNotEmpty ?? false))
-        'lounge_payment_wallet'.tr(),
+        AppStrings.loungePaymentWallet.tr(),
       if ((lounge.effectiveInstapayHandle?.trim().isNotEmpty ?? false))
-        'lounge_payment_instapay'.tr(),
+        AppStrings.loungePaymentInstapay.tr(),
     ];
     if (methods.isEmpty && !lounge.requirePrepaidFirstTime) {
       return const SizedBox.shrink();
@@ -22,8 +24,8 @@ class LoungePaymentSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (methods.isNotEmpty)
-          Text(
-            'lounge_payment_methods'.tr(
+          AppText(
+            text: AppStrings.loungePaymentMethods.tr(
               namedArgs: {'methods': methods.join(' · ')},
             ),
             style: const TextStyle(fontSize: 12, color: Colors.white70),
@@ -31,8 +33,8 @@ class LoungePaymentSummary extends StatelessWidget {
         if (lounge.requirePrepaidFirstTime)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              'lounge_first_booking_prepaid'.tr(),
+            child: AppText(
+              text: AppStrings.loungeFirstBookingPrepaid.tr(),
               style: const TextStyle(fontSize: 12),
             ),
           ),

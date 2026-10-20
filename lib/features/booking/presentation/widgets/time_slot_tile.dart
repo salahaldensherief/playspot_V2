@@ -39,7 +39,7 @@ class TimeSlotTile extends StatelessWidget {
     final status = booked
         ? (waitlisted ? AppStrings.notifyMe.tr() : AppStrings.booked.tr())
         : selected
-        ? 'slot_selected'.tr()
+        ? AppStrings.slotSelected.tr()
         : peak
         ? AppStrings.peak.tr()
         : AppStrings.available.tr();

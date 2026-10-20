@@ -332,8 +332,8 @@ class _LoungeCardState extends State<LoungeCard> {
             color: AppColors.withOpacity(AppColors.white, 0.7),
           ),
           if (hasDiscount) ...[
-            Text(
-              "${lounge.pricePerHour.toInt()}",
+            AppText(
+              text: "${lounge.pricePerHour.toInt()}",
               style: TextStyle(
                 fontSize: 8.sp,
                 color: AppColors.withOpacity(AppColors.white, 0.5),

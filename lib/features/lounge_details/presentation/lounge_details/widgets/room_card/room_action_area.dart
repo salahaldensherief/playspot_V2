@@ -49,8 +49,8 @@ class RoomActionArea extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (rate.hasOffer) ...[
-                Text(
-                  '${rate.original.toInt()} ${AppStrings.egp.tr()}',
+                AppText(
+                  text: '${rate.original.toInt()} ${AppStrings.egp.tr()}',
                   style: TextStyle(
                     color: AppColors.textSecondary.withValues(alpha: 0.6),
                     fontSize: 10.sp,

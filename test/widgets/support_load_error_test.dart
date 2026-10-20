@@ -207,6 +207,9 @@ void main() {
         expect(find.text(AppStrings.supportWhatsApp.tr()), findsNothing);
         expect(find.text(AppStrings.supportEmail.tr()), findsNothing);
         expect(find.text('Fixture FAQ'), findsNothing);
+        expect(find.text(AppStrings.supportContactUs.tr()), findsNothing);
+        expect(find.text(AppStrings.faqTitle.tr()), findsNothing);
+        expect(find.text(AppStrings.sendSupportTicket.tr()), findsWidgets);
         expect(tester.takeException(), isNull);
       },
     );

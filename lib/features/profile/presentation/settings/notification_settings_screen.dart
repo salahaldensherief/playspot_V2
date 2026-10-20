@@ -407,7 +407,7 @@ class NotificationSettingsScreen extends StatelessWidget {
             SizedBox(height: 24.h),
             _buildLanguageOption(
               context,
-              title: 'English',
+              title: AppStrings.languageEnglish.tr(),
               isSelected: context.locale.languageCode == 'en',
               onTap: () {
                 context.read<LocaleCubit>().setLocale(context, 'en');
@@ -417,7 +417,7 @@ class NotificationSettingsScreen extends StatelessWidget {
             SizedBox(height: 12.h),
             _buildLanguageOption(
               context,
-              title: 'العربية',
+              title: AppStrings.languageArabic.tr(),
               isSelected: context.locale.languageCode == 'ar',
               onTap: () {
                 context.read<LocaleCubit>().setLocale(context, 'ar');

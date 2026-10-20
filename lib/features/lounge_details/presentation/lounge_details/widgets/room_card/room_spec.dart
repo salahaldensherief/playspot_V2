@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 
@@ -15,8 +16,8 @@ class RoomSpec extends StatelessWidget {
         Icon(icon, size: 16, color: AppColors.textSecondary),
         const SizedBox(width: 4),
         Flexible(
-          child: Text(
-            value,
+          child: AppText(
+            text: value,
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,

@@ -63,8 +63,8 @@ class ProfileHeader extends StatelessWidget {
                           strokeWidth: 2,
                           color: Colors.white,
                         ),
-                        errorWidget: (context, url, error) => Text(
-                          initials,
+                        errorWidget: (context, url, error) => AppText(
+                          text: initials,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24.sp,
@@ -73,8 +73,8 @@ class ProfileHeader extends StatelessWidget {
                         ),
                       ),
                     )
-                  : Text(
-                      initials,
+                  : AppText(
+                      text: initials,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24.sp,

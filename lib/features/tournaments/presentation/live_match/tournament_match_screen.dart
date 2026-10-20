@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -91,8 +92,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                AppStrings.disputeResult.tr(),
+              AppText(
+                text: AppStrings.disputeResult.tr(),
                 style: TextStyle(
                   color: AppColors.danger,
                   fontWeight: FontWeight.bold,
@@ -100,8 +101,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                 ),
               ),
               SizedBox(height: 16.h),
-              Text(
-                AppStrings.disputeReason.tr(),
+              AppText(
+                text: AppStrings.disputeReason.tr(),
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 13.sp,
@@ -213,8 +214,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             backgroundColor: AppColors.scaffoldBackground,
             appBar: AppBar(leading: const BackButtonWidget()),
             body: Center(
-              child: Text(
-                AppStrings.noResults.tr(),
+              child: AppText(
+                text: AppStrings.noResults.tr(),
                 style: TextStyle(
                   color: AppColors.textSecondary,
                   fontSize: 14.sp,
@@ -230,8 +231,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             backgroundColor: AppColors.scaffoldBackground,
             elevation: 0,
             leading: const BackButtonWidget(),
-            title: Text(
-              AppStrings.matchDetails.tr(),
+            title: AppText(
+              text: AppStrings.matchDetails.tr(),
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 18.sp,
@@ -281,8 +282,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                             size: 18.sp,
                           ),
                           SizedBox(width: 8.w),
-                          Text(
-                            '${AppStrings.roomStation.tr()}: ${match.stationNumber}',
+                          AppText(
+                            text:
+                                '${AppStrings.roomStation.tr()}: ${match.stationNumber}',
                             style: TextStyle(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
@@ -330,8 +332,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         // VS Divider
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12.w),
-                          child: Text(
-                            AppStrings.vs.tr(),
+                          child: AppText(
+                            text: AppStrings.vs.tr(),
                             style: TextStyle(
                               color: AppColors.neonBlue,
                               fontSize: 22.sp,
@@ -368,8 +370,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                       match.status == MatchStatus.scheduled) ...[
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        AppStrings.uploadMatchProof.tr(),
+                      child: AppText(
+                        text: AppStrings.uploadMatchProof.tr(),
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 14.sp,
@@ -436,8 +438,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                                       size: 28.sp,
                                     ),
                                     SizedBox(height: 6.h),
-                                    Text(
-                                      AppStrings.gallery.tr(),
+                                    AppText(
+                                      text: AppStrings.gallery.tr(),
                                       style: TextStyle(
                                         color: AppColors.textSecondary,
                                         fontSize: 12.sp,
@@ -470,8 +472,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                                       size: 28.sp,
                                     ),
                                     SizedBox(height: 6.h),
-                                    Text(
-                                      AppStrings.camera.tr(),
+                                    AppText(
+                                      text: AppStrings.camera.tr(),
                                       style: TextStyle(
                                         color: AppColors.textSecondary,
                                         fontSize: 12.sp,
@@ -562,8 +564,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
   }) {
     return Column(
       children: [
-        Text(
-          name,
+        AppText(
+          text: name,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -587,8 +589,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           ),
           child: Column(
             children: [
-              Text(
-                '$score',
+              AppText(
+                text: '$score',
                 style: TextStyle(
                   color: AppColors.neonBlue,
                   fontSize: 28.sp,

@@ -131,8 +131,9 @@ class PriceChangedBottomSheet extends StatelessWidget {
                                 color: AppColors.textSecondary,
                               ),
                               SizedBox(height: 4.h),
-                              Text(
-                                "${oldPrice.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
+                              AppText(
+                                text:
+                                    "${oldPrice.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                                 style: TextStyle(
                                   fontSize: 14.sp,
                                   color: Colors.white54,

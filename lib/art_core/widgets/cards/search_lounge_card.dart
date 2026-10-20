@@ -185,8 +185,8 @@ class SearchLoungeCard extends StatelessWidget {
       textBaseline: TextBaseline.alphabetic,
       children: [
         if (hasDiscount) ...[
-          Text(
-            "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
+          AppText(
+            text: "${lounge.pricePerHour.toInt()} ${AppStrings.egp.tr()}",
             style: TextStyle(
               fontSize: 11.sp,
               color: AppColors.textSecondary.withValues(alpha: 0.6),

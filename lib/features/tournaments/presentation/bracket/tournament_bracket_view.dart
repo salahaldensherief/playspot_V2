@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../art_core/app_strings.dart';
@@ -150,8 +151,8 @@ class TournamentBracketView extends StatelessWidget {
                       left: centerColX - 36,
                       top: topOffset + branchHeight + 24,
                       width: columnWidth + 72,
-                      child: Text(
-                        AppStrings.thirdPlace.tr(),
+                      child: AppText(
+                        text: AppStrings.thirdPlace.tr(),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: AppColors.warning,

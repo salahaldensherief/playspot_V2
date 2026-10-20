@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -338,8 +339,8 @@ class AppImage extends StatelessWidget {
         shape: boxShape ?? BoxShape.rectangle,
       ),
       child: FittedBox(
-        child: Text(
-          nameIfError == null || nameIfError!.isEmpty
+        child: AppText(
+          text: nameIfError == null || nameIfError!.isEmpty
               ? "G"
               : nameIfError?.substring(0, 1).toUpperCase() ?? "G",
           style: TextStyle(

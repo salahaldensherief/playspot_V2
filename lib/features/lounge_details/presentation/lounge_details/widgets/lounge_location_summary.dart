@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
@@ -28,17 +29,20 @@ class LoungeLocationSummary extends StatelessWidget {
                 color: AppColors.textSecondary,
               ),
               const SizedBox(width: 12),
-              Expanded(child: Text(address.isNotEmpty ? address : city)),
+              Expanded(
+                child: AppText(text: address.isNotEmpty ? address : city),
+              ),
             ],
           ),
         if (distance.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              (lounge.distanceIsApproximate
-                      ? 'lounge_distance_estimate'
-                      : 'lounge_distance_summary')
-                  .tr(namedArgs: {'distance': distance}),
+            child: AppText(
+              text:
+                  (lounge.distanceIsApproximate
+                          ? 'lounge_distance_estimate'
+                          : 'lounge_distance_summary')
+                      .tr(namedArgs: {'distance': distance}),
               style: const TextStyle(fontSize: 12, color: Colors.white70),
             ),
           ),

@@ -48,8 +48,7 @@ class _BannedAccountScreenState extends State<BannedAccountScreen> {
     if (targetPhone.isNotEmpty) {
       await ContactLauncherService.launchWhatsApp(
         phone: targetPhone,
-        message:
-            'مرحباً فِريق دعم PlaySpot 👋\nتم حظر حسابي وأود الاستفسار حول ذلك.',
+        message: AppStrings.bannedSupportWhatsAppMessage.tr(),
       );
     } else if (mounted) {
       GameHudToast.show(

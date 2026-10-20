@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -87,8 +88,8 @@ class _LogoWidgetState extends State<LogoWidget>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          'PlaySp',
+        AppText(
+          text: 'PlaySp',
           style: TextStyle(
             fontFamily: 'Orbitron',
             fontSize: effectiveFontSize,
@@ -108,8 +109,8 @@ class _LogoWidgetState extends State<LogoWidget>
               )
             : _icon(effectiveFontSize, joystickIconColor),
         SizedBox(width: 3.w),
-        Text(
-          't',
+        AppText(
+          text: 't',
           style: TextStyle(
             fontFamily: 'Orbitron',
             fontSize: effectiveFontSize,

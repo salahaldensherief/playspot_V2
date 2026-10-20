@@ -86,7 +86,7 @@ class _LoungeDetailsBottomBarState extends State<LoungeDetailsBottomBar> {
   String _label(LoungeDetailsState state) {
     if (state.operatingStatus == null ||
         state.operatingStatus?.status == 'unavailable') {
-      return 'operating_status_unavailable'.tr();
+      return AppStrings.operatingStatusUnavailable.tr();
     }
     if (state.operatingStatus?.canBookOnline == false &&
         state.operatingStatus?.canBookOnDate(state.selectedDate) != true &&
@@ -98,7 +98,7 @@ class _LoungeDetailsBottomBarState extends State<LoungeDetailsBottomBar> {
       return AppStrings.closed.tr();
     }
     if (state.availabilityLoadFailed) {
-      return 'room_availability_unavailable'.tr();
+      return AppStrings.roomAvailabilityUnavailable.tr();
     }
     if (state.selectedRooms.isEmpty) return AppStrings.selectRoomsPrompt.tr();
     if (state.selectedRooms.length == 1) return AppStrings.bookARoom.tr();
@@ -119,7 +119,7 @@ class _LoungeDetailsBottomBarState extends State<LoungeDetailsBottomBar> {
       if (!context.mounted) return;
       if (hasCanteen == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStrings.canteenRefreshError.tr())),
+          SnackBar(content: AppText(text: AppStrings.canteenRefreshError.tr())),
         );
         return;
       }

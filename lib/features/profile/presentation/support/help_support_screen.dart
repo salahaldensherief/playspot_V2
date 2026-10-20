@@ -120,8 +120,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       setState(() => _isSubmitting = false);
       GameHudToast.show(
         context,
-        AppStrings.ticketSentSuccess.tr(),
-        type: ToastType.success,
+        AppStrings.ticketSendFailed.tr(),
+        type: ToastType.error,
       );
     }
   }
@@ -153,42 +153,54 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (_supportLoading) const LinearProgressIndicator(),
+            if (_supportLoading) const LinearProgressIndicator(minHeight: 2),
             if (_supportLoadError)
               ListTile(
                 key: const ValueKey('support-load-error'),
-                title: Text('supportDataLoadFailed'.tr()),
+                title: AppText(text: AppStrings.supportDataLoadFailed.tr()),
                 trailing: TextButton(
                   onPressed: _loadSupportData,
-                  child: Text(AppStrings.retry.tr()),
+                  child: AppText(text: AppStrings.retry.tr()),
                 ),
               ),
-            AppText(
-              text: AppStrings.supportContactUs.tr(),
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            SizedBox(height: 14.h),
-            if (!_supportLoading && !_supportLoadError) _buildContactActions(),
-            SizedBox(height: 28.h),
+            if (_whatsappPhone.isNotEmpty ||
+                _supportPhone.isNotEmpty ||
+                _supportEmail.isNotEmpty) ...[
+              AppText(
+                text: AppStrings.supportContactUs.tr(),
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              SizedBox(height: 14.h),
+              _buildContactActions(),
+              SizedBox(height: 28.h),
+            ],
             AppText(
               text: AppStrings.sendSupportTicket.tr(),
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
-            SizedBox(height: 14.h),
-            _buildSupportForm(categories),
-            SizedBox(height: 28.h),
+            SizedBox(height: 6.h),
             AppText(
-              text: AppStrings.faqTitle.tr(),
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+              text: AppStrings.supportFormIntro.tr(),
+              fontSize: 13.sp,
+              color: AppColors.textSecondary,
             ),
-            SizedBox(height: 14.h),
-            _buildFaqSection(),
+            SizedBox(height: 18.h),
+            _buildSupportForm(categories),
+            if (_faqs.isNotEmpty) ...[
+              SizedBox(height: 28.h),
+              AppText(
+                text: AppStrings.faqTitle.tr(),
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              SizedBox(height: 14.h),
+              _buildFaqSection(),
+            ],
             SizedBox(height: 40.h),
           ],
         ),
@@ -208,7 +220,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               onTap: () async {
                 final success = await ContactLauncherService.launchWhatsApp(
                   phone: _whatsappPhone,
-                  message: 'أهلاً PlaySpot، أحتاج مساعدة في:',
+                  message: AppStrings.supportWhatsAppGreeting.tr(),
                 );
                 if (!success && mounted) {
                   GameHudToast.show(

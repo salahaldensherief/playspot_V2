@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -100,8 +101,8 @@ class MaintenanceScreen extends StatelessWidget {
                   ),
                 ),
                 28.verticalSpace,
-                Text(
-                  title,
+                AppText(
+                  text: title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textPrimary,
@@ -113,8 +114,8 @@ class MaintenanceScreen extends StatelessWidget {
                   ),
                 ),
                 12.verticalSpace,
-                Text(
-                  message,
+                AppText(
+                  text: message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textSecondary,
@@ -144,8 +145,8 @@ class MaintenanceScreen extends StatelessWidget {
                         Flexible(
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
-                            child: Text(
-                              AppStrings.expectedReturnTime.tr(
+                            child: AppText(
+                              text: AppStrings.expectedReturnTime.tr(
                                 args: [
                                   DateFormat(
                                     'yyyy-MM-dd hh:mm a',

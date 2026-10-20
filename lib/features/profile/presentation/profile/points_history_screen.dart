@@ -113,10 +113,10 @@ class _PointsHistoryScreenState extends State<PointsHistoryScreen> {
                                 onPressed: () => context
                                     .read<ProfileCubit>()
                                     .loadPointsHistory(),
-                                child: Text(
-                                  state.pointsHistoryFailed
+                                child: AppText(
+                                  text: state.pointsHistoryFailed
                                       ? AppStrings.retry.tr()
-                                      : 'pointsHistoryLoadMore'.tr(),
+                                      : AppStrings.pointsHistoryLoadMore.tr(),
                                 ),
                               ),
                             const SafeBottomSpacer(),

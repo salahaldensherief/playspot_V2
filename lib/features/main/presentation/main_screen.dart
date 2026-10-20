@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
@@ -352,8 +353,8 @@ class _MainScreenState extends State<MainScreen> {
           ),
           4.verticalSpace,
           if (isSelected)
-            Text(
-              label,
+            AppText(
+              text: label,
               style: TextStyle(
                 color: AppColors.neonBlue,
                 fontSize: 9.sp,

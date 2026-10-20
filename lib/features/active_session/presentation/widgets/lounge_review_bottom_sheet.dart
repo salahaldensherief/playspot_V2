@@ -199,8 +199,8 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
               if (_error != null)
                 Padding(
                   padding: EdgeInsets.only(top: 12.h),
-                  child: Text(
-                    _error ?? '',
+                  child: AppText(
+                    text: _error ?? '',
                     key: const ValueKey('review-error'),
                     style: const TextStyle(color: AppColors.danger),
                     textAlign: TextAlign.center,

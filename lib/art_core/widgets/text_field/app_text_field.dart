@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -98,8 +99,8 @@ class _AppTextFieldState extends State<AppTextField> {
             children: [
               if (widget.label != null)
                 Flexible(
-                  child: Text(
-                    widget.label!,
+                  child: AppText(
+                    text: widget.label!,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
                     style:
@@ -117,8 +118,8 @@ class _AppTextFieldState extends State<AppTextField> {
                 ),
               const SizedBox(width: 2.0),
               if (widget.isRequired)
-                const Text(
-                  "*",
+                const AppText(
+                  text: "*",
                   style: TextStyle(color: AppColors.danger), // 🎨 required star
                 ),
             ],

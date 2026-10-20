@@ -96,15 +96,18 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
                     _buildShiftFilterChip(0, AppStrings.all.tr()),
                     if (hasMorning) ...[
                       SizedBox(width: 6.w),
-                      _buildShiftFilterChip(1, "☀️ ${'morning'.tr()}"),
+                      _buildShiftFilterChip(1, "☀️ ${AppStrings.morning.tr()}"),
                     ],
                     if (hasAfternoon) ...[
                       SizedBox(width: 6.w),
-                      _buildShiftFilterChip(2, "🌆 ${'afternoon'.tr()}"),
+                      _buildShiftFilterChip(
+                        2,
+                        "🌆 ${AppStrings.afternoon.tr()}",
+                      ),
                     ],
                     if (hasNight) ...[
                       SizedBox(width: 6.w),
-                      _buildShiftFilterChip(3, "🌙 ${'evening'.tr()}"),
+                      _buildShiftFilterChip(3, "🌙 ${AppStrings.evening.tr()}"),
                     ],
                   ],
                 ),
@@ -112,7 +115,7 @@ class _TimeSlotGridState extends State<TimeSlotGrid> {
               ],
 
               AppText(
-                text: 'choose_slot_hint'.tr(),
+                text: AppStrings.chooseSlotHint.tr(),
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),

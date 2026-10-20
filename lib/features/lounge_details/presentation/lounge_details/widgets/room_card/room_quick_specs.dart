@@ -28,7 +28,7 @@ class RoomQuickSpecs extends StatelessWidget {
       if (room.maxCapacity > 0)
         RoomSpec(
           icon: Icons.people_outline,
-          value: 'room_capacity'.tr(
+          value: AppStrings.roomCapacity.tr(
             namedArgs: {'count': '${room.maxCapacity}'},
           ),
         ),

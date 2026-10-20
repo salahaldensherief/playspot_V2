@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/art_core/models/time_range.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
-import 'package:playspot/features/active_session/domain/entities/canteen_combo.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
 import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
@@ -17,7 +16,6 @@ class LoungeDetailsState extends Equatable {
   final bool availabilityLoadFailed;
   final List<RoomModel> rooms;
   final List<ExtraModel> extras;
-  final List<CanteenCombo> combos;
   final List<ReviewModel> reviews;
   final Map<String, int> selectedExtras;
   final Set<String> selectedRoomIds;
@@ -41,7 +39,6 @@ class LoungeDetailsState extends Equatable {
     this.availabilityLoadFailed = false,
     this.rooms = const [],
     this.extras = const [],
-    this.combos = const [],
     this.reviews = const [],
     this.selectedExtras = const {},
     this.selectedRoomIds = const {},
@@ -80,7 +77,6 @@ class LoungeDetailsState extends Equatable {
     bool? availabilityLoadFailed,
     List<RoomModel>? rooms,
     List<ExtraModel>? extras,
-    List<CanteenCombo>? combos,
     List<ReviewModel>? reviews,
     Map<String, int>? selectedExtras,
     Set<String>? selectedRoomIds,
@@ -115,7 +111,6 @@ class LoungeDetailsState extends Equatable {
           availabilityLoadFailed ?? this.availabilityLoadFailed,
       rooms: rooms ?? this.rooms,
       extras: extras ?? this.extras,
-      combos: combos ?? this.combos,
       reviews: reviews ?? this.reviews,
       selectedExtras: selectedExtras ?? this.selectedExtras,
       selectedRoomIds: nextSelectedRoomIds,
@@ -171,7 +166,6 @@ class LoungeDetailsState extends Equatable {
     availabilityLoadFailed,
     rooms,
     extras,
-    combos,
     reviews,
     selectedExtras,
     selectedRoomIds,

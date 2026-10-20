@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:developer';
 
 import 'package:dartz/dartz.dart';
@@ -76,11 +75,8 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       state.copyWith(
         status: LoungeDetailsStatus.loading,
         clearOperatingStatus: true,
-        combos: const [],
       ),
     );
-    // Promotions are non-critical: never delay room availability or checkout.
-    unawaited(_loadComboPreview(loungeId, epoch));
 
     try {
       log("FETCHING LOUNGE DETAILS IN PARALLEL...");
@@ -143,7 +139,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       reviewsRes.fold(
         (l) {
           log("Reviews Fold Failure: ${l.message}");
-          reviews = [];
         },
         (r) {
           reviews = r;
@@ -182,14 +177,29 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
       final date = state.selectedDate ?? DateTime.now();
 
+      final lounge = state.lounge!;
+      final currentLounge = reviews == null
+          ? lounge
+          : LoungeModel.fromJson({
+              ...lounge.toJson(),
+              'total_reviews': reviews!.length,
+              'rating': reviews!.isEmpty
+                  ? 0
+                  : reviews!.fold<double>(
+                          0,
+                          (sum, review) => sum + review.rating,
+                        ) /
+                        reviews!.length,
+            });
+
       final updateParams = UpdateBookingsParams(
         loungeId: loungeId,
         date: date,
         rooms: rooms!,
         extras: extras ?? [],
-        lounge: state.lounge!,
+        lounge: currentLounge,
         deviceCategories: deviceCategories ?? [],
-        reviews: reviews ?? [],
+        reviews: reviews,
         operatingStatus: operatingStatus,
       );
 
@@ -204,28 +214,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       if (isClosed || epoch != _detailsEpoch) return;
       log("CUBIT ERROR: $e", stackTrace: stack);
       emit(state.copyWith(status: LoungeDetailsStatus.error));
-    }
-  }
-
-  Future<void> _loadComboPreview(String loungeId, int epoch) async {
-    try {
-      final result = await _loungeDetailsRepository.getPublicCanteenCombos(
-        loungeId,
-      );
-      if (isClosed || epoch != _detailsEpoch) return;
-      result.fold(
-        (failure) =>
-            log('Optional combo preview load failed: ${failure.message}'),
-        (combos) => emit(
-          state.copyWith(
-            combos: combos.where((combo) => combo.isAvailable).toList(),
-          ),
-        ),
-      );
-    } catch (error) {
-      if (!isClosed && epoch == _detailsEpoch) {
-        log('Optional combo preview load failed: $error');
-      }
     }
   }
 

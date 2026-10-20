@@ -196,7 +196,7 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                       ),
                       SizedBox(height: 8.h),
                       AppText(
-                        text: 'receipt_image_load_error'.tr(),
+                        text: AppStrings.receiptImageLoadError.tr(),
                         color: Colors.white70,
                         fontSize: 14.sp,
                       ),

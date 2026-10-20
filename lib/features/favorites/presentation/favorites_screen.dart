@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,7 +41,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         elevation: 0,
         leading: const BackButtonWidget(),
         title: AppText(
-          text: 'favorites_title'.tr(),
+          text: AppStrings.favoritesTitle.tr(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -55,7 +56,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
             if (state.status == FavoritesStatus.failure) {
               return AppStateView.error(
-                title: 'favorites_load_error'.tr(),
+                title: AppStrings.favoritesLoadError.tr(),
                 onRetry: () =>
                     context.read<FavoritesCubit>().getFavoriteLounges(),
               );
@@ -63,8 +64,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
             if (state.favoriteLounges.isEmpty) {
               return AppStateView.empty(
-                title: 'favorites_empty_title'.tr(),
-                subtitle: 'favorites_empty_description'.tr(),
+                title: AppStrings.favoritesEmptyTitle.tr(),
+                subtitle: AppStrings.favoritesEmptyDescription.tr(),
                 icon: Icons.favorite_border,
               );
             }

@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:flutter/material.dart';
 
 /// Strategy Pattern interface for Button interaction behaviors.
@@ -115,18 +116,18 @@ class ConfirmBehavior implements ButtonBehavior {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        content: Text(message),
+        content: AppText(text: message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(cancelText),
+            child: AppText(text: cancelText),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               onConfirm();
             },
-            child: Text(confirmText),
+            child: AppText(text: confirmText),
           ),
         ],
       ),

@@ -1,3 +1,5 @@
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,8 +27,8 @@ class LoungeRoomComparison extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Divider(height: 24, color: Colors.white12),
-              Text(
-                'lounge_comparison_title'.tr(),
+              AppText(
+                text: AppStrings.loungeComparisonTitle.tr(),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -34,14 +36,14 @@ class LoungeRoomComparison extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 8,
                 children: [
-                  Text(
-                    'lounge_comparison_rooms'.tr(
+                  AppText(
+                    text: AppStrings.loungeComparisonRooms.tr(
                       namedArgs: {'count': '${facts.roomCount}'},
                     ),
                   ),
                   if (facts.maxCapacity > 0)
-                    Text(
-                      'lounge_comparison_capacity'.tr(
+                    AppText(
+                      text: AppStrings.loungeComparisonCapacity.tr(
                         namedArgs: {'count': '${facts.maxCapacity}'},
                       ),
                     ),
@@ -50,8 +52,8 @@ class LoungeRoomComparison extends StatelessWidget {
               if (rate != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    'lounge_comparison_from'.tr(
+                  child: AppText(
+                    text: AppStrings.loungeComparisonFrom.tr(
                       namedArgs: {
                         'price': NumberFormat(
                           '#,##0.##',

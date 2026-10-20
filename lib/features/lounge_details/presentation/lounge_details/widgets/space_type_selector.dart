@@ -51,7 +51,7 @@ class SpaceTypeSelector extends StatelessWidget {
       case 'vip_room':
         return AppStrings.vipRoom.tr();
       case 'private':
-        return 'room_private'.tr();
+        return AppStrings.roomPrivate.tr();
       case 'standard_room':
         return AppStrings.standardRoom.tr();
       case 'open_area':

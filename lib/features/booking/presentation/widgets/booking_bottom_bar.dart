@@ -85,8 +85,9 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                         Row(
                           children: [
                             if (offerInfo.hasOffer) ...[
-                              Text(
-                                "${(subtotals['originalTotalPrice'] ?? subtotals['originalRoomSubtotal'] ?? 0.0).toInt()} ${AppStrings.egp.tr()}",
+                              AppText(
+                                text:
+                                    "${(subtotals['originalTotalPrice'] ?? subtotals['originalRoomSubtotal'] ?? 0.0).toInt()} ${AppStrings.egp.tr()}",
                                 style: TextStyle(
                                   color: AppColors.textSecondary.withValues(
                                     alpha: 0.5,

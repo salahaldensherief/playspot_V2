@@ -90,7 +90,7 @@ class QrLocationDialog extends StatelessWidget {
                   : Padding(
                       padding: EdgeInsets.symmetric(vertical: 30.h),
                       child: AppText(
-                        text: 'directions_coordinates_unavailable'.tr(),
+                        text: AppStrings.directionsCoordinatesUnavailable.tr(),
                         fontSize: 14.sp,
                         color: AppColors.textSecondary,
                       ),

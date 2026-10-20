@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart' hide TextDirection;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,7 +28,7 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
     final hasPhone = phone.isNotEmpty;
 
     final message = statusUnavailable
-        ? 'operating_status_unavailable'.tr()
+        ? AppStrings.operatingStatusUnavailable.tr()
         : hasPhone
         ? AppStrings.loungeTechnicalIssueCallToBook.tr(
             namedArgs: {'phone': phone},
@@ -56,8 +57,8 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
               ),
               SizedBox(width: 10.w),
               Expanded(
-                child: Text(
-                  message,
+                child: AppText(
+                  text: message,
                   style: TextStyle(
                     fontFamily: 'Tajawal',
                     fontSize: 14.sp,
@@ -71,8 +72,8 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
           ),
           if (statusUnavailable && hasPhone) ...[
             const SizedBox(height: 8),
-            Text(
-              phone,
+            AppText(
+              text: phone,
               textDirection: TextDirection.ltr,
               textAlign: TextAlign.center,
             ),
@@ -106,7 +107,7 @@ class LoungeTechnicalIssueBanner extends StatelessWidget {
           if (onRetry != null) ...[
             SizedBox(height: 8.h),
             AppButton(
-              content: ButtonContent(label: 'retry'.tr()),
+              content: ButtonContent(label: AppStrings.retry.tr()),
               behavior: ButtonBehavior.tap(onTap: onRetry),
               buttonConfig: ButtonConfig(
                 height: 48,

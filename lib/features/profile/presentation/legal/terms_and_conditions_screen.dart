@@ -171,10 +171,10 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('supportDataLoadFailed'.tr()),
+                  AppText(text: AppStrings.supportDataLoadFailed.tr()),
                   TextButton(
                     onPressed: _loadPolicies,
-                    child: Text(AppStrings.retry.tr()),
+                    child: AppText(text: AppStrings.retry.tr()),
                   ),
                 ],
               ),
@@ -195,8 +195,8 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen>
       return Center(
         child: Padding(
           padding: EdgeInsets.all(20.w),
-          child: Text(
-            'policyContentUnavailable'.tr(),
+          child: AppText(
+            text: AppStrings.policyContentUnavailable.tr(),
             textAlign: TextAlign.center,
           ),
         ),

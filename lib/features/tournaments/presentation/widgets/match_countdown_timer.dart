@@ -63,8 +63,8 @@ class MatchCountdownTimer extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
-              Text(
-                '$minutes:$seconds',
+              AppText(
+                text: '$minutes:$seconds',
                 style: const TextStyle(
                   color: AppColors.warning,
                   fontSize: 16,

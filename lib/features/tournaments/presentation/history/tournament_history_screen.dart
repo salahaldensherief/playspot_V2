@@ -38,8 +38,8 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         elevation: 0,
         leading: const BackButtonWidget(),
-        title: Text(
-          AppStrings.myTournamentHistory.tr(),
+        title: AppText(
+          text: AppStrings.myTournamentHistory.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18.sp,
@@ -57,8 +57,9 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
 
             if (state.status == TournamentHistoryStatus.failure) {
               return Center(
-                child: Text(
-                  state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                child: AppText(
+                  text:
+                      state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 14.sp,
@@ -88,8 +89,8 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                             ),
                           ),
                           SizedBox(height: 16.h),
-                          Text(
-                            AppStrings.noResults.tr(),
+                          AppText(
+                            text: AppStrings.noResults.tr(),
                             style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 16.sp,

@@ -42,6 +42,10 @@ class CanteenCategoryBar extends StatelessWidget {
         return AppStrings.food.tr();
       case 'snacks':
         return AppStrings.snacks.tr();
+      case 'desserts':
+        return AppStrings.desserts.tr();
+      case 'other':
+        return AppStrings.canteenOtherCategory.tr();
       default:
         return cat;
     }

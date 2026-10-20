@@ -187,7 +187,7 @@ class QuickRebookBottomSheet extends StatelessWidget {
           SizedBox(height: 6.h),
           AppText(
             text: state.status == QuickRebookStatus.error
-                ? 'quickRebookSlotsLoadFailed'.tr()
+                ? AppStrings.quickRebookSlotsLoadFailed.tr()
                 : AppStrings.quickRebookUnavailableMessage.tr(),
             fontSize: 12.sp,
             color: AppColors.textSecondary,

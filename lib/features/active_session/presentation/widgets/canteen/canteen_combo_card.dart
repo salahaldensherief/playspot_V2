@@ -213,8 +213,9 @@ class CanteenComboCard extends StatelessWidget {
                 color: AppColors.neonBlue,
               ),
               if (combo.separateItemsPrice > combo.price)
-                Text(
-                  "${combo.separateItemsPrice.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
+                AppText(
+                  text:
+                      "${combo.separateItemsPrice.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}",
                   style: TextStyle(
                     fontSize: 11.5.sp,
                     color: AppColors.textSecondary.withValues(alpha: 0.6),

@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/app_strings.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
@@ -130,7 +131,9 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
       onError: (Object error) {
         if (!isClosed && _activeTournamentId == tournamentId) {
           emit(
-            state.copyWith(errorMessage: 'tournamentUpdatesUnavailable'.tr()),
+            state.copyWith(
+              errorMessage: AppStrings.tournamentUpdatesUnavailable.tr(),
+            ),
           );
         }
       },

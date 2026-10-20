@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:convert';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -833,8 +834,9 @@ class AppRouter {
         ],
       ),
     ],
-    errorBuilder: (context, state) =>
-        Scaffold(body: Center(child: Text(AppStrings.pageNotFound.tr()))),
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(child: AppText(text: AppStrings.pageNotFound.tr())),
+    ),
   );
 }
 

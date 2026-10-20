@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
@@ -25,13 +26,14 @@ class LoungeTournamentBanner extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            tournament.title,
+          AppText(
+            text: tournament.title,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            '${tournament.game} · ${tournament.entryFee} ${AppStrings.egp.tr()}',
+          AppText(
+            text:
+                '${tournament.game} · ${tournament.entryFee} ${AppStrings.egp.tr()}',
           ),
           const SizedBox(height: 8),
           AppButton(

@@ -46,6 +46,14 @@ void main() {
     price: 18,
     category: 'drinks',
   );
+  const popcorn = ExtraModel(
+    id: 'popcorn',
+    name: 'Popcorn',
+    nameAr: 'فشار',
+    nameEn: 'Popcorn',
+    price: 40,
+    category: 'snacks',
+  );
   late LoungeDetailsCubit cubit;
   late _Details details;
   late GoRouter router;
@@ -198,6 +206,32 @@ void main() {
       {'id': 'water', 'name': 'Water', 'price': 18.0, 'quantity': 1},
     ]);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('canteen categories filter products without losing selection', (
+    tester,
+  ) async {
+    when(
+      () => details.getExtras('lounge', forceRefresh: true),
+    ).thenAnswer((_) async => const Right([water, popcorn]));
+    cubit.emit(cubit.state.copyWith(extras: const [water, popcorn]));
+    await mount(tester, 'en');
+    await tester.tap(find.byType(AppButton));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Water'), findsOneWidget);
+    await tester.tap(find.text('Drinks'));
+    await tester.pumpAndSettle();
+    expect(find.text('Water'), findsOneWidget);
+    expect(find.text('Popcorn'), findsNothing);
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Snacks'));
+    await tester.pumpAndSettle();
+    expect(find.text('Water'), findsNothing);
+    expect(find.text('Popcorn'), findsOneWidget);
+    expect(cubit.state.selectedExtras['water'], 1);
   });
 
   testWidgets('selected multi mode survives the canteen step', (tester) async {

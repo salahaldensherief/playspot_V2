@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,7 +28,7 @@ class HomeSearchBar extends StatelessWidget {
       onChanged: onChanged,
       readOnly: readOnly,
       onTap: onTap,
-      hint: hint ?? "search".tr(),
+      hint: hint ?? AppStrings.search.tr(),
       // hintIcon: AssetsManager.search,
       borderRadius: 25.r,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),

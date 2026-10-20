@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
@@ -7,13 +8,22 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
+import 'package:playspot/features/active_session/presentation/widgets/canteen/canteen_category_bar.dart';
 
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
 
 /// True adds the selected items, false continues without them, null cancels.
-class BookingCanteenOfferDialog extends StatelessWidget {
+class BookingCanteenOfferDialog extends StatefulWidget {
   const BookingCanteenOfferDialog({super.key});
+
+  @override
+  State<BookingCanteenOfferDialog> createState() =>
+      _BookingCanteenOfferDialogState();
+}
+
+class _BookingCanteenOfferDialogState extends State<BookingCanteenOfferDialog> {
+  String selectedCategory = 'all';
 
   @override
   Widget build(BuildContext context) => Container(
@@ -29,6 +39,10 @@ class BookingCanteenOfferDialog extends StatelessWidget {
           a.extras != b.extras || a.selectedExtras != b.selectedExtras,
       builder: (context, state) {
         final items = state.extras.where((item) => item.isAvailable).toList();
+        final categories = items.map((item) => item.category).toSet();
+        final visibleItems = selectedCategory == 'all'
+            ? items
+            : items.where((item) => item.category == selectedCategory).toList();
         final count = items.fold<int>(
           0,
           (sum, item) => sum + (state.selectedExtras[item.id] ?? 0),
@@ -51,13 +65,23 @@ class BookingCanteenOfferDialog extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const _OfferHeader(),
+            if (categories.length > 1) ...[
+              const SizedBox(height: 14),
+              CanteenCategoryBar(
+                selectedCategory: selectedCategory,
+                hasCombos: false,
+                categories: categories,
+                onSelectCategory: (value) =>
+                    setState(() => selectedCategory = value),
+              ),
+            ],
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 10),
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      AppStrings.bookingCanteenOfferSection.tr(),
+                    child: AppText(
+                      text: AppStrings.bookingCanteenOfferSection.tr(),
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
@@ -65,8 +89,8 @@ class BookingCanteenOfferDialog extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(
-                    AppStrings.canteenItemCount.tr(
+                  AppText(
+                    text: AppStrings.canteenItemCount.tr(
                       namedArgs: {'count': '${items.length}'},
                     ),
                     style: const TextStyle(
@@ -80,11 +104,11 @@ class BookingCanteenOfferDialog extends StatelessWidget {
             Expanded(
               child: ListView.separated(
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 12),
-                itemCount: items.length,
+                itemCount: visibleItems.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, index) => _OfferItem(
-                  item: items[index],
-                  quantity: state.selectedExtras[items[index].id] ?? 0,
+                  item: visibleItems[index],
+                  quantity: state.selectedExtras[visibleItems[index].id] ?? 0,
                 ),
               ),
             ),
@@ -125,8 +149,8 @@ class _OfferHeader extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(
-                AppStrings.bookingCanteenOfferEyebrow.tr(),
+              child: AppText(
+                text: AppStrings.bookingCanteenOfferEyebrow.tr(),
                 style: const TextStyle(
                   color: AppColors.neonBlue,
                   fontSize: 11,
@@ -145,8 +169,8 @@ class _OfferHeader extends StatelessWidget {
             ),
           ],
         ),
-        Text(
-          AppStrings.bookingCanteenOfferTitle.tr(),
+        AppText(
+          text: AppStrings.bookingCanteenOfferTitle.tr(),
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontSize: 22,
@@ -154,8 +178,8 @@ class _OfferHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        Text(
-          AppStrings.bookingCanteenOfferSubtitle.tr(),
+        AppText(
+          text: AppStrings.bookingCanteenOfferSubtitle.tr(),
           style: const TextStyle(
             color: Color(0xFFD0D4DF),
             fontSize: 13,
@@ -223,8 +247,8 @@ class _OfferItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      name,
+                    AppText(
+                      text: name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -234,8 +258,9 @@ class _OfferItem extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 5),
-                    Text(
-                      '${item.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}',
+                    AppText(
+                      text:
+                          '${item.price.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}',
                       style: const TextStyle(
                         color: AppColors.neonBlue,
                         fontSize: 14,
@@ -286,7 +311,7 @@ class _QuantityControl extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: () => cubit.updateExtraQuantity(item.id, 1),
         icon: const Icon(Icons.add_rounded, size: 18),
-        label: Text(AppStrings.bookingCanteenOfferAddItem.tr()),
+        label: AppText(text: AppStrings.bookingCanteenOfferAddItem.tr()),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.neonBlue,
           side: BorderSide(color: AppColors.neonBlue.withValues(alpha: .5)),
@@ -308,8 +333,8 @@ class _QuantityControl extends StatelessWidget {
             constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
             icon: const Icon(Icons.remove_rounded, color: AppColors.neonBlue),
           ),
-          Text(
-            '$quantity',
+          AppText(
+            text: '$quantity',
             style: const TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w800,
@@ -354,8 +379,8 @@ class _OfferFooter extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text(
-                count == 0
+              child: AppText(
+                text: count == 0
                     ? AppStrings.bookingCanteenOfferNothingSelected.tr()
                     : AppStrings.canteenSelectedCount.tr(
                         namedArgs: {'count': '$count'},
@@ -367,8 +392,9 @@ class _OfferFooter extends StatelessWidget {
               ),
             ),
             if (count > 0)
-              Text(
-                '${total.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}',
+              AppText(
+                text:
+                    '${total.toStringAsFixed(2)} ${AppStrings.egpSymbol.tr()}',
                 style: const TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 16,
@@ -380,8 +406,8 @@ class _OfferFooter extends StatelessWidget {
         const SizedBox(height: 4),
         Align(
           alignment: AlignmentDirectional.centerStart,
-          child: Text(
-            AppStrings.bookingCanteenOfferPriceNote.tr(),
+          child: AppText(
+            text: AppStrings.bookingCanteenOfferPriceNote.tr(),
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 11,
@@ -403,7 +429,7 @@ class _OfferFooter extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: Text(AppStrings.bookingCanteenOfferAdd.tr()),
+            child: AppText(text: AppStrings.bookingCanteenOfferAdd.tr()),
           ),
         ),
         SizedBox(
@@ -411,7 +437,7 @@ class _OfferFooter extends StatelessWidget {
           height: 48,
           child: TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(AppStrings.bookingCanteenOfferNoThanks.tr()),
+            child: AppText(text: AppStrings.bookingCanteenOfferNoThanks.tr()),
           ),
         ),
       ],

@@ -75,8 +75,8 @@ class RedeemPointsScreen extends StatelessWidget {
               }
             },
           ),
-          title: Text(
-            AppStrings.loyaltyDashboard.tr(),
+          title: AppText(
+            text: AppStrings.loyaltyDashboard.tr(),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,

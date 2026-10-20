@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'room_detail_chip.dart';
@@ -16,7 +17,10 @@ class RoomActivitiesDetails extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      RoomSectionHeader(title: 'room_activities'.tr(), themeColor: color),
+      RoomSectionHeader(
+        title: AppStrings.roomActivities.tr(),
+        themeColor: color,
+      ),
       const SizedBox(height: 8),
       Wrap(
         spacing: 8,

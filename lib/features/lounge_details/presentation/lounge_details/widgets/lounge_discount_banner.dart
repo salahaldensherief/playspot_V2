@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/app_strings.dart';
@@ -21,8 +22,9 @@ class LoungeDiscountBanner extends StatelessWidget {
         const Icon(Icons.local_offer_rounded, color: Colors.black, size: 20),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(
-            lounge.getDiscountTitle(context.locale.languageCode == 'ar') ??
+          child: AppText(
+            text:
+                lounge.getDiscountTitle(context.locale.languageCode == 'ar') ??
                 AppStrings.activeOffer.tr(),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -34,8 +36,8 @@ class LoungeDiscountBanner extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          '${lounge.discountPercentage}%',
+        AppText(
+          text: '${lounge.discountPercentage}%',
           style: const TextStyle(
             color: Colors.black,
             fontSize: 16,

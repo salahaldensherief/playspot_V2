@@ -1,4 +1,5 @@
 // bracket_round_header.dart
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/app_strings.dart';
@@ -47,8 +48,8 @@ class BracketRoundHeader extends StatelessWidget {
               : AppColors.neonBlue.withValues(alpha: 0.4),
         ),
       ),
-      child: Text(
-        _label(),
+      child: AppText(
+        text: _label(),
         textAlign: TextAlign.center,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -77,8 +78,8 @@ class BracketEmptyState extends StatelessWidget {
           color: AppColors.textSecondary.withValues(alpha: 0.5),
         ),
         const SizedBox(height: 16),
-        Text(
-          AppStrings.tournamentBracket.tr(),
+        AppText(
+          text: AppStrings.tournamentBracket.tr(),
           style: const TextStyle(
             color: AppColors.textSecondary,
             fontSize: 16,

@@ -12,7 +12,6 @@ import 'date_selection_section.dart';
 import 'category_selector.dart';
 import 'space_type_selector.dart';
 import 'rooms_grid.dart';
-import 'lounge_canteen_section.dart';
 import 'lounge_reviews_section.dart';
 import 'lounge_booking_action.dart';
 
@@ -66,7 +65,6 @@ class LoungeDetailsContent extends StatelessWidget {
               compact: true,
             ),
             const RoomsGrid(),
-            const LoungeCanteenSection(),
             const LoungeReviewsSection(),
             SliverToBoxAdapter(
               child: SizedBox(

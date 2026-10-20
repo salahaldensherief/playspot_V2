@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
@@ -61,7 +62,7 @@ class LoungeDetailPanel extends StatelessWidget {
               ),
               child: Icon(icon, size: 18, color: AppColors.neonBlue),
             ),
-            title: Text(titleKey.tr(), style: titleStyle),
+            title: AppText(text: titleKey.tr(), style: titleStyle),
             children: [child],
           ),
         ),
@@ -81,7 +82,9 @@ class LoungeDetailPanel extends StatelessWidget {
             child: Icon(icon, size: 16, color: AppColors.neonBlue),
           ),
           const SizedBox(width: 8),
-          Expanded(child: Text(titleKey.tr(), style: titleStyle)),
+          Expanded(
+            child: AppText(text: titleKey.tr(), style: titleStyle),
+          ),
         ],
       ),
       const SizedBox(height: 10),

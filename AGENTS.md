@@ -1,34 +1,42 @@
-# PlaySpot Mobile: agent engineering rules
+# PlaySpot Mobile: agent engineering guide
 
-Read this file before changing code. It is the primary agent guidance for this repository. `AGENTS_RULES.md` contains additional conventions; where it conflicts with this file, follow this file. User instructions and verified product requirements take precedence over both.
+This is the single source of agent guidance for the Flutter mobile repository. User instructions and verified product requirements take precedence. Apply these rules to code you touch; improve unrelated legacy code in focused follow-up changes.
 
-## Understand the change
+## Diagnose and respect the existing contract
 
-- Trace the real flow before editing: widget -> Cubit/state -> use case or repository -> data source -> Supabase RPC/table -> RLS -> response. Some existing features do not use every layer; follow their actual boundaries.
-- Find the existing contract, tests, and related Dashboard behavior. State the invariant and choose the layer that owns it. Fix a defect at its root cause rather than hiding it in the UI.
-- Make focused changes. Do not refactor unrelated features or silently change public models, RPC payloads, or database behavior.
+- Trace the real flow before editing: widget → Cubit/state → use case or repository → data source → Supabase RPC/table → RLS → response. Follow the layers that actually exist for the feature.
+- Reproduce bugs and identify whether the cause is mobile, Dashboard, or backend. Inspect existing tests and the Dashboard's use of shared server contracts before changing them. State the invariant and fix it in the owning layer.
+- Keep public models, RPC payloads, database behavior, routes, and cache semantics stable unless the task requires a coordinated change. Verify route names and parameters before adding navigation.
+- Make focused changes. Check for an existing implementation before creating a new helper, model, file, or dependency.
 
-## SOLID and clean architecture
+## Architecture and reusable code
 
-- **Single responsibility:** Keep widgets responsible for presentation, Cubits for state and orchestration, use cases/domain services for application rules, repositories for domain-facing data contracts, and data sources for external I/O and parsing. Split a class when it has independent reasons to change, not merely because it crosses a line count.
-- **Open/closed:** Extend behavior through a strategy or policy when there are real interchangeable rules (for example, distinct slot or pricing policies). For a single simple case, prefer a clear function over a new abstraction.
-- **Liskov substitution:** Implementations must honor repository contracts, including errors, nullability, ownership, and side effects. Do not make a subtype silently weaken an invariant.
-- **Interface segregation:** Expose only operations a consumer needs. Avoid giant repository interfaces and placeholder methods that throw for unsupported operations.
-- **Dependency inversion:** Domain rules depend on contracts, not Supabase, Flutter widgets, or concrete data sources. Wire implementations through the existing GetIt modules. Do not add an interface for a pure helper with one implementation unless a boundary or test seam calls for it.
-- Keep dependencies pointing inward where the feature already uses `presentation / domain / data`. Do not import data models into domain business rules. Map backend DTOs at the data boundary. Do not build ceremonial layers in simple existing paths.
-- Use a design pattern only when it solves a concrete variation or lifecycle problem. Prefer the current Cubit, repository, strategy, and dependency injection conventions; explain any new pattern in the PR.
+- Widgets present data and capture input; Cubits manage state and orchestration; domain services or use cases hold business rules; repositories expose domain facing contracts; data sources handle I/O and parsing. Map backend DTOs at the data boundary.
+- Keep dependencies pointing inward where the feature already uses `presentation / domain / data`. Register implementations through the existing GetIt modules and remove dead registrations.
+- Prefer small cohesive functions, guard clauses, immutable state, descriptive names, and explicit result/error types. A class should have one clear reason to change. Split code when independent responsibilities or complex control flow warrant it; do not split it to satisfy a file or line count.
+- Reuse a component or helper when it represents the same behavior or invariant. Do not create abstractions for a single simple case, duplicate implementations, giant interfaces, or placeholder methods. Use strategies only for real interchangeable rules.
+- Preserve repository contracts for errors, nullability, ownership, and side effects. Avoid `Either<String, T>` when a `Failure` type exists. Do not leak raw Supabase errors through domain APIs.
+- Use `snake_case.dart`, Dart `PascalCase` types and `camelCase` members. Declare directly imported packages in `pubspec.yaml` with the project's version convention.
 
-## Server authority and cross-client contracts
+## Server authority and security
 
-- Supabase owns booking conflicts, hold validity, checkout prices, payments, permissions, inventory, loyalty, and lifecycle transitions. Flutter availability and totals are previews. Never trust client-submitted financial or authorization values.
-- Keep Mobile and Dashboard aligned with the same server contract; their presentation may differ. Review RLS, grants, role scope, concurrency, idempotency, and state transitions when changing an RPC or schema. Never put a service-role key in a client.
-- Prefer invoker privileges and RLS. Use `SECURITY DEFINER` only when justified, with explicit actor/resource authorization, a safe `search_path`, and narrow execute grants. Never force it merely to satisfy a folder or architecture rule.
-- Treat production data as live. Test destructive and concurrency scenarios in staging or with isolated safe records; do not replay old migrations against production.
+- Supabase owns booking conflicts, hold validity, prices, payments, permissions, inventory, loyalty, and lifecycle transitions. Client availability and totals are previews. Validate input on the client for usability and enforce the rule again on the server.
+- Keep Mobile and Dashboard aligned on the same server contract. Review RLS, grants, role scope, concurrency, idempotency, and transitions when changing an RPC or schema. Never put a service role key or other secret in client code.
+- Prefer invoker privileges and RLS. Use `SECURITY DEFINER` only when justified, with actor and resource authorization, a safe `search_path`, and narrow execute grants. Do not force it to work around a client query without reviewing the permission boundary.
+- Verify columns and indexes before queries. Paginate growing lists. Use caching for heavy reads where it helps, invalidate after writes, and prevent older cache results from replacing newer realtime state. Keep auth scoped caches separate and clear them on logout.
+- Treat production data as live. Test destructive and concurrency cases in staging or isolated fixtures; apply only reviewed new migrations, never replay old migrations on production.
 
-## Clean code and verification
+## Mobile UI and localization
 
-- Use names that express business meaning, small cohesive functions, guard clauses, immutable state, and localized user-facing strings. Keep Arabic/English and RTL/LTR behavior working. Remove dead paths after verifying callers.
-- Reuse existing logic when it represents the same invariant. Avoid premature utilities, rigid file/line caps, universal one-class-per-file rules, and abstractions that add indirection without benefit.
-- Handle loading, empty, error, retry, cancellation, and repeated taps. Cancel subscriptions and ignore stale async results. Keep errors visible and actionable.
-- For a bug: reproduce -> identify root cause -> fix in the owning layer -> add a regression test -> verify. For new behavior, test the important business invariant and authorization/concurrency where relevant. Unit, widget, integration, and RLS tests are all allowed; do not prohibit network-backed tests when an isolated environment exists.
-- Run `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze --no-fatal-infos`, and relevant `flutter test` suites when available. Report exactly what ran and what could not run. Keep changes in a focused PR and wait for CI before claiming verification.
+- Use `AppText` for displayed text outside the `AppText` implementation. Put static user facing copy in `AppStrings` and both Arabic and English translation files. Backend supplied names and user content remain data, not translation keys.
+- Keep RTL/LTR behavior correct with directional layout properties. Respect safe areas, keyboard insets, accessible touch targets, text scaling, and phone/tablet layouts where relevant.
+- Use the existing theme colors and reusable controls when they fit. Extract repeated UI with the same behavior; avoid near duplicate styling and unnecessary wrappers. Keep the UI coherent with the current product design.
+- Bind every form field. Handle loading, empty, error, retry, cancellation, and repeated taps visibly. Never show a success message for a failed mutation.
+- Keep `BlocBuilder`/`BlocListener` rebuilds and effects scoped to the state they need. Do not fetch in `build()`. Dispose controllers, listeners, timers, and streams; ignore stale async responses. Repository/data source owns Supabase channels, and Cubit owns its stream subscriptions.
+- Do not log tokens, PII, auth sessions, or secret values. Remove temporary debug code and commented out dead paths.
+
+## Verification
+
+- For bugs: reproduce → identify root cause → fix in the owning layer → add a meaningful regression test → verify. For new behavior, test the important business rule and authorization or concurrency where relevant.
+- Use isolated fixtures or mocks for tests that could mutate live data. Network backed tests are allowed only when an isolated environment exists.
+- Run `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze --no-fatal-infos`, and relevant `flutter test` suites when available. Report what ran and what could not run. Wait for CI before claiming CI verification.

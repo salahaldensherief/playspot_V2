@@ -1,4 +1,5 @@
 // bracket_match_node.dart
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -74,8 +75,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                 width: 1,
               ),
             ),
-            child: Text(
-              isInProgress ? 'LIVE' : 'VS',
+            child: AppText(
+              text: isInProgress ? 'LIVE' : 'VS',
               style: TextStyle(
                 color: isInProgress ? AppColors.neonPurple : AppColors.neonBlue,
                 fontSize: 7,
@@ -174,8 +175,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(color: Colors.black, width: 0.8),
                     ),
-                    child: Text(
-                      '$score',
+                    child: AppText(
+                      text: '$score',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,
@@ -207,8 +208,8 @@ class _BracketMatchNodeState extends State<BracketMatchNode> {
                         : AppColors.textSecondary.withValues(alpha: 0.5),
                   ),
                 ),
-                child: Text(
-                  displayName,
+                child: AppText(
+                  text: displayName,
                   style: TextStyle(
                     color: isWinner
                         ? AppColors.success
