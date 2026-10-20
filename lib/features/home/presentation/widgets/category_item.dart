@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../art_core/theme/app_colors.dart';
+import '../../../../art_core/theme/app_sizes.dart';
+import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/layout/glass_container.dart';
 
 class CategoryItem extends StatelessWidget {
   final String name;
@@ -21,54 +25,48 @@ class CategoryItem extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(AppSizes.r20.r),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 132,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.neonBlue.withValues(alpha: .12)
-                : AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
-            ),
-          ),
+          duration: const Duration(milliseconds: 300),
+          width: 80.w,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppColors.neonBlue.withValues(alpha: .12),
-                      borderRadius: BorderRadius.circular(12),
+              GlassContainer(
+                borderRadius: AppSizes.r20.r,
+                height: 75.h,
+                width: 80.w,
+                borderOpacity: isSelected ? 0.3 : 0.05,
+                borderColor: isSelected
+                    ? AppColors.neonBlue
+                    : Colors.white.withValues(alpha: 0.1),
+                color: isSelected
+                    ? AppColors.neonBlue.withValues(alpha: 0.08)
+                    : null,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icon,
+                      color: isSelected
+                          ? AppColors.neonBlue
+                          : AppColors.textSecondary,
+                      size: 26.sp,
                     ),
-                    child: Icon(icon, color: AppColors.neonBlue, size: 23),
-                  ),
-                  if (isSelected)
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      color: AppColors.neonBlue,
-                      size: 20,
+                    6.verticalSpace,
+                    AppText(
+                      text: name.toUpperCase(),
+                      fontSize: 9.sp,
+                      color: isSelected
+                          ? AppColors.neonBlue
+                          : AppColors.textSecondary,
+                      fontWeight: isSelected
+                          ? FontWeight.w900
+                          : FontWeight.w600,
+                      letterSpacing: 0.5,
+                      textAlign: TextAlign.center,
                     ),
-                ],
-              ),
-              Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isSelected
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+                  ],
                 ),
               ),
             ],
