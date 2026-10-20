@@ -76,15 +76,16 @@ class _AppOtpFieldState extends State<AppOtpField> {
             margin: EdgeInsets.symmetric(
               horizontal: 2.w,
             ), // تقليل المسافات الجانبية
-            child: RawKeyboardListener(
-              focusNode: FocusNode(),
-              onKey: (event) {
-                if (event is RawKeyDownEvent &&
+            child: Focus(
+              onKeyEvent: (_, event) {
+                if (event is KeyDownEvent &&
                     event.logicalKey == LogicalKeyboardKey.backspace &&
                     _controllers[index].text.isEmpty &&
                     index > 0) {
                   _focusNodes[index - 1].requestFocus();
+                  return KeyEventResult.handled;
                 }
+                return KeyEventResult.ignored;
               },
               child: TextFormField(
                 controller: _controllers[index],

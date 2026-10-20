@@ -8,7 +8,7 @@ import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
-import 'package:playspot/features/active_session/presentation/widgets/canteen/canteen_category_bar.dart';
+import 'package:playspot/art_core/widgets/canteen/canteen_category_bar.dart';
 
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';

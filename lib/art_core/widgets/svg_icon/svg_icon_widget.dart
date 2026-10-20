@@ -24,7 +24,9 @@ class SvgIconWidget extends StatelessWidget {
       path,
       width: width,
       height: height,
-      color: color,
+      colorFilter: color == null
+          ? null
+          : ColorFilter.mode(color!, BlendMode.srcIn),
       matchTextDirection: matchTextDirection,
     );
   }
@@ -34,7 +36,9 @@ class SvgIconWidget extends StatelessWidget {
       path,
       width: width,
       height: height,
-      color: color,
+      colorFilter: color == null
+          ? null
+          : ColorFilter.mode(color!, BlendMode.srcIn),
       matchTextDirection: matchTextDirection,
     );
   }

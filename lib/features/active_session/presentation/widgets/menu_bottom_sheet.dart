@@ -9,7 +9,7 @@ import '../../domain/entities/order_item.dart';
 import '../../domain/entities/out_of_stock_item.dart';
 import '../active_session_cubit.dart';
 import '../active_session_state.dart';
-import 'canteen/canteen_category_bar.dart';
+import 'package:playspot/art_core/widgets/canteen/canteen_category_bar.dart';
 import 'canteen/canteen_combos_section.dart';
 import 'canteen/canteen_dock_bar.dart';
 import 'canteen/canteen_extras_section.dart';
