@@ -1,22 +1,22 @@
-import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:ui' as ui;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/di.dart';
-import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
-import 'package:playspot/features/app_status/presentation/cubit/app_status_cubit.dart';
 import 'package:playspot/features/app_status/domain/entities/app_status_type.dart';
+import 'package:playspot/features/app_status/presentation/cubit/app_status_cubit.dart';
 import 'package:playspot/features/app_status/presentation/widgets/soft_update_dialog.dart';
+import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/caching_key.dart';

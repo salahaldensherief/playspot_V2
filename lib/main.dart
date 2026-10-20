@@ -134,6 +134,7 @@ final _appRouter = AppRouter();
 
 final _arTheme = ThemeData(
   useMaterial3: false,
+  brightness: Brightness.dark,
   scaffoldBackgroundColor: AppColors.scaffoldBackground,
   fontFamily: 'Tajawal',
   textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Tajawal'),
@@ -141,6 +142,7 @@ final _arTheme = ThemeData(
 
 final _enTheme = ThemeData(
   useMaterial3: false,
+  brightness: Brightness.dark,
   scaffoldBackgroundColor: AppColors.scaffoldBackground,
   fontFamily: 'Roboto',
   textTheme: ThemeData.dark().textTheme.apply(fontFamily: 'Roboto'),
@@ -166,6 +168,7 @@ class _MyAppState extends State<MyApp> {
             GlobalCupertinoLocalizations.delegate,
           ],
           theme: context.locale.languageCode == 'ar' ? _arTheme : _enTheme,
+          themeMode: ThemeMode.dark,
           scrollBehavior: const MaterialScrollBehavior().copyWith(
             physics: const BouncingScrollPhysics(),
           ),

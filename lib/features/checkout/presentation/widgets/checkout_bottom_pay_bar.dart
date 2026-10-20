@@ -9,6 +9,8 @@ import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/text/price_widget.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 
 import '../checkout_cubit.dart';
@@ -61,6 +63,56 @@ class CheckoutBottomPayBar extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        AppText(
+                          text: AppStrings.totalPrice.tr(),
+                          fontSize: 12.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                        PriceWidget(
+                          price: finalPrice,
+                          fontSize: 18.sp,
+                          color: AppColors.neonBlue,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: BlocSelector<CheckoutCubit, CheckoutState, String>(
+                      selector: (current) => current.isHoldExpired
+                          ? AppStrings.holdExpiredLabel.tr()
+                          : current.formattedRemainingTime,
+                      builder: (context, remaining) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          AppText(
+                            text: AppStrings.remainingTime.tr(),
+                            fontSize: 12.sp,
+                            color: AppColors.textSecondary,
+                          ),
+                          AppText(
+                            text: remaining,
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: state.isHoldExpired
+                                ? AppColors.danger
+                                : AppColors.warning,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
               AppButton(
                 content: ButtonContent(
                   label: state.isHoldExpired

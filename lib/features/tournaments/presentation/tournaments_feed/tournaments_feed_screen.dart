@@ -67,6 +67,42 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
           ),
         ),
         actions: [
+          BlocSelector<TournamentsFeedCubit, TournamentsFeedState, String?>(
+            selector: (state) => state.selectedStatus,
+            builder: (context, selectedStatus) => PopupMenuButton<String>(
+              tooltip: AppStrings.filterByStatus.tr(),
+              icon: Icon(
+                Icons.filter_list,
+                color: selectedStatus == null
+                    ? AppColors.textSecondary
+                    : AppColors.neonBlue,
+              ),
+              color: AppColors.cardBackground,
+              onSelected: (status) => context
+                  .read<TournamentsFeedCubit>()
+                  .filterByStatus(status == 'All' ? null : status),
+              itemBuilder: (context) => _statusFilters.map((status) {
+                final selected = (selectedStatus ?? 'All') == status;
+                return PopupMenuItem<String>(
+                  value: status,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: AppText(
+                          text: _getLocalizedStatus(status),
+                          color: selected
+                              ? AppColors.neonBlue
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      if (selected)
+                        const Icon(Icons.check, color: AppColors.neonBlue),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
           IconButton(
             icon: Container(
               padding: EdgeInsets.all(6.w),
@@ -234,73 +270,7 @@ class _TournamentsFeedScreenState extends State<TournamentsFeedScreen> {
             ),
             SizedBox(height: 8.h),
 
-            // Status Filter Chips
-            SizedBox(
-              height: 50.h,
-              child: ListView.separated(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                scrollDirection: Axis.horizontal,
-                itemCount: _statusFilters.length,
-                separatorBuilder: (context, index) => SizedBox(width: 8.w),
-                itemBuilder: (context, index) {
-                  final statusKey = _statusFilters[index];
-                  return BlocSelector<
-                    TournamentsFeedCubit,
-                    TournamentsFeedState,
-                    String?
-                  >(
-                    selector: (state) => state.selectedStatus,
-                    builder: (context, selectedStatus) {
-                      final isSelected =
-                          (selectedStatus == null && statusKey == 'All') ||
-                          selectedStatus == statusKey;
-
-                      return InkWell(
-                        borderRadius: BorderRadius.circular(24.r),
-                        onTap: () {
-                          context.read<TournamentsFeedCubit>().filterByStatus(
-                            statusKey == 'All' ? null : statusKey,
-                          );
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16.w,
-                            vertical: 8.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.neonBlue
-                                : AppColors.cardBackground,
-                            borderRadius: BorderRadius.circular(24.r),
-                            border: Border.all(
-                              color: isSelected
-                                  ? AppColors.neonBlue
-                                  : AppColors.borderDefault,
-                            ),
-                          ),
-                          child: Center(
-                            child: AppText(
-                              text: _getLocalizedStatus(statusKey),
-                              style: TextStyle(
-                                color: isSelected
-                                    ? AppColors.black
-                                    : AppColors.textSecondary,
-                                fontSize: 13.sp,
-                                fontWeight: isSelected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 12.h),
+            SizedBox(height: 8.h),
 
             BlocBuilder<TournamentsFeedCubit, TournamentsFeedState>(
               buildWhen: (before, after) =>

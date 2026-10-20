@@ -92,7 +92,7 @@ class HomeHeader extends StatelessWidget {
     );
     final location = math.max(
       13.sp,
-      _lineHeight(context, currentLocation.toUpperCase(), 10.sp),
+      _lineHeight(context, currentLocation, 12.sp),
     );
     final identity = greeting + 2.h + location;
     final points = _lineHeight(context, '$pointsBalance', 12.sp) + 16.h + 2;
@@ -156,8 +156,8 @@ class HomeHeader extends StatelessWidget {
                         SizedBox(width: 4.w),
                         Expanded(
                           child: AppText(
-                            text: currentLocation.toUpperCase(),
-                            fontSize: 10.sp,
+                            text: currentLocation,
+                            fontSize: 12.sp,
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.bold,
                             maxLines: 1,

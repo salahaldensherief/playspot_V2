@@ -764,5 +764,9 @@
   "booking_canteen_offer_section": "Pick something you like",
   "booking_canteen_offer_add_item": "Add",
   "booking_canteen_offer_nothing_selected": "No items selected yet",
-  "booking_canteen_checking_menu": "Checking menu..."
+  "booking_canteen_checking_menu": "Checking menu...",
+  "clearSearchFilters": "Clear search and filters",
+  "profileActivitySection": "My activity",
+  "profileRewardsSection": "Rewards",
+  "profileSupportSection": "Account and support"
 }

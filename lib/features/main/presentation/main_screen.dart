@@ -255,7 +255,9 @@ class _MainScreenState extends State<MainScreen> {
 
     return Container(
       margin: 24.horizontalPadding,
-      height: 68.h,
+      height:
+          72.h +
+          20.h * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0, 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(34.r),
         boxShadow: [
@@ -316,58 +318,71 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _selectedIndex == index;
 
-    return GestureDetector(
-      onTap: () => _onItemTapped(index),
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            width: 50.w,
-            duration: const Duration(milliseconds: 300),
-            padding: 8.allPadding,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppSizes.r12),
-              color: isSelected
-                  ? AppColors.neonBlue.withAlpha((255 * 0.12).round())
-                  : Colors.transparent,
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: AppColors.neonBlue.withAlpha(
-                          (255 * 0.3).round(),
-                        ),
-                        blurRadius: 15,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Icon(
-              icon,
-              color: isSelected
-                  ? AppColors.neonBlue
-                  : Colors.white.withAlpha((255 * 0.4).round()),
-              size: 20.sp,
-            ),
-          ),
-          4.verticalSpace,
-          if (isSelected)
-            AppText(
-              text: label,
-              style: TextStyle(
-                color: AppColors.neonBlue,
-                fontSize: 9.sp,
-                fontWeight: FontWeight.w600,
-                shadows: [
-                  Shadow(
-                    color: AppColors.neonBlue.withAlpha((255 * 0.6).round()),
-                    blurRadius: 10,
-                  ),
-                ],
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: label,
+        child: InkWell(
+          onTap: () => _onItemTapped(index),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                width: 50.w,
+                duration: const Duration(milliseconds: 300),
+                padding: 8.allPadding,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppSizes.r12),
+                  color: isSelected
+                      ? AppColors.neonBlue.withAlpha((255 * 0.12).round())
+                      : Colors.transparent,
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.neonBlue.withAlpha(
+                              (255 * 0.3).round(),
+                            ),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Icon(
+                  icon,
+                  color: isSelected
+                      ? AppColors.neonBlue
+                      : Colors.white.withAlpha((255 * 0.4).round()),
+                  size: 20.sp,
+                ),
               ),
-            ),
-        ],
+              4.verticalSpace,
+              AppText(
+                text: label,
+                style: TextStyle(
+                  color: isSelected
+                      ? AppColors.neonBlue
+                      : AppColors.textSecondary,
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                  shadows: isSelected
+                      ? [
+                          Shadow(
+                            color: AppColors.neonBlue.withAlpha(
+                              (255 * 0.6).round(),
+                            ),
+                            blurRadius: 10,
+                          ),
+                        ]
+                      : null,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

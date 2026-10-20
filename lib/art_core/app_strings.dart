@@ -766,4 +766,9 @@ class AppStrings {
   static const String splashTagline = "splash_tagline";
   static const String tournamentUpdatesUnavailable =
       "tournamentUpdatesUnavailable";
+  static const String clearSearchFilters = "clearSearchFilters";
+  static const String remainingTime = "remainingTime";
+  static const String profileActivitySection = "profileActivitySection";
+  static const String profileRewardsSection = "profileRewardsSection";
+  static const String profileSupportSection = "profileSupportSection";
 }

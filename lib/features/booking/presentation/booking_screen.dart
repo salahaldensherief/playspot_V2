@@ -29,34 +29,12 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollToDurationAndSummary() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<BookingCubit, BookingState>(
       listenWhen: (previous, current) =>
-          (previous.status != current.status &&
-              current.status == BookingStatus.error) ||
-          (previous.startTime != current.startTime &&
-              current.startTime != null),
+          previous.status != current.status &&
+          current.status == BookingStatus.error,
       listener: (context, state) {
         if (state.status == BookingStatus.error && state.errorMessage != null) {
           final isEnglish = context.locale.languageCode == 'en';
@@ -65,9 +43,6 @@ class _BookingScreenState extends State<BookingScreen> {
             isEnglish,
           );
           GameHudToast.show(context, errorMsg, type: ToastType.error);
-        }
-        if (state.startTime != null) {
-          _scrollToDurationAndSummary();
         }
       },
       child: Scaffold(
@@ -91,7 +66,6 @@ class _BookingScreenState extends State<BookingScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                controller: _scrollController,
                 padding: 16.allPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

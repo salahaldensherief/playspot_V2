@@ -168,28 +168,7 @@ class _BookingCardState extends State<BookingCard> {
           _buildBadgesRow(),
           SizedBox(height: 12.h),
 
-          // 3. Room & Specs Card
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(
-                color: AppColors.borderDefault.withValues(alpha: 0.5),
-              ),
-            ),
-            child: AppText(
-              text: roomSpecsText,
-              fontSize: 12.sp,
-              color: AppColors.white.withValues(alpha: 0.9),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          SizedBox(height: 12.h),
-
-          // 4. Date & Time Info Bar
+          // Keep the visit time ahead of secondary room specifications.
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
@@ -235,6 +214,25 @@ class _BookingCardState extends State<BookingCard> {
                   fontWeight: FontWeight.bold,
                 ),
               ],
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: AppColors.borderDefault.withValues(alpha: 0.5),
+              ),
+            ),
+            child: AppText(
+              text: roomSpecsText,
+              fontSize: 12.sp,
+              color: AppColors.textSecondary,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
 

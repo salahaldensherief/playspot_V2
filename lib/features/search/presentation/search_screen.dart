@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
-import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
@@ -179,30 +177,13 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           SizedBox(width: 8.w),
-          InkWell(
-            onTap: _resetAllFilters,
-            borderRadius: BorderRadius.circular(12.r),
-            child: Container(
-              padding: EdgeInsets.all(10.w),
-              decoration: BoxDecoration(
-                color: _hasActiveFilters
-                    ? AppColors.neonBlue.withValues(alpha: 0.15)
-                    : AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: _hasActiveFilters
-                      ? AppColors.neonBlue
-                      : AppColors.borderDefault,
-                ),
-              ),
-              child: SvgIconWidget(
-                path: AssetsManager.filter,
-                color: _hasActiveFilters ? AppColors.neonBlue : AppColors.white,
-                width: 20.w,
-                height: 20.h,
-              ),
+          if (_hasActiveFilters)
+            IconButton(
+              onPressed: _resetAllFilters,
+              tooltip: AppStrings.clearSearchFilters.tr(),
+              icon: const Icon(Icons.filter_alt_off_outlined),
+              color: AppColors.neonBlue,
             ),
-          ),
         ],
       ),
     );

@@ -9,6 +9,7 @@ import 'widgets/logout_button.dart';
 import 'widgets/profile_header.dart';
 import 'widgets/profile_menu_section.dart';
 import 'widgets/referral_card.dart';
+import 'widgets/loyalty_level_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -24,7 +25,9 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               children: [
                 const ProfileHeader(),
-                24.verticalSpace,
+                12.verticalSpace,
+                const LoyaltyLevelCard(),
+                12.verticalSpace,
                 const ReferralCard(),
                 24.verticalSpace,
                 const ProfileMenuSection(),

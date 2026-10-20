@@ -114,7 +114,7 @@ void main() {
             );
             await tester.pumpAndSettle();
             expect(
-              find.text(AppStrings.locationUnavailable.tr().toUpperCase()),
+              find.text(AppStrings.locationUnavailable.tr()),
               findsOneWidget,
             );
             expect(find.textContaining('SEARCHING'), findsNothing);

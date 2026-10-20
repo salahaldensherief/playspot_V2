@@ -764,5 +764,9 @@
   "booking_canteen_offer_section": "اختار اللي تحبه",
   "booking_canteen_offer_add_item": "إضافة",
   "booking_canteen_offer_nothing_selected": "لسه ما اخترتش منتجات",
-  "booking_canteen_checking_menu": "جاري التحقق من القائمة..."
+  "booking_canteen_checking_menu": "جاري التحقق من القائمة...",
+  "clearSearchFilters": "مسح البحث والفلاتر",
+  "profileActivitySection": "نشاطي",
+  "profileRewardsSection": "المكافآت",
+  "profileSupportSection": "الحساب والمساعدة"
 }
