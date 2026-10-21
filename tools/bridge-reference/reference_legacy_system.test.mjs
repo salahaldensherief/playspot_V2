@@ -52,7 +52,7 @@ test('session state changes must follow reservation and not duplicate', () => {
   const id = adapter.execute(reserve('initial')).reservationId;
   const start = {...base, type: 'start_session', reservationId: id, idempotencyKey: 'start-1'};
   const end = {...base, type: 'end_session', reservationId: id, idempotencyKey: 'end-1'};
-  assert.equal(adapter.execute(end).status, 'rejected');
+  assert.equal(adapter.execute({...end, idempotencyKey: 'end-too-early'}).status, 'rejected');
   assert.equal(adapter.execute(start).status, 'acknowledged');
   assert.equal(adapter.execute(start).status, 'acknowledged');
   assert.equal(adapter.execute({...base, type: 'extend_session',
