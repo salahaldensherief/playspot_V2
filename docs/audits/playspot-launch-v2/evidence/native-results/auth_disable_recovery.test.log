@@ -1,0 +1,14 @@
+Fixture database: 17.11
+PASS deactivation and task enqueue are one transaction
+PASS one durable job per disabled identity; unchanged update does not reset retry budget
+PASS service can claim but client roles cannot claim or acknowledge
+PASS invalid batch limit cannot acquire a task
+PASS parallel workers claim disjoint tasks
+PASS successful Auth acknowledgement completes task and deletion record
+PASS transient Auth failure delays then retries same durable identity
+PASS crashed worker lease is reclaimed and stale acknowledgement rejected
+PASS five failures stop retries and monitoring exposes terminal failure
+PASS fifth crashed attempt terminates after lease expiry
+PASS reactivation cancels pending task and invalidates old lease
+PASS error payload cannot persist arbitrary provider or secret text
+{"passed":12}

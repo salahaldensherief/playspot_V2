@@ -1,0 +1,53 @@
+Fixture database: 17.11
+PASS missing identity denied
+PASS another unassigned cashier denied
+PASS authority returns actual effective grants
+PASS fresh heartbeat admits online availability
+PASS writer refresh retains stable permit identity
+PASS second device cannot become simultaneous writer
+PASS expired heartbeat closes online availability
+PASS expired heartbeat never authorizes device takeover
+PASS explicit offline mode closes online availability
+PASS pending venue cannot receive offline authority
+PASS pending venue remains closed online
+PASS approved writer can restore fresh availability
+PASS banned writer closes availability immediately
+PASS banned cashier cannot refresh authority
+PASS disabled cashier cannot refresh authority
+PASS deleted Auth identity cannot refresh authority
+PASS client cannot edit writer rows
+PASS anonymous writer execution revoked
+PASS public availability remains readable and narrow
+PASS simultaneous distinct device claims admit exactly one writer
+PASS fresh online venue accepts customer booking
+PASS busy offline transition refuses insertion and its committed state refuses retry
+PASS accepted customer insertion precedes competing offline transition
+PASS first writer claim fences a booking before writer row exists
+PASS first writer claim waits for accepted legacy-venue booking
+PASS busy writer row refuses booking and fresh retry rechecks expired heartbeat
+PASS long-running statement evaluates availability against current wall clock
+PASS writer refresh rejects unverified snapshot isolation: REPEATABLE READ
+PASS booking insertion rejects unverified snapshot isolation: REPEATABLE READ
+PASS writer refresh rejects unverified snapshot isolation: SERIALIZABLE
+PASS booking insertion rejects unverified snapshot isolation: SERIALIZABLE
+PASS expired heartbeat blocks actual booking insertion
+PASS expired heartbeat blocks confirmation of an earlier pending booking
+PASS expired heartbeat blocks rescheduling to new capacity
+PASS offline availability does not block cancelling an existing booking
+PASS omitted lounge cannot bypass offline room guard
+PASS forged lounge cannot bypass room ownership guard
+PASS ordinary cashier cannot bypass offline gate without server proof
+PASS client cannot forge reconciliation transaction proof
+PASS trusted transaction proof allows reviewed reconciliation insertion
+PASS committed proof cannot be reused by another transaction
+PASS canonical active super admin receives effective offline permissions
+PASS canonical super admin uses trusted offline booking proof without a staff grant
+PASS canonical listed super admin receives effective offline permissions
+PASS banned listed super admin cannot issue offline permissions
+PASS banned listed super admin closes online availability
+PASS disabled listed super admin cannot issue offline permissions
+PASS removed platform membership does not leave stale admin permissions
+PASS removed admin membership closes online availability
+PASS identity revocation waits for issuance then closes availability: UPDATE
+PASS identity revocation waits for issuance then closes availability: DELETE
+{"passed":51,"limitations":["Synthetic schema and permission helper","Discovery/checkout/hold responses still need availability wiring","Proof creation here uses admin; actual apply RPC has a separate integrated suite","No hosted writes","Concurrency exercised only on native PostgreSQL"]}

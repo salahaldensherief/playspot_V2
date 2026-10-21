@@ -1,0 +1,5 @@
+Fixture database: 17.11
+PASS ordered, deduplicated lifecycle and extension events with safe payload
+PASS inaccessible booking rejected for 00000000-0000-0000-0000-000000000002
+PASS inaccessible booking rejected for missing session
+PASS anonymous execution denied

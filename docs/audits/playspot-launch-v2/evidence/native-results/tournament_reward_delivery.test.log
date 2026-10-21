@@ -1,0 +1,7 @@
+Fixture database: 17.11
+PASS points delivery follows the ledger; other rewards stay pending
+PASS replaying an existing award repairs its points delivery without another credit
+PASS a placement without a winner cannot be marked delivered
+PASS incomplete tournaments cannot award prizes
+PASS an actor without lounge authority cannot award prizes
+{"passed":5,"liveMutations":false,"productionFunctions":true,"limitations":["Synthetic ledger and permission helper; physical reward fulfillment is not automated"]}

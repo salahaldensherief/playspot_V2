@@ -1,0 +1,938 @@
+[
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/backend/playspot-core-v2",
+    "sha": "87201c8d088458d9b9d18dd090240639a3e6dc85",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/chore/github-hygiene",
+    "sha": "7dc5b83a5ef4aecc69f352541e42381ebe1d04da",
+    "ahead": "31",
+    "patch_absent": 30,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/chore/harden-android-release-signing",
+    "sha": "52c596aff95948c99440eae278c8c918aeff5e52",
+    "ahead": "5",
+    "patch_absent": 4,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/chore/harden-android-release-signing-v2",
+    "sha": "aef74bed310ff00694df74c14ea44dffb22c3dcf",
+    "ahead": "5",
+    "patch_absent": 5,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/chore/platform-hardening-phase-1",
+    "sha": "696963e93f08b5e8f2965261a8cbf824d08aba3e",
+    "ahead": "83",
+    "patch_absent": 81,
+    "patch_equivalent": 2
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/chore/release-build-verification",
+    "sha": "bd2cc252ede7d29305d136b924578b3cf62a9a13",
+    "ahead": "1",
+    "patch_absent": 1,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/ci/verify-mobile-android-release",
+    "sha": "7866b44bbc2c23dbc65746f74e68832c53bcebe3",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/backend-audit",
+    "sha": "b13fa450899f01d5d73e0669c1ed62e64f5a8583",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/booking-canteen-prompt-20261019",
+    "sha": "33c74d183cb6a86c82d41ca11c8c41a936f0382f",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/catalogue-tombstones",
+    "sha": "b53a0b6716a93a8881d78dfe67aa48d14e45cc51",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/complete-playspot",
+    "sha": "b55f3ae72f9e95e588c01e68eea1aa23796a5093",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/live-session-security-20261019",
+    "sha": "6ad4733c149988d455dc9d23bda35513e8cac04c",
+    "ahead": "4",
+    "patch_absent": 4,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/mobile-audit-20261016",
+    "sha": "2bd423a5954ce88825abc8f5eeeb1f48faed0ae3",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/native-fixture-role-20261019",
+    "sha": "82afaf4c45b2d555b97839acdb3da24beaa5c92c",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/codex/review-canteen-dev-20261019",
+    "sha": "034524edb471a97b3a29a145c3528551f0aff7c7",
+    "ahead": "3",
+    "patch_absent": 3,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/dev",
+    "sha": "ca455197568f618285b4f52e1b25bfa52c892eb2",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/feat/lounge-canteen-combo-preview-20261016",
+    "sha": "c15b0f1e78e4fba3b708d33abd7355fd147ee598",
+    "ahead": "11",
+    "patch_absent": 11,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/feature/bridge-backend-contract-20261021",
+    "sha": "f7ad0c756df354728704dcf4ffd320d7ca0908f9",
+    "ahead": "8",
+    "patch_absent": 8,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/feature/bridge-hardware-lab-review-20261021",
+    "sha": "6297a377d4561c6d2af454d09bfb9fad5cc03084",
+    "ahead": "9",
+    "patch_absent": 9,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/active-session-contracts",
+    "sha": "6afb459104e0753c01dff3de3c963082e1cd34ca",
+    "ahead": "25",
+    "patch_absent": 24,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/active-session-rpc-payload",
+    "sha": "0ddf9f844b2bf2ce5c4b8817cc32e7fdc08f1c76",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/app-runtime-coordination",
+    "sha": "2eb815f3f56ac8d3ae0cbd68b2d408a9901a4ba0",
+    "ahead": "28",
+    "patch_absent": 27,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/app-status-canonical-contract",
+    "sha": "76112fd6b41ab89d0cf981e53e8a767dfe707698",
+    "ahead": "6",
+    "patch_absent": 1,
+    "patch_equivalent": 5
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/app-status-schema-contract",
+    "sha": "085f3f8ede18399e4bb30fae5f664cfb9723d358",
+    "ahead": "3",
+    "patch_absent": 3,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/auth-referral-contract",
+    "sha": "2fad7ebca002b1bcd1fad7aec1cadaffe0cefe1a",
+    "ahead": "23",
+    "patch_absent": 22,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/booking-availability-contract",
+    "sha": "aa97c18cd803a7f8875399334f44a5e809f8fa59",
+    "ahead": "25",
+    "patch_absent": 24,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/booking-slot-holds",
+    "sha": "aad0b93b1a69491a0a1efdee9df9e6c3809136d6",
+    "ahead": "39",
+    "patch_absent": 38,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/canteen-menu-availability-20261016",
+    "sha": "25f038d97c89da17db0218832376ed75c4c2f38c",
+    "ahead": "5",
+    "patch_absent": 5,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/compact-photo-button",
+    "sha": "4e0f03e155605585411d883157aadc73f6ded58b",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/discovery-postgis-qualification",
+    "sha": "001e125b420c731b17e78b344cd0d8eb4a98cc73",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/discovery-search-contract",
+    "sha": "c4709317ba95f48b8cd969642e897856bd97688a",
+    "ahead": "31",
+    "patch_absent": 29,
+    "patch_equivalent": 2
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/expired-booking-extension-state-20261016",
+    "sha": "639ef97d6d21da4f73a8b0ea191b8230bde37a39",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/extension-pending-banner-20261016",
+    "sha": "e4cb20324f1f23349956f5006592ae703047d54f",
+    "ahead": "3",
+    "patch_absent": 3,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/loyalty-notification-contract",
+    "sha": "2863a404f3e57261f94e0617b96c100119415f1d",
+    "ahead": "24",
+    "patch_absent": 23,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/notification-preference-delivery",
+    "sha": "89d819307b43dae67bcdb846f8c1b0ce7dae4087",
+    "ahead": "24",
+    "patch_absent": 23,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/p0-canteen-order-rpc",
+    "sha": "3e8e634aba8bce4506f8fc0f6779125bc437f8ff",
+    "ahead": "21",
+    "patch_absent": 20,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/p0-customer-booking-rpcs",
+    "sha": "dcb7b674084307a67d525f09f5c82a6fbaa4308c",
+    "ahead": "23",
+    "patch_absent": 22,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/private-payment-proof-flow",
+    "sha": "f2389db9ca43a30e6646ea87b1726ea38c1252a9",
+    "ahead": "13",
+    "patch_absent": 13,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/promotion-schema-contract",
+    "sha": "de6222aea2e839bb786f0b5fa8cbc88c32441137",
+    "ahead": "20",
+    "patch_absent": 19,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/public-combo-preview-20261016",
+    "sha": "b870ddc2634b40eb0b3a49d312f8627a5b1a2806",
+    "ahead": "13",
+    "patch_absent": 13,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/public-combo-preview-guest-20261016",
+    "sha": "ef23d553fa367815b49b48428ad22405f2bc3c27",
+    "ahead": "10",
+    "patch_absent": 10,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/quick-rebook-canonical-flow",
+    "sha": "88a25c28fb37fe9ce96dec2f687f3ee97d3164a1",
+    "ahead": "62",
+    "patch_absent": 61,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/quick-rebook-canonical-v2",
+    "sha": "4a3f820209b71e4b9e70006fa37f0a4cbf37759f",
+    "ahead": "72",
+    "patch_absent": 71,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/review-cache-persistence-await-20261016",
+    "sha": "bb39758a3a7ea87e03eff6097dfc5105d0d0b0ce",
+    "ahead": "5",
+    "patch_absent": 5,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/review-storage-flush-ci-20261016",
+    "sha": "f7dc4d482dbdf0c0b0fc32453258a848d3cb8a5b",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/runtime-app-status-coordination",
+    "sha": "5e73366ea0ed9785fddd805237c25a20a1582e34",
+    "ahead": "24",
+    "patch_absent": 23,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/server-authoritative-booking-core",
+    "sha": "d98bf98ea1eeaf8ccc7d2516c92d07320c364d04",
+    "ahead": "49",
+    "patch_absent": 48,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/server-booking-checkout-contract",
+    "sha": "4bc9b56a2a60f693fbe75fb153bde705e099732b",
+    "ahead": "49",
+    "patch_absent": 48,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/session-request-integrity",
+    "sha": "67c35c1d235df1cfb1d71774de57e3a7e84fb0c0",
+    "ahead": "20",
+    "patch_absent": 19,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/storage-tournament-contracts",
+    "sha": "e6cd7ecfe2cf42ed2b7cfedd95b63e60985a215a",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/support-rpc-contract",
+    "sha": "cbf70e0b597702fcde06965376e18d8117fe0cf1",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/terminal-booking-extension-state-20261016",
+    "sha": "93d2227db4a8bc9e5a80272c2d2757848dd32f3e",
+    "ahead": "1",
+    "patch_absent": 1,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/terminal-extension-lifecycle-20261016",
+    "sha": "458fbc5bd0e534533596d6708903f7130289ee2c",
+    "ahead": "3",
+    "patch_absent": 3,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/terminal-extension-state-20261016",
+    "sha": "2d6662467bef2318c3a08d4607424332f7ff57b3",
+    "ahead": "3",
+    "patch_absent": 3,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/test-getstorage-backup-channel-lifecycle-20261016",
+    "sha": "68d49099eba40bd1384a68cbb8de09e84aefe9b3",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/tournament-active-participation-query",
+    "sha": "f7cbe06a463ef56db61f5e7ca903c2bf1922d54d",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/fix/tournament-lifecycle-contracts",
+    "sha": "082ffb3d8e57962d90658752343ad7b09b713669",
+    "ahead": "21",
+    "patch_absent": 20,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/handoff/ui-transfer-20260930",
+    "sha": "da77f7985f8fe8236b5a160a5e3c535a63bf4142",
+    "ahead": "1",
+    "patch_absent": 1,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "mobile-dev",
+    "ref": "origin/main",
+    "sha": "34e0366ee1e7e5158e41db1ace715efc7b30c1e9",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/backend_comprehensive_audit_review",
+    "sha": "122fb7ec413b8163c8a985e6e3893ab208462644",
+    "ahead": "3",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/chore/github-hygiene",
+    "sha": "b5c8948cf8d71e00048687b6bca562c5c695a8d6",
+    "ahead": "27",
+    "patch_absent": 26,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/chore/platform-hardening-phase-1",
+    "sha": "aaac7b30e42ca5ca970fdb6b636554ff037b4b98",
+    "ahead": "62",
+    "patch_absent": 62,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/chore/post-hardening-advisor-cleanup",
+    "sha": "f6698fde53e1e08619f6c6c76e03a9b1db12b1c0",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/chore/reconcile-final-live-contracts",
+    "sha": "5404e185c59f87085a93255ea7ec351046b252d6",
+    "ahead": "22",
+    "patch_absent": 22,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/chore/release-build-verification",
+    "sha": "be5efa5da3fea6d67d4abcbd52837b5779816e47",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/ci/release-pr-format-scope",
+    "sha": "fd98681cd31dde2045e73314644fceb005f311e6",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/codex/backend-audit",
+    "sha": "a33526aa294287a480556d0f4708a2dd616181f7",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/codex/complete-play",
+    "sha": "c945529fe67d458ea1713e34caaa5723698068f2",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/codex/review-followups",
+    "sha": "cc2f866943eec49282531f91b9d6218a2700a383",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/codex/session-audit-20261016",
+    "sha": "ebea1248acd8a85b09f26d2ae68c4ad2b1862c03",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/codex/session-start-cycle",
+    "sha": "69f2a3b37e463b2ca56fde0b657b0e622997791f",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/dev",
+    "sha": "a3b9c4bf50fa2b07c6318475a75dbfac2cd5b6c0",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/feat/canteen-combo-validity-ui-20261016",
+    "sha": "f4a52ad254636fdc006e34136a377dba4c15a4a2",
+    "ahead": "12",
+    "patch_absent": 12,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/feature/bridge-onboarding-plan-20261021",
+    "sha": "6896088ccaf3a9d1ee7544a650235ad3c655c35d",
+    "ahead": "29",
+    "patch_absent": 29,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/feature/bridge-security-review-20261021",
+    "sha": "b097814ffe57ccba7c811f5370f6aad106b5861c",
+    "ahead": "30",
+    "patch_absent": 30,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/active-marketing-default",
+    "sha": "0fa929b968960f05501f4163a2402a0e53f98caf",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/analytics-revenue-contract",
+    "sha": "6dd0e59d6f0ac6da11d2f62128fd99f5bb45dd28",
+    "ahead": "14",
+    "patch_absent": 14,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/app-status-canonical-contract",
+    "sha": "cc6b11b4597ad86f14fefd6472c07bd2d6b0ce3f",
+    "ahead": "4",
+    "patch_absent": 3,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/canteen-menu-permissions-20261016",
+    "sha": "ff4d4f6b968e46123253008d05b3c956aba4c1f3",
+    "ahead": "11",
+    "patch_absent": 11,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/ci-secure-promo-rpc-test",
+    "sha": "95f214b65b4c71494e82f410ef8be41f7717f9f7",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/extension-review-no-false-success-20261016",
+    "sha": "aa281e3f9af41fc60e60ea7f8821f76a6c68e829",
+    "ahead": "8",
+    "patch_absent": 8,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/final-runtime-contracts-v4",
+    "sha": "604d9168e0eb5929604207e188bee2cb4d968b96",
+    "ahead": "24",
+    "patch_absent": 24,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/final-security-closure-v3",
+    "sha": "948253ef1441a4f327be62eac947d13bda2f2f91",
+    "ahead": "23",
+    "patch_absent": 23,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/financial-commission-contract",
+    "sha": "6001d16f203239be7a0cb555387e73890fcf568d",
+    "ahead": "16",
+    "patch_absent": 16,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/financial-commission-truth",
+    "sha": "2a1daa6a188d74f0ed6740b6838507d53728acb1",
+    "ahead": "17",
+    "patch_absent": 17,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/kyc-server-authoritative-review",
+    "sha": "15f3661c36e97c462710dad8ab473931c3c7f23b",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/loyalty-real-data-only",
+    "sha": "b82648b7df21c5fdf4acdd44b898982dd52c3c23",
+    "ahead": "15",
+    "patch_absent": 15,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/marketing-promotion-contract",
+    "sha": "6a5f549e786f71e3156e594816b292b16c958da7",
+    "ahead": "23",
+    "patch_absent": 23,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/notification-preference-delivery",
+    "sha": "705c2dae3674ffedcf6c90273b742fd0d42f0833",
+    "ahead": "18",
+    "patch_absent": 18,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-booking-payment-contract",
+    "sha": "483c13a3e6a732b7a5aa7b5b2c7ccbc665f57e8e",
+    "ahead": "23",
+    "patch_absent": 23,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-canteen-order-contract",
+    "sha": "f442fed60a3d49158d14b40f0304955ba07f0e32",
+    "ahead": "15",
+    "patch_absent": 15,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-customer-booking-mutations",
+    "sha": "3ac05ff8493bab07f0907f0344cdc1d8ffffe004",
+    "ahead": "2",
+    "patch_absent": 2,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-live-requests-contract",
+    "sha": "fdb2d7856074c1f48326aa6c3e229901a250f587",
+    "ahead": "18",
+    "patch_absent": 18,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-notification-contract",
+    "sha": "911936b991108989575bbfbe094628a57ec9e9f1",
+    "ahead": "15",
+    "patch_absent": 15,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-permissions-contract",
+    "sha": "7b632ebfcc1a17449c3bbc853d391bab8cdd0f89",
+    "ahead": "30",
+    "patch_absent": 30,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-request-resolution-contract",
+    "sha": "11bdaf2b89c4b17b330a80fbcf7a8ce2a45b0544",
+    "ahead": "18",
+    "patch_absent": 18,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-session-extension-contract",
+    "sha": "6001d16f203239be7a0cb555387e73890fcf568d",
+    "ahead": "16",
+    "patch_absent": 16,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-session-shift-contracts",
+    "sha": "5675736e0530d02255cc35a2327f21c1dca15ce2",
+    "ahead": "16",
+    "patch_absent": 16,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/p0-supabase-security-contracts",
+    "sha": "8bf093f613e15d3187ef66c328abfa8c11cec6b2",
+    "ahead": "7",
+    "patch_absent": 7,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/payout-financial-visibility",
+    "sha": "3f4534e06c21f40993c1b3708b703375be7b1eae",
+    "ahead": "14",
+    "patch_absent": 14,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/room-operational-state-contract",
+    "sha": "fa448358d4739f2a28a6fb6fdcca174812c3e5f4",
+    "ahead": "20",
+    "patch_absent": 20,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/shift-expense-server-authoritative",
+    "sha": "896ac5ff5663e77ce998e59f51defe5e06986aa9",
+    "ahead": "3",
+    "patch_absent": 3,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/storage-security-closure",
+    "sha": "defe1370302ec4cd3a7226300943a4777ac3e6fd",
+    "ahead": "36",
+    "patch_absent": 36,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/storage-security-closure-v2",
+    "sha": "3cace74d19b6e63fc850c01db44622ed9c98277a",
+    "ahead": "4",
+    "patch_absent": 4,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/support-server-authoritative",
+    "sha": "1ad150d34d36bd30a6a30019287ced667a898ae2",
+    "ahead": "4",
+    "patch_absent": 4,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/support-server-contracts",
+    "sha": "95a275262865b2cd129baead605b32e5ef21e457",
+    "ahead": "3",
+    "patch_absent": 3,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix/tournament-admin-contracts",
+    "sha": "711fa8154ce9b8922feb1192bbee8bc314586ff0",
+    "ahead": "21",
+    "patch_absent": 21,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/fix_dashboard_bookings_auth",
+    "sha": "4c3fa647d610d7291fe819a7e30b15ee719bdfe5",
+    "ahead": "1",
+    "patch_absent": 1,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/main",
+    "sha": "7573b62b8dce7a556059dba09ab2d964b81562d2",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/offline_cashier_conflict_resolution",
+    "sha": "37a12c56ff4bf03b2e9b1d388301a081f67a57db",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/release/reconcile-main-history",
+    "sha": "84a5b50b6f1effe6d98e931cbaf07fbd45eac9e1",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/release/track-booking-receipt-binding",
+    "sha": "cb653c7c10ff8b810ec6d5fadf626b370b3fe51b",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/responsive_dashboard_ui_redesign",
+    "sha": "018bc0b1388c092fac592e0a213f9786bf3f0efa",
+    "ahead": "1",
+    "patch_absent": 1,
+    "patch_equivalent": 0
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/security/bind-booking-receipt-reference",
+    "sha": "b2beb908dfb758ecc55b2e560ebafbc4b43a12d6",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/security/close-legacy-review-rpc",
+    "sha": "22dd1c2f32bd0b4798a033298bbd0156d9259856",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/security/tournament-participant-read-scope",
+    "sha": "3a101ac5e9f7952e26164c457606558d5f00c815",
+    "ahead": "1",
+    "patch_absent": 0,
+    "patch_equivalent": 1
+  },
+  {
+    "repo": "dashboard-current",
+    "ref": "origin/supabase_access_check",
+    "sha": "9a1ff9a10290e094f76b7dcdf50d703eabbef121",
+    "ahead": "0",
+    "patch_absent": 0,
+    "patch_equivalent": 0
+  }
+]

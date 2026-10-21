@@ -1,0 +1,2 @@
+# Retain the actual synthetic test and build logs in this audit package.
+!*.log

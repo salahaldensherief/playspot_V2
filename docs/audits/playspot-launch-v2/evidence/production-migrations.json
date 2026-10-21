@@ -1,0 +1,528 @@
+{
+  "migrations": [
+    {
+      "version": "20260927173630",
+      "name": "harden_sensitive_rpc_execution"
+    },
+    {
+      "version": "20260927173633",
+      "name": "add_authoritative_booking_discount_rpc"
+    },
+    {
+      "version": "20260927173636",
+      "name": "lock_customer_booking_mutations"
+    },
+    {
+      "version": "20260927173639",
+      "name": "normalize_permission_contracts"
+    },
+    {
+      "version": "20260927173641",
+      "name": "align_dashboard_revenue_contracts"
+    },
+    {
+      "version": "20260927173643",
+      "name": "harden_user_notification_rpc"
+    },
+    {
+      "version": "20260927173651",
+      "name": "lock_canteen_order_creation"
+    },
+    {
+      "version": "20260927173653",
+      "name": "restrict_payout_visibility_to_financial_managers"
+    },
+    {
+      "version": "20260927173655",
+      "name": "align_tournament_admin_commands"
+    },
+    {
+      "version": "20260927174901",
+      "name": "harden_sensitive_rpc_execution"
+    },
+    {
+      "version": "20260927174918",
+      "name": "20260927000008_booking_availability_contract"
+    },
+    {
+      "version": "20260927174921",
+      "name": "20260927000010_real_booking_holds"
+    },
+    {
+      "version": "20260927174923",
+      "name": "20260927000011_server_authoritative_booking_checkout"
+    },
+    {
+      "version": "20260927175005",
+      "name": "dash_53_authoritative_booking_discount"
+    },
+    {
+      "version": "20260927175010",
+      "name": "dash_55_normalize_permission_contracts"
+    },
+    {
+      "version": "20260927175012",
+      "name": "dash_56_harden_user_notification_rpc"
+    },
+    {
+      "version": "20260927175014",
+      "name": "dash_56_align_dashboard_revenue_contracts"
+    },
+    {
+      "version": "20260927175017",
+      "name": "dash_57_restrict_payout_visibility"
+    },
+    {
+      "version": "20260927175021",
+      "name": "dash_57_lock_canteen_order_creation"
+    },
+    {
+      "version": "20260927175023",
+      "name": "dash_58_session_extension"
+    },
+    {
+      "version": "20260927175025",
+      "name": "dash_58_tournament_admin_commands"
+    },
+    {
+      "version": "20260927175027",
+      "name": "dash_59_live_request_resolution"
+    },
+    {
+      "version": "20260927175049",
+      "name": "dash_54_lock_customer_booking_mutations_idempotent"
+    },
+    {
+      "version": "20260927175055",
+      "name": "dash_59_system_announcement_delivery"
+    },
+    {
+      "version": "20260927175057",
+      "name": "dash_60_canonical_promotion_rpc"
+    },
+    {
+      "version": "20260927175100",
+      "name": "dash_60_platform_commission_truth"
+    },
+    {
+      "version": "20260927175102",
+      "name": "dash_61_room_operational_state"
+    },
+    {
+      "version": "20260927175123",
+      "name": "mobile_05_loyalty_notification_contract"
+    },
+    {
+      "version": "20260927175127",
+      "name": "mobile_06_active_session_commands"
+    },
+    {
+      "version": "20260927175132",
+      "name": "mobile_09_tournament_result_integrity"
+    },
+    {
+      "version": "20260927175135",
+      "name": "mobile_10_referral_claim_contract"
+    },
+    {
+      "version": "20260927175148",
+      "name": "mobile_07_discovery_contract_postgis_qualified"
+    },
+    {
+      "version": "20260927180020",
+      "name": "post_hardening_advisor_cleanup"
+    },
+    {
+      "version": "20260927181528",
+      "name": "storage_security_closure"
+    },
+    {
+      "version": "20260927182147",
+      "name": "scope_public_asset_uploads"
+    },
+    {
+      "version": "20260927183141",
+      "name": "canonical_promotion_mutations"
+    },
+    {
+      "version": "20260927183341",
+      "name": "harden_legacy_booking_total"
+    },
+    {
+      "version": "20260927183825",
+      "name": "realtime_rls_scope_closure"
+    },
+    {
+      "version": "20260927183844",
+      "name": "canonical_app_status_contract"
+    },
+    {
+      "version": "20260927183927",
+      "name": "storage_asset_write_scope_closure"
+    },
+    {
+      "version": "20260927184133",
+      "name": "notification_settings_rls_closure"
+    },
+    {
+      "version": "20260927184301",
+      "name": "booking_reminder_timezone_contract"
+    },
+    {
+      "version": "20260927184440",
+      "name": "kyc_document_reference_contract"
+    },
+    {
+      "version": "20260927184623",
+      "name": "storage_policy_reconciliation"
+    },
+    {
+      "version": "20260927184926",
+      "name": "canonical_system_settings_commands"
+    },
+    {
+      "version": "20260927190138",
+      "name": "canonical_support_admin_commands"
+    },
+    {
+      "version": "20260927194419",
+      "name": "bind_booking_receipt_reference_to_owner"
+    },
+    {
+      "version": "20260928061105",
+      "name": "fix_booking_checkout_quote_uuid_aggregate"
+    },
+    {
+      "version": "20260928173858",
+      "name": "fix_booking_shift_and_loyalty_integrity"
+    },
+    {
+      "version": "20260928174707",
+      "name": "enforce_shift_driven_lounge_availability"
+    },
+    {
+      "version": "20260928175426",
+      "name": "fix_checkout_generated_duration_hours"
+    },
+    {
+      "version": "20260928181034",
+      "name": "canonical_manual_booking_review"
+    },
+    {
+      "version": "20260928224033",
+      "name": "booking_waitlist_notify_me"
+    },
+    {
+      "version": "20260928224529",
+      "name": "booking_waitlist_lounge_index"
+    },
+    {
+      "version": "20260928224949",
+      "name": "open_time_sessions"
+    },
+    {
+      "version": "20260929110324",
+      "name": "gate_booking_loyalty_on_paid_completion"
+    },
+    {
+      "version": "20261003103608",
+      "name": "live_security_boundaries"
+    },
+    {
+      "version": "20261003104630",
+      "name": "live_versioned_onboarding_kyc"
+    },
+    {
+      "version": "20261003110859",
+      "name": "owner_auth_provisioning"
+    },
+    {
+      "version": "20261003111319",
+      "name": "promotion_delete_scope"
+    },
+    {
+      "version": "20261003191935",
+      "name": "owner_lounge_contact_fields_v2"
+    },
+    {
+      "version": "20261004021519",
+      "name": "shift_close_authorization"
+    },
+    {
+      "version": "20261004022323",
+      "name": "lounge_shift_close_authorization"
+    },
+    {
+      "version": "20261004030325",
+      "name": "unified_audit_read_contract"
+    },
+    {
+      "version": "20261004035454",
+      "name": "room_active_session_invariants"
+    },
+    {
+      "version": "20261004132112",
+      "name": "coordinated_offline_cashier_protocol"
+    },
+    {
+      "version": "20261004151006",
+      "name": "cashier_writer_generation_handover"
+    },
+    {
+      "version": "20261004153152",
+      "name": "lounge_public_operating_status"
+    },
+    {
+      "version": "20261004154405",
+      "name": "offline_booking_hold_guard"
+    },
+    {
+      "version": "20261004194130",
+      "name": "pending_owner_onboarding_access"
+    },
+    {
+      "version": "20261005032358",
+      "name": "cashier_conflict_review_retry"
+    },
+    {
+      "version": "20261005061225",
+      "name": "fix_deleted_lounge_payment_requirement"
+    },
+    {
+      "version": "20261005090246",
+      "name": "20261005120500_consolidate_update_user_points"
+    },
+    {
+      "version": "20261005090913",
+      "name": "20261005121500_secure_start_session_payment_check"
+    },
+    {
+      "version": "20261005091301",
+      "name": "20261005122000_remove_pos_payment_method_from_rpc"
+    },
+    {
+      "version": "20261005091749",
+      "name": "20261005122500_consolidate_redundant_rls_policies"
+    },
+    {
+      "version": "20261005092151",
+      "name": "20261005123000_consume_voucher_in_payment_completion"
+    },
+    {
+      "version": "20261005120408",
+      "name": "20261005123500_support_custom_cost_extension_approval"
+    },
+    {
+      "version": "20261005120750",
+      "name": "20261005124000_add_missing_fk_indexes"
+    },
+    {
+      "version": "20261006232519",
+      "name": "discovery_activity_contract"
+    },
+    {
+      "version": "20261006233545",
+      "name": "lounge_booking_room_catalog"
+    },
+    {
+      "version": "20261006233711",
+      "name": "lounge_booking_room_catalog"
+    },
+    {
+      "version": "20261006235603",
+      "name": "loyalty_dashboard_aggregate_contract"
+    },
+    {
+      "version": "20261007000112",
+      "name": "room_management_contract"
+    },
+    {
+      "version": "20261007001006",
+      "name": "admin_account_deactivation"
+    },
+    {
+      "version": "20261007001628",
+      "name": "server_authoritative_manual_booking"
+    },
+    {
+      "version": "20261007002254",
+      "name": "permission_delegation_boundaries"
+    },
+    {
+      "version": "20261007002831",
+      "name": "promotion_history_and_reshare"
+    },
+    {
+      "version": "20261007003113",
+      "name": "broadcast_notification_contract"
+    },
+    {
+      "version": "20261007003344",
+      "name": "tournament_prize_save_contract"
+    },
+    {
+      "version": "20261007003448",
+      "name": "redemption_option_admin_contract"
+    },
+    {
+      "version": "20261007003704",
+      "name": "canteen_combo_and_upsell_contract"
+    },
+    {
+      "version": "20261007004158",
+      "name": "pricing_engine_contract"
+    },
+    {
+      "version": "20261007004322",
+      "name": "checkout_pricing_rule_integration_v2"
+    },
+    {
+      "version": "20261007054504",
+      "name": "lounge_column_update_boundaries"
+    },
+    {
+      "version": "20261007054623",
+      "name": "onboarding_activity_room_contract"
+    },
+    {
+      "version": "20261007054936",
+      "name": "extra_management_contract"
+    },
+    {
+      "version": "20261007055426",
+      "name": "moderation_request_scope_contract"
+    },
+    {
+      "version": "20261007094837",
+      "name": "pricing_permission_contract"
+    },
+    {
+      "version": "20261007095242",
+      "name": "revoke_anon_super_admin_probe"
+    },
+    {
+      "version": "20261007095406",
+      "name": "scoped_mutation_policy_hardening"
+    },
+    {
+      "version": "20261007095647",
+      "name": "tournament_point_delivery_status"
+    },
+    {
+      "version": "20261007103018",
+      "name": "checkout_voucher_allocation_and_price_stability"
+    },
+    {
+      "version": "20261007103019",
+      "name": "canteen_combo_order_integrity"
+    },
+    {
+      "version": "20261007103029",
+      "name": "pricing_weekly_conflict_integrity"
+    },
+    {
+      "version": "20261007114816",
+      "name": "client_request_contract_completion"
+    },
+    {
+      "version": "20261007115950",
+      "name": "approved_extension_payment_integrity"
+    },
+    {
+      "version": "20261009000001",
+      "name": "booking_hold_occupied_room_capacity"
+    },
+    {
+      "version": "20261009000002",
+      "name": "cashier_writer_renewal_without_mode_change"
+    },
+    {
+      "version": "20261009000003",
+      "name": "points_balance_active_account_authority"
+    },
+    {
+      "version": "20261009000004",
+      "name": "account_anonymization_transaction"
+    },
+    {
+      "version": "20261009000005",
+      "name": "checkout_room_booking_eligibility"
+    },
+    {
+      "version": "20261009220800",
+      "name": "security_and_perf_safe_fixes_v2"
+    },
+    {
+      "version": "20261010120058",
+      "name": "eligible_legacy_lounge_access"
+    },
+    {
+      "version": "20261010120419",
+      "name": "durable_auth_disable_recovery"
+    },
+    {
+      "version": "20261010121841",
+      "name": "shift_rpc_write_boundary"
+    },
+    {
+      "version": "20261010123112",
+      "name": "blind_shift_read_boundary"
+    },
+    {
+      "version": "20261010131519",
+      "name": "eligible_canonical_lounge_authorization"
+    },
+    {
+      "version": "20261010134409",
+      "name": "eligible_booking_hold_and_checkout_actor"
+    },
+    {
+      "version": "20261011060637",
+      "name": "atomic_staff_provisioning"
+    },
+    {
+      "version": "20261011120000",
+      "name": "fix_residual_backend_issues"
+    },
+    {
+      "version": "20261011130000",
+      "name": "fix_cashier_writer_handover_and_online_availability"
+    },
+    {
+      "version": "20261011133000",
+      "name": "resolve_rpc_overload_ambiguities"
+    },
+    {
+      "version": "20261016142532",
+      "name": "canteen_catalogue_deletion_tombstones"
+    },
+    {
+      "version": "20261016142626",
+      "name": "public_guest_canteen_combo_preview"
+    },
+    {
+      "version": "20261016145451",
+      "name": "expire_terminal_booking_extension_requests"
+    },
+    {
+      "version": "20261016154900",
+      "name": "tournament_scoped_roster_read"
+    },
+    {
+      "version": "20261019212746",
+      "name": "live_request_ownership_and_resolution"
+    },
+    {
+      "version": "20261019212750",
+      "name": "live_session_visit_number"
+    },
+    {
+      "version": "20261020123340",
+      "name": "live_booking_read_permissions"
+    },
+    {
+      "version": "20261020133056",
+      "name": "sync_lounge_review_summary"
+    }
+  ]
+}

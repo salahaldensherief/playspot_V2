@@ -1,0 +1,14 @@
+Fixture database: 17.11
+PASS client cannot invoke service provisioning
+PASS legacy SQL Auth writer is retired
+PASS customer actor cannot provision owners
+PASS disabled registered super admin is denied
+PASS banned registered super admin is denied
+PASS self reassignment is rejected
+PASS owner account can enter onboarding while venue stays inactive
+PASS another administrator cannot replay provisioning
+PASS existing staff accounts are never reassigned
+PASS clients cannot read provisioning audit records
+PASS provisioning retry cannot reactivate a moderated owner
+PASS v1 also separates account access from venue approval
+{"passed":21,"liveMutations":false,"fixtureSchema":true}

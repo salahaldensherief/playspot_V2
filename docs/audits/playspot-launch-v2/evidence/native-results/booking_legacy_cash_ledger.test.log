@@ -1,0 +1,10 @@
+Fixture database: 17.11
+PASS legacy cash with the EGP130 gap requires reconciliation
+PASS matching legacy cash is accepted without fabricating a receipt
+PASS a receipt cannot hide an inconsistent cash ledger
+PASS cash ledger rows from another lounge do not count
+PASS noncash completed payments retain their existing contract
+PASS an unpaid booking without any collection returns zero
+PASS a paid summary without a payment is not evidence of collection
+PASS ordinary clients cannot invoke the private collection helper
+{"passed":8,"synthetic":true,"hostedConnections":0}

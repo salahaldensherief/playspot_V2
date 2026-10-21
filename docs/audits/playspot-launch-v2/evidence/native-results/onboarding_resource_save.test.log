@@ -1,0 +1,15 @@
+Fixture database: 17.11
+PASS anonymous resource save
+PASS cross-owner resource save
+PASS resources need stable IDs
+PASS duplicate room intent rejected
+PASS negative resource price rejected
+PASS nonfinite resource price rejected
+PASS whole draft and resources saved
+PASS exact retry does not duplicate resources
+PASS foreign resource cannot be reassigned
+PASS editing room pricing preserves maintenance state
+PASS omitted resource with future booking cannot disappear
+PASS removed draft resources are retained but disabled
+PASS later extra failure rolls back lounge and room changes
+{"passed":13,"limitations":["Synthetic schema; live triggers/RLS not mirrored","PostGIS stubbed","Single connection, no concurrency proof","No live mutations"]}

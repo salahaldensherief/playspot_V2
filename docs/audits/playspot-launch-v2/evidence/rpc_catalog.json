@@ -1,0 +1,2407 @@
+[
+  {
+    "schema": "public",
+    "name": "archive_canteen_catalogue_item",
+    "identity_args": "p_kind text, p_id uuid",
+    "args": "p_kind text, p_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "2206330367246b6d1b0eab57f17497a1e931dab6bd2b619a7b22d5af012e9146"
+  },
+  {
+    "schema": "public",
+    "name": "get_tournament_participant_names",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "TABLE(participant_id uuid, user_id uuid, user_name text)",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "e6c92af79c2fde995ca78d53695b1d04adebee67ff60772a983ebb0b791291df"
+  },
+  {
+    "schema": "public",
+    "name": "mark_payout_paid",
+    "identity_args": "p_payout_id uuid, p_notes text",
+    "args": "p_payout_id uuid, p_notes text DEFAULT NULL::text",
+    "result": "void",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "39c62cf286c6eedc7aa06c2c3991811088560e28d9b693dbff6667c36034a09f"
+  },
+  {
+    "schema": "public",
+    "name": "extend_booking_session",
+    "identity_args": "p_booking_id uuid, p_additional_minutes integer, p_additional_cost numeric",
+    "args": "p_booking_id uuid, p_additional_minutes integer, p_additional_cost numeric DEFAULT NULL::numeric",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ef80a80902d849bd3437fc3a1c4f220468b0b1c25e5a1caa11d3ef87818eb36b"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_role_permissions_page",
+    "identity_args": "p_lounge_id uuid, p_page integer, p_page_size integer",
+    "args": "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 50",
+    "result": "TABLE(data jsonb, total_count bigint, page integer, page_size integer)",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "cd49a682e10669619fa762fe83606108c05005b3db6ca9e67cadb0c8a4b69c05"
+  },
+  {
+    "schema": "public",
+    "name": "get_live_bookings_with_items",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "f17cdb67d611d23a06d17f39ad29c76ae81b264463756837a3e5a9a43eb8e761"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_live_shift_overview",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "61398ed73c6be6688d72a4016b8b1a21f2b18ba8e8280cfe9e7a9edc4bd7a216"
+  },
+  {
+    "schema": "public",
+    "name": "get_active_promos",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid DEFAULT NULL::uuid",
+    "result": "SETOF promotions",
+    "security_definer": false,
+    "config": [
+      "search_path=public, auth, extensions, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8971eace3188b170ba72e756187fdf78fe780144364c6af3e86c42fbf637adbb"
+  },
+  {
+    "schema": "public",
+    "name": "update_booking_status_admin",
+    "identity_args": "p_booking_id uuid, p_status text",
+    "args": "p_booking_id uuid, p_status text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "b717aa7f31e8f54016a08ac4c6476ace246548020779f3782e46e1771c735649"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_review_authors",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "TABLE(user_id uuid, full_name text, avatar_url text)",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "e1db2f772ea73e243de8e4958246cad6ac72793856cdf94b83c8f56aefe6ef07"
+  },
+  {
+    "schema": "public",
+    "name": "get_top_lounges_by_revenue",
+    "identity_args": "limit_count integer",
+    "args": "limit_count integer DEFAULT 10",
+    "result": "TABLE(lounge_id uuid, lounge_name text, total_revenue numeric, bookings_count bigint)",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "fb67db55a70a3f29acab31e94f6485e2c7d125fb2935ee07b0c53f59ec7e54be"
+  },
+  {
+    "schema": "public",
+    "name": "create_tournament",
+    "identity_args": "p_lounge_id uuid, p_city_id uuid, p_title_ar text, p_title_en text, p_game_name text, p_bracket_size integer, p_max_participants integer, p_entry_fee numeric, p_registration_opens_at timestamp with time zone, p_registration_closes_at timestamp with time zone, p_payment_deadline_minutes integer, p_check_in_opens_at timestamp with time zone, p_check_in_closes_at timestamp with time zone, p_tournament_starts_at timestamp with time zone",
+    "args": "p_lounge_id uuid, p_city_id uuid, p_title_ar text, p_title_en text, p_game_name text, p_bracket_size integer, p_max_participants integer, p_entry_fee numeric, p_registration_opens_at timestamp with time zone, p_registration_closes_at timestamp with time zone, p_payment_deadline_minutes integer, p_check_in_opens_at timestamp with time zone, p_check_in_closes_at timestamp with time zone, p_tournament_starts_at timestamp with time zone",
+    "result": "tournaments",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "6b35d895ebb2d50ae82372240a89f22b723ff0d29e52b371eb05352c02e7235b"
+  },
+  {
+    "schema": "public",
+    "name": "redeem_points",
+    "identity_args": "p_user_id uuid, p_redemption_option_id uuid",
+    "args": "p_user_id uuid, p_redemption_option_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, extensions, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "5213ae3bdc3e01ec65280bd728b624273ceec0a87037bc2f597faeaa23b25d14"
+  },
+  {
+    "schema": "public",
+    "name": "delete_draft_tournament",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "boolean",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "7cdafce07716086854d4084ad7cc0425408bd7d9fc32d2160330cc338ddb8517"
+  },
+  {
+    "schema": "public",
+    "name": "resolve_live_request",
+    "identity_args": "p_request_type text, p_request_id uuid",
+    "args": "p_request_type text, p_request_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "4330edc06e93f4fe1f3cf9ac17e2163a5b310a4bc1a2ad17c4de23d1d45e6c39"
+  },
+  {
+    "schema": "public",
+    "name": "get_active_lounge_requests_page",
+    "identity_args": "p_lounge_id uuid, p_page integer, p_page_size integer",
+    "args": "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 20",
+    "result": "TABLE(data jsonb, total_count bigint, page integer, page_size integer)",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "13b89f94e2f4a43c5dec08442e7be5fbf089150a7e408dc3c6bb44b6551b62fd"
+  },
+  {
+    "schema": "public",
+    "name": "swap_booking_room",
+    "identity_args": "p_booking_id uuid, p_new_room_id uuid, p_actor_id uuid",
+    "args": "p_booking_id uuid, p_new_room_id uuid, p_actor_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "23b8ccc033ecaa28c04c0a8619a2006d793f7db2235f64f20d1a74d7eb661271"
+  },
+  {
+    "schema": "public",
+    "name": "update_role_permission",
+    "identity_args": "p_role text, p_permission_key text, p_is_enabled boolean, p_lounge_id uuid",
+    "args": "p_role text, p_permission_key text, p_is_enabled boolean, p_lounge_id uuid DEFAULT NULL::uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "7ac68fb119157056bda8807237f25ffbcf9bde029c750aa7885bc31c3bb1a509"
+  },
+  {
+    "schema": "public",
+    "name": "send_user_notification",
+    "identity_args": "p_user_id uuid, p_title_ar text, p_title_en text, p_body_ar text, p_body_en text, p_type text, p_metadata jsonb",
+    "args": "p_user_id uuid, p_title_ar text, p_title_en text, p_body_ar text, p_body_en text, p_type text, p_metadata jsonb DEFAULT '{}'::jsonb",
+    "result": "uuid",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "d1d35b932d3cf219e8c322f798fc9009cbea8b0f1d23a132117d65501ecae038"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_owner_dashboard_stats",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "d1b2a75c888605d587edb101973e895bb868a755686a40152b1356f21912a766"
+  },
+  {
+    "schema": "public",
+    "name": "review_tournament_payment_for_participant",
+    "identity_args": "p_participant_id uuid, p_approved boolean, p_reason text",
+    "args": "p_participant_id uuid, p_approved boolean, p_reason text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "714d5e75f89731dfc78cbc171a0b99f36537bc9a5e511f6688d9956b817f644e"
+  },
+  {
+    "schema": "public",
+    "name": "approve_booking_extension",
+    "identity_args": "p_booking_id uuid, p_additional_cost numeric, p_payment_method text",
+    "args": "p_booking_id uuid, p_additional_cost numeric DEFAULT NULL::numeric, p_payment_method text DEFAULT 'cash'::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "c1f0c0acd8061f0f5e6256a1d8743e460312d6b299189ba26ead0b053db06db1"
+  },
+  {
+    "schema": "public",
+    "name": "resolve_payout_review",
+    "identity_args": "p_payout_id uuid, p_resolution text, p_reason text",
+    "args": "p_payout_id uuid, p_resolution text, p_reason text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "588101c7518993b6c37e1181c5ea676c091f4c3c29bf1241878dceeeb4094d08"
+  },
+  {
+    "schema": "public",
+    "name": "consume_voucher_by_code",
+    "identity_args": "p_code text, p_booking_id uuid",
+    "args": "p_code text, p_booking_id uuid",
+    "result": "boolean",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "7907f6ad73f0333c9a82350742637fe1cb3efcabb20250ba9bcc03350585e7c1"
+  },
+  {
+    "schema": "public",
+    "name": "get_my_profile",
+    "identity_args": "p_user_id uuid",
+    "args": "p_user_id uuid DEFAULT NULL::uuid",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "962f60782e2fb9ad16978630189fcab42e01b6e04599a54bac04fc93a9159af4"
+  },
+  {
+    "schema": "public",
+    "name": "start_payout_processing",
+    "identity_args": "p_payout_id uuid",
+    "args": "p_payout_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "9d6881412f8914f71e40907f886037bfa7f7faeabd4ec777b5c2c0c168bd9d7a"
+  },
+  {
+    "schema": "public",
+    "name": "confirm_match_result",
+    "identity_args": "p_match_id uuid",
+    "args": "p_match_id uuid",
+    "result": "tournament_matches",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "afa2b78eef9493d512439c0358c5d703dbdeef359325c00e1c0ca2ca9db4c3be"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_price_range",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "15c9fa107dd9f0eca174a8a8757914ee45781bdae059868a9ba3e1534eec14cf"
+  },
+  {
+    "schema": "public",
+    "name": "get_pending_payouts_overview",
+    "identity_args": "",
+    "args": "",
+    "result": "TABLE(lounge_id uuid, lounge_name text, pending_amount numeric, total_transactions bigint)",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "5c9249a9651cd8a63620fc3df470e9b2ee19c70ea4076cb5a6a6415f2c94cc78"
+  },
+  {
+    "schema": "public",
+    "name": "complete_tournament",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "tournaments",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2b9eefdea06a5241c629ec0e9ace37df1f762a1aa279df432e563678598a649f"
+  },
+  {
+    "schema": "public",
+    "name": "mark_notification_read",
+    "identity_args": "p_notification_id uuid",
+    "args": "p_notification_id uuid",
+    "result": "boolean",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "e18976b4070bc5a5921084f50d3a45460f5c1fd7effcae9e4589451e60a86dc6"
+  },
+  {
+    "schema": "public",
+    "name": "get_active_session_details",
+    "identity_args": "",
+    "args": "",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, extensions"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "b626cdfe93fb1bc2b45386aa795a355eb9c21e9bf79f7f6ec897e45bc9cfbb61"
+  },
+  {
+    "schema": "public",
+    "name": "mark_all_notifications_read",
+    "identity_args": "",
+    "args": "",
+    "result": "integer",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "41c5f390c31e84876fb0acbc12b60db5aee98278a6852d9f3ee135a410210547"
+  },
+  {
+    "schema": "public",
+    "name": "get_my_vouchers",
+    "identity_args": "",
+    "args": "",
+    "result": "TABLE(id uuid, code text, reward_type text, reward_value numeric, status text, expires_at timestamp with time zone, used_at timestamp with time zone)",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "7b60d4ec9f513b9b81b6379e0902103d8837e551ab84a0825e875e7234a739fc"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_bookings_page",
+    "identity_args": "p_lounge_id uuid, p_page integer, p_page_size integer",
+    "args": "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 20",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "5f168a079300e0b6836b0ea048a3e49265fec8b5fdb09dc09f55ebfec4ec50e9"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_reviews_page",
+    "identity_args": "p_lounge_id uuid, p_page integer, p_page_size integer",
+    "args": "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 20",
+    "result": "TABLE(data jsonb, total_count bigint, page integer, page_size integer)",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "cf5415602a4fa024f56291574bf607b7decb39eea9f423e057ee1b4f6387d592"
+  },
+  {
+    "schema": "public",
+    "name": "add_shift_expense",
+    "identity_args": "p_shift_id uuid, p_amount numeric, p_reason text, p_type text",
+    "args": "p_shift_id uuid, p_amount numeric, p_reason text, p_type text DEFAULT 'expense'::text",
+    "result": "shift_expenses",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "80f78304da94181a4ab5218cd21fc2bc41fa00214a30090446e8a288532ebedf"
+  },
+  {
+    "schema": "public",
+    "name": "publish_tournament",
+    "identity_args": "p_tournament_id uuid, p_open boolean",
+    "args": "p_tournament_id uuid, p_open boolean",
+    "result": "tournaments",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "1c65d74a484e787946f9aa7ad59a8d191aa56aca65b2cd4b6c4a03d8cbed61ef"
+  },
+  {
+    "schema": "public",
+    "name": "check_room_availability_local",
+    "identity_args": "p_room_id uuid, p_start_time timestamp without time zone, p_end_time timestamp without time zone",
+    "args": "p_room_id uuid, p_start_time timestamp without time zone, p_end_time timestamp without time zone",
+    "result": "boolean",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ef0340ddc4218d272ae45fa31a5d9a2fcbc24a7efc448d6b12d016ba9ba6cc1e"
+  },
+  {
+    "schema": "public",
+    "name": "acquire_booking_hold",
+    "identity_args": "p_room_ids uuid[], p_start_at timestamp without time zone, p_end_at timestamp without time zone, p_hold_minutes integer",
+    "args": "p_room_ids uuid[], p_start_at timestamp without time zone, p_end_at timestamp without time zone, p_hold_minutes integer DEFAULT 10",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "079804c18dfaf71faa9e7a6861fc2ed7d32df9c5391a1e43b9446f7d854c285f"
+  },
+  {
+    "schema": "public",
+    "name": "get_revenue_over_time",
+    "identity_args": "p_lounge_id uuid, p_period text",
+    "args": "p_lounge_id uuid DEFAULT NULL::uuid, p_period text DEFAULT 'month'::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "1942d57561639f700b7e4489e08adbe6e00a61b89a88b7637870f3796df8cfa0"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_review_requests",
+    "identity_args": "",
+    "args": "",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2136a4daede9fe03997c7946e29eca285509a8b5bc912fa6b5bc6da6892b5e25"
+  },
+  {
+    "schema": "public",
+    "name": "update_lounge_staff_member",
+    "identity_args": "p_target_user_id uuid, p_full_name text, p_phone text, p_role text",
+    "args": "p_target_user_id uuid, p_full_name text DEFAULT NULL::text, p_phone text DEFAULT NULL::text, p_role text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8810cbad91bb252f919e085289a831e5586cc17746740ea0ce2675340fc0b971"
+  },
+  {
+    "schema": "public",
+    "name": "onboard_lounge",
+    "identity_args": "p_name text, p_city text, p_lat double precision, p_lng double precision, p_location text, p_opens_at text, p_closes_at text, p_image_url text, p_description_ar text, p_description_en text, p_images text[]",
+    "args": "p_name text, p_city text, p_lat double precision, p_lng double precision, p_location text, p_opens_at text, p_closes_at text, p_image_url text DEFAULT NULL::text, p_description_ar text DEFAULT NULL::text, p_description_en text DEFAULT NULL::text, p_images text[] DEFAULT NULL::text[]",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "290d2bdff70d56ae460a2fc070725787aef0b1758312e5ef916c81f280c23f0b"
+  },
+  {
+    "schema": "public",
+    "name": "review_lounge_request",
+    "identity_args": "p_request_id uuid, p_revision integer, p_approve boolean, p_notes text",
+    "args": "p_request_id uuid, p_revision integer, p_approve boolean, p_notes text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2fa92f896851855b9e404789e40eea8d6658bfcdb8db6d97eeaf07834a82f1f9"
+  },
+  {
+    "schema": "public",
+    "name": "quote_my_booking_checkout",
+    "identity_args": "p_hold_token uuid, p_room_requests jsonb, p_extra_items jsonb, p_voucher_code text",
+    "args": "p_hold_token uuid, p_room_requests jsonb, p_extra_items jsonb DEFAULT '[]'::jsonb, p_voucher_code text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "93bc902203e51043cb81689d2e09e24cdec5856d1c1c6eb618a9aa639100f3be"
+  },
+  {
+    "schema": "public",
+    "name": "get_my_permissions",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid DEFAULT NULL::uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "18676bd77bda5c915da602a72313ad22629420b2f49801ee7c5c1e0117355837"
+  },
+  {
+    "schema": "public",
+    "name": "check_in_tournament_participant",
+    "identity_args": "p_participant_id uuid",
+    "args": "p_participant_id uuid",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "e9f730b4a40d510cd6e7dfbac028109da5f398d0942041806718f959f7eb4260"
+  },
+  {
+    "schema": "public",
+    "name": "create_my_booking_checkout",
+    "identity_args": "p_hold_token uuid, p_room_requests jsonb, p_extra_items jsonb, p_voucher_code text, p_payment_method text, p_sender_wallet_phone text, p_receipt_url text",
+    "args": "p_hold_token uuid, p_room_requests jsonb, p_extra_items jsonb DEFAULT '[]'::jsonb, p_voucher_code text DEFAULT NULL::text, p_payment_method text DEFAULT 'cash'::text, p_sender_wallet_phone text DEFAULT NULL::text, p_receipt_url text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "d44ac843d4ab28d1c3b1e8bc87658ee0c8d99b941767b6d10163e9d782ce32a7"
+  },
+  {
+    "schema": "public",
+    "name": "approve_lounge_ban_request",
+    "identity_args": "p_request_id uuid, p_admin_notes text",
+    "args": "p_request_id uuid, p_admin_notes text DEFAULT NULL::text",
+    "result": "user_ban_requests",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "fbd5919e1c538f5bbd260ca9854bca989b32c4e1f745242289e636393fdefc37"
+  },
+  {
+    "schema": "public",
+    "name": "approve_global_ban_request",
+    "identity_args": "p_request_id uuid, p_admin_notes text",
+    "args": "p_request_id uuid, p_admin_notes text DEFAULT NULL::text",
+    "result": "user_ban_requests",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "c562c29ea2eaf8cf8544b30cf86d138a853d0ed221cd037aea4791a6dfcef810"
+  },
+  {
+    "schema": "public",
+    "name": "reject_ban_request",
+    "identity_args": "p_request_id uuid, p_admin_notes text",
+    "args": "p_request_id uuid, p_admin_notes text",
+    "result": "user_ban_requests",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2094c415a18c3494e41e1eb31fa258a4c19180caab755c56f1bd7e90d71a4d07"
+  },
+  {
+    "schema": "public",
+    "name": "blind_close_shift",
+    "identity_args": "p_shift_id uuid, p_cashier_id uuid, p_counted_cash numeric, p_notes text",
+    "args": "p_shift_id uuid, p_cashier_id uuid, p_counted_cash numeric, p_notes text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+    "definition_sha256": "33c8418b93143f58968315023b1f64c44b566cdde684d4282b5655c3b2ad5c40"
+  },
+  {
+    "schema": "public",
+    "name": "close_lounge_shift",
+    "identity_args": "p_lounge_id uuid, p_actual_cash_counted numeric, p_notes text",
+    "args": "p_lounge_id uuid, p_actual_cash_counted numeric DEFAULT NULL::numeric, p_notes text DEFAULT NULL::text",
+    "result": "shifts",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+    "definition_sha256": "17e036e3fc0756084e347f1e6890a018b01aad4666760319ffc4c82a31df8641"
+  },
+  {
+    "schema": "public",
+    "name": "get_audit_logs",
+    "identity_args": "p_lounge_id uuid, p_entity_type text, p_entity_id text, p_user_id uuid, p_severity text, p_booking_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone, p_last_id text, p_last_created_at timestamp with time zone, p_limit integer",
+    "args": "p_lounge_id uuid DEFAULT NULL::uuid, p_entity_type text DEFAULT NULL::text, p_entity_id text DEFAULT NULL::text, p_user_id uuid DEFAULT NULL::uuid, p_severity text DEFAULT NULL::text, p_booking_id uuid DEFAULT NULL::uuid, p_start_date timestamp with time zone DEFAULT NULL::timestamp with time zone, p_end_date timestamp with time zone DEFAULT NULL::timestamp with time zone, p_last_id text DEFAULT NULL::text, p_last_created_at timestamp with time zone DEFAULT NULL::timestamp with time zone, p_limit integer DEFAULT 20",
+    "result": "SETOF jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "06a7c2a8291498fa1562189d7f8418be9efdae2c90f5ae7898635719d242e1b5"
+  },
+  {
+    "schema": "public",
+    "name": "complete_payout",
+    "identity_args": "p_payout_id uuid, p_transfer_method text, p_transfer_reference text, p_receipt_url text, p_notes text",
+    "args": "p_payout_id uuid, p_transfer_method text, p_transfer_reference text, p_receipt_url text DEFAULT NULL::text, p_notes text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "3a0f13cb8caa2a8d54057d844c7181fa17c22aa8664c0be60a9428f95db04274"
+  },
+  {
+    "schema": "public",
+    "name": "get_owner_branches",
+    "identity_args": "p_owner_id uuid",
+    "args": "p_owner_id uuid",
+    "result": "TABLE(lounge_id uuid, lounge_name text, branch_name character varying, is_main_branch boolean, city text, is_open boolean, status text, is_active boolean, total_rooms_count bigint, active_sessions_count bigint, today_revenue numeric)",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, extensions, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "f6e6540110fde5640f186652fddfd4996f269d82b96117662227391f19575f1f"
+  },
+  {
+    "schema": "public",
+    "name": "cancel_tournament",
+    "identity_args": "p_tournament_id uuid, p_reason text",
+    "args": "p_tournament_id uuid, p_reason text",
+    "result": "tournaments",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "6bc74b7b7a5cb30bf0d92764b1937ea71739061cd7c03a0dfd295de020728dad"
+  },
+  {
+    "schema": "public",
+    "name": "get_points_transactions_page",
+    "identity_args": "p_page integer, p_page_size integer",
+    "args": "p_page integer DEFAULT 1, p_page_size integer DEFAULT 20",
+    "result": "TABLE(data jsonb, total_count bigint, page integer, page_size integer)",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "58c3d564c792477a147e640ce30eab7768b738780be62c9486c98f7112df6a0b"
+  },
+  {
+    "schema": "public",
+    "name": "draw_tournament_bracket",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "integer",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "d065f643d9d7aed6ab167d2d49d06e86eef8443caa1c13022ddf0d5ad76ab06c"
+  },
+  {
+    "schema": "public",
+    "name": "promote_tournament_waitlist",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "tournament_participants",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "774980203e76a59a7c6fe6b2fe6b8096aeb11a366c302d6bfa720355a8117e58"
+  },
+  {
+    "schema": "public",
+    "name": "get_tournament_audit_logs_page",
+    "identity_args": "p_tournament_id uuid, p_page integer, p_page_size integer",
+    "args": "p_tournament_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 50",
+    "result": "TABLE(data jsonb, total_count bigint, page integer, page_size integer)",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "0efca6dd052164ccb8536c599fc9aeb8c49f4a1cd1ab588e49bcbc80588c1a7d"
+  },
+  {
+    "schema": "public",
+    "name": "get_visible_tournaments",
+    "identity_args": "p_latitude double precision, p_longitude double precision",
+    "args": "p_latitude double precision DEFAULT NULL::double precision, p_longitude double precision DEFAULT NULL::double precision",
+    "result": "SETOF tournaments",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "0725e61a8be7b68ac95f951e1f1f233ea24a6f11e3f823445e322bd955798e7a"
+  },
+  {
+    "schema": "public",
+    "name": "remove_lounge_staff_member",
+    "identity_args": "p_target_user_id uuid",
+    "args": "p_target_user_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "1155a5c5a3c171044f816ead360ff2a342a6aabb5e0d6e6d964cf4db11eae11a"
+  },
+  {
+    "schema": "public",
+    "name": "withdraw_tournament_participant",
+    "identity_args": "p_participant_id uuid, p_reason text",
+    "args": "p_participant_id uuid, p_reason text DEFAULT 'Admin withdrawal'::text",
+    "result": "tournament_participants",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "377880afdb97d34f4b34628f9fd4bfed80fee840a09a2d13b2b03e2c644a8aee"
+  },
+  {
+    "schema": "public",
+    "name": "create_system_announcement",
+    "identity_args": "p_id uuid, p_target_audience text, p_target_lounge_id uuid, p_title_ar text, p_title_en text, p_body_ar text, p_body_en text, p_type text",
+    "args": "p_id uuid, p_target_audience text, p_target_lounge_id uuid, p_title_ar text, p_title_en text, p_body_ar text, p_body_en text, p_type text DEFAULT 'info'::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "c40768812b3d82aee393c93394bfe153b25330cf3840be19115634e61154064a"
+  },
+  {
+    "schema": "public",
+    "name": "refresh_cashier_writer",
+    "identity_args": "p_lounge_id uuid, p_device_id uuid, p_online boolean",
+    "args": "p_lounge_id uuid, p_device_id uuid, p_online boolean DEFAULT true",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "eb0acfae9e41ea27f239fa92a270498b62d0308f4b34e260e9f8c7cb4885079f"
+  },
+  {
+    "schema": "public",
+    "name": "create_promotion",
+    "identity_args": "p_lounge_id uuid, p_room_id uuid, p_title_ar text, p_title_en text, p_tag_ar text, p_tag_en text, p_discount_type text, p_discount_value numeric, p_expires_at timestamp with time zone, p_colors text[], p_icon_key text, p_image_url text, p_deep_link text, p_target_audience text",
+    "args": "p_lounge_id uuid, p_room_id uuid, p_title_ar text, p_title_en text, p_tag_ar text, p_tag_en text, p_discount_type text, p_discount_value numeric, p_expires_at timestamp with time zone, p_colors text[], p_icon_key text, p_image_url text DEFAULT NULL::text, p_deep_link text DEFAULT NULL::text, p_target_audience text DEFAULT 'all'::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "68d12451348d48816d811520926b3944cccd02c93cfeb2ec515e4b5f4ed2df0c"
+  },
+  {
+    "schema": "public",
+    "name": "bootstrap_offline_cashier",
+    "identity_args": "p_lounge_id uuid, p_device_id uuid, p_online boolean",
+    "args": "p_lounge_id uuid, p_device_id uuid, p_online boolean DEFAULT true",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "aa4306f5c9d960c76a7f04a322e01b010d91c21581c0757139e87a8dae54d5d1"
+  },
+  {
+    "schema": "public",
+    "name": "submit_lounge_review",
+    "identity_args": "p_lounge_id uuid, p_booking_id uuid, p_rating numeric, p_comment text",
+    "args": "p_lounge_id uuid, p_booking_id uuid, p_rating numeric, p_comment text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "65cbd1d296cdbb6b9215d29fb1b30e2d3267f7b733f3d8afb6faf344302c3e8c"
+  },
+  {
+    "schema": "public",
+    "name": "request_staff_assistance_for_booking",
+    "identity_args": "p_booking_id uuid, p_call_type text, p_notes text",
+    "args": "p_booking_id uuid, p_call_type text, p_notes text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "af36eca2926202aebad28282ec4dc3925118f9882b83ba7800f403837bdd56d2"
+  },
+  {
+    "schema": "public",
+    "name": "admin_upsert_legal_policy",
+    "identity_args": "p_policy_key text, p_title_ar text, p_title_en text, p_content_ar text, p_content_en text, p_is_published boolean",
+    "args": "p_policy_key text, p_title_ar text, p_title_en text, p_content_ar text, p_content_en text, p_is_published boolean",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "646ee30cecc6132678eac416a77c21f182c2919b7c260bb44a59b0637eb0dd5e"
+  },
+  {
+    "schema": "public",
+    "name": "calculate_booking_total",
+    "identity_args": "p_room_id uuid, p_duration_hours numeric, p_voucher_code text, p_manual_discount numeric, p_manual_discount_reason text",
+    "args": "p_room_id uuid, p_duration_hours numeric, p_voucher_code text DEFAULT NULL::text, p_manual_discount numeric DEFAULT 0, p_manual_discount_reason text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "808c9157536c1ebd4c088eca3717f776ed17661abdf89b8b635ced80d644acb2"
+  },
+  {
+    "schema": "public",
+    "name": "deactivate_system_announcement",
+    "identity_args": "p_announcement_id uuid",
+    "args": "p_announcement_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "10327fe9eb420477106f8fca72e908844306554751a0bd4ced9b3059b471a9a7"
+  },
+  {
+    "schema": "public",
+    "name": "admin_save_faq",
+    "identity_args": "p_id uuid, p_question_ar text, p_answer_ar text, p_question_en text, p_answer_en text, p_sort_order integer, p_is_active boolean",
+    "args": "p_id uuid, p_question_ar text, p_answer_ar text, p_question_en text, p_answer_en text, p_sort_order integer, p_is_active boolean",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "c01953f280489351b0e24f4a058731779b895bc79f5713a9f61cb4a8c7591c52"
+  },
+  {
+    "schema": "public",
+    "name": "admin_delete_faq",
+    "identity_args": "p_id uuid",
+    "args": "p_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "cfd873c668ae3ea2c51ac4bc1f82a794760b9b4facecf8df4ff8d1aa7dfef00b"
+  },
+  {
+    "schema": "public",
+    "name": "attach_my_booking_receipt",
+    "identity_args": "p_booking_id uuid, p_receipt_url text",
+    "args": "p_booking_id uuid, p_receipt_url text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "a8d83908a00dd775578410f8a42fc97e9f835213c0d98d8fcd0c7784fc29a4db"
+  },
+  {
+    "schema": "public",
+    "name": "reject_manual_booking",
+    "identity_args": "p_booking_id uuid, p_rejection_reason text, p_action_by uuid",
+    "args": "p_booking_id uuid, p_rejection_reason text, p_action_by uuid DEFAULT NULL::uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "4f40f4bba70979f4ea7038d2f57e6e6db1b639c6adb1c0c5d5681e3b17c12426"
+  },
+  {
+    "schema": "public",
+    "name": "update_lounge_open_time_policy",
+    "identity_args": "p_lounge_id uuid, p_enabled boolean, p_rounding_minutes integer, p_minimum_minutes integer, p_max_minutes integer",
+    "args": "p_lounge_id uuid, p_enabled boolean, p_rounding_minutes integer DEFAULT 15, p_minimum_minutes integer DEFAULT 60, p_max_minutes integer DEFAULT 720",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ac6e9eb9e61443cea91c1b6086c8a752353c3e71b7493cabfcd28e5462b4fb3e"
+  },
+  {
+    "schema": "public",
+    "name": "get_cashier_sync_conflicts",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "3238df4123edad111a8aa7edcb6b73dc0f5dc5487f39dff70a4e7bf52b853500"
+  },
+  {
+    "schema": "public",
+    "name": "approve_cashier_conflict_retry",
+    "identity_args": "p_lounge_id uuid, p_operation_id uuid, p_review_id uuid, p_reason text",
+    "args": "p_lounge_id uuid, p_operation_id uuid, p_review_id uuid, p_reason text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "e85e84142dc16e6737365a6538e284fa0d3f7e92343e3467c15a05a537e4e46a"
+  },
+  {
+    "schema": "public",
+    "name": "apply_offline_cashier_operation",
+    "identity_args": "p_operation jsonb",
+    "args": "p_operation jsonb",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "6be2f766e1b6f78a36bd0c2ae8b955de4eca1cdd9f12796bed0207a83a3c0976"
+  },
+  {
+    "schema": "public",
+    "name": "update_user_points",
+    "identity_args": "p_user_id uuid, p_points_change integer, p_reason text",
+    "args": "p_user_id uuid, p_points_change integer, p_reason text DEFAULT '\u062a\u0639\u062f\u064a\u0644 \u0625\u062f\u0627\u0631\u064a \u0644\u0644\u0646\u0642\u0627\u0637'::text",
+    "result": "void",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "9fa23ebefb4f487ed5cca7cf123c03536eec11bfee5c59424bcb1d6993c7b5a3"
+  },
+  {
+    "schema": "public",
+    "name": "save_lounge_room_v2",
+    "identity_args": "p_room jsonb, p_activity_ids uuid[]",
+    "args": "p_room jsonb, p_activity_ids uuid[] DEFAULT ARRAY[]::uuid[]",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "b9a75a01b434e7976ef981ddd79805165cd2fdf39cef88a6ec6f8a50ec8e880d"
+  },
+  {
+    "schema": "public",
+    "name": "complete_booking_payment",
+    "identity_args": "p_booking_id uuid, p_payment_method text, p_final_amount numeric",
+    "args": "p_booking_id uuid, p_payment_method text DEFAULT 'cash'::text, p_final_amount numeric DEFAULT NULL::numeric",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "871c1ec281adf8e59090570eb78b3005c4d100727d16275f3168322a21b5fb3c"
+  },
+  {
+    "schema": "public",
+    "name": "discover_lounges",
+    "identity_args": "p_lat numeric, p_lng numeric, p_city text, p_search_query text, p_category_ids uuid[], p_sort_type text, p_is_open_only boolean, p_limit integer, p_offset integer",
+    "args": "p_lat numeric DEFAULT NULL::numeric, p_lng numeric DEFAULT NULL::numeric, p_city text DEFAULT NULL::text, p_search_query text DEFAULT NULL::text, p_category_ids uuid[] DEFAULT NULL::uuid[], p_sort_type text DEFAULT 'nearest'::text, p_is_open_only boolean DEFAULT false, p_limit integer DEFAULT 20, p_offset integer DEFAULT 0",
+    "result": "jsonb",
+    "security_definer": false,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "fbdbcc6885177da5086446537ffa837df631164d1c78660992fff168223dec97"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_booking_rooms",
+    "identity_args": "p_lounge_id uuid, p_activity_id uuid",
+    "args": "p_lounge_id uuid, p_activity_id uuid DEFAULT NULL::uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "25bae321584ed3860b9249b5ba1bcea693e3cd008c278edd928f283c8c6d51b7"
+  },
+  {
+    "schema": "public",
+    "name": "get_loyalty_referrals",
+    "identity_args": "p_start_date timestamp with time zone, p_end_date timestamp with time zone, p_status text, p_user_query text",
+    "args": "p_start_date timestamp with time zone DEFAULT NULL::timestamp with time zone, p_end_date timestamp with time zone DEFAULT NULL::timestamp with time zone, p_status text DEFAULT NULL::text, p_user_query text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "dff077f88b23f61787fd4f4db6466263ee3c50588c4d8e1996e8326fc891c55f"
+  },
+  {
+    "schema": "public",
+    "name": "get_loyalty_dashboard_stats",
+    "identity_args": "p_start_date timestamp with time zone, p_end_date timestamp with time zone, p_level_id uuid, p_referral_status text, p_user_query text",
+    "args": "p_start_date timestamp with time zone DEFAULT NULL::timestamp with time zone, p_end_date timestamp with time zone DEFAULT NULL::timestamp with time zone, p_level_id uuid DEFAULT NULL::uuid, p_referral_status text DEFAULT NULL::text, p_user_query text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "a7d6b9ae20f941c16835469925a58f173475ca36117022c7224d78653c1b64f9"
+  },
+  {
+    "schema": "public",
+    "name": "create_manual_booking_admin",
+    "identity_args": "p_lounge_id uuid, p_room_id uuid, p_booking_date date, p_start_time time without time zone, p_duration_minutes integer, p_customer_name text, p_customer_phone text, p_play_mode text, p_extra_items jsonb, p_start_immediately boolean",
+    "args": "p_lounge_id uuid, p_room_id uuid, p_booking_date date, p_start_time time without time zone, p_duration_minutes integer, p_customer_name text DEFAULT NULL::text, p_customer_phone text DEFAULT NULL::text, p_play_mode text DEFAULT 'single'::text, p_extra_items jsonb DEFAULT '[]'::jsonb, p_start_immediately boolean DEFAULT false",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "349dc5affadc09bc0a0c2294c7ac6e4a369b88f3f5befafb41350fd5e12cc289"
+  },
+  {
+    "schema": "public",
+    "name": "archive_lounge_room",
+    "identity_args": "p_room_id uuid",
+    "args": "p_room_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "6d8c4e7e7c99a5bb1c7d4d2be4b7e4eefae5081f544124576f003a09ef1818e3"
+  },
+  {
+    "schema": "public",
+    "name": "save_lounge_extra",
+    "identity_args": "p_extra jsonb",
+    "args": "p_extra jsonb",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "859dfa7a569a7d339c48ef4afcc44251a339a9c17368f8a3fde5f7fddada4470"
+  },
+  {
+    "schema": "public",
+    "name": "set_lounge_extra_availability",
+    "identity_args": "p_extra_id uuid, p_is_available boolean",
+    "args": "p_extra_id uuid, p_is_available boolean",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "7d7eafc8d6d153abae94b341dff67f2b5e7ebf3d5f0e7ec9dfce76643dcb1287"
+  },
+  {
+    "schema": "public",
+    "name": "archive_lounge_extra",
+    "identity_args": "p_extra_id uuid",
+    "args": "p_extra_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "b897e910adf8e8126f4f18d275bf697f5b9c6afdd98bcd6d9d2c699a12988b8e"
+  },
+  {
+    "schema": "public",
+    "name": "save_canteen_combo",
+    "identity_args": "p_combo jsonb, p_items jsonb",
+    "args": "p_combo jsonb, p_items jsonb DEFAULT '[]'::jsonb",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "4bab484248cbe534653d1463a85ed492497e63bf2cbbcc90af0e61f73787bd5c"
+  },
+  {
+    "schema": "public",
+    "name": "apply_booking_discount",
+    "identity_args": "p_booking_id uuid, p_discount_amount numeric, p_discount_percentage numeric, p_discount_reason text, p_voucher_code text",
+    "args": "p_booking_id uuid, p_discount_amount numeric DEFAULT 0, p_discount_percentage numeric DEFAULT 0, p_discount_reason text DEFAULT NULL::text, p_voucher_code text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "20365a1e01555514f0bae2f0e10baf454887463f3214b16c4c0f5d497bf463ad"
+  },
+  {
+    "schema": "public",
+    "name": "reshare_promotion",
+    "identity_args": "p_promotion_id uuid",
+    "args": "p_promotion_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "a48660192331391a3b3610d6b229ff7721a0864900fa05701c3e113f2ea462d0"
+  },
+  {
+    "schema": "public",
+    "name": "send_broadcast_notification",
+    "identity_args": "p_title_ar text, p_title_en text, p_body_ar text, p_body_en text, p_type text, p_metadata jsonb",
+    "args": "p_title_ar text, p_title_en text, p_body_ar text, p_body_en text, p_type text, p_metadata jsonb DEFAULT '{}'::jsonb",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "1e79ec1a8b458502e0c8fc17ff2a2568e9554f7eac27b8451830ec33472dda33"
+  },
+  {
+    "schema": "public",
+    "name": "save_tournament_prizes",
+    "identity_args": "p_tournament_id uuid, p_prizes jsonb",
+    "args": "p_tournament_id uuid, p_prizes jsonb",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "53ea256f448a9f942edeea9c4a4ecc4119b74e642d0ef4e86e7dbbe0e8ef5cd1"
+  },
+  {
+    "schema": "public",
+    "name": "save_redemption_option_admin",
+    "identity_args": "p_option_id uuid, p_title_ar text, p_title_en text, p_description_ar text, p_description_en text, p_points_cost integer, p_reward_type text, p_reward_value numeric, p_is_active boolean",
+    "args": "p_option_id uuid, p_title_ar text, p_title_en text, p_description_ar text, p_description_en text, p_points_cost integer, p_reward_type text, p_reward_value numeric, p_is_active boolean DEFAULT true",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "c464bc3b5ec41d1426bd4fcacec91cc84b6913fa02e46af1b8fef9f5e40d84d9"
+  },
+  {
+    "schema": "public",
+    "name": "archive_redemption_option_admin",
+    "identity_args": "p_option_id uuid",
+    "args": "p_option_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "0693909c2bf57aa8cd8c78c6f579e96e9d5f932f0d8979319faeac54441a7919"
+  },
+  {
+    "schema": "public",
+    "name": "get_users_public_info",
+    "identity_args": "user_ids uuid[]",
+    "args": "user_ids uuid[]",
+    "result": "TABLE(user_id uuid, full_name text, name text, avatar_url text)",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_catalog"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "0b4316499ccfb83112afd33fc85a6ce178918d456a121d3b57f47556bbd79203"
+  },
+  {
+    "schema": "public",
+    "name": "batch_complete_onboarding_v2",
+    "identity_args": "p_lounge_id uuid, p_lounge_data jsonb, p_rooms jsonb, p_extras jsonb",
+    "args": "p_lounge_id uuid, p_lounge_data jsonb, p_rooms jsonb, p_extras jsonb",
+    "result": "void",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8b9f60051b7938882bfc89329aa85bad6104dc9fef5c8109ed45bb9855f7ac75"
+  },
+  {
+    "schema": "public",
+    "name": "get_active_session_details",
+    "identity_args": "p_booking_id uuid",
+    "args": "p_booking_id uuid",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, extensions"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "5c76a4fdbc16c491459d61fa56767f8c5bb5d7133b215f2e906b7504e8a1ed60"
+  },
+  {
+    "schema": "public",
+    "name": "create_user_ban_request",
+    "identity_args": "p_lounge_id uuid, p_user_id uuid, p_booking_id uuid, p_reason text, p_evidence_notes text",
+    "args": "p_lounge_id uuid, p_user_id uuid, p_booking_id uuid DEFAULT NULL::uuid, p_reason text DEFAULT NULL::text, p_evidence_notes text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8ed93a3d8b299133e8732b6176f90294fd93b71fbca6c0ed2a5f995144f6107d"
+  },
+  {
+    "schema": "public",
+    "name": "get_booking_cancellation_summary",
+    "identity_args": "p_lounge_id uuid, p_user_id uuid",
+    "args": "p_lounge_id uuid, p_user_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ae6857789c9875a4f5ed3aa21af7b1bc5255fda85c212e41b387d5796173504a"
+  },
+  {
+    "schema": "public",
+    "name": "approve_payout",
+    "identity_args": "p_payout_id uuid, p_notes text",
+    "args": "p_payout_id uuid, p_notes text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2dacb4bfeeac50b1dde5318cd39f19dd888a7db7698cd6229703591bf21316d3"
+  },
+  {
+    "schema": "public",
+    "name": "submit_lounge_review",
+    "identity_args": "p_lounge_id uuid, p_rating numeric, p_comment text",
+    "args": "p_lounge_id uuid, p_rating numeric, p_comment text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "356175a244e1574fb6e2e8b66ce26b9a2c8a76501bbb546cc9cdbc6e4170582e"
+  },
+  {
+    "schema": "public",
+    "name": "withdraw_from_tournament",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ee93e8aa3715ee0a2ac2d00184d27bb7193e06a0a42e55080332dedae4089561"
+  },
+  {
+    "schema": "public",
+    "name": "award_tournament_prizes",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "integer",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "c041b9e1d22915eca5d574fe1f22630a84fd9930307abced558f83f0979602f1"
+  },
+  {
+    "schema": "public",
+    "name": "submit_match_result",
+    "identity_args": "p_match_id uuid, p_score_player1 integer, p_score_player2 integer, p_proof_image_url text",
+    "args": "p_match_id uuid, p_score_player1 integer, p_score_player2 integer, p_proof_image_url text",
+    "result": "tournament_matches",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "46cd8e747ef1b639f8ebb407e94a3ca58a873e8f11190e4c8a2e1a00697e5934"
+  },
+  {
+    "schema": "public",
+    "name": "get_available_cities",
+    "identity_args": "",
+    "args": "",
+    "result": "TABLE(city text, lounges_count bigint)",
+    "security_definer": false,
+    "config": [
+      "search_path=public, auth, extensions, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "e28195255cccba6f6045df2a6e6ca4ffcedf374cb0966030fb9cbd43cd430b30"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_staff",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "TABLE(id uuid, email text, full_name text, phone text, role text, lounge_id uuid, is_active boolean, created_at text)",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "3e170a4aa0b1e9df39624d1c0adde0c8596078445e1e5859f033feec37e0ef87"
+  },
+  {
+    "schema": "public",
+    "name": "get_canteen_menu",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2fa7d072340b6f6c73b6f2d9a3070f2dc745a0aa23e54f9963cee45325a95ccd"
+  },
+  {
+    "schema": "public",
+    "name": "get_upsell_suggestions",
+    "identity_args": "p_booking_id uuid",
+    "args": "p_booking_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2619977d3604d1373c9d5635918f83e36848db30abce5d34fb6b5f0b15c7998d"
+  },
+  {
+    "schema": "public",
+    "name": "get_notifications",
+    "identity_args": "p_lang text, p_limit integer, p_offset integer",
+    "args": "p_lang text DEFAULT 'ar'::text, p_limit integer DEFAULT 20, p_offset integer DEFAULT 0",
+    "result": "TABLE(id uuid, user_id uuid, title text, body text, type text, is_read boolean, metadata jsonb, lounge_id uuid, created_at timestamp without time zone)",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "4e25d4df8ef4b4a570671fa8c7c15bcb45ddd3165c90dbce4fa776a19e7bccb5"
+  },
+  {
+    "schema": "public",
+    "name": "get_pending_extension_requests",
+    "identity_args": "",
+    "args": "",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "3d0af90a3cfb639557dfd09959c45316e9fe2ebac1055e4b89e39096ffb645c7"
+  },
+  {
+    "schema": "public",
+    "name": "request_booking_extension",
+    "identity_args": "p_booking_id uuid, p_requested_minutes integer",
+    "args": "p_booking_id uuid, p_requested_minutes integer",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "72ff5484aeaef029cac84228c99fa54d6f945ff53981b62db7195a5927a99d0c"
+  },
+  {
+    "schema": "public",
+    "name": "validate_voucher",
+    "identity_args": "p_voucher_id uuid",
+    "args": "p_voucher_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "0f6586ea63862e30ac3a3d0b988c4b39e79199559be26545e570743a47063d63"
+  },
+  {
+    "schema": "public",
+    "name": "get_booking_timeline_for_customer",
+    "identity_args": "p_booking_id uuid",
+    "args": "p_booking_id uuid",
+    "result": "TABLE(id text, event_code text, title_ar text, title_en text, occurred_at timestamp with time zone, payload jsonb)",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "478872b6d5e9b98f888313e36d7fde263913f6a5242da4ec027cd2a1842b51bb"
+  },
+  {
+    "schema": "public",
+    "name": "consume_voucher",
+    "identity_args": "p_voucher_id uuid, p_booking_id uuid",
+    "args": "p_voucher_id uuid, p_booking_id uuid",
+    "result": "void",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "7cb52a89f8acdc26ec719973352acae4ad3210b7a43ccb4722ca9f37dc3aeb27"
+  },
+  {
+    "schema": "public",
+    "name": "cancel_booking_waitlist",
+    "identity_args": "p_waitlist_id uuid",
+    "args": "p_waitlist_id uuid",
+    "result": "boolean",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "d5ab75bc79fa3f3844810034bf70289b9ba7e59d41dc97d51bfa9ee76d50801d"
+  },
+  {
+    "schema": "public",
+    "name": "approve_shift",
+    "identity_args": "p_shift_id uuid, p_manager_id uuid, p_notes text",
+    "args": "p_shift_id uuid, p_manager_id uuid, p_notes text DEFAULT NULL::text",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "5e448722b7e7975325fc7bd7955e006fe4af3e777cdd990595366b08ec5a7ca9"
+  },
+  {
+    "schema": "public",
+    "name": "get_user_points_balance",
+    "identity_args": "p_user_id uuid",
+    "args": "p_user_id uuid",
+    "result": "integer",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,supabase_admin=X/postgres}",
+    "definition_sha256": "12f5cb4325e3afcad1c66944693c3ae7b06e35f331a72b49aa8f574dd33d9d6a"
+  },
+  {
+    "schema": "public",
+    "name": "release_booking_hold",
+    "identity_args": "p_hold_token uuid",
+    "args": "p_hold_token uuid",
+    "result": "boolean",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "69c897077b566173dd083e77622785c3ebd26910b9149e3f137431a64279162c"
+  },
+  {
+    "schema": "public",
+    "name": "complete_booking_session",
+    "identity_args": "p_booking_id uuid, p_action_by uuid",
+    "args": "p_booking_id uuid, p_action_by uuid DEFAULT NULL::uuid",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "c7adb0d1c0ddddff77c26d5680b0e419a2a65326ca933ce481ccff0a0b00289a"
+  },
+  {
+    "schema": "public",
+    "name": "verify_and_hold_slot",
+    "identity_args": "p_room_id uuid, p_start_time timestamp with time zone, p_end_time timestamp with time zone, p_user_id uuid, p_hold_minutes integer",
+    "args": "p_room_id uuid, p_start_time timestamp with time zone, p_end_time timestamp with time zone, p_user_id uuid, p_hold_minutes integer DEFAULT 10",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "85d0ae2576894e3759aa55dae3cdd9dc03742d17dc257028c94a0066c561a4d4"
+  },
+  {
+    "schema": "public",
+    "name": "start_open_time_session",
+    "identity_args": "p_room_id uuid, p_customer_name text, p_customer_phone text, p_play_mode text",
+    "args": "p_room_id uuid, p_customer_name text DEFAULT NULL::text, p_customer_phone text DEFAULT NULL::text, p_play_mode text DEFAULT 'single'::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "c700b588c0725867b5a2e101cbdbb1c71919a49e40bdbfb049a4cb1671451cde"
+  },
+  {
+    "schema": "public",
+    "name": "submit_lounge_review",
+    "identity_args": "p_lounge_id uuid, p_id_document_path text, p_business_document_path text",
+    "args": "p_lounge_id uuid, p_id_document_path text, p_business_document_path text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "049882891ccd9810f0486c4f121cec6fbd356b38b51819348ecca94bb23ea3d9"
+  },
+  {
+    "schema": "public",
+    "name": "get_my_onboarding_draft",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "a1d1018a99b2ff8b95f1fb83b345423ef4124a279297d444c9f72ebf74f67b97"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_role_permission_catalog",
+    "identity_args": "p_lounge_id uuid, p_role text",
+    "args": "p_lounge_id uuid, p_role text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2eed18b231ac56e07262ba2f25037a48e237d5a86705a668420ab68fddfa7a5e"
+  },
+  {
+    "schema": "public",
+    "name": "quote_booking_price",
+    "identity_args": "p_room_id uuid, p_date date, p_start time without time zone, p_end time without time zone, p_play_mode text, p_extra_controllers integer, p_coupon_code text",
+    "args": "p_room_id uuid, p_date date, p_start time without time zone, p_end time without time zone, p_play_mode text DEFAULT 'single'::text, p_extra_controllers integer DEFAULT 0, p_coupon_code text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "0cc4fc873f4f948ab27ef0c8a8a4809a1ccbea73dcb01aac8807c663ea5a0460"
+  },
+  {
+    "schema": "public",
+    "name": "get_room_slots_with_prices",
+    "identity_args": "p_room_id uuid, p_date date",
+    "args": "p_room_id uuid, p_date date",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "1689818f48663c03caf29f5828ed0445b7c54e6ae246cbd1fdc710bc89ed59d2"
+  },
+  {
+    "schema": "public",
+    "name": "delete_promotion",
+    "identity_args": "p_promotion_id uuid",
+    "args": "p_promotion_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "fbd00346053bac10efa3a91d98d367c4ade8f14228f98080f0e909e3cea4c0bd"
+  },
+  {
+    "schema": "public",
+    "name": "create_payout",
+    "identity_args": "p_lounge_id uuid, p_period_start date, p_period_end date",
+    "args": "p_lounge_id uuid, p_period_start date, p_period_end date",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "fc45f509f990e3b03b1db1735ea9689fae0d66276d554844aea3699d1109456e"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_activities",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "833fd879d9c5043f554886796c4a4e7f60f60895f1f355b9b393e0e3ac63c7bb"
+  },
+  {
+    "schema": "public",
+    "name": "get_all_bookings_admin",
+    "identity_args": "p_lounge_id uuid, p_status text, p_limit integer, p_offset integer, p_search text, p_payment_status text, p_date date",
+    "args": "p_lounge_id uuid DEFAULT NULL::uuid, p_status text DEFAULT NULL::text, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0, p_search text DEFAULT NULL::text, p_payment_status text DEFAULT NULL::text, p_date date DEFAULT NULL::date",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "6846dd3a8ce446a29e31ca4d1532046c7d47c50e23448f45676bd5f056fc9da0"
+  },
+  {
+    "schema": "public",
+    "name": "suspend_lounge",
+    "identity_args": "p_lounge_id uuid, p_reason text",
+    "args": "p_lounge_id uuid, p_reason text",
+    "result": "lounges",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "96baabde52ed76f092fa979379aa2bc7ab6e2c308ad48f0ee82c94250e552e8b"
+  },
+  {
+    "schema": "public",
+    "name": "set_room_operational_status",
+    "identity_args": "p_room_id uuid, p_status text",
+    "args": "p_room_id uuid, p_status text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+    "definition_sha256": "1062fd6c741fdfd62aa3da4adf42f4a337fb7c420d5c6dd635e8b05b566c5616"
+  },
+  {
+    "schema": "public",
+    "name": "place_canteen_order",
+    "identity_args": "p_booking_id uuid, p_items jsonb, p_note text",
+    "args": "p_booking_id uuid DEFAULT NULL::uuid, p_items jsonb DEFAULT '[]'::jsonb, p_note text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8342787987faf14aff89a2e8f7dd8101a604b04aee1ed17d5752f2acb08d2f6f"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_details",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": false,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "cce32863670c6b5141759c5ae2f0a5c0732377950d6a5c9af730fa9e7534cd80"
+  },
+  {
+    "schema": "public",
+    "name": "create_support_ticket",
+    "identity_args": "p_issue_type text, p_message text",
+    "args": "p_issue_type text, p_message text",
+    "result": "support_tickets",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "7d35322c3d5e2f3cbfc9358a56ecc040296bae39dec3df92b1ccef0fed9de32a"
+  },
+  {
+    "schema": "public",
+    "name": "add_lounge_branch",
+    "identity_args": "p_branch_data jsonb",
+    "args": "p_branch_data jsonb",
+    "result": "uuid",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, extensions, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "dcaeb79498ab6856ab30ffdfcc2690ee12c90413305b7ca7947fedb0afe12aae"
+  },
+  {
+    "schema": "public",
+    "name": "get_multi_branch_overview",
+    "identity_args": "p_owner_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+    "args": "p_owner_id uuid, p_start_date timestamp with time zone, p_end_date timestamp with time zone",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, extensions, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "dd85cab489d326e39d4ced2471cda297b7e67a4a735a5890d1c48ff62e6af9ed"
+  },
+  {
+    "schema": "public",
+    "name": "update_tournament",
+    "identity_args": "p_tournament_id uuid, p_title_ar text, p_title_en text, p_description_ar text, p_description_en text, p_game_name text, p_max_participants integer, p_entry_fee numeric, p_registration_opens_at timestamp with time zone, p_registration_closes_at timestamp with time zone, p_payment_deadline_minutes integer, p_check_in_opens_at timestamp with time zone, p_check_in_closes_at timestamp with time zone, p_tournament_starts_at timestamp with time zone",
+    "args": "p_tournament_id uuid, p_title_ar text, p_title_en text, p_description_ar text, p_description_en text, p_game_name text, p_max_participants integer, p_entry_fee numeric, p_registration_opens_at timestamp with time zone, p_registration_closes_at timestamp with time zone, p_payment_deadline_minutes integer, p_check_in_opens_at timestamp with time zone, p_check_in_closes_at timestamp with time zone, p_tournament_starts_at timestamp with time zone",
+    "result": "tournaments",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "3335e4ee752eb525cd7cad0c2a9eed20c727264b35bda2cca83658fd52f648c1"
+  },
+  {
+    "schema": "public",
+    "name": "fail_payout",
+    "identity_args": "p_payout_id uuid, p_reason text",
+    "args": "p_payout_id uuid, p_reason text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ae69845c711f531974688aa8434c9c12cf1f38285a47730a30deb92d02a567af"
+  },
+  {
+    "schema": "public",
+    "name": "get_visible_shifts",
+    "identity_args": "p_lounge_id uuid, p_shift_id uuid, p_active_only boolean, p_limit integer, p_offset integer",
+    "args": "p_lounge_id uuid DEFAULT NULL::uuid, p_shift_id uuid DEFAULT NULL::uuid, p_active_only boolean DEFAULT false, p_limit integer DEFAULT 50, p_offset integer DEFAULT 0",
+    "result": "SETOF jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "9c4cb875a2fd5e5b5c5cce0871fb51be45311f8b851684b6a79a1ef8aec4eb00"
+  },
+  {
+    "schema": "public",
+    "name": "resolve_tournament_dispute",
+    "identity_args": "p_match_id uuid, p_winner_id uuid, p_score_player1 integer, p_score_player2 integer, p_notes text",
+    "args": "p_match_id uuid, p_winner_id uuid, p_score_player1 integer, p_score_player2 integer, p_notes text",
+    "result": "tournament_matches",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8c17112762504df824de23222a1f7c08673dd20cd08d71deca4eeaaec6677305"
+  },
+  {
+    "schema": "public",
+    "name": "submit_tournament_payment",
+    "identity_args": "p_participant_id uuid, p_amount numeric, p_payment_method text, p_receipt_url text",
+    "args": "p_participant_id uuid, p_amount numeric, p_payment_method text, p_receipt_url text",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "a8c5ff76e562fca07c9efd7719245492d5117bc6d7355c630ff49ac789bde360"
+  },
+  {
+    "schema": "public",
+    "name": "join_booking_waitlist",
+    "identity_args": "p_room_id uuid, p_start_at timestamp without time zone, p_end_at timestamp without time zone",
+    "args": "p_room_id uuid, p_start_at timestamp without time zone, p_end_at timestamp without time zone",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "0d53d998f2e008fb193a297610486a21ca6a7de76d1e8815e8bec27beed572c0"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_comparison",
+    "identity_args": "p_start_date date, p_end_date date",
+    "args": "p_start_date date DEFAULT CURRENT_DATE, p_end_date date DEFAULT CURRENT_DATE",
+    "result": "TABLE(lounge_id uuid, lounge_name text, shift_count bigint, open_shift_count bigint, total_sales numeric, total_expenses numeric, total_difference numeric, average_shift_sales numeric, pending_approval_count bigint)",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "6a2e296241fff54082dc1c4844687922c651bf921eb88426efc99776e98bf0c4"
+  },
+  {
+    "schema": "public",
+    "name": "get_notifications_page",
+    "identity_args": "p_page integer, p_page_size integer",
+    "args": "p_page integer DEFAULT 1, p_page_size integer DEFAULT 20",
+    "result": "TABLE(data jsonb, total_count bigint, page integer, page_size integer)",
+    "security_definer": false,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "66906f8328eb3fd5f65ea918a258def5bcebbe3645ed08a7193678bd6dc9ebb4"
+  },
+  {
+    "schema": "public",
+    "name": "cancel_payout",
+    "identity_args": "p_payout_id uuid, p_reason text",
+    "args": "p_payout_id uuid, p_reason text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ec38531ed90f9a3ba8433e1ef702317873d2bdd8ea208615dd71a3bab338c31b"
+  },
+  {
+    "schema": "public",
+    "name": "get_payout_details",
+    "identity_args": "p_payout_id uuid",
+    "args": "p_payout_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "267cf2b26d6f7231cc9ef84bbdb9a6a5a73fc0586d22acefbf0a40c146b35b14"
+  },
+  {
+    "schema": "public",
+    "name": "admin_update_support_settings",
+    "identity_args": "p_whatsapp_phone text, p_support_phone text, p_support_email text, p_vodafone_cash_number text",
+    "args": "p_whatsapp_phone text, p_support_phone text, p_support_email text, p_vodafone_cash_number text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "b1cad05e6437413ac680ab65dd0abc0a267d7d5e03f3c6829baf122245e6fb60"
+  },
+  {
+    "schema": "public",
+    "name": "get_loyalty_status",
+    "identity_args": "p_user_id uuid",
+    "args": "p_user_id uuid DEFAULT auth.uid()",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "4a0fc9568f2e985c1a3029de8bf493e8f2625a86c4582273464f8db5b35dc855"
+  },
+  {
+    "schema": "public",
+    "name": "get_dashboard_overview",
+    "identity_args": "",
+    "args": "",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "dd06bd06afa546e053dbc4ef2bc4f0830bd4be5bc422a23b78281f6c816f5483"
+  },
+  {
+    "schema": "public",
+    "name": "check_pricing_rule_conflicts_v2",
+    "identity_args": "p_lounge_id uuid, p_start_time time without time zone, p_end_time time without time zone, p_days integer[], p_space_type_id uuid, p_room_id uuid, p_exclude_rule_id uuid, p_start_date date, p_end_date date",
+    "args": "p_lounge_id uuid, p_start_time time without time zone, p_end_time time without time zone, p_days integer[], p_space_type_id uuid DEFAULT NULL::uuid, p_room_id uuid DEFAULT NULL::uuid, p_exclude_rule_id uuid DEFAULT NULL::uuid, p_start_date date DEFAULT NULL::date, p_end_date date DEFAULT NULL::date",
+    "result": "SETOF pricing_rules",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "307ed8d7180e9dfb55f724bec8bfe292fce6230e0e26ea73ef10a4f550442d11"
+  },
+  {
+    "schema": "public",
+    "name": "record_cash_tournament_payment",
+    "identity_args": "p_participant_id uuid, p_amount numeric, p_reference_note text",
+    "args": "p_participant_id uuid, p_amount numeric, p_reference_note text DEFAULT NULL::text",
+    "result": "tournament_participants",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "150c47bc8de69993097dbe4d17ece25401abdae1815abf80dcd22ed80b793b06"
+  },
+  {
+    "schema": "public",
+    "name": "register_for_tournament",
+    "identity_args": "p_tournament_id uuid",
+    "args": "p_tournament_id uuid",
+    "result": "json",
+    "security_definer": true,
+    "config": [
+      "search_path=public, private"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "14519b8bc5ffb5ec014ec0e5202a8c9efee54a3d04bf3f67fdf897787c08249a"
+  },
+  {
+    "schema": "public",
+    "name": "dispute_match_result",
+    "identity_args": "p_match_id uuid, p_reason text",
+    "args": "p_match_id uuid, p_reason text",
+    "result": "tournament_matches",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "f2d9499321ffb6225cc7f213144725cf9efe855b42694db86da390e825dcb716"
+  },
+  {
+    "schema": "public",
+    "name": "claim_referral_code",
+    "identity_args": "p_referral_code text",
+    "args": "p_referral_code text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "9af21d7109b66de43864c3d422d6db6e9be2758aa73203bcbedd71000b3c0337"
+  },
+  {
+    "schema": "public",
+    "name": "reject_booking_extension",
+    "identity_args": "p_booking_id uuid, p_reason text",
+    "args": "p_booking_id uuid, p_reason text DEFAULT NULL::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, extensions"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "6cf1b792c9b52ce874ceebe7e7f08a4ba7e8490812754e8fecfc940c67a0e743"
+  },
+  {
+    "schema": "public",
+    "name": "get_public_faqs",
+    "identity_args": "p_lang text",
+    "args": "p_lang text DEFAULT 'ar'::text",
+    "result": "TABLE(id uuid, question text, answer text, sort_order integer, updated_at timestamp with time zone)",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,anon=X/postgres}",
+    "definition_sha256": "909574bf2442c0ab2f32884290459eefe012b0d8dbc68ec2d21554c0e7663429"
+  },
+  {
+    "schema": "public",
+    "name": "get_public_policies",
+    "identity_args": "p_lang text",
+    "args": "p_lang text DEFAULT 'ar'::text",
+    "result": "TABLE(policy_key text, title text, content text, updated_at timestamp with time zone)",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,anon=X/postgres}",
+    "definition_sha256": "e600ed3ade368b4c8a18956af5d34f6fa80450ee0d07ec4522d24ef5694e62ca"
+  },
+  {
+    "schema": "public",
+    "name": "get_public_support_settings",
+    "identity_args": "",
+    "args": "",
+    "result": "TABLE(whatsapp_phone text, support_phone text, support_email text, vodafone_cash_number text, updated_at timestamp with time zone)",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,anon=X/postgres}",
+    "definition_sha256": "712f474f8892fc180e844b7cb5cb9f8200082f970fe2f80653b0a418b7dcd0ff"
+  },
+  {
+    "schema": "public",
+    "name": "get_home_tournament",
+    "identity_args": "",
+    "args": "",
+    "result": "TABLE(id uuid, lounge_id uuid, city_id uuid, title_ar text, title_en text, description_ar text, description_en text, game_name text, banner_url text, entry_fee numeric, max_participants integer, registration_closes_at timestamp with time zone, tournament_starts_at timestamp with time zone, status text, lounge_name text, city_name_ar text, city_name_en text, participant_count bigint)",
+    "security_definer": true,
+    "config": [
+      "search_path=public"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres,anon=X/postgres}",
+    "definition_sha256": "1e81fdef145ca6d548d5ba0902b0cd4d17a96fc5471453ae28460d7dad5c87a7"
+  },
+  {
+    "schema": "public",
+    "name": "get_room_bookings_for_operational_date",
+    "identity_args": "p_lounge_id uuid, p_date date",
+    "args": "p_lounge_id uuid, p_date date",
+    "result": "TABLE(room_id uuid, start_at timestamp without time zone, end_at timestamp without time zone, status text, expires_at timestamp with time zone)",
+    "security_definer": false,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "1cf6decdde83b0883ba12567c66e84d1a269ce03c56567a0379c26d1e7cfdde8"
+  },
+  {
+    "schema": "public",
+    "name": "set_lounge_staff_active",
+    "identity_args": "p_target_user_id uuid, p_is_active boolean",
+    "args": "p_target_user_id uuid, p_is_active boolean",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ac8a412943eaae0e080cc0f51abc2ccb0406d36a206636f5fc05c6c3099578df"
+  },
+  {
+    "schema": "public",
+    "name": "cancel_my_booking",
+    "identity_args": "p_booking_id uuid, p_reason text",
+    "args": "p_booking_id uuid, p_reason text DEFAULT 'Cancelled by user'::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "740d0bd338de1d639fbabf9e9e56471ed707d44bffc8b4941e6388a5cbbaee90"
+  },
+  {
+    "schema": "public",
+    "name": "start_tournament_match",
+    "identity_args": "p_match_id uuid, p_room_id uuid",
+    "args": "p_match_id uuid, p_room_id uuid DEFAULT NULL::uuid",
+    "result": "tournament_matches",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "2310bb6b4758dd5a1b06b06caf17dec21dd49aa76ec142c604b1b8a2ed903a56"
+  },
+  {
+    "schema": "public",
+    "name": "release_cashier_writer",
+    "identity_args": "p_lounge_id uuid, p_device_id uuid, p_permit_id uuid, p_last_applied_sequence bigint",
+    "args": "p_lounge_id uuid, p_device_id uuid, p_permit_id uuid, p_last_applied_sequence bigint",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "3efdda085c38052f9f19093e8a1645939dc1a228df641b70beee23a9509446ee"
+  },
+  {
+    "schema": "public",
+    "name": "update_app_status",
+    "identity_args": "p_maintenance_mode boolean, p_maintenance_message_ar text, p_maintenance_message_en text, p_maintenance_until timestamp with time zone, p_min_supported_version_android text, p_min_supported_version_ios text, p_latest_version_android text, p_latest_version_ios text, p_update_message_ar text, p_update_message_en text, p_store_url_android text, p_store_url_ios text",
+    "args": "p_maintenance_mode boolean, p_maintenance_message_ar text, p_maintenance_message_en text, p_maintenance_until timestamp with time zone, p_min_supported_version_android text, p_min_supported_version_ios text, p_latest_version_android text, p_latest_version_ios text, p_update_message_ar text, p_update_message_en text, p_store_url_android text, p_store_url_ios text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "3de939d707b08e270ffe7a48d1a5c687721090e5f9513cdaf7baab1e0726c388"
+  },
+  {
+    "schema": "public",
+    "name": "update_promotion",
+    "identity_args": "p_promotion_id uuid, p_room_id uuid, p_title_ar text, p_title_en text, p_tag_ar text, p_tag_en text, p_discount_type text, p_discount_value numeric, p_expires_at timestamp with time zone, p_colors text[], p_icon_key text, p_image_url text, p_deep_link text, p_target_audience text",
+    "args": "p_promotion_id uuid, p_room_id uuid, p_title_ar text, p_title_en text, p_tag_ar text, p_tag_en text, p_discount_type text, p_discount_value numeric, p_expires_at timestamp with time zone, p_colors text[], p_icon_key text, p_image_url text DEFAULT NULL::text, p_deep_link text DEFAULT NULL::text, p_target_audience text DEFAULT 'all'::text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "9017e9da0088253246a3369da45454d574985c2fa5098ff22758add8feecbff1"
+  },
+  {
+    "schema": "public",
+    "name": "admin_update_support_ticket",
+    "identity_args": "p_ticket_id uuid, p_status text, p_admin_notes text",
+    "args": "p_ticket_id uuid, p_status text, p_admin_notes text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8715f564a0099797147701919a0caafb78a48edfb01b989c701f1151d2dc47d6"
+  },
+  {
+    "schema": "public",
+    "name": "approve_manual_booking",
+    "identity_args": "p_booking_id uuid, p_action_by uuid",
+    "args": "p_booking_id uuid, p_action_by uuid DEFAULT NULL::uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "0ce4d6ca148fd4efb6834125d4f0453cf9d466e4688eecbd7251b61bb04c2606"
+  },
+  {
+    "schema": "public",
+    "name": "get_discovery_activities",
+    "identity_args": "",
+    "args": "",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "f48a81011530b759713ffd7394b0608a62583ffa42cad2f1427fc93124d4393a"
+  },
+  {
+    "schema": "public",
+    "name": "record_upsell_event",
+    "identity_args": "p_rule_id uuid, p_booking_id uuid, p_event text, p_canteen_order_id uuid, p_amount numeric",
+    "args": "p_rule_id uuid, p_booking_id uuid, p_event text, p_canteen_order_id uuid DEFAULT NULL::uuid, p_amount numeric DEFAULT NULL::numeric",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "1c392a9db36ff0e0f8c1d57c22b9bb8c1ba1b2b7ee619d3d49df1dad2b9c20e1"
+  },
+  {
+    "schema": "public",
+    "name": "validate_voucher_by_code",
+    "identity_args": "p_code text, p_user_id uuid",
+    "args": "p_code text, p_user_id uuid DEFAULT NULL::uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "10e819414f3ceec53dfe56958491bd7bb646a1f9b58409d7f58f8857cfcad2dd"
+  },
+  {
+    "schema": "public",
+    "name": "get_shift_report",
+    "identity_args": "p_lounge_id uuid, p_start_date date, p_end_date date, p_cashier_id uuid",
+    "args": "p_lounge_id uuid, p_start_date date DEFAULT CURRENT_DATE, p_end_date date DEFAULT CURRENT_DATE, p_cashier_id uuid DEFAULT NULL::uuid",
+    "result": "TABLE(shift_id uuid, lounge_id uuid, cashier_id uuid, cashier_name text, opened_at timestamp with time zone, closed_at timestamp with time zone, status text, is_approved boolean, starting_cash numeric, total_sales numeric, cash_sales numeric, digital_sales numeric, total_expenses numeric, expected_cash numeric, actual_cash numeric, difference numeric, payment_count bigint, expense_count bigint, linked_booking_count bigint)",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "d8087067747a1cf8a70b0420d24a43fc7f7015a5cb5a389c65fb470c002bacd4"
+  },
+  {
+    "schema": "public",
+    "name": "get_cashier_performance",
+    "identity_args": "p_lounge_id uuid, p_start_date date, p_end_date date",
+    "args": "p_lounge_id uuid, p_start_date date DEFAULT CURRENT_DATE, p_end_date date DEFAULT CURRENT_DATE",
+    "result": "TABLE(cashier_id uuid, cashier_name text, shift_count bigint, closed_shift_count bigint, approved_shift_count bigint, total_sales numeric, cash_sales numeric, digital_sales numeric, total_expenses numeric, total_difference numeric, average_shift_sales numeric, open_shift_count bigint)",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "be7740234a446f97266023f8b59d65a19445869676decc744a4c5254c9e3a1c1"
+  },
+  {
+    "schema": "public",
+    "name": "open_lounge_shift",
+    "identity_args": "p_lounge_id uuid, p_starting_cash numeric, p_notes text",
+    "args": "p_lounge_id uuid, p_starting_cash numeric DEFAULT 0, p_notes text DEFAULT NULL::text",
+    "result": "shifts",
+    "security_definer": true,
+    "config": [
+      "search_path=public, auth, pg_temp"
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "b99eede4661a193750a8b2ad52e575470ab5b74d055c828f5cba3922fb2e8b00"
+  },
+  {
+    "schema": "public",
+    "name": "get_lounge_operating_status",
+    "identity_args": "p_lounge_id uuid",
+    "args": "p_lounge_id uuid",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres}",
+    "definition_sha256": "9614139cdac8b1cf6cf7e26696584eaf8a10f66aa7cb1e07f4289af6356745c1"
+  },
+  {
+    "schema": "public",
+    "name": "submit_tournament_payment",
+    "identity_args": "p_participant_id uuid, p_tournament_id uuid, p_user_id uuid, p_amount numeric, p_payment_method text, p_receipt_url text",
+    "args": "p_participant_id uuid, p_tournament_id uuid, p_user_id uuid, p_amount numeric, p_payment_method text, p_receipt_url text",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "ef9c13b00770ebd0c7dba19e56505714d46386ad02360ad9c812d8263bf47bb2"
+  },
+  {
+    "schema": "public",
+    "name": "join_booking_waitlist",
+    "identity_args": "p_room_id uuid, p_requested_date date, p_duration_minutes integer, p_preferred_start_time time without time zone",
+    "args": "p_room_id uuid, p_requested_date date, p_duration_minutes integer DEFAULT 60, p_preferred_start_time time without time zone DEFAULT NULL::time without time zone",
+    "result": "jsonb",
+    "security_definer": true,
+    "config": [
+      "search_path=\"\""
+    ],
+    "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres,supabase_auth_admin=X/postgres}",
+    "definition_sha256": "8d20d7344d8e813fa53251597d6efa5b080f198173d9be96dc4685717c472017"
+  }
+]

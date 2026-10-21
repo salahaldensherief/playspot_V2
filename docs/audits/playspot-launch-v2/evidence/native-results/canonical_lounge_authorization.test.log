@@ -1,0 +1,14 @@
+Fixture database: 17.11
+PASS banned owner has no read or write authority
+PASS inactive manager has no read or write authority
+PASS banned staff membership has no read or write authority
+PASS missing Auth user with retained profile has no read or write authority
+PASS NULL eligibility has no read or write authority
+PASS banned platform member has no read or write authority
+PASS missing profile has no read or write authority
+PASS cashier has own operating scope and no management or foreign scope
+PASS eligible owner identified by ownership retains management
+PASS manager membership retains management within its lounge
+PASS canonical platform registry authority is consistent across helpers
+PASS no JWT actor fails closed
+{"passed":12}

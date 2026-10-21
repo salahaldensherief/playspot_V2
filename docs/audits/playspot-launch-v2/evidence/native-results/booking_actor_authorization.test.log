@@ -1,0 +1,11 @@
+Fixture database: 17.11
+PASS banned actor cannot acquire, quote or checkout
+PASS inactive actor cannot acquire, quote or checkout
+PASS unknown eligibility actor cannot acquire, quote or checkout
+PASS deleted Auth identity actor cannot acquire, quote or checkout
+PASS eligible actor can acquire a future request hold
+PASS eligible quote reaches the existing pricing boundary
+PASS eligible checkout retains payment-method validation
+PASS absent JWT actor retains authentication failure
+PASS reapplication preserves RPC grants and cannot duplicate the guard
+{"passed":9,"limitations":"Synthetic PostgreSQL authorization tests; quote spy is not full checkout or real Auth E2E"}

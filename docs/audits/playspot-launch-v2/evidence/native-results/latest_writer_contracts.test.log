@@ -1,0 +1,8 @@
+Fixture database: 17.11
+PASS online selection without live heartbeat never proves connectivity
+PASS offline mode stays unavailable even with a heartbeat
+PASS expired permit cannot implicitly retire queued work or admit another writer
+PASS closed shift does not implicitly release a generation
+PASS revoked permissions and banned identity immediately remove availability
+PASS stale heartbeat cannot switch an offline writer back online
+{"passed":6}

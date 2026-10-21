@@ -1,0 +1,14 @@
+Fixture database: 17.11
+PASS authenticated API cannot provision
+PASS recovery API is service-only
+PASS lost Auth response recovers only exact trusted actor, venue, role and email
+PASS foreign actor cannot finalize
+PASS banned owner is rejected
+PASS inactive owner is rejected
+PASS manager cannot create peer manager
+PASS trusted Auth provenance prevents account reassignment
+PASS staff write failure rolls back profile and receipt atomically
+PASS successful retry writes one profile, membership and receipt
+PASS replay cannot alter name or role
+PASS clients cannot inspect provisioning records
+{"passed":12,"hostedMutations":false}

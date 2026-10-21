@@ -1,0 +1,10 @@
+Fixture database: 17.11
+PASS extension preserves purchased tariff after room rate changes
+PASS peak-rule extension includes controllers and paid ledger matches persisted total
+PASS customer only requests extension, cannot supply price or approve
+PASS approval ignores custom cost, uses same authoritative extension tariff
+PASS paid extension without open shift rolls back booking and ledger
+PASS paid approval creates missing payment summary and agrees with collected extension
+PASS reserved next slot rejects extension without changing duration
+PASS overnight extension prices the next calendar day interval
+{"passed":8,"environment":"isolated production-function fixtures"}

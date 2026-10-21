@@ -1,0 +1,8 @@
+Fixture database: 17.11
+PASS prior terminal pending request is repaired without losing original minutes
+PASS completion expires pending extension but preserves approved history
+PASS cancellation expires pending request but not rejected history
+PASS pending active request remains reviewable
+PASS setting pending after terminal status becomes expired immediately
+PASS clients cannot invoke internal trigger function
+{"passed":6,"synthetic":true,"productionWrites":0}

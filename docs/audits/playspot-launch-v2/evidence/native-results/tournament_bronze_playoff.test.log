@@ -1,0 +1,31 @@
+Fixture database: 17.11
+PASS 2/8: balanced final, real bronze opponents and exact podium
+PASS 3/8: balanced final, real bronze opponents and exact podium
+PASS 4/8: balanced final, real bronze opponents and exact podium
+PASS 5/8: balanced final, real bronze opponents and exact podium
+PASS 6/8: balanced final, real bronze opponents and exact podium
+PASS 7/8: balanced final, real bronze opponents and exact podium
+PASS 8/8: balanced final, real bronze opponents and exact podium
+PASS 2/16: balanced final, real bronze opponents and exact podium
+PASS 3/16: balanced final, real bronze opponents and exact podium
+PASS 4/16: balanced final, real bronze opponents and exact podium
+PASS 5/16: balanced final, real bronze opponents and exact podium
+PASS 6/16: balanced final, real bronze opponents and exact podium
+PASS 7/16: balanced final, real bronze opponents and exact podium
+PASS 8/16: balanced final, real bronze opponents and exact podium
+PASS 15/16: balanced final, real bronze opponents and exact podium
+PASS 16/16: balanced final, real bronze opponents and exact podium
+PASS 2/32: balanced final, real bronze opponents and exact podium
+PASS 3/32: balanced final, real bronze opponents and exact podium
+PASS 4/32: balanced final, real bronze opponents and exact podium
+PASS 5/32: balanced final, real bronze opponents and exact podium
+PASS 6/32: balanced final, real bronze opponents and exact podium
+PASS 7/32: balanced final, real bronze opponents and exact podium
+PASS 8/32: balanced final, real bronze opponents and exact podium
+PASS 31/32: balanced final, real bronze opponents and exact podium
+PASS 32/32: balanced final, real bronze opponents and exact podium
+PASS one resolved semifinal cannot prematurely award bronze
+PASS dispute resolution supplies the actual loser to the playoff
+PASS outsider cannot draw and a repeated draw preserves existing rows
+PASS a historical drawn bracket is not rebuilt or assigned an arbitrary third place
+{"passed":29,"hostedConnections":0,"limitations":["Synthetic permission helpers; real Auth/RLS integration is separate"]}

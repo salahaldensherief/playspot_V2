@@ -1,0 +1,9 @@
+Fixture database: 17.11
+PASS ordinary owner cannot deactivate another lounge administrator
+PASS disabled super admin denied: is_active
+PASS disabled super admin denied: is_banned
+PASS self and platform administrator targets are protected
+PASS late profile failure rolls back ownership and staff removal
+PASS deactivation is scoped and disables the target account
+PASS retry after an Auth outage is idempotent
+{"passed":7}

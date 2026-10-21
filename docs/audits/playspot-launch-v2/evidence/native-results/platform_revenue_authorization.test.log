@@ -1,0 +1,18 @@
+Fixture database: 17.11
+PASS owner reads only own completed payments
+PASS Cairo day boundary and stable response keys
+PASS owner cannot read another lounge
+PASS authenticated caller cannot read financial tables directly
+PASS metadata cannot elevate financial scope
+PASS registry admin receives global completed revenue
+PASS registry admin can select one lounge
+PASS inactive registry admin denied
+PASS banned registry admin denied
+PASS legacy role admin receives global revenue
+PASS invalid period rejected
+PASS null period rejected
+PASS deleted auth identity denied
+PASS missing profile denied
+PASS anonymous identity denied
+PASS anonymous execute revoked
+{"passed":16,"mode":"native PostgreSQL","limitations":["Synthetic financial/auth schema","No hosted SQL applied","Not full production RLS or PostgREST integration"]}

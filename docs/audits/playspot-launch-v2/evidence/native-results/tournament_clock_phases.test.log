@@ -1,0 +1,16 @@
+Fixture database: 17.11
+PASS draft follows server dates to draft
+PASS published follows server dates to published
+PASS published follows server dates to registration_open
+PASS registration_open follows server dates to registration_closed
+PASS registration_closed follows server dates to check_in_open
+PASS check_in_open follows server dates to check_in_closed
+PASS published follows server dates to check_in_closed
+PASS draw_completed is never reopened by the clock
+PASS in_progress is never reopened by the clock
+PASS completed is never reopened by the clock
+PASS cancelled is never reopened by the clock
+PASS repeated worker runs do not duplicate the same transition or audit
+PASS a delayed worker catches up to the latest phase in one transition
+PASS client roles cannot invoke the private scheduler worker
+{"passed":14,"synthetic":true,"hostedConnections":0,"jobSchedulerTestedSeparately":true}

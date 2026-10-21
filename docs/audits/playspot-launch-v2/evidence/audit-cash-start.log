@@ -1,0 +1,2 @@
+Fixture database: 17.11
+{"finding":"PS-002","result":"DEPLOYMENT MISMATCH REPRODUCED in isolated fixture","cash":"unpaid","expectedClientAction":"start without collection","observed":"PAYMENT_REQUIRED_BEFORE_SESSION_START"}
