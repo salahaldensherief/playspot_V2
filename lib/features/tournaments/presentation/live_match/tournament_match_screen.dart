@@ -14,6 +14,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_state_view.dart';
 import '../../../../art_core/widgets/notifications/game_hud_toast.dart';
 import '../../domain/entities/tournament_entity.dart';
 import '../widgets/match_countdown_timer.dart';
@@ -86,95 +87,100 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           borderRadius: BorderRadius.circular(16.r),
           side: const BorderSide(color: AppColors.danger),
         ),
-        child: Padding(
-          padding: EdgeInsets.all(20.w),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppText(
-                text: AppStrings.disputeResult.tr(),
-                style: TextStyle(
-                  color: AppColors.danger,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                ),
-              ),
-              SizedBox(height: 16.h),
-              AppText(
-                text: AppStrings.disputeReason.tr(),
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 13.sp,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              TextField(
-                controller: _disputeReasonController,
-                maxLines: 3,
-                style: TextStyle(color: AppColors.textPrimary, fontSize: 13.sp),
-                decoration: InputDecoration(
-                  hintText: AppStrings.enterDisputeReason.tr(),
-                  hintStyle: TextStyle(
-                    color: AppColors.hintText,
-                    fontSize: 12.sp,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.mutedBackground,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                    borderSide: const BorderSide(
-                      color: AppColors.borderDefault,
-                    ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: AppStrings.disputeResult.tr(),
+                  style: TextStyle(
+                    color: AppColors.danger,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.sp,
                   ),
                 ),
-              ),
-              SizedBox(height: 20.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  AppButton(
-                    buttonConfig: ButtonConfig(
-                      backgroundColor: Colors.transparent,
-                      borderColor: AppColors.borderDefault,
-                      isOutlined: true,
-                      width: 90.w,
+                SizedBox(height: 16.h),
+                AppText(
+                  text: AppStrings.disputeReason.tr(),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13.sp,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: _disputeReasonController,
+                  maxLines: 3,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13.sp,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.enterDisputeReason.tr(),
+                    hintStyle: TextStyle(
+                      color: AppColors.hintText,
+                      fontSize: 12.sp,
                     ),
-                    content: ButtonContent(label: AppStrings.close.tr()),
-                    behavior: TapBehavior(
-                      onTap: () => Navigator.pop(dialogContext),
+                    filled: true,
+                    fillColor: AppColors.mutedBackground,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderDefault,
+                      ),
                     ),
                   ),
-                  SizedBox(width: 8.w),
-                  AppButton(
-                    buttonConfig: ButtonConfig(
-                      backgroundColor: AppColors.danger,
-                      width: 120.w,
+                ),
+                SizedBox(height: 20.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    AppButton(
+                      buttonConfig: ButtonConfig(
+                        backgroundColor: Colors.transparent,
+                        borderColor: AppColors.borderDefault,
+                        isOutlined: true,
+                        width: 90.w,
+                      ),
+                      content: ButtonContent(label: AppStrings.close.tr()),
+                      behavior: TapBehavior(
+                        onTap: () => Navigator.pop(dialogContext),
+                      ),
                     ),
-                    content: ButtonContent(
-                      label: AppStrings.disputeResult.tr(),
-                    ),
-                    behavior: TapBehavior(
-                      onTap: () {
-                        final reason = _disputeReasonController.text.trim();
-                        if (reason.isEmpty) {
-                          GameHudToast.show(
-                            context,
-                            AppStrings.enterDisputeReason.tr(),
-                            type: ToastType.error,
+                    SizedBox(width: 8.w),
+                    AppButton(
+                      buttonConfig: ButtonConfig(
+                        backgroundColor: AppColors.danger,
+                        width: 120.w,
+                      ),
+                      content: ButtonContent(
+                        label: AppStrings.disputeResult.tr(),
+                      ),
+                      behavior: TapBehavior(
+                        onTap: () {
+                          final reason = _disputeReasonController.text.trim();
+                          if (reason.isEmpty) {
+                            GameHudToast.show(
+                              context,
+                              AppStrings.enterDisputeReason.tr(),
+                              type: ToastType.error,
+                            );
+                            return;
+                          }
+                          Navigator.pop(dialogContext);
+                          context.read<TournamentMatchCubit>().disputeResult(
+                            reason,
                           );
-                          return;
-                        }
-                        Navigator.pop(dialogContext);
-                        context.read<TournamentMatchCubit>().disputeResult(
-                          reason,
-                        );
-                      },
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -213,15 +219,18 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           return Scaffold(
             backgroundColor: AppColors.scaffoldBackground,
             appBar: AppBar(leading: const BackButtonWidget()),
-            body: Center(
-              child: AppText(
-                text: AppStrings.noResults.tr(),
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14.sp,
-                ),
-              ),
-            ),
+            body: state.status == MatchScreenStatus.failure
+                ? AppStateView.error(
+                    title:
+                        state.errorMessage ??
+                        AppStrings.somethingWentWrong.tr(),
+                    onRetry: () =>
+                        context.read<TournamentMatchCubit>().loadMatch(
+                          tournamentId: widget.tournamentId,
+                          matchId: widget.matchId,
+                        ),
+                  )
+                : AppStateView.empty(title: AppStrings.noResults.tr()),
           );
         }
 

@@ -94,7 +94,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 title: AppStrings.verifyOTP.tr(),
                 subTitle: AppStrings.otpVerificationSubtitle.tr(),
               ),
-              180.verticalSpace,
+              SizedBox(
+                height: (MediaQuery.sizeOf(context).height * 0.08).clamp(
+                  24.0,
+                  80.0,
+                ),
+              ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 child: AppOtpField(

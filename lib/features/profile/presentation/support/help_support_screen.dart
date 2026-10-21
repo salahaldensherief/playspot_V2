@@ -209,76 +209,84 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
   }
 
   Widget _buildContactActions() {
-    return Row(
-      children: [
-        if (_whatsappPhone.isNotEmpty)
-          Expanded(
-            child: _buildContactCard(
-              icon: TablerIcons.brand_whatsapp,
-              color: Colors.green,
-              title: AppStrings.supportWhatsApp.tr(),
-              onTap: () async {
-                final success = await ContactLauncherService.launchWhatsApp(
-                  phone: _whatsappPhone,
-                  message: AppStrings.supportWhatsAppGreeting.tr(),
-                );
-                if (!success && mounted) {
-                  GameHudToast.show(
-                    context,
-                    AppStrings.somethingWentWrong.tr(),
-                    type: ToastType.error,
-                  );
-                }
-              },
-            ),
-          ),
-        if (_whatsappPhone.isNotEmpty && _supportPhone.isNotEmpty)
-          SizedBox(width: 12.w),
-        if (_supportPhone.isNotEmpty)
-          Expanded(
-            child: _buildContactCard(
-              icon: TablerIcons.phone_call,
-              color: AppColors.neonBlue,
-              title: AppStrings.supportCall.tr(),
-              onTap: () async {
-                final success = await ContactLauncherService.launchPhoneCall(
-                  _supportPhone,
-                );
-                if (!success && mounted) {
-                  GameHudToast.show(
-                    context,
-                    AppStrings.somethingWentWrong.tr(),
-                    type: ToastType.error,
-                  );
-                }
-              },
-            ),
-          ),
-        if ((_whatsappPhone.isNotEmpty || _supportPhone.isNotEmpty) &&
-            _supportEmail.isNotEmpty)
-          SizedBox(width: 12.w),
-        if (_supportEmail.isNotEmpty)
-          Expanded(
-            child: _buildContactCard(
-              icon: TablerIcons.mail,
-              color: AppColors.neonPurple,
-              title: AppStrings.supportEmail.tr(),
-              onTap: () async {
-                final success = await ContactLauncherService.launchEmail(
-                  email: _supportEmail,
-                  subject: 'PlaySpot Support',
-                );
-                if (!success && mounted) {
-                  GameHudToast.show(
-                    context,
-                    AppStrings.somethingWentWrong.tr(),
-                    type: ToastType.error,
-                  );
-                }
-              },
-            ),
-          ),
-      ],
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final cardWidth = constraints.maxWidth >= 700
+            ? (constraints.maxWidth - 24.w) / 3
+            : (constraints.maxWidth - 12.w) / 2;
+        return Wrap(
+          spacing: 12.w,
+          runSpacing: 12.h,
+          children: [
+            if (_whatsappPhone.isNotEmpty)
+              SizedBox(
+                width: cardWidth,
+                child: _buildContactCard(
+                  icon: TablerIcons.brand_whatsapp,
+                  color: Colors.green,
+                  title: AppStrings.supportWhatsApp.tr(),
+                  onTap: () async {
+                    final success = await ContactLauncherService.launchWhatsApp(
+                      phone: _whatsappPhone,
+                      message: AppStrings.supportWhatsAppGreeting.tr(),
+                    );
+                    if (!success && mounted) {
+                      GameHudToast.show(
+                        context,
+                        AppStrings.somethingWentWrong.tr(),
+                        type: ToastType.error,
+                      );
+                    }
+                  },
+                ),
+              ),
+            if (_supportPhone.isNotEmpty)
+              SizedBox(
+                width: cardWidth,
+                child: _buildContactCard(
+                  icon: TablerIcons.phone_call,
+                  color: AppColors.neonBlue,
+                  title: AppStrings.supportCall.tr(),
+                  onTap: () async {
+                    final success =
+                        await ContactLauncherService.launchPhoneCall(
+                          _supportPhone,
+                        );
+                    if (!success && mounted) {
+                      GameHudToast.show(
+                        context,
+                        AppStrings.somethingWentWrong.tr(),
+                        type: ToastType.error,
+                      );
+                    }
+                  },
+                ),
+              ),
+            if (_supportEmail.isNotEmpty)
+              SizedBox(
+                width: cardWidth,
+                child: _buildContactCard(
+                  icon: TablerIcons.mail,
+                  color: AppColors.neonPurple,
+                  title: AppStrings.supportEmail.tr(),
+                  onTap: () async {
+                    final success = await ContactLauncherService.launchEmail(
+                      email: _supportEmail,
+                      subject: 'PlaySpot Support',
+                    );
+                    if (!success && mounted) {
+                      GameHudToast.show(
+                        context,
+                        AppStrings.somethingWentWrong.tr(),
+                        type: ToastType.error,
+                      );
+                    }
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 

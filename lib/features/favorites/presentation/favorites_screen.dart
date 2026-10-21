@@ -70,6 +70,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               );
             }
 
+            final width = MediaQuery.sizeOf(context).width;
+            final textScale = MediaQuery.textScalerOf(context).scale(1);
+            final columns = width >= 900
+                ? 4
+                : width >= 600
+                ? 3
+                : width < 390 || textScale > 1.3
+                ? 1
+                : 2;
+
             return CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -77,10 +87,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   padding: EdgeInsets.all(AppSizes.screenPadding),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
+                      crossAxisCount: columns,
                       crossAxisSpacing: AppSizes.w12,
                       mainAxisSpacing: AppSizes.s12,
-                      mainAxisExtent: 215.h,
+                      mainAxisExtent: columns == 1 ? 250.h : 215.h,
                     ),
                     delegate: SliverChildBuilderDelegate((context, index) {
                       final lounge = state.favoriteLounges[index];

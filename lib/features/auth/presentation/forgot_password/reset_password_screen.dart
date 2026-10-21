@@ -55,7 +55,12 @@ class ResetPasswordScreen extends StatelessWidget {
                   title: AppStrings.resetPassword.tr(),
                   subTitle: AppStrings.resetPasswordSubtitle.tr(),
                 ),
-                SizedBox(height: 260.h),
+                SizedBox(
+                  height: (MediaQuery.sizeOf(context).height * 0.12).clamp(
+                    24.0,
+                    100.0,
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: AppTextField(

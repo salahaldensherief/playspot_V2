@@ -20,12 +20,20 @@ class ActiveSessionActionBar extends StatelessWidget {
           prev.staffRequestStatus != curr.staffRequestStatus,
       builder: (context, state) {
         final isStaffLoading = state.staffRequestStatus == ActionStatus.loading;
+        final stackActions = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+        final compact = MediaQuery.sizeOf(context).width < 390 && !stackActions;
 
-        return Row(
+        return Flex(
+          direction: stackActions ? Axis.vertical : Axis.horizontal,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: stackActions
+              ? CrossAxisAlignment.stretch
+              : CrossAxisAlignment.center,
           children: [
             // Call Staff Action Card
-            Expanded(
+            Flexible(
               flex: 1,
+              fit: FlexFit.loose,
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -34,9 +42,11 @@ class ActiveSessionActionBar extends StatelessWidget {
                       ? null
                       : () => _showStaffCallBottomSheet(context),
                   child: Container(
-                    constraints: BoxConstraints(minHeight: 56.h),
+                    constraints: BoxConstraints(
+                      minHeight: compact ? 64.h : 56.h,
+                    ),
                     padding: EdgeInsetsDirectional.symmetric(
-                      horizontal: 10.w,
+                      horizontal: compact ? 6.w : 10.w,
                       vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
@@ -64,8 +74,8 @@ class ActiveSessionActionBar extends StatelessWidget {
                     child: Row(
                       children: [
                         Container(
-                          width: 36.w,
-                          height: 36.w,
+                          width: compact ? 28.w : 36.w,
+                          height: compact ? 28.w : 36.w,
                           decoration: BoxDecoration(
                             color: AppColors.warning.withValues(alpha: 0.16),
                             borderRadius: BorderRadius.circular(10.r),
@@ -87,11 +97,11 @@ class ActiveSessionActionBar extends StatelessWidget {
                                 : Icon(
                                     Icons.support_agent_rounded,
                                     color: AppColors.warning,
-                                    size: 20.sp,
+                                    size: compact ? 16.sp : 20.sp,
                                   ),
                           ),
                         ),
-                        SizedBox(width: 8.w),
+                        SizedBox(width: compact ? 4.w : 8.w),
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -100,10 +110,10 @@ class ActiveSessionActionBar extends StatelessWidget {
                             children: [
                               AppText(
                                 text: AppStrings.callStaff.tr(),
-                                fontSize: 13.sp,
+                                fontSize: compact ? 11.sp : 13.sp,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.warning,
-                                maxLines: 1,
+                                maxLines: compact || stackActions ? 2 : 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               SizedBox(height: 2.h),
@@ -141,20 +151,26 @@ class ActiveSessionActionBar extends StatelessWidget {
               ),
             ),
 
-            SizedBox(width: 10.w),
+            SizedBox(
+              width: stackActions ? 0 : 10.w,
+              height: stackActions ? 10.h : 0,
+            ),
 
             // Order Extras / Canteen Launcher Card
-            Expanded(
+            Flexible(
               flex: 1,
+              fit: FlexFit.loose,
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16.r),
                   onTap: () => _showMenuBottomSheet(context),
                   child: Container(
-                    constraints: BoxConstraints(minHeight: 56.h),
+                    constraints: BoxConstraints(
+                      minHeight: compact ? 64.h : 56.h,
+                    ),
                     padding: EdgeInsetsDirectional.symmetric(
-                      horizontal: 10.w,
+                      horizontal: compact ? 6.w : 10.w,
                       vertical: 8.h,
                     ),
                     decoration: BoxDecoration(
@@ -182,8 +198,8 @@ class ActiveSessionActionBar extends StatelessWidget {
                     child: Row(
                       children: [
                         Container(
-                          width: 36.w,
-                          height: 36.w,
+                          width: compact ? 28.w : 36.w,
+                          height: compact ? 28.w : 36.w,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [
@@ -208,11 +224,11 @@ class ActiveSessionActionBar extends StatelessWidget {
                             child: Icon(
                               Icons.fastfood_rounded,
                               color: Colors.white,
-                              size: 19.sp,
+                              size: compact ? 16.sp : 19.sp,
                             ),
                           ),
                         ),
-                        SizedBox(width: 8.w),
+                        SizedBox(width: compact ? 4.w : 8.w),
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -221,10 +237,10 @@ class ActiveSessionActionBar extends StatelessWidget {
                             children: [
                               AppText(
                                 text: AppStrings.orderExtras.tr(),
-                                fontSize: 13.sp,
+                                fontSize: compact ? 11.sp : 13.sp,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
-                                maxLines: 1,
+                                maxLines: compact || stackActions ? 2 : 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               SizedBox(height: 2.h),
@@ -251,11 +267,12 @@ class ActiveSessionActionBar extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 11.sp,
-                          color: AppColors.neonBlue.withValues(alpha: 0.8),
-                        ),
+                        if (!compact)
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 11.sp,
+                            color: AppColors.neonBlue.withValues(alpha: 0.8),
+                          ),
                       ],
                     ),
                   ),

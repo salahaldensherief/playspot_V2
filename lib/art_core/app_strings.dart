@@ -86,6 +86,8 @@ class AppStrings {
   static const String myBookings = "myBookings";
   static const String paymentMethods = "paymentMethods";
   static const String notifications = "notifications";
+  static const String refreshNotifications = "refreshNotifications";
+  static const String markAllAsRead = "markAllAsRead";
   static const String language = "language";
   static const String arabicEnglish = "arabicEnglish";
   static const String helpSupport = "helpSupport";
@@ -349,7 +351,6 @@ class AppStrings {
   static const String statusStaffCalling = "statusStaffCalling";
   static const String statusOrderPlacing = "statusOrderPlacing";
   static const String statusExtending = "statusExtending";
-  static const String statusActive = "statusActive";
   static const String statusExpiringSoon = "statusExpiringSoon";
   static const String statusOvertime = "statusOvertime";
   static const String backToHome = "backToHome";

@@ -9,6 +9,7 @@ import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_state_view.dart';
 import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -56,15 +57,10 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
             }
 
             if (state.status == TournamentHistoryStatus.failure) {
-              return Center(
-                child: AppText(
-                  text:
-                      state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14.sp,
-                  ),
-                ),
+              return AppStateView.error(
+                title: state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                onRetry: () =>
+                    context.read<TournamentHistoryCubit>().loadHistory(),
               );
             }
 
@@ -192,10 +188,14 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                                 color: AppColors.textSecondary,
                               ),
                               SizedBox(width: 4.w),
-                              AppText(
-                                text: gameName,
-                                color: AppColors.textSecondary,
-                                fontSize: 13.sp,
+                              Flexible(
+                                child: AppText(
+                                  text: gameName,
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13.sp,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                               SizedBox(width: 16.w),
                               Icon(
@@ -204,10 +204,14 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                                 color: AppColors.textSecondary,
                               ),
                               SizedBox(width: 4.w),
-                              AppText(
-                                text: loungeName,
-                                color: AppColors.textSecondary,
-                                fontSize: 13.sp,
+                              Flexible(
+                                child: AppText(
+                                  text: loungeName,
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13.sp,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
@@ -215,12 +219,17 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              AppText(
-                                text:
-                                    '${AppStrings.bookingDate.tr()}: $formattedDate',
-                                color: AppColors.textSecondary,
-                                fontSize: 12.sp,
+                              Flexible(
+                                child: AppText(
+                                  text:
+                                      '${AppStrings.bookingDate.tr()}: $formattedDate',
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12.sp,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                              SizedBox(width: 8.w),
                               AppText(
                                 text: participant.status.toLocalizedName(),
                                 color: AppColors.success,

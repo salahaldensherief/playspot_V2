@@ -172,134 +172,168 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
                     itemBuilder: (context, index) {
                       final item = boardingData[index];
 
-                      return Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Image Container with Neon Frame & Ambient Glow
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Ambient Glow behind the card
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 400),
-                                  width: 260.w,
-                                  height: 260.h,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: item.accentColor.withValues(
-                                      alpha: 0.25,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: item.accentColor.withValues(
-                                          alpha: 0.35,
+                      return LayoutBuilder(
+                        builder: (context, constraints) => SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // Image Container with Neon Frame & Ambient Glow
+                                  Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      // Ambient Glow behind the card
+                                      AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 400,
                                         ),
-                                        blurRadius: 80,
-                                        spreadRadius: 20,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // Main Image Card with Gradient Border
-                                Container(
-                                  height: 340.h,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(28.r),
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        item.accentColor.withValues(alpha: 0.6),
-                                        AppColors.purple.withValues(alpha: 0.2),
-                                        item.accentColor.withValues(alpha: 0.1),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                        blurRadius: 20,
-                                        offset: const Offset(0, 10),
-                                      ),
-                                    ],
-                                  ),
-                                  padding: EdgeInsets.all(2.r),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: AppColors.scaffoldBackground,
-                                      borderRadius: BorderRadius.circular(26.r),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(26.r),
-                                      child: Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          Image.asset(
-                                            item.image,
-                                            fit: BoxFit.cover,
+                                        width: 260.w,
+                                        height: (constraints.maxHeight * 0.42)
+                                            .clamp(140.0, 260.h),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: item.accentColor.withValues(
+                                            alpha: 0.25,
                                           ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: item.accentColor
+                                                  .withValues(alpha: 0.35),
+                                              blurRadius: 80,
+                                              spreadRadius: 20,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
 
-                                          // Subtle gradient overlay for contrast
-                                          Positioned.fill(
-                                            child: DecoratedBox(
-                                              decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  colors: [
-                                                    Colors.transparent,
-                                                    Colors.black.withValues(
-                                                      alpha: 0.2,
-                                                    ),
-                                                    Colors.black.withValues(
-                                                      alpha: 0.65,
-                                                    ),
-                                                  ],
-                                                  begin: Alignment.topCenter,
-                                                  end: Alignment.bottomCenter,
-                                                  stops: const [0.4, 0.7, 1.0],
-                                                ),
+                                      // Main Image Card with Gradient Border
+                                      Container(
+                                        height: (constraints.maxHeight * 0.52)
+                                            .clamp(170.0, 340.h),
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            28.r,
+                                          ),
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              item.accentColor.withValues(
+                                                alpha: 0.6,
                                               ),
+                                              AppColors.purple.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                              item.accentColor.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withValues(
+                                                alpha: 0.5,
+                                              ),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 10),
+                                            ),
+                                          ],
+                                        ),
+                                        padding: EdgeInsets.all(2.r),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: AppColors.scaffoldBackground,
+                                            borderRadius: BorderRadius.circular(
+                                              26.r,
                                             ),
                                           ),
-                                        ],
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              26.r,
+                                            ),
+                                            child: Stack(
+                                              fit: StackFit.expand,
+                                              children: [
+                                                Image.asset(
+                                                  item.image,
+                                                  fit: BoxFit.cover,
+                                                ),
+
+                                                // Subtle gradient overlay for contrast
+                                                Positioned.fill(
+                                                  child: DecoratedBox(
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          Colors.transparent,
+                                                          Colors.black
+                                                              .withValues(
+                                                                alpha: 0.2,
+                                                              ),
+                                                          Colors.black
+                                                              .withValues(
+                                                                alpha: 0.65,
+                                                              ),
+                                                        ],
+                                                        begin:
+                                                            Alignment.topCenter,
+                                                        end: Alignment
+                                                            .bottomCenter,
+                                                        stops: const [
+                                                          0.4,
+                                                          0.7,
+                                                          1.0,
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                       ),
+                                    ],
+                                  ),
+
+                                  SizedBox(height: 28.h),
+
+                                  // Title
+                                  AppText(
+                                    text: item.title,
+                                    color: AppColors.white,
+                                    fontSize: 23.sp,
+                                    fontWeight: FontWeight.w900,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                  ),
+
+                                  SizedBox(height: 10.h),
+
+                                  // Description
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10.w,
+                                    ),
+                                    child: AppText(
+                                      color: AppColors.textSecondary,
+                                      text: item.desc,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w400,
+                                      textAlign: TextAlign.center,
+                                      maxLines: 3,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: 28.h),
-
-                            // Title
-                            AppText(
-                              text: item.title,
-                              color: AppColors.white,
-                              fontSize: 23.sp,
-                              fontWeight: FontWeight.w900,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                            ),
-
-                            SizedBox(height: 10.h),
-
-                            // Description
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10.w),
-                              child: AppText(
-                                color: AppColors.textSecondary,
-                                text: item.desc,
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w400,
-                                textAlign: TextAlign.center,
-                                maxLines: 3,
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       );
                     },

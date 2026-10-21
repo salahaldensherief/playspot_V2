@@ -125,25 +125,16 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
               centerTitle: true,
               leading: const BackButtonWidget(),
             ),
-            body: Stack(
-              children: [
-                const ActiveSessionBody(),
-                if (_showExtensionBanner)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: ExtensionPromptCard(
-                      initialMinutes: _extensionBannerMinutes,
-                      onDismiss: () {
-                        setState(() {
-                          _showExtensionBanner = false;
-                        });
-                      },
-                    ),
-                  ),
-              ],
-            ),
+            body: const ActiveSessionBody(),
+            bottomNavigationBar: _showExtensionBanner
+                ? ExtensionPromptCard(
+                    initialMinutes: _extensionBannerMinutes,
+                    onDismiss: () {
+                      if (!mounted) return;
+                      setState(() => _showExtensionBanner = false);
+                    },
+                  )
+                : null,
           ),
         ),
       ),

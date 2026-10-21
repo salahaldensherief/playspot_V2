@@ -37,12 +37,18 @@ class FixtureQuickRebook extends Cubit<QuickRebookState>
 class FixtureSupport implements SupportRemoteDataSource {
   bool fail = true;
   bool empty = false;
+  bool allContacts = false;
   int loads = 0;
   @override
   Future<Map<String, dynamic>> getSupportSettings() async {
     loads++;
     if (fail) throw StateError('synthetic outage');
-    return empty ? {} : {'support_phone': '01000000000'};
+    if (empty) return {};
+    return {
+      'support_phone': '01000000000',
+      if (allContacts) 'whatsapp_phone': '01000000000',
+      if (allContacts) 'support_email': 'support@example.com',
+    };
   }
 
   @override
@@ -111,6 +117,18 @@ void main() {
   }
 
   for (final locale in ['ar', 'en']) {
+    testWidgets('all support contacts fit a narrow screen $locale', (
+      tester,
+    ) async {
+      final fixture = FixtureSupport()
+        ..fail = false
+        ..allContacts = true;
+      await mount(tester, locale, const HelpSupportScreen(), fixture);
+      expect(find.text(AppStrings.supportWhatsApp.tr()), findsOneWidget);
+      expect(find.text(AppStrings.supportCall.tr()), findsOneWidget);
+      expect(find.text(AppStrings.supportEmail.tr()), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
     testWidgets('unpublished policies show no replacement legal text $locale', (
       tester,
     ) async {

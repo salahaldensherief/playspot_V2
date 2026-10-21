@@ -14,9 +14,7 @@ class StationInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bookingCode = session.bookingId.length >= 6
-        ? session.bookingId.substring(0, 6).toUpperCase()
-        : session.bookingId.toUpperCase();
+    final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -24,105 +22,130 @@ class StationInfo extends StatelessWidget {
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: AppColors.borderDefault),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              color: AppColors.neonBlue.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: AppColors.neonBlue.withValues(alpha: 0.25),
-              ),
-            ),
-            child: Icon(
-              Icons.sports_esports_rounded,
-              color: AppColors.neonBlue,
-              size: 26.sp,
-            ),
-          ),
-          SizedBox(width: 14.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+      child: stacked
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                AppText(
-                  text: session.loungeName,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                SizedBox(height: 4.h),
-                AppText(
-                  text: "${session.roomName} • ${session.deviceName}",
-                  fontSize: 13.sp,
-                  color: AppColors.textSecondary,
+                _stationIdentity(),
+                SizedBox(height: 12.h),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: _bookingCode(context),
                 ),
               ],
+            )
+          : Row(
+              children: [
+                Expanded(child: _stationIdentity()),
+                SizedBox(width: 8.w),
+                _bookingCode(context),
+              ],
+            ),
+    );
+  }
+
+  Widget _stationIdentity() {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: AppColors.neonBlue.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: AppColors.neonBlue.withValues(alpha: 0.25),
             ),
           ),
-          SizedBox(width: 8.w),
-          InkWell(
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: session.bookingId));
-              GameHudToast.show(
-                context,
-                AppStrings.bookingIdCopied.tr(),
-                type: ToastType.info,
-              );
-            },
-            borderRadius: BorderRadius.circular(10.r),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: AppColors.neonBlue.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(
-                  color: AppColors.neonBlue.withValues(alpha: 0.3),
-                ),
+          child: Icon(
+            Icons.sports_esports_rounded,
+            color: AppColors.neonBlue,
+            size: 26.sp,
+          ),
+        ),
+        SizedBox(width: 14.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppText(
+                text: session.loungeName,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              SizedBox(height: 4.h),
+              AppText(
+                text: "${session.roomName} • ${session.deviceName}",
+                fontSize: 13.sp,
+                color: AppColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _bookingCode(BuildContext context) {
+    final bookingCode = session.bookingId.length >= 6
+        ? session.bookingId.substring(0, 6).toUpperCase()
+        : session.bookingId.toUpperCase();
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Clipboard.setData(ClipboardData(text: session.bookingId));
+          GameHudToast.show(
+            context,
+            AppStrings.bookingIdCopied.tr(),
+            type: ToastType.info,
+          );
+        },
+        borderRadius: BorderRadius.circular(10.r),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: AppColors.neonBlue.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: AppColors.neonBlue.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppText(
+                text: AppStrings.station.tr(),
+                fontSize: 10.sp,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+              SizedBox(height: 2.h),
+              Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  AppText(
-                    text: AppStrings.station.tr(),
-                    fontSize: 10.sp,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+                  Icon(
+                    Icons.copy_rounded,
+                    size: 12.sp,
+                    color: AppColors.neonBlue,
                   ),
-                  SizedBox(height: 2.h),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.copy_rounded,
-                        size: 12.sp,
-                        color: AppColors.neonBlue,
-                      ),
-                      SizedBox(width: 4.w),
-                      AppText(
-                        text: "#$bookingCode",
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.neonBlue,
-                      ),
-                    ],
+                  SizedBox(width: 4.w),
+                  AppText(
+                    text: "#$bookingCode",
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.neonBlue,
                   ),
                 ],
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

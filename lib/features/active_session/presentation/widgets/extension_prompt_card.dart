@@ -57,7 +57,7 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
 
   void _handleDismiss() {
     _slideController.reverse().then((_) {
-      widget.onDismiss();
+      if (mounted) widget.onDismiss();
     });
   }
 
@@ -250,6 +250,7 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                               : null,
                         ),
                         behavior: ButtonBehavior.tap(
+                          isEnabled: !isLoading,
                           onTap: () {
                             HapticFeedback.mediumImpact();
                             cubit.requestExtension(_selectedMinutes);

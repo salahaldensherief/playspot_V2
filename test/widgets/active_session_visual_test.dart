@@ -146,6 +146,9 @@ void main() {
           await mount(tester, width, locale, scale);
           expect(tester.takeException(), isNull);
           expect(find.textContaining(session.roomName), findsWidgets);
+          if (locale == 'ar') {
+            expect(find.textContaining('الجلسة نشطة حاليًا'), findsNothing);
+          }
           await screenshot(tester, 'mobile-${width.toInt()}-$locale-$scale');
           await tester.pumpWidget(const SizedBox.shrink());
         });
