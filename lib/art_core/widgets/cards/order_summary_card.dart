@@ -364,8 +364,15 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                           children: [
                             AppText(
                               text: _isCanteenExpanded
-                                  ? (isArabic ? "عرض أقل" : "Show less")
-                                  : "+${widget.canteenItems.length - maxVisibleCanteenItems} ${isArabic ? "أصناف أخرى" : "more items"}...",
+                                  ? AppStrings.showLess.tr()
+                                  : AppStrings.moreCanteenItems.tr(
+                                      namedArgs: {
+                                        'count':
+                                            (widget.canteenItems.length -
+                                                    maxVisibleCanteenItems)
+                                                .toString(),
+                                      },
+                                    ),
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.neonBlue,

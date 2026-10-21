@@ -29,7 +29,7 @@ class BookingRoomsChips extends StatelessWidget {
               final hasPromo = r.hasActivePromo && r.promoDiscountValue > 0;
               final promoTag =
                   r.getPromoTag(isArabic) ??
-                  (isArabic ? 'خصم خاص' : 'SPECIAL OFFER');
+                  AppStrings.bookingPromoFallback.tr();
 
               return Container(
                 margin: EdgeInsetsDirectional.only(end: 10.w),

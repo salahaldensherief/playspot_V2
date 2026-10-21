@@ -790,5 +790,13 @@
   "senderAccount": "Sender Account",
   "transferReference": "Reference No.",
   "receiptTotalAmount": "Total Amount",
-  "date": "Date"
+  "date": "Date",
+  "bookingStatusUpcoming": "Upcoming",
+  "bookingStatusPending": "Pending",
+  "bookingStatusCancelled": "Cancelled",
+  "bookingStatusCompleted": "Completed",
+  "bookingPromoFallback": "SPECIAL OFFER",
+  "checkingAvailability": "Checking...",
+  "maxDurationBeforeNextBooking": "Max duration reached before next booking",
+  "moreCanteenItems": "+{count} more items..."
 }

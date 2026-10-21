@@ -790,5 +790,13 @@
   "senderAccount": "حساب/محفظة المحول",
   "transferReference": "رقم المرجع / التحويل",
   "receiptTotalAmount": "المبلغ الإجمالي",
-  "date": "التاريخ"
+  "date": "التاريخ",
+  "bookingStatusUpcoming": "قادم",
+  "bookingStatusPending": "قيد المراجعة",
+  "bookingStatusCancelled": "ملغي",
+  "bookingStatusCompleted": "مكتمل",
+  "bookingPromoFallback": "خصم خاص",
+  "checkingAvailability": "جاري التحقق...",
+  "maxDurationBeforeNextBooking": "أقصى مدة مجهزة حتى الحجز التالي",
+  "moreCanteenItems": "+{count} أصناف أخرى..."
 }

@@ -209,7 +209,7 @@ class _BookingBottomBarState extends State<BookingBottomBar> {
                       content: ButtonContent(
                         body: AppText(
                           text: _isVerifying
-                              ? (isArabic ? 'جاري التحقق...' : 'Checking...')
+                              ? AppStrings.checkingAvailability.tr()
                               : AppStrings.continueText.tr(),
                           fontSize: 14.sp,
                           fontWeight: FontWeight.bold,

@@ -794,4 +794,13 @@ class AppStrings {
   static const String transferReference = "transferReference";
   static const String receiptTotalAmount = "receiptTotalAmount";
   static const String date = "date";
+  static const String bookingStatusUpcoming = "bookingStatusUpcoming";
+  static const String bookingStatusPending = "bookingStatusPending";
+  static const String bookingStatusCancelled = "bookingStatusCancelled";
+  static const String bookingStatusCompleted = "bookingStatusCompleted";
+  static const String bookingPromoFallback = "bookingPromoFallback";
+  static const String checkingAvailability = "checkingAvailability";
+  static const String maxDurationBeforeNextBooking =
+      "maxDurationBeforeNextBooking";
+  static const String moreCanteenItems = "moreCanteenItems";
 }
