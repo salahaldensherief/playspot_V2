@@ -772,4 +772,43 @@ class AppStrings {
   static const String profileActivitySection = "profileActivitySection";
   static const String profileRewardsSection = "profileRewardsSection";
   static const String profileSupportSection = "profileSupportSection";
+  static const String canteenComboBadge = "canteenComboBadge";
+  static const String supportEmailSubject = "supportEmailSubject";
+  static const String bookingIdLabel = "bookingIdLabel";
+  static const String bookingQrTitle = "bookingQrTitle";
+  static const String bookingPaymentApprovedQrHint =
+      "bookingPaymentApprovedQrHint";
+  static const String bookingDeclinedTitle = "bookingDeclinedTitle";
+  static const String bookingDeclinedReasonLabel = "bookingDeclinedReasonLabel";
+  static const String bookingDeclinedNoReason = "bookingDeclinedNoReason";
+  static const String retryPayment = "retryPayment";
+  static const String bookingHoldExpired = "bookingHoldExpired";
+  static const String bookingHoldTimer = "bookingHoldTimer";
+  static const String bookingHoldExpiredHint = "bookingHoldExpiredHint";
+  static const String bookingHoldTimerHint = "bookingHoldTimerHint";
+  static const String reselectTime = "reselectTime";
+  static const String tapToZoomReceipt = "tapToZoomReceipt";
+  static const String cashPaymentAtLounge = "cashPaymentAtLounge";
+  static const String noReceiptImageAttached = "noReceiptImageAttached";
+  static const String bookingId = "bookingId";
+  static const String senderAccount = "senderAccount";
+  static const String transferReference = "transferReference";
+  static const String receiptTotalAmount = "receiptTotalAmount";
+  static const String date = "date";
+  static const String bookingStatusUpcoming = "bookingStatusUpcoming";
+  static const String bookingStatusPending = "bookingStatusPending";
+  static const String bookingStatusCancelled = "bookingStatusCancelled";
+  static const String bookingStatusCompleted = "bookingStatusCompleted";
+  static const String bookingPromoFallback = "bookingPromoFallback";
+  static const String checkingAvailability = "checkingAvailability";
+  static const String maxDurationBeforeNextBooking =
+      "maxDurationBeforeNextBooking";
+  static const String moreCanteenItems = "moreCanteenItems";
+  static const String cashLateArrivalTitle = "cashLateArrivalTitle";
+  static const String prepaidLateArrivalTitle = "prepaidLateArrivalTitle";
+  static const String senderWalletOrInstapay = "senderWalletOrInstapay";
+  static const String senderWalletOrInstapayHint = "senderWalletOrInstapayHint";
+  static const String transactionReferenceNumber = "transactionReferenceNumber";
+  static const String transactionReferenceHint = "transactionReferenceHint";
+  static const String roomDiscountPercent = "roomDiscountPercent";
 }

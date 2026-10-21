@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
@@ -26,8 +27,6 @@ class BookingQrDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -42,7 +41,7 @@ class BookingQrDialog extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   AppText(
-                    text: isArabic ? "رمز QR للحجز" : "Booking QR Code",
+                    text: AppStrings.bookingQrTitle.tr(),
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -78,7 +77,7 @@ class BookingQrDialog extends StatelessWidget {
               AppText(
                 text: booking.loungeName.isNotEmpty
                     ? booking.loungeName
-                    : "PlaySpot",
+                    : AppStrings.playSpot,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: AppColors.neonBlue,
@@ -93,14 +92,16 @@ class BookingQrDialog extends StatelessWidget {
               ),
               SizedBox(height: 4.h),
               AppText(
-                text: "ID: #${booking.id}",
+                text: AppStrings.bookingIdLabel.tr(
+                  namedArgs: {'id': booking.id.toString()},
+                ),
                 fontSize: 11.sp,
                 color: AppColors.textSecondary.withValues(alpha: 0.7),
               ),
               SizedBox(height: 20.h),
 
               AppButton(
-                content: ButtonContent(label: isArabic ? "إغلاق" : "Close"),
+                content: ButtonContent(label: AppStrings.close.tr()),
                 buttonConfig: ButtonConfig(
                   height: 44.h,
                   backgroundColor: AppColors.transparent,

@@ -160,9 +160,8 @@ class _LoungeCardState extends State<LoungeCard> {
 
   /// شريط صغير ملزوق في حرف الـ glass panel من فوق: "وفّر 20%"
   Widget _buildSavingsStrip(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
     final int percent = widget.lounge.discountPercentage.toInt();
-    final String label = isArabic ? 'وفّر $percent%' : 'Save $percent%';
+    final String label = AppStrings.saveAmount.tr(args: ['$percent%']);
 
     return Align(
       alignment: AlignmentDirectional.centerStart,

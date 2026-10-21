@@ -45,7 +45,7 @@ class ContactLauncherService {
   /// Launches the native email client with recipient, subject, and optional body.
   static Future<bool> launchEmail({
     required String email,
-    String subject = 'PlaySpot Support',
+    String subject = '',
     String body = '',
   }) async {
     final uri = Uri(

@@ -87,8 +87,8 @@ class CanteenComboCard extends StatelessWidget {
                       size: 11.sp,
                     ),
                     SizedBox(width: 3.w),
-                    const AppText(
-                      text: "COMBO",
+                    AppText(
+                      text: AppStrings.canteenComboBadge.tr(),
                       fontSize: 9.5,
                       fontWeight: FontWeight.bold,
                       color: AppColors.warning,

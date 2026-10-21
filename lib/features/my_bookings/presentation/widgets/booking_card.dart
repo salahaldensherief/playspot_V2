@@ -491,26 +491,25 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   Widget _buildStatusBadge() {
-    final isArabic = context.locale.languageCode == 'ar';
     Color color;
     String text;
 
     switch (widget.booking.status) {
       case BookingStatus.upcoming:
         color = AppColors.success;
-        text = isArabic ? 'قادم' : 'Upcoming';
+        text = AppStrings.bookingStatusUpcoming.tr();
         break;
       case BookingStatus.pending:
         color = AppColors.warning;
-        text = isArabic ? 'قيد المراجعة' : 'Pending';
+        text = AppStrings.bookingStatusPending.tr();
         break;
       case BookingStatus.cancelled:
         color = AppColors.danger;
-        text = isArabic ? 'ملغي' : 'Cancelled';
+        text = AppStrings.bookingStatusCancelled.tr();
         break;
       default:
         color = AppColors.textSecondary;
-        text = isArabic ? 'مكتمل' : 'Completed';
+        text = AppStrings.bookingStatusCompleted.tr();
     }
 
     return Container(

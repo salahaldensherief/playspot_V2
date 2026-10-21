@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../booking_cubit.dart';
@@ -91,9 +92,7 @@ class DurationSelector extends StatelessWidget {
                     ),
                     SizedBox(width: 4.w),
                     AppText(
-                      text: isArabic
-                          ? "أقصى مدة مجهزة حتى الحجز التالي"
-                          : "Max duration reached before next booking",
+                      text: AppStrings.maxDurationBeforeNextBooking.tr(),
                       fontSize: 10.sp,
                       color: AppColors.warning,
                       fontWeight: FontWeight.w600,

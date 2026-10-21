@@ -225,7 +225,6 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
   @override
   Widget build(BuildContext context) {
     final booking = widget.booking;
-    final isArabic = context.locale.languageCode == 'ar';
     final hasReceiptImage =
         !_isLoadingUrl &&
         _resolvedReceiptUrl != null &&
@@ -333,9 +332,7 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                                   ),
                                   SizedBox(height: 6.h),
                                   AppText(
-                                    text: isArabic
-                                        ? "عفواً، فشل تحميل صورة الإيصال"
-                                        : "Failed to load receipt image",
+                                    text: AppStrings.receiptImageLoadError.tr(),
                                     fontSize: 12.sp,
                                     color: AppColors.textSecondary,
                                   ),
@@ -366,9 +363,7 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                                     ),
                                     SizedBox(width: 4.w),
                                     AppText(
-                                      text: isArabic
-                                          ? "تكبير الصورة"
-                                          : "Tap to zoom",
+                                      text: AppStrings.tapToZoomReceipt.tr(),
                                       fontSize: 10.sp,
                                       color: Colors.white,
                                     ),
@@ -402,12 +397,8 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                         SizedBox(height: 8.h),
                         AppText(
                           text: isCash
-                              ? (isArabic
-                                    ? "الدفع نقداً داخل الفرع"
-                                    : "Cash payment at lounge")
-                              : (isArabic
-                                    ? "لم يتم إرفاق صورة إيصال لهذا الحجز"
-                                    : "No receipt image attached"),
+                              ? AppStrings.cashPaymentAtLounge.tr()
+                              : AppStrings.noReceiptImageAttached.tr(),
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
                           color: Colors.white70,
@@ -434,13 +425,13 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                     children: [
                       _buildDetailRow(
                         icon: Icons.storefront_rounded,
-                        label: isArabic ? "الفرع" : "Lounge",
+                        label: AppStrings.loungeVenue.tr(),
                         value: booking.loungeName,
                       ),
                       Divider(color: Colors.white10, height: 16.h),
                       _buildDetailRow(
                         icon: Icons.confirmation_number_outlined,
-                        label: isArabic ? "رقم الحجز" : "Booking ID",
+                        label: AppStrings.bookingId.tr(),
                         value:
                             "#${booking.id.substring(0, booking.id.length > 8 ? 8 : booking.id.length)}",
                       ),
@@ -449,9 +440,7 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                         Divider(color: Colors.white10, height: 16.h),
                         _buildDetailRow(
                           icon: Icons.phone_android_rounded,
-                          label: isArabic
-                              ? "حساب/محفظة المحول"
-                              : "Sender Account",
+                          label: AppStrings.senderAccount.tr(),
                           value: booking.senderAccount!,
                         ),
                       ],
@@ -460,25 +449,23 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
                         Divider(color: Colors.white10, height: 16.h),
                         _buildDetailRow(
                           icon: Icons.pin_outlined,
-                          label: isArabic
-                              ? "رقم المرجع / التحويل"
-                              : "Reference No.",
+                          label: AppStrings.transferReference.tr(),
                           value: booking.transactionReference!,
                         ),
                       ],
                       Divider(color: Colors.white10, height: 16.h),
                       _buildDetailRow(
                         icon: Icons.attach_money_rounded,
-                        label: isArabic ? "المبلغ الإجمالي" : "Total Amount",
+                        label: AppStrings.receiptTotalAmount.tr(),
                         value:
-                            "${booking.totalPrice.toStringAsFixed(0)} ${isArabic ? 'ج.م' : 'EGP'}",
+                            "${booking.totalPrice.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                         valueColor: AppColors.neonBlue,
                         isBold: true,
                       ),
                       Divider(color: Colors.white10, height: 16.h),
                       _buildDetailRow(
                         icon: Icons.calendar_today_outlined,
-                        label: isArabic ? "التاريخ" : "Date",
+                        label: AppStrings.date.tr(),
                         value: booking.date.toAppDateString(),
                       ),
                     ],
@@ -494,7 +481,7 @@ class _BookingReceiptDialogState extends State<BookingReceiptDialog> {
 
                 // Action Close Button
                 AppButton(
-                  content: ButtonContent(label: isArabic ? "إغلاق" : "Close"),
+                  content: ButtonContent(label: AppStrings.close.tr()),
                   buttonConfig: ButtonConfig(
                     height: 44.h,
                     backgroundColor: AppColors.transparent,
