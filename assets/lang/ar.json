@@ -773,5 +773,22 @@
   "supportEmailSubject": "دعم بلاي سبوت",
   "bookingIdLabel": "رقم الحجز: #{id}",
   "bookingQrTitle": "رمز QR للحجز",
-  "bookingPaymentApprovedQrHint": "وافقت الصالة على دفعك. اعرض رمز QR عند الوصول."
+  "bookingPaymentApprovedQrHint": "وافقت الصالة على دفعك. اعرض رمز QR عند الوصول.",
+  "bookingDeclinedTitle": "تم رفض الحجز من الصالة",
+  "bookingDeclinedReasonLabel": "سبب الرفض الصادر من الصالة:",
+  "bookingDeclinedNoReason": "لم يتم تحديد سبب الرفض",
+  "retryPayment": "إعادة المحاولة",
+  "bookingHoldExpired": "انتهت المهلة المؤقتة للحجز",
+  "bookingHoldTimer": "مهلة حجز الموعد المؤقتة",
+  "bookingHoldExpiredHint": "انتهت الـ 10 دقائق المحددة للحجز. يرجى العودة وإعادة اختيار الموعد.",
+  "bookingHoldTimerHint": "احجز وارفق الإيصال قبل انتهاء الوقت لتأكيد حجزك.",
+  "reselectTime": "إعادة الاختيار",
+  "tapToZoomReceipt": "تكبير الصورة",
+  "cashPaymentAtLounge": "الدفع نقداً داخل الفرع",
+  "noReceiptImageAttached": "لم يتم إرفاق صورة إيصال لهذا الحجز",
+  "bookingId": "رقم الحجز",
+  "senderAccount": "حساب/محفظة المحول",
+  "transferReference": "رقم المرجع / التحويل",
+  "receiptTotalAmount": "المبلغ الإجمالي",
+  "date": "التاريخ"
 }

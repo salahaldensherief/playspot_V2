@@ -777,4 +777,21 @@ class AppStrings {
   static const String bookingQrTitle = "bookingQrTitle";
   static const String bookingPaymentApprovedQrHint =
       "bookingPaymentApprovedQrHint";
+  static const String bookingDeclinedTitle = "bookingDeclinedTitle";
+  static const String bookingDeclinedReasonLabel = "bookingDeclinedReasonLabel";
+  static const String bookingDeclinedNoReason = "bookingDeclinedNoReason";
+  static const String retryPayment = "retryPayment";
+  static const String bookingHoldExpired = "bookingHoldExpired";
+  static const String bookingHoldTimer = "bookingHoldTimer";
+  static const String bookingHoldExpiredHint = "bookingHoldExpiredHint";
+  static const String bookingHoldTimerHint = "bookingHoldTimerHint";
+  static const String reselectTime = "reselectTime";
+  static const String tapToZoomReceipt = "tapToZoomReceipt";
+  static const String cashPaymentAtLounge = "cashPaymentAtLounge";
+  static const String noReceiptImageAttached = "noReceiptImageAttached";
+  static const String bookingId = "bookingId";
+  static const String senderAccount = "senderAccount";
+  static const String transferReference = "transferReference";
+  static const String receiptTotalAmount = "receiptTotalAmount";
+  static const String date = "date";
 }

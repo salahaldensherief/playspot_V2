@@ -773,5 +773,22 @@
   "supportEmailSubject": "PlaySpot support",
   "bookingIdLabel": "Booking ID: #{id}",
   "bookingQrTitle": "Booking QR code",
-  "bookingPaymentApprovedQrHint": "The venue approved your payment. Show this QR code when you arrive."
+  "bookingPaymentApprovedQrHint": "The venue approved your payment. Show this QR code when you arrive.",
+  "bookingDeclinedTitle": "Booking Declined",
+  "bookingDeclinedReasonLabel": "Reason from venue:",
+  "bookingDeclinedNoReason": "No specific reason provided.",
+  "retryPayment": "Retry Payment",
+  "bookingHoldExpired": "Hold Expired",
+  "bookingHoldTimer": "Temporary Hold Timer",
+  "bookingHoldExpiredHint": "10-minute hold limit reached. Please go back and reselect a slot.",
+  "bookingHoldTimerHint": "Complete payment before time expires to hold your slot.",
+  "reselectTime": "Reselect",
+  "tapToZoomReceipt": "Tap to zoom",
+  "cashPaymentAtLounge": "Cash payment at lounge",
+  "noReceiptImageAttached": "No receipt image attached",
+  "bookingId": "Booking ID",
+  "senderAccount": "Sender Account",
+  "transferReference": "Reference No.",
+  "receiptTotalAmount": "Total Amount",
+  "date": "Date"
 }
