@@ -44,7 +44,9 @@ class RoomMainContent extends StatelessWidget {
           ? room.promoDiscountValue.toInt()
           : (data.lounge?.discountPercentage ?? 0);
       if (pct > 0) {
-        return isArabic ? '${AppStrings.discount.tr()} $pct%' : '$pct% OFF';
+        return AppStrings.roomDiscountPercent.tr(
+          namedArgs: {'percent': pct.toString()},
+        );
       }
       return AppStrings.activeOffer.tr();
     }();

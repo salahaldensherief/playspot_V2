@@ -804,5 +804,6 @@
   "senderWalletOrInstapay": "رقم المحفظة / حساب InstaPay المحول منه",
   "senderWalletOrInstapayHint": "مثال: 01012345678 أو username@instapay",
   "transactionReferenceNumber": "الرقم المرجعي للتحويل",
-  "transactionReferenceHint": "أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل"
+  "transactionReferenceHint": "أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل",
+  "roomDiscountPercent": "خصم {percent}%"
 }

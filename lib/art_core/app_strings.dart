@@ -809,4 +809,5 @@ class AppStrings {
   static const String senderWalletOrInstapayHint = "senderWalletOrInstapayHint";
   static const String transactionReferenceNumber = "transactionReferenceNumber";
   static const String transactionReferenceHint = "transactionReferenceHint";
+  static const String roomDiscountPercent = "roomDiscountPercent";
 }
