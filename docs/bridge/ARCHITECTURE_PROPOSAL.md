@@ -1,3 +1,5 @@
+> Review update, 21 October 2026: historical live-state claims below were made by the original proposal author and were NOT independently re-verified against hosted databases in this review. Current review uses repository source and isolated fixtures only. See IMPLEMENTATION_PLAN.md, MTTL_W01_FEASIBILITY.md and HARDWARE_LAB_GUIDE_AR.md for the current findings and mock-only boundary. No hosted schema/Edge Function change or hardware test was performed.
+
 # PlaySpot Bridge — backend architecture contract (PROPOSAL, NOT DEPLOYED)
 
 Date: 2026-10-21. Review target: dev. This is an implementation contract for Codex; it is **not a migration**, a shipped Connector, or proof of compatibility with any vendor.

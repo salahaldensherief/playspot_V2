@@ -84,3 +84,24 @@ test('unsupported operation fails closed', () => {
   assert.equal(adapter.execute({...base,
     type: 'charge_card', idempotencyKey: 'charge-1'}).reason, 'UNSUPPORTED_COMMAND');
 });
+
+test('cancelling a running session cannot release occupied capacity', () => {
+  const adapter = new ReferenceLegacySystem();
+  const reservationId = adapter.execute(reserve('first')).reservationId;
+  adapter.execute({...base, type:'start_session', idempotencyKey:'start', reservationId});
+  assert.equal(adapter.execute({...base,type:'cancel_reservation',idempotencyKey:'cancel',reservationId}).status,'rejected');
+  assert.equal(adapter.execute(reserve('collision')).reason,'SLOT_OCCUPIED');
+});
+
+test('receipt mutation and object key order do not alter deduplication', () => {
+  const adapter = new ReferenceLegacySystem(); const command = reserve('one');
+  const receipt = adapter.execute(command); receipt.status = 'corrupted';
+  assert.equal(adapter.execute(Object.fromEntries(Object.entries(command).reverse())).status,'acknowledged');
+  assert.equal(adapter.reservations.size,1);
+});
+
+test('non-string identities cannot bypass integration scope', () => {
+  const adapter = new ReferenceLegacySystem();
+  assert.equal(adapter.execute(reserve('one',{integrationId:{id:'L-1'}})).reason,'INVALID_COMMAND');
+  assert.equal(adapter.reservations.size,0);
+});

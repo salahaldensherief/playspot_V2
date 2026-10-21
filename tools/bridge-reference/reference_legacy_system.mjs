@@ -1,5 +1,11 @@
 // OFFLINE IN-MEMORY REFERENCE ONLY. Not a connector, server, or Windows agent.
 // No network, credentials, real booking data, payments, or Supabase access.
+const canonical = value => {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') return Object.fromEntries(
+    Object.keys(value).sort().map(k => [k, canonical(value[k])]));
+  return value;
+};
 export class ReferenceLegacySystem {
   constructor({mode = 'cloud_api'} = {}) {
     if (!['cloud_api', 'local_agent', 'hybrid'].includes(mode)) {
@@ -17,12 +23,12 @@ export class ReferenceLegacySystem {
   // deliberately ephemeral so it cannot be used as a production reference.
   execute(command, {simulateLostAck = false} = {}) {
     if (!this.online) return {status: 'unavailable'};
-    if (!command || !command.integrationId || !command.idempotencyKey ||
-        !command.type || !command.resourceId) {
+    if (!command || ![command.integrationId, command.idempotencyKey, command.type, command.resourceId]
+          .every(value => typeof value === 'string' && value.trim().length > 0 && value.length <= 200)) {
       return {status: 'rejected', reason: 'INVALID_COMMAND'};
     }
     const key = JSON.stringify([command.integrationId, command.idempotencyKey]);
-    const fingerprint = JSON.stringify(command);
+    const fingerprint = JSON.stringify(canonical(command));
     if (this.receipts.has(key)) {
       const prior = this.receipts.get(key);
       return prior.fingerprint === fingerprint
@@ -58,7 +64,7 @@ export class ReferenceLegacySystem {
     } else if (command.type === 'cancel_reservation') {
       const r = this.reservations.get(reservationId);
       if (!r || r.integrationId !== command.integrationId ||
-          r.resourceId !== command.resourceId || r.status === 'ended') {
+          r.resourceId !== command.resourceId || r.status !== 'reserved') {
         receipt = {status: 'rejected', reason: 'BAD_RESERVATION'};
       } else {
         r.status = 'cancelled';
@@ -88,10 +94,10 @@ export class ReferenceLegacySystem {
       receipt = {status: 'rejected', reason: 'UNSUPPORTED_COMMAND'};
     }
 
-    this.receipts.set(key, {fingerprint, receipt});
+    this.receipts.set(key, {fingerprint, receipt: structuredClone(receipt)});
     if (simulateLostAck && receipt.status === 'acknowledged') {
       return {status: 'ambiguous', reason: 'EXECUTED_BUT_ACK_LOST'};
     }
-    return receipt;
+    return structuredClone(receipt);
   }
 }
