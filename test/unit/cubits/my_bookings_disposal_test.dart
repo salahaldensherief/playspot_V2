@@ -26,10 +26,10 @@ void main() {
     final repository = _Repository();
     final pending = Completer<Either<Failure, void>>();
     when(
-      () => repository.cancelBooking('booking'),
+      () => repository.cancelBooking('booking', 'urgent'),
     ).thenAnswer((_) => pending.future);
     final cubit = MyBookingsCubit(repository);
-    final cancel = cubit.cancelBooking('booking');
+    final cancel = cubit.cancelBooking('booking', 'urgent');
     await cubit.close();
     pending.complete(const Left(ServerFailure('fixture')));
     await cancel;

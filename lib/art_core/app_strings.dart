@@ -189,6 +189,13 @@ class AppStrings {
   // New Strings
   static const String cancelBookingTitle = "cancelBookingTitle";
   static const String cancelBookingSubtitle = "cancelBookingSubtitle";
+  static const String cancelReasonPrompt = "cancelReasonPrompt";
+  static const String cancelReasonEmergency = "cancelReasonEmergency";
+  static const String cancelReasonCannotArrive = "cancelReasonCannotArrive";
+  static const String cancelReasonPlansChanged = "cancelReasonPlansChanged";
+  static const String cancelReasonOther = "cancelReasonOther";
+  static const String cancelReasonDetailsHint = "cancelReasonDetailsHint";
+  static const String cancelReasonRequired = "cancelReasonRequired";
   static const String keepBooking = "keepBooking";
   static const String yesCancel = "yesCancel";
   static const String upcoming = "upcoming";

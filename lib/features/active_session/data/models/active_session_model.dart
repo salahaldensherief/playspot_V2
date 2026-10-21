@@ -1,6 +1,8 @@
 import '../../domain/entities/active_session.dart';
 import '../../domain/entities/order_item.dart';
 import 'order_item_model.dart';
+import 'package:timezone/data/latest_all.dart' as timezone_data;
+import 'package:timezone/timezone.dart' as tz;
 
 class ActiveSessionModel extends ActiveSession {
   const ActiveSessionModel({
@@ -134,17 +136,14 @@ class ActiveSessionModel extends ActiveSession {
         (json['added_minutes'] as num?)?.toInt() ??
         0;
 
-    // 5. Calculate End Time matching Dashboard formula:
-    // End Time = Start Time + Duration Minutes (+ Extra Extension Minutes)
-    DateTime endTime;
-    if (durationMins > 0) {
-      endTime = startTime.add(Duration(minutes: durationMins + addedMins));
-    } else {
-      endTime = _parseEndTimeFallback(json, startTime);
-      if (addedMins > 0) {
-        endTime = endTime.add(Duration(minutes: addedMins));
-      }
-    }
+    // The booked end is updated by the server when an extension is approved.
+    // Duration already includes that extension; adding it again extends the
+    // client's countdown without changing the actual booking.
+    final endTime = _parseEndTimeFallback(
+      json,
+      startTime,
+      fallbackMinutes: durationMins > 0 ? durationMins : 30 + addedMins,
+    );
 
     // Parse canteen order items:
     // Check canteen_orders -> canteen_order_items -> extras, OR fallback to booking_items
@@ -247,7 +246,7 @@ class ActiveSessionModel extends ActiveSession {
       try {
         final fullIso = "${dateStr}T$timeStr";
         final parsed = DateTime.parse(fullIso);
-        return parsed.isUtc ? parsed.toLocal() : parsed;
+        return _asLoungeTime(json, parsed);
       } catch (_) {}
     }
 
@@ -255,14 +254,14 @@ class ActiveSessionModel extends ActiveSession {
     if (rawStartAt != null && rawStartAt.toString().isNotEmpty) {
       try {
         final parsed = DateTime.parse(rawStartAt.toString().trim());
-        return parsed.isUtc ? parsed.toLocal() : parsed;
+        return _asLoungeTime(json, parsed);
       } catch (_) {}
     }
 
     if (rawStartTime != null && rawStartTime.toString().contains('T')) {
       try {
         final parsed = DateTime.parse(rawStartTime.toString().trim());
-        return parsed.isUtc ? parsed.toLocal() : parsed;
+        return _asLoungeTime(json, parsed);
       } catch (_) {}
     }
 
@@ -271,8 +270,9 @@ class ActiveSessionModel extends ActiveSession {
 
   static DateTime _parseEndTimeFallback(
     Map<String, dynamic> json,
-    DateTime defaultStart,
-  ) {
+    DateTime defaultStart, {
+    required int fallbackMinutes,
+  }) {
     final rawEndTime = json['end_time'] ?? json['endTime'];
     final dateRaw = json['date'] ?? json['booking_date'];
 
@@ -295,8 +295,9 @@ class ActiveSessionModel extends ActiveSession {
       try {
         final fullIso = "${dateStr}T$timeStr";
         final parsed = DateTime.parse(fullIso);
-        final local = parsed.isUtc ? parsed.toLocal() : parsed;
+        final local = _asLoungeTime(json, parsed);
         if (local.isAfter(defaultStart)) return local;
+        return local.add(const Duration(days: 1));
       } catch (_) {}
     }
 
@@ -304,7 +305,7 @@ class ActiveSessionModel extends ActiveSession {
     if (rawEndAt != null && rawEndAt.toString().isNotEmpty) {
       try {
         final parsed = DateTime.parse(rawEndAt.toString().trim());
-        final local = parsed.isUtc ? parsed.toLocal() : parsed;
+        final local = _asLoungeTime(json, parsed);
         if (local.isAfter(defaultStart)) return local;
       } catch (_) {}
     }
@@ -312,11 +313,39 @@ class ActiveSessionModel extends ActiveSession {
     if (rawEndTime != null && rawEndTime.toString().contains('T')) {
       try {
         final parsed = DateTime.parse(rawEndTime.toString().trim());
-        final local = parsed.isUtc ? parsed.toLocal() : parsed;
+        final local = _asLoungeTime(json, parsed);
         if (local.isAfter(defaultStart)) return local;
       } catch (_) {}
     }
 
-    return defaultStart.add(const Duration(minutes: 30));
+    return defaultStart.add(Duration(minutes: fallbackMinutes));
+  }
+
+  static bool _timezonesReady = false;
+
+  static DateTime _asLoungeTime(Map<String, dynamic> json, DateTime parsed) {
+    if (parsed.isUtc) return parsed.toLocal();
+    final lounge = json['lounges'];
+    final timezone =
+        (lounge is Map ? lounge['timezone'] : null) ?? json['timezone'];
+    if (timezone == null || timezone.toString().isEmpty) return parsed;
+    try {
+      if (!_timezonesReady) {
+        timezone_data.initializeTimeZones();
+        _timezonesReady = true;
+      }
+      final location = tz.getLocation(timezone.toString());
+      return tz.TZDateTime(
+        location,
+        parsed.year,
+        parsed.month,
+        parsed.day,
+        parsed.hour,
+        parsed.minute,
+        parsed.second,
+      ).toLocal();
+    } catch (_) {
+      return parsed;
+    }
   }
 }

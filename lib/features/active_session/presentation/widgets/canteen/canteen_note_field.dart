@@ -31,7 +31,9 @@ class CanteenNoteField extends StatelessWidget {
           ),
           child: TextField(
             onChanged: onChanged,
+            maxLength: 1000,
             decoration: InputDecoration(
+              counterText: '',
               prefixIcon: Icon(
                 Icons.edit_note_rounded,
                 color: AppColors.neonPurple,

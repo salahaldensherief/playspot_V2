@@ -69,8 +69,7 @@ class ActiveSessionRemoteDataSourceImpl
     }
 
     const selectQuery =
-        '*, lounges(name), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*))';
-    final now = DateTime.now();
+        '*, lounges(name, timezone), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*))';
 
     // Try RPC get_active_session_details first for rich hydrated session details
     try {
@@ -174,15 +173,12 @@ class ActiveSessionRemoteDataSourceImpl
         final activeModel = ActiveSessionModel.fromJson(
           Map<String, dynamic>.from(activeResponse),
         );
-        final isExpired = now.isAfter(
-          activeModel.endTime.add(const Duration(minutes: 5)),
+        // The server owns the session lifecycle. A booking may remain in
+        // progress while staff settles overtime or completes checkout.
+        dev.log(
+          "[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}",
         );
-        if (!isExpired) {
-          dev.log(
-            "[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}",
-          );
-          return activeModel;
-        }
+        return activeModel;
       }
     } catch (e) {
       dev.log("[LIVESESSION_DS] Fetching active in_progress session error: $e");
@@ -342,6 +338,7 @@ class ActiveSessionRemoteDataSourceImpl
         )
         .map((item) => item.note?.trim() ?? '')
         .where((n) => n.isNotEmpty)
+        .toSet()
         .join(', ');
 
     await _client.rpc(

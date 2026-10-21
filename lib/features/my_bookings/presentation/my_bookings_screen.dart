@@ -12,12 +12,12 @@ import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
+import 'package:playspot/features/my_bookings/presentation/widgets/cancel_booking_reason_dialog.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/layout/app_state_view.dart';
-import '../../../../art_core/widgets/layout/app_dialog.dart';
 import 'my_bookings_cubit.dart';
 import 'my_bookings_state.dart';
 
@@ -343,15 +343,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     );
   }
 
-  void _showCancelConfirmation(BuildContext context, String bookingId) {
-    AppDialog.show(
-      context,
-      type: AppDialogType.confirm,
-      title: AppStrings.cancelBookingTitle,
-      description: AppStrings.cancelBookingSubtitle,
-      confirmText: AppStrings.yesCancel,
-      cancelText: AppStrings.keepBooking,
-      onConfirm: () => context.read<MyBookingsCubit>().cancelBooking(bookingId),
+  Future<void> _showCancelConfirmation(
+    BuildContext context,
+    String bookingId,
+  ) async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => const CancelBookingReasonDialog(),
     );
+    if (!context.mounted || reason == null) return;
+    await context.read<MyBookingsCubit>().cancelBooking(bookingId, reason);
   }
 }

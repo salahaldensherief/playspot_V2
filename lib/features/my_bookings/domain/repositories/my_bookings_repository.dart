@@ -12,7 +12,7 @@ abstract class MyBookingsRepository {
     int page = 1,
     int pageSize = 20,
   });
-  Future<Either<Failure, void>> cancelBooking(String bookingId);
+  Future<Either<Failure, void>> cancelBooking(String bookingId, String reason);
   Future<Either<Failure, List<BookingTimelineItem>>> getBookingTimeline(
     String bookingId,
   );

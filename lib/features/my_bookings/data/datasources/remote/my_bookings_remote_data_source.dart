@@ -10,7 +10,7 @@ abstract class MyBookingsRemoteDataSource {
     int page = 1,
     int pageSize = 20,
   });
-  Future<void> cancelBooking(String bookingId);
+  Future<void> cancelBooking(String bookingId, String reason);
   Future<List<BookingTimelineItemModel>> getBookingTimeline(String bookingId);
 }
 
@@ -59,13 +59,13 @@ class MyBookingsRemoteDataSourceImpl implements MyBookingsRemoteDataSource {
   }
 
   @override
-  Future<void> cancelBooking(String bookingId) async {
+  Future<void> cancelBooking(String bookingId, String reason) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw const AuthException("User not logged in");
 
     await _client.rpc(
       'cancel_my_booking',
-      params: {'p_booking_id': bookingId, 'p_reason': 'Cancelled by user'},
+      params: {'p_booking_id': bookingId, 'p_reason': reason.trim()},
     );
   }
 

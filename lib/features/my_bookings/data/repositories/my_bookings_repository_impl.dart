@@ -36,9 +36,12 @@ class MyBookingsRepositoryImpl
   }
 
   @override
-  Future<Either<Failure, void>> cancelBooking(String bookingId) async {
+  Future<Either<Failure, void>> cancelBooking(
+    String bookingId,
+    String reason,
+  ) async {
     return await callRepository(
-      () => _remoteDataSource.cancelBooking(bookingId),
+      () => _remoteDataSource.cancelBooking(bookingId, reason),
     );
   }
 

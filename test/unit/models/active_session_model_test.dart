@@ -53,6 +53,53 @@ void main() {
       expect(model.grandTotal, 280.0);
     });
 
+    test(
+      'uses the server end time without adding approved extension twice',
+      () {
+        final model = ActiveSessionModel.fromJson({
+          'id': 'extended',
+          'date': '2026-10-21',
+          'start_time': '15:00:00',
+          'end_time': '16:30:00',
+          'duration_minutes': 90,
+          'extended_minutes': 30,
+        });
+
+        expect(
+          model.endTime.difference(model.startTime),
+          const Duration(minutes: 90),
+        );
+      },
+    );
+
+    test('reads a session ending after midnight as the next day', () {
+      final model = ActiveSessionModel.fromJson({
+        'id': 'overnight',
+        'date': '2026-10-21',
+        'start_time': '23:30:00',
+        'end_time': '00:30:00',
+        'duration_minutes': 60,
+      });
+
+      expect(
+        model.endTime.difference(model.startTime),
+        const Duration(hours: 1),
+      );
+    });
+
+    test('uses the lounge timezone for the session instant', () {
+      final model = ActiveSessionModel.fromJson({
+        'id': 'cairo',
+        'date': '2026-10-21',
+        'start_time': '15:00:00',
+        'end_time': '16:00:00',
+        'lounges': {'timezone': 'Africa/Cairo'},
+      });
+
+      expect(model.startTime.toUtc(), DateTime.utc(2026, 10, 21, 12));
+      expect(model.endTime.toUtc(), DateTime.utc(2026, 10, 21, 13));
+    });
+
     test('hasStarted should return true when now is past startTime', () {
       final model = ActiveSessionModel.fromJson(testJson);
 
