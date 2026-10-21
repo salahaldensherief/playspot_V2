@@ -152,6 +152,22 @@ try {
    assert.equal(second.error?.code,'22023');
    assert.equal(Number((await db.query('SELECT count(*) AS n FROM public.payments WHERE booking_id=$1',[b])).rows[0].n),0);
   });
+  await check('approved 50 debt after paid 180 is collected exactly once',async()=>{
+   const id=randomUUID(),operation=randomUUID();
+   await admin(`INSERT INTO public.bookings(id,user_id,lounge_id,status,total_price,payment_status)
+     VALUES('${id}','${customer}','${lounge}','in_progress',230,'partial');
+     INSERT INTO public.payments(booking_id,lounge_id,amount,payment_method,status)
+     VALUES('${id}','${lounge}',180,'cash','completed');
+     INSERT INTO public.shift_payments(shift_id,lounge_id,booking_id,payment_method,category,amount)
+     VALUES('${shift}','${lounge}','${id}','cash','gaming_time',180);`);
+   const request=collect(5000,operation,id);
+   const [first,second]=await lockedRace(db,request,request,actor);
+   assert.equal(first.rows[0].receipt.paid_minor,23000);
+   assert.equal(first.rows[0].receipt.due_minor,0);
+   assert.equal(second.value.rows[0].receipt.replayed,true);
+   const ledger=(await db.query('SELECT count(*) n,sum(amount) total FROM public.shift_payments WHERE booking_id=$1',[id])).rows[0];
+   assert.equal(Number(ledger.n),2);assert.equal(Number(ledger.total),230);
+  });
  }
  console.log(JSON.stringify({passed,limitations:['Synthetic schema and Auth claims','Hosted audit trigger not reproduced','Not yet the offline apply endpoint','No deployed SQL or client integration']}));
 } finally {await db.close();}

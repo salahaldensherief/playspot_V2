@@ -27,6 +27,7 @@ abstract class BookingRemoteDataSource {
     String? voucherCode,
   });
   Future<Map<String, dynamic>> createBookingCheckout({
+    String? operationId,
     required String holdToken,
     required List<Map<String, dynamic>> roomRequests,
     required List<Map<String, dynamic>> extraItems,
@@ -35,6 +36,7 @@ abstract class BookingRemoteDataSource {
     String? senderWalletPhone,
     String? receiptUrl,
   });
+  Future<Map<String, dynamic>?> recoverBookingCheckout(String operationId);
   Future<Map<String, dynamic>> quoteBookingPrice({
     required String roomId,
     required String date,
@@ -173,6 +175,7 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> createBookingCheckout({
+    String? operationId,
     required String holdToken,
     required List<Map<String, dynamic>> roomRequests,
     required List<Map<String, dynamic>> extraItems,
@@ -182,17 +185,21 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     String? receiptUrl,
   }) async {
     try {
+      final params = <String, dynamic>{
+        'p_hold_token': holdToken,
+        'p_room_requests': roomRequests,
+        'p_extra_items': extraItems,
+        'p_voucher_code': voucherCode,
+        'p_payment_method': paymentMethod,
+        'p_sender_wallet_phone': senderWalletPhone,
+        'p_receipt_url': receiptUrl,
+      };
+      if (operationId != null) params['p_operation_id'] = operationId;
       final response = await _client.rpc(
-        'create_my_booking_checkout',
-        params: {
-          'p_hold_token': holdToken,
-          'p_room_requests': roomRequests,
-          'p_extra_items': extraItems,
-          'p_voucher_code': voucherCode,
-          'p_payment_method': paymentMethod,
-          'p_sender_wallet_phone': senderWalletPhone,
-          'p_receipt_url': receiptUrl,
-        },
+        operationId == null
+            ? 'create_my_booking_checkout'
+            : 'create_my_booking_checkout_v2',
+        params: params,
       );
 
       return Map<String, dynamic>.from(response as Map);
@@ -200,6 +207,17 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       _checkPriceChangedError(e);
       rethrow;
     }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> recoverBookingCheckout(
+    String operationId,
+  ) async {
+    final response = await _client.rpc(
+      'recover_my_booking_checkout',
+      params: {'p_operation_id': operationId},
+    );
+    return response == null ? null : Map<String, dynamic>.from(response as Map);
   }
 
   @override

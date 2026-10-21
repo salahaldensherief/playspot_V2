@@ -90,6 +90,7 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> createBookingCheckout({
+    String? operationId,
     required String holdToken,
     required List<Map<String, dynamic>> roomRequests,
     required List<Map<String, dynamic>> extraItems,
@@ -100,6 +101,7 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
   }) async {
     try {
       final res = await _remoteDataSource.createBookingCheckout(
+        operationId: operationId,
         holdToken: holdToken,
         roomRequests: roomRequests,
         extraItems: extraItems,
@@ -122,6 +124,13 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
       return await callRepository(() => throw e);
     }
   }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>?>> recoverBookingCheckout(
+    String operationId,
+  ) => callRepository(
+    () => _remoteDataSource.recoverBookingCheckout(operationId),
+  );
 
   @override
   Future<Either<Failure, BookingPriceQuote>> quoteBookingPrice({

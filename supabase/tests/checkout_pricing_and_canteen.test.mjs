@@ -60,6 +60,7 @@ try {
     await db.exec(await readFile(new URL('../migrations/20261009000005_checkout_room_booking_eligibility.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../migrations/20261009000001_booking_hold_occupied_room_capacity.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../migrations/20261010134409_eligible_booking_hold_and_checkout_actor.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../migrations/20261021121000_booking_checkout_operation_receipts.sql',import.meta.url),'utf8'));
   await db.exec(`CREATE TRIGGER clamp BEFORE INSERT OR UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION fn_validate_and_clamp_booking_price();
     CREATE TRIGGER normalize BEFORE INSERT OR UPDATE OF items ON canteen_orders FOR EACH ROW EXECUTE FUNCTION normalize_canteen_order_items();
     ALTER TABLE canteen_order_items ADD FOREIGN KEY(order_id) REFERENCES canteen_orders(id);
@@ -83,6 +84,35 @@ try {
     assert.equal(Number(await scalar('SELECT sum(total_price) r FROM bookings')),100);
     assert.equal(await scalar("SELECT status r FROM user_vouchers WHERE code='TEST'"),'used');
     assert.equal(Number(await scalar('SELECT count(*) r FROM booking_holds WHERE released_at IS NULL')),0);
+  });
+  await check('lost checkout response recovers the committed multi-room result',async () => {
+    await seedHold([room,roomB]); await voucher(20);
+    const operation=id(900);
+    const request=JSON.stringify([{room_id:room},{room_id:roomB}]);
+    const initial=await scalar('SELECT create_my_booking_checkout_v2($1,$2,$3::jsonb,$4::jsonb,$5) r',
+      [operation,hold,request,JSON.stringify([{extra_id:extra,quantity:1}]),'TEST']);
+    const recovered=await scalar('SELECT recover_my_booking_checkout($1) r',[operation]);
+    const replayed=await scalar('SELECT create_my_booking_checkout_v2($1,$2,$3::jsonb,$4::jsonb,$5) r',
+      [operation,hold,request,JSON.stringify([{extra_id:extra,quantity:1}]),'TEST']);
+    assert.deepEqual(recovered.booking_ids,initial.booking_ids);
+    assert.deepEqual(replayed.booking_ids,initial.booking_ids);
+    assert.equal(replayed.replayed,true);
+    assert.equal(Number(await scalar('SELECT count(*) r FROM bookings')),2);
+    assert.equal(Number(await scalar('SELECT count(*) r FROM canteen_orders')),1);
+    assert.equal(await scalar("SELECT status r FROM user_vouchers WHERE code='TEST'"),'used');
+    await assert.rejects(scalar('SELECT create_my_booking_checkout_v2($1,$2,$3::jsonb,$4::jsonb,$5) r',
+      [operation,hold,request,'[]','TEST']),e=>e.message==='CHECKOUT_OPERATION_REPLAY_CONFLICT');
+  });
+  await check('another actor cannot read or reuse a checkout receipt',async () => {
+    await seedHold();
+    const operation=id(901),request=JSON.stringify([{room_id:room}]);
+    await scalar('SELECT create_my_booking_checkout_v2($1,$2,$3::jsonb) r',[operation,hold,request]);
+    await db.exec(`SET LOCAL request.jwt.claim.sub='${id(999)}'`);
+    await db.exec('SAVEPOINT cross_actor_read');
+    await assert.rejects(scalar('SELECT recover_my_booking_checkout($1) r',[operation]),e=>e.code==='42501');
+    await db.exec('ROLLBACK TO SAVEPOINT cross_actor_read');
+    await assert.rejects(scalar('SELECT create_my_booking_checkout_v2($1,$2,$3::jsonb) r',
+      [operation,hold,request]),e=>e.message==='CHECKOUT_OPERATION_REPLAY_CONFLICT');
   });
   await check('administrative disablement after hold prevents checkout',async () => {
     await seedHold(); await db.query("UPDATE rooms SET is_available=false,status='available' WHERE id=$1",[room]);
@@ -264,5 +294,18 @@ try {
     assert.equal((await db.query("SELECT proacl::text AS acl FROM pg_proc WHERE oid='private.build_my_booking_checkout_quote(uuid,uuid,jsonb,jsonb,text)'::regprocedure")).rows[0].acl,originalQuoteAcl);
     passed++;console.log('PASS eligibility rollback, reapply and grants preservation');
   }
+  const beforeConcurrent=Number(await scalar('SELECT count(*) r FROM bookings'));
+  await seedHold();
+  const first = await db.connect(), second = await db.connect();
+  try {
+    await first.query(`SET request.jwt.claim.sub='${user}'`);
+    await second.query(`SET request.jwt.claim.sub='${user}'`);
+    const sql='SELECT create_my_booking_checkout_v2($1,$2,$3::jsonb) r';
+    const params=[id(902),hold,JSON.stringify([{room_id:room}])];
+    const results=await Promise.all([first.query(sql,params),second.query(sql,params)]);
+    assert.deepEqual(results[0].rows[0].r.booking_ids,results[1].rows[0].r.booking_ids);
+    assert.equal(Number(await scalar('SELECT count(*) r FROM bookings')),beforeConcurrent+1);
+    passed++;console.log('PASS concurrent identical checkout operations create one booking');
+  } finally {await first.end();await second.end();}
   console.log(JSON.stringify({passed,liveMutations:false,productionFunctions:true}));
 } finally {await db.close();}

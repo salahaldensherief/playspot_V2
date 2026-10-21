@@ -72,6 +72,8 @@ class PreferenceManager {
 
   String getValue(String cachingKey) => _box.read(cachingKey)?.toString() ?? "";
 
+  Future<void> clearValue(String cachingKey) => _box.remove(cachingKey);
+
   Future<void> saveLanguage(String lang) =>
       _box.write(CachingKey.language, lang);
 

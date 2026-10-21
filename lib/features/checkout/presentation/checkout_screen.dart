@@ -130,6 +130,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const CheckoutCountdownTimerWidget(),
+              BlocSelector<CheckoutCubit, CheckoutState, bool>(
+                selector: (state) => state.status == CheckoutStatus.pending,
+                builder: (context, pending) => pending
+                    ? Padding(
+                        padding: EdgeInsets.only(top: 12.h),
+                        child: AppText(
+                          text: AppStrings.checkoutOutcomePending.tr(),
+                          color: AppColors.warning,
+                          fontSize: 14.sp,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
               SizedBox(height: 16.h),
               CheckoutSummaryCard(params: widget.params),
               SizedBox(height: 20.h),
