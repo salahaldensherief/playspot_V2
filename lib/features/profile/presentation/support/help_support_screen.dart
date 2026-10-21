@@ -266,7 +266,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
               onTap: () async {
                 final success = await ContactLauncherService.launchEmail(
                   email: _supportEmail,
-                  subject: 'PlaySpot Support',
+                  subject: AppStrings.supportEmailSubject.tr(),
                 );
                 if (!success && mounted) {
                   GameHudToast.show(

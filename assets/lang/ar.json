@@ -768,5 +768,10 @@
   "clearSearchFilters": "مسح البحث والفلاتر",
   "profileActivitySection": "نشاطي",
   "profileRewardsSection": "المكافآت",
-  "profileSupportSection": "الحساب والمساعدة"
+  "profileSupportSection": "الحساب والمساعدة",
+  "canteenComboBadge": "كومبو",
+  "supportEmailSubject": "دعم بلاي سبوت",
+  "bookingIdLabel": "رقم الحجز: #{id}",
+  "bookingQrTitle": "رمز QR للحجز",
+  "bookingPaymentApprovedQrHint": "وافقت الصالة على دفعك. اعرض رمز QR عند الوصول."
 }

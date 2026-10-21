@@ -771,4 +771,10 @@ class AppStrings {
   static const String profileActivitySection = "profileActivitySection";
   static const String profileRewardsSection = "profileRewardsSection";
   static const String profileSupportSection = "profileSupportSection";
+  static const String canteenComboBadge = "canteenComboBadge";
+  static const String supportEmailSubject = "supportEmailSubject";
+  static const String bookingIdLabel = "bookingIdLabel";
+  static const String bookingQrTitle = "bookingQrTitle";
+  static const String bookingPaymentApprovedQrHint =
+      "bookingPaymentApprovedQrHint";
 }

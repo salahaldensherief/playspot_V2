@@ -768,5 +768,10 @@
   "clearSearchFilters": "Clear search and filters",
   "profileActivitySection": "My activity",
   "profileRewardsSection": "Rewards",
-  "profileSupportSection": "Account and support"
+  "profileSupportSection": "Account and support",
+  "canteenComboBadge": "Combo",
+  "supportEmailSubject": "PlaySpot support",
+  "bookingIdLabel": "Booking ID: #{id}",
+  "bookingQrTitle": "Booking QR code",
+  "bookingPaymentApprovedQrHint": "The venue approved your payment. Show this QR code when you arrive."
 }

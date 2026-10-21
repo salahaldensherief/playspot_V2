@@ -79,29 +79,6 @@ class CanteenHeader extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: 8.w),
-                        Container(
-                          padding: EdgeInsetsDirectional.symmetric(
-                            horizontal: 7.w,
-                            vertical: 2.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.neonPurple.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(6.r),
-                            border: Border.all(
-                              color: AppColors.neonPurple.withValues(
-                                alpha: 0.6,
-                              ),
-                              width: 1,
-                            ),
-                          ),
-                          child: const AppText(
-                            text: "FUEL UP",
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.neonPurple,
-                          ),
-                        ),
                       ],
                     ),
                     SizedBox(height: 2.h),

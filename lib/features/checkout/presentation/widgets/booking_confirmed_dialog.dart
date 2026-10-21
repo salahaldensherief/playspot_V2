@@ -29,8 +29,6 @@ class BookingConfirmedDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -55,9 +53,7 @@ class BookingConfirmedDialog extends StatelessWidget {
               ),
               SizedBox(height: 16.h),
               AppText(
-                text: isArabic
-                    ? 'تم تأكيد حجزك بنجاح! 🎉'
-                    : 'Booking Confirmed!',
+                text: AppStrings.bookingConfirmedTitle.tr(),
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -65,9 +61,7 @@ class BookingConfirmedDialog extends StatelessWidget {
               ),
               SizedBox(height: 8.h),
               AppText(
-                text: isArabic
-                    ? 'وافقت الصالة على تحويلك. يرجى إبراز رمز QR عند الوصول.'
-                    : 'The venue approved your payment. Show this QR code upon arrival.',
+                text: AppStrings.bookingPaymentApprovedQrHint.tr(),
                 fontSize: 13.sp,
                 color: AppColors.textSecondary,
                 textAlign: TextAlign.center,
@@ -99,7 +93,9 @@ class BookingConfirmedDialog extends StatelessWidget {
               ),
               SizedBox(height: 4.h),
               AppText(
-                text: 'ID: #${booking.id}',
+                text: AppStrings.bookingIdLabel.tr(
+                  namedArgs: {'id': booking.id.toString()},
+                ),
                 fontSize: 12.sp,
                 color: AppColors.textSecondary,
               ),
