@@ -798,5 +798,11 @@
   "bookingPromoFallback": "خصم خاص",
   "checkingAvailability": "جاري التحقق...",
   "maxDurationBeforeNextBooking": "أقصى مدة مجهزة حتى الحجز التالي",
-  "moreCanteenItems": "+{count} أصناف أخرى..."
+  "moreCanteenItems": "+{count} أصناف أخرى...",
+  "cashLateArrivalTitle": "سياسة التأخير للدفع الكاش",
+  "prepaidLateArrivalTitle": "سياسة التأخير للدفع الإلكتروني",
+  "senderWalletOrInstapay": "رقم المحفظة / حساب InstaPay المحول منه",
+  "senderWalletOrInstapayHint": "مثال: 01012345678 أو username@instapay",
+  "transactionReferenceNumber": "الرقم المرجعي للتحويل",
+  "transactionReferenceHint": "أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل"
 }

@@ -803,4 +803,10 @@ class AppStrings {
   static const String maxDurationBeforeNextBooking =
       "maxDurationBeforeNextBooking";
   static const String moreCanteenItems = "moreCanteenItems";
+  static const String cashLateArrivalTitle = "cashLateArrivalTitle";
+  static const String prepaidLateArrivalTitle = "prepaidLateArrivalTitle";
+  static const String senderWalletOrInstapay = "senderWalletOrInstapay";
+  static const String senderWalletOrInstapayHint = "senderWalletOrInstapayHint";
+  static const String transactionReferenceNumber = "transactionReferenceNumber";
+  static const String transactionReferenceHint = "transactionReferenceHint";
 }

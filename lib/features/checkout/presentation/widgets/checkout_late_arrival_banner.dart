@@ -30,40 +30,14 @@ class CheckoutLateArrivalBanner extends StatelessWidget {
         final iconData = isCash
             ? Icons.timer_outlined
             : Icons.verified_outlined;
-        final isArabic = context.locale.languageCode == 'ar';
-
         final String titleText = isCash
-            ? (isArabic
-                  ? "سياسة التأخير للدفع الكاش"
-                  : "Cash Late Arrival Policy")
-            : (isArabic
-                  ? "سياسة التأخير للدفع الإلكتروني"
-                  : "E-Wallet Late Arrival Policy");
-
-        String noticeText;
-        if (isCash) {
-          final rawMsg = AppStrings.cashLatePolicyNotice.tr(
-            args: [graceMinutes.toString()],
-          );
-          if (rawMsg == AppStrings.cashLatePolicyNotice ||
-              rawMsg.contains('cashLatePolicyNotice')) {
-            noticeText = isArabic
-                ? "يرجى التواجد بالصالة قبل الموعد بـ $graceMinutes دقائق؛ في حالة التأخير يتم إلغاء الحجز تلقائياً لإتاحة الغرفة للآخرين."
-                : "Please arrive at the lounge $graceMinutes minutes before your appointment; in case of delay, the booking will be automatically cancelled to free the room for others.";
-          } else {
-            noticeText = rawMsg;
-          }
-        } else {
-          final rawMsg = AppStrings.prepaidLatePolicyNotice.tr();
-          if (rawMsg == AppStrings.prepaidLatePolicyNotice ||
-              rawMsg.contains('prepaidLatePolicyNotice')) {
-            noticeText = isArabic
-                ? "يبدأ وقتك من موعد الحجز الرسمي، وأي تأخير يُخصم من وقت جلستك الفعلي للحفاظ على المواعيد."
-                : "Your session time starts at the booked time; any delay will be deducted from your actual playing time.";
-          } else {
-            noticeText = rawMsg;
-          }
-        }
+            ? AppStrings.cashLateArrivalTitle.tr()
+            : AppStrings.prepaidLateArrivalTitle.tr();
+        final noticeText = isCash
+            ? AppStrings.cashLatePolicyNotice.tr(
+                args: [graceMinutes.toString()],
+              )
+            : AppStrings.prepaidLatePolicyNotice.tr();
 
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),

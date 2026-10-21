@@ -798,5 +798,11 @@
   "bookingPromoFallback": "SPECIAL OFFER",
   "checkingAvailability": "Checking...",
   "maxDurationBeforeNextBooking": "Max duration reached before next booking",
-  "moreCanteenItems": "+{count} more items..."
+  "moreCanteenItems": "+{count} more items...",
+  "cashLateArrivalTitle": "Cash Late Arrival Policy",
+  "prepaidLateArrivalTitle": "E-Wallet Late Arrival Policy",
+  "senderWalletOrInstapay": "Sender Wallet / InstaPay Handle",
+  "senderWalletOrInstapayHint": "e.g., 01012345678 or username@instapay",
+  "transactionReferenceNumber": "Transaction Reference Number",
+  "transactionReferenceHint": "Enter transaction reference (min 6 characters)"
 }

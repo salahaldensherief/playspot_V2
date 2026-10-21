@@ -267,7 +267,6 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
     final showMethodSelector = _hasVodafoneCash && _hasInstaPay;
 
     return SingleChildScrollView(
@@ -447,24 +446,16 @@ class _VodafoneCashBottomSheetState extends State<VodafoneCashBottomSheet> {
 
           AppTextField(
             controller: _senderAccountController,
-            label: isArabic
-                ? 'رقم المحفظة / حساب InstaPay المحول منه'
-                : 'Sender Wallet / InstaPay Handle',
-            hint: isArabic
-                ? 'مثال: 01012345678 أو username@instapay'
-                : 'e.g., 01012345678 or username@instapay',
+            label: AppStrings.senderWalletOrInstapay.tr(),
+            hint: AppStrings.senderWalletOrInstapayHint.tr(),
             textInputType: TextInputType.text,
           ),
           SizedBox(height: 12.h),
 
           AppTextField(
             controller: _transactionRefController,
-            label: isArabic
-                ? 'الرقم المرجعي للتحويل'
-                : 'Transaction Reference Number',
-            hint: isArabic
-                ? 'أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل'
-                : 'Enter transaction reference (min 6 characters)',
+            label: AppStrings.transactionReferenceNumber.tr(),
+            hint: AppStrings.transactionReferenceHint.tr(),
             textInputType: TextInputType.text,
           ),
           SizedBox(height: 16.h),
