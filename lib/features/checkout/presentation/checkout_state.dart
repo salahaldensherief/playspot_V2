@@ -5,7 +5,7 @@ import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 
 enum PaymentMethod { vodafoneCash, instaPay, cash }
 
-enum CheckoutStatus { initial, loading, success, failure }
+enum CheckoutStatus { initial, loading, pending, success, failure }
 
 class CheckoutState extends Equatable {
   final CheckoutStatus status;

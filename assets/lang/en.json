@@ -813,5 +813,7 @@
   "senderWalletOrInstapayHint": "e.g., 01012345678 or username@instapay",
   "transactionReferenceNumber": "Transaction Reference Number",
   "transactionReferenceHint": "Enter transaction reference (min 6 characters)",
-  "roomDiscountPercent": "{percent}% OFF"
+  "roomDiscountPercent": "{percent}% OFF",
+  "checkoutOutcomePending": "We are checking whether your booking was created. Please do not submit another booking yet.",
+  "retryCheckoutRecovery": "Check booking result"
 }
