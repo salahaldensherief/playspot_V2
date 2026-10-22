@@ -678,6 +678,7 @@
   "orderStatusPreparing": "جاري التحضير",
   "orderStatusDelivered": "تم التسليم",
   "orderStatusCompleted": "مكتمل",
+  "orderStatusCancelled": "ملغي",
   "canteenClosed": "المقصف مغلق حالياً",
   "cart": "السلة",
   "confirmOrder": "تأكيد الطلب",

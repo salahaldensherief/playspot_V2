@@ -676,6 +676,7 @@ class AppStrings {
   static const String orderStatusPreparing = "orderStatusPreparing";
   static const String orderStatusDelivered = "orderStatusDelivered";
   static const String orderStatusCompleted = "orderStatusCompleted";
+  static const String orderStatusCancelled = "orderStatusCancelled";
   static const String canteenClosed = "canteenClosed";
   static const String cart = "cart";
   static const String confirmOrder = "confirmOrder";

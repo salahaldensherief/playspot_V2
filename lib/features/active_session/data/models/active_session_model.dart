@@ -21,6 +21,7 @@ class ActiveSessionModel extends ActiveSession {
     super.openTimePricingSnapshot,
     super.extensionStatus,
     super.requestedExtensionMinutes,
+    super.openTimeEndedAt,
   });
 
   factory ActiveSessionModel.fromEntity(ActiveSession entity) {
@@ -40,6 +41,7 @@ class ActiveSessionModel extends ActiveSession {
       openTimePricingSnapshot: entity.openTimePricingSnapshot,
       extensionStatus: entity.extensionStatus,
       requestedExtensionMinutes: entity.requestedExtensionMinutes,
+      openTimeEndedAt: entity.openTimeEndedAt,
     );
   }
 
@@ -60,6 +62,7 @@ class ActiveSessionModel extends ActiveSession {
     Map<String, dynamic>? openTimePricingSnapshot,
     String? extensionStatus,
     int? requestedExtensionMinutes,
+    DateTime? openTimeEndedAt,
   }) {
     return ActiveSessionModel(
       bookingId: bookingId ?? this.bookingId,
@@ -79,6 +82,7 @@ class ActiveSessionModel extends ActiveSession {
       extensionStatus: extensionStatus ?? this.extensionStatus,
       requestedExtensionMinutes:
           requestedExtensionMinutes ?? this.requestedExtensionMinutes,
+      openTimeEndedAt: openTimeEndedAt ?? this.openTimeEndedAt,
     );
   }
 
@@ -210,11 +214,22 @@ class ActiveSessionModel extends ActiveSession {
         (json['total_price'] as num?)?.toDouble() ?? 0.0;
 
     if (roomBasePrice == 0.0 && rawTotalPrice > 0) {
-      final double ordersSum = parsedOrders.fold(
-        0.0,
-        (sum, o) => sum + o.total,
-      );
+      final double ordersSum = parsedOrders
+          .where((o) => !o.isCancelled)
+          .fold(0.0, (sum, o) => sum + o.total);
       roomBasePrice = (rawTotalPrice - ordersSum).clamp(0.0, double.infinity);
+    }
+
+    DateTime? openTimeEndedAt;
+    if (json['is_open_time'] == true) {
+      final rawOpenEnd =
+          json['open_time_ended_at'] ?? json['open_time_closed_at'];
+      if (rawOpenEnd != null && rawOpenEnd.toString().isNotEmpty) {
+        try {
+          final parsed = DateTime.parse(rawOpenEnd.toString().trim());
+          openTimeEndedAt = _asLoungeTime(json, parsed);
+        } catch (_) {}
+      }
     }
 
     return ActiveSessionModel(
@@ -236,6 +251,7 @@ class ActiveSessionModel extends ActiveSession {
       openTimePricingSnapshot: json['open_time_pricing_snapshot'] is Map
           ? Map<String, dynamic>.from(json['open_time_pricing_snapshot'] as Map)
           : const {},
+      openTimeEndedAt: openTimeEndedAt,
     );
   }
 
@@ -295,6 +311,32 @@ class ActiveSessionModel extends ActiveSession {
     DateTime defaultStart, {
     required int fallbackMinutes,
   }) {
+    if (json['is_open_time'] == true) {
+      // Prioritize authoritative Open Time completion timestamp from backend:
+      // 1. open_time_ended_at (explicit database column)
+      // 2. open_time_closed_at (historical completion RPC timestamp)
+      final rawOpenEnd =
+          json['open_time_ended_at'] ?? json['open_time_closed_at'];
+      if (rawOpenEnd != null && rawOpenEnd.toString().isNotEmpty) {
+        try {
+          final parsed = DateTime.parse(rawOpenEnd.toString().trim());
+          final local = _asLoungeTime(json, parsed);
+          if (!local.isBefore(defaultStart)) return local;
+        } catch (_) {}
+      }
+
+      final isCompleted = json['status']?.toString() == 'completed';
+      // If completed and duration/billing minutes are provided by server settlement
+      if (isCompleted && fallbackMinutes > 0) {
+        return defaultStart.add(Duration(minutes: fallbackMinutes));
+      }
+
+      // If still active / in_progress, session has not ended
+      if (!isCompleted) {
+        return defaultStart;
+      }
+    }
+
     final rawEndTime = json['end_time'] ?? json['endTime'];
     final dateRaw = json['date'] ?? json['booking_date'];
 

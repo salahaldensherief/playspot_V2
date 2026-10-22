@@ -678,6 +678,7 @@
   "orderStatusPreparing": "Preparing",
   "orderStatusDelivered": "Delivered",
   "orderStatusCompleted": "Completed",
+  "orderStatusCancelled": "Cancelled",
   "canteenClosed": "Canteen is currently closed",
   "cart": "Cart",
   "confirmOrder": "Confirm Order",

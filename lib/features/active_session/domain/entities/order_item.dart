@@ -42,6 +42,8 @@ class OrderItem extends Equatable {
     upsellRuleId,
   ];
 
+  bool get isCancelled => status?.toLowerCase() == 'cancelled';
+
   double get total {
     final override = totalPriceOverride;
     if (override != null && override > 0) {

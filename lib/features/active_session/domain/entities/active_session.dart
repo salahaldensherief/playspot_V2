@@ -17,6 +17,7 @@ class ActiveSession extends Equatable {
   final Map<String, dynamic> openTimePricingSnapshot;
   final String? extensionStatus;
   final int? requestedExtensionMinutes;
+  final DateTime? openTimeEndedAt;
 
   const ActiveSession({
     required this.bookingId,
@@ -34,6 +35,7 @@ class ActiveSession extends Equatable {
     this.openTimePricingSnapshot = const {},
     this.extensionStatus,
     this.requestedExtensionMinutes,
+    this.openTimeEndedAt,
   });
 
   @override
@@ -53,6 +55,7 @@ class ActiveSession extends Equatable {
     openTimePricingSnapshot,
     extensionStatus,
     requestedExtensionMinutes,
+    openTimeEndedAt,
   ];
 
   ActiveSession copyWith({
@@ -71,6 +74,7 @@ class ActiveSession extends Equatable {
     Map<String, dynamic>? openTimePricingSnapshot,
     String? extensionStatus,
     int? requestedExtensionMinutes,
+    DateTime? openTimeEndedAt,
   }) {
     return ActiveSession(
       bookingId: bookingId ?? this.bookingId,
@@ -90,10 +94,13 @@ class ActiveSession extends Equatable {
       extensionStatus: extensionStatus ?? this.extensionStatus,
       requestedExtensionMinutes:
           requestedExtensionMinutes ?? this.requestedExtensionMinutes,
+      openTimeEndedAt: openTimeEndedAt ?? this.openTimeEndedAt,
     );
   }
 
-  double get ordersTotal => orders.fold(0.0, (sum, item) => sum + item.total);
+  double get ordersTotal => orders
+      .where((item) => !item.isCancelled)
+      .fold(0.0, (sum, item) => sum + item.total);
   double get grandTotal => basePrice + extensionsPrice + ordersTotal;
 
   bool get hasStarted => !DateTime.now().isBefore(startTime);
@@ -127,7 +134,8 @@ class ActiveSession extends Equatable {
   }
 
   int get totalPlayDurationMinutes {
-    final diff = endTime.difference(startTime).inMinutes;
+    final effectiveEnd = openTimeEndedAt ?? endTime;
+    final diff = effectiveEnd.difference(startTime).inMinutes;
     return diff > 0 ? diff : 0;
   }
 

@@ -206,6 +206,67 @@ void main() {
       expect(cost30, greaterThan(0.0));
     });
 
+    test(
+      'ActiveSession should exclude cancelled orders from ordersTotal and grandTotal',
+      () {
+        final sessionWithCancelled = testSession.copyWith(
+          orders: const [
+            OrderItem(
+              id: '1',
+              name: 'Pepsi',
+              price: 20.0,
+              quantity: 2,
+              status: 'delivered',
+            ),
+            OrderItem(
+              id: '2',
+              name: 'Chips',
+              price: 15.0,
+              quantity: 1,
+              status: 'cancelled',
+            ),
+            OrderItem(
+              id: '3',
+              name: 'Water',
+              price: 10.0,
+              quantity: 1,
+              status: 'pending',
+            ),
+          ],
+        );
+
+        // Pepsi (40) + Water (10) = 50. Chips (cancelled) = 0.
+        expect(sessionWithCancelled.ordersTotal, 50.0);
+        expect(sessionWithCancelled.grandTotal, 100.0 + 25.0 + 50.0); // 175.0
+      },
+    );
+
+    test(
+      'ActiveSession prioritizes openTimeEndedAt for totalPlayDurationMinutes',
+      () {
+        final start = DateTime(2026, 10, 22, 14, 0);
+        final fallbackEnd = DateTime(2026, 10, 22, 14, 30);
+        final authoritativeEnd = DateTime(2026, 10, 22, 15, 45);
+
+        final openSession = ActiveSession(
+          bookingId: 'b_open',
+          loungeId: 'l_1',
+          loungeName: 'Lounge',
+          roomName: 'Room',
+          deviceName: 'PC 1',
+          startTime: start,
+          endTime: fallbackEnd,
+          openTimeEndedAt: authoritativeEnd,
+          basePrice: 50.0,
+          status: 'completed',
+          isOpenTime: true,
+        );
+
+        expect(openSession.totalPlayDurationMinutes, 105);
+        expect(openSession.formattedPlayDuration, '1 h 45 m');
+      },
+    );
+
     test('GetActiveSessionUseCase should return session on success', () async {
       repository.mockSession = testSession;
 
