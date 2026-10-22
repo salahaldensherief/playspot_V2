@@ -40,3 +40,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 - For bugs: reproduce → identify root cause → fix in the owning layer → add a meaningful regression test → verify. For new behavior, test the important business rule and authorization or concurrency where relevant.
 - Use isolated fixtures or mocks for tests that could mutate live data. Network backed tests are allowed only when an isolated environment exists.
 - Run `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze --no-fatal-infos`, and relevant `flutter test` suites when available. Report what ran and what could not run. Wait for CI before claiming CI verification.
+
+## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
+
+Before any feature, UI/UX, data-flow, pricing, session, offline, security or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then review current `dev`, overlapping PRs and the owning feature's actual source/tests. The atlas maps Mobile, Dashboard and shared Supabase responsibilities, operating flows, unresolved risks and the agent workflow. It is a dated source snapshot, **not** evidence that a Draft PR is merged or a database/function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
