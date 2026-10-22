@@ -126,7 +126,14 @@ class _ActiveSessionScreenState extends State<ActiveSessionScreen> {
               leading: const BackButtonWidget(),
             ),
             body: const ActiveSessionBody(),
-            bottomNavigationBar: _showExtensionBanner
+            bottomNavigationBar:
+                _showExtensionBanner &&
+                    context
+                            .watch<ActiveSessionCubit>()
+                            .state
+                            .session
+                            ?.isOpenTime !=
+                        true
                 ? ExtensionPromptCard(
                     initialMinutes: _extensionBannerMinutes,
                     onDismiss: () {

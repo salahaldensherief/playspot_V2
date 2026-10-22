@@ -17,6 +17,8 @@ class ActiveSessionModel extends ActiveSession {
     super.extensionsPrice = 0.0,
     super.orders = const [],
     required super.status,
+    super.isOpenTime,
+    super.openTimePricingSnapshot,
     super.extensionStatus,
     super.requestedExtensionMinutes,
   });
@@ -34,6 +36,8 @@ class ActiveSessionModel extends ActiveSession {
       extensionsPrice: entity.extensionsPrice,
       orders: entity.orders,
       status: entity.status,
+      isOpenTime: entity.isOpenTime,
+      openTimePricingSnapshot: entity.openTimePricingSnapshot,
       extensionStatus: entity.extensionStatus,
       requestedExtensionMinutes: entity.requestedExtensionMinutes,
     );
@@ -52,6 +56,8 @@ class ActiveSessionModel extends ActiveSession {
     double? extensionsPrice,
     List<OrderItem>? orders,
     String? status,
+    bool? isOpenTime,
+    Map<String, dynamic>? openTimePricingSnapshot,
     String? extensionStatus,
     int? requestedExtensionMinutes,
   }) {
@@ -67,6 +73,9 @@ class ActiveSessionModel extends ActiveSession {
       extensionsPrice: extensionsPrice ?? this.extensionsPrice,
       orders: orders ?? this.orders,
       status: status ?? this.status,
+      isOpenTime: isOpenTime ?? this.isOpenTime,
+      openTimePricingSnapshot:
+          openTimePricingSnapshot ?? this.openTimePricingSnapshot,
       extensionStatus: extensionStatus ?? this.extensionStatus,
       requestedExtensionMinutes:
           requestedExtensionMinutes ?? this.requestedExtensionMinutes,
@@ -126,7 +135,10 @@ class ActiveSessionModel extends ActiveSession {
         (roomData?['hourly_rate_single'] as num?)?.toDouble() ??
         0.0;
 
-    if (durationMins == 0 && totalPrice > 0 && roomPrice > 0) {
+    if (json['is_open_time'] != true &&
+        durationMins == 0 &&
+        totalPrice > 0 &&
+        roomPrice > 0) {
       durationMins = ((totalPrice / roomPrice) * 60).round();
     }
 
@@ -220,10 +232,20 @@ class ActiveSessionModel extends ActiveSession {
           ?.toInt(),
       orders: parsedOrders,
       status: json['status']?.toString() ?? 'in_progress',
+      isOpenTime: json['is_open_time'] == true,
+      openTimePricingSnapshot: json['open_time_pricing_snapshot'] is Map
+          ? Map<String, dynamic>.from(json['open_time_pricing_snapshot'] as Map)
+          : const {},
     );
   }
 
   static DateTime _parseStartTime(Map<String, dynamic> json) {
+    if (json['is_open_time'] == true) {
+      final started = DateTime.tryParse(
+        json['open_time_started_at']?.toString() ?? '',
+      );
+      if (started != null) return started.toLocal();
+    }
     final rawStartTime = json['start_time'] ?? json['startTime'];
     final dateRaw = json['date'] ?? json['booking_date'];
 

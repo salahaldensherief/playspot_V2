@@ -13,6 +13,8 @@ class ActiveSession extends Equatable {
   final double extensionsPrice;
   final List<OrderItem> orders;
   final String status;
+  final bool isOpenTime;
+  final Map<String, dynamic> openTimePricingSnapshot;
   final String? extensionStatus;
   final int? requestedExtensionMinutes;
 
@@ -28,6 +30,8 @@ class ActiveSession extends Equatable {
     this.extensionsPrice = 0.0,
     this.orders = const [],
     required this.status,
+    this.isOpenTime = false,
+    this.openTimePricingSnapshot = const {},
     this.extensionStatus,
     this.requestedExtensionMinutes,
   });
@@ -45,6 +49,8 @@ class ActiveSession extends Equatable {
     extensionsPrice,
     orders,
     status,
+    isOpenTime,
+    openTimePricingSnapshot,
     extensionStatus,
     requestedExtensionMinutes,
   ];
@@ -61,6 +67,8 @@ class ActiveSession extends Equatable {
     double? extensionsPrice,
     List<OrderItem>? orders,
     String? status,
+    bool? isOpenTime,
+    Map<String, dynamic>? openTimePricingSnapshot,
     String? extensionStatus,
     int? requestedExtensionMinutes,
   }) {
@@ -76,6 +84,9 @@ class ActiveSession extends Equatable {
       extensionsPrice: extensionsPrice ?? this.extensionsPrice,
       orders: orders ?? this.orders,
       status: status ?? this.status,
+      isOpenTime: isOpenTime ?? this.isOpenTime,
+      openTimePricingSnapshot:
+          openTimePricingSnapshot ?? this.openTimePricingSnapshot,
       extensionStatus: extensionStatus ?? this.extensionStatus,
       requestedExtensionMinutes:
           requestedExtensionMinutes ?? this.requestedExtensionMinutes,
@@ -93,11 +104,13 @@ class ActiveSession extends Equatable {
   bool get isExtensionRejected => extensionStatus == 'rejected';
 
   bool get isExpiringSoon {
+    if (isOpenTime) return false;
     final remaining = endTime.difference(DateTime.now());
     return remaining.inMinutes > 0 && remaining.inMinutes <= 15;
   }
 
   bool get isOvertime {
+    if (isOpenTime) return false;
     return DateTime.now().isAfter(endTime);
   }
 

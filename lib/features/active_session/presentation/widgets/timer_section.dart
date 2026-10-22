@@ -18,7 +18,8 @@ class TimerSection extends StatelessWidget {
       buildWhen: (prev, curr) =>
           prev.session?.bookingId != curr.session?.bookingId ||
           prev.session?.endTime != curr.session?.endTime ||
-          prev.session?.startTime != curr.session?.startTime,
+          prev.session?.startTime != curr.session?.startTime ||
+          prev.session?.isOpenTime != curr.session?.isOpenTime,
       builder: (context, state) {
         final session = state.session;
         if (session == null) return const SizedBox.shrink();
@@ -27,6 +28,15 @@ class TimerSection extends StatelessWidget {
           child: AppClockBuilder(
             builder: (context, now, child) {
               final currentStart = session.startTime;
+              if (session.isOpenTime) {
+                final elapsed = now.difference(currentStart);
+                return TimerWidget(
+                  remaining: elapsed.isNegative ? Duration.zero : elapsed,
+                  progress: 1,
+                  statusColor: AppColors.neonBlue,
+                  labelOverride: AppStrings.openTimeElapsed.tr().toUpperCase(),
+                );
+              }
               final currentEnd = session.endTime;
               final remaining = now.isBefore(currentStart)
                   ? currentStart.difference(now)

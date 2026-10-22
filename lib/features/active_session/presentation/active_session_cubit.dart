@@ -253,26 +253,34 @@ class ActiveSessionCubit extends Cubit<ActiveSessionState>
           loadUpsellSuggestions(session.bookingId);
 
           try {
-            PlaySpotLiveActivityService.instance.startActivity(
-              sessionId: session.bookingId,
-              hallName: session.loungeName.isNotEmpty
-                  ? session.loungeName
-                  : 'PlaySpot Lounge',
-              deviceName: session.deviceName.isNotEmpty
-                  ? session.deviceName
-                  : session.roomName,
-              endTimeTimestamp: session.endTime.millisecondsSinceEpoch ~/ 1000,
-            );
+            if (session.isOpenTime) {
+              LocalNotificationService.instance
+                  .cancelActiveSessionNotification();
+              NativeNotificationService.instance.cancelCustomNotification();
+              PlaySpotLiveActivityService.instance.endActivity();
+            } else {
+              PlaySpotLiveActivityService.instance.startActivity(
+                sessionId: session.bookingId,
+                hallName: session.loungeName.isNotEmpty
+                    ? session.loungeName
+                    : 'PlaySpot Lounge',
+                deviceName: session.deviceName.isNotEmpty
+                    ? session.deviceName
+                    : session.roomName,
+                endTimeTimestamp:
+                    session.endTime.millisecondsSinceEpoch ~/ 1000,
+              );
 
-            final notificationId =
-                session.bookingId.hashCode.abs() & 0x7FFFFFFF;
-            LocalNotificationService.instance.scheduleSessionExpiryWarning(
-              id: notificationId,
-              loungeName: session.loungeName.isNotEmpty
-                  ? session.loungeName
-                  : 'Lounge',
-              expiryTime: session.endTime,
-            );
+              final notificationId =
+                  session.bookingId.hashCode.abs() & 0x7FFFFFFF;
+              LocalNotificationService.instance.scheduleSessionExpiryWarning(
+                id: notificationId,
+                loungeName: session.loungeName.isNotEmpty
+                    ? session.loungeName
+                    : 'Lounge',
+                expiryTime: session.endTime,
+              );
+            }
           } catch (_) {}
         }
       },

@@ -813,5 +813,11 @@
   "senderWalletOrInstapayHint": "مثال: 01012345678 أو username@instapay",
   "transactionReferenceNumber": "الرقم المرجعي للتحويل",
   "transactionReferenceHint": "أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل",
-  "roomDiscountPercent": "خصم {percent}%"
+  "roomDiscountPercent": "خصم {percent}%",
+  "openTimeElapsed": "وقت مفتوح · الوقت المنقضي",
+  "openTimeBillPending": "تكلفة الوقت النهائية بيحددها المكان عند إنهاء الجلسة. ده مش إيصال دفع.",
+  "openTimePolicy": "سعر الوقت المفتوح: {rate} جنيه/ساعة",
+  "openTimeMinimum": "الحد الأدنى: {minutes} دقيقة",
+  "openTimeRounding": "التقريب كل {minutes} دقيقة",
+  "openTimeCanteenCharges": "طلبات الكانتين حتى الآن: {amount} جنيه"
 }

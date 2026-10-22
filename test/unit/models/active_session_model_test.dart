@@ -87,6 +87,35 @@ void main() {
       );
     });
 
+    test(
+      'Open Time uses the server start instant and never expires locally',
+      () {
+        final started = DateTime.now().subtract(const Duration(hours: 2));
+        final model = ActiveSessionModel.fromJson({
+          'id': 'open',
+          'is_open_time': true,
+          'status': 'in_progress',
+          'date': '2026-10-21',
+          'start_time': '12:00:00',
+          'end_time': '12:00:00',
+          'open_time_started_at': started.toUtc().toIso8601String(),
+          'open_time_pricing_snapshot': {
+            'effective_hourly_rate': 75,
+            'minimum_minutes': 30,
+            'rounding_minutes': 15,
+          },
+        });
+
+        expect(model.isOpenTime, isTrue);
+        expect(model.startTime.toUtc(), started.toUtc());
+        expect(model.isExpiringSoon, isFalse);
+        expect(model.isOvertime, isFalse);
+        expect(model.openTimePricingSnapshot['effective_hourly_rate'], 75);
+        expect(ActiveSessionModel.fromEntity(model).isOpenTime, isTrue);
+        expect(model.copyWith(status: 'completed').isOpenTime, isTrue);
+      },
+    );
+
     test('uses the lounge timezone for the session instant', () {
       final model = ActiveSessionModel.fromJson({
         'id': 'cairo',

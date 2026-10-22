@@ -1,0 +1,7 @@
+# Live Operations UX audit
+
+**SOURCE REVIEWED.** The dashboard already had `LiveSessionsOperationsBoard`, cashier session rail/details/control widgets, `RoomOccupancyCard`, `StationControlDrawer`, room data, booking Cubit, session ticker, and role-aware backend actions. The original board emphasized booking/session entries; a cashier could not scan every free station alongside occupied ones in a single high-density view. Open Time cards could display a misleading zero charge and generic duration labels.
+
+The new projection separates room availability, booking lifecycle, payment, next booking and pending client request. `roomDataFresh` marks the room feed state; it is not a device heartbeat. External-vendor reservation and device connectivity remain **UNVERIFIED** because there is no confirmed adapter/agent. A room marked available in PlaySpot is not a guaranteed PanCafe reservation. Running Open Time final amount remains pending until authoritative settlement.
+
+The grid supports free, pending, active fixed/open, soon-ending, expired, maintenance, manual-review and next-booking cues; search and all/available/attention filters; and RTL/LTR translations. It reuses existing server-authorized actions through the prior drawer/card. It does not implement a new charge or physical command. Missing: real connection and sync status, zone grouping, keyboard shortcuts, distinctive configurable tones, observed 40-station browser performance, and complete accessibility review. See [implementation](05_LIVE_OPERATIONS_IMPLEMENTATION.md).

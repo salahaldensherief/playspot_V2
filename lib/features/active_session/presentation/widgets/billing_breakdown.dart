@@ -4,6 +4,7 @@ import '../../domain/entities/active_session.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/cards/order_summary_card.dart';
+import '../../../../art_core/widgets/text/app_text.dart';
 
 class BillingBreakdownWidget extends StatelessWidget {
   final ActiveSession session;
@@ -12,6 +13,56 @@ class BillingBreakdownWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (session.isOpenTime &&
+        (session.status == 'active' || session.status == 'in_progress')) {
+      final policy = session.openTimePricingSnapshot;
+      final rate = policy['effective_hourly_rate'];
+      final minimum = policy['minimum_minutes'];
+      final rounding = policy['rounding_minutes'];
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppText(
+              text: AppStrings.openTimeElapsed.tr(),
+              fontWeight: FontWeight.bold,
+              color: AppColors.neonBlue,
+            ),
+            const SizedBox(height: 8),
+            if (rate is num)
+              AppText(
+                text: AppStrings.openTimePolicy.tr(
+                  namedArgs: {'rate': rate.toStringAsFixed(2)},
+                ),
+              ),
+            if (minimum is num)
+              AppText(
+                text: AppStrings.openTimeMinimum.tr(
+                  namedArgs: {'minutes': minimum.toString()},
+                ),
+              ),
+            if (rounding is num)
+              AppText(
+                text: AppStrings.openTimeRounding.tr(
+                  namedArgs: {'minutes': rounding.toString()},
+                ),
+              ),
+            const SizedBox(height: 8),
+            AppText(
+              text: AppStrings.openTimeBillPending.tr(),
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
+      );
+    }
     final List<Map<String, dynamic>> sessionRows = [];
     if (session.extensionsPrice > 0) {
       sessionRows.add({
