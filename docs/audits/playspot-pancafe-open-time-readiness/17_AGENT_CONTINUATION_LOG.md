@@ -95,3 +95,38 @@ Phase 1 fixes two verified customer-facing defects in Mobile Draft PR #75:
 - **Commit**: `d735587` ("fix(open-time): display canteen orders during active sessions and prioritize authoritative end timestamps").
 - **Remote Push**: Pushed to `origin/fix/open-time-canteen-duration-followup`.
 - **Target PR**: Stacked on top of `feature/open-time-customer-display` (PR #75) to preserve PR history and avoid creating conflicting monolithic diffs against `dev`.
+
+---
+
+## Phase 2 continuation: independent review and Task 75B closure (2026-10-23)
+
+### Recovered work and review corrections
+
+- Preserved the two Antigravity commits and branch before making follow-up changes.
+- Running Open Time now shows only committed canteen charges and labels paid, unpaid and queued rows without inventing a pending state. Cancelled/canceled, rejected, failed and draft rows do not enter the amount due.
+- The screen keeps unfinalized time charges, current amount due and actual collection status as separate facts. It does not display a synthetic final total or claim collection before a canonical ledger result exists.
+- Completed Open Time duration uses `open_time_ended_at`, then `open_time_closed_at`, then server `duration_minutes`. Generic `end_time` and the previous 30-minute default cannot fabricate a completion duration.
+- App restart and realtime reconnect regression tests cover a 127-minute canonical completion. Realtime Open Time refresh cancels fixed-duration expiry scheduling instead of creating a false expiry.
+
+### Final commits
+
+- Recovered implementation: `d735587c1de306d931d5601836b42fd2715db2fd`.
+- Recovered Phase 1 log: `52315931b865ab99fad9031afda96ba684114559`.
+- Independent Mobile follow-up: `9608768f3fd6f27b3f5be1aed530e068bb9745b0`.
+- Dashboard local verification: `e79e9a536ee131414b2ee199782509aa722f734e`.
+
+### Verification
+
+- Mobile focused Open Time/model/Cubit/widget tests: 48 passed.
+- Mobile full Flutter suite: 643 passed, 1 skipped, 0 failed. Analyzer: 0 issues.
+- Dashboard full Flutter suite: 1320 passed, 2 skipped, 0 failed. Analyzer: 0 issues.
+- Dashboard scheduler and canonical-close focused suite: 13 passed.
+- Browser: localhost JavaScript Web build exercised 6, 20 and 40 mixed stations in Arabic and English. Stale realtime, conflict/manual review, partial-payment alert, Open Time pending bill, alert count and Permission OFF state rendered; no console warnings/errors were captured.
+- Disposable PostgreSQL 17.11: 9 Open Time contract, 16 close/balance, 9 actor authorization, 1 live-read RLS, 34 client finance privilege and 47 partial-collection/concurrency assertions passed. No production writes were performed.
+
+### Merge and release decision
+
+- Mobile and Dashboard PR #75 remain Draft and unmerged.
+- The reconstructed database proves the candidate behavior against a minimal contract but does not reproduce the exact effective production schema. Financial migration work therefore remains local/draft.
+- Dashboard commit `e79e9a5` remains local because pushing it would automatically start a Vercel preview, which this task prohibits.
+- The scheduler safety patch is independently testable only if its alert-only scheduler source and canonical-close regression travel together. It can target `dev` later, after preview deployment is safely disabled or explicitly authorized.

@@ -8,4 +8,8 @@ This task's mobile branch `feature/open-time-customer-display` produced [mobile 
 
 Do not merge financial/cross-client changes without exact-schema tests. No direct `main` commit, force push, production DB write or production deployment occurred.
 
+Task 75B follow-up recovered Antigravity commits `d735587c1de306d931d5601836b42fd2715db2fd` and `52315931b865ab99fad9031afda96ba684114559`, then added independently reviewed Mobile commit `9608768f3fd6f27b3f5be1aed530e068bb9745b0`. Dashboard verification is local commit `e79e9a536ee131414b2ee199782509aa722f734e`; it was not pushed because this repository's Git integration automatically creates a Vercel preview and deployments are prohibited for this task. Both PR #75s remain Draft and unmerged.
+
+The scheduler safety change is technically separable: its alert-only scheduler source plus the 13-test canonical-close/scheduler group can be cherry-picked into an independent branch targeting `dev`. No separate PR was opened because a Dashboard branch push would trigger the prohibited preview deployment, and splitting it must retain the canonical-close integration test.
+
 The dashboard Git integration automatically started Vercel preview deployment `dpl_Diywo5XEfKBVdDwntSvzdXfh4hxg` for this branch. It was canceled during `BUILDING`; Vercel reported `CANCELED`. This was not a production deployment, and no preview was used for validation.
