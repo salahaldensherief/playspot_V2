@@ -818,4 +818,6 @@ class AppStrings {
   static const String transactionReferenceNumber = "transactionReferenceNumber";
   static const String transactionReferenceHint = "transactionReferenceHint";
   static const String roomDiscountPercent = "roomDiscountPercent";
+  static const String checkoutOutcomePending = "checkoutOutcomePending";
+  static const String retryCheckoutRecovery = "retryCheckoutRecovery";
 }

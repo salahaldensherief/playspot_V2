@@ -39,6 +39,7 @@ try {
     INSERT INTO shifts(id,lounge_id,status) VALUES('${shift}','${lounge}','open');`);
   await db.exec(await readFile(new URL('../migrations/20261007114816_client_request_contract_completion.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../migrations/20261007115950_approved_extension_payment_integrity.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../migrations/20261021120000_extension_approval_is_not_collection.sql',import.meta.url),'utf8'));
   await db.exec(`CREATE TRIGGER clamp BEFORE INSERT OR UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION fn_validate_and_clamp_booking_price();
     INSERT INTO bookings(id,user_id,lounge_id,room_id,date,start_time,end_time,duration_minutes,status,
       room_price,total_price,discount_amount,extra_controllers,shift_id)
@@ -53,15 +54,20 @@ try {
     assert.equal(r.new_total,Number(b.total_price));
     assert.equal(Number(b.discount_amount),20);
   });
-  await check('peak-rule extension includes controllers and paid ledger matches persisted total',async()=>{
+  await check('peak-rule extension increases debt without a collection',async()=>{
     await db.exec(`INSERT INTO pricing_rules(lounge_id,room_id,name_ar,name_en,start_time,end_time,days_of_week,adjustment_value)
       VALUES('${lounge}','${room}','Peak','Peak','20:00','22:00',ARRAY[1],2);
-      UPDATE bookings SET payment_status='paid';`);
+      UPDATE bookings SET payment_status='paid';
+      INSERT INTO payments(booking_id,user_id,lounge_id,amount,payment_method,status)
+        VALUES('${booking}','${customer}','${lounge}',180,'cash','completed');
+      INSERT INTO shift_payments(shift_id,lounge_id,booking_id,payment_method,category,amount,paid_at)
+        VALUES('${shift}','${lounge}','${booking}','cash','gaming_time',180,now());`);
     const r=await extend(),b=await stored();
     assert.equal(r.extension_cost,90);
     assert.equal(Number(b.total_price),270);
-    assert.equal(Number((await db.query('SELECT amount FROM shift_payments')).rows[0].amount),90);
-    assert.equal(Number((await db.query('SELECT amount FROM payments')).rows[0].amount),270);
+    assert.equal(b.payment_status,'partial');
+    assert.equal(Number((await db.query('SELECT sum(amount) paid FROM shift_payments')).rows[0].paid),180);
+    assert.equal(Number((await db.query('SELECT amount FROM payments')).rows[0].amount),180);
   });
   await check('customer only requests extension, cannot supply price or approve',async()=>{
     await db.exec(`SET request.jwt.claim.sub='${customer}'`);
@@ -78,19 +84,26 @@ try {
     assert.equal((await stored()).requested_extension_minutes,null);
     await denied(()=>db.query('SELECT approve_booking_extension($1,0)',[booking]),'55000');
   });
-  await check('paid extension without open shift rolls back booking and ledger',async()=>{
+  await check('extension approval needs no collection shift',async()=>{
     await db.exec(`UPDATE bookings SET payment_status='paid'; UPDATE shifts SET status='closed'`);
-    await denied(()=>extend(),'55000');
-    assert.equal((await stored()).duration_minutes,120);
+    await extend();
+    assert.equal((await stored()).duration_minutes,150);
     assert.equal((await db.query('SELECT * FROM shift_payments')).rows.length,0);
   });
-  await check('paid approval creates missing payment summary and agrees with collected extension',async()=>{
-    await db.exec(`UPDATE bookings SET payment_status='paid',extension_status='pending',requested_extension_minutes=30`);
+  await check('paid 180 approval adds 50 liability but no receipt',async()=>{
+    await db.exec(`UPDATE bookings SET payment_status='paid',extension_status='pending',requested_extension_minutes=30;
+      INSERT INTO payments(booking_id,user_id,lounge_id,amount,payment_method,status)
+        VALUES('${booking}','${customer}','${lounge}',180,'cash','completed');
+      INSERT INTO shift_payments(shift_id,lounge_id,booking_id,payment_method,category,amount,paid_at)
+        VALUES('${shift}','${lounge}','${booking}','cash','gaming_time',180,now());`);
     const r=(await db.query('SELECT approve_booking_extension($1,0) r',[booking])).rows[0].r;
     const summaries=(await db.query('SELECT amount FROM payments WHERE booking_id=$1',[booking])).rows;
     assert.equal(summaries.length,1);
-    assert.equal(Number(summaries[0].amount),r.new_total);
-    assert.equal(Number((await db.query('SELECT amount FROM shift_payments')).rows[0].amount),r.extension_cost);
+    assert.equal(r.new_total,230);
+    assert.equal(Number(summaries[0].amount),180);
+    assert.equal(Number((await db.query('SELECT sum(amount) paid FROM shift_payments')).rows[0].paid),180);
+    assert.equal((await stored()).payment_status,'partial');
+    assert.equal(r.shift_payment_recorded,false);
   });
   await check('reserved next slot rejects extension without changing duration',async()=>{
     await db.exec(`INSERT INTO bookings(user_id,lounge_id,room_id,date,start_time,end_time,
