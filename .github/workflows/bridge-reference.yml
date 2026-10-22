@@ -1,0 +1,38 @@
+name: Bridge reference contract tests
+
+on:
+  pull_request:
+    paths:
+      - 'tools/bridge-reference/**'
+      - 'tools/hardware-lab/**'
+      - 'docs/bridge/proposed_schema.sql'
+      - 'supabase/tests/bridge_proposal.test.mjs'
+      - 'supabase/tests/runtime/**'
+      - '.github/workflows/bridge-reference.yml'
+  push:
+    branches: [dev]
+    paths:
+      - 'tools/bridge-reference/**'
+      - 'tools/hardware-lab/**'
+      - 'docs/bridge/proposed_schema.sql'
+      - 'supabase/tests/bridge_proposal.test.mjs'
+      - 'supabase/tests/runtime/**'
+      - '.github/workflows/bridge-reference.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-reference-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run isolated reference simulator tests
+        run: node --test tools/bridge-reference/reference_legacy_system.test.mjs tools/hardware-lab/mock_hardware.test.mjs
+      - name: Install pinned disposable database runtime
+        run: npm ci --prefix supabase/tests/runtime
+      - name: Review-only SQL against synthetic isolated PostgreSQL WASM
+        run: node supabase/tests/bridge_proposal.test.mjs
