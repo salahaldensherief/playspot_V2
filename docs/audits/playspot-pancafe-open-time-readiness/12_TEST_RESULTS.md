@@ -16,6 +16,6 @@ Environment: Windows, Flutter 3.44.1 / Dart 3.12.1, worktrees created from remot
 | Browser/20–40 stations, real audio, offline endurance | NOT VERIFIED |
 | Android signed AAB / 16 KB / actual device | `flutter build appbundle --release --no-pub` failed closed because release signing is not configured. `android/gradlew.bat bundleRelease -PallowDebugReleaseSigning=true` reached `:app:packageReleaseBundle` then failed for insufficient disk space; generated build was cleaned. No AAB, real-device or 16 KB verification. |
 | Dashboard production web build | `flutter build web --release --no-pub`: passed, generated `build/web` locally; compilation only, no staging/browser certification. |
-| PR CI | Pending PRs |
+| PR CI | [Mobile formatting](https://github.com/salahaldensherief/playspot_V2/actions/runs/39769359424) and [Dashboard formatting](https://github.com/salahaldensherief/Playspot_dashboard/actions/runs/39769286813) passed. [Mobile Flutter CI](https://github.com/salahaldensherief/playspot_V2/actions/runs/39769359449) and [Dashboard Flutter CI](https://github.com/salahaldensherief/Playspot_dashboard/actions/runs/39769286687) were still in progress at this snapshot. Later documentation commits may start new mobile runs. |
 
 Update this ledger with rerun output and exact commit/CI links before merging. A passing mock test never implies real financial or device safety. See [release](13_RELEASE_READINESS.md).
