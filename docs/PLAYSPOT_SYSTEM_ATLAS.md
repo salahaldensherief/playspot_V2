@@ -18,7 +18,7 @@ Source snapshot at authoring:
 **Precedence** when sources disagree:
 1. User's explicit current product requirement and authorized scope.
 2. Actual current deployed schema/function contract **only if safely, independently verified** for the target environment; never write to production merely to inspect.
-3. Current `dev` and the feature branch being edited, integration tests, source-of-truth owners, and ``AGENTS.md``.
+3. Current `dev` and the feature branch being edited, integration tests, source-of-truth owners, and `AGENTS.md`.
 4. Recent verified contract documents.
 5. Historical plans/review migration files and this handbook.
 Never infer “deployed,” “paid,” “device controlled,” or “external booking confirmed” from a UI label, a historical document, or green mock tests.
@@ -365,7 +365,7 @@ Backend: use repository-specific scripts under `supabase/tests` with documented 
 | Price, discount, voucher | booking quote, checkout models, loyalty | `features/pricing`, booking financial widgets | pricing engine, snapshots, collection, vouchers |
 | Change Open Time | active session UI/data model | open-time dialog, live sessions, policy widget | start/complete and open-time snapshot |
 | Start/end a session | My Bookings + ActiveSession | cashier drawer/scheduler, session operations | server session start/close, shift and RLS |
-| Show device statuses | details/booking availability | room C ubit, Live Operations, bridge | source-specific availability; no fake heartbeats |
+| Show device statuses | details/booking availability | RoomCubit, Live Operations, bridge | source-specific availability; no fake heartbeats |
 | Canteen | `features/active_session` | `features/canteen`, extras | stock/order/totals/receipt |
 | Cashier shift | booking/session state | `features/shifts`, offline workspace | writer leases, shift ledger/permissions |
 | Login/roles | `features/auth`, router | `features/auth`, router/permissions | Auth, user eligibility, RLS/grants |
