@@ -330,6 +330,9 @@ class AppStrings {
   static const String openTimeMinimum = "openTimeMinimum";
   static const String openTimeRounding = "openTimeRounding";
   static const String openTimeCanteenCharges = "openTimeCanteenCharges";
+  static const String openTimeAmountDuePending = "openTimeAmountDuePending";
+  static const String openTimeCollectionUnconfirmed =
+      "openTimeCollectionUnconfirmed";
   static const String sessionTimeRemaining = "sessionTimeRemaining";
   static const String addNote = "addNote";
   static const String placeOrder = "placeOrder";
@@ -677,6 +680,7 @@ class AppStrings {
   static const String orderStatusDelivered = "orderStatusDelivered";
   static const String orderStatusCompleted = "orderStatusCompleted";
   static const String orderStatusCancelled = "orderStatusCancelled";
+  static const String orderStatusQueued = "orderStatusQueued";
   static const String canteenClosed = "canteenClosed";
   static const String cart = "cart";
   static const String confirmOrder = "confirmOrder";

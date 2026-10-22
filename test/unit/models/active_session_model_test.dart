@@ -122,20 +122,24 @@ void main() {
         final started = DateTime.utc(2026, 10, 22, 14, 0, 0);
         final ended = DateTime.utc(2026, 10, 22, 15, 45, 0);
 
-        final model = ActiveSessionModel.fromJson({
+        final payload = <String, dynamic>{
           'id': 'open_done',
           'is_open_time': true,
           'status': 'completed',
           'open_time_started_at': started.toIso8601String(),
           'open_time_ended_at': ended.toIso8601String(),
           'base_price': 87.5,
-        });
+        };
+        final model = ActiveSessionModel.fromJson(payload);
+        final restoredAfterRestart = ActiveSessionModel.fromJson(payload);
 
         expect(model.isOpenTime, isTrue);
         expect(model.status, 'completed');
         expect(model.openTimeEndedAt, isNotNull);
         expect(model.totalPlayDurationMinutes, 105);
         expect(model.formattedPlayDuration, '1 h 45 m');
+        expect(restoredAfterRestart.totalPlayDurationMinutes, 105);
+        expect(restoredAfterRestart.formattedPlayDuration, '1 h 45 m');
       },
     );
 
@@ -175,6 +179,26 @@ void main() {
 
         expect(model.totalPlayDurationMinutes, 75);
         expect(model.formattedPlayDuration, '1 h 15 m');
+      },
+    );
+
+    test(
+      'Open Time completion never invents duration from generic end_time',
+      () {
+        final model = ActiveSessionModel.fromJson({
+          'id': 'open_missing_authoritative_end',
+          'is_open_time': true,
+          'status': 'completed',
+          'date': '2026-10-22',
+          'start_time': '14:00:00',
+          'end_time': '14:30:00',
+          'open_time_started_at': '2026-10-22T14:00:00Z',
+          'base_price': 0.0,
+        });
+
+        expect(model.openTimeEndedAt, isNull);
+        expect(model.totalPlayDurationMinutes, 0);
+        expect(model.formattedPlayDuration, '0 m');
       },
     );
 

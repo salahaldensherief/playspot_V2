@@ -158,7 +158,9 @@ class ActiveSessionModel extends ActiveSession {
     final endTime = _parseEndTimeFallback(
       json,
       startTime,
-      fallbackMinutes: durationMins > 0 ? durationMins : 30 + addedMins,
+      fallbackMinutes: json['is_open_time'] == true
+          ? durationMins
+          : (durationMins > 0 ? durationMins : 30 + addedMins),
     );
 
     // Parse canteen order items:
@@ -215,7 +217,7 @@ class ActiveSessionModel extends ActiveSession {
 
     if (roomBasePrice == 0.0 && rawTotalPrice > 0) {
       final double ordersSum = parsedOrders
-          .where((o) => !o.isCancelled)
+          .where((o) => o.isCommittedCharge)
           .fold(0.0, (sum, o) => sum + o.total);
       roomBasePrice = (rawTotalPrice - ordersSum).clamp(0.0, double.infinity);
     }
@@ -227,7 +229,8 @@ class ActiveSessionModel extends ActiveSession {
       if (rawOpenEnd != null && rawOpenEnd.toString().isNotEmpty) {
         try {
           final parsed = DateTime.parse(rawOpenEnd.toString().trim());
-          openTimeEndedAt = _asLoungeTime(json, parsed);
+          final local = _asLoungeTime(json, parsed);
+          if (!local.isBefore(startTime)) openTimeEndedAt = local;
         } catch (_) {}
       }
     }
@@ -325,16 +328,18 @@ class ActiveSessionModel extends ActiveSession {
         } catch (_) {}
       }
 
-      final isCompleted = json['status']?.toString() == 'completed';
+      final isCompleted =
+          json['status']?.toString().trim().toLowerCase() == 'completed';
       // If completed and duration/billing minutes are provided by server settlement
       if (isCompleted && fallbackMinutes > 0) {
         return defaultStart.add(Duration(minutes: fallbackMinutes));
       }
 
-      // If still active / in_progress, session has not ended
-      if (!isCompleted) {
-        return defaultStart;
-      }
+      // A generic end_time can remain equal to the start for Open Time and is
+      // not authoritative. Without a server end timestamp or settled duration,
+      // keep the duration unknown (zero) instead of inventing 30 minutes or a
+      // next-day end.
+      return defaultStart;
     }
 
     final rawEndTime = json['end_time'] ?? json['endTime'];

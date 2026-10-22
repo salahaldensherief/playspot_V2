@@ -109,9 +109,82 @@ void main() {
           findsOneWidget,
         );
         expect(find.text(AppStrings.openTimeBillPending.tr()), findsOneWidget);
+        expect(
+          find.text(AppStrings.openTimeAmountDuePending.tr()),
+          findsOneWidget,
+        );
+        expect(
+          find.text(AppStrings.openTimeCollectionUnconfirmed.tr()),
+          findsOneWidget,
+        );
 
         // No canteen orders card should appear
         expect(find.text(AppStrings.canteenMenu.tr()), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'running Open Time keeps paid unpaid and queued canteen states separate from collection',
+      (tester) async {
+        final session = ActiveSession(
+          bookingId: 'b_open_finance_states',
+          loungeId: 'l1',
+          loungeName: 'PlaySpot Lounge',
+          roomName: 'VIP 1',
+          deviceName: 'Station 1',
+          startTime: now.subtract(const Duration(minutes: 50)),
+          endTime: now,
+          basePrice: 0,
+          status: 'in_progress',
+          isOpenTime: true,
+          orders: const [
+            OrderItem(
+              id: 'paid',
+              name: 'Paid item',
+              price: 30,
+              quantity: 1,
+              status: 'paid',
+            ),
+            OrderItem(
+              id: 'unpaid',
+              name: 'Unpaid item',
+              price: 40,
+              quantity: 1,
+              status: 'unpaid',
+            ),
+            OrderItem(
+              id: 'queued',
+              name: 'Queued item',
+              price: 25,
+              quantity: 1,
+              status: 'queued',
+            ),
+          ],
+        );
+
+        await pumpBreakdown(tester, session: session, locale: 'en');
+
+        expect(find.text(AppStrings.paid.tr()), findsOneWidget);
+        expect(find.text(AppStrings.unpaid.tr()), findsOneWidget);
+        expect(find.text(AppStrings.orderStatusQueued.tr()), findsOneWidget);
+        expect(session.ordersTotal, 95);
+        expect(
+          find.text(
+            AppStrings.openTimeCanteenCharges.tr(
+              namedArgs: {'amount': '95.00'},
+            ),
+          ),
+          findsWidgets,
+        );
+        expect(
+          find.text(AppStrings.openTimeAmountDuePending.tr()),
+          findsOneWidget,
+        );
+        expect(
+          find.text(AppStrings.openTimeCollectionUnconfirmed.tr()),
+          findsOneWidget,
+        );
+        expect(find.text(AppStrings.total.tr()), findsNothing);
       },
     );
 
@@ -231,9 +304,9 @@ void main() {
         expect(openSessionCancelled.ordersTotal, 80.0);
 
         expect(find.text('Burger'), findsOneWidget);
-        expect(find.text('Water'), findsOneWidget);
+        expect(find.text('Water'), findsNothing);
         expect(find.text(AppStrings.orderStatusDelivered.tr()), findsOneWidget);
-        expect(find.text(AppStrings.orderStatusCancelled.tr()), findsOneWidget);
+        expect(find.text(AppStrings.orderStatusCancelled.tr()), findsNothing);
 
         final expectedSummary = AppStrings.openTimeCanteenCharges.tr(
           namedArgs: {'amount': '80.00'},

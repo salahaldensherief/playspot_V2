@@ -820,5 +820,8 @@
   "openTimePolicy": "سعر الوقت المفتوح: {rate} جنيه/ساعة",
   "openTimeMinimum": "الحد الأدنى: {minutes} دقيقة",
   "openTimeRounding": "التقريب كل {minutes} دقيقة",
-  "openTimeCanteenCharges": "طلبات الكانتين حتى الآن: {amount} جنيه"
+  "openTimeCanteenCharges": "طلبات الكانتين المسجلة: {amount} جنيه",
+  "openTimeAmountDuePending": "المبلغ المستحق: لسه مستني التسوية النهائية من السيرفر",
+  "openTimeCollectionUnconfirmed": "المبلغ المتحصّل فعليًا: مش مؤكد في الشاشة دي. حالة الطلب مش دليل دفع.",
+  "orderStatusQueued": "في الطابور"
 }

@@ -24,7 +24,7 @@ class BillingBreakdownWidget extends StatelessWidget {
       final rounding = policy['rounding_minutes'];
 
       final activeOrders = session.orders
-          .where((item) => !item.isCancelled)
+          .where((item) => item.isCommittedCharge)
           .toList();
 
       return Column(
@@ -72,6 +72,16 @@ class BillingBreakdownWidget extends StatelessWidget {
                   text: AppStrings.openTimeBillPending.tr(),
                   color: AppColors.textSecondary,
                 ),
+                SizedBox(height: 4.h),
+                AppText(
+                  text: AppStrings.openTimeAmountDuePending.tr(),
+                  color: AppColors.warning,
+                ),
+                SizedBox(height: 4.h),
+                AppText(
+                  text: AppStrings.openTimeCollectionUnconfirmed.tr(),
+                  color: AppColors.textSecondary,
+                ),
                 if (activeOrders.isNotEmpty) ...[
                   SizedBox(height: 8.h),
                   AppText(
@@ -87,7 +97,7 @@ class BillingBreakdownWidget extends StatelessWidget {
               ],
             ),
           ),
-          if (session.orders.isNotEmpty) ...[
+          if (activeOrders.isNotEmpty) ...[
             SizedBox(height: 16.h),
             Container(
               decoration: BoxDecoration(
@@ -162,7 +172,7 @@ class BillingBreakdownWidget extends StatelessWidget {
                     padding: EdgeInsets.all(18.w),
                     child: Column(
                       children: [
-                        for (var item in session.orders)
+                        for (final item in activeOrders)
                           _buildCanteenOrderRow(context, item),
                       ],
                     ),
@@ -342,14 +352,29 @@ class BillingBreakdownWidget extends StatelessWidget {
         label = AppStrings.orderStatusCompleted.tr();
         color = AppColors.success;
         break;
+      case 'paid':
+        label = AppStrings.paid.tr();
+        color = AppColors.success;
+        break;
+      case 'unpaid':
+        label = AppStrings.unpaid.tr();
+        color = AppColors.warning;
+        break;
+      case 'queued':
+        label = AppStrings.orderStatusQueued.tr();
+        color = AppColors.neonBlue;
+        break;
       case 'cancelled':
         label = AppStrings.orderStatusCancelled.tr();
         color = AppColors.danger;
         break;
       case 'pending':
-      default:
         label = AppStrings.orderStatusPending.tr();
         color = AppColors.warning;
+        break;
+      default:
+        label = status.trim();
+        color = AppColors.textSecondary;
         break;
     }
     return Container(

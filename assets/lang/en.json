@@ -820,5 +820,8 @@
   "openTimePolicy": "Open Time rate: {rate} EGP/hour",
   "openTimeMinimum": "Minimum: {minutes} minutes",
   "openTimeRounding": "Rounded in {minutes}-minute steps",
-  "openTimeCanteenCharges": "Canteen charges so far: {amount} EGP"
+  "openTimeCanteenCharges": "Committed canteen charges: {amount} EGP",
+  "openTimeAmountDuePending": "Amount due: pending final server settlement",
+  "openTimeCollectionUnconfirmed": "Actually collected: not confirmed in this view. Order status does not prove payment.",
+  "orderStatusQueued": "Queued"
 }

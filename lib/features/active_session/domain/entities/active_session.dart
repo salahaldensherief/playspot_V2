@@ -99,7 +99,7 @@ class ActiveSession extends Equatable {
   }
 
   double get ordersTotal => orders
-      .where((item) => !item.isCancelled)
+      .where((item) => item.isCommittedCharge)
       .fold(0.0, (sum, item) => sum + item.total);
   double get grandTotal => basePrice + extensionsPrice + ordersTotal;
 
