@@ -11,7 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
-import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/di.dart';
 import 'package:playspot/features/app_status/domain/entities/app_status_type.dart';
 import 'package:playspot/features/app_status/presentation/cubit/app_status_cubit.dart';
@@ -188,8 +187,8 @@ class _SplashScreenState extends State<SplashScreen>
               8.verticalSpace,
               FadeTransition(
                 opacity: _fadeAnim,
-                child: AppText(
-                  text: AppStrings.splashTagline.tr(),
+                child: Text(
+                  AppStrings.splashTagline.tr(),
                   style: TextStyle(
                     shadows: [
                       Shadow(

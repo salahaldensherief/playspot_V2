@@ -1,0 +1,7 @@
+# Splash font restoration — 2026-10-23
+
+The October 20 mobile text refactor (`1a67c8c`) replaced the splash logo's fixed `Text` widgets with `AppText`. `FontsManager.getStyle` selects Tajawal for the Arabic locale even when the supplied `TextStyle` says Orbitron. That altered the PlaySpot wordmark. The same refactor changed the splash tagline to `AppText`, which also applies different sizing, weight, and line height.
+
+This independent branch restores the original `Text` rendering for the wordmark and tagline while retaining the localized tagline key. The logo still explicitly uses Orbitron. No booking, pricing, payment, or database code is included.
+
+Verification: `flutter test --no-pub test/widgets/logo_font_test.dart` passed (1 test); `flutter test --no-pub test/widgets/locale_preserves_form_test.dart` passed (2 tests); changed Dart files passed `dart format --output=none --set-exit-if-changed`. Targeted analysis and CI are pending at the time of this entry. This branch starts at Mobile `origin/dev` (`7caf410`); the Open Time financial PR remains separate and Draft.
