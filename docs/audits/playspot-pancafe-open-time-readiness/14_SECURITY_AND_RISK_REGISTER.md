@@ -9,6 +9,7 @@
 | Offline cash and concurrent writer conflict | High, no endurance pilot this task | Disposable two-cashier/offline fixture and lease/replay audit |
 | Shift, canteen and ledger totals diverge | High, reconstructed schema passed 97 finance/RLS checks but exact schema is unavailable | Row-level exact-schema finance reconciliation before pilot |
 | Browser alert duplication/autoplay | Medium, one shared sound observed | Preference/permission, dedupe and distinct tone tests pending |
+| Dense station UI hides cashier actions or conflict state | Medium, real browser and layout-suite evidence | Cashier workspace restored as the primary surface; station board is collapsed by default in the integrated dashboard. Reusable metric, status and detail components retain explicit stale/conflict/payment/Open Time labels. |
 | Android signing/Play compliance | Release blocker, no signed artifact verified | Signed AAB and Play Console checklist |
 
 No credentials are included. Production queries were read-only. Risks are unresolved unless an evidence level explicitly says otherwise.

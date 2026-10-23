@@ -114,19 +114,22 @@ Phase 1 fixes two verified customer-facing defects in Mobile Draft PR #75:
 - Recovered Phase 1 log: `52315931b865ab99fad9031afda96ba684114559`.
 - Independent Mobile follow-up: `9608768f3fd6f27b3f5be1aed530e068bb9745b0`.
 - Dashboard local verification: `e79e9a536ee131414b2ee199782509aa722f734e`.
+- Dashboard cashier-first UI follow-up: `6e18a2cff1fa245091e1fe456c90240f35394853`.
+- Independently testable scheduler candidate from exact `origin/dev`: `4be53d823f519b8b291412f172bd41a789f66f3f`.
 
 ### Verification
 
 - Mobile focused Open Time/model/Cubit/widget tests: 48 passed.
 - Mobile full Flutter suite: 643 passed, 1 skipped, 0 failed. Analyzer: 0 issues.
-- Dashboard full Flutter suite: 1320 passed, 2 skipped, 0 failed. Analyzer: 0 issues.
+- Dashboard final full Flutter suite: 1320 passed, 2 skipped, 0 failed. Final analyzer: 0 issues in 69.6s. The first final-UI suite exposed 10 Material/ListTile visual-layout failures; switching the collapsible board wrapper to `Material` fixed them, and the complete rerun passed.
 - Dashboard scheduler and canonical-close focused suite: 13 passed.
-- Browser: localhost JavaScript Web build exercised 6, 20 and 40 mixed stations in Arabic and English. Stale realtime, conflict/manual review, partial-payment alert, Open Time pending bill, alert count and Permission OFF state rendered; no console warnings/errors were captured.
+- Browser: localhost JavaScript Web build exercised 6, 20 and 40 mixed stations in Arabic and English at 1440x900 and a narrow responsive size. Realtime freshness toggling, conflict/manual review, partial-payment alert, Open Time pending bill, alert count and Permission OFF state rendered. The six-station desktop board is balanced 3x2; 20/40 use five columns. Metric, status and detail rows are reusable components.
+- Mobile GitHub Actions for commit `b831caed92e83c666a8d4563517e8d0a51696afb`: formatting run `39866995687` passed and Flutter CI run `39866995668` passed, including backend fixtures and Android release build.
 - Disposable PostgreSQL 17.11: 9 Open Time contract, 16 close/balance, 9 actor authorization, 1 live-read RLS, 34 client finance privilege and 47 partial-collection/concurrency assertions passed. No production writes were performed.
 
 ### Merge and release decision
 
 - Mobile and Dashboard PR #75 remain Draft and unmerged.
 - The reconstructed database proves the candidate behavior against a minimal contract but does not reproduce the exact effective production schema. Financial migration work therefore remains local/draft.
-- Dashboard commit `e79e9a5` remains local because pushing it would automatically start a Vercel preview, which this task prohibits.
+- Dashboard commits `e79e9a5` and `6e18a2c` remain local because pushing them would automatically start a Vercel preview, which this task prohibits.
 - The scheduler safety patch is independently testable only if its alert-only scheduler source and canonical-close regression travel together. It can target `dev` later, after preview deployment is safely disabled or explicitly authorized.
