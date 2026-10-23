@@ -1,0 +1,27 @@
+Fixture database: 17.11
+PASS heartbeat refresh never extends a live immutable permit
+PASS expired permit rotates identity without modifying its original window or sequence
+PASS expired permit cannot advertise online even with a fresh heartbeat
+PASS legitimate old reservation/start/close reconcile after renewal under their original permit
+PASS old event outside its original expiry remains denied after renewal
+PASS new permit cannot backdate an event before its issuance
+PASS permission changes issue a new immutable snapshot and leave old grants intact
+PASS newly granted billing permission cannot authorize cash recorded under an older unissued billing grant
+PASS conflicting old sequence cannot be bypassed using a renewed permit
+PASS lost old response retries after renewal without creating another booking
+PASS next sequence under new permit follows old events without resetting the writer counter
+PASS banned actor cannot replay a historical receipt after renewal
+PASS a historical permit of a different identity cannot use the current writer
+PASS a different device cannot claim an expired assignment
+PASS client cannot access immutable grant records: SELECT
+PASS client cannot access immutable grant records: UPDATE
+PASS client cannot access immutable grant records: DELETE
+PASS client cannot access immutable grant records: INSERT
+PASS even privileged accidental mutation is rejected: UPDATE
+PASS even privileged accidental mutation is rejected: DELETE
+PASS legacy or corrupted writer grant is not silently replaced
+PASS simultaneous renewal waits and issues exactly one current generation
+PASS writer refresh waits for atomic offline reservation
+PASS offline reservation waits for writer refresh
+PASS native authority wire fixture includes original and renewed generations with a queued old event
+{"passed":25,"limitations":["Native synthetic Auth/schema; no hosted writes","Immutable timing is not hardware or event-time attestation","Cross-device reassignment and closed-shift reconciliation remain explicit review work","Canonical resource bootstrap/UI still incomplete"]}

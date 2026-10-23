@@ -1,0 +1,11 @@
+Fixture database: 17.11
+PASS offline heartbeat does not block a future hold beyond every replayable permit
+PASS near-term interval still cannot compete with the offline device
+PASS final booking uses the same coverage boundary as its hold
+PASS offline journal cannot reserve beyond its issued coverage or alter money on rejection
+PASS valid offline operations remain replayable within their original permit
+PASS a longer historical permit in the current generation still protects its future interval
+PASS an exact adjacent boundary is allowed and time-zone settings cannot shift it
+PASS public status exposes an earliest future date without writer identities
+PASS inactive lounges never advertise future eligibility
+{"passed":9,"environment":"isolated shared online/offline guard and replay contracts"}

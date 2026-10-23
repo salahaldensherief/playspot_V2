@@ -1,0 +1,15 @@
+Fixture database: 17.11
+PASS legacy view leak reproduced on synthetic rows
+PASS customer sees own request only
+PASS staff sees assigned venue only
+PASS other customer sees own requests only
+PASS omitted user is bound to actor with preserved timing
+PASS another customer cannot be impersonated
+PASS room cannot be paired with another venue
+PASS notification state cannot be forged
+PASS inactive actor cannot insert
+PASS banned actor cannot insert
+PASS anonymous view read denied
+PASS anonymous view insert denied
+PASS view direct update denied
+{"passed":13,"engine":"native PostgreSQL","limitations":["Synthetic RLS schema","No live record queried through the view","No hosted repair applied","Canonical waitlist RPC concurrency not proven"]}

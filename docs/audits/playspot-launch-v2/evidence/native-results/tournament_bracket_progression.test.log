@@ -1,0 +1,15 @@
+Fixture database: 17.11
+PASS 2 players advance through every required match and empty branch
+PASS 3 players advance through every required match and empty branch
+PASS 4 players advance through every required match and empty branch
+PASS 5 players advance through every required match and empty branch
+PASS 6 players advance through every required match and empty branch
+PASS 7 players advance through every required match and empty branch
+PASS 8 players advance through every required match and empty branch
+PASS a scheduled match cannot be resolved as a dispute
+PASS a disputed winner must agree with the scores
+PASS a manager can resolve a genuine dispute and the winner advances
+PASS a completed tournament cannot reopen
+PASS an actor without management authority cannot publish
+PASS ordinary clients cannot manufacture walkovers directly
+{"passed":13,"synthetic":true,"hostedConnections":0,"limitations":["Permission helpers are synthetic; full Auth/RLS integration is tested separately"]}

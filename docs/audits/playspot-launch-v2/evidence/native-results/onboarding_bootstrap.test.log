@@ -1,0 +1,12 @@
+Fixture database: 17.11
+PASS anonymous cannot bootstrap lounge
+PASS cashier cannot create owner lounge
+PASS blank draft name
+PASS partial coordinates
+PASS out-of-range coordinates
+PASS pending draft can be created before payment setup
+PASS retry uses same owned pending lounge
+PASS draft creation does not suspend owner account or open lounge
+PASS active lounge still requires configured transfer destination
+PASS profile lounge link does not authorize modifying another owner venue
+{"passed":10,"limitations":["Synthetic schema","Geography functions stubbed: PostGIS behavior NOT verified","Single connection: concurrency NOT proven","No live mutations"]}

@@ -1,0 +1,32 @@
+Fixture database: 17.11
+PASS anonymous submission
+PASS foreign owner cannot read private review status
+PASS foreign owner cannot retrieve draft resources
+PASS cross-owner submission
+PASS ordinary user cannot list sensitive reviews
+PASS owner with no request receives no fabricated pending review
+PASS missing uploaded object
+PASS foreign document path
+PASS review requires payment destination
+PASS complete lounge submitted as immutable revision
+PASS only final accepted submission completes setup without activating venue
+PASS same submission replay does not create a second request
+PASS owner cannot approve
+PASS wrong review revision
+PASS NULL approval cannot become rejection
+PASS rejection requires useful reason
+PASS admin receives full frozen data and stored document paths
+PASS pending lounge fields cannot change underneath reviewer
+PASS pending room list cannot acquire a new row
+PASS approval cannot silently approve data changed after submission
+PASS approval is scoped to exact lounge
+PASS decision replay is stable
+PASS conflicting second decision
+PASS clients cannot write private decision table
+PASS replayed decision emits only one durable notification
+PASS rejection reopens setup for exact owner branch without disabling account
+PASS owner sees rejection reason and frozen draft for correction
+PASS rejected draft restores resource IDs and readable coordinates
+PASS active venue is not reopened as an onboarding draft
+PASS corrected draft creates a new revision without replacing previous decision
+{"passed":30,"engine":{"version":"PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit"},"limitations":["Synthetic schema; live triggers and PostGIS not mirrored","Single connection, concurrency not proven","No live mutations"]}

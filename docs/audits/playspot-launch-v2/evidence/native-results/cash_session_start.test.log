@@ -1,0 +1,21 @@
+Fixture database: 17.11
+PASS baseline reproduces refusal to start an unpaid cash booking
+PASS cash unpaid starts without recording collection
+PASS cash partial starts without recording collection
+PASS cash paid starts without recording collection
+PASS manual_transfer unpaid remains blocked
+PASS wallet unpaid remains blocked
+PASS card unpaid remains blocked
+PASS unknown unpaid remains blocked
+PASS unknown null method cannot exploit SQL null logic
+PASS refunded cash booking cannot start
+PASS verified prepaid transfer can start
+PASS unpaid open-time behavior is retained
+PASS missing session-control permission still denies
+PASS missing shift still denies without modifying attendance
+PASS cancelled booking remains terminal
+PASS repeat start does not duplicate or reset attendance
+PASS missing authentication still denies
+PASS migration retains restricted client execute privileges
+PASS manual immediate start leaves cash uncollected
+{"passed":19,"hostedConnections":0}

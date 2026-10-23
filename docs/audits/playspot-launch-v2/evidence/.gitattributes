@@ -1,0 +1,2 @@
+# Preserve raw captured source/log whitespace as evidence, without reformatting.
+* -text -whitespace

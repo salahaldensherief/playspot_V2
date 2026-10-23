@@ -1,0 +1,26 @@
+Fixture database: 17.11
+PASS fixed voucher spans both rooms without losing the excess
+PASS administrative disablement after hold prevents checkout
+PASS occupied room can checkout an eligible future hold
+PASS maintenance after hold prevents checkout even with available flag
+PASS inactive occupied resource after hold prevents checkout
+PASS fixed voucher can cover extras after covering the room
+PASS promotion, multi mode, controllers and free-hour voucher agree with stored total
+PASS overnight rule applies to its starting day and date range
+PASS scope specificity wins a priority tie; higher priority wins otherwise
+PASS tariff changes do not reprice payment, status or canteen updates
+PASS occupied room can be quoted for a future hold
+PASS expired hold is rejected without booking writes
+PASS minute-duration controllers and fractional voucher values use cents consistently
+PASS duplicate held-room payload is rejected
+PASS overnight conflicts include next weekday and exclude disjoint date ranges
+PASS shared combo component and standalone item use aggregate stock
+PASS one shortage rolls back every component, order and ledger
+PASS empty combo and unavailable components are rejected
+PASS out-of-window combo cannot be bought
+PASS upsell discount and conversion come only from a successful order
+PASS acceptance without a purchase cannot invent revenue
+PASS customer cannot order against another customer booking
+PASS concurrent combo and item orders cannot oversell shared inventory
+PASS eligibility rollback, reapply and grants preservation
+{"passed":24,"liveMutations":false,"productionFunctions":true}

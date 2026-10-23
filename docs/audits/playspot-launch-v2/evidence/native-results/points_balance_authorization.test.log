@@ -1,0 +1,12 @@
+Fixture database: 17.11
+PASS banned super-admin cannot read another account balance
+PASS own balance preserves the original sum
+PASS null target selects the authenticated actor
+PASS ordinary actor cannot read another user or lounge staff balance
+PASS inactive own account cannot read points
+PASS orphaned Auth identity cannot use a stale role label
+PASS canonical active platform membership authorizes another balance
+PASS canonical superadmin alias has the same authority
+PASS unauthenticated callers cannot read points
+PASS anonymous and system API roles have no execute grant
+{"passed":10}

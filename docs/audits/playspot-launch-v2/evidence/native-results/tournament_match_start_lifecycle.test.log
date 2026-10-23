@@ -1,0 +1,17 @@
+Fixture database: 17.11
+PASS starting a ready match advances the tournament to in_progress
+PASS server start time blocks both starting and result submission
+PASS draft cannot start a match
+PASS check_in_open cannot start a match
+PASS completed cannot start a match
+PASS cancelled cannot start a match
+PASS a scheduled match cannot bypass management start by submitting a result
+PASS a missing opponent prevents match start
+PASS a foreign or inactive assigned room is rejected
+PASS unauthenticated, inactive and unauthorized actors cannot start
+PASS a second start neither resets the clock nor duplicates its audit
+PASS started match supports submit and opponent confirmation
+PASS deadline worker confirms only once and never changes a closed tournament
+PASS deadline worker has no client execute privileges
+PASS deadline worker skips a tournament locked by another writer
+{"passed":15,"hostedConnections":0}

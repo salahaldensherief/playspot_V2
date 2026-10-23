@@ -1,0 +1,9 @@
+Fixture database: 17.11
+PASS owner cannot delete global promotion
+PASS owner cannot create global promotion
+PASS owner cannot edit global promotion
+PASS missing promotion uses actual not found error
+PASS banned administrator cannot delete
+PASS banned administrator cannot create
+PASS disabled administrator cannot edit
+{"passed":11,"liveMutations":false,"fixtureSchema":true}

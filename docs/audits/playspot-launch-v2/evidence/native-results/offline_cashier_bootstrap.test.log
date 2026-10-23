@@ -1,0 +1,24 @@
+Fixture database: 17.11
+PASS bootstrap returns one complete scoped snapshot without inventing bookings or payments
+PASS foreign venue and foreign open shift are never used as bootstrap scope
+PASS multiple own shifts fail instead of guessing a shift
+PASS banned and inactive actors cannot bootstrap even with stored writer authority
+PASS unauthenticated actors and anon execute are rejected
+PASS lost scoped permission does not reuse a previously issued grant
+PASS bootstrap grants exactly the authenticated API role and keeps the private helper private
+PASS session control alone does not grant access to customer booking data
+PASS menu data and stock are absent when menu viewing is revoked
+PASS online bootstrap requests the matching online heartbeat
+PASS foreign device does not silently take over the venue writer
+PASS blind cash total remains hidden unless the actual grant allows it
+PASS tournament reservations and live booking holds are included in capacity coverage
+PASS expired and released holds do not block local availability
+PASS microsecond timestamps produce integer milliseconds without releasing capacity early
+PASS retained unpaid bookings include exact debt and shift while foreign shifts stay unsupported
+PASS unsupported pricing retains room visibility without offering an offline quote
+PASS fractional-cent prices fail rather than being silently rounded
+PASS invalid timezone fails before returning a false complete snapshot
+PASS the actual hosted hold guard rejects an offline reservation without losing saved sequence
+PASS a released hold does not produce a false offline reservation conflict
+PASS failed first bootstrap rolls back the writer claim and permit issuance
+All 22 offline bootstrap checks passed.

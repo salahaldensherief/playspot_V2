@@ -1,0 +1,238 @@
+[
+  {
+    "suite": "account_deletion_transaction.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "admin_deactivation_consistency.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "auth_disable_recovery.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "blind_shift_read_authorization.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "booking_actor_authorization.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "booking_completion_balance.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "booking_extension_price_integrity.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "booking_legacy_cash_ledger.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "branch_booking_read_scope.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "canonical_lounge_authorization.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "canteen_catalogue_tombstones.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "cash_session_start.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "cashier_conflict_review.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "cashier_writer_availability.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "cashier_writer_release.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "cashier_writer_renewal.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "checkout_pricing_and_canteen.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "client_table_management_privileges.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "customer_booking_timeline.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "financial_client_privileges.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "future_booking_hold.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "future_offline_coverage.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "latest_writer_contracts.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "legacy_lounge_access_authorization.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "live_booking_read_permissions.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "live_request_ownership_and_resolution.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "live_session_visit_number.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "lounge_operating_status.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "lounge_review_integrity.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "lounge_review_summary.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "offline_booking_hold_guard.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "offline_canteen_reconciliation.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "offline_cash_reconciliation.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "offline_cashier_bootstrap.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "offline_fixed_session_reconciliation.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "offline_permit_renewal.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "onboarding_bootstrap.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "onboarding_resource_save.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "owner_auth_provisioning.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "owner_lounge_contact_fields.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "partial_cash_collection.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "payout_funds_custody.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "platform_revenue_authorization.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "points_balance_authorization.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "profile_security.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "promotion_scope.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "shift_direct_write_authorization.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "slot_waitlist_view_boundary.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "staff_provisioning.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "super_admin_security.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "terminal_extension_lifecycle.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "tournament_bracket_progression.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "tournament_bronze_playoff.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "tournament_clock_phases.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "tournament_match_start_lifecycle.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "tournament_registration_payments.test.mjs",
+    "exit": -1073740791
+  },
+  {
+    "suite": "tournament_reward_delivery.test.mjs",
+    "exit": 0
+  },
+  {
+    "suite": "wallet_concurrency.test.mjs",
+    "exit": 1
+  },
+  {
+    "suite": "wallet_payment_integrity.test.mjs",
+    "exit": 0
+  }
+]

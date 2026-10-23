@@ -1,0 +1,17 @@
+Fixture database: 17.11
+PASS cashier cannot approve own conflict
+PASS banned manager cannot review
+PASS inactive platform role cannot review
+PASS manager cannot list another venue conflicts
+PASS reason is required
+PASS approval retains immutable conflict receipt
+PASS same review is idempotent and changed reason rejected
+PASS pending approval cannot be duplicated
+PASS approval never bypasses room availability
+PASS failed retry outcome remains immutable
+PASS repaired resource needs fresh audited approval
+PASS successful retry advances once without replacing initial evidence
+PASS changed original payload is never replayable
+PASS resolved conflict disappears from manager queue
+PASS API roles cannot read audit tables or call internal authorizer
+{"passed":15,"hostedMutations":false}

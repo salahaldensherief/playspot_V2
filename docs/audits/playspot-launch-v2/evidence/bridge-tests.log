@@ -1,0 +1,36 @@
+✔ cloud_api: collision rejects another reservation (5.5021ms)
+✔ cloud_api: same idempotency key has one effect (0.5317ms)
+✔ cloud_api: offline is NOT authoritative availability (0.3138ms)
+✔ local_agent: collision rejects another reservation (0.3865ms)
+✔ local_agent: same idempotency key has one effect (0.3693ms)
+✔ local_agent: offline is NOT authoritative availability (0.1485ms)
+✔ hybrid: collision rejects another reservation (0.3018ms)
+✔ hybrid: same idempotency key has one effect (0.2398ms)
+✔ hybrid: offline is NOT authoritative availability (0.2076ms)
+✔ a lost acknowledgement is AMBIGUOUS and replay has same stored effect (0.5106ms)
+✔ session state changes must follow reservation and not duplicate (0.5357ms)
+✔ malformed time range is rejected, and adjacent times are permitted (0.3573ms)
+✔ integration scope cannot control another integration reservation (0.2912ms)
+✔ unsupported operation fails closed (0.1813ms)
+✔ cancelling a running session cannot release occupied capacity (1.6841ms)
+✔ receipt mutation and object key order do not alter deduplication (0.9344ms)
+✔ non-string identities cannot bypass integration scope (0.3591ms)
+✔ disabled by default and only a mock transport can be constructed (5.613ms)
+✔ discovery yields two unique identities and four channels each, with no network (1.6902ms)
+✔ four independent outlets on each independent device (2.7381ms)
+✔ duplicate delivery and reordered object keys have one effect and immutable receipts (0.7515ms)
+✔ lost ACK blocks further device writes; reconnect reconciles without replay (7.3776ms)
+✔ timeout before execution never becomes success or automatically retries (1.2887ms)
+✔ expiry and offline outcomes stay stable after reconnect (1.0016ms)
+✔ cross tenant, installation and permission checks prevent commands and reads (1.5844ms)
+✔ disconnect and revoke reject old receipts and prevent reconnect after revocation (2.3122ms)
+✔ stale revision, sequence, invalid channel, injected payload and unknown command fail closed (2.5041ms)
+✔ audit includes success, duplicate and rejection without payloads, and is isolated and immutable (0.8721ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 230.2464

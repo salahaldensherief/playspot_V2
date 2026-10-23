@@ -1,0 +1,15 @@
+Fixture database: 17.11
+PASS paid registration reserves a seat without claiming a payment
+PASS free registration confirms without creating a financial payment
+PASS duplicate registration cannot reserve a second seat
+PASS capacity overflow creates ordered waitlist entries without deadlines
+PASS cash payment confirms the held seat once and records its actor
+PASS cash collection rejects expired reservation deadlines before the expiry job
+PASS cash collection rejects wrong, negative, fractional and nonfinite amounts
+PASS a waitlisted participant cannot pay for a seat they do not hold
+PASS cash collection requires actual tournament management authority
+PASS inactive accounts cannot register
+PASS paid cancellation queues refunds without claiming they were paid
+PASS unpaid cancellation creates no refund
+PASS promotion respects FIFO and confirms free seats without a payment
+{"passed":13,"synthetic":true,"hostedConnections":0,"limitations":["Synthetic authorization helpers; actual Auth/RLS coverage runs separately"]}

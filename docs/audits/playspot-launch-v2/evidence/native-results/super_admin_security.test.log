@@ -1,0 +1,16 @@
+Fixture database: 17.11
+PASS user metadata does not grant administration
+PASS canonical active role grants administration
+PASS legacy canonical role supported
+PASS inactive administrator denied
+PASS banned administrator denied
+PASS null eligibility fails closed
+PASS active platform membership grants administration
+PASS membership cannot bypass disabled profile
+PASS membership cannot bypass banned profile
+PASS deleted Auth identity denies outstanding uid
+PASS missing profile fails closed
+PASS anonymous helper returns false
+PASS profile RLS helper does not recurse
+PASS membership table not exposed
+{"passed":14,"limitations":["Synthetic Auth/RLS schema","No production writes","Does not validate session revocation or MFA"]}

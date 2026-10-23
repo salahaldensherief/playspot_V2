@@ -1,0 +1,2 @@
+Fixture database: 17.11
+{"finding":"PS-004","result":"DEFECT REPRODUCED in isolated minimal fixture","beforePaid":180,"afterPaid":230,"newShiftCollection":50,"explicitCollectionCalls":0,"extensionCost":50}

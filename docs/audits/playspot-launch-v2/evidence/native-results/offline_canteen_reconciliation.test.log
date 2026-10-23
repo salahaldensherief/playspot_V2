@@ -1,0 +1,36 @@
+Fixture database: 17.11
+PASS session permission can add canonically priced items without billing permission or implicit cash
+PASS lost response retry keeps one order and stock deduction
+PASS changed quote under same operation id cannot replay
+PASS product price drift retains conflict and rolls back stock
+PASS forged client total cannot reduce balance
+PASS trigger repricing the room rolls back header, lines and inventory
+PASS disabled product is_active
+PASS disabled product is_available
+PASS foreign venue product cannot consume stock
+PASS missing product fails without financial changes
+PASS tracked shortage is atomic
+PASS duplicate product lines share aggregate stock limit
+PASS duplicate lines with sufficient aggregate stock keep both canonical lines
+PASS untracked zero inventory is preserved
+PASS invalid quantity 0
+PASS invalid quantity -1
+PASS invalid quantity 1.5
+PASS invalid quantity 101
+PASS invalid quantity 2
+PASS invalid quantity null
+PASS missing quote never silently reprices
+PASS quote must describe actual requested items
+PASS quote total must be integer JSON number
+PASS closed session rejects new orders
+PASS open-time unsettled price is explicitly unsupported
+PASS own open shift must match session shift
+PASS closed shift retains order for review
+PASS revoked session permission blocks request without receipt or data writes
+PASS partial cash remains intact and order increases remaining balance
+PASS fully paid session becomes partial when an unpaid order is added
+PASS cash ledger mismatch blocks adding debt to corrupted payment state
+PASS failure in second line rolls back first stock and header
+PASS simultaneous retry demonstrably waits and deducts inventory once
+PASS competing stock sale commits before waiting order, then order retains shortage conflict
+{"passed":34,"limitations":["Source-only item fixture; fixed lifecycle has a separate integrated suite","Minimal fixture reproduces actual hosted price trigger, not every production RLS/audit/notification trigger","No combo/open-time/discount repricing or conflict resolution UI enablement"]}

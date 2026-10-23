@@ -1,0 +1,27 @@
+Fixture database: 17.11
+PASS issued writer can stay offline while submitting recorded cash
+PASS spoofed actor denied
+PASS other device denied
+PASS other permit denied
+PASS invalid sequence 0
+PASS invalid sequence -1
+PASS invalid sequence 1.5
+PASS invalid sequence 1
+PASS invalid sequence null
+PASS missing shift denied
+PASS naive time has no timezone
+PASS before permit issuance
+PASS future clock cannot invent events
+PASS unknown operation preserves the queue rather than pretending success
+PASS sequence gap never writes money
+PASS first financial operation atomically advances sequence and exposes canonical receipt
+PASS server response lost then retried does not repeat money or sequence
+PASS same id altered payload fails closed
+PASS banned actor cannot replay a synchronized receipt
+PASS simultaneous envelope requests share one writer and one financial receipt
+PASS business conflict persists but rolls back every financial side effect
+PASS same conflict returns its original receipt for explicit review
+PASS replacement operation cannot silently bypass a conflicted sequence
+PASS dependent later operation stays blocked
+PASS operation receipts cannot be edited by client
+{"passed":25,"limitations":["This fixture covers cash; item orders have a separate native fixture","Minimal cash fixture does not load separate fixed-session handlers","No UI enablement or production writes","Minimal schema; audit/Auth session revocation not mirrored","Conflicts require a separate reviewed resolution flow"]}

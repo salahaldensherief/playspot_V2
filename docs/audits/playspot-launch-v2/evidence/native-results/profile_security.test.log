@@ -1,0 +1,19 @@
+Fixture database: 17.11
+PASS cannot create own super admin role
+PASS cannot assign lounge while creating profile
+PASS basic signup defaults to customer
+PASS cannot directly mutate role
+PASS cannot directly mutate is_active
+PASS cannot directly mutate is_setup_completed
+PASS cannot directly mutate is_banned
+PASS cannot directly mutate points
+PASS cannot directly mutate lounge_id
+PASS cannot directly mutate referral_code
+PASS basic profile and notification token remain writable
+PASS cannot edit coworker basic profile
+PASS TRUNCATE bypass not granted
+PASS profile deletion not granted
+PASS server referral generation replays same code
+PASS anonymous cannot write profiles
+PASS anonymous referral execution revoked
+{"passed":17,"limitations":["Synthetic profile schema and SELECT policy","No real Supabase signup trigger or concurrent clients","No live mutations"]}

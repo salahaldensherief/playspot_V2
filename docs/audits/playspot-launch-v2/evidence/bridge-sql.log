@@ -1,0 +1,10 @@
+Fixture database: 17.11
+PASS integration parent tenant change is blocked
+PASS room parent tenant change is blocked
+PASS cross-lounge mapping cannot be inserted
+PASS same room or external resource cannot be remapped in an integration
+PASS every proposal table has RLS and denies client table privileges
+PASS actual client role cannot select or mutate operational tables
+PASS unapproved integration defaults to draft and cannot become active
+PASS command idempotency keys are unique per integration
+8 bridge proposal checks passed; synthetic fixture, not hosted RLS or full-schema compatibility.

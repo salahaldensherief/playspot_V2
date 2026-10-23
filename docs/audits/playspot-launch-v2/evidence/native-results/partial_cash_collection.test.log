@@ -1,0 +1,49 @@
+Fixture database: 17.11
+PASS anonymous collection
+PASS unassigned cashier
+PASS invalid minor units null
+PASS invalid minor units 0
+PASS invalid minor units -1
+PASS invalid minor units NaN
+PASS invalid minor units Infinity
+PASS invalid minor units -Infinity
+PASS invalid minor units 1.5
+PASS invalid minor units 9007199254740992
+PASS overpayment
+PASS banned cashier
+PASS inactive cashier
+PASS unapproved venue
+PASS another cashier shift
+PASS conflicting staff identity
+PASS another venue shift
+PASS closed shift
+PASS cancelled booking
+PASS unsettled open time
+PASS invalid server total NULL
+PASS invalid server total 'NaN'::numeric
+PASS invalid server total 'Infinity'::numeric
+PASS invalid server total -1
+PASS invalid server total 100.001
+PASS paid flag without a ledger is not fabricated into zero paid
+PASS deleted Auth identity
+PASS cash aggregate without matching ledger is not trusted
+PASS cash aggregate and ledger disagreement requires review
+PASS ledger money without aggregate cannot be collected again
+PASS late ledger failure rolls back aggregate and receipt
+PASS partial cash preserves completed session and exposes canonical due
+PASS lost-response retry after shift closes never collects twice
+PASS same operation changed amount
+PASS other actor cannot claim a receipt
+PASS new operation after shift closes
+PASS banned account cannot replay receipt
+PASS second collection increments aggregate and only the new cash ledger amount
+PASS paid booking rejects another cash operation
+PASS legacy aggregate overwrite cannot bypass the canonical cash ledger
+PASS private receipts are inaccessible to clients
+PASS private financial implementation is inaccessible
+PASS anonymous execute grant absent
+PASS simultaneous same operation collects exactly once
+PASS competing different operations cannot overcollect the remaining balance
+PASS shift closing first makes blocked collection recheck closed status
+PASS same operation id for two bookings cannot be reused concurrently
+{"passed":47,"limitations":["Synthetic schema and Auth claims","Hosted audit trigger not reproduced","Not yet the offline apply endpoint","No deployed SQL or client integration"]}

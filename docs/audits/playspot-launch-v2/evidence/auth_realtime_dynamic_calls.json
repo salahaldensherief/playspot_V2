@@ -1,0 +1,800 @@
+[
+  {
+    "repo": "mobile-dev",
+    "file": "lib/core/notifications/strategies/notification_action_strategy.dart",
+    "line": 37,
+    "type": "Auth",
+    "source": "final hasSession = supabase?.auth.currentSession != null;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 65,
+    "type": "Auth",
+    "source": "final userId = _client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 215,
+    "type": "Realtime",
+    "source": "channel = _client.channel('booking_$bookingId');"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 218,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 234,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_watcher.dart",
+    "line": 39,
+    "type": "Auth",
+    "source": "_auth = _client.auth.onAuthStateChange.listen((state) {"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_watcher.dart",
+    "line": 42,
+    "type": "Auth",
+    "source": "_bind(_client.auth.currentUser?.id);"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_watcher.dart",
+    "line": 76,
+    "type": "Realtime",
+    "source": "_userChannel = _client.channel('user_sessions_${_id}_$userId');"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_watcher.dart",
+    "line": 78,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_watcher.dart",
+    "line": 114,
+    "type": "Realtime",
+    "source": "_bookingChannel = _client.channel('session_${_id}_${session.bookingId}');"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_watcher.dart",
+    "line": 116,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_watcher.dart",
+    "line": 127,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/app_status/data/datasources/remote/app_status_remote_data_source.dart",
+    "line": 49,
+    "type": "Realtime",
+    "source": "return _client.from('app_status').stream(primaryKey: ['id']).map((data) {"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/presentation/banned_account_screen.dart",
+    "line": 167,
+    "type": "Auth",
+    "source": "await Supabase.instance.client.auth.signOut();"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/strategies/email_auth_strategy.dart",
+    "line": 26,
+    "type": "Auth",
+    "source": "final response = await _supabase.auth.signInWithPassword("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/strategies/facebook_auth_strategy.dart",
+    "line": 19,
+    "type": "Auth",
+    "source": "await _supabase.auth.signInWithOAuth("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/strategies/facebook_auth_strategy.dart",
+    "line": 27,
+    "type": "Auth",
+    "source": "subscription = _supabase.auth.onAuthStateChange.listen((data) async {"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/strategies/google_auth_strategy.dart",
+    "line": 26,
+    "type": "Auth",
+    "source": "final response = await _supabase.auth.signInWithIdToken("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/strategies/google_auth_strategy.dart",
+    "line": 52,
+    "type": "Auth",
+    "source": "await _supabase.auth.signInWithOAuth("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/strategies/google_auth_strategy.dart",
+    "line": 60,
+    "type": "Auth",
+    "source": "subscription = _supabase.auth.onAuthStateChange.listen((data) async {"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 101,
+    "type": "Auth",
+    "source": "final response = await _supabase.auth.signUp("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 158,
+    "type": "Auth",
+    "source": "final response = await _supabase.auth.verifyOTP("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 163,
+    "type": "Auth",
+    "source": "final user = response.user ?? _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 197,
+    "type": "Auth",
+    "source": "await _supabase.auth.resend(type: OtpType.signup, email: email);"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 218,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 251,
+    "type": "Auth",
+    "source": "await _supabase.auth.updateUser("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 282,
+    "type": "Auth",
+    "source": "await _supabase.auth.signOut();"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 290,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 299,
+    "type": "Auth",
+    "source": "await _supabase.auth.resetPasswordForEmail("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 332,
+    "type": "Auth",
+    "source": "await _supabase.auth.verifyOTP("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 349,
+    "type": "Auth",
+    "source": "await _supabase.auth.updateUser(UserAttributes(password: newPassword));"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/presentation/sign_in/signin_cubit.dart",
+    "line": 37,
+    "type": "Auth",
+    "source": "final user = Supabase.instance.client.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/presentation/sign_up/signup_cubit.dart",
+    "line": 70,
+    "type": "Auth",
+    "source": "final user = Supabase.instance.client.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 277,
+    "type": "Realtime",
+    "source": ".stream(primaryKey: ['id'])"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/favorites/data/datasources/remote/favorites_remote_data_source.dart",
+    "line": 17,
+    "type": "Auth",
+    "source": "final uid = _client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/data/datasources/remote/my_bookings_remote_data_source.dart",
+    "line": 24,
+    "type": "Auth",
+    "source": "final userId = _client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/data/datasources/remote/my_bookings_remote_data_source.dart",
+    "line": 63,
+    "type": "Auth",
+    "source": "final userId = _client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/notifications/data/datasources/remote/notifications_remote_data_source.dart",
+    "line": 68,
+    "type": "Auth",
+    "source": "final userId = _client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/notifications/data/datasources/remote/notifications_remote_data_source.dart",
+    "line": 78,
+    "type": "Realtime",
+    "source": ".channel('public:notifications:user_$userId')"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/notifications/data/datasources/remote/notifications_remote_data_source.dart",
+    "line": 79,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 133,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 152,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 194,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 209,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 237,
+    "type": "Auth",
+    "source": "await _supabase.auth.updateUser("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 247,
+    "type": "Auth",
+    "source": "_supabase.auth.currentUser!.toJson(),"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 283,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 326,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 333,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 371,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 385,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 410,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 426,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 472,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 512,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 587,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 715,
+    "type": "Auth",
+    "source": "final user = _supabase.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/presentation/profile/profile_cubit.dart",
+    "line": 216,
+    "type": "Auth",
+    "source": "final supabaseUser = Supabase.instance.client.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 271,
+    "type": "Auth",
+    "source": "final currentUser = _client.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 294,
+    "type": "Auth",
+    "source": "final currentUser = _client.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 391,
+    "type": "Auth",
+    "source": "final currentUser = _client.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 467,
+    "type": "Realtime",
+    "source": ".stream(primaryKey: ['id'])"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 511,
+    "type": "Auth",
+    "source": "final currentUser = _client.auth.currentUser;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/presentation/history/tournament_history_cubit.dart",
+    "line": 17,
+    "type": "Auth",
+    "source": "final userId = Supabase.instance.client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/presentation/tournament_details/tournament_details_cubit.dart",
+    "line": 41,
+    "type": "Auth",
+    "source": "(() => Supabase.instance.client.auth.currentUser?.id),"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/presentation/tournament_details/tournament_details_cubit.dart",
+    "line": 177,
+    "type": "Auth",
+    "source": "final currentUser = Supabase.instance.client.auth.currentUser;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/core/services/hardware_bridge_service.dart",
+    "line": 43,
+    "type": "dynamic RPC / HTTP",
+    "source": "final response = await _client.get(uri).timeout(defaultTimeout);"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/core/services/lounge_staff_provisioner.dart",
+    "line": 18,
+    "type": "Auth",
+    "source": "}) : actorId = actorId ?? (() => client.auth.currentUser?.id);"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/analytics/data/datasources/active_sessions_stream_helper.dart",
+    "line": 19,
+    "type": "Realtime",
+    "source": "var query = supabaseClient.from('bookings').stream(primaryKey: ['id']);"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/analytics/data/datasources/session_operations_remote_helper.dart",
+    "line": 75,
+    "type": "Auth",
+    "source": "final userId = supabaseClient.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 30,
+    "type": "Auth",
+    "source": "final response = await supabaseClient.auth.signInWithPassword("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 48,
+    "type": "Auth",
+    "source": "await supabaseClient.auth.signOut();"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 53,
+    "type": "Auth",
+    "source": "final authenticatedId = supabaseClient.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 85,
+    "type": "Auth",
+    "source": "if (supabaseClient.auth.currentUser?.id != authenticatedId) return null;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 112,
+    "type": "Auth",
+    "source": "if (supabaseClient.auth.currentUser?.id != authenticatedId ||"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 129,
+    "type": "Auth",
+    "source": "if (supabaseClient.auth.currentUser?.id != authenticatedId) return null;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 132,
+    "type": "Auth",
+    "source": "if (supabaseClient.auth.currentUser?.id != authenticatedId) return null;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 161,
+    "type": "Auth",
+    "source": "final session = supabaseClient.auth.currentSession;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/auth/data/data_source/auth_remote_data_source.dart",
+    "line": 166,
+    "type": "Auth",
+    "source": "if (supabaseClient.auth.currentSession?.user.id != session.user.id) {"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/bookings/data/datasources/booking_realtime_datasource.dart",
+    "line": 27,
+    "type": "Realtime",
+    "source": "var query = _client.from('bookings').stream(primaryKey: ['id']);"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/bookings/data/datasources/booking_remote_data_source_impl.dart",
+    "line": 471,
+    "type": "Auth",
+    "source": "'p_action_by': client.auth.currentUser?.id,"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/bookings/presentation/widgets/booking_details_customer_card.dart",
+    "line": 86,
+    "type": "Realtime",
+    "source": "_realtimeChannel = Supabase.instance.client.channel(channelName);"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/bookings/presentation/widgets/booking_details_customer_card.dart",
+    "line": 88,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/kyc/data/datasources/kyc_remote_data_source_impl.dart",
+    "line": 46,
+    "type": "Auth",
+    "source": "final currentUserId = _client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/loyalty/data/datasources/loyalty_transactions_remote_helper.dart",
+    "line": 62,
+    "type": "Auth",
+    "source": "final userId = client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/marketing/data/datasources/marketing_remote_data_source.dart",
+    "line": 300,
+    "type": "Realtime",
+    "source": ".channel('public:notifications:user_$userId')"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/marketing/data/datasources/marketing_remote_data_source.dart",
+    "line": 301,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_auth_request.dart",
+    "line": 12,
+    "type": "Auth",
+    "source": "final initialSession = client.auth.currentSession;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_auth_request.dart",
+    "line": 15,
+    "type": "Auth",
+    "source": "final subscription = client.auth.onAuthStateChange.listen("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_auth_request.dart",
+    "line": 34,
+    "type": "Auth",
+    "source": "if (!identical(initialSession, client.auth.currentSession)) {"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_auth_request.dart",
+    "line": 50,
+    "type": "Auth",
+    "source": "if (client.auth.currentUser?.id != actorId) {"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_store_factory_impl.dart",
+    "line": 38,
+    "type": "Auth",
+    "source": "_actorId = client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_store_factory_impl.dart",
+    "line": 39,
+    "type": "Auth",
+    "source": "_authSubscription = client.auth.onAuthStateChange.listen("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_store_factory_impl.dart",
+    "line": 57,
+    "type": "Auth",
+    "source": "final actorId = client.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_store_factory_impl.dart",
+    "line": 69,
+    "type": "Auth",
+    "source": "if (client.auth.currentUser?.id != actorId) {"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/offline_cashier/data/datasources/cashier_store_factory_impl.dart",
+    "line": 87,
+    "type": "Auth",
+    "source": "if (client.auth.currentUser?.id != actorId) {"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/requests/data/datasources/requests_realtime_invalidations.dart",
+    "line": 25,
+    "type": "Realtime",
+    "source": "realtimeChannel = client.channel("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/requests/data/datasources/requests_realtime_invalidations.dart",
+    "line": 29,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/requests/data/datasources/requests_realtime_invalidations.dart",
+    "line": 35,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/requests/data/datasources/requests_realtime_invalidations.dart",
+    "line": 46,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/requests/data/datasources/requests_realtime_invalidations.dart",
+    "line": 57,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/requests/data/datasources/requests_realtime_invalidations.dart",
+    "line": 63,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/reviews/data/datasources/reviews_remote_data_source.dart",
+    "line": 114,
+    "type": "Realtime",
+    "source": ".stream(primaryKey: ['id'])"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/rooms/data/datasources/room_remote_data_source.dart",
+    "line": 75,
+    "type": "Realtime",
+    "source": ".stream(primaryKey: ['id'])"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/shifts/data/data_sources/shift_remote_data_source_impl.dart",
+    "line": 82,
+    "type": "Auth",
+    "source": "final userId = _supabase.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/shifts/data/data_sources/shift_remote_data_source_impl.dart",
+    "line": 200,
+    "type": "Auth",
+    "source": "final actorId = _supabase.auth.currentUser?.id;"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/shifts/presentation/shift_management/shift_realtime_subscription_manager.dart",
+    "line": 21,
+    "type": "Realtime",
+    "source": ".channel('shifts_realtime_$loungeId')"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/shifts/presentation/shift_management/shift_realtime_subscription_manager.dart",
+    "line": 22,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/shifts/presentation/shift_management/shift_realtime_subscription_manager.dart",
+    "line": 39,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/shifts/presentation/shift_management/shift_realtime_subscription_manager.dart",
+    "line": 50,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/system/presentation/cubit/app_status_cubit.dart",
+    "line": 55,
+    "type": "Realtime",
+    "source": ".channel('public:app_status_watcher')"
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/system/presentation/cubit/app_status_cubit.dart",
+    "line": 56,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/tournaments/data/datasources/tournament_match_remote_helper.dart",
+    "line": 135,
+    "type": "Realtime",
+    "source": ".channel("
+  },
+  {
+    "repo": "dashboard-current",
+    "file": "lib/features/tournaments/data/datasources/tournament_match_remote_helper.dart",
+    "line": 138,
+    "type": "Realtime",
+    "source": ".onPostgresChanges("
+  }
+]

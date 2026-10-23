@@ -1,0 +1,13 @@
+Fixture database: 17.11
+PASS banned owner cannot retain direct RLS access
+PASS inactive owner cannot access
+PASS banned staff membership cannot access
+PASS banned super-admin helper returns false
+PASS missing Auth actor cannot use retained profile
+PASS NULL eligibility fails closed
+PASS eligible scoped cashier retains own lounge only
+PASS eligible owner retains access
+PASS eligible staff retains membership scope
+PASS canonical active platform member retains authority
+PASS no JWT actor cannot access
+{"passed":11}
