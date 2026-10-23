@@ -124,7 +124,7 @@ Phase 1 fixes two verified customer-facing defects in Mobile Draft PR #75:
 - Dashboard final full Flutter suite: 1320 passed, 2 skipped, 0 failed. Final analyzer: 0 issues in 69.6s. The first final-UI suite exposed 10 Material/ListTile visual-layout failures; switching the collapsible board wrapper to `Material` fixed them, and the complete rerun passed.
 - Dashboard scheduler and canonical-close focused suite: 13 passed.
 - Browser: localhost JavaScript Web build exercised 6, 20 and 40 mixed stations in Arabic and English at 1440x900 and a narrow responsive size. Realtime freshness toggling, conflict/manual review, partial-payment alert, Open Time pending bill, alert count and Permission OFF state rendered. The six-station desktop board is balanced 3x2; 20/40 use five columns. Metric, status and detail rows are reusable components.
-- Mobile GitHub Actions for commit `b831caed92e83c666a8d4563517e8d0a51696afb`: formatting run `39866995687` passed and Flutter CI run `39866995668` passed, including backend fixtures and Android release build.
+- Final Mobile GitHub Actions for PR-head commit `b9edcf976b7e861fcef0bea8688558ac0c2d72a5`: formatting run `39944397949` passed and Flutter CI run `39944397926` passed, including backend fixtures and Android release build.
 - Disposable PostgreSQL 17.11: 9 Open Time contract, 16 close/balance, 9 actor authorization, 1 live-read RLS, 34 client finance privilege and 47 partial-collection/concurrency assertions passed. No production writes were performed.
 
 ### Merge and release decision

@@ -14,4 +14,6 @@ The scheduler safety change is technically separable. Local candidate commit `4b
 
 The final Dashboard UI follow-up is local commit `6e18a2cff1fa245091e1fe456c90240f35394853`. It restores the cashier workspace as the primary surface, collapses the optional station board by default, uses reusable metric/status/detail components, and applies an independently researched PlaySpot visual direction rather than copying PanCafe. It remains unpushed for the same deployment constraint.
 
+Mobile PR #75 final remote head is `b9edcf976b7e861fcef0bea8688558ac0c2d72a5`. Formatting run `39944397949` and Flutter CI run `39944397926` both completed successfully. This final CI result is recorded in a local evidence-only commit so the verified PR head is not advanced into another documentation-triggered CI loop.
+
 The dashboard Git integration automatically started Vercel preview deployment `dpl_Diywo5XEfKBVdDwntSvzdXfh4hxg` for this branch. It was canceled during `BUILDING`; Vercel reported `CANCELED`. This was not a production deployment, and no preview was used for validation.
