@@ -56,6 +56,7 @@ test_cache_box*
 
 # Supabase CLI local state
 supabase/.temp/
+tools/native_operations_simulator/node_modules/
 
 
 # Android release signing secrets
