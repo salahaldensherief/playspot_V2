@@ -115,3 +115,7 @@ GitHub Actions runs on pull requests and pushes to `dev` / `main` and checks for
 ## Localization
 
 User-facing copy must use Easy Localization. Arabic and English resources live under `assets/lang/`. UI changes must be safe in both RTL and LTR layouts.
+
+## Agent and developer onboarding
+
+Start with **[PlaySpot Complete System Atlas](docs/PLAYSPOT_SYSTEM_ATLAS.md)** for architecture, business invariants, UI/UX, feature/file index, cross-client data flows, Supabase ownership, open PRs, risks, verification and safe branch instructions. Then read this repository's `AGENTS.md` and current feature source. The atlas is synchronized as a docs-only copy in the companion repository; refresh it when contracts change.

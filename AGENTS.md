@@ -44,3 +44,7 @@ Current integration, research and proposed local architecture are recorded in `d
 - Use isolated fixtures or mocks for tests that could mutate live data. Network backed tests are allowed only when an isolated environment exists.
 - Run `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze --no-fatal-infos`, and relevant `flutter test` suites when available. Report what ran and what could not run. Wait for CI before claiming CI verification.
 - After each scoped change, update the relevant handoff/evidence document with its current commit, verified checks, and remaining blockers. Keep this guide current when architecture or product direction changes; do not turn unverified plans into facts.
+
+## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
+
+Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
