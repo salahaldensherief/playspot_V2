@@ -81,6 +81,10 @@ jobs:
           cache-dependency-path: supabase/tests/runtime/package-lock.json
       - name: Install pinned fixture dependencies
         run: npm ci --prefix supabase/tests/runtime
+      - name: Check schema fingerprint drift detection
+        env:
+          PLAYSPOT_NATIVE_PG_PORT: '55439'
+        run: node --test supabase/tests/financial_contract/*.test.mjs
       - name: Run isolated PostgreSQL contracts
         env:
           PLAYSPOT_NATIVE_PG_PORT: '55439'

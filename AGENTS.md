@@ -46,3 +46,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Financial schema gate (25 October 2026)
+
+`supabase/tests/financial_contract/` contains a read-only catalog fingerprint from the authorized target and a comparator tested against isolated PostgreSQL 17.11. It captures object names and definition hashes only. A matching fingerprint is necessary but not sufficient: it does not restore schema, prove RLS behavior or validate financial transactions. Do not treat the synthetic checkout fixture as representative. Obtain an authorized schema-only export or verified data-free branch, restore it into isolation, compare fingerprints, then run actor, concurrency, partial-payment, rollback and ledger tests before changing or merging financial RPCs. The direct connection credential/schema dump and disposable branch were unavailable during this increment.
