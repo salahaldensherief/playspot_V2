@@ -10,6 +10,7 @@ import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/core/cache/caching_key.dart';
 import 'package:playspot/features/active_session/domain/entities/active_session.dart';
 import 'package:playspot/features/active_session/domain/entities/order_item.dart';
+import 'package:playspot/features/active_session/data/models/active_session_model.dart';
 import 'package:playspot/features/active_session/data/models/canteen_menu_data_model.dart';
 import 'package:playspot/features/active_session/domain/usecases/extend_session_time_usecase.dart';
 import 'package:playspot/features/active_session/domain/usecases/get_active_session_usecase.dart';
@@ -192,6 +193,64 @@ void main() {
       expect(cubit.state.completedSession?.basePrice, 175);
       expect(cubit.state.completedSession?.status, 'completed');
       expect(cubit.state.completedSession?.loungeName, 'A');
+    },
+  );
+
+  test(
+    'app restart retains authoritative completed Open Time duration',
+    () async {
+      final completed = ActiveSessionModel.fromJson({
+        'id': 'open-restart',
+        'lounge_id': 'la',
+        'is_open_time': true,
+        'status': 'completed',
+        'open_time_started_at': '2026-10-22T14:00:00Z',
+        'open_time_ended_at': '2026-10-22T16:07:00Z',
+        'base_price': 160,
+      });
+      when(
+        () => repo.getActiveSession(bookingId: 'open-restart'),
+      ).thenAnswer((_) async => Right(completed));
+
+      await cubit.loadActiveSession(bookingId: 'open-restart');
+
+      expect(cubit.state.session, isNull);
+      expect(cubit.state.completedSession?.totalPlayDurationMinutes, 127);
+      expect(cubit.state.completedSession?.formattedPlayDuration, '2 h 7 m');
+      verifyNever(() => repo.streamActiveSession(any()));
+    },
+  );
+
+  test(
+    'realtime completion retains authoritative Open Time end after reconnect',
+    () async {
+      final running = ActiveSessionModel.fromJson({
+        'id': 'open-realtime',
+        'lounge_id': 'la',
+        'is_open_time': true,
+        'status': 'in_progress',
+        'open_time_started_at': '2026-10-22T14:00:00Z',
+      });
+      final completed = ActiveSessionModel.fromJson({
+        'id': 'open-realtime',
+        'lounge_id': 'la',
+        'is_open_time': true,
+        'status': 'completed',
+        'open_time_started_at': '2026-10-22T14:00:00Z',
+        'open_time_closed_at': '2026-10-22T16:07:00Z',
+        'base_price': 160,
+      });
+      when(
+        () => repo.getActiveSession(bookingId: 'open-realtime'),
+      ).thenAnswer((_) async => Right(running));
+
+      await cubit.loadActiveSession(bookingId: 'open-realtime');
+      updates.add(completed);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.session, isNull);
+      expect(cubit.state.completedSession?.totalPlayDurationMinutes, 127);
+      expect(cubit.state.completedSession?.formattedPlayDuration, '2 h 7 m');
     },
   );
 

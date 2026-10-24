@@ -678,6 +678,7 @@
   "orderStatusPreparing": "جاري التحضير",
   "orderStatusDelivered": "تم التسليم",
   "orderStatusCompleted": "مكتمل",
+  "orderStatusCancelled": "ملغي",
   "canteenClosed": "المقصف مغلق حالياً",
   "cart": "السلة",
   "confirmOrder": "تأكيد الطلب",
@@ -813,5 +814,14 @@
   "senderWalletOrInstapayHint": "مثال: 01012345678 أو username@instapay",
   "transactionReferenceNumber": "الرقم المرجعي للتحويل",
   "transactionReferenceHint": "أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل",
-  "roomDiscountPercent": "خصم {percent}%"
+  "roomDiscountPercent": "خصم {percent}%",
+  "openTimeElapsed": "وقت مفتوح · الوقت المنقضي",
+  "openTimeBillPending": "تكلفة الوقت النهائية بيحددها المكان عند إنهاء الجلسة. ده مش إيصال دفع.",
+  "openTimePolicy": "سعر الوقت المفتوح: {rate} جنيه/ساعة",
+  "openTimeMinimum": "الحد الأدنى: {minutes} دقيقة",
+  "openTimeRounding": "التقريب كل {minutes} دقيقة",
+  "openTimeCanteenCharges": "طلبات الكانتين المسجلة: {amount} جنيه",
+  "openTimeAmountDuePending": "المبلغ المستحق: لسه مستني التسوية النهائية من السيرفر",
+  "openTimeCollectionUnconfirmed": "المبلغ المتحصّل فعليًا: مش مؤكد في الشاشة دي. حالة الطلب مش دليل دفع.",
+  "orderStatusQueued": "في الطابور"
 }

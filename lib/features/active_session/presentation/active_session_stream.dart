@@ -45,27 +45,34 @@ extension _ActiveSessionStream on ActiveSessionCubit {
           );
 
           try {
-            PlaySpotLiveActivityService.instance.startActivity(
-              sessionId: mergedSession.bookingId,
-              hallName: mergedSession.loungeName.isNotEmpty
-                  ? mergedSession.loungeName
-                  : 'PlaySpot Lounge',
-              deviceName: mergedSession.deviceName.isNotEmpty
-                  ? mergedSession.deviceName
-                  : mergedSession.roomName,
-              endTimeTimestamp:
-                  mergedSession.endTime.millisecondsSinceEpoch ~/ 1000,
-            );
+            if (mergedSession.isOpenTime) {
+              LocalNotificationService.instance
+                  .cancelActiveSessionNotification();
+              NativeNotificationService.instance.cancelCustomNotification();
+              PlaySpotLiveActivityService.instance.endActivity();
+            } else {
+              PlaySpotLiveActivityService.instance.startActivity(
+                sessionId: mergedSession.bookingId,
+                hallName: mergedSession.loungeName.isNotEmpty
+                    ? mergedSession.loungeName
+                    : 'PlaySpot Lounge',
+                deviceName: mergedSession.deviceName.isNotEmpty
+                    ? mergedSession.deviceName
+                    : mergedSession.roomName,
+                endTimeTimestamp:
+                    mergedSession.endTime.millisecondsSinceEpoch ~/ 1000,
+              );
 
-            final notificationId =
-                mergedSession.bookingId.hashCode.abs() & 0x7FFFFFFF;
-            LocalNotificationService.instance.scheduleSessionExpiryWarning(
-              id: notificationId,
-              loungeName: mergedSession.loungeName.isNotEmpty
-                  ? mergedSession.loungeName
-                  : 'Lounge',
-              expiryTime: mergedSession.endTime,
-            );
+              final notificationId =
+                  mergedSession.bookingId.hashCode.abs() & 0x7FFFFFFF;
+              LocalNotificationService.instance.scheduleSessionExpiryWarning(
+                id: notificationId,
+                loungeName: mergedSession.loungeName.isNotEmpty
+                    ? mergedSession.loungeName
+                    : 'Lounge',
+                expiryTime: mergedSession.endTime,
+              );
+            }
           } catch (_) {}
         }
       },

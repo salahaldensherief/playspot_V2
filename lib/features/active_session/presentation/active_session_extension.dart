@@ -5,6 +5,7 @@ extension _ActiveSessionExtension on ActiveSessionCubit {
     final active = state.session;
     if (isClosed ||
         active == null ||
+        active.isOpenTime ||
         state.extendStatus == ActionStatus.loading) {
       return;
     }
