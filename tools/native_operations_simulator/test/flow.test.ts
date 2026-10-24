@@ -17,7 +17,7 @@ async function fixture() {
   const device = keyPair();
   let now = 1_000_000;
   const clock = () => now;
-  const coordinatorPath = join(root, 'coordinator.json');
+  const coordinatorPath = join(root, 'coordinator.sqlite');
   const agentPath = join(root, 'agent.json');
   const coordinator = await Coordinator.open(coordinatorPath, 'venue-1', issuer.publicKey, coordinatorKeys.privateKey, clock);
   const agent = await SimulatedAgent.open(agentPath, 'venue-1', 'pc-1', 1, device.privateKey, coordinatorKeys.publicKey, clock);

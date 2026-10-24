@@ -1,38 +1,25 @@
 import { randomBytes } from 'node:crypto';
 import type { CommandKind, CoordinatorState, DeviceAck, DeviceCommand, DeviceRevocation, DeviceState, EnrollmentProof, Heartbeat, Permit, Signed, WriterFence, WriterLease } from './contract.ts';
 import { digest, signed, valid } from './signature.ts';
-import { JsonStore } from './store.ts';
+import { CoordinatorStore } from './coordinator_store.ts';
 
 type Clock = () => number;
 
 export class Coordinator {
-  private queue: Promise<void> = Promise.resolve();
-
   private constructor(
-    private readonly store: JsonStore<CoordinatorState>,
-    private state: CoordinatorState,
+    private readonly store: CoordinatorStore,
     private readonly issuerPublicKey: string,
     private readonly coordinatorPrivateKey: string,
     private readonly clock: Clock,
   ) {}
 
   static async open(path: string, venueId: string, issuerPublicKey: string, coordinatorPrivateKey: string, clock: Clock = Date.now): Promise<Coordinator> {
-    const store = new JsonStore<CoordinatorState>(path);
-    const state = await store.load(() => ({ version: 1, venueId, writer: null, devices: {}, enrollment: {}, operations: {}, audit: [] }));
-    if (state.venueId !== venueId || !state.devices || !state.operations || !state.enrollment || !Array.isArray(state.audit)) throw new Error('STORE_INVALID');
-    return new Coordinator(store, state, issuerPublicKey, coordinatorPrivateKey, clock);
+    const store = CoordinatorStore.open(path, venueId);
+    return new Coordinator(store, issuerPublicKey, coordinatorPrivateKey, clock);
   }
 
   private async change<T>(action: (copy: CoordinatorState) => T): Promise<T> {
-    const run = this.queue.then(async () => {
-      const copy = structuredClone(this.state);
-      const result = action(copy);
-      await this.store.save(copy);
-      this.state = copy;
-      return result;
-    });
-    this.queue = run.then(() => undefined, () => undefined);
-    return run;
+    return this.store.transact(action);
   }
 
   private authorize(message: Signed<Permit>, stationId: string, action: CommandKind | 'enroll' | 'revoke', state: CoordinatorState): Permit {
@@ -66,10 +53,11 @@ export class Coordinator {
   }
 
   fenceFor(stationId: string): Signed<WriterFence> {
-    const writer = this.state.writer;
-    const device = this.state.devices[stationId];
+    const state = this.store.read();
+    const writer = state.writer;
+    const device = state.devices[stationId];
     if (!writer || writer.expiresAt <= this.clock() || !device || device.revoked) throw new Error('FENCE_DENIED');
-    return signed({ venueId: this.state.venueId, stationId, epoch: device.epoch, writerGeneration: writer.generation, nextSequence: device.fenceSequence ?? device.nextSequence }, this.coordinatorPrivateKey);
+    return signed({ venueId: state.venueId, stationId, epoch: device.epoch, writerGeneration: writer.generation, nextSequence: device.fenceSequence ?? device.nextSequence }, this.coordinatorPrivateKey);
   }
 
   async createEnrollment(permitMessage: Signed<Permit>): Promise<string> {
@@ -85,7 +73,7 @@ export class Coordinator {
 
   async enroll(proof: Signed<EnrollmentProof>, permitMessage: Signed<Permit>): Promise<void> {
     const input = proof.payload;
-    if (input.venueId !== this.state.venueId || !valid(proof, input.publicKey)) throw new Error('ENROLLMENT_DENIED');
+    if (input.venueId !== this.store.read().venueId || !valid(proof, input.publicKey)) throw new Error('ENROLLMENT_DENIED');
     await this.change(state => {
       const permit = this.authorize(permitMessage, input.stationId, 'enroll', state);
       const enrollment = state.enrollment[digest(input.token)];
@@ -171,16 +159,17 @@ export class Coordinator {
   }
 
   snapshot(staleAfterMs = 15_000): { stations: Record<string, { connectivity: 'connected' | 'unknown'; observedState: DeviceState | 'unknown'; sessionId: string | null }>; pendingOperations: string[]; audit: CoordinatorState['audit'] } {
-    const stations = Object.fromEntries(Object.entries(this.state.devices).map(([stationId, device]) => {
-      const hasPending = Object.values(this.state.operations).some(operation => operation.command.payload.stationId === stationId && !operation.ack && !operation.cancelledAt);
+    const state = this.store.read();
+    const stations = Object.fromEntries(Object.entries(state.devices).map(([stationId, device]) => {
+      const hasPending = Object.values(state.operations).some(operation => operation.command.payload.stationId === stationId && !operation.ack && !operation.cancelledAt);
       const fresh = !device.revoked && !hasPending && device.lastHeartbeatAt !== null && this.clock() - device.lastHeartbeatAt <= staleAfterMs;
       return [stationId, { connectivity: fresh ? 'connected' as const : 'unknown' as const, observedState: fresh ? device.observedState : 'unknown' as const, sessionId: fresh ? device.sessionId : null }];
     }));
-    return { stations, pendingOperations: Object.entries(this.state.operations).filter(([, operation]) => !operation.ack && !operation.cancelledAt).map(([id]) => id), audit: structuredClone(this.state.audit) };
+    return { stations, pendingOperations: Object.entries(state.operations).filter(([, operation]) => !operation.ack && !operation.cancelledAt).map(([id]) => id), audit: state.audit };
   }
 
   pending(operationId: string): Signed<DeviceCommand> | null {
-    const operation = this.state.operations[operationId];
+    const operation = this.store.read().operations[operationId];
     return operation && !operation.ack && !operation.cancelledAt ? structuredClone(operation.command) : null;
   }
 }
