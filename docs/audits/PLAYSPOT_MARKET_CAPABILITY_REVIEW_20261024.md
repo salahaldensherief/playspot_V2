@@ -51,4 +51,6 @@ The table distinguishes source inspection from README claims. License and code s
 4. **P1 offline pilot:** test two cashiers, long network loss, outbox replay, conflict review, and reconciliation against isolated realistic records.
 5. **P2 local architecture:** compare a branch-local Windows server/agent against cloud-only and vendor-bridge options. Model spoofed devices, replayed commands, split brain, clock tampering, corrupt local state, revocation, updates, and rollback before any device-control code.
 
+The [local operations architecture and threat model](PLAYSPOT_LOCAL_OPERATIONS_ARCHITECTURE_20261024.md) records the conditional branch-coordinator recommendation, alternatives, trust boundaries and simulator/lab acceptance gates. It remains a proposal: no PlaySpot device agent was implemented or tested.
+
 This pass involved source reads only. No third-party program was executed, no PlaySpot test suite was rerun specifically for this report, and no production database or hardware was touched. Existing CI passing on unrelated final heads must not be represented as completion of these open verification gates.
