@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import type { DeviceAck, DeviceCommand, EnrollmentProof, Heartbeat, Permit, Signed } from './contract.ts';
+import type { DeviceAck, DeviceCommand, EnrollmentProof, Heartbeat, Permit, Signed, WriterLease } from './contract.ts';
 import { Coordinator } from './coordinator.ts';
 
 async function body(request: IncomingMessage): Promise<unknown> {
@@ -27,6 +27,8 @@ export async function startLoopbackServer(coordinator: Coordinator): Promise<{ s
       const input = await body(request) as Record<string, unknown>;
       let result: unknown;
       switch (request.url) {
+        case '/writer': result = await coordinator.activateWriter(input.lease as Signed<WriterLease>); break;
+        case '/revoke': result = await coordinator.revokeDevice(input.stationId as string, input.permit as Signed<Permit>); break;
         case '/enrollment-token': result = { token: await coordinator.createEnrollment(input.permit as Signed<Permit>) }; break;
         case '/enroll': result = await coordinator.enroll(input.proof as Signed<EnrollmentProof>, input.permit as Signed<Permit>); break;
         case '/commands': result = await coordinator.queueCommand(input.command as Parameters<Coordinator['queueCommand']>[0], input.permit as Signed<Permit>); break;

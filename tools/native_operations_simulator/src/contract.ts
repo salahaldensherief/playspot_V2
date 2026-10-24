@@ -1,6 +1,13 @@
 export type DeviceState = 'idle' | 'running';
 export type CommandKind = 'start_session' | 'end_session';
-export type PermitAction = CommandKind | 'enroll';
+export type PermitAction = CommandKind | 'enroll' | 'revoke';
+
+export interface WriterLease {
+  venueId: string;
+  writerId: string;
+  generation: number;
+  expiresAt: number;
+}
 
 export interface Permit {
   permitId: string;
@@ -8,6 +15,8 @@ export interface Permit {
   stationId: string;
   actorId: string;
   shiftId: string;
+  writerId: string;
+  writerGeneration: number;
   epoch: number;
   expiresAt: number;
   actions: PermitAction[];
@@ -27,6 +36,7 @@ export interface DeviceCommand {
   sessionId: string;
   sequence: number;
   epoch: number;
+  writerGeneration: number;
   expiresAt: number;
   expectedState: DeviceState;
 }
@@ -45,6 +55,7 @@ export interface DeviceAck {
 export interface Heartbeat {
   stationId: string;
   epoch: number;
+  writerGeneration: number;
   sequence: number;
   lastCommandSequence: number;
   observedState: DeviceState;
@@ -58,6 +69,21 @@ export interface EnrollmentProof {
   publicKey: string;
 }
 
+export interface WriterFence {
+  venueId: string;
+  stationId: string;
+  epoch: number;
+  writerGeneration: number;
+  nextSequence: number;
+}
+
+export interface DeviceRevocation {
+  venueId: string;
+  stationId: string;
+  oldEpoch: number;
+  newEpoch: number;
+}
+
 export interface AuditEvent {
   at: number;
   event: string;
@@ -69,12 +95,14 @@ export interface AuditEvent {
 export interface StoredOperation {
   command: Signed<DeviceCommand>;
   ack: Signed<DeviceAck> | null;
+  cancelledAt?: number;
 }
 
 export interface CoordinatorState {
   version: 1;
   venueId: string;
-  devices: Record<string, { publicKey: string; epoch: number; nextSequence: number; lastAckSequence: number; lastHeartbeatSequence: number; lastHeartbeatAt: number | null; observedState: DeviceState | 'unknown'; sessionId: string | null }>;
+  writer?: WriterLease | null;
+  devices: Record<string, { publicKey: string; epoch: number; revoked?: boolean; nextSequence: number; fenceSequence?: number; lastAckSequence: number; lastHeartbeatSequence: number; lastHeartbeatAt: number | null; observedState: DeviceState | 'unknown'; sessionId: string | null }>;
   enrollment: Record<string, { stationId: string; permitId: string; epoch: number; expiresAt: number; used: boolean }>;
   operations: Record<string, StoredOperation>;
   audit: AuditEvent[];
@@ -85,6 +113,8 @@ export interface AgentState {
   venueId: string;
   stationId: string;
   epoch: number;
+  revoked?: boolean;
+  writerGeneration?: number;
   lastSequence: number;
   heartbeatSequence: number;
   observedState: DeviceState;
