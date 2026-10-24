@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
@@ -33,6 +35,19 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   int _initRequestVersion = 0;
   int _bookingStatusVersion = 0;
   bool get _inactive => _closing || isClosed;
+  String? get _recoveryKey {
+    final actor = _preferenceManager.userId();
+    return actor == null || actor.isEmpty ? null : 'checkout.pending.$actor';
+  }
+
+  String _newOperationId() {
+    final bytes = List<int>.generate(16, (_) => Random.secure().nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+        '${hex.substring(12, 16)}-${hex.substring(16, 20)}-${hex.substring(20)}';
+  }
 
   CheckoutCubit(
     this._bookingRepository,
@@ -100,6 +115,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   Future<void> _releaseHold() async {
+    if (_paymentInFlight || state.status == CheckoutStatus.pending) return;
     final holdToken = state.holdToken;
     if (holdToken == null || holdToken.isEmpty) return;
 
@@ -133,6 +149,12 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     ++_bookingStatusVersion;
     unawaited(_realtimeSubscription?.cancel());
     _realtimeSubscription = null;
+    final recoveryKey = _recoveryKey;
+    if (recoveryKey != null &&
+        _preferenceManager.getValue(recoveryKey).isNotEmpty) {
+      await retryPendingRecovery();
+      return;
+    }
     emit(
       CheckoutState(
         status: CheckoutStatus.loading,
@@ -194,6 +216,45 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     );
 
     await _refreshServerQuote();
+  }
+
+  Future<void> retryPendingRecovery() async {
+    if (_inactive) return;
+    final key = _recoveryKey;
+    if (key == null) return;
+    final saved = _preferenceManager.getValue(key);
+    if (saved.isEmpty) return;
+    String operationId;
+    String method;
+    try {
+      final data = jsonDecode(saved) as Map<String, dynamic>;
+      operationId = data['operation_id'] as String;
+      method = data['payment_method'] as String? ?? 'cash';
+    } catch (_) {
+      emit(state.copyWith(status: CheckoutStatus.pending));
+      return;
+    }
+    emit(state.copyWith(status: CheckoutStatus.loading));
+    final lookup = await _bookingRepository.recoverBookingCheckout(operationId);
+    if (_inactive) return;
+    Map<String, dynamic>? recovered;
+    lookup.fold((_) {}, (value) => recovered = value);
+    final bookingId = recovered?['primary_booking_id']?.toString();
+    if (bookingId == null || bookingId.isEmpty) {
+      emit(state.copyWith(status: CheckoutStatus.pending));
+      return;
+    }
+    await _preferenceManager.clearValue(key);
+    if (_inactive) return;
+    _clearLocalHold();
+    listenToBookingStatus(bookingId);
+    emit(
+      state.copyWith(
+        status: CheckoutStatus.success,
+        createdBookingId: bookingId,
+        paymentProofUploadFailed: method == 'manual_transfer',
+      ),
+    );
   }
 
   void selectPaymentMethod(PaymentMethod method) {
@@ -413,7 +474,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     if (_inactive ||
         _paymentInFlight ||
         state.createdBookingId != null ||
-        state.status == CheckoutStatus.loading) {
+        state.status == CheckoutStatus.loading ||
+        state.status == CheckoutStatus.pending) {
       return;
     }
     ++_quoteRequestVersion;
@@ -454,7 +516,28 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           .trim()
           .toUpperCase();
 
+      final recoveryKey = _recoveryKey;
+      if (recoveryKey == null) {
+        emit(
+          state.copyWith(
+            status: CheckoutStatus.failure,
+            errorMessage: AppStrings.somethingWentWrong.tr(),
+          ),
+        );
+        return;
+      }
+      final operationId = _newOperationId();
+      await _preferenceManager.saveValue(
+        recoveryKey,
+        jsonEncode({
+          'operation_id': operationId,
+          'hold_token': holdToken,
+          'payment_method': method,
+        }),
+      );
+
       final result = await _bookingRepository.createBookingCheckout(
+        operationId: operationId,
         holdToken: holdToken,
         roomRequests: _buildRoomRequests(checkoutParams),
         extraItems: _buildExtraItems(checkoutParams),
@@ -487,16 +570,12 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       }, (data) => checkoutData = data);
 
       if (state.priceChangedFailure != null) {
+        await _preferenceManager.clearValue(recoveryKey);
         return;
       }
 
       if (checkoutError != null || checkoutData == null) {
-        emit(
-          state.copyWith(
-            status: CheckoutStatus.failure,
-            errorMessage: checkoutError ?? AppStrings.somethingWentWrong.tr(),
-          ),
-        );
+        await retryPendingRecovery();
         return;
       }
 
@@ -504,15 +583,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       final quote = checkoutData!['quote'];
 
       if (primaryBookingId == null || primaryBookingId.isEmpty) {
-        emit(
-          state.copyWith(
-            status: CheckoutStatus.failure,
-            errorMessage: AppStrings.somethingWentWrong.tr(),
-          ),
-        );
+        emit(state.copyWith(status: CheckoutStatus.pending));
         return;
       }
 
+      await _preferenceManager.clearValue(recoveryKey);
       _clearLocalHold();
 
       if (receiptFile != null && method == 'manual_transfer') {

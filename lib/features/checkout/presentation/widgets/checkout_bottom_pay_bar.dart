@@ -40,7 +40,9 @@ class CheckoutBottomPayBar extends StatelessWidget {
             state.serverFinalTotal == null &&
             !state.isHoldExpired;
 
-        final buttonText = state.status == CheckoutStatus.loading
+        final buttonText = state.status == CheckoutStatus.pending
+            ? AppStrings.retryCheckoutRecovery.tr()
+            : state.status == CheckoutStatus.loading
             ? AppStrings.processing.tr()
             : quoteFailed
             ? AppStrings.retryPriceCalculation.tr()
@@ -53,9 +55,10 @@ class CheckoutBottomPayBar extends StatelessWidget {
                     ));
 
         final bool isButtonEnabled =
-            state.status != CheckoutStatus.loading &&
-            !state.isHoldExpired &&
-            (state.serverFinalTotal != null || quoteFailed);
+            state.status == CheckoutStatus.pending ||
+            (state.status != CheckoutStatus.loading &&
+                !state.isHoldExpired &&
+                (state.serverFinalTotal != null || quoteFailed));
 
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -115,13 +118,19 @@ class CheckoutBottomPayBar extends StatelessWidget {
               SizedBox(height: 10.h),
               AppButton(
                 content: ButtonContent(
-                  label: state.isHoldExpired
+                  label:
+                      state.isHoldExpired &&
+                          state.status != CheckoutStatus.pending
                       ? AppStrings.holdExpiredLabel.tr()
                       : buttonText,
                 ),
                 behavior: ButtonBehavior.tap(
                   isEnabled: isButtonEnabled,
                   onTap: () {
+                    if (state.status == CheckoutStatus.pending) {
+                      context.read<CheckoutCubit>().retryPendingRecovery();
+                      return;
+                    }
                     if (state.isHoldExpired) return;
 
                     if (quoteFailed) {

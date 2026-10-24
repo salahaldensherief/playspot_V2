@@ -48,6 +48,11 @@ void main() {
     profileRepository = MockProfileRepository();
     preferenceManager = MockPreferenceManager();
     storageService = MockStorageService();
+    when(() => preferenceManager.getValue(any())).thenReturn('');
+    when(
+      () => preferenceManager.saveValue(any(), any()),
+    ).thenAnswer((_) async {});
+    when(() => preferenceManager.clearValue(any())).thenAnswer((_) async {});
     cubit = CheckoutCubit(
       bookingRepository,
       profileRepository,
@@ -122,6 +127,7 @@ void main() {
     var attempts = 0;
     when(
       () => bookingRepository.createBookingCheckout(
+        operationId: any(named: 'operationId'),
         holdToken: any(named: 'holdToken'),
         roomRequests: any(named: 'roomRequests'),
         extraItems: any(named: 'extraItems'),
@@ -162,6 +168,7 @@ void main() {
       final upload = Completer<String?>();
       when(
         () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
           holdToken: any(named: 'holdToken'),
           roomRequests: any(named: 'roomRequests'),
           extraItems: any(named: 'extraItems'),
@@ -210,6 +217,7 @@ void main() {
       when(() => preferenceManager.userId()).thenReturn('user-1');
       when(
         () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
           holdToken: any(named: 'holdToken'),
           roomRequests: any(named: 'roomRequests'),
           extraItems: any(named: 'extraItems'),
@@ -270,6 +278,7 @@ void main() {
 
       when(
         () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
           holdToken: any(named: 'holdToken'),
           roomRequests: any(named: 'roomRequests'),
           extraItems: any(named: 'extraItems'),
@@ -298,6 +307,7 @@ void main() {
       // Exactly ONE createBookingCheckout call should be executed
       verify(
         () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
           holdToken: any(named: 'holdToken'),
           roomRequests: any(named: 'roomRequests'),
           extraItems: any(named: 'extraItems'),
@@ -312,6 +322,7 @@ void main() {
   void stubCheckoutSuccess() {
     when(
       () => bookingRepository.createBookingCheckout(
+        operationId: any(named: 'operationId'),
         holdToken: any(named: 'holdToken'),
         roomRequests: any(named: 'roomRequests'),
         extraItems: any(named: 'extraItems'),
@@ -339,6 +350,7 @@ void main() {
       );
       final calls = verify(
         () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
           holdToken: any(named: 'holdToken'),
           roomRequests: any(named: 'roomRequests'),
           extraItems: any(named: 'extraItems'),
@@ -361,6 +373,7 @@ void main() {
       await cubit.processPayment(params, paymentMethod: 'cash');
       verify(
         () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
           holdToken: any(named: 'holdToken'),
           roomRequests: any(named: 'roomRequests'),
           extraItems: any(named: 'extraItems'),
@@ -457,4 +470,72 @@ void main() {
     expect(cubit.state.holdToken, 'replacement-hold');
     expect(cubit.state.isHoldExpired, isFalse);
   });
+
+  test(
+    'lost checkout response remains pending and recovers after restart',
+    () async {
+      final params = validParams();
+      final saved = <String, String>{};
+      when(() => preferenceManager.getValue(any())).thenAnswer(
+        (call) => saved[call.positionalArguments[0] as String] ?? '',
+      );
+      when(() => preferenceManager.saveValue(any(), any())).thenAnswer((
+        call,
+      ) async {
+        saved[call.positionalArguments[0] as String] =
+            call.positionalArguments[1] as String;
+      });
+      when(() => preferenceManager.clearValue(any())).thenAnswer((call) async {
+        saved.remove(call.positionalArguments[0] as String);
+      });
+      when(
+        () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
+          holdToken: any(named: 'holdToken'),
+          roomRequests: any(named: 'roomRequests'),
+          extraItems: any(named: 'extraItems'),
+          voucherCode: any(named: 'voucherCode'),
+          paymentMethod: any(named: 'paymentMethod'),
+          senderWalletPhone: any(named: 'senderWalletPhone'),
+          receiptUrl: any(named: 'receiptUrl'),
+        ),
+      ).thenAnswer((_) async => const Left(NetworkFailure('lost response')));
+      var lookups = 0;
+      when(() => bookingRepository.recoverBookingCheckout(any())).thenAnswer(
+        (_) async => ++lookups == 1
+            ? const Right(null)
+            : const Right({'primary_booking_id': 'recovered-booking'}),
+      );
+      when(
+        () => bookingRepository.watchBookingStatus('recovered-booking'),
+      ).thenAnswer((_) => const Stream<BookingModel>.empty());
+
+      await cubit.processPayment(params, paymentMethod: 'cash');
+      expect(cubit.state.status, CheckoutStatus.pending);
+      expect(saved, hasLength(1));
+      await cubit.close();
+      cubit = CheckoutCubit(
+        bookingRepository,
+        profileRepository,
+        preferenceManager: preferenceManager,
+        storageService: storageService,
+      );
+      await cubit.initCheckout(params);
+      expect(cubit.state.status, CheckoutStatus.success);
+      expect(cubit.state.createdBookingId, 'recovered-booking');
+      expect(saved, isEmpty);
+      verify(
+        () => bookingRepository.createBookingCheckout(
+          operationId: any(named: 'operationId'),
+          holdToken: any(named: 'holdToken'),
+          roomRequests: any(named: 'roomRequests'),
+          extraItems: any(named: 'extraItems'),
+          voucherCode: any(named: 'voucherCode'),
+          paymentMethod: any(named: 'paymentMethod'),
+          senderWalletPhone: any(named: 'senderWalletPhone'),
+          receiptUrl: any(named: 'receiptUrl'),
+        ),
+      ).called(1);
+    },
+  );
 }

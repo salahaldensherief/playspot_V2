@@ -30,6 +30,7 @@ abstract class BookingRepository {
     String? voucherCode,
   });
   Future<Either<Failure, Map<String, dynamic>>> createBookingCheckout({
+    String? operationId,
     required String holdToken,
     required List<Map<String, dynamic>> roomRequests,
     required List<Map<String, dynamic>> extraItems,
@@ -38,6 +39,9 @@ abstract class BookingRepository {
     String? senderWalletPhone,
     String? receiptUrl,
   });
+  Future<Either<Failure, Map<String, dynamic>?>> recoverBookingCheckout(
+    String operationId,
+  );
   Future<Either<Failure, BookingPriceQuote>> quoteBookingPrice({
     required String roomId,
     required String date,
