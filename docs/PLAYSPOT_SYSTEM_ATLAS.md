@@ -222,7 +222,7 @@ At this `dev` snapshot, the dashboard has session cards, booking controls and cl
 - Mobile shows **elapsed**, not a fake remaining countdown; it hides fixed-session expiry/extension prompts. Dashboard shows the same distinction and the policy.
 - The final time charge remains **non-final** during play unless a real authoritative running quote contract exists. Display genuine recorded canteen obligations separately from unfinalized time; do not mislabel a charge as paid.
 - Canonical close path inspected in Draft #75 is `complete_booking_session`; an old source migration defined `complete_open_time_session` using mutable room fields and a potentially false paid state, but previous read-only hosted inspection did **not** find that older function deployed. Never present the historical bug as current production fact without confirming the live catalog.
-- **Draft Mobile PR #75 still needs review**: while running Open Time its billing UI currently omits the loaded canteen items; completed `ActiveSessionModel` must prefer the correct authoritative Open Time end timestamp or prove the normal `end_time` is reliably canonical. Follow Mobile PR #75 review comments.
+- **Draft Mobile PR #75 implements the reviewed presentation fixes**: running Open Time shows committed canteen charges apart from unfinalized time and actual collection; completed duration prefers authoritative Open Time end timestamps. Its focused, restart and reconnect tests passed on the reviewed PR head. These changes are **not on `dev`** and do not satisfy the effective-schema, RLS and ledger gate. Re-read current PR head and review comments before integration.
 - Test: policy variants, minimum, rounding, max, future booking buffer, concurrent starts, duplicate/lost-ACK closes, paid/due and ledger, DST/midnight, restart/reconnect and old clients.
 
 ### 6.5 Cash collection, refunds, payouts and shifts
@@ -292,7 +292,7 @@ For every UI change test: loading, empty, error, permission denied, stale/no net
 | --- | --- | --- |
 | Mobile `dev` | Base commit listed above | Fetch current HEAD before modifying |
 | Dashboard `dev` | Base commit listed above | Fetch current HEAD before modifying |
-| Mobile PR [#75](https://github.com/salahaldensherief/playspot_V2/pull/75) | **Open Draft** at last review; financial Open Time work is outside `dev` | Review current head and comments; committed canteen charges, final duration and exact-schema financial gate remain |
+| Mobile PR [#75](https://github.com/salahaldensherief/playspot_V2/pull/75) | **Open Draft** at reviewed head `b9edcf97`; canteen/duration corrections and tests exist outside `dev` | Recheck current head and review comments; exact effective-schema financial, RLS and ledger validation remains |
 | Dashboard PR [#75](https://github.com/salahaldensherief/Playspot_dashboard/pull/75) | **Closed without merge**; proposed visual redesign rejected | Preserve `dev` UI; only use the branch as historical evidence |
 | Dashboard PR [#77](https://github.com/salahaldensherief/Playspot_dashboard/pull/77) | **Merged** as `86f731fd` | Independently merged scheduler safety; verify canonical close and reconnect operationally |
 | Dashboard PR [#78](https://github.com/salahaldensherief/Playspot_dashboard/pull/78) | **Merged** as `e111196f` | Current UI direction is documented on `dev` |
