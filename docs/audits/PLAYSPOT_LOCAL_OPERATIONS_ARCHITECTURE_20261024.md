@@ -1,6 +1,6 @@
 # PlaySpot local operations — architecture decision and threat model (proposal)
 
-Status: **proposed, not implemented**. Source review: 24 October 2026, Mobile `dev` `e50e6865`, Dashboard `dev` `e111196f`. This document is a design gate for any physical PC control. It does not authorize hardware tests, vendor integration, or financial migration.
+Status: **architecture proposed; isolated protocol simulator implemented in [Mobile Draft PR #81](https://github.com/salahaldensherief/playspot_V2/pull/81) at `326e7df4`**. Source review: 24 October 2026, Mobile `dev` `e50e6865`, Dashboard `dev` `e111196f`. The simulator has no Flutter/Supabase/Windows integration or real device control. This document is a design gate for any physical PC control. It does not authorize hardware tests, vendor integration, or financial migration.
 
 ## Decision boundary
 
@@ -44,9 +44,9 @@ This is a conditional choice, not a commitment to a particular framework. A .NET
 ## First implementation milestones and acceptance
 
 1. **Architecture review:** map current offline cashier permit/RPC contracts, Windows station lifecycle and user-visible lock behavior. Agree the branch ownership/lease invariant and a recovery runbook. No device code yet.
-2. **Disposable protocol simulator:** implement coordinator/agent state machines without actual locking or financial writes. Prove the table above with two stations, two cashiers, duplicate messages, restarts and partitions. Keep it outside production routes.
+2. **Disposable protocol simulator:** a first isolated slice now covers signed enrollment, ordered typed commands, duplicate/lost-ACK replay, restart, heartbeat, disconnected state and loopback transport (Mobile Draft PR #81). Two stations, two cashiers, revocation/takeover, split brain and long partition tests remain open; keep it outside production routes.
 3. **Lab-only Windows prototype:** pair/revoke, typed commands, observability, update rollback and supported OS lock mechanism on test PCs. Explicit authorization is required before real hardware control.
 4. **Isolated backend integration:** replay journals into a disposable exact-schema Supabase clone and reconcile bookings, session timestamps, shifts, canteen, due and collected ledgers. A green unit test alone does not satisfy this gate.
 5. **Staged pilot and rollback:** begin with one branch and a small number of PCs, maintain a manual cashier fallback and an operator-visible unknown state. Define disable/revoke and data export before any rollout.
 
-For the existing product, the immediate safe path is to validate cashier close and financial ledgers, then run the offline two-cashier pilot. Physical device control remains **unimplemented and blocked at this architecture/security gate**.
+For the existing product, the immediate safe path is to validate cashier close and financial ledgers, then run the offline two-cashier pilot. Physical device control remains **unimplemented and blocked at this architecture/security gate**; the simulated agent cannot control a PC.

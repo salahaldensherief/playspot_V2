@@ -48,3 +48,7 @@ Current integration, research, the read-only financial contract verdict and prop
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Current cross-branch gates (24 October 2026)
+
+Read [the financial contract verification](docs/audits/PLAYSPOT_FINANCIAL_CONTRACT_VERIFICATION_20261024.md) before approving Mobile financial PR #75: effective-schema replay remains blocked and the inspected deployed partial-payment status fails the expected contract. [Mobile Draft PR #81](https://github.com/salahaldensherief/playspot_V2/pull/81) contains a protocol simulator only; it does not control a PC or authorize a booking/payment. [Dashboard PR #80](https://github.com/salahaldensherief/Playspot_dashboard/pull/80) validates Open Time completion responses; check its final CI and Preview before treating it as merged.
