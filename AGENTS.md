@@ -2,6 +2,11 @@
 
 This is the single source of agent guidance for the Flutter mobile repository. User instructions and verified product requirements take precedence. Apply these rules to code you touch; improve unrelated legacy code in focused follow-up changes.
 
+Current integration, research, the read-only financial contract verdict and proposed local architecture are recorded in `docs/PLAYSPOT_CURRENT_BASELINE_20261023.md`, `docs/audits/PLAYSPOT_MARKET_CAPABILITY_REVIEW_20261024.md`, `docs/audits/PLAYSPOT_FINANCIAL_CONTRACT_VERIFICATION_20261024.md` and `docs/audits/PLAYSPOT_LOCAL_OPERATIONS_ARCHITECTURE_20261024.md`. Read the merged `docs/PLAYSPOT_SYSTEM_ATLAS.md` for cross-stack context, then check current `dev`, PR state, source and contracts before acting on these dated snapshots. The inspected deployed completion function misclassifies partial collections; keep financial integration Draft until a representative-schema fix and verification pass.
+
+The checkout/canteen runtime schema under `supabase/tests/runtime/` is explicitly synthetic and column-only. It is not the missing production-equivalent `bookings` baseline. Read-only catalog metadata confirms the deployed function hashes and table presence, but that alone cannot validate trigger, RLS, concurrency or ledger behavior. Do not use the synthetic fixture to claim the exact-schema financial gate has passed.
+The 24 October catalog follow-up also found 23 non-internal triggers on deployed `bookings` and a unique `payments.booking_id` constraint. Preserve these facts in financial reviews; a column-only recreation cannot prove partial collections, concurrent close, or shift-ledger behavior. Acquire a schema-only export or a verified disposable branch before changing the owning financial RPC.
+
 ## Diagnose and respect the existing contract
 
 - Trace the real flow before editing: widget → Cubit/state → use case or repository → data source → Supabase RPC/table → RLS → response. Follow the layers that actually exist for the feature.
@@ -46,3 +51,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Current cross-branch gates (24 October 2026)
+
+Read [the financial contract verification](docs/audits/PLAYSPOT_FINANCIAL_CONTRACT_VERIFICATION_20261024.md) before approving Mobile financial PR #75: effective-schema replay remains blocked and the inspected deployed partial-payment status fails the expected contract. [Mobile Draft PR #81](https://github.com/salahaldensherief/playspot_V2/pull/81) contains a tested protocol simulator only; it does not control a PC or authorize a booking/payment. Dashboard [PR #80](https://github.com/salahaldensherief/Playspot_dashboard/pull/80) and [PR #82](https://github.com/salahaldensherief/Playspot_dashboard/pull/82) merged independently tested Open Time close/start response guards into `dev` at `03176100` and `b9bb037b`; neither validates final pricing or ledgers.
