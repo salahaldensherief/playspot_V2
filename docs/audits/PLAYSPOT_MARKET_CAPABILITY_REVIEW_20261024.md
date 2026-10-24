@@ -43,6 +43,22 @@ The table distinguishes source inspection from README claims. License and code s
 | Vendor bridge to PanCafe/Gizmo | BLOCKED BY EXTERNAL DEPENDENCY | No authorized, verified API contract or production integration has been established for those vendors. Booking-only with human confirmation remains the honest coexistence mode. |
 | Approved Dashboard presentation | VERIFIED WORKING AS BRANCH STATE | Dashboard `dev` retains the prior UI. The rejected visual redesign in [Dashboard PR #75](https://github.com/salahaldensherief/Playspot_dashboard/pull/75) was closed without merge. Browser usability and performance at a real lounge are separate validation tasks. |
 
+## Target-product gap analysis and acceptance gates
+
+This comparison is deliberately narrower than a claim that every feature is production-ready. A source path is evidence that an implementation exists; the right column names what still has to be proved.
+
+| Target workflow | Current evidence | Gap and acceptance gate |
+| --- | --- | --- |
+| Incumbent-system coexistence without false reservations | PlaySpot booking/checkout paths exist; no verified PanCafe API was found in official research | Demonstrate a clearly labeled *request pending cashier confirmation* path and expiration/cancellation behavior. A customer success screen must not assert external inventory was reserved. Current end-to-end behavior needs inspection. |
+| Native station operation | Room/session model and Dashboard cashier UI exist | Physical Windows lock/unlock, observed device state, pairing and revocation are missing from the verified path. Pass architecture review and lab simulator before coding a privileged agent. |
+| Fixed and Open Time session finance | `start_open_time_session` / `complete_booking_session` paths, pricing snapshot migration and P0 SQL tests exist | Reconstruct **effective** schema, all later overrides, triggers and grants. Prove rounding, max duration, future reservation, concurrent start, duplicate close and authoritative end timestamp. Mobile PR #75 remains Draft. |
+| Canteen during a running session | `place_canteen_order` and canteen models/UI exist | Show committed canteen obligations while time charge is still unfinalized, and show actual collections separately. Verify stock, ledger and partial payment results across clients. |
+| Cashier shift and offline operation | Dashboard has shift RPC calls, encrypted journal, writer lease, outbox and conflict UI | Run two-cashier partition/restart/replay tests against isolated backend. Prove a lost ACK does not create duplicate cash or silently discard an uncertain operation; reconcile on shift close. |
+| Real-time operational view | Both clients subscribe to booking data; Dashboard scheduler safety PR #77 is merged | Verify browser and mobile restart/reconnect, stale-result suppression, expired alerts and canonical cashier close. Test 6/20/40 mixed stations in Arabic/English with permissions and conflicts on approved UI. |
+| Vendor bridge | Earlier PRs/docs discuss bridge contracts | External API, authorization, device observation, idempotent command/booking semantics and vendor failure behavior are unverified. Keep bridge unavailable until a vendor-specific contract and sandbox exist. |
+
+**Priority rule:** fix already-confirmed financial and stranded-session defects first; then validate the cashier/offline pilot; only then choose a local control implementation. This avoids replacing working booking/POS code with a device system whose trust and recovery behavior is not yet established.
+
 ## Priority and next verification
 
 1. **P0 financial integrity:** reconstruct the effective Open Time schema, triggers, functions, grants, RLS, and ledgers in a disposable environment; run pricing snapshot, rounding, concurrent start/duplicate close, canteen, partial payment, future reservation, and shift tests before financial PR integration.
