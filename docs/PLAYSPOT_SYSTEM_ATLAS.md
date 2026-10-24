@@ -2,7 +2,7 @@
 
 > **START HERE BEFORE CHANGING ANY PLAYSPOT CODE.**
 > Audience: an engineer or AI coding agent who has never seen PlaySpot before.
-> Last source review: **22 October 2026**. This document describes inspected GitHub `dev` sources and explicitly labels incomplete or unverified work. It is a navigational map plus a business contract, **not a substitute for reading the current implementation**.
+> Last source review: **24 October 2026**. This document describes inspected GitHub `dev` sources and explicitly labels incomplete or unverified work. It is a navigational map plus a business contract, **not a substitute for reading the current implementation**.
 > Owner intent: preserve the existing product and make safe changes that work together across Mobile, Dashboard, and Supabase.
 
 ## 0. Evidence, precedence, and how to read this handbook
@@ -10,9 +10,9 @@
 **Documented from code:** two Flutter clients, a shared Supabase backend, feature folders, routers, state management, migrations, tests, and the cited screens/contracts. **Proposed:** PanCafe Bridge and real Windows device control until verified. **Draft:** PRs not merged to `dev`. **Unverified:** anything that needs hosted schema checks, real hardware, browsers, payments, or staging tests.
 
 Source snapshot at authoring:
-- Mobile + canonical database migration repository: [salahaldensherief/playspot_V2](https://github.com/salahaldensherief/playspot_V2), `dev` commit `7caf41086a5f41dc8bd1a2c2e37a8bde722149e4`.
-- Flutter Web operations dashboard: [salahaldensherief/Playspot_dashboard](https://github.com/salahaldensherief/Playspot_dashboard), `dev` commit `7c53b1edafb08e5e1fc51d5964ab82c87903e838`.
-- Both repositories also have **Draft PR #75** with newer Open Time/Live Operations work. **It is not part of these dev snapshots.** Read it separately before relevant changes.
+- Mobile + canonical database migration repository: [salahaldensherief/playspot_V2](https://github.com/salahaldensherief/playspot_V2), `dev` commit `e50e686503161df4ea8dca2f4b7947484b0041aa`.
+- Flutter Web operations dashboard: [salahaldensherief/Playspot_dashboard](https://github.com/salahaldensherief/Playspot_dashboard), `dev` commit `e111196f0ebaabe3a1ec39e4e2a2d094d388c621`.
+- Mobile [Draft PR #75](https://github.com/salahaldensherief/playspot_V2/pull/75) contains financial Open Time work requiring exact-schema validation. Dashboard [PR #75](https://github.com/salahaldensherief/Playspot_dashboard/pull/75) was closed without merge after its visual redesign was rejected. Dashboard scheduler safety [PR #77](https://github.com/salahaldensherief/Playspot_dashboard/pull/77) was merged independently; its source is in this `dev` snapshot.
 - Current branch/production state may change immediately after this document was written. Always fetch `origin/dev`, review `AGENTS.md` in BOTH repos and verify PR status before relying on the snapshot.
 
 **Precedence** when sources disagree:
@@ -33,7 +33,7 @@ PlaySpot is an Egypt-first platform that connects customers with gaming lounges 
 
 **Platform super admins** handle multi-venue administration, onboarding/KYC review, users, platform payouts, policy and system settings, support, loyalty and tournaments. They require separately authorized server operations.
 
-**Business reality:** four lounge-owner survey responses on 21–22 Oct 2026: three reported PanCafe (including Arabic spellings), one used pen and paper, three operated mixed PC/PS setups; staff mistakes/shift accounting and booking conflicts are meaningful reported pain points. This is four self-selected responses, **not a statistically representative market-share estimate**. Some operators do not want new bookings or to switch systems.
+**Business evidence:** an earlier handoff summarized four lounge-owner responses and a newer directive reports seven. The underlying records, timing and overlap have not been reconciled. Treat those summaries as qualitative leads, **not a market-share estimate**. Staff mistakes, shift accounting and booking conflicts are reported pain points; some operators do not want new bookings or to switch systems. See the read-only [market and capability review](https://github.com/salahaldensherief/playspot_V2/pull/79) (Draft PR #79) for evidence boundaries.
 
 Three intentionally separate venue operating modes:
 1. **Booking-only:** the incumbent program stays; PlaySpot booking **requests** require human availability confirmation. Never pretend the request reserved PanCafe inventory.
@@ -156,11 +156,11 @@ The Dashboard router explicitly separates **super-admin routes** from **lounge-a
 
 ### Live Operations operator mental model
 
-PanCafe-familiar **workflow** is desired, not a pixel copy. A cashier needs a high-density grid/list of PC and PS stations, room/group, current availability, next booking, session mode, elapsed or remaining time, requests, paid/due indicators and fast authorized actions. Reuse the PlaySpot design system; Arabic must be first-class.
+The approved Dashboard `dev` presentation is the visual baseline. The cashier still needs clear PC, PlayStation and other resource groups, current availability, next booking, session mode, elapsed or remaining time, requests, due/collected distinction and fast authorized actions. Improve those workflows within the accepted design; do not revive the rejected PR #75 layout. Reuse shared components where the same interaction repeats, and support Arabic as a first-class locale.
 
 A station's **room availability**, **booking/session state**, **payment**, **device heartbeat/connectivity**, **external vendor confirmation**, and **synchronization health** are independent concepts. Do not collapse them into a misleading green/red field. “Available in PlaySpot” does not prove free in PanCafe.
 
-At the inspected `dev` snapshot, the dashboard already has session cards, booking controls and session clocks. **Draft Dashboard PR #75** proposes a searchable station grid, duplicate-active conflict indication, next reservation and Open Time policy preview, plus a scheduler change to alert instead of generically completing expired sessions. Review PR #75 code/tests before adding similar components; do not treat them as merged until the PR is actually merged.
+At this `dev` snapshot, the dashboard has session cards, booking controls and clocks. The independent scheduler safety fix from Dashboard PR #77 alerts cashiers about expired sessions instead of completing them through a generic status transition. Verify that authorized cashiers can still reach canonical close and that reconnect/restart does not strand sessions. The station-grid redesign in closed Dashboard PR #75 is historical review material, not an approved implementation.
 
 ## 5. Domain dictionary (sensitive meaning)
 
@@ -209,7 +209,7 @@ At the inspected `dev` snapshot, the dashboard already has session cards, bookin
 2. Staff may manually add a booking/walk-in only if current role, active shift, and server capacity/payment policy permit.
 3. Fixed booking session starts using the authorized start RPC after temporal readiness and payment checks. UI may show a start button but cannot bypass server transition guards.
 4. Active fixed session shows planned end, remaining time and allowed extension/canteen actions. Server approval of an extension **is not collection**.
-5. An expired clock is an **operator alert**, not authorization to call a generic status-update-to-completed RPC. Check Draft Dashboard PR #75 scheduler safety change.
+5. An expired clock is an **operator alert**, not authorization to call a generic status-update-to-completed RPC. Dashboard PR #77 merged this scheduler safety change; test that the canonical close remains reachable.
 6. End/close through **canonical session-close RPC**, not just UI status mutation; confirm the response identity, update booking/room/shift/cash views.
 7. Closing play may finalize a liability; it must not automatically insert a collection receipt.
 8. Room may be freed only when capacity/occupancy invariants permit. A stale room card or duplicate active booking requires conflict handling.
@@ -280,7 +280,7 @@ Where to start:
 
 **Mobile design:** existing branded visual system, reusable widgets, cards, responsive ScreenUtil and localized AppText, clear session clock, quote detail, status/error/empty states, safe tap/keyboard behavior, consistent accessibility. Existing design is intentional; no generic Material UI overhaul.
 
-**Dashboard design:** dense operational cockpit for mouse/keyboard; status colors with explicit text not color-only; rooms/cards and cashier drawer; distinguish fixed countdown vs open elapsed; role-aware actions, tables/filters, actionable alerts; support RTL Arabic/English and 1366px laptop + 20/40 station grids. Prefer visual familiarity with operators' previous software but avoid proprietary PanCafe look/assets.
+**Dashboard design:** preserve the accepted `dev` presentation. Improve the existing rooms/cards and cashier drawer through focused, reviewable changes; group PCs, PlayStation rooms and other resources clearly. Distinguish fixed countdown from open elapsed and due from collected. Keep role-aware actions, text alongside status colors, actionable alerts, RTL Arabic/English and 1366px laptop performance at 6/20/40 mixed stations. Research other dashboards for usable patterns without copying proprietary assets or replacing the UI wholesale.
 
 For every UI change test: loading, empty, error, permission denied, stale/no network, repeated action, narrow width, large text, AR/EN, different access roles, and mutation-response state. If an operator action has not been implemented server-side, show unavailable/unsupported rather than a fake success.
 
@@ -292,8 +292,12 @@ For every UI change test: loading, empty, error, permission denied, stale/no net
 | --- | --- | --- |
 | Mobile `dev` | Base commit listed above | Fetch current HEAD before modifying |
 | Dashboard `dev` | Base commit listed above | Fetch current HEAD before modifying |
-| Mobile PR [#75](https://github.com/salahaldensherief/playspot_V2/pull/75) | **Open Draft**, head `e25a4a069abc1e8d140cb515b1e986bec5212b1b`; CI passed in review | Read all 16 reports and open review comment; billing/canteen, final duration and exact-schema financial gate remain |
-| Dashboard PR [#75](https://github.com/salahaldensherief/Playspot_dashboard/pull/75) | **Open Draft**, head `d08b8900bcbf58ad588fd22249f54b3e77b3c34f`; CI passed in review | Check proposed station grid, no auto-complete scheduler and missing real-browser/integration evidence |
+| Mobile PR [#75](https://github.com/salahaldensherief/playspot_V2/pull/75) | **Open Draft** at last review; financial Open Time work is outside `dev` | Review current head and comments; committed canteen charges, final duration and exact-schema financial gate remain |
+| Dashboard PR [#75](https://github.com/salahaldensherief/Playspot_dashboard/pull/75) | **Closed without merge**; proposed visual redesign rejected | Preserve `dev` UI; only use the branch as historical evidence |
+| Dashboard PR [#77](https://github.com/salahaldensherief/Playspot_dashboard/pull/77) | **Merged** as `86f731fd` | Independently merged scheduler safety; verify canonical close and reconnect operationally |
+| Dashboard PR [#78](https://github.com/salahaldensherief/Playspot_dashboard/pull/78) | **Merged** as `e111196f` | Current UI direction is documented on `dev` |
+| Mobile PR [#77](https://github.com/salahaldensherief/playspot_V2/pull/77) / [#78](https://github.com/salahaldensherief/playspot_V2/pull/78) | **Merged** as `f8218550` / `e50e6865` | Original splash Orbitron typography and final evidence report are on `dev` |
+| Mobile PR [#79](https://github.com/salahaldensherief/playspot_V2/pull/79) | **Open Draft** research baseline at last review | Read the capability matrix; source inspection is not end-to-end validation |
 | Mobile [#71](https://github.com/salahaldensherief/playspot_V2/pull/71), [#72](https://github.com/salahaldensherief/playspot_V2/pull/72), [#73](https://github.com/salahaldensherief/playspot_V2/pull/73) | Finance/checkout draft/integration candidate during last review | **Do not merge without never-committed checkout recovery and exact-schema financial testing** |
 | Bridge [#68/#69](https://github.com/salahaldensherief/Playspot_dashboard/pull/69) | Prior mock/review work, draft | Read actual state; no verified PanCafe API or Windows production agent |
 | Previous Mobile PR #74 | Merged into dev | OAuth callback/referral code isolation |
