@@ -1,6 +1,6 @@
 # PlaySpot current integration baseline — 2026-10-23
 
-This is a verified snapshot for the next research and architecture phase. Historical handoffs are context, not proof of today's branch state. `dev` is the integration branch in both repositories. No production deployment or production database mutation was performed during this check.
+This is a verified **23 October snapshot** for the research and architecture phase; see the 24 October update below for later integrations. Historical handoffs are context, not proof of today's branch state. `dev` is the integration branch in both repositories. No production deployment or production database mutation was performed during this check.
 
 | Area | Verified state | Evidence |
 | --- | --- | --- |
@@ -12,10 +12,14 @@ This is a verified snapshot for the next research and architecture phase. Histor
 
 Worktree inspection found six Dashboard and ten Mobile checkouts. There are uncommitted changes in the rejected Dashboard UI worktree (five paths), another Dashboard audit worktree (one path), a scheduler evaluation worktree (one path), a Mobile audit worktree (eight paths), and the isolated splash worktree (seven generated platform files). The `task02a/security-regression` Dashboard branch has two local commits ahead of its upstream; the `fix/open-time-canteen-duration-followup` Mobile branch has one. These were not reset, deleted, or merged by this baseline check. Reinspect their exact diffs before reuse.
 
-The new master directive describes seven operator survey responses; the unmerged System Atlas records four responses from an earlier review. Neither number should be presented as a complete market estimate without reviewing the original survey data and dates. This is a research discrepancy to resolve, not a reason to overwrite verified code behavior.
+The new master directive describes seven operator survey responses; the then-unmerged System Atlas recorded four responses from an earlier review. Neither number should be presented as a complete market estimate without reviewing the original survey data and dates. This is a research discrepancy to resolve, not a reason to overwrite verified code behavior.
 
 Research already confirms that [PanCafe Pro's official feature list](https://www.pancafepro.com/?page=features) describes terminal sessions, cashier authorization, tariffs, cafeteria stock, reporting, and audio alerts. [Gizmo's official product page](https://gizmopowered.com/product) describes POS, PC management, security logs, and employee/shift reports. Those claims establish comparison targets only; they do not establish a usable public API or prove PlaySpot controls physical devices. Candidate GitHub repositories need license, security, and code review before any reuse.
 
 Next evidence gates: inspect the existing PlaySpot capability paths and the exact deployed-compatible schema in a disposable environment; complete competitor/source-code research; refresh the Atlas without stale PR assertions; then evaluate small, independent implementation increments. Preserve the user's rejected Dashboard UI decision throughout.
 
 The first source-backed market and capability pass is in [the 24 October review](audits/PLAYSPOT_MARKET_CAPABILITY_REVIEW_20261024.md). Its classifications are deliberately narrower than a production-readiness claim.
+
+## 24 October integration update
+
+The refreshed System Atlas and agent guide passed exact-head checks and merged into Dashboard `dev` through [PR #76](https://github.com/salahaldensherief/Playspot_dashboard/pull/76) at `1143ebc59599be658cafbd20a02c010742e1cdac`, and Mobile `dev` through [PR #76](https://github.com/salahaldensherief/playspot_V2/pull/76) at `73a7756f0920a96431cff327499dcbbf493a0b78`. The mirrored Atlas files were byte-identical before merge. These are documentation changes; the approved Dashboard UI and Mobile splash typography remain the baseline. Research, gap analysis and the proposed [local operations threat model](audits/PLAYSPOT_LOCAL_OPERATIONS_ARCHITECTURE_20261024.md) are in [Draft PR #79](https://github.com/salahaldensherief/playspot_V2/pull/79) and are **not** integrated into `dev`.
