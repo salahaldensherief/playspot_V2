@@ -2,7 +2,7 @@
 
 This is the single source of agent guidance for the Flutter mobile repository. User instructions and verified product requirements take precedence. Apply these rules to code you touch; improve unrelated legacy code in focused follow-up changes.
 
-Current integration, research and proposed local architecture are recorded in `docs/PLAYSPOT_CURRENT_BASELINE_20261023.md`, `docs/audits/PLAYSPOT_MARKET_CAPABILITY_REVIEW_20261024.md` and `docs/audits/PLAYSPOT_LOCAL_OPERATIONS_ARCHITECTURE_20261024.md`. Check current `dev` and PR state before acting on those snapshots. The refreshed System Atlas in PR #76 is pending CI/merge; read it for cross-stack context, then verify current source and contracts.
+Current integration, research and proposed local architecture are recorded in `docs/PLAYSPOT_CURRENT_BASELINE_20261023.md`, `docs/audits/PLAYSPOT_MARKET_CAPABILITY_REVIEW_20261024.md` and `docs/audits/PLAYSPOT_LOCAL_OPERATIONS_ARCHITECTURE_20261024.md`. Read the merged `docs/PLAYSPOT_SYSTEM_ATLAS.md` for cross-stack context, then check current `dev`, PR state, source and contracts before acting on these dated snapshots.
 
 ## Diagnose and respect the existing contract
 
