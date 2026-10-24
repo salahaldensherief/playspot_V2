@@ -4,6 +4,8 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 
 Current integration, research, the read-only financial contract verdict and proposed local architecture are recorded in `docs/PLAYSPOT_CURRENT_BASELINE_20261023.md`, `docs/audits/PLAYSPOT_MARKET_CAPABILITY_REVIEW_20261024.md`, `docs/audits/PLAYSPOT_FINANCIAL_CONTRACT_VERIFICATION_20261024.md` and `docs/audits/PLAYSPOT_LOCAL_OPERATIONS_ARCHITECTURE_20261024.md`. Read the merged `docs/PLAYSPOT_SYSTEM_ATLAS.md` for cross-stack context, then check current `dev`, PR state, source and contracts before acting on these dated snapshots. The inspected deployed completion function misclassifies partial collections; keep financial integration Draft until a representative-schema fix and verification pass.
 
+The checkout/canteen runtime schema under `supabase/tests/runtime/` is explicitly synthetic and column-only. It is not the missing production-equivalent `bookings` baseline. Read-only catalog metadata confirms the deployed function hashes and table presence, but that alone cannot validate trigger, RLS, concurrency or ledger behavior. Do not use the synthetic fixture to claim the exact-schema financial gate has passed.
+
 ## Diagnose and respect the existing contract
 
 - Trace the real flow before editing: widget → Cubit/state → use case or repository → data source → Supabase RPC/table → RLS → response. Follow the layers that actually exist for the feature.
