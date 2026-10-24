@@ -28,7 +28,8 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 
 ## Mobile UI and localization
 
-- Use `AppText` for displayed text outside the `AppText` implementation. Put static user facing copy in `AppStrings` and both Arabic and English translation files. Backend supplied names and user content remain data, not translation keys.
+- Use `AppText` for displayed text outside the `AppText` implementation, except fixed brand artwork such as the PlaySpot splash wordmark and tagline when its original font must be preserved. Put static user facing copy in `AppStrings` and both Arabic and English translation files. Backend supplied names and user content remain data, not translation keys.
+- Preserve the splash wordmark's explicit Orbitron typography across locales. Check the rendered text style when changing `LogoWidget` or replacing splash `Text` widgets; `AppText` applies locale typography and can override a `TextStyle` family.
 - Keep RTL/LTR behavior correct with directional layout properties. Respect safe areas, keyboard insets, accessible touch targets, text scaling, and phone/tablet layouts where relevant.
 - Use the existing theme colors and reusable controls when they fit. Extract repeated UI with the same behavior; avoid near duplicate styling and unnecessary wrappers. Keep the UI coherent with the current product design.
 - Bind every form field. Handle loading, empty, error, retry, cancellation, and repeated taps visibly. Never show a success message for a failed mutation.
@@ -40,7 +41,8 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 - For bugs: reproduce → identify root cause → fix in the owning layer → add a meaningful regression test → verify. For new behavior, test the important business rule and authorization or concurrency where relevant.
 - Use isolated fixtures or mocks for tests that could mutate live data. Network backed tests are allowed only when an isolated environment exists.
 - Run `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze --no-fatal-infos`, and relevant `flutter test` suites when available. Report what ran and what could not run. Wait for CI before claiming CI verification.
+- After each scoped change, update the relevant handoff/evidence document with its current commit, verified checks, and remaining blockers. Keep this guide current when architecture or product direction changes; do not turn unverified plans into facts.
 
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
-Before any feature, UI/UX, data-flow, pricing, session, offline, security or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then review current `dev`, overlapping PRs and the owning feature's actual source/tests. The atlas maps Mobile, Dashboard and shared Supabase responsibilities, operating flows, unresolved risks and the agent workflow. It is a dated source snapshot, **not** evidence that a Draft PR is merged or a database/function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
