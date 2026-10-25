@@ -13,7 +13,9 @@ async function booking(c,day){const id=randomUUID();await c.query("INSERT INTO p
 async function call(c,actor,args){await c.query('BEGIN');try{await c.query('SET LOCAL ROLE authenticated');await c.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[actor]);const r=await c.query(fn,args);await c.query('COMMIT');return {ok:true,result:r.rows[0].result};}catch(e){await c.query('ROLLBACK');return {ok:false,code:e.code,message:e.message};}}
 async function collect(c,actor,args){await c.query('BEGIN');try{await c.query('SET LOCAL ROLE authenticated');await c.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[actor]);const r=await c.query('SELECT public.collect_booking_cash_partial($1,$2,$3,$4) AS result',args);await c.query('COMMIT');return {ok:true,result:r.rows[0].result};}catch(e){await c.query('ROLLBACK');return {ok:false,code:e.code,message:e.message};}}
 async function state(c,id){return (await c.query(`SELECT b.total_price,b.discount_amount,b.payment_status,p.amount,p.discount_amount AS payment_discount,
+  p.commission_rate,p.commission,p.net_to_lounge,p.discount_reason,p.discount_approved_by,
   (SELECT COALESCE(sum(sp.amount),0) FROM public.shift_payments sp WHERE sp.booking_id=b.id) AS shift_amount,
+  (SELECT count(*)::int FROM public.shift_payments sp WHERE sp.booking_id=b.id AND sp.payment_method='cash' AND sp.category='gaming_time') AS cash_shift_rows,
   (SELECT count(*)::int FROM private.cash_collection_receipts r WHERE r.booking_id=b.id) AS receipts
   FROM public.bookings b LEFT JOIN public.payments p ON p.booking_id=b.id WHERE b.id=$1`,[id])).rows[0];}
 async function main(){const setup=await client(),cashier=await client();try{
@@ -40,6 +42,9 @@ async function main(){const setup=await client(),cashier=await client();try{
   assert.equal(Number(paid.total_price),90);assert.equal(Number(paid.discount_amount),10);
   assert.equal(Number(paid.amount),90);assert.equal(Number(paid.payment_discount),10);
   assert.equal(Number(paid.shift_amount),90);assert.equal(paid.receipts,1);assert.equal(paid.payment_status,'paid');
+  assert.equal(Number(paid.commission)+Number(paid.net_to_lounge),Number(paid.amount));
+  assert.equal(paid.cash_shift_rows,1);assert.equal(paid.discount_reason,'fixture discount');
+  assert.equal(paid.discount_approved_by,ids.manager);
   process.stdout.write(JSON.stringify({scenario:'discount collection replay reconciliation',first:first.result,replay:replay.result,changed,paid})+'\n');
 
   const partialId=await booking(setup,day+3);
@@ -51,6 +56,8 @@ async function main(){const setup=await client(),cashier=await client();try{
   assert.equal(Number(partialState.total_price),90);assert.equal(Number(partialState.amount),90);
   assert.equal(Number(partialState.payment_discount),10);assert.equal(Number(partialState.shift_amount),90);
   assert.equal(partialState.receipts,2);assert.equal(partialState.payment_status,'paid');
+  assert.equal(Number(partialState.commission)+Number(partialState.net_to_lounge),Number(partialState.amount));
+  assert.equal(partialState.cash_shift_rows,2);
   process.stdout.write(JSON.stringify({scenario:'atomic discount settles previous partial receipt',initial:initial.result,settled:settled.result,state:partialState})+'\n');
 
   const percentageId=await booking(setup,day+4);
