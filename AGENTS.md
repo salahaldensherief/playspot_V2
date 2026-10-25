@@ -46,3 +46,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Verified financial contract update (25 October 2026)
+
+The authorized schema-only snapshot was restored into a disposable PostgreSQL 17 container and matched 3,607/3,607 target catalog fingerprints before Draft migrations. The exact-schema fixture reproduced a canonical cash receipt deadlock under different operation IDs, a Dashboard discount committed before failed legacy collection, and missing discount metadata in `payments`. The Draft atomic cash checkout migration and isolated tests address these server paths; the Dashboard still calls the split legacy flow. Keep the migration Draft until Dashboard/Mobile compatibility, refunds, shift reconciliation and production recovery gates are verified. See [the exact-schema evidence](docs/audits/PLAYSPOT_ATOMIC_CASH_CHECKOUT_EXACT_SCHEMA_20261025.md).
