@@ -47,6 +47,27 @@ async function main(){const setup=await client(),cashier=await client();try{
   assert.equal(paid.discount_approved_by,ids.manager);
   process.stdout.write(JSON.stringify({scenario:'discount collection replay reconciliation',first:first.result,replay:replay.result,changed,paid})+'\n');
 
+  const remainingId=await booking(setup,day+9);
+  const firstPart=await collect(cashier,ids.manager,[remainingId,ids.shift,4000,randomUUID()]);
+  assert.equal(firstPart.ok,true,JSON.stringify(firstPart));
+  const remainingArgs=[remainingId,ids.shift,null,randomUUID(),10,0,'remaining balance'];
+  const remaining=await call(cashier,ids.manager,remainingArgs);
+  const remainingReplay=await call(cashier,ids.manager,remainingArgs);
+  assert.equal(remaining.ok,true,JSON.stringify(remaining));
+  assert.equal(remainingReplay.ok,true,JSON.stringify(remainingReplay));
+  assert.equal(Number(remaining.result.collected_minor),5000);
+  assert.equal(remainingReplay.result.shift_payment_id,remaining.result.shift_payment_id);
+  assert.equal(remainingReplay.result.replayed,true);
+  const remainingState=await state(setup,remainingId);
+  assert.equal(Number(remainingState.amount),90);
+  assert.equal(Number(remainingState.shift_amount),90);
+  assert.equal(remainingState.receipts,2);
+  assert.equal(remainingState.payment_status,'paid');
+  const secondRemaining=await call(cashier,ids.manager,[remainingId,ids.shift,null,randomUUID(),0,0,null]);
+  assert.equal(secondRemaining.message,'NO_COLLECTIBLE_BALANCE');
+  assert.equal((await state(setup,remainingId)).receipts,2);
+  process.stdout.write(JSON.stringify({scenario:'server-calculated remaining balance and lost ACK',remaining:remaining.result,replay:remainingReplay.result,secondRemaining,state:remainingState})+'\n');
+
   const partialId=await booking(setup,day+3);
   const initial=await collect(cashier,ids.manager,[partialId,ids.shift,4000,randomUUID()]);
   assert.equal(initial.ok,true,JSON.stringify(initial));
@@ -133,5 +154,30 @@ async function main(){const setup=await client(),cashier=await client();try{
   const revoked=await call(cashier,ids.manager,args);
   assert.equal(revoked.message,'CASH_COLLECTION_PERMISSION_DENIED');
   process.stdout.write(JSON.stringify({scenario:'future reservation collection and revoked replay denied',future,revoked})+'\n');
+
+  await setup.query("UPDATE public.staff_permissions SET is_enabled=true WHERE user_id=$1 AND lounge_id=$2 AND permission_key='billing_checkout'",[ids.manager,ids.lounge]);
+  await setup.query("INSERT INTO public.app_permissions(key,name_ar,name_en,category) VALUES('shifts_blind_close','إغلاق وردية اختباري','Fixture blind shift close','shifts') ON CONFLICT(key) DO NOTHING");
+  await setup.query("INSERT INTO public.staff_permissions(user_id,lounge_id,permission_key,is_enabled) VALUES($1,$2,'shifts_blind_close',true) ON CONFLICT(user_id,lounge_id,permission_key) DO UPDATE SET is_enabled=true",[ids.manager,ids.lounge]);
+  const postCloseId=await booking(setup,day+10);
+  const expected=(await setup.query("SELECT COALESCE(sum(amount),0) AS cash FROM public.shift_payments WHERE shift_id=$1 AND payment_method='cash'",[ids.shift])).rows[0].cash;
+  await cashier.query('BEGIN');
+  let close;
+  try {
+    await cashier.query('SET LOCAL ROLE authenticated');
+    await cashier.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[ids.manager]);
+    close=(await cashier.query('SELECT public.blind_close_shift($1,$2,$3,$4) AS result',[ids.shift,ids.manager,expected,'fixture reconciliation'])).rows[0].result;
+    await cashier.query('COMMIT');
+  } catch(e) {await cashier.query('ROLLBACK');throw e;}
+  assert.equal(close.success,true);
+  assert.equal(close.financials_visible,false);
+  assert.equal(close.expected_cash,null);
+  assert.equal(close.difference,null);
+  const closed=(await setup.query('SELECT status,expected_cash,actual_cash_counted,difference FROM public.shifts WHERE id=$1',[ids.shift])).rows[0];
+  assert.equal(closed.status,'closed');
+  assert.equal(Number(closed.expected_cash),Number(expected));
+  assert.equal(Number(closed.difference),0);
+  const afterClose=await call(cashier,ids.manager,[postCloseId,ids.shift,null,randomUUID(),0,0,null]);
+  assert.equal(afterClose.message,'OWN_OPEN_SHIFT_REQUIRED');
+  process.stdout.write(JSON.stringify({scenario:'blind shift close reconciles cash and blocks later collection',close,closed,afterClose})+'\n');
 }finally{await Promise.allSettled([setup.end(),cashier.end()]);}}
 main().catch(e=>{process.stderr.write(`${e.code||'ERROR'} ${e.message}\n`);process.exitCode=1;});
