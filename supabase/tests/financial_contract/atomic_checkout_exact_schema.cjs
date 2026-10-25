@@ -81,6 +81,21 @@ async function main(){const setup=await client(),cashier=await client();try{
     process.stdout.write(JSON.stringify({scenario:'simultaneous atomic checkout replay',race,state:raceState})+'\n');
   } finally {await secondCashier.end();}
 
+  const competingId=await booking(setup,day+6),competingCashier=await client();
+  try {
+    const base=[competingId,ids.shift,9000,null,10,0,'competing discount'];
+    const competing=await Promise.all([
+      call(cashier,ids.manager,[...base.slice(0,3),randomUUID(),...base.slice(4)]),
+      call(competingCashier,ids.manager,[...base.slice(0,3),randomUUID(),...base.slice(4)]),
+    ]);
+    assert.equal(competing.filter(r=>r.ok).length,1,JSON.stringify(competing));
+    assert.equal(competing.find(r=>!r.ok).message,'DISCOUNT_ALREADY_APPLIED');
+    const competingState=await state(setup,competingId);
+    assert.equal(Number(competingState.amount),90);assert.equal(Number(competingState.shift_amount),90);
+    assert.equal(competingState.receipts,1);assert.equal(competingState.cash_shift_rows,1);
+    process.stdout.write(JSON.stringify({scenario:'different-operation concurrent discount checkout',competing,state:competingState})+'\n');
+  } finally {await competingCashier.end();}
+
   const rejectedId=await booking(setup,day+1);
   const excess=await call(cashier,ids.manager,[rejectedId,ids.shift,9500,randomUUID(),10,0,'too much']);
   assert.equal(excess.message,'CASH_EXCEEDS_OUTSTANDING_BALANCE');

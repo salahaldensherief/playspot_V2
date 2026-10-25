@@ -21,13 +21,14 @@ The new RPC follows the canonical collector's booking eligibility: completed ses
 | Overpayment after discount | `CASH_EXCEEDS_OUTSTANDING_BALANCE`; discount, receipt, payment and shift movement all rolled back. |
 | Lost ACK / same-operation replay | Same shift movement and totals, `replayed=true`, no second collection; changed discount with same operation ID rejected. |
 | Simultaneous same-operation checkout | One initial result, one replay, one receipt and one shift movement. |
+| Simultaneous different-operation discounted checkouts | One discounted collection, one `DISCOUNT_ALREADY_APPLIED` rejection, one receipt and one shift movement. |
 | Distinct concurrent canonical collections of 60 against 100 | **20/20** race runs: one collection, one balance rejection, no deadlock or duplicate movement after lock fix. The original exact-schema function intermittently returned `40P01`. |
 | Previous partial 40, discount 10, collect 50 | Booking total 90; payment 90 with discount metadata 10; two categorized cash shift rows sum to 90; two receipts; paid status. Payment commission plus net-to-lounge equals 90. |
 | Fixed and percentage discounts of 10 | Booking and payment discount amounts 10; cash/shift amount 90. |
 | Unauthorized customer, wrong-shift cashier, revoked actor | Rejected. Direct authenticated receipt-table read denied; `anon` RPC execute denied. |
 | Future fixed reservation | Discounted cash prepayment succeeded; payment and shift both recorded 90 and one receipt. |
 
-The atomic regression script passed seven scenario groups in **5/5** consecutive runs, including commission/net, reason, approver, receipt, payment and categorized shift-row assertions. Both `.cjs` scripts in `supabase/tests/financial_contract` require an explicit opt-in and a local-only guard table; they were run only against the disposable container. The pre-migration 3,607/3,607 match establishes starting parity. The local database intentionally differs after Draft migrations and the local guard marker.
+The atomic regression script passed eight scenario groups in **10/10** consecutive runs, including commission/net, reason, approver, receipt, payment and categorized shift-row assertions. Both `.cjs` scripts in `supabase/tests/financial_contract` require an explicit opt-in and a local-only guard table; they were run only against the disposable container. The pre-migration 3,607/3,607 match establishes starting parity. The local database intentionally differs after Draft migrations and the local guard marker.
 
 Repository checks at this branch: `flutter analyze --no-fatal-infos` found no issues; `flutter test` passed 627 tests with one skipped; all 59 top-level backend suites passed against a **separate** disposable PostgreSQL 17.11 fixture on localhost:55439; the three additional offline protocol fixture runs also passed. An earlier attempt without that native fixture fell back to PGlite and failed 38 of 59 suites, so it is not counted as PostgreSQL verification. GitHub CI is still pending for this branch.
 
