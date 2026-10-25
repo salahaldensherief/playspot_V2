@@ -65,4 +65,3 @@ assert.ok(['localhost', '127.0.0.1'].includes(url.hostname));
   } catch (e) { try { await db.query('ROLLBACK'); } catch (_) {} throw e; }
   finally { await db.end(); }
 })().catch(e => { console.error(e); process.exitCode=1; });
-
