@@ -12,6 +12,7 @@ async function client(){const c=new Client(cfg);await c.connect();return c;}
 async function booking(c,day){const id=randomUUID();await c.query("INSERT INTO public.bookings(id,user_id,lounge_id,room_id,date,start_time,end_time,status,room_price,total_price,payment_status) VALUES($1,$2,$3,$4,current_date-$5::int,'10:00','11:00','completed',100,100,'unpaid')",[id,ids.customer,ids.lounge,ids.room,day]);await c.query("UPDATE public.bookings SET status='completed' WHERE id=$1",[id]);return id;}
 async function call(c,actor,args){await c.query('BEGIN');try{await c.query('SET LOCAL ROLE authenticated');await c.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[actor]);const r=await c.query(fn,args);await c.query('COMMIT');return {ok:true,result:r.rows[0].result};}catch(e){await c.query('ROLLBACK');return {ok:false,code:e.code,message:e.message};}}
 async function collect(c,actor,args){await c.query('BEGIN');try{await c.query('SET LOCAL ROLE authenticated');await c.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[actor]);const r=await c.query('SELECT public.collect_booking_cash_partial($1,$2,$3,$4) AS result',args);await c.query('COMMIT');return {ok:true,result:r.rows[0].result};}catch(e){await c.query('ROLLBACK');return {ok:false,code:e.code,message:e.message};}}
+async function legacy(c,actor,bookingId){await c.query('BEGIN');try{await c.query('SET LOCAL ROLE authenticated');await c.query("SELECT set_config('request.jwt.claim.sub',$1,true)",[actor]);const r=await c.query("SELECT public.complete_booking_payment($1,'cash',NULL) AS result",[bookingId]);await c.query('COMMIT');return {ok:true,result:r.rows[0].result};}catch(e){await c.query('ROLLBACK');return {ok:false,code:e.code,message:e.message};}}
 async function state(c,id){return (await c.query(`SELECT b.total_price,b.discount_amount,b.payment_status,p.amount,p.discount_amount AS payment_discount,
   p.commission_rate,p.commission,p.net_to_lounge,p.discount_reason,p.discount_approved_by,
   (SELECT COALESCE(sum(sp.amount),0) FROM public.shift_payments sp WHERE sp.booking_id=b.id) AS shift_amount,
@@ -46,6 +47,29 @@ async function main(){const setup=await client(),cashier=await client();try{
   assert.equal(paid.cash_shift_rows,1);assert.equal(paid.discount_reason,'fixture discount');
   assert.equal(paid.discount_approved_by,ids.manager);
   process.stdout.write(JSON.stringify({scenario:'discount collection replay reconciliation',first:first.result,replay:replay.result,changed,paid})+'\n');
+  const oldClient=await legacy(cashier,ids.manager,id);
+  assert.equal(oldClient.ok,true,JSON.stringify(oldClient));
+  assert.equal(oldClient.result.idempotent,true);
+  const oldClientState=await state(setup,id);
+  assert.equal(oldClientState.receipts,1);
+  assert.equal(oldClientState.cash_shift_rows,1);
+  assert.equal(Number(oldClientState.amount),90);
+  assert.equal(Number(oldClientState.shift_amount),90);
+  process.stdout.write(JSON.stringify({scenario:'legacy cashier replay after canonical full checkout has no extra ledger movement',oldClient,state:oldClientState})+'\n');
+  const mixedId=await booking(setup,day+11);
+  const mixedFirst=await collect(cashier,ids.manager,[mixedId,ids.shift,4000,randomUUID()]);
+  assert.equal(mixedFirst.ok,true,JSON.stringify(mixedFirst));
+  const mixedLegacy=await legacy(cashier,ids.manager,mixedId);
+  assert.equal(mixedLegacy.message,'CASH_LEDGER_REQUIRES_CANONICAL_COLLECTION');
+  const mixedReplay=await legacy(cashier,ids.manager,mixedId);
+  assert.equal(mixedReplay.message,'CASH_LEDGER_REQUIRES_CANONICAL_COLLECTION');
+  const mixedState=await state(setup,mixedId);
+  assert.equal(Number(mixedState.amount),40);
+  assert.equal(Number(mixedState.shift_amount),40);
+  assert.equal(mixedState.payment_status,'partial');
+  assert.equal(mixedState.cash_shift_rows,1);
+  assert.equal(mixedState.receipts,1);
+  process.stdout.write(JSON.stringify({scenario:'deployed legacy cashier cannot settle canonical partial; no ledger mutation',first:mixedFirst.result,legacy:mixedLegacy,retry:mixedReplay,state:mixedState})+'\n');
 
   const remainingId=await booking(setup,day+9);
   const firstPart=await collect(cashier,ids.manager,[remainingId,ids.shift,4000,randomUUID()]);
