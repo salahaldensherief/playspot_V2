@@ -46,3 +46,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Draft branch refund policy (26 October 2026)
+
+The product owner chose a refund deadline and percentage configured by each branch owner. The Draft backend stores immutable policy versions and snapshots the version on new bookings. Eligibility uses server timestamps and never implies that cash or transfer funds were returned. Historical bookings without a snapshot require manual review. Do not deploy the policy alone; actual refund obligations, verified manual return movements, client presentation and payout/shift reconciliation remain required. See [the branch refund policy audit](docs/audits/PLAYSPOT_BRANCH_REFUND_POLICY_20261026.md).
