@@ -6,6 +6,9 @@ REVOKE INSERT, UPDATE, DELETE ON public.staff_permissions
   FROM PUBLIC, anon, authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.lounge_role_permissions
   FROM PUBLIC, anon, authenticated;
+-- Guarded staff RPCs own membership changes. Direct writes allowed self-promotion.
+REVOKE INSERT, UPDATE, DELETE ON public.lounge_staff
+  FROM PUBLIC, anon, authenticated;
 
 CREATE TABLE IF NOT EXISTS public.permission_audit_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

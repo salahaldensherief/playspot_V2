@@ -45,6 +45,7 @@ async function main() {
     }
     await db.query("INSERT INTO public.app_permissions(key,name_ar,name_en,category) VALUES('staff_manage','fixture','fixture','staff'),('billing_checkout','fixture','fixture','billing') ON CONFLICT (key) DO NOTHING");
     await db.query("INSERT INTO public.staff_permissions(user_id,lounge_id,permission_key,is_enabled) VALUES($1,$2,'staff_manage',true),($1,$2,'billing_checkout',false)", [manager,lounge]);
+    await db.query("INSERT INTO public.lounge_staff(lounge_id,user_id,role) VALUES($1,$2,'manager')",[lounge,manager]);
 
     const directSelf = await runAs(db, manager, "INSERT INTO public.staff_permissions(user_id,lounge_id,permission_key,is_enabled) VALUES($1,$2,'billing_checkout',true)", [manager,lounge]);
     assert.equal(directSelf.ok, false);
@@ -52,6 +53,8 @@ async function main() {
     const directTemplate = await runAs(db, manager, "INSERT INTO public.lounge_role_permissions(lounge_id,role,permission_key,is_enabled) VALUES($1,'manager','billing_checkout',true)", [lounge]);
     assert.equal(directTemplate.ok, false);
     assert.equal(directTemplate.code, '42501');
+    const selfPromote = await runAs(db, manager, "UPDATE public.lounge_staff SET role='lounge_owner' WHERE lounge_id=$1 AND user_id=$2", [lounge,manager]);
+    assert.equal(selfPromote.code,'42501');
 
     const managerGrant = await runAs(db, manager, 'SELECT public.update_role_permission($1,$2,$3,$4) AS result', ['cashier','billing_checkout',true,lounge]);
     assert.equal(managerGrant.ok, false);
@@ -93,7 +96,7 @@ async function main() {
     const auditCount = await db.query('SELECT count(*)::int AS count FROM public.permission_audit_logs WHERE lounge_id=$1',[lounge]);
     assert.equal(auditCount.rows[0].count,2);
     await db.query('ROLLBACK');
-    process.stdout.write('owner permission exact-schema: direct write, self/cross-lounge escalation, delegation, grant/revoke and append-only audit passed\n');
+    process.stdout.write('owner permission exact-schema: direct table writes, staff membership self-promotion, cross-lounge escalation, delegation, grant/revoke and audit passed\n');
   } finally {
     await db.end();
   }
