@@ -37,6 +37,10 @@ async function state(db, booking) {
     await db.query('BEGIN');
     const [owner, customer, lounge, room, shift, booking] = Array.from({length: 6}, randomUUID);
     for (const id of [owner, customer]) await db.query('INSERT INTO auth.users(id) VALUES($1)', [id]);
+    await db.query(`INSERT INTO public.app_permissions(key,name_ar,name_en,category,
+      default_super_admin,default_owner,default_cashier)
+      VALUES('billing_checkout','Synthetic billing','Synthetic billing','billing',true,true,false)
+      ON CONFLICT(key) DO NOTHING`);
     await db.query(`INSERT INTO public.profiles(id,role,is_active,is_banned)
       VALUES($1,'owner',true,false),($2,'user',true,false)`, [owner, customer]);
     await db.query(`INSERT INTO public.lounges(id,owner_id,name,status,is_active,instapay_account,
