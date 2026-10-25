@@ -46,6 +46,53 @@ CREATE POLICY permission_audit_owner_read ON public.permission_audit_logs
       AND p.is_active IS TRUE AND p.is_banned IS FALSE
   ));
 
+-- The older get_staff_permissions reads the profile's primary lounge.
+-- This explicit scope supports staff assigned to multiple branches.
+CREATE OR REPLACE FUNCTION public.get_lounge_staff_permissions(
+  p_lounge_id uuid, p_target_user_id uuid
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  v_actor_role text;
+  v_target_role text;
+  v_permissions jsonb;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Authentication required' USING ERRCODE = '28000';
+  END IF;
+  IF p_lounge_id IS NULL OR p_target_user_id IS NULL THEN
+    RAISE EXCEPTION 'Lounge and employee are required' USING ERRCODE = '22023';
+  END IF;
+  v_actor_role := private.permission_role(auth.uid(), p_lounge_id);
+  v_target_role := private.permission_role(p_target_user_id, p_lounge_id);
+  IF v_actor_role IS NULL OR v_actor_role NOT IN ('owner','super_admin')
+     OR v_target_role IS NULL OR v_target_role NOT IN ('manager','cashier','staff') THEN
+    RAISE EXCEPTION 'Not authorized for employee permissions in this lounge'
+      USING ERRCODE = '42501';
+  END IF;
+  SELECT COALESCE(jsonb_agg(jsonb_build_object(
+    'permission_key',a.key,'name_ar',a.name_ar,'name_en',a.name_en,
+    'category',a.category,'description_ar',a.description_ar,
+    'description_en',a.description_en,
+    'is_enabled',private.user_permission_value(p_target_user_id,p_lounge_id,a.key)
+  ) ORDER BY a.key),'[]'::jsonb)
+  INTO v_permissions
+  FROM public.app_permissions a;
+  RETURN jsonb_build_object('success',true,'lounge_id',p_lounge_id,
+    'target_user_id',p_target_user_id,'role',v_target_role,
+    'permissions',v_permissions);
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.get_lounge_staff_permissions(uuid,uuid)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_lounge_staff_permissions(uuid,uuid)
+  TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.set_staff_permission(
   p_lounge_id uuid,
   p_target_user_id uuid,

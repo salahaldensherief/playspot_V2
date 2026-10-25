@@ -74,6 +74,15 @@ async function main() {
     await db.query('RESET ROLE');
     const override = await db.query("SELECT is_enabled FROM public.staff_permissions WHERE user_id=$1 AND lounge_id=$2 AND permission_key='billing_checkout'", [cashier,lounge]);
     assert.equal(override.rows[0].is_enabled, true);
+    const scopedRead = await runAs(db,owner,'SELECT public.get_lounge_staff_permissions($1,$2) AS result',[lounge,cashier]);
+    assert.equal(scopedRead.ok,true,JSON.stringify(scopedRead));
+    assert.equal(scopedRead.rows[0].result.lounge_id,lounge);
+    assert.equal(scopedRead.rows[0].result.target_user_id,cashier);
+    assert.equal(scopedRead.rows[0].result.permissions.find(p=>p.permission_key==='billing_checkout').is_enabled,true);
+    const otherLoungeRead = await runAs(db,outsider,'SELECT public.get_lounge_staff_permissions($1,$2)',[lounge,cashier]);
+    assert.equal(otherLoungeRead.code,'42501');
+    const managerRead = await runAs(db,manager,'SELECT public.get_lounge_staff_permissions($1,$2)',[lounge,cashier]);
+    assert.equal(managerRead.code,'42501');
     const audit = await db.query("SELECT actor_user_id,permission_key AS key FROM public.permission_audit_logs WHERE lounge_id=$1 AND target_user_id=$2", [lounge,cashier]);
     assert.equal(audit.rowCount, 1);
     assert.equal(audit.rows[0].actor_user_id, owner);
@@ -96,7 +105,7 @@ async function main() {
     const auditCount = await db.query('SELECT count(*)::int AS count FROM public.permission_audit_logs WHERE lounge_id=$1',[lounge]);
     assert.equal(auditCount.rows[0].count,2);
     await db.query('ROLLBACK');
-    process.stdout.write('owner permission exact-schema: direct table writes, staff membership self-promotion, cross-lounge escalation, delegation, grant/revoke and audit passed\n');
+    process.stdout.write('owner permission exact-schema: direct writes, membership self-promotion, branch-scoped reads, delegation, grant/revoke and audit passed\n');
   } finally {
     await db.end();
   }
