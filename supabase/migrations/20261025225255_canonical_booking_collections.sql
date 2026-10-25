@@ -193,3 +193,27 @@ FOR EACH ROW EXECUTE FUNCTION private.validate_booking_movement_payout_entry();
 CREATE TRIGGER booking_movement_payout_entries_append_only
 BEFORE UPDATE OR DELETE ON private.booking_movement_payout_entries
 FOR EACH ROW EXECUTE FUNCTION private.reject_booking_money_movement_mutation();
+
+-- A private reconciliation surface for the migration cohort. The legacy
+-- aggregate method is intentionally absent: reports must use the movements.
+CREATE VIEW private.booking_money_coverage
+WITH (security_invoker = true) AS
+SELECT p.id AS payment_id, p.booking_id, p.lounge_id,
+  (p.amount * 100)::bigint AS aggregate_gross_minor,
+  COALESCE(sum(m.amount_minor) FILTER (WHERE m.movement_type = 'collection'), 0)::bigint
+    AS movement_gross_minor,
+  COALESCE(sum(m.amount_minor) FILTER (WHERE m.movement_type = 'refund'), 0)::bigint
+    AS refunded_minor,
+  count(m.id) FILTER (WHERE m.movement_type = 'collection')::integer
+    AS collection_count,
+  CASE
+    WHEN count(m.id) = 0 THEN 'legacy_unclassified'
+    WHEN COALESCE(sum(m.amount_minor) FILTER (WHERE m.movement_type = 'collection'), 0)
+      IS DISTINCT FROM p.amount * 100 THEN 'requires_reconciliation'
+    ELSE 'covered'
+  END AS coverage_state
+FROM public.payments p
+LEFT JOIN private.booking_money_movements m ON m.payment_id = p.id
+GROUP BY p.id, p.booking_id, p.lounge_id, p.amount;
+REVOKE ALL ON private.booking_money_coverage
+  FROM PUBLIC, anon, authenticated, service_role, supabase_auth_admin;

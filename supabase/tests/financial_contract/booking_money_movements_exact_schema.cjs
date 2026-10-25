@@ -62,6 +62,9 @@ async function rejectsWith(db, query, args, code) {
     const cash = [cashMovement,randomUUID(),booking,payment,lounge,shift,
       cashShift,'settlement','cash',13000,1950,'lounge',null,owner];
     await db.query(collectionSql, transfer);
+    assert.equal((await db.query(`SELECT coverage_state FROM private.booking_money_coverage
+      WHERE payment_id=$1`, [payment])).rows[0].coverage_state,
+    'requires_reconciliation');
     await db.query(collectionSql, cash);
     const totals = (await db.query(`SELECT sum(amount_minor)::int AS gross,
       sum(commission_minor)::int AS commission,
@@ -72,6 +75,11 @@ async function rejectsWith(db, query, args, code) {
       FROM private.booking_money_movements WHERE booking_id=$1`, [booking])).rows[0];
     assert.deepEqual(totals, { gross: 15000, commission: 2250,
       electronic: 2000, cash: 13000, payout_net: -250 });
+    const coverage = (await db.query(`SELECT * FROM private.booking_money_coverage
+      WHERE payment_id=$1`, [payment])).rows[0];
+    assert.equal(coverage.coverage_state, 'covered');
+    assert.equal(Number(coverage.aggregate_gross_minor), 15000);
+    assert.equal(Number(coverage.movement_gross_minor), 15000);
 
     await rejectsWith(db, collectionSql, cash, '23505'); // operation/row replay
     await rejectsWith(db, `UPDATE private.booking_money_movements

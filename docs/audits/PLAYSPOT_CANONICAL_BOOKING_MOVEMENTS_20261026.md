@@ -10,6 +10,8 @@ The preserved schema-only export matched 3,607/3,607 catalog objects before Draf
 
 `private.booking_money_movements` holds a verified collection or actual completed refund, in integer minor units. Each row records one operation ID, booking, aggregate payment, shift, method, amount, commission, custody holder, verifying actor, and evidence. Positive collections require exactly one matching `shift_payments` row. Refunds link an original collection and serialize on it; total refunded amount and commission cannot exceed the verified original. Cross-lounge, mismatched shift evidence, mutation after insert, duplicate operation or shift evidence, and direct authenticated access are rejected. `private.booking_movement_payout_entries` prevents concurrent active payouts from claiming one movement twice and validates its method-specific contribution; a failed/cancelled payout can be retried while keeping the old allocation evidence. No client or RPC can currently write these private tables.
 
+A private `booking_money_coverage` view distinguishes untouched legacy aggregate rows from new rows whose movement gross agrees with the aggregate. It exposes no aggregate `payment_method`, so a payout/report migration can explicitly quarantine rows needing reconciliation rather than infer a method from one legacy field.
+
 The existing `payments` unique constraint, rows, writers, readers and payout functions are unchanged. No historical payment is automatically classified into the new ledger. This preserves old data while the remaining contract is implemented and verified.
 
 ## Isolated test result
