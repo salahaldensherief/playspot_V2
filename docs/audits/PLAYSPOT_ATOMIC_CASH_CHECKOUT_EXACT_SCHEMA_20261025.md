@@ -38,6 +38,10 @@ Repository checks after the remaining-balance revision: `flutter analyze --no-pu
 
 ## Remaining gates
 
+### Owner-approved payment model gap
+
+PlaySpot uses manual InstaPay/wallet verification and optional owner-enabled cash, with a small owner-configured reservation deposit and final settlement after play. The effective `approve_manual_booking` calls `complete_booking_payment(...,'manual_transfer',NULL)` after checking only that a receipt URL exists. A rollback-only synthetic probe on the same disposable exact schema approved a future booking priced 100.00 and observed `payment_status=paid`, `payments.amount=100.00`, and `shift_payments` sum 100.00 before the session. That is a full prepayment, not a verified deposit. The local diagnostic script and its synthetic output remain outside Git. The cash collector also disallows combining a pre-existing noncash payment with later cash collection. Thus a standalone change to the approval amount would strand final settlement; a coordinated deposit ledger, verification authority, mixed-method outstanding-balance and client contract is required. Do not roll out this cash checkout as a complete implementation of the new deposit business model.
+
 - Wire every Dashboard cash action to an explicit shift, authoritative balance and durable operation ID. Many current callers omit `shiftId`; changing only the data source would strand those paths. Verify reconnect, retry and lost-ACK UI behavior.
 - Review Mobile cash flows and old RPC compatibility. Do not call the split Dashboard flow fixed while it remains in use.
 - A still-open legacy Dashboard client cannot finish a booking with an earlier canonical partial receipt. It fails closed without ledger mutation; staging needs an explicit client-upgrade/reload and manual recovery plan before rollout. Do not silently alter legacy payment semantics without an exact-schema permission, shift and replay test.
