@@ -46,3 +46,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Draft canonical booking movement foundation (26 October 2026)
+
+`private.booking_money_movements` is a Draft foundation for method-specific verified collections and actual refunds. It has no public writer yet and does not change existing payout behavior. The aggregate `payments` row remains unique by booking; its one method cannot classify a booking paid by both electronic transfer and cash. Do not merge or deploy this foundation alone, infer historical collection methods, or treat its structural fixture as end-to-end financial validation. Follow [the movement audit](docs/audits/PLAYSPOT_CANONICAL_BOOKING_MOVEMENTS_20261026.md) and coordinate with cash checkout, payout, refund and client Drafts.
