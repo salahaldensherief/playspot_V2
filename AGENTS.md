@@ -46,3 +46,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Draft owner permission boundary (25 October 2026)
+
+The effective schema let managers directly edit their own permission overrides and bypass role-template RPC checks with direct table DML. A separate Draft migration revokes those writes, adds owner-controlled per-user overrides and a protected audit trail, and limits manager delegation to permissions they hold. The isolated exact-schema authorization test passed 3/3 runs. Client per-employee controls and the full approval catalogue remain open; see [owner permission evidence](docs/audits/PLAYSPOT_OWNER_PERMISSION_BOUNDARY_20261025.md).
