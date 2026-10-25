@@ -46,3 +46,7 @@ This is the single source of agent guidance for the Flutter mobile repository. U
 ## REQUIRED FIRST READ — CROSS-STACK SYSTEM ATLAS
 
 Before a feature, UI/UX, data-flow, pricing, session, offline, security, or integration change, read **[docs/PLAYSPOT_SYSTEM_ATLAS.md](docs/PLAYSPOT_SYSTEM_ATLAS.md)**, then verify current `dev`, overlapping PRs, and the owning source/tests. The atlas is a dated map, not evidence that a Draft PR is merged or a database function is deployed. This `AGENTS.md` remains authoritative for repository-specific engineering rules.
+
+## Draft pre-session transfer guard (25 October 2026)
+
+The effective backend quotes a future reservation deposit, but legacy `approve_manual_booking` calls full `complete_booking_payment` and records the entire expected price as collected before play. The separate Draft guard migration rejects that premature full manual-transfer entry, including direct legacy checkout, without altering existing rows. Exact-schema rollback-only synthetic tests pass, but old clients then cannot approve pre-session transfers. Keep this guard Draft and **never deploy it alone**. A verified-deposit ledger, mixed-method cash settlement, refunds/reversals, client updates and authenticated browser validation are still required. See [pre-session transfer evidence](docs/audits/PLAYSPOT_PRE_SESSION_TRANSFER_GUARD_20261025.md).
