@@ -4,12 +4,30 @@ checkpoint_date: 2026-10-26
 checkpoint_timezone: Africa/Cairo
 status: partial_dev_integration_verified; production_untouched
 mobile_remote_dev: ac9b9da05673b2139d63847525fb8fefd1971d54
-dashboard_remote_dev: 79fccdfe3b1017680165b639027ef93fa4abf496
+dashboard_remote_dev: 91630de429be79a1485b6f7fc447241f6ecd7c20
 production_supabase_ref: tgpdexoitemmpruepgyt
 separate_demo_supabase_ref: tmqhncduzlavgqoyjcmn
 ---
 
 # Antigravity final Codex handoff
+
+## LIVE ADDENDUM — 26 OCTOBER 2026, 18:04+03:00 (READ BEFORE OLDER CHECKPOINT TEXT)
+
+**The following is NEWER than the dated original checkpoint below and takes precedence wherever statuses conflict.**
+
+- Owner clarified: PlaySpot remains in **active development/testing**. Consolidate **verified development source** onto `dev`; the owner wants to test the actual integrated apps, not accumulate finished Drafts. This is **not** authorization for uncontrolled loss of hosted data, blind SQL execution, or merging to `main`.
+- **Dashboard `dev` is now `91630de429be79a1485b6f7fc447241f6ecd7c20`**. GitHub [PR #86](https://github.com/salahaldensherief/Playspot_dashboard/pull/86), combining cashier PR #83 and employee permissions PR #84, was **MERGED** following successful integrated CI (Flutter CI and Dart format) on `fb1c0763ee04e7b0aac4e8f713fcd58af4cc78c0`. GitHub also marked source PRs #83/#84 **MERGED**. Preview-isolation PR #85 was merged earlier. The post-merge `dev` formatting check passed; post-merge Flutter CI was **in progress** at the time of this addendum: https://github.com/salahaldensherief/Playspot_dashboard/actions/runs/40346067745. Recheck it.
+- **Mobile/backend `dev` remains `ac9b9da05673b2139d63847525fb8fefd1971d54`**, integration PR #89 merged. Separate Mobile documentation-only handoff PR #90 is being updated. The remaining Mobile financial/Open Time draft PRs (#75, #82, #83) have **not** been merged and need overlap/compatibility analysis.
+- **BOTH source `dev` branches are now integrated for the recent cashier/permissions changes. Hosted SQL has NOT been applied** as a consequence of these GitHub merges. Live Supabase `play spot` (ref `tgpdexoitemmpruepgyt`) has 131 recorded migrations ending at `20261020133056_sync_lounge_review_summary`; separate `playspot-demo` (ref `tmqhncduzlavgqoyjcmn`) has 21 recorded migrations ending at `20261017121640_demo_cash_session_start_before_collection`. New cash/deposit/permission/ledger RPCs are not proven on either hosted environment. The current dashboard `dev` preview fails closed without explicit build-time Supabase config.
+- User wants to test using **real hosted development environments**, rather than test only mocks. Treat hosted data and Auth users as worth preserving even if the product is prelaunch: first classify which accounts, bookings and payments are genuine vs disposable, capture a restorable backup/recovery path and migration compatibility check, then run scoped authenticated development tests. **Never mistake a merged SQL file for a deployed migration.** Do not operate on `main` or deploy user-facing production without separate approval.
+- **Branch hygiene:** GitHub currently lists **81 Mobile remote branches** and **75 Dashboard remote branches**, including `dev` and `main`; count is not proof of obsolescence. Preserve branches for open Draft PRs, unmerged unique changes, release recovery, and the many dirty local Codex worktrees. Deletion candidates must be individually proven fully contained in `dev` or otherwise intentionally superseded, and **must not** be checked out in a dirty local worktree. Prefer deleting only reviewed merged, no-longer-used feature refs; never mass-delete by date or prefix. Retain handoff records and any recovery refs until Antigravity successfully imports them.
+- **Current next step:** verify post-merge Dashboard CI; establish backed-up hosted development DB contract; apply only reviewed migrations to the explicitly selected development backend with rollback plan; test authenticated customer/owner/cashier, fixed/Open Time, deposit + cash, staff permissions, cancellation/refund eligibility and ledger/payout integrity; then deliver a truly usable same-backend APK + Dashboard preview. Previous demo APK is NOT financial E2E acceptance.
+
+### Updated first message for Antigravity
+
+> Read both repository `AGENTS.md` and `docs/PLAYSPOT_SYSTEM_ATLAS.md`, then this LIVE ADDENDUM and all prior Codex handoff evidence. Mobile/backend `dev` is `ac9b9da05673b2139d63847525fb8fefd1971d54`; Dashboard `dev` is `91630de429be79a1485b6f7fc447241f6ecd7c20`, with cashier + permissions PR #86 and predecessor PRs #83/#84 merged as **source-only dev integration**. Recheck branches/CI; preserve every dirty worktree on C: and D:. Audit all 81/75 remote branches for safe cleanup but never delete any unmerged or dirty-worktree branch. The owner is in prelaunch dev and wants real hosted development testing; choose and verify a backed-up, recoverable hosted backend and distinguish development test records from important data before applying any SQL. Set explicit Supabase staging/development build-time URLs and keys; ensure no hidden production fallback. Verify Auth, RLS, finance, refunds and payouts under real users; deliver a same-backend installed APK and Dashboard preview. Never claim source merges deployed SQL, never blindly mutate live finance rows, never touch main, never force/reset/clean or remove Docker backups. Report verified test evidence and any blockers.
+
+---
 
 ## Read this first
 
