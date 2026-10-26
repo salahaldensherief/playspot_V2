@@ -65,11 +65,14 @@ async function rejectsAs(db, actor, sql, args, code) {
     const verify = `SELECT public.verify_booking_deposit_transfer($1,$2,$3,$4,$5)
       AS result`;
     const args = [booking,shift,operation,'TEST-BANK-REFERENCE','lounge'];
+    const legacyApproval = `SELECT public.approve_manual_booking($1,$2)`;
+    await rejectsAs(db,owner,legacyApproval,[booking,owner],'55000');
     await rejectsAs(db,outsider,verify,args,'42501');
     const first = (await asActor(db,owner,verify,args)).rows[0].result;
     assert.equal(first.replayed,false);
     assert.equal(Number(first.collected_minor),2000);
     assert.equal(Number(first.commission_minor),300);
+    await rejectsAs(db,owner,legacyApproval,[booking,owner],'55000');
     const replay = (await asActor(db,owner,verify,args)).rows[0].result;
     assert.equal(replay.replayed,true);
     assert.equal(replay.movement_id,first.movement_id);

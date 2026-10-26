@@ -219,7 +219,7 @@ REVOKE ALL ON private.booking_money_coverage
 
 -- Staff attests that the transfer has actually arrived. The submitted receipt
 -- remains only evidence until this authorized transaction commits.
-CREATE FUNCTION public.verify_booking_deposit_transfer(
+CREATE OR REPLACE FUNCTION public.verify_booking_deposit_transfer(
   p_booking_id uuid, p_shift_id uuid, p_operation_id uuid,
   p_evidence_reference text, p_funds_holder text)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $function$
@@ -310,6 +310,8 @@ BEGIN
   END IF;
   v_commission := round(v_amount*v_rate,2);
   v_commission_minor := (v_commission*100)::bigint;
+  INSERT INTO private.cash_collection_context(transaction_id,booking_id)
+    VALUES(txid_current(),p_booking_id) ON CONFLICT DO NOTHING;
   INSERT INTO public.payments(booking_id,user_id,lounge_id,amount,
     commission_rate,commission,net_to_lounge,payment_method,status,paid_at)
   VALUES(p_booking_id,v_booking.user_id,v_booking.lounge_id,v_amount,
@@ -335,6 +337,8 @@ BEGIN
   RETURNING * INTO v_existing;
   UPDATE public.bookings SET deposit_paid=true,payment_status='partial',
     updated_at=now() WHERE id=p_booking_id;
+  DELETE FROM private.cash_collection_context
+    WHERE transaction_id=txid_current() AND booking_id=p_booking_id;
   v_result := jsonb_build_object('operation_id',p_operation_id,
     'movement_id',v_existing.id,'booking_id',p_booking_id,
     'shift_id',p_shift_id,'payment_method',v_method,
@@ -347,6 +351,38 @@ REVOKE ALL ON FUNCTION public.verify_booking_deposit_transfer(uuid,uuid,uuid,tex
   FROM PUBLIC, anon, service_role, supabase_auth_admin;
 GRANT EXECUTE ON FUNCTION public.verify_booking_deposit_transfer(uuid,uuid,uuid,text,text)
   TO authenticated;
+
+-- Old clients can still call complete_booking_payment/approve_manual_booking.
+-- Prevent them from promoting an expected full price into a collection for a
+-- future deposit booking, or overwriting an already movement-backed payment.
+CREATE FUNCTION private.guard_canonical_booking_payment_write()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $function$
+DECLARE
+  v_booking_id uuid;
+  v_booking public.bookings%ROWTYPE;
+BEGIN
+  v_booking_id:=CASE WHEN TG_OP='DELETE' THEN OLD.booking_id
+    ELSE NEW.booking_id END;
+  SELECT * INTO v_booking FROM public.bookings WHERE id=v_booking_id;
+  IF FOUND AND (
+    EXISTS (SELECT 1 FROM private.booking_money_movements
+      WHERE booking_id=v_booking_id)
+    OR (v_booking.deposit_required IS TRUE
+      AND v_booking.deposit_paid IS NOT TRUE
+      AND v_booking.status::text IN ('pending','upcoming'))
+  ) AND NOT EXISTS (SELECT 1 FROM private.cash_collection_context
+      WHERE transaction_id=txid_current() AND booking_id=v_booking_id) THEN
+    RAISE EXCEPTION 'CANONICAL_BOOKING_PAYMENT_WRITER_REQUIRED'
+      USING ERRCODE='55000';
+  END IF;
+  RETURN CASE WHEN TG_OP='DELETE' THEN OLD ELSE NEW END;
+END;
+$function$;
+REVOKE ALL ON FUNCTION private.guard_canonical_booking_payment_write()
+  FROM PUBLIC,anon,authenticated,service_role,supabase_auth_admin;
+CREATE TRIGGER guard_canonical_booking_payment_write
+BEFORE INSERT OR UPDATE OR DELETE ON public.payments
+FOR EACH ROW EXECUTE FUNCTION private.guard_canonical_booking_payment_write();
 
 -- The aggregate payment method becomes an explicit compatibility marker once
 -- more than one method has actually been collected for a booking. Payout and
