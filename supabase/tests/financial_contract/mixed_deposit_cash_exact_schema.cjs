@@ -32,6 +32,9 @@ async function rejectsAs(db, id, sql, args, code) {
     assert.equal((await db.query(`SELECT 1 FROM private.playspot_isolated_test_guard
       WHERE token='PLAYSPOT_DISPOSABLE_EXACT_SCHEMA_20261025'`)).rowCount, 1);
     await db.query('BEGIN');
+    for (const discountPercent of [0, 10]) {
+    const expectedTotal = discountPercent ? 135 : 150;
+    const expectedCash = expectedTotal - 20;
     const [owner, customer, outsider, lounge, room, shift, booking,
       depositOp, cashOp] = Array.from({ length: 9 }, randomUUID);
     for (const id of [owner, customer, outsider]) {
@@ -73,18 +76,21 @@ async function rejectsAs(db, id, sql, args, code) {
     assert.equal(Number(beforeCash.paid), 20);
     const cashSql = `SELECT public.checkout_booking_cash_atomic(
       $1,$2,$3,$4,$5,$6,$7) AS result`;
-    const cashArgs = [booking, shift, null, cashOp, 0, 0, null];
+    const discountReason = discountPercent ? 'Synthetic approved discount' : null;
+    const cashArgs = [booking, shift, null, cashOp, 0, discountPercent, discountReason];
     await rejectsAs(db, outsider, cashSql, cashArgs, '42501');
     await rejectsAs(db, owner, cashSql,
-      [booking, shift, 13100, randomUUID(), 0, 0, null], '22023');
+      [booking, shift, 13100, randomUUID(), 0, discountPercent,
+        discountReason], '22023');
     const cash = (await actor(db, owner, cashSql, cashArgs)).rows[0].result;
-    assert.equal(Number(cash.collected_minor), 13000);
+    assert.equal(Number(cash.collected_minor), expectedCash * 100);
     assert.equal(Number(cash.due_minor), 0);
     assert.equal(cash.replayed, false);
     const replay = (await actor(db, owner, cashSql, cashArgs)).rows[0].result;
     assert.equal(replay.replayed, true);
     assert.equal(replay.movement_id, cash.movement_id);
     const result = (await db.query(`SELECT b.payment_status,b.payment_method,
+      b.total_price,
       p.amount,p.commission,p.payment_method AS aggregate_method,
       (SELECT count(*)::int FROM private.booking_money_movements
         WHERE booking_id=b.id) AS movement_count,
@@ -101,27 +107,31 @@ async function rejectsAs(db, id, sql, args, code) {
     assert.equal(result.payment_status, 'paid');
     assert.equal(result.payment_method, 'mixed');
     assert.equal(result.aggregate_method, 'mixed');
-    assert.equal(Number(result.amount), 150);
-    assert.equal(Number(result.commission), 22.5);
+    assert.equal(Number(result.total_price), expectedTotal);
+    assert.equal(Number(result.amount), expectedTotal);
+    assert.equal(Number(result.commission), expectedTotal * 0.15);
     assert.equal(result.movement_count, 2);
-    assert.equal(Number(result.movement_minor), 15000);
-    assert.equal(Number(result.commission_minor), 2250);
-    assert.equal(Number(result.shift_amount), 150);
+    assert.equal(Number(result.movement_minor), expectedTotal * 100);
+    assert.equal(Number(result.commission_minor), expectedTotal * 15);
+    assert.equal(Number(result.shift_amount), expectedTotal);
     assert.equal(result.shift_count, 2);
     const methods = (await db.query(`SELECT payment_method,amount_minor,funds_holder
       FROM private.booking_money_movements WHERE booking_id=$1 ORDER BY amount_minor`,
       [booking])).rows;
     assert.deepEqual(methods.map(m => [m.payment_method, Number(m.amount_minor), m.funds_holder]),
-      [['manual_transfer', 2000, 'platform'], ['cash', 13000, 'lounge']]);
+      [['manual_transfer', 2000, 'platform'],
+        ['cash', expectedCash * 100, 'lounge']]);
     await rejectsAs(db, owner, cashSql,
       [booking, shift, 100, randomUUID(), 0, 0, null], '22023');
     await db.query(`UPDATE public.shifts SET status='closed',closed_at=now()
       WHERE id=$1`, [shift]);
     assert.equal((await actor(db, owner, cashSql, cashArgs)).rows[0].result.replayed, true);
     process.stdout.write(JSON.stringify({ scenario: 'mixed deposit and cash',
-      deposit_minor: 2000, cash_minor: 13000, due_minor: 0,
+      discount_percentage: discountPercent,
+      deposit_minor: 2000, cash_minor: expectedCash * 100, due_minor: 0,
       movement_count: result.movement_count, commission_minor: Number(result.commission_minor),
       replay: true }) + '\n');
+    }
     await db.query('ROLLBACK');
   } catch (error) {
     try { await db.query('ROLLBACK'); } catch (_) {}
