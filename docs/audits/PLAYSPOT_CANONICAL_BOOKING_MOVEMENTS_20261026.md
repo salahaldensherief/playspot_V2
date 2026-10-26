@@ -26,6 +26,8 @@ The isolated rollback-only fixtures passed after this change: movement structure
 
 The 3,607/3,607 fingerprint covers the captured application catalog, not Supabase-managed `auth.users`. The local restore supplies an auth table lacking `banned_until`. A direct `create_payout` test reached `private.assert_payout_admin` and failed with SQLSTATE 42703 for that missing auth column before it could exercise payout logic. No payout success or fail-closed behavior is claimed from this fixture. Rehearse payouts against a staging environment with a matching managed Auth schema.
 
+The Mobile booking badge now recognizes the backend's `partial` status as partially paid while accepting the older `partially_paid` spelling. It labels a `mixed` aggregate method as transfer plus cash, rather than treating every noncash value as only manual transfer. This is a presentation compatibility fix; Mobile still needs an authenticated staging flow for deposit, final bill, cancellation and refunds.
+
 ## Isolated test result
 
 Applied this Draft migration only in `playspot_financial_restore_20261026_v2` after the preserved exact-schema restore and earlier Draft migrations. The synthetic rollback-only fixture passed 3/3. It inserted an EGP 20 electronic movement and an EGP 130 cash movement for one EGP 150 booking, and asserted 2,000 + 13,000 = 15,000 minor units, 2,250 commission, and separate custody contributions of +1,700 and −1,950 (net −250). It rejected duplicate submission, repeated shift evidence, mutation, excessive refund amount and commission, an incorrect payout contribution, and direct authenticated access. Zero synthetic movement or lounge rows remained after rollback. This proves the table constraints, **not** an end-to-end cashier or payout workflow.

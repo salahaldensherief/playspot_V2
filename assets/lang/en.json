@@ -232,6 +232,7 @@
   "total": "Total",
   "addOns": "Add-ons",
   "manualTransfer": "Manual Transfer",
+  "mixedPayment": "Transfer + cash",
   "firstBooking": "1st Booking",
   "cashArrivalNotice": "Please arrive before your appointment time, otherwise the booking may be automatically cancelled after grace period.",
   "cancellationReason": "Cancellation Reason",
