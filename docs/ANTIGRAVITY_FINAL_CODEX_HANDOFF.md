@@ -2,15 +2,143 @@
 project: PlaySpot
 checkpoint_date: 2026-10-26
 checkpoint_timezone: Africa/Cairo
-status: partial_dev_integration_verified; production_untouched
-mobile_remote_dev: ac9b9da05673b2139d63847525fb8fefd1971d54
-dashboard_remote_dev: 91630de429be79a1485b6f7fc447241f6ecd7c20
+status: codex_rescue_complete; dashboard_launcher_merged; demo_e2e_probed; production_untouched
+mobile_remote_dev: b631e54ff75846d6d5d8b014e131a17448bbb2f5
+dashboard_remote_dev: 4991e4bb169e81c11fabcefda0c265a1a5370745
 production_supabase_ref: tgpdexoitemmpruepgyt
 separate_demo_supabase_ref: tmqhncduzlavgqoyjcmn
 ---
 
 # Antigravity final Codex handoff
 
+## FINAL RESCUE & DEV HANDOFF SUMMARY - 26 OCTOBER 2026, 21:25+03:00 (CANONICAL CURRENT STATE)
+
+### 1. Final Git SHAs and Merged PRs
+
+- **Mobile + Backend (`salahaldensherief/playspot_V2`):**
+  - `dev` prior to this handoff commit: `b631e54ff75846d6d5d8b014e131a17448bbb2f5` (merged [PR #89](https://github.com/salahaldensherief/playspot_V2/pull/89) at `ac9b9da05673b2139d63847525fb8fefd1971d54` and documentation [PR #90](https://github.com/salahaldensherief/playspot_V2/pull/90) at `b631e54ff75846d6d5d8b014e131a17448bbb2f5`).
+  - Post-merge CI on `b631e54ff75846d6d5d8b014e131a17448bbb2f5`: Dart formatting review (`#40350363653`) and Flutter CI (`#40350363654`) both passed (`success`).
+- **Dashboard (`salahaldensherief/Playspot_dashboard`):**
+  - Final `dev`: `4991e4bb169e81c11fabcefda0c265a1a5370745`.
+  - Merged PRs on `dev`:
+    - [PR #85](https://github.com/salahaldensherief/Playspot_dashboard/pull/85) (`79fccdfe3b1017680165b639027ef93fa4abf496`): Preview backend isolation and fail-closed Supabase configuration.
+    - [PR #86](https://github.com/salahaldensherief/Playspot_dashboard/pull/86) (`91630de429be79a1485b6f7fc447241f6ecd7c20`): Combined atomic cash checkout (#83) and owner staff permission boundary (#84). Post-merge CI (`#40346067725` and `#40346067745`) passed (`success`).
+    - [PR #87](https://github.com/salahaldensherief/Playspot_dashboard/pull/87) (`4991e4bb169e81c11fabcefda0c265a1a5370745`): Recovered Codex local development launcher (`scripts/launch_local.ps1`), documentation, and hosted financial contract gap report. Pre-merge CI (`#40371361584` and `#40371361529`) and post-merge `dev` CI (`#40372632548` and `#40372632594`) all passed (`success`).
+
+### 2. Recovered Codex Local Files and Commits
+
+- Located uncommitted Codex work in `C:\Users\salah\Documents\Codex\2026-10-21\files-pasted-by-the-user-playspot\dashboard-local-launch-20261026` on branch `fix/local-development-launch-20261026`:
+  - `scripts/launch_local.ps1` (new, 105 lines): PowerShell launcher separating `-Environment Demo` from `-Environment Development`, validating `SUPABASE_URL` and `SUPABASE_ANON_KEY`, rejecting production (`tgpdexoitemmpruepgyt`), rejecting demo ref in `Development` mode, and rejecting privileged `sb_secret_`/`service_role` keys.
+  - `docs/LOCAL_DEVELOPMENT_LAUNCH.md` (new, 11 lines): Windows launch instructions and env file contract.
+  - `docs/qa/2026-10-26-hosted-financial-contract-gap.md` (new, 18 lines): Hosted vs `dev` SQL contract gap report.
+  - `AGENTS.md` (+2 lines) and `README.md` (+2 lines).
+  - Unstaged generated `macos/Flutter/GeneratedPluginRegistrant.swift` and git-ignored `.env.demo` were left untouched in the recovery worktree.
+- Committed as `0a1e5e253dd16895e32be2fc32bdf5604e2f1cb8` (`chore: add validated local development launcher and hosted contract gap report`) and merged into Dashboard `dev` via [PR #87](https://github.com/salahaldensherief/Playspot_dashboard/pull/87) (`4991e4bb169e81c11fabcefda0c265a1a5370745`).
+
+### 3. Applied vs. Unapplied Migrations
+
+- **Production Supabase (`play spot`, ref `tgpdexoitemmpruepgyt`):**
+  - **131 applied migrations** ending at `20261020133056_sync_lounge_review_summary`. Strictly untouched.
+- **Separate Demo Supabase (`playspot-demo`, ref `tmqhncduzlavgqoyjcmn`):**
+  - **21 applied migrations** ending at `20261017121640_demo_cash_session_start_before_collection`.
+- **Unapplied Migrations on Both Hosted Environments (6 files from Mobile PR #89):**
+  1. `supabase/migrations/20261025101139_atomic_discount_cash_checkout.sql`
+  2. `supabase/migrations/20261025151217_owner_permission_write_boundary.sql`
+  3. `supabase/migrations/20261025170000_guard_pre_session_manual_transfer_total.sql`
+  4. `supabase/migrations/20261025225255_canonical_booking_collections.sql`
+  5. `supabase/migrations/20261025225913_branch_booking_refund_policy.sql`
+  6. `supabase/migrations/20261026100000_guard_paid_deposit_payment_quote.sql`
+- **Why Hosted DDL Was Not Applied Automatically:** Local machine inspection confirmed that only PostgREST/Auth keys (`SUPABASE_ANON_KEY` and `service_role` JWT in `D:\PlaySpotDemoRuntime\private\`) exist on disk; no direct PostgreSQL connection password, `psql`/`supabase` CLI, or Supabase Management API personal access token (`sbp_...`) is stored locally, and PostgREST (`/rest/v1/`) does not execute raw DDL (`CREATE FUNCTION`/`CREATE TABLE`).
+
+### 4. Actual End-to-End Test Evidence
+
+- **Launcher Validation & Guardrails (`scripts/launch_local.ps1`):**
+  - `./scripts/launch_local.ps1 -Environment Demo -ValidateOnly` -> `Validated Demo configuration for project tmqhncduzlavgqoyjcmn.` (exit 0).
+  - Production ref (`tgpdexoitemmpruepgyt`) -> rejected (`The production Supabase project is forbidden for local development builds.`).
+  - Demo ref (`tmqhncduzlavgqoyjcmn`) under `-Environment Development` -> rejected (`Development mode requires a separate, explicitly prepared development project...`).
+  - Secret key (`sb_secret_...`) -> rejected (`A privileged Supabase key cannot be used in Flutter.`).
+- **Authenticated Multi-Role E2E Probes Against Live `playspot-demo` (`tmqhncduzlavgqoyjcmn`):**
+  - Verified password sign-in (`/auth/v1/token?grant_type=password`), RLS-scoped table reads, and `get_staff_permissions` RPC across all 4 roles for lounge `a1f2c158-6aad-5b9f-88d0-7aecb1def34d`:
+    - **Customer** (`demo_c001@playspot-demo.com` / `4a076d31-7ec1-5503-98b9-7c4a77442bb7`): Auth OK; sees 1 lounge, 6 rooms, and only own **3 bookings** under RLS; `get_staff_permissions` returns `role: "user"`, `lounge_id: null`, all 36 staff permissions `false`.
+    - **Owner** (`demo_v02_lounge_owner@playspot-demo.com` / `9bfb2467-377f-52d9-9798-392c502fdc76`): Auth OK; sees 1 lounge, 6 rooms, and all **31 lounge bookings**; `get_staff_permissions` returns `role: "owner"`, 34/36 permissions `true`.
+    - **Manager** (`demo_v02_manager@playspot-demo.com` / `8d6b4e2d-5c60-5dfc-aba9-1e25d42116f2`): Auth OK; sees 1 lounge, 6 rooms, and all **31 lounge bookings**; `get_staff_permissions` returns `role: "manager"`, 33/36 permissions `true` (`payouts_manage: false`).
+    - **Cashier** (`demo_v02_cashier@playspot-demo.com` / `d308b85e-44ca-5ab8-a035-fe93354cca22`): Auth OK; sees 1 lounge, 6 rooms, and all **31 lounge bookings**; `get_staff_permissions` returns `role: "cashier"`, operational cashier permissions `true` (`billing_checkout`, `bookings_create`, `pos_create_orders`, `rooms_view_status`, `sessions_control`, `shifts_open_own`, `shifts_blind_close`) and sensitive owner/manager permissions `false` (`billing_apply_discount`, `billing_void_item`, `bookings_cancel`, `staff_manage`, `shifts_review_and_approve`, `shifts_view_blind_cash`, `payouts_manage`).
+  - Confirmed that the unapplied PR #89 RPCs (`checkout_booking_cash_atomic`, `verify_booking_deposit_transfer`, `get_lounge_staff_permissions`, `set_staff_permission`) return `HTTP 404 PGRST202` on `playspot-demo`, so clients fail closed on those new financial/permission write operations until the 6 migrations are applied.
+- **Exact-Schema Financial Fixture Evidence (Preserved Locally):**
+  - Preserved in `C:\Users\salah\Documents\Codex\2026-10-21\files-pasted-by-the-user-playspot\financial-schema-local\` (`exact_schema_checkout_proof.json`, `exact_schema_movements_proof.json`, `exact_schema_permission_proof.json`, `exact_schema_refund_policy_proof.json`, `exact_schema_transfer_guard_proof.json`).
+
+### 5. Dashboard Launch Command & Canonical Local Setup
+
+- Both canonical checkouts (`D:\flutter_projects\play_spot_dashboard` at `4991e4bb169e81c11fabcefda0c265a1a5370745` and `D:\playspot_V2`) now have git-ignored `.env.demo` and `.env` configured to point to `playspot-demo` (`https://tmqhncduzlavgqoyjcmn.supabase.co`).
+- **Validate Configuration Only:**
+  ```powershell
+  Set-Location D:\flutter_projects\play_spot_dashboard
+  ./scripts/launch_local.ps1 -Environment Demo -ValidateOnly
+  ```
+- **Launch Dashboard in Chrome (Demo Backend):**
+  ```powershell
+  Set-Location D:\flutter_projects\play_spot_dashboard
+  ./scripts/launch_local.ps1 -Environment Demo
+  ```
+- **Launch Dashboard in Chrome (Dedicated Development Backend, once `.env.development` is prepared):**
+  ```powershell
+  Set-Location D:\flutter_projects\play_spot_dashboard
+  ./scripts/launch_local.ps1 -Environment Development
+  ```
+
+### 6. APK and Browser-Preview Status
+
+- **Canonical Dashboard Web Build (`D:\flutter_projects\play_spot_dashboard\build\web\main.dart.js`):**
+  - Built cleanly with `flutter build web --release --no-pub --dart-define-from-file=.env.demo` (6,512,607 bytes).
+  - Verified embedded project ref: `tmqhncduzlavgqoyjcmn` = `True`, `tgpdexoitemmpruepgyt` = `False`.
+- **Live Local Browser Preview (`http://127.0.0.1:51611/`):**
+  - Active local server (Node PID `3820`) returns HTTP 200 for `/` (2,774 bytes) and `/main.dart.js` (6,512,445 bytes, `tmqhncduzlavgqoyjcmn` = `True`, `tgpdexoitemmpruepgyt` = `False`).
+- **Demo-Connected Android APK (`C:\Users\salah\Documents\Codex\2026-10-21\files-pasted-by-the-user-playspot\outputs\playspot-dev-demo-20261026.apk`):**
+  - 200,083,207 bytes, SHA-256 `0251942AEDE65D6D99534F0CBB72CACA30E953C6508A8582E7BA67E6C367CE19`, valid v2 signature, pointing to `tmqhncduzlavgqoyjcmn` (same backend as the Dashboard demo configuration). Physical device installation remains pending a connected `adb` device and hosted migration deployment.
+
+### 7. Remaining Blockers
+
+1. **Hosted Development SQL Migration Deployment:** Applying the 6 PR #89 migrations (plus their prerequisite schema baseline if applied to `playspot-demo`) requires either the Supabase Dashboard SQL Editor or `supabase db push` / `psql` with the database password/PAT after taking a verified database backup.
+2. **Manual Refund / Reversal Accounting:** Cancellation and refund-policy snapshots (`booking_refund_policies`) classify refund eligibility, but actual manual refund/reversal money movements (`private.booking_money_movements`) and shift/commission offsets are not yet implemented.
+3. **Mixed-Custody Payout Settlement & Platform-Finance Verifier:** `settle_lounge_payout_atomic` still requires migration to movement-derived custody/commission math (`private.booking_money_movements`), and platform-held deposits require a dedicated platform-finance verification path.
+
+### 8. Safe-to-Delete (Deleted) vs. Preserved Branches & PRs
+
+- **Deleted Remote Branches (19 total - all verified 100% ancestor-merged into `origin/dev`, no open PR, and not checked out in any local worktree):**
+  - **`playspot_V2` (9 deleted):**
+    - `backend/playspot-core-v2` (`87201c8d088458d9b9d18dd090240639a3e6dc85`)
+    - `ci/verify-mobile-android-release` (`7866b44bbc2c23dbc65746f74e68832c53bcebe3`)
+    - `codex/backend-audit` (`b13fa450899f01d5d73e0669c1ed62e64f5a8583`)
+    - `codex/catalogue-tombstones` (`b53a0b6716a93a8881d78dfe67aa48d14e45cc51`)
+    - `codex/complete-playspot` (`b55f3ae72f9e95e588c01e68eea1aa23796a5093`)
+    - `docs/atlas-open-time-draft-status` (`28d16911b717bc6c33527d56fe535657b12c7eae`)
+    - `docs/playbook-system-atlas-20261022` (`24ff85642e5b019d1e3190ea1ee9cc2c0f027f38`)
+    - `fix/compact-photo-button` (`4e0f03e155605585411d883157aadc73f6ded58b`)
+    - `integration/mobile-financial-permissions-20261026` (`836cb05f366ed503b52b071e5983f1f08b7660e5`)
+  - **`Playspot_dashboard` (10 deleted):**
+    - `codex/backend-audit` (`a33526aa294287a480556d0f4708a2dd616181f7`)
+    - `codex/complete-play` (`c945529fe67d458ea1713e34caaa5723698068f2`)
+    - `codex/review-followups` (`cc2f866943eec49282531f91b9d6218a2700a383`)
+    - `codex/session-start-cycle` (`69f2a3b37e463b2ca56fde0b657b0e622997791f`)
+    - `docs/atlas-open-time-draft-status` (`cb5c7cec884df412f5afc46a28074e6e951460e1`)
+    - `docs/playbook-system-atlas-20261022` (`77d8a0b3fbe55fd74a4895fff27853e43e9709e9`)
+    - `fix/active-marketing-default` (`0fa929b968960f05501f4163a2402a0e53f98caf`)
+    - `fix/scheduler-canonical-close-safety` (`4be53d823f519b8b291412f172bd41a789f66f3f`)
+    - `offline_cashier_conflict_resolution` (`37a12c56ff4bf03b2e9b1d388301a081f67a57db`)
+    - `supabase_access_check` (`9a1ff9a10290e094f76b7dcdf50d703eabbef121`)
+- **Preserved Remote Branches & Open Draft PRs:**
+  - All merged branches that are still checked out in local worktrees (`docs/antigravity-final-codex-handoff-20261026`, `docs/splash-final-evidence`, `fix/atomic-discount-cash-checkout`, `fix/branch-refund-policy`, `fix/canonical-financial-movements`, `fix/owner-permission-boundary`, `fix/pre-session-transfer-guard`, `fix/restore-splash-font` in Mobile; `docs/restore-approved-dashboard-ui`, `fix/atomic-dashboard-cash-checkout`, `fix/local-development-launch-20261026`, `fix/owner-staff-permission-ui`, `fix/preview-backend-isolation-20261026`, `integration/financial-dev-20261026` in Dashboard) are preserved so local worktree upstream refs remain intact.
+  - All unmerged branches and all open PRs (13 in `playspot_V2`, 5 in `Playspot_dashboard`) are preserved in **Draft** state, including Mobile [PR #63](https://github.com/salahaldensherief/playspot_V2/pull/63) and Dashboard [PR #67](https://github.com/salahaldensherief/Playspot_dashboard/pull/67), which were converted to Draft so no older October 16 audit PR is accidentally merged without review.
+  - All 58 local worktrees/clones across `C:` and `D:` and `D:\CodexBackups\Docker\codex-docker-original.vhdx` remain 100% untouched.
+
+### 9. Next NEW Product Development Priorities
+
+1. **Apply the Reviewed Backend Migrations to a Backed-Up Hosted Development Target:** Use Supabase SQL Editor or CLI with DB credentials to bring the development Supabase project up to the `dev` migration head (`20261026100000_guard_paid_deposit_payment_quote.sql`), then run full authenticated cross-client E2E checkout (`checkout_booking_cash_atomic`), deposit verification (`verify_booking_deposit_transfer`), and staff permission toggling (`get_lounge_staff_permissions` / `set_staff_permission`).
+2. **Implement Verified Manual Refund & Reversal Ledger Movements:** Add an authorized RPC that writes negative/reversal rows to `private.booking_money_movements` and reconciles `bookings.payment_status`, `booking_payments`, and active shift cash totals when money is actually returned.
+3. **Upgrade Payout Settlement (`settle_lounge_payout_atomic`) for Mixed-Custody Movements:** Compute platform-held vs lounge-held net balances and commissions directly from `private.booking_money_movements`, and add a dedicated platform-finance deposit verification workflow.
+4. **Integrate Remaining Reviewed Open-Time & Financial Drafts:** Rebase and evaluate Mobile Draft PRs [#75](https://github.com/salahaldensherief/playspot_V2/pull/75) (`feature/open-time-customer-display`), [#82](https://github.com/salahaldensherief/playspot_V2/pull/82) (`test/financial-schema-fingerprint`), and [#83](https://github.com/salahaldensherief/playspot_V2/pull/83) (`fix/open-time-partial-status-contract`) against current `dev`.
+
+---
 ## LIVE ADDENDUM — 26 OCTOBER 2026, 18:04+03:00 (READ BEFORE OLDER CHECKPOINT TEXT)
 
 **The following is NEWER than the dated original checkpoint below and takes precedence wherever statuses conflict.**
