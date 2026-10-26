@@ -1,7 +1,6 @@
--- Draft foundation for verified, method-specific booking money movements.
--- Existing payments remain the historical aggregate/projection. No writer is
--- switched by this migration: collection and payout RPCs must be migrated in
--- one coordinated release before this table can become authoritative.
+-- Draft method-specific booking money movements with authorized deposit and
+-- mixed cash collection writers. Existing payments remain the aggregate
+-- projection. Payouts, refunds and clients require a coordinated release.
 CREATE TABLE private.booking_money_movements (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   operation_id uuid NOT NULL UNIQUE,

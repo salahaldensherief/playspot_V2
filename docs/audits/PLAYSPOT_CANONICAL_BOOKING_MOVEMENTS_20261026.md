@@ -4,17 +4,17 @@ Status: **Draft foundation only. Do not merge or deploy independently.**
 
 ## Verified problem
 
-The preserved schema-only export matched 3,607/3,607 catalog objects before Draft migrations. `payments_booking_id_unique` makes `payments` one aggregate row per booking. `shift_payments` records individual shift amounts but lacks idempotency, commission and custody per movement. The effective `create_payout` and `private.payment_settlement_values` attribute the *entire* aggregate row to its one `payment_method`. A verified EGP 20 transfer deposit followed by EGP 130 cash on an EGP 150 final bill cannot be represented faithfully by that one method. The current cash RPC rejects the second method with `PAYMENT_REQUIRES_RECONCILIATION`.
+The preserved schema-only export matched 3,607/3,607 catalog objects before Draft migrations. `payments_booking_id_unique` makes `payments` one aggregate row per booking. `shift_payments` records individual shift amounts but lacks idempotency, commission and custody per movement. The effective `create_payout` and `private.payment_settlement_values` attribute the *entire* aggregate row to its one `payment_method`. A verified EGP 20 transfer deposit followed by EGP 130 cash on an EGP 150 final bill cannot be represented faithfully by that one method. The baseline cash RPC rejects the second method with `PAYMENT_REQUIRES_RECONCILIATION`.
 
 ## Implemented in this Draft
 
-`private.booking_money_movements` holds a verified collection or actual completed refund, in integer minor units. Each row records one operation ID, booking, aggregate payment, shift, method, amount, commission, custody holder, verifying actor, and evidence. Positive collections require exactly one matching `shift_payments` row. Refunds link an original collection and serialize on it; total refunded amount and commission cannot exceed the verified original. Cross-lounge, mismatched shift evidence, mutation after insert, duplicate operation or shift evidence, and direct authenticated access are rejected. `private.booking_movement_payout_entries` prevents concurrent active payouts from claiming one movement twice and validates its method-specific contribution; a failed/cancelled payout can be retried while keeping the old allocation evidence. No client or RPC can currently write these private tables.
+`private.booking_money_movements` holds a verified collection or actual completed refund, in integer minor units. Each row records one operation ID, booking, aggregate payment, shift, method, amount, commission, custody holder, verifying actor, and evidence. Positive collections require exactly one matching `shift_payments` row. Refunds link an original collection and serialize on it; total refunded amount and commission cannot exceed the verified original. Cross-lounge, mismatched shift evidence, mutation after insert, duplicate operation or shift evidence, and direct authenticated access are rejected. `private.booking_movement_payout_entries` prevents concurrent active payouts from claiming one movement twice and validates its method-specific contribution; a failed/cancelled payout can be retried while keeping the old allocation evidence. Public RPCs write verified collection movements; no public refund or payout movement writer is wired yet.
 
 A private `booking_money_coverage` view distinguishes untouched legacy aggregate rows from new rows whose movement gross agrees with the aggregate. It exposes no aggregate `payment_method`, so a payout/report migration can explicitly quarantine rows needing reconciliation rather than infer a method from one legacy field.
 
 The aggregate `payments` row remains unique per booking. No historical payment is automatically classified into the new ledger. Existing payout functions still require a method-specific rewrite before mixed rows can be settled.
 
-## Verified deposit and mixed cash extension (local, pending PR update)
+## Verified deposit and mixed cash extension
 
 `verify_booking_deposit_transfer` requires an authenticated cashier with a personally owned open shift and `billing_checkout`. It treats a receipt reference as evidence only; the cashier attests that funds arrived. It checks the server-stored required deposit against the final booking total, rejects prior collection and conflicting operation IDs, and atomically writes one aggregate payment, shift payment, method-specific movement and partial booking state. Exact replay returns the original movement even if the shift has since closed. It does not mark the entire booking paid.
 
@@ -30,7 +30,7 @@ Applied this Draft migration only in `playspot_financial_restore_20261026_v2` af
 
 1. Review the verified-deposit cashier attestation UI and the canonical atomic cash checkout integration in Draft backend PR #84 and Dashboard cashier PR #83. Submitted transfer proof must remain pending until staff verify actual receipt.
 2. Migrate payout selection, custody, cancellation/failure, settlement assertion and reports to per-movement attribution. Historical aggregate payments need a read-through path with reconciliation quarantine; do not infer an electronic transfer from a mixed aggregate.
-3. Implement branch-level refund deadline and percentage policy with snapshot, eligibility/obligation, manual return authorization, and verified refund movement. `cancel_my_booking` alone does not return money.
+3. Coordinate with Draft PR #88 for branch-level refund deadline/percentage policy and booking snapshots. Add manual return authorization and verified refund movements. `cancel_my_booking` alone does not return money.
 4. Update Mobile and Dashboard payment models, receipts, shift reports, analytics, offline retries and legacy-client behavior. Test restricted roles and authenticated browser flows.
 5. Run exact-schema mixed-method concurrency, idempotency, refund, shift and payout invariants plus staging migration/recovery rehearsal before any production approval request.
 
