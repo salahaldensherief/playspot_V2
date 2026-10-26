@@ -246,6 +246,12 @@ BEGIN
     OR length(trim(p_evidence_reference)) NOT BETWEEN 1 AND 500 THEN
     RAISE EXCEPTION 'INVALID_DEPOSIT_VERIFICATION_REQUEST' USING ERRCODE = '22023';
   END IF;
+  -- A lounge cashier can attest only to the account they can reconcile.
+  -- Platform-held transfers need a separate platform-finance verifier.
+  IF p_funds_holder='platform' THEN
+    RAISE EXCEPTION 'PLATFORM_DEPOSIT_REQUIRES_PLATFORM_VERIFICATION'
+      USING ERRCODE='42501';
+  END IF;
   PERFORM pg_catalog.pg_advisory_xact_lock(
     pg_catalog.hashtextextended(p_booking_id::text,0));
   SELECT * INTO v_booking FROM public.bookings WHERE id=p_booking_id FOR UPDATE;

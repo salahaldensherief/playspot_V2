@@ -65,6 +65,8 @@ async function rejectsAs(db, actor, sql, args, code) {
     const verify = `SELECT public.verify_booking_deposit_transfer($1,$2,$3,$4,$5)
       AS result`;
     const args = [booking,shift,operation,'TEST-BANK-REFERENCE','lounge'];
+    await rejectsAs(db,owner,verify,
+      [booking,shift,operation,'TEST-BANK-REFERENCE','platform'],'42501');
     const legacyApproval = `SELECT public.approve_manual_booking($1,$2)`;
     await rejectsAs(db,owner,legacyApproval,[booking,owner],'55000');
     await rejectsAs(db,outsider,verify,args,'42501');

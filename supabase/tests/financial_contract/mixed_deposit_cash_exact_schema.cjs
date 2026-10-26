@@ -68,7 +68,7 @@ async function rejectsAs(db, id, sql, args, code) {
       true,20,false,'confirmed')`, [booking, customer, lounge, room]);
     const deposit = (await actor(db, owner,
       'SELECT public.verify_booking_deposit_transfer($1,$2,$3,$4,$5) AS result',
-      [booking, shift, depositOp, 'SYNTHETIC-BANK-REFERENCE', 'platform'])).rows[0].result;
+      [booking, shift, depositOp, 'SYNTHETIC-BANK-REFERENCE', 'lounge'])).rows[0].result;
     assert.equal(Number(deposit.collected_minor), 2000);
     await db.query(`UPDATE public.bookings SET status='completed',
       addons_price=50,addons_total=50 WHERE id=$1`, [booking]);
@@ -122,7 +122,7 @@ async function rejectsAs(db, id, sql, args, code) {
       FROM private.booking_money_movements WHERE booking_id=$1 ORDER BY amount_minor`,
       [booking])).rows;
     assert.deepEqual(methods.map(m => [m.payment_method, Number(m.amount_minor), m.funds_holder]),
-      [['manual_transfer', 2000, 'platform'],
+      [['manual_transfer', 2000, 'lounge'],
         ['cash', expectedCash * 100, 'lounge']]);
     await rejectsAs(db, owner, cashSql,
       [booking, shift, 100, randomUUID(), 0, 0, null], '22023');
