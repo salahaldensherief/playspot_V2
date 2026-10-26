@@ -343,10 +343,12 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   Widget _buildBadgesRow() {
-    final isCash = widget.booking.paymentMethod?.toLowerCase() == 'cash';
-    final paymentMethodText = isCash
-        ? AppStrings.cashAtLounge.tr()
-        : AppStrings.manualTransfer.tr();
+    final method = widget.booking.paymentMethod?.toLowerCase();
+    final paymentMethodText = switch (method) {
+      'cash' => AppStrings.cashAtLounge.tr(),
+      'mixed' => AppStrings.mixedPayment.tr(),
+      _ => AppStrings.manualTransfer.tr(),
+    };
 
     return Wrap(
       spacing: 6.w,
@@ -402,6 +404,7 @@ class _BookingCardState extends State<BookingCard> {
         text = AppStrings.paid.tr();
         icon = Icons.check_circle_outline;
         break;
+      case 'partial':
       case 'partially_paid':
         color = AppColors.neonBlue;
         text = AppStrings.partiallyPaid.tr();
