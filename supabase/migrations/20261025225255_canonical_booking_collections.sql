@@ -217,3 +217,346 @@ LEFT JOIN private.booking_money_movements m ON m.payment_id = p.id
 GROUP BY p.id, p.booking_id, p.lounge_id, p.amount;
 REVOKE ALL ON private.booking_money_coverage
   FROM PUBLIC, anon, authenticated, service_role, supabase_auth_admin;
+
+-- Staff attests that the transfer has actually arrived. The submitted receipt
+-- remains only evidence until this authorized transaction commits.
+CREATE FUNCTION public.verify_booking_deposit_transfer(
+  p_booking_id uuid, p_shift_id uuid, p_operation_id uuid,
+  p_evidence_reference text, p_funds_holder text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $function$
+DECLARE
+  v_actor uuid := auth.uid();
+  v_booking public.bookings%ROWTYPE;
+  v_existing private.booking_money_movements%ROWTYPE;
+  v_payment public.payments%ROWTYPE;
+  v_shift_payment uuid;
+  v_amount numeric;
+  v_amount_minor bigint;
+  v_rate numeric;
+  v_commission numeric;
+  v_commission_minor bigint;
+  v_method text;
+  v_result jsonb;
+BEGIN
+  IF v_actor IS NULL THEN
+    RAISE EXCEPTION 'AUTHENTICATION_REQUIRED' USING ERRCODE = '28000';
+  END IF;
+  IF p_booking_id IS NULL OR p_shift_id IS NULL OR p_operation_id IS NULL
+    OR p_funds_holder NOT IN ('platform','lounge')
+    OR p_funds_holder IS NULL OR p_evidence_reference IS NULL
+    OR length(trim(p_evidence_reference)) NOT BETWEEN 1 AND 500 THEN
+    RAISE EXCEPTION 'INVALID_DEPOSIT_VERIFICATION_REQUEST' USING ERRCODE = '22023';
+  END IF;
+  PERFORM pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(p_booking_id::text,0));
+  SELECT * INTO v_booking FROM public.bookings WHERE id=p_booking_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'BOOKING_NOT_FOUND' USING ERRCODE = 'P0002';
+  END IF;
+  PERFORM private.assert_cash_collector(v_actor,v_booking.lounge_id);
+  SELECT * INTO v_existing FROM private.booking_money_movements
+    WHERE operation_id=p_operation_id;
+  IF FOUND THEN
+    IF v_existing.booking_id IS DISTINCT FROM p_booking_id
+      OR v_existing.shift_id IS DISTINCT FROM p_shift_id
+      OR v_existing.verified_by IS DISTINCT FROM v_actor
+      OR v_existing.collection_purpose IS DISTINCT FROM 'deposit'
+      OR v_existing.evidence_reference IS DISTINCT FROM trim(p_evidence_reference)
+      OR v_existing.funds_holder IS DISTINCT FROM p_funds_holder THEN
+      RAISE EXCEPTION 'DEPOSIT_VERIFICATION_REPLAY_CONFLICT' USING ERRCODE = '22023';
+    END IF;
+    RETURN jsonb_build_object('operation_id',p_operation_id,
+      'movement_id',v_existing.id,'booking_id',p_booking_id,
+      'shift_id',p_shift_id,'payment_method',v_existing.payment_method,
+      'collected_minor',v_existing.amount_minor,
+      'commission_minor',v_existing.commission_minor,'replayed',true);
+  END IF;
+  PERFORM private.lock_cash_collection_shift(p_shift_id,v_booking.lounge_id);
+  v_method := v_booking.payment_method;
+  IF v_booking.confirmation_status IS DISTINCT FROM 'confirmed'
+    OR v_booking.status::text NOT IN ('pending','upcoming')
+    OR v_booking.deposit_required IS NOT TRUE
+    OR v_booking.deposit_paid IS TRUE
+    OR v_method IS NULL
+    OR v_method NOT IN ('manual_transfer','instapay','vodafone_cash','app_wallet')
+    OR NULLIF(trim(COALESCE(v_booking.receipt_url,'')),'') IS NULL THEN
+    RAISE EXCEPTION 'BOOKING_NOT_READY_FOR_VERIFIED_DEPOSIT' USING ERRCODE = '55000';
+  END IF;
+  v_amount := v_booking.deposit_amount;
+  IF v_booking.total_price IS NULL
+    OR v_booking.total_price::text IN ('NaN','Infinity','-Infinity')
+    OR v_amount IS NULL OR v_amount::text IN ('NaN','Infinity','-Infinity')
+    OR v_amount <= 0 OR v_amount >= v_booking.total_price
+    OR v_amount <> round(v_amount,2) THEN
+    RAISE EXCEPTION 'INVALID_SERVER_DEPOSIT_AMOUNT' USING ERRCODE = '22023';
+  END IF;
+  v_amount_minor := (v_amount*100)::bigint;
+  IF EXISTS (SELECT 1 FROM public.shift_payments
+      WHERE booking_id=p_booking_id)
+    OR EXISTS (SELECT 1 FROM private.booking_money_movements
+      WHERE booking_id=p_booking_id) THEN
+    RAISE EXCEPTION 'DEPOSIT_REQUIRES_RECONCILIATION' USING ERRCODE = '55000';
+  END IF;
+  SELECT * INTO v_payment FROM public.payments
+    WHERE booking_id=p_booking_id FOR UPDATE;
+  IF FOUND AND (v_payment.status='completed'
+    OR v_payment.payout_id IS NOT NULL
+    OR v_payment.lounge_id IS DISTINCT FROM v_booking.lounge_id) THEN
+    RAISE EXCEPTION 'DEPOSIT_REQUIRES_RECONCILIATION' USING ERRCODE = '55000';
+  END IF;
+  v_rate := private.platform_commission_rate();
+  IF v_rate IS NULL OR v_rate NOT BETWEEN 0 AND 1
+    OR v_rate::text IN ('NaN','Infinity','-Infinity') THEN
+    RAISE EXCEPTION 'INVALID_COMMISSION_POLICY' USING ERRCODE = '55000';
+  END IF;
+  v_commission := round(v_amount*v_rate,2);
+  v_commission_minor := (v_commission*100)::bigint;
+  INSERT INTO public.payments(booking_id,user_id,lounge_id,amount,
+    commission_rate,commission,net_to_lounge,payment_method,status,paid_at)
+  VALUES(p_booking_id,v_booking.user_id,v_booking.lounge_id,v_amount,
+    v_rate,v_commission,v_amount-v_commission,v_method,'completed',now())
+  ON CONFLICT(booking_id) DO UPDATE SET
+    amount=EXCLUDED.amount,commission_rate=EXCLUDED.commission_rate,
+    commission=EXCLUDED.commission,net_to_lounge=EXCLUDED.net_to_lounge,
+    payment_method=EXCLUDED.payment_method,status=EXCLUDED.status,
+    paid_at=EXCLUDED.paid_at
+  RETURNING * INTO v_payment;
+  INSERT INTO public.shift_payments(shift_id,lounge_id,booking_id,
+    payment_method,category,amount,paid_at)
+  VALUES(p_shift_id,v_booking.lounge_id,p_booking_id,v_method,
+    'gaming_time',v_amount,now()) RETURNING id INTO v_shift_payment;
+  INSERT INTO private.booking_money_movements(operation_id,booking_id,
+    payment_id,lounge_id,shift_id,shift_payment_id,movement_type,
+    collection_purpose,payment_method,amount_minor,commission_minor,
+    funds_holder,evidence_reference,verified_by)
+  VALUES(p_operation_id,p_booking_id,v_payment.id,v_booking.lounge_id,
+    p_shift_id,v_shift_payment,'collection','deposit',v_method,
+    v_amount_minor,v_commission_minor,p_funds_holder,
+    trim(p_evidence_reference),v_actor)
+  RETURNING * INTO v_existing;
+  UPDATE public.bookings SET deposit_paid=true,payment_status='partial',
+    updated_at=now() WHERE id=p_booking_id;
+  v_result := jsonb_build_object('operation_id',p_operation_id,
+    'movement_id',v_existing.id,'booking_id',p_booking_id,
+    'shift_id',p_shift_id,'payment_method',v_method,
+    'collected_minor',v_amount_minor,
+    'commission_minor',v_commission_minor,'replayed',false);
+  RETURN v_result;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.verify_booking_deposit_transfer(uuid,uuid,uuid,text,text)
+  FROM PUBLIC, anon, service_role, supabase_auth_admin;
+GRANT EXECUTE ON FUNCTION public.verify_booking_deposit_transfer(uuid,uuid,uuid,text,text)
+  TO authenticated;
+
+-- The aggregate payment method becomes an explicit compatibility marker once
+-- more than one method has actually been collected for a booking. Payout and
+-- reporting must use booking_money_movements for these rows.
+ALTER TABLE public.payments DROP CONSTRAINT payments_payment_method_check;
+ALTER TABLE public.payments ADD CONSTRAINT payments_payment_method_check
+  CHECK (payment_method IN ('cash','manual_transfer','card','vodafone_cash',
+    'fawry','instapay','app_wallet','mixed'));
+ALTER TABLE public.bookings DROP CONSTRAINT bookings_payment_method_check;
+ALTER TABLE public.bookings ADD CONSTRAINT bookings_payment_method_check
+  CHECK (payment_method IN ('cash','manual_transfer','card','vodafone_cash',
+    'fawry','instapay','app_wallet','mixed'));
+
+CREATE OR REPLACE FUNCTION private.cash_collection_paid_amount(
+  p_booking_id uuid,p_lounge_id uuid,p_payment_status text)
+RETURNS numeric LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $function$
+DECLARE
+  v_payment public.payments%ROWTYPE;
+  v_cash numeric;
+  v_shift_gross numeric;
+  v_movement_gross bigint;
+  v_movement_count bigint;
+BEGIN
+  SELECT * INTO v_payment FROM public.payments
+    WHERE booking_id=p_booking_id FOR UPDATE;
+  SELECT count(*),COALESCE(sum(amount_minor),0)
+    INTO v_movement_count,v_movement_gross
+  FROM private.booking_money_movements
+  WHERE booking_id=p_booking_id AND movement_type='collection';
+  IF v_movement_count>0 THEN
+    SELECT COALESCE(sum(amount),0) INTO v_shift_gross
+    FROM public.shift_payments
+    WHERE booking_id=p_booking_id AND lounge_id=p_lounge_id
+      AND category='gaming_time';
+    IF v_payment.id IS NULL OR v_payment.status IS DISTINCT FROM 'completed'
+      OR v_payment.lounge_id IS DISTINCT FROM p_lounge_id
+      OR v_payment.payout_id IS NOT NULL
+      OR v_payment.amount IS NULL OR v_payment.amount<0
+      OR v_payment.amount::text IN ('NaN','Infinity','-Infinity')
+      OR v_payment.amount<>round(v_payment.amount,2)
+      OR v_payment.amount*100 IS DISTINCT FROM v_movement_gross
+      OR v_shift_gross*100 IS DISTINCT FROM v_movement_gross
+      OR EXISTS (SELECT 1 FROM private.booking_money_movements
+        WHERE booking_id=p_booking_id AND movement_type='refund') THEN
+      RAISE EXCEPTION 'PAYMENT_REQUIRES_RECONCILIATION' USING ERRCODE='55000';
+    END IF;
+    RETURN v_payment.amount;
+  END IF;
+  SELECT COALESCE(sum(amount),0) INTO v_cash FROM public.shift_payments
+    WHERE booking_id=p_booking_id AND lounge_id=p_lounge_id
+      AND payment_method='cash';
+  IF v_payment.id IS NOT NULL THEN
+    IF v_payment.payment_method IS DISTINCT FROM 'cash'
+      OR v_payment.status IS DISTINCT FROM 'completed'
+      OR v_payment.lounge_id IS DISTINCT FROM p_lounge_id
+      OR v_payment.payout_id IS NOT NULL OR v_payment.amount IS NULL
+      OR v_payment.amount<0 OR v_payment.amount::text IN ('NaN','Infinity','-Infinity')
+      OR v_payment.amount<>round(v_payment.amount,2)
+      OR v_payment.amount IS DISTINCT FROM v_cash THEN
+      RAISE EXCEPTION 'PAYMENT_REQUIRES_RECONCILIATION' USING ERRCODE='55000';
+    END IF;
+    RETURN v_payment.amount;
+  ELSIF p_payment_status IS DISTINCT FROM 'unpaid' OR v_cash<>0 THEN
+    RAISE EXCEPTION 'PAYMENT_REQUIRES_RECONCILIATION' USING ERRCODE='55000';
+  END IF;
+  RETURN 0;
+END;
+$function$;
+
+CREATE OR REPLACE FUNCTION private.apply_partial_cash_collection_with_movement(
+  p_booking_id uuid,p_shift_id uuid,p_amount_minor numeric,p_operation_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $function$
+DECLARE
+  v_lounge_id uuid;
+  v_allow_cash boolean;
+  v_old_payment public.payments%ROWTYPE;
+  v_payment public.payments%ROWTYPE;
+  v_has_movements boolean;
+  v_has_electronic boolean;
+  v_shift_payment_id uuid;
+  v_movement_id uuid;
+  v_rate numeric;
+  v_new_commission_minor bigint;
+  v_prior_commission_minor bigint;
+  v_booking public.bookings%ROWTYPE;
+  v_paid numeric;
+  v_amount numeric;
+BEGIN
+  SELECT lounge_id INTO v_lounge_id FROM public.bookings WHERE id=p_booking_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'BOOKING_NOT_FOUND' USING ERRCODE='P0002';
+  END IF;
+  SELECT allow_cash_payment INTO v_allow_cash FROM public.lounges
+    WHERE id=v_lounge_id;
+  IF v_allow_cash IS NOT TRUE THEN
+    RAISE EXCEPTION 'CASH_COLLECTION_DISABLED' USING ERRCODE='42501';
+  END IF;
+  SELECT EXISTS(SELECT 1 FROM private.booking_money_movements
+    WHERE booking_id=p_booking_id AND movement_type='collection'),
+    EXISTS(SELECT 1 FROM private.booking_money_movements
+    WHERE booking_id=p_booking_id AND movement_type='collection'
+      AND payment_method<>'cash')
+    INTO v_has_movements,v_has_electronic;
+  SELECT * INTO v_old_payment FROM public.payments
+    WHERE booking_id=p_booking_id FOR UPDATE;
+  -- Historical cash rows without movement evidence remain on their existing
+  -- writer. Do not backfill a partial history by pretending it is complete.
+  IF v_old_payment.id IS NOT NULL AND v_has_movements IS FALSE THEN
+    RETURN private.apply_partial_cash_collection(p_booking_id,p_shift_id,p_amount_minor);
+  END IF;
+  v_rate:=private.platform_commission_rate();
+  IF v_rate IS NULL OR v_rate NOT BETWEEN 0 AND 1
+    OR v_rate::text IN ('NaN','Infinity','-Infinity')
+    OR (v_has_movements AND v_old_payment.commission_rate IS DISTINCT FROM v_rate) THEN
+    RAISE EXCEPTION 'MIXED_COMMISSION_POLICY_REQUIRES_RECONCILIATION'
+      USING ERRCODE='55000';
+  END IF;
+  v_new_commission_minor:=
+    (round((p_amount_minor/100)*v_rate,2)*100)::bigint;
+  SELECT COALESCE(sum(commission_minor),0) INTO v_prior_commission_minor
+  FROM private.booking_money_movements
+  WHERE booking_id=p_booking_id AND movement_type='collection';
+  v_booking:=private.lock_cash_collection_booking(p_booking_id);
+  PERFORM private.lock_cash_collection_shift(p_shift_id,v_booking.lounge_id);
+  v_paid:=private.cash_collection_paid_amount(
+    p_booking_id,v_booking.lounge_id,v_booking.payment_status);
+  v_amount:=p_amount_minor/100;
+  IF v_amount>v_booking.total_price-v_paid THEN
+    RAISE EXCEPTION 'CASH_EXCEEDS_OUTSTANDING_BALANCE' USING ERRCODE='22023';
+  END IF;
+  INSERT INTO private.cash_collection_context(transaction_id,booking_id)
+    VALUES(txid_current(),p_booking_id) ON CONFLICT DO NOTHING;
+  INSERT INTO public.payments(booking_id,user_id,lounge_id,amount,
+    commission_rate,commission,net_to_lounge,payment_method,status,paid_at)
+  VALUES(p_booking_id,v_booking.user_id,v_booking.lounge_id,v_paid+v_amount,
+    v_rate,round((v_paid+v_amount)*v_rate,2),
+    v_paid+v_amount-round((v_paid+v_amount)*v_rate,2),
+    CASE WHEN v_has_electronic THEN 'mixed' ELSE 'cash' END,
+    'completed',now())
+  ON CONFLICT(booking_id) DO UPDATE SET amount=EXCLUDED.amount,
+    commission_rate=EXCLUDED.commission_rate,
+    commission=EXCLUDED.commission,net_to_lounge=EXCLUDED.net_to_lounge,
+    payment_method=EXCLUDED.payment_method,paid_at=EXCLUDED.paid_at;
+  INSERT INTO public.shift_payments(shift_id,lounge_id,booking_id,
+    payment_method,category,amount,paid_at)
+  VALUES(p_shift_id,v_booking.lounge_id,p_booking_id,'cash',
+    'gaming_time',v_amount,now()) RETURNING id INTO v_shift_payment_id;
+  UPDATE public.bookings SET
+    payment_status=CASE WHEN v_paid+v_amount=total_price THEN 'paid'
+      ELSE 'partial' END,
+    payment_method=CASE WHEN v_has_electronic THEN 'mixed' ELSE 'cash' END,
+    updated_at=now() WHERE id=p_booking_id;
+  DELETE FROM private.cash_collection_context
+    WHERE transaction_id=txid_current() AND booking_id=p_booking_id;
+  SELECT * INTO STRICT v_payment FROM public.payments
+    WHERE booking_id=p_booking_id;
+  IF v_payment.commission*100 IS DISTINCT FROM
+      v_prior_commission_minor+v_new_commission_minor THEN
+    RAISE EXCEPTION 'MIXED_COMMISSION_ALLOCATION_CONFLICT' USING ERRCODE='55000';
+  END IF;
+  INSERT INTO private.booking_money_movements(operation_id,booking_id,
+    payment_id,lounge_id,shift_id,shift_payment_id,movement_type,
+    collection_purpose,payment_method,amount_minor,commission_minor,
+    funds_holder,verified_by)
+  VALUES(p_operation_id,p_booking_id,v_payment.id,v_lounge_id,p_shift_id,
+    v_shift_payment_id,'collection','settlement','cash',p_amount_minor::bigint,
+    v_new_commission_minor,'lounge',auth.uid())
+  RETURNING id INTO v_movement_id;
+  RETURN jsonb_build_object('booking_id',p_booking_id,'lounge_id',
+    v_booking.lounge_id,'shift_id',p_shift_id,
+    'shift_payment_id',v_shift_payment_id,'collected_minor',p_amount_minor,
+    'paid_minor',(v_paid+v_amount)*100,
+    'due_minor',(v_booking.total_price-v_paid-v_amount)*100,
+    'payment_status',CASE WHEN v_paid+v_amount=v_booking.total_price
+      THEN 'paid' ELSE 'partial' END,'movement_id',v_movement_id);
+END;
+$function$;
+REVOKE ALL ON FUNCTION private.apply_partial_cash_collection_with_movement(
+  uuid,uuid,numeric,uuid) FROM PUBLIC,anon,authenticated,service_role,supabase_auth_admin;
+
+CREATE OR REPLACE FUNCTION public.collect_booking_cash_partial(
+  p_booking_id uuid,p_shift_id uuid,p_amount_minor numeric,p_operation_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $function$
+DECLARE v_receipt private.cash_collection_receipts%ROWTYPE;v_result jsonb;
+BEGIN
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'AUTHENTICATION_REQUIRED' USING ERRCODE='28000'; END IF;
+  IF p_operation_id IS NULL OR p_booking_id IS NULL OR p_shift_id IS NULL OR p_amount_minor IS NULL
+    OR p_amount_minor::text IN ('NaN','Infinity','-Infinity') OR p_amount_minor<=0
+    OR p_amount_minor<>trunc(p_amount_minor) OR p_amount_minor>9007199254740991 THEN
+    RAISE EXCEPTION 'INVALID_CASH_COLLECTION_REQUEST' USING ERRCODE='22023';
+  END IF;
+  PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_booking_id::text,0));
+  INSERT INTO private.cash_collection_receipts(operation_id,actor_id,booking_id,shift_id,amount_minor)
+    VALUES(p_operation_id,auth.uid(),p_booking_id,p_shift_id,p_amount_minor) ON CONFLICT DO NOTHING;
+  SELECT * INTO STRICT v_receipt FROM private.cash_collection_receipts
+    WHERE operation_id=p_operation_id FOR UPDATE;
+  IF v_receipt.actor_id IS DISTINCT FROM auth.uid() OR v_receipt.booking_id IS DISTINCT FROM p_booking_id
+    OR v_receipt.shift_id IS DISTINCT FROM p_shift_id OR v_receipt.amount_minor IS DISTINCT FROM p_amount_minor THEN
+    RAISE EXCEPTION 'CASH_COLLECTION_REPLAY_CONFLICT' USING ERRCODE='22023';
+  END IF;
+  IF v_receipt.result IS NOT NULL THEN
+    PERFORM private.assert_cash_collector(auth.uid(),(v_receipt.result->>'lounge_id')::uuid);
+    RETURN v_receipt.result||jsonb_build_object('replayed',true);
+  END IF;
+  v_result:=private.apply_partial_cash_collection_with_movement(
+    p_booking_id,p_shift_id,p_amount_minor,p_operation_id)
+    ||jsonb_build_object('operation_id',p_operation_id,'replayed',false);
+  UPDATE private.cash_collection_receipts SET result=v_result
+    WHERE operation_id=p_operation_id;
+  RETURN v_result;
+END;
+$function$;
