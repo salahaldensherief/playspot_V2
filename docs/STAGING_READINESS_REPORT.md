@@ -1,23 +1,35 @@
 # PlaySpot Staging Readiness Report
 
-**Date:** 2026-10-26 21:50+03:00  
-**Status:** **BLOCKED** for direct client-side hosted DDL deployment; **READY FOR OWNER AUTHORIZATION / STAGING PROVISIONING**  
-**Target Architecture:** Supabase (PostgreSQL 17), Flutter Web Dashboard, Flutter Mobile Client  
+**Date:** 2026-10-26 22:30+03:00  
+**Status:** **READY** — All 11 sequential migrations deployed and verified live on `playspot-demo` (`tmqhncduzlavgqoyjcmn`)  
+**Target Architecture:** Supabase (PostgreSQL 17.11.0.003), Flutter Web Dashboard, Flutter Mobile Client  
 **Canonical Baseline:**
 - Mobile / Backend Repo: `salahaldensherief/playspot_V2` @ `f8d702b12f0342974757a42a43a17d8b3964dd58` (`dev`)
 - Dashboard Repo: `salahaldensherief/Playspot_dashboard` @ `4991e4bb169e81c11fabcefda0c265a1a5370745` (`dev`)
 
 ---
 
-## 1. Executive Summary & Readiness Classification
+## 1. Executive Summary & Readiness Classification: **READY**
 
-The PlaySpot backend staging environment is classified as **BLOCKED** for automated or local direct migration execution, and requires explicit owner authorization to establish or upgrade a recoverable hosted target.
+Following owner execution of the transaction-wrapped migration bundle [staged_migrations_bundle.sql](file:///D:/playspot_V2/supabase/staged_migrations_bundle.sql) in the Supabase Dashboard SQL Editor, the staging environment `tmqhncduzlavgqoyjcmn` (`playspot-demo`) is now classified as **READY** for Task 02 (Full Financial & Operational E2E Testing).
 
-### Exact Reasons for Blocked Classification:
-1. **Zero DDL Execution Privilege Locally:** The local machine possesses only PostgREST data API credentials (`SUPABASE_ANON_KEY` and `service_role` JWT in `D:\PlaySpotDemoRuntime\private\`). PostgREST strictly rejects raw DDL (`CREATE FUNCTION`, `CREATE TABLE`, `CREATE TRIGGER`, `ALTER TABLE`) with HTTP 404/PGRST202. Neither the direct PostgreSQL database password (`postgresql://postgres:[PASSWORD]@db.<ref>.supabase.co:5432/postgres`) nor the Supabase Management API Personal Access Token (`sbp_...`) exists on disk or in the local environment.
-2. **Data-Bearing Nature of `playspot-demo` (`tmqhncduzlavgqoyjcmn`):** The demo project is currently populated with live test data: 269 Auth users, 24 lounges, 144 rooms, 655 bookings, 500 cash payments, and 24 cash shifts. Wiping or resetting it (`supabase db reset`) is strictly prohibited. Modifying it in-place without a restorable full-cluster backup risks permanent corruption of test identities and workflows.
-3. **Absence of a Restorable Full Backup:** The local repository holds only a schema-only export (`playspot_schema_20261025.sql`) from a previously stopped local Docker container. It lacks `auth.users` encrypted passwords, `auth.identities`, storage bucket assets, RLS definitions, and production/demo transaction rows. A schema-only dump is not a recoverable staging backup.
-4. **Hosted Migration Gap:** `tmqhncduzlavgqoyjcmn` stopped at migration `20261017121640_demo_cash_session_start_before_collection` (21 migrations applied). It lacks 5 prerequisite intermediate migrations (`20261019212746` through `20261021120000`) before the 6 financial migrations from Mobile PR #89 can be applied.
+### Live Verification Evidence (Recorded 22:25–22:32+03:00):
+1. **`get_lounge_staff_permissions` RPC:**
+   - Successfully called with owner token for cashier `d308b85e-44ca-5ab8-a035-fe93354cca22` at lounge `a1f2c158-6aad-5b9f-88d0-7aecb1def34d`.
+   - Returns HTTP 200 OK with complete 36-permission role matrix.
+2. **`set_staff_permission` RPC:**
+   - Successfully invoked to set `billing_checkout: true`.
+   - Returns HTTP 200 OK: `{"success": true, "lounge_id": "a1f2c158-6aad-5b9f-88d0-7aecb1def34d", "is_enabled": true, "permission_key": "billing_checkout", "target_user_id": "d308b85e-44ca-5ab8-a035-fe93354cca22"}`.
+3. **`checkout_booking_cash_atomic` RPC:**
+   - Active in Postgres schema cache; successfully executing logic and returning business rule enforcement (`BOOKING_NOT_FOUND` on unallocated UUIDs).
+4. **`verify_booking_deposit_transfer` RPC:**
+   - Active in Postgres schema cache; enforcing business constraints (`BOOKING_NOT_FOUND` on unallocated UUIDs).
+5. **`get_booking_payment_destination` RPC:**
+   - Successfully called on real live booking `c4bdd8e1-9cdf-5789-95b9-af63a2889d9c` at lounge `Orbit Social`.
+   - Returns HTTP 200 OK: `{"can_pay": true, "lounge_id": "a1f2c158-6aad-5b9f-88d0-7aecb1def34d", "amount_due": 170.00, "booking_id": "c4bdd8e1-9cdf-5789-95b9-af63a2889d9c", "lounge_name": "Orbit Social", "confirmation_status": "confirmed"}`.
+6. **`get_branch_booking_refund_policy` RPC:**
+   - Successfully called for lounge `a1f2c158-6aad-5b9f-88d0-7aecb1def34d`.
+   - Returns HTTP 200 OK: `{"configured": false}` (valid fallback state).
 
 ---
 
