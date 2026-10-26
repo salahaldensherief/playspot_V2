@@ -20,7 +20,10 @@ async function rejectsAs(db, id, sql, args, code) {
   await db.query('SAVEPOINT expected_failure');
   await db.query('SET LOCAL ROLE authenticated');
   await db.query("SELECT set_config('request.jwt.claim.sub',$1,true)", [id]);
-  await assert.rejects(db.query(sql, args), { code });
+  await assert.rejects(db.query(sql, args), error => {
+    assert.equal(error.code, code, error.message);
+    return true;
+  });
   await db.query('ROLLBACK TO SAVEPOINT expected_failure');
   await db.query('RELEASE SAVEPOINT expected_failure');
 }
