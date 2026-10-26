@@ -19,7 +19,8 @@ class BookingModel extends Equatable {
   final String startTime;
   final String endTime;
   final BookingStatus status;
-  final String paymentStatus; // unpaid, paid, refunded, partially_paid
+  final String
+  paymentStatus; // unpaid, partial, paid, refunded (legacy: partially_paid)
   final double totalPrice;
   final String? playMode;
   final String? mapsLink;

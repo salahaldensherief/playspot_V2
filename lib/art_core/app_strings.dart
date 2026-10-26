@@ -240,6 +240,7 @@ class AppStrings {
   static const String total = "total";
   static const String addOns = "addOns";
   static const String manualTransfer = "manualTransfer";
+  static const String mixedPayment = "mixedPayment";
   static const String firstBooking = "firstBooking";
   static const String cashArrivalNotice = "cashArrivalNotice";
   static const String cancellationReason = "cancellationReason";

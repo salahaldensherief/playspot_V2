@@ -236,6 +236,7 @@
   "total": "الإجمالي",
   "addOns": "الطلبات والمشروبات",
   "manualTransfer": "تحويل يدوي",
+  "mixedPayment": "تحويل + كاش",
   "firstBooking": "أول حجز",
   "cashArrivalNotice": "يرجى الحضور في الموعد المحدد لتجنب إلغاء الحجز تلقائيًا بعد انتهاء مهلة السماح.",
   "cancellationReason": "سبب الإلغاء",
