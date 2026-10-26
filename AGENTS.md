@@ -80,3 +80,7 @@ Mobile booking badges recognize backend `partial` and legacy `partially_paid` as
 ## Draft branch refund policy (26 October 2026)
 
 The product owner chose a refund deadline and percentage configured by each branch owner. The Draft backend stores immutable policy versions and snapshots the version on new bookings. Eligibility uses server timestamps and never implies that cash or transfer funds were returned. Historical bookings without a snapshot require manual review. Do not deploy the policy alone; actual refund obligations, verified manual return movements, client presentation and payout/shift reconciliation remain required. See [the branch refund policy audit](docs/audits/PLAYSPOT_BRANCH_REFUND_POLICY_20261026.md).
+
+## Current dev transfer checkpoint (26 October 2026)
+
+Backend/Mobile financial and owner-permission source from PRs #84–#88 was merged into `dev` by PR #89, but no hosted Supabase migration was applied by that source merge. Dashboard Preview isolation PR #85 was merged into its `dev`; Dashboard cashier and employee-permission PRs #83/#84 remain Draft. For the exact verified commits, local worktrees, APK, tests and outstanding Auth/financial blockers, read [the final Codex handoff](docs/ANTIGRAVITY_FINAL_CODEX_HANDOFF.md), then verify current remotes because this checkpoint can age.
