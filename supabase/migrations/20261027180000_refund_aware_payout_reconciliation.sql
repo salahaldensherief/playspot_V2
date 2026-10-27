@@ -425,21 +425,7 @@ SELECT
     WHEN m.funds_holder = 'platform' THEN m.net_to_lounge_minor
     ELSE -m.commission_minor
   END AS contribution_minor,
-  (
-    CASE
-      WHEN m.movement_type = 'collection'
-        AND p.paid_at IS NOT NULL
-        AND abs(extract(epoch FROM (m.verified_at - p.paid_at))) > 60
-        AND (
-          SELECT count(*)
-          FROM private.booking_money_movements m2
-          WHERE m2.payment_id = m.payment_id
-            AND m2.movement_type = 'collection'
-        ) = 1
-      THEN p.paid_at
-      ELSE m.verified_at
-    END AT TIME ZONE 'Africa/Cairo'
-  )::date AS settlement_date,
+  (m.verified_at AT TIME ZONE 'Africa/Cairo')::date AS settlement_date,
   EXISTS (
     SELECT 1
     FROM private.booking_movement_payout_entries bmpe
@@ -669,6 +655,16 @@ BEGIN
                 SELECT 1
                 FROM private.booking_money_movements m_unsettled
                 WHERE m_unsettled.payment_id = p.id
+                  AND (
+                    v_payout.period_end IS NULL
+                    OR (m_unsettled.verified_at AT TIME ZONE 'Africa/Cairo')::date <= v_payout.period_end
+                    OR EXISTS (
+                      SELECT 1
+                      FROM private.booking_movement_payout_entries bmpe_orig
+                      WHERE bmpe_orig.payout_id = p_payout_id
+                        AND bmpe_orig.movement_id = m_unsettled.reversal_of
+                    )
+                  )
                   AND NOT EXISTS (
                     SELECT 1
                     FROM private.booking_movement_payout_entries bmpe2
@@ -818,6 +814,7 @@ SET search_path TO ''
 AS $function$
 DECLARE
   v_payout uuid;
+  v_candidate_payment_ids uuid[] := ARRAY[]::uuid[];
   v_legacy_ids uuid[] := ARRAY[]::uuid[];
   v_movement_ids uuid[] := ARRAY[]::uuid[];
   v_movement_payment_ids uuid[] := ARRAY[]::uuid[];
@@ -845,7 +842,10 @@ BEGIN
     RAISE EXCEPTION 'OVERLAPPING_ACTIVE_PAYOUT' USING ERRCODE = '55000';
   END IF;
 
-  -- Preserve canonical lock ordering: bookings -> payments -> movements
+  -- Preserve canonical lock ordering: bookings -> payments -> movements,
+  -- scoped strictly to candidate bookings/payments/movements that have
+  -- unsettled legacy payments, unsettled canonical movements, or active
+  -- pending refund requests (leaving historical paid settlements unlocked).
   PERFORM 1
   FROM public.bookings b
   WHERE b.lounge_id = p_lounge_id
@@ -854,29 +854,54 @@ BEGIN
       FROM public.payments p
       WHERE p.booking_id = b.id
         AND p.lounge_id = p_lounge_id
+        AND (
+          p.payout_id IS NULL
+          OR EXISTS (
+            SELECT 1
+            FROM private.movement_settlement_values m
+            WHERE m.payment_id = p.id
+              AND NOT m.is_settled
+          )
+          OR EXISTS (
+            SELECT 1
+            FROM private.booking_refund_requests req
+            WHERE req.payment_id = p.id
+              AND req.status = 'approved_pending_return'
+          )
+        )
     )
   ORDER BY b.id
   FOR UPDATE;
 
-  PERFORM 1
-  FROM public.payments p
-  WHERE p.lounge_id = p_lounge_id
-    AND (
-      (p.payout_id IS NULL AND p.status = 'completed' AND (p.paid_at AT TIME ZONE 'Africa/Cairo')::date <= p_period_end)
-      OR EXISTS (
-        SELECT 1
-        FROM private.movement_settlement_values m
-        WHERE m.payment_id = p.id
-          AND NOT m.is_settled
-          AND m.settlement_date <= p_period_end
+  SELECT COALESCE(array_agg(locked_p.id ORDER BY locked_p.id), ARRAY[]::uuid[])
+  INTO v_candidate_payment_ids
+  FROM (
+    SELECT p.id
+    FROM public.payments p
+    WHERE p.lounge_id = p_lounge_id
+      AND (
+        p.payout_id IS NULL
+        OR EXISTS (
+          SELECT 1
+          FROM private.movement_settlement_values m
+          WHERE m.payment_id = p.id
+            AND NOT m.is_settled
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM private.booking_refund_requests req
+          WHERE req.payment_id = p.id
+            AND req.status = 'approved_pending_return'
+        )
       )
-    )
-  ORDER BY p.id
-  FOR UPDATE;
+    ORDER BY p.id
+    FOR UPDATE
+  ) locked_p;
 
   PERFORM 1
   FROM private.booking_money_movements m
   WHERE m.lounge_id = p_lounge_id
+    AND m.payment_id = ANY(v_candidate_payment_ids)
   ORDER BY m.id
   FOR UPDATE;
 
@@ -885,6 +910,7 @@ BEGIN
     SELECT 1
     FROM private.payment_settlement_values p
     WHERE p.lounge_id = p_lounge_id
+      AND p.id = ANY(v_candidate_payment_ids)
       AND p.status = 'completed'
       AND p.payout_id IS NULL
       AND p.settlement_date <= p_period_end
@@ -902,6 +928,7 @@ BEGIN
     SELECT 1
     FROM private.payment_settlement_values p
     WHERE p.lounge_id = p_lounge_id
+      AND p.id = ANY(v_candidate_payment_ids)
       AND p.status = 'completed'
       AND p.payout_id IS NULL
       AND p.settlement_date <= p_period_end
@@ -925,6 +952,7 @@ BEGIN
   INTO v_legacy_ids, v_legacy_total
   FROM private.payment_settlement_values p
   WHERE p.lounge_id = p_lounge_id
+    AND p.id = ANY(v_candidate_payment_ids)
     AND p.status = 'completed'
     AND p.payout_id IS NULL
     AND p.settlement_date <= p_period_end
@@ -942,19 +970,16 @@ BEGIN
         AND (b.status::text <> 'completed' OR b.payment_status IS DISTINCT FROM 'paid')
     );
 
-  -- 4. Collect eligible canonical movements (including pre-payout and post-payout refunds)
+  -- 4. Collect eligible canonical movements (including pre-payout refunds,
+  --    post-payout refunds, and prior-period unsettled movements on finalized bookings)
   WITH base_movements AS (
     SELECT m.*
     FROM private.movement_settlement_values m
     WHERE m.lounge_id = p_lounge_id
+      AND m.payment_id = ANY(v_candidate_payment_ids)
       AND NOT m.is_settled
       AND m.booking_finalized IS TRUE
       AND m.settlement_date <= p_period_end
-      AND (
-        m.funds_holder = 'lounge'
-        OR m.movement_type = 'refund'
-        OR m.settlement_date >= p_period_start
-      )
   ),
   -- Ensure any unsettled refund tied to a selected collection movement is included
   -- even if its timestamp fell after p_period_end, so a collection is never

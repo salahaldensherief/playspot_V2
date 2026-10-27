@@ -1265,10 +1265,12 @@ try {
   });
 
   // =========================================================================
-  // SCENARIO 6: Cancelling or failing an in-flight payout restores prior 'paid' payout_id
-  // on post-payout refunded payments, releases new payments to NULL, and allows clean retry
+  // SCENARIO 6: Cancelling, failing, or review-cancelling an in-flight payout
+  // restores prior 'paid' payout_id on post-payout refunded payments, releases
+  // new payments to NULL, marks movements unsettled, preserves historical paid
+  // payouts, and allows clean re-settlement
   // =========================================================================
-  await check('Scenario 6: cancel_payout and fail_payout restore prior paid payout_id on post-payout refunded payments and allow clean re-settlement', async () => {
+  await check('Scenario 6a: cancel_payout restores prior paid payout_id on post-payout refunded payments, marks movements unsettled, and allows clean re-settlement', async () => {
     await resetLoungeFinancialState();
     const octDep = await createPlatformVerifiedDepositBooking({
       totalPrice: 100.0,
@@ -1285,7 +1287,7 @@ try {
     await db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-S6-1')`, [p1.payout_id]);
 
     // Post-payout partial refund of 20.00 EGP (-17.00 EGP) + new Nov booking of 100.00 EGP (+85.00 EGP) = 68.00 EGP
-    await executeVerifiedRefund({
+    const octRef = await executeVerifiedRefund({
       bookingId: octDep.bookingId,
       movementId: octDep.movementId,
       amount: 20.0,
@@ -1306,15 +1308,288 @@ try {
     assert.equal(Number(p2.amount), 68.0);
 
     // Cancel p2 -> octDep.paymentId must revert to p1.payout_id, and novDep.paymentId must revert to NULL!
-    await db.query(`SELECT public.cancel_payout($1, 'Cancel test')`, [p2.payout_id]);
+    const cancelRes = (await db.query(`SELECT public.cancel_payout($1, 'Cancel test') AS r`, [p2.payout_id])).rows[0].r;
+    assert.equal(cancelRes.status, 'cancelled');
 
     const octPayAfterCancel = (await admin(`SELECT payout_id FROM public.payments WHERE id = $1`, [octDep.paymentId])).rows[0];
     const novPayAfterCancel = (await admin(`SELECT payout_id FROM public.payments WHERE id = $1`, [novDep.paymentId])).rows[0];
     assert.equal(octPayAfterCancel.payout_id, p1.payout_id);
     assert.equal(novPayAfterCancel.payout_id, null);
 
+    // Verify movement settlement state reverted to is_settled = false for the cancelled payout's movements,
+    // while octDep.movementId remains is_settled = true from p1
+    const movStates = (
+      await admin(
+        `
+          SELECT movement_id, is_settled
+          FROM private.movement_settlement_values
+          WHERE movement_id IN ($1, $2, $3)
+        `,
+        [octDep.movementId, octRef.reversalMovementId, novDep.movementId]
+      )
+    ).rows;
+    const stateMap = new Map(movStates.map((r) => [r.movement_id, r.is_settled]));
+    assert.equal(stateMap.get(octDep.movementId), true);
+    assert.equal(stateMap.get(octRef.reversalMovementId), false);
+    assert.equal(stateMap.get(novDep.movementId), false);
+
     // Re-create November payout -> succeeds with the exact same 68.00 EGP balance!
     await asActor(superAdmin);
+    const p3 = (
+      await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(p3.success, true);
+    assert.equal(Number(p3.amount), 68.0);
+    assert.equal(Number(p3.movement_count), 2);
+  });
+
+  await check('Scenario 6b: fail_payout restores prior paid payout_id, releases new payments to NULL, marks movements unsettled, preserves historical paid payout, and allows replacement payout', async () => {
+    await resetLoungeFinancialState();
+    const octDep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-10-10',
+    });
+
+    await asActor(superAdmin);
+    const p1 = (
+      await db.query(`SELECT public.create_payout($1, '2026-10-01', '2026-10-31') AS r`, [lounge])
+    ).rows[0].r;
+    await db.query(`SELECT public.approve_payout($1)`, [p1.payout_id]);
+    await db.query(`SELECT public.start_payout_processing($1)`, [p1.payout_id]);
+    await db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-S6B-1')`, [p1.payout_id]);
+
+    const octRef = await executeVerifiedRefund({
+      bookingId: octDep.bookingId,
+      movementId: octDep.movementId,
+      amount: 20.0,
+      fundsHolder: 'platform',
+      refundMethod: 'instapay',
+      verifiedDay: '2026-11-05',
+    });
+    const novDep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-11-10',
+    });
+
+    await asActor(superAdmin);
+    const p2 = (
+      await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(Number(p2.amount), 68.0);
+
+    // fail_payout rejects while payout is still 'pending' (must be 'approved' or 'processing')
+    await expectReject(
+      'fail_payout rejected while payout status is pending',
+      () => db.query(`SELECT public.fail_payout($1, 'Premature failure')`, [p2.payout_id]),
+      'P0001',
+      superAdmin
+    );
+
+    // Advance p2 to 'approved' -> 'processing', then fail it
+    await asActor(superAdmin);
+    await db.query(`SELECT public.approve_payout($1, 'Approved for bank transfer')`, [p2.payout_id]);
+    await db.query(`SELECT public.start_payout_processing($1)`, [p2.payout_id]);
+
+    const failRes = (
+      await db.query(`SELECT public.fail_payout($1, 'Bank transfer rejected by beneficiary bank') AS r`, [p2.payout_id])
+    ).rows[0].r;
+    assert.equal(failRes.success, true);
+    assert.equal(failRes.status, 'failed');
+
+    const failedPayoutRow = (
+      await admin(`SELECT status, failure_reason FROM public.payouts WHERE id = $1`, [p2.payout_id])
+    ).rows[0];
+    assert.equal(failedPayoutRow.status, 'failed');
+    assert.equal(failedPayoutRow.failure_reason, 'Bank transfer rejected by beneficiary bank');
+
+    // Verify payment links restored: octDep -> p1.payout_id ('paid'), novDep -> NULL
+    const octPayAfterFail = (await admin(`SELECT payout_id FROM public.payments WHERE id = $1`, [octDep.paymentId])).rows[0];
+    const novPayAfterFail = (await admin(`SELECT payout_id FROM public.payments WHERE id = $1`, [novDep.paymentId])).rows[0];
+    assert.equal(octPayAfterFail.payout_id, p1.payout_id);
+    assert.equal(novPayAfterFail.payout_id, null);
+
+    // Verify movement settlement states after fail_payout
+    const movStates = (
+      await admin(
+        `
+          SELECT movement_id, is_settled
+          FROM private.movement_settlement_values
+          WHERE movement_id IN ($1, $2, $3)
+        `,
+        [octDep.movementId, octRef.reversalMovementId, novDep.movementId]
+      )
+    ).rows;
+    const stateMap = new Map(movStates.map((r) => [r.movement_id, r.is_settled]));
+    assert.equal(stateMap.get(octDep.movementId), true);
+    assert.equal(stateMap.get(octRef.reversalMovementId), false);
+    assert.equal(stateMap.get(novDep.movementId), false);
+
+    // Historical paid payout p1 remains completely immutable
+    await asActor(superAdmin);
+    const details1 = (await db.query(`SELECT public.get_payout_details($1) AS r`, [p1.payout_id])).rows[0].r;
+    assert.equal(details1.payout.status, 'paid');
+    assert.equal(Number(details1.payout.total_amount), 85.0);
+    assert.equal(Number(details1.reconciliation.calculated_net), 85.0);
+    assert.equal(Number(details1.reconciliation.difference), 0);
+
+    // Replacement November payout p3 succeeds and completes to 'paid'
+    const p3 = (
+      await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(p3.success, true);
+    assert.equal(Number(p3.amount), 68.0);
+    assert.equal(Number(p3.payment_count), 2);
+    assert.equal(Number(p3.movement_count), 2);
+
+    await db.query(`SELECT public.approve_payout($1)`, [p3.payout_id]);
+    await db.query(`SELECT public.start_payout_processing($1)`, [p3.payout_id]);
+    await db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-S6B-3')`, [p3.payout_id]);
+  });
+
+  await check('Scenario 6c: resolve_payout_review supports approve and cancel, restores prior paid payout_id on cancel, notifies owner, and allows clean re-settlement', async () => {
+    await resetLoungeFinancialState();
+    await admin(`DELETE FROM public.notifications WHERE lounge_id = $1`, [lounge]);
+
+    const octDep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-10-10',
+    });
+
+    await asActor(superAdmin);
+    const p1 = (
+      await db.query(`SELECT public.create_payout($1, '2026-10-01', '2026-10-31') AS r`, [lounge])
+    ).rows[0].r;
+    await db.query(`SELECT public.approve_payout($1)`, [p1.payout_id]);
+    await db.query(`SELECT public.start_payout_processing($1)`, [p1.payout_id]);
+    await db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-S6C-1')`, [p1.payout_id]);
+
+    const octRef = await executeVerifiedRefund({
+      bookingId: octDep.bookingId,
+      movementId: octDep.movementId,
+      amount: 20.0,
+      fundsHolder: 'platform',
+      refundMethod: 'instapay',
+      verifiedDay: '2026-11-05',
+    });
+    const novDep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-11-10',
+    });
+
+    await asActor(superAdmin);
+    const p2 = (
+      await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(Number(p2.amount), 68.0);
+
+    // Calling resolve_payout_review when status is 'pending' (not 'needs_review') rejects
+    await expectReject(
+      'resolve_payout_review rejected when status is not needs_review',
+      () => db.query(`SELECT public.resolve_payout_review($1, 'approve', 'Not in review')`, [p2.payout_id]),
+      'P0001',
+      superAdmin
+    );
+
+    await admin(`UPDATE public.payouts SET status = 'needs_review' WHERE id = $1`, [p2.payout_id]);
+
+    // Invalid resolution or blank reason rejects
+    await expectReject(
+      'resolve_payout_review rejected on invalid resolution',
+      () => db.query(`SELECT public.resolve_payout_review($1, 'hold', 'Invalid action')`, [p2.payout_id]),
+      'P0001',
+      superAdmin
+    );
+    await expectReject(
+      'resolve_payout_review rejected on blank reason',
+      () => db.query(`SELECT public.resolve_payout_review($1, 'approve', '   ')`, [p2.payout_id]),
+      'P0001',
+      superAdmin
+    );
+
+    // 1. resolve_payout_review('approve') returns status to 'pending' and keeps payments linked
+    await asActor(superAdmin);
+    const approveReviewRes = (
+      await db.query(
+        `SELECT public.resolve_payout_review($1, 'approve', 'Verified bank account details') AS r`,
+        [p2.payout_id]
+      )
+    ).rows[0].r;
+    assert.equal(approveReviewRes.success, true);
+    assert.equal(approveReviewRes.status, 'pending');
+
+    const p2AfterApproveReview = (
+      await admin(`SELECT status, notes FROM public.payouts WHERE id = $1`, [p2.payout_id])
+    ).rows[0];
+    assert.equal(p2AfterApproveReview.status, 'pending');
+    assert.ok(p2AfterApproveReview.notes.includes('Review resolved: Verified bank account details'));
+
+    // 2. Put p2 back into 'needs_review' and resolve with 'cancel'
+    await admin(`UPDATE public.payouts SET status = 'needs_review' WHERE id = $1`, [p2.payout_id]);
+
+    await asActor(superAdmin);
+    const cancelReviewRes = (
+      await db.query(
+        `SELECT public.resolve_payout_review($1, 'cancel', 'Beneficiary IBAN mismatch') AS r`,
+        [p2.payout_id]
+      )
+    ).rows[0].r;
+    assert.equal(cancelReviewRes.success, true);
+    assert.equal(cancelReviewRes.status, 'cancelled');
+
+    const p2AfterCancelReview = (
+      await admin(`SELECT status, cancelled_reason, cancelled_by FROM public.payouts WHERE id = $1`, [p2.payout_id])
+    ).rows[0];
+    assert.equal(p2AfterCancelReview.status, 'cancelled');
+    assert.equal(p2AfterCancelReview.cancelled_reason, 'Beneficiary IBAN mismatch');
+    assert.equal(p2AfterCancelReview.cancelled_by, superAdmin);
+
+    // Verify payment links restored: octDep -> p1.payout_id ('paid'), novDep -> NULL
+    const octPayAfterReviewCancel = (await admin(`SELECT payout_id FROM public.payments WHERE id = $1`, [octDep.paymentId])).rows[0];
+    const novPayAfterReviewCancel = (await admin(`SELECT payout_id FROM public.payments WHERE id = $1`, [novDep.paymentId])).rows[0];
+    assert.equal(octPayAfterReviewCancel.payout_id, p1.payout_id);
+    assert.equal(novPayAfterReviewCancel.payout_id, null);
+
+    // Verify movement settlement states after review cancel
+    const movStates = (
+      await admin(
+        `
+          SELECT movement_id, is_settled
+          FROM private.movement_settlement_values
+          WHERE movement_id IN ($1, $2, $3)
+        `,
+        [octDep.movementId, octRef.reversalMovementId, novDep.movementId]
+      )
+    ).rows;
+    const stateMap = new Map(movStates.map((r) => [r.movement_id, r.is_settled]));
+    assert.equal(stateMap.get(octDep.movementId), true);
+    assert.equal(stateMap.get(octRef.reversalMovementId), false);
+    assert.equal(stateMap.get(novDep.movementId), false);
+
+    // Verify owner notification was emitted with exact metadata
+    const notifs = (
+      await admin(
+        `SELECT user_id, lounge_id, type, metadata FROM public.notifications WHERE lounge_id = $1 AND type = 'payout'`,
+        [lounge]
+      )
+    ).rows;
+    assert.equal(notifs.length, 1);
+    assert.equal(notifs[0].user_id, owner);
+    assert.equal(notifs[0].metadata.payout_id, p2.payout_id);
+    assert.equal(notifs[0].metadata.reason, 'Beneficiary IBAN mismatch');
+    assert.equal(Number(notifs[0].metadata.amount), 68.0);
+
+    // Historical paid payout p1 remains untouched
+    await asActor(superAdmin);
+    const details1 = (await db.query(`SELECT public.get_payout_details($1) AS r`, [p1.payout_id])).rows[0].r;
+    assert.equal(details1.payout.status, 'paid');
+    assert.equal(Number(details1.payout.total_amount), 85.0);
+    assert.equal(Number(details1.reconciliation.difference), 0);
+
+    // Re-create November payout p3 -> succeeds with 68.00 EGP
     const p3 = (
       await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
     ).rows[0].r;
@@ -1362,10 +1637,10 @@ try {
   // - Period 2 (Oct): 80.00 EGP post-payout refund (-68.00 EGP) + 40.00 EGP new collection (+34.00 EGP)
   //   -> net -34.00 EGP -> Oct create_payout returns NO_POSITIVE_SETTLEMENT_BALANCE and retains both movements.
   // - Period 3 (Nov): 100.00 EGP new platform deposit (+85.00 EGP)
-  //   -> Nov create_payout carries Oct's unsettled -68.00 EGP refund (and if period_start covers Oct or refund carries)
-  //   -> Let's verify exact multi-period carry-forward!
+  //   -> Nov create_payout ('2026-11-01'..'2026-11-30') carries forward BOTH Oct's unsettled -68.00 EGP refund
+  //      and Oct's unsettled +34.00 EGP collection alongside Nov's +85.00 EGP collection = 51.00 EGP!
   // =========================================================================
-  await check('Scenario 8: negative net balance in Period 2 (post-payout refund exceeds new collection) blocks Period 2 payout and carries the refund deduction into Period 3', async () => {
+  await check('Scenario 8: negative net balance in Period 2 (post-payout refund exceeds new collection) blocks Period 2 payout and carries both unsettled Period 2 movements into Period 3', async () => {
     await resetLoungeFinancialState();
     // Period 1 (Sep): 100.00 EGP platform deposit -> Payout 1 = 85.00 EGP ('paid')
     const sepDep = await createPlatformVerifiedDepositBooking({
@@ -1406,8 +1681,8 @@ try {
     assert.equal(pOct.error, 'NO_POSITIVE_SETTLEMENT_BALANCE');
 
     // Period 3 (Nov): 100.00 EGP new platform deposit (+85.00 EGP).
-    // Combined with Oct's unsettled +34.00 EGP and -68.00 EGP (period 2026-10-01..2026-11-30):
-    // +34.00 - 68.00 + 85.00 = 51.00 EGP!
+    // Calling create_payout for the strict November period ('2026-11-01'..'2026-11-30')
+    // carries forward Oct's unsettled +34.00 EGP and -68.00 EGP plus Nov's +85.00 EGP = 51.00 EGP!
     await createPlatformVerifiedDepositBooking({
       totalPrice: 200.0,
       depositAmount: 100.0,
@@ -1416,7 +1691,7 @@ try {
 
     await asActor(superAdmin);
     const pNov = (
-      await db.query(`SELECT public.create_payout($1, '2026-10-01', '2026-11-30') AS r`, [lounge])
+      await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
     ).rows[0].r;
     assert.equal(pNov.success, true);
     assert.equal(Number(pNov.amount), 51.0);
@@ -1424,9 +1699,9 @@ try {
   });
 
   // =========================================================================
-  // SCENARIO 9: Authorization & tamper guards
+  // SCENARIO 9: Authorization & assert_payout_settlement drift detection
   // =========================================================================
-  await check('Scenario 9: non-super-admin cannot verify platform deposit or call payout RPCs, and assert_payout_settlement blocks drifted payouts', async () => {
+  await check('Scenario 9a: non-super-admin cannot verify platform deposit or call payout RPCs', async () => {
     await resetLoungeFinancialState();
     const bId = randomUUID();
     await admin(
@@ -1472,6 +1747,315 @@ try {
     );
   });
 
+  await check('Scenario 9b: assert_payout_settlement blocks approve_payout, resolve_payout_review(approve), start_payout_processing, and complete_payout when payment financials, payout_id link, pending refund requests, or unsettled movements drift', async () => {
+    await resetLoungeFinancialState();
+    const dep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-10-10',
+    });
+
+    await asActor(superAdmin);
+    const pDrift = (
+      await db.query(`SELECT public.create_payout($1, '2026-10-01', '2026-10-31') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(pDrift.success, true);
+    assert.equal(Number(pDrift.amount), 85.0);
+
+    // 1. Payment financial drift: tamper with public.payments.amount/commission/net_to_lounge
+    await admin(`
+      ALTER TABLE public.payments DISABLE TRIGGER USER;
+      UPDATE public.payments
+      SET amount = 90.00, commission = 13.50, net_to_lounge = 76.50
+      WHERE id = '${dep.paymentId}';
+      ALTER TABLE public.payments ENABLE TRIGGER USER;
+    `);
+    await expectReject(
+      'approve_payout blocked when payment amount drifts from movement entries',
+      () => db.query(`SELECT public.approve_payout($1, 'Should fail on amount drift')`, [pDrift.payout_id]),
+      '55000',
+      superAdmin
+    );
+    await admin(`
+      ALTER TABLE public.payments DISABLE TRIGGER USER;
+      UPDATE public.payments
+      SET amount = 100.00, commission = 15.00, net_to_lounge = 85.00
+      WHERE id = '${dep.paymentId}';
+      ALTER TABLE public.payments ENABLE TRIGGER USER;
+    `);
+
+    // 2. Payment payout_id link drift: unlink payment from in-flight payout
+    await admin(`UPDATE public.payments SET payout_id = NULL WHERE id = '${dep.paymentId}'`);
+    await expectReject(
+      'approve_payout blocked when payment payout_id link drifts',
+      () => db.query(`SELECT public.approve_payout($1, 'Should fail on payout_id drift')`, [pDrift.payout_id]),
+      '55000',
+      superAdmin
+    );
+    await admin(`UPDATE public.payments SET payout_id = '${pDrift.payout_id}' WHERE id = '${dep.paymentId}'`);
+
+    // 3. Pending refund request drift during needs_review -> resolve_payout_review(approve)
+    const fakeReqId = randomUUID();
+    await admin(`
+      UPDATE public.payouts SET status = 'needs_review' WHERE id = '${pDrift.payout_id}';
+      INSERT INTO private.booking_refund_requests(
+        id, operation_id, booking_id, payment_id, lounge_id, target_movement_id,
+        funds_holder, requested_amount_minor, approved_commission_reversal_minor,
+        refund_reason, policy_decision, status, initiated_by
+      ) VALUES (
+        '${fakeReqId}', '${randomUUID()}', '${dep.bookingId}', '${dep.paymentId}', '${lounge}', '${dep.movementId}',
+        'platform', 2000, 300,
+        'Drift test pending refund', '{"eligible":true}'::jsonb, 'approved_pending_return', '${superAdmin}'
+      );
+    `);
+    await expectReject(
+      'resolve_payout_review(approve) blocked when approved_pending_return refund request exists on payment',
+      () => db.query(`SELECT public.resolve_payout_review($1, 'approve', 'Should fail')`, [pDrift.payout_id]),
+      '55000',
+      superAdmin
+    );
+    await admin(`DELETE FROM private.booking_refund_requests WHERE id = '${fakeReqId}'`);
+
+    // Once pending refund request is removed, resolve_payout_review(approve) succeeds
+    await asActor(superAdmin);
+    const revOk = (
+      await db.query(`SELECT public.resolve_payout_review($1, 'approve', 'Drift cleared') AS r`, [pDrift.payout_id])
+    ).rows[0].r;
+    assert.equal(revOk.status, 'pending');
+
+    // Approve and move to processing
+    await db.query(`SELECT public.approve_payout($1, 'Approved after drift cleared')`, [pDrift.payout_id]);
+    await db.query(`SELECT public.start_payout_processing($1)`, [pDrift.payout_id]);
+
+    // 4. Unsettled movement drift on the payment before complete_payout
+    const driftedMovId = randomUUID();
+    await admin(`
+      ALTER TABLE private.booking_money_movements DISABLE TRIGGER USER;
+      INSERT INTO private.booking_money_movements(
+        id, operation_id, booking_id, payment_id, lounge_id, shift_id,
+        movement_type, collection_purpose, payment_method,
+        amount_minor, commission_minor, funds_holder, reversal_of,
+        evidence_reference, verified_by, verified_at
+      ) VALUES (
+        '${driftedMovId}', '${randomUUID()}', '${dep.bookingId}', '${dep.paymentId}', '${lounge}', '${shift}',
+        'refund', 'refund', 'instapay',
+        -2000, -300, 'platform', '${dep.movementId}',
+        'DRIFT-REF', '${superAdmin}', '2026-10-12 12:00:00+00'
+      );
+      ALTER TABLE private.booking_money_movements ENABLE TRIGGER USER;
+
+      ALTER TABLE public.payments DISABLE TRIGGER USER;
+      UPDATE public.payments
+      SET amount = 80.00, commission = 12.00, net_to_lounge = 68.00
+      WHERE id = '${dep.paymentId}';
+      ALTER TABLE public.payments ENABLE TRIGGER USER;
+    `);
+    await expectReject(
+      'complete_payout blocked when unsettled refund movement exists on in-flight payout payment',
+      () => db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-DRIFT')`, [pDrift.payout_id]),
+      '55000',
+      superAdmin
+    );
+
+    // Clean up the injected drift and verify complete_payout succeeds
+    await admin(`
+      ALTER TABLE private.booking_money_movements DISABLE TRIGGER USER;
+      DELETE FROM private.booking_money_movements WHERE id = '${driftedMovId}';
+      ALTER TABLE private.booking_money_movements ENABLE TRIGGER USER;
+
+      ALTER TABLE public.payments DISABLE TRIGGER USER;
+      UPDATE public.payments
+      SET amount = 100.00, commission = 15.00, net_to_lounge = 85.00
+      WHERE id = '${dep.paymentId}';
+      ALTER TABLE public.payments ENABLE TRIGGER USER;
+    `);
+    await asActor(superAdmin);
+    const completeOk = (
+      await db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-CLEAN-9B') AS r`, [pDrift.payout_id])
+    ).rows[0].r;
+    assert.equal(completeOk.status, 'paid');
+  });
+
+  // =========================================================================
+  // SCENARIO 10: Settlement-date semantics & Cairo timezone boundaries
+  // =========================================================================
+  await check('Scenario 10a: movement settlement_date uses canonical m.verified_at in Africa/Cairo regardless of session timezone or payments.paid_at', async () => {
+    await resetLoungeFinancialState();
+    const dep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-10-01',
+    });
+
+    // Stamp movement verified_at to 2026-09-30 22:30:00+00 (which is 2026-10-01 in Africa/Cairo,
+    // but still 2026-09-30 in UTC and America/Los_Angeles), while stamping payments.paid_at to 2026-09-15!
+    await admin(`
+      ALTER TABLE private.booking_money_movements DISABLE TRIGGER USER;
+      UPDATE private.booking_money_movements
+      SET verified_at = '2026-09-30 22:30:00+00'
+      WHERE id = '${dep.movementId}';
+      ALTER TABLE private.booking_money_movements ENABLE TRIGGER USER;
+
+      ALTER TABLE public.payments DISABLE TRIGGER USER;
+      UPDATE public.payments
+      SET paid_at = '2026-09-15 12:00:00+00'
+      WHERE id = '${dep.paymentId}';
+      ALTER TABLE public.payments ENABLE TRIGGER USER;
+    `);
+
+    const msvRow = (
+      await admin(`SELECT settlement_date::text AS sd FROM private.movement_settlement_values WHERE movement_id = $1`, [
+        dep.movementId,
+      ])
+    ).rows[0];
+    assert.equal(msvRow.sd, '2026-10-01');
+
+    await asActor(superAdmin);
+    await db.exec(`SET LOCAL timezone = 'America/Los_Angeles'`);
+
+    // September payout must NOT pick up the 2026-10-01 Cairo movement (even though payments.paid_at is 2026-09-15!)
+    const pSep = (
+      await db.query(`SELECT public.create_payout($1, '2026-09-01', '2026-09-30') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(pSep.success, false);
+    assert.equal(pSep.error, 'NO_POSITIVE_SETTLEMENT_BALANCE');
+
+    // October 1 payout picks it up cleanly
+    const pOct = (
+      await db.query(`SELECT public.create_payout($1, '2026-10-01', '2026-10-01') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(pOct.success, true);
+    assert.equal(Number(pOct.amount), 85.0);
+  });
+
+  await check('Scenario 10b: multi-movement booking across Cairo period boundary (Oct 31 deposit + Nov 1 cash checkout) preserves each movement settlement_date and settles cleanly across or within periods', async () => {
+    await resetLoungeFinancialState();
+    const dep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 20.0,
+      method: 'instapay',
+      verifiedDay: '2026-10-31',
+      completedBooking: false,
+    });
+
+    // Complete the session on Nov 1 with 80.00 EGP cash checkout (which overwrites payments.paid_at to Nov 1)
+    await admin(`UPDATE public.bookings SET status = 'completed' WHERE id = $1`, [dep.bookingId]);
+    await asActor(cashier);
+    await db.query(
+      `SELECT public.checkout_booking_cash_atomic($1, $2, $3, $4)`,
+      [dep.bookingId, shift, 8000, randomUUID()]
+    );
+
+    const cashMov = (
+      await admin(
+        `SELECT id FROM private.booking_money_movements WHERE booking_id = $1 AND collection_purpose = 'settlement'`,
+        [dep.bookingId]
+      )
+    ).rows[0];
+
+    // Stamp deposit to 2026-10-31 18:00:00+00 (2026-10-31 in Cairo) and cash checkout to 2026-10-31 22:30:00+00 (2026-11-01 in Cairo)
+    await admin(`
+      ALTER TABLE private.booking_money_movements DISABLE TRIGGER USER;
+      UPDATE private.booking_money_movements
+      SET verified_at = '2026-10-31 18:00:00+00'
+      WHERE id = '${dep.movementId}';
+      UPDATE private.booking_money_movements
+      SET verified_at = '2026-10-31 22:30:00+00'
+      WHERE id = '${cashMov.id}';
+      ALTER TABLE private.booking_money_movements ENABLE TRIGGER USER;
+
+      ALTER TABLE public.payments DISABLE TRIGGER USER;
+      UPDATE public.payments
+      SET paid_at = '2026-10-31 22:30:00+00'
+      WHERE id = '${dep.paymentId}';
+      ALTER TABLE public.payments ENABLE TRIGGER USER;
+    `);
+
+    const dates = (
+      await admin(
+        `
+          SELECT movement_id, settlement_date::text AS sd
+          FROM private.movement_settlement_values
+          WHERE movement_id IN ($1, $2)
+        `,
+        [dep.movementId, cashMov.id]
+      )
+    ).rows;
+    const dateMap = new Map(dates.map((r) => [r.movement_id, r.sd]));
+    assert.equal(dateMap.get(dep.movementId), '2026-10-31');
+    assert.equal(dateMap.get(cashMov.id), '2026-11-01');
+
+    // 1. Creating October payout ('2026-10-01'..'2026-10-31') settles ONLY the Oct 31 deposit (+17.00 EGP)
+    await asActor(superAdmin);
+    const pOct = (
+      await db.query(`SELECT public.create_payout($1, '2026-10-01', '2026-10-31') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(pOct.success, true);
+    assert.equal(Number(pOct.amount), 17.0);
+    assert.equal(Number(pOct.movement_count), 1);
+
+    await db.query(`SELECT public.approve_payout($1)`, [pOct.payout_id]);
+    await db.query(`SELECT public.start_payout_processing($1)`, [pOct.payout_id]);
+    await db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-S10B-OCT')`, [pOct.payout_id]);
+
+    // 2. Creating November payout ('2026-11-01'..'2026-11-30') with a 100.00 EGP Nov deposit (+85.00 EGP)
+    //    settles the Nov 1 cash checkout (-12.00 EGP) + Nov deposit (+85.00 EGP) = 73.00 EGP!
+    await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-11-10',
+    });
+
+    await asActor(superAdmin);
+    const pNov = (
+      await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
+    ).rows[0].r;
+    assert.equal(pNov.success, true);
+    assert.equal(Number(pNov.amount), 73.0);
+    assert.equal(Number(pNov.movement_count), 2);
+  });
+
+  // =========================================================================
+  // SCENARIO 11: Direct tests for guard_canonical_booking_payment_write and scoped locking
+  // =========================================================================
+  await check('Scenario 11a: guard_canonical_booking_payment_write allows payout_id-only updates on movement-backed payments but rejects any non-canonical financial, status, or method mutation', async () => {
+    await resetLoungeFinancialState();
+    const dep = await createPlatformVerifiedDepositBooking({
+      totalPrice: 100.0,
+      depositAmount: 100.0,
+      verifiedDay: '2026-10-10',
+    });
+
+    const dummyPayoutId = randomUUID();
+    await admin(
+      `INSERT INTO public.payouts(id, lounge_id, period_start, period_end, total_amount, status)
+       VALUES ($1, $2, '2026-10-01', '2026-10-31', 85.00, 'pending')`,
+      [dummyPayoutId, lounge]
+    );
+
+    // 1. Updating ONLY payout_id succeeds
+    await admin(`UPDATE public.payments SET payout_id = $1 WHERE id = $2`, [dummyPayoutId, dep.paymentId]);
+    await admin(`UPDATE public.payments SET payout_id = NULL WHERE id = $1`, [dep.paymentId]);
+
+    // 2. Updating amount, status, or payment_method outside canonical writer context is rejected (even if payout_id is also updated!)
+    await assert.rejects(
+      admin(`UPDATE public.payments SET payout_id = $1, amount = 50.00 WHERE id = $2`, [dummyPayoutId, dep.paymentId]),
+      (err) => err.code === '55000'
+    );
+    await assert.rejects(
+      admin(`UPDATE public.payments SET status = 'refunded' WHERE id = $1`, [dep.paymentId]),
+      (err) => err.code === '55000'
+    );
+    await assert.rejects(
+      admin(`UPDATE public.payments SET payment_method = 'cash' WHERE id = $1`, [dep.paymentId]),
+      (err) => err.code === '55000'
+    );
+    await assert.rejects(
+      admin(`DELETE FROM public.payments WHERE id = $1`, [dep.paymentId]),
+      (err) => err.code === '55000'
+    );
+  });
+
   if (db.connect) {
     await check('Scenario 7b (Native PG lockedRace): concurrent create_payout calls serialize on lounge lock and allocate each movement once', async () => {
       await resetLoungeFinancialState();
@@ -1502,6 +2086,53 @@ try {
 
       const payoutCount = (await admin(`SELECT count(*) AS c FROM public.payouts WHERE lounge_id = $1`, [lounge])).rows[0].c;
       assert.equal(Number(payoutCount), 1);
+    });
+
+    await check('Scenario 11b (Native PG scoped locking): create_payout does not lock historical already-paid bookings, payments, or movements that have no unsettled movements or pending refund requests', async () => {
+      await resetLoungeFinancialState();
+      const octDep = await createPlatformVerifiedDepositBooking({
+        totalPrice: 100.0,
+        depositAmount: 100.0,
+        verifiedDay: '2026-10-10',
+      });
+
+      await asActor(superAdmin);
+      const pOct = (
+        await db.query(`SELECT public.create_payout($1, '2026-10-01', '2026-10-31') AS r`, [lounge])
+      ).rows[0].r;
+      await db.query(`SELECT public.approve_payout($1)`, [pOct.payout_id]);
+      await db.query(`SELECT public.start_payout_processing($1)`, [pOct.payout_id]);
+      await db.query(`SELECT public.complete_payout($1, 'bank_transfer', 'BANK-S11B-OCT')`, [pOct.payout_id]);
+
+      // Create an unsettled November booking
+      await createPlatformVerifiedDepositBooking({
+        totalPrice: 100.0,
+        depositAmount: 100.0,
+        verifiedDay: '2026-11-10',
+      });
+
+      // Hold FOR UPDATE locks on the historical settled October booking, payment, and movement in a separate session
+      const lockClient = await db.connect();
+      try {
+        await lockClient.query('BEGIN');
+        await lockClient.query(`SELECT 1 FROM public.bookings WHERE id = $1 FOR UPDATE`, [octDep.bookingId]);
+        await lockClient.query(`SELECT 1 FROM public.payments WHERE id = $1 FOR UPDATE`, [octDep.paymentId]);
+        await lockClient.query(`SELECT 1 FROM private.booking_money_movements WHERE id = $1 FOR UPDATE`, [octDep.movementId]);
+
+        // Set a 2-second lock_timeout on the main session: if create_payout tried to lock historical
+        // settled octDep rows, it would fail with 55P03 (lock_not_available)!
+        await asActor(superAdmin);
+        await db.exec(`SET LOCAL lock_timeout = '2s'`);
+        const pNov = (
+          await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
+        ).rows[0].r;
+        assert.equal(pNov.success, true);
+        assert.equal(Number(pNov.amount), 85.0);
+        assert.equal(Number(pNov.movement_count), 1);
+      } finally {
+        await lockClient.query('ROLLBACK').catch(() => {});
+        await lockClient.end().catch(() => {});
+      }
     });
   }
 
