@@ -3,7 +3,7 @@
 **Environment:** Staging / Demo Project (`tmqhncduzlavgqoyjcmn`)  
 **Production Project:** `tgpdexoitemmpruepgyt` (**STRICTLY UNTOUCHED & PROTECTED**)  
 **Verification Date:** October 27, 2026  
-**Execution Engine:** Authenticated Node.js / PostgREST Suite (`run_full_financial_e2e.js`)  
+**Execution Engine:** Authenticated Node.js / PostgREST Suite (`supabase/tests/run_full_financial_e2e.cjs`)  
 **Dashboard Preview:** Active (`http://127.0.0.1:51611/`)  
 **Overall E2E Status:** **20 / 20 PASS (100% Backend & API Workflows Verified)**  
 **Device Testing Status:** **Android Physical Device / Emulator: NOT TESTED** (Environment lacks `adb` and physical hardware runner)
