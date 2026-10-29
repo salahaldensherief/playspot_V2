@@ -1015,8 +1015,7 @@ BEGIN
   SELECT *
   INTO v_request
   FROM private.booking_refund_requests
-  WHERE id = p_refund_request_id
-  FOR UPDATE;
+  WHERE id = p_refund_request_id;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'REFUND_REQUEST_NOT_FOUND'
@@ -1024,6 +1023,10 @@ BEGIN
   END IF;
 
   PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_request.booking_id::text, 0));
+
+  -- Acquire the booking lock before any refund request row lock.
+  SELECT * INTO v_request FROM private.booking_refund_requests
+  WHERE id = p_refund_request_id FOR UPDATE;
 
   IF v_request.funds_holder = 'platform' THEN
     PERFORM private.assert_payout_admin();
@@ -1242,8 +1245,7 @@ BEGIN
   SELECT *
   INTO v_request
   FROM private.booking_refund_requests
-  WHERE id = p_refund_request_id
-  FOR UPDATE;
+  WHERE id = p_refund_request_id;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'REFUND_REQUEST_NOT_FOUND'

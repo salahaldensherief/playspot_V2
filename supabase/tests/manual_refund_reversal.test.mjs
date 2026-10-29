@@ -1365,6 +1365,39 @@ try {
       assert.equal(summary.total_refunded_minor, 6000);
       assert.equal(summary.net_collected_minor, 4000);
     });
+    await check('refund cancellation waits for booking lock without holding the request row', async () => {
+      await asActor(cashier);
+      const pending = (await db.query(
+        'SELECT public.initiate_booking_refund($1,$2,$3,$4,$5) AS r',
+        [raceBooking, raceCollection.movement_id, 1000, 'lock order', randomUUID()]
+      )).rows[0].r;
+      const holder = await db.connect(), contender = await db.connect(), observer = await db.connect();
+      let cancellation;
+      try {
+        await holder.query('BEGIN');
+        await holder.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [raceBooking]);
+        await contender.query("SELECT set_config('test.actor',$1,false)", [cashier]);
+        await contender.query("SET ROLE authenticated; SET statement_timeout='5s'");
+        const pid = (await contender.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+        cancellation = contender.query('SELECT public.cancel_booking_refund_request($1,$2)',
+          [pending.refund_request_id, 'cancel lock test']).then(value => ({value}), error => ({error}));
+        let blocked = false;
+        for (let i = 0; i < 200; i++) {
+          const activity = (await observer.query('SELECT wait_event_type FROM pg_stat_activity WHERE pid=$1', [pid])).rows[0];
+          if (activity?.wait_event_type === 'Lock') { blocked = true; break; }
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        assert.equal(blocked, true);
+        // The booking lock owner must still be able to lock the request row.
+        await holder.query('SELECT id FROM private.booking_refund_requests WHERE id=$1 FOR UPDATE NOWAIT', [pending.refund_request_id]);
+        await holder.query('COMMIT');
+        assert.equal((await cancellation).error, undefined);
+      } finally {
+        await holder.query('ROLLBACK');
+        if (cancellation) await cancellation;
+        await holder.end(); await contender.end(); await observer.end();
+      }
+    });
   }
 
   console.log(
