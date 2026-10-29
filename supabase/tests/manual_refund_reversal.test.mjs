@@ -1365,6 +1365,46 @@ try {
       assert.equal(summary.total_refunded_minor, 6000);
       assert.equal(summary.net_collected_minor, 4000);
     });
+    for (const cancellationFirst of [true, false]) {
+      await check(`refund cancellation versus execution: ${cancellationFirst ? 'cancel' : 'execute'} commits first`, async () => {
+        await asActor(cashier);
+        const request = (await db.query(
+          'SELECT public.initiate_booking_refund($1,$2,$3,$4,$5) AS r',
+          [raceBooking, raceCollection.movement_id, 1000, 'cancel execute race', randomUUID()]
+        )).rows[0].r;
+        const snapshot = async () => (await admin(`
+          SELECT
+            (SELECT count(*)::int FROM private.booking_money_movements WHERE booking_id=$1 AND movement_type='refund') AS refunds,
+            (SELECT COALESCE(sum(amount),0)::text FROM public.shift_expenses WHERE shift_id=$2) AS expenses,
+            (SELECT amount::text FROM public.payments WHERE booking_id=$1) AS paid
+        `, [raceBooking, shift])).rows[0];
+        const before = await snapshot();
+        const cancel = {
+          sql: 'SELECT public.cancel_booking_refund_request($1,$2) AS r',
+          args: [request.refund_request_id, 'cancel execution race'],
+        };
+        const execute = {
+          sql: 'SELECT public.execute_booking_refund($1,$2,$3,$4,$5) AS r',
+          args: [request.refund_request_id, 'cash', 'CANCEL-EXECUTE-RACE', randomUUID(), shift],
+        };
+        const [winner, loser] = await lockedRace(db,
+          cancellationFirst ? cancel : execute, cancellationFirst ? execute : cancel, cashier);
+        assert.equal(winner.rows[0].r.success, true);
+        assert.equal(loser.error?.code, '55000');
+        const after = await snapshot();
+        const state = (await admin('SELECT status FROM private.booking_refund_requests WHERE id=$1',
+          [request.refund_request_id])).rows[0].status;
+        assert.equal(state, cancellationFirst ? 'cancelled' : 'completed');
+        if (cancellationFirst) {
+          assert.deepEqual(after, before, 'Cancelled request and failed execution must not write money or drawer entries');
+        } else {
+          assert.equal(after.refunds, before.refunds + 1);
+          assert.equal(Number(after.expenses) - Number(before.expenses), 10);
+          assert.equal(Number(before.paid) - Number(after.paid), 10);
+        }
+      });
+    }
+
     await check('refund cancellation waits for booking lock without holding the request row', async () => {
       await asActor(cashier);
       const pending = (await db.query(
