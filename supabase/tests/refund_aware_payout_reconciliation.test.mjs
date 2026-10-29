@@ -2057,6 +2057,72 @@ try {
   });
 
   if (db.connect) {
+    for (const refundFirst of [true, false]) {
+      await check(`refund initiation versus payout creation: ${refundFirst ? 'refund' : 'payout'} commits first`, async () => {
+        await resetLoungeFinancialState();
+        const dep = await createPlatformVerifiedDepositBooking({
+          totalPrice: 100.0, depositAmount: 100.0, verifiedDay: '2026-10-10',
+        });
+        const initiate = {
+          sql: 'SELECT public.initiate_booking_refund($1,$2,$3,$4,$5) AS r',
+          args: [dep.bookingId, dep.movementId, 2000, 'refund payout race', randomUUID()],
+        };
+        // Include the current refund request date in the payout period.
+        const payout = {
+          sql: "SELECT public.create_payout($1,'2026-01-01','2026-12-31') AS r",
+          args: [lounge],
+        };
+        const [first, second] = await lockedRace(db,
+          refundFirst ? initiate : payout, refundFirst ? payout : initiate, superAdmin);
+        assert.equal(first.rows[0].r.success, true);
+        assert.equal(second.error?.code, '55000');
+        const counts = (await admin(`SELECT
+          (SELECT count(*)::int FROM private.booking_refund_requests WHERE lounge_id=$1) AS requests,
+          (SELECT count(*)::int FROM public.payouts WHERE lounge_id=$1) AS payouts,
+          (SELECT count(*)::int FROM private.booking_movement_payout_entries WHERE movement_id=$2) AS allocations,
+          (SELECT count(*)::int FROM private.booking_money_movements WHERE booking_id=$3 AND movement_type='refund') AS refunds,
+          (SELECT amount::text FROM public.payments WHERE id=$4) AS collected`,
+          [lounge, dep.movementId, dep.bookingId, dep.paymentId])).rows[0];
+        assert.equal(counts.requests, refundFirst ? 1 : 0);
+        assert.equal(counts.payouts, refundFirst ? 0 : 1);
+        assert.equal(counts.allocations, refundFirst ? 0 : 1);
+        assert.equal(counts.refunds, 0, 'Neither refund approval nor payout creation returns money');
+        assert.equal(Number(counts.collected), 100);
+      });
+    }
+
+    await check('payout waiting for refund execution settles the committed reversal exactly once', async () => {
+      await resetLoungeFinancialState();
+      const dep = await createPlatformVerifiedDepositBooking({
+        totalPrice: 100.0, depositAmount: 100.0, verifiedDay: '2026-10-10',
+      });
+      await asActor(superAdmin);
+      const request = (await db.query(
+        'SELECT public.initiate_booking_refund($1,$2,$3,$4,$5) AS r',
+        [dep.bookingId, dep.movementId, 2000, 'execution payout race', randomUUID()]
+      )).rows[0].r;
+      const [refund, payout] = await lockedRace(db, {
+        sql: 'SELECT public.execute_booking_refund($1,$2,$3,$4,$5) AS r',
+        args: [request.refund_request_id, 'instapay', 'VERIFIED-RACE-RETURN', randomUUID(), null],
+      }, {
+        sql: "SELECT public.create_payout($1,'2026-01-01','2026-12-31') AS r",
+        args: [lounge],
+      }, superAdmin);
+      assert.equal(refund.rows[0].r.success, true);
+      assert.equal(payout.error, undefined);
+      assert.equal(Number(payout.value.rows[0].r.amount), 68);
+      const totals = (await admin(`SELECT
+        (SELECT sum(amount_minor)::text FROM private.booking_money_movements WHERE booking_id=$1) AS net_collected,
+        (SELECT sum(commission_minor)::text FROM private.booking_money_movements WHERE booking_id=$1) AS commission,
+        (SELECT count(*)::int FROM private.booking_movement_payout_entries WHERE payout_id=$2) AS entries,
+        (SELECT amount::text FROM public.payments WHERE id=$3) AS payment`,
+        [dep.bookingId, payout.value.rows[0].r.payout_id, dep.paymentId])).rows[0];
+      assert.equal(Number(totals.net_collected), 8000);
+      assert.equal(Number(totals.commission), 1200);
+      assert.equal(totals.entries, 2);
+      assert.equal(Number(totals.payment), 80);
+    });
+
     await check('Scenario 7b (Native PG lockedRace): concurrent create_payout calls serialize on lounge lock and allocate each movement once', async () => {
       await resetLoungeFinancialState();
       const dep = await createPlatformVerifiedDepositBooking({
@@ -2122,7 +2188,7 @@ try {
         // Set a 2-second lock_timeout on the main session: if create_payout tried to lock historical
         // settled octDep rows, it would fail with 55P03 (lock_not_available)!
         await asActor(superAdmin);
-        await db.exec(`SET LOCAL lock_timeout = '2s'`);
+        await db.exec(`SET lock_timeout = '2s'`);
         const pNov = (
           await db.query(`SELECT public.create_payout($1, '2026-11-01', '2026-11-30') AS r`, [lounge])
         ).rows[0].r;
@@ -2130,6 +2196,7 @@ try {
         assert.equal(Number(pNov.amount), 85.0);
         assert.equal(Number(pNov.movement_count), 1);
       } finally {
+        await db.exec('RESET lock_timeout');
         await lockClient.query('ROLLBACK').catch(() => {});
         await lockClient.end().catch(() => {});
       }
