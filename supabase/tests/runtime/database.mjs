@@ -12,7 +12,11 @@ export async function createFixtureDatabase() {
   }
   // This fixture never accepts a server URL or production connection string.
   const port = Number(process.env.PLAYSPOT_NATIVE_PG_PORT);
-  if (port !== 55439) throw new Error('Synthetic PostgreSQL must use local port 55439');
+  // Windows can reserve a dynamic port range containing the original 55439.
+  // Keep an explicit loopback-only fallback; never accept an arbitrary DB URL.
+  if (![55439, 55499].includes(port)) {
+    throw new Error('Synthetic PostgreSQL must use local port 55439 or 55499');
+  }
   const {Client} = require('pg');
   const options = {host: '127.0.0.1', port, user: 'playspot_fixture', database: 'postgres'};
   const control = new Client(options);

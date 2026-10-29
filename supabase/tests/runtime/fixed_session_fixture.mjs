@@ -1,12 +1,13 @@
 import {createFixtureDatabase} from './database.mjs';
 import {readFile} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
+import {fixtureSessionStart} from './fixture_session_clock.mjs';
 
 export async function fixedSessionFixture() {
  const db=await createFixtureDatabase();
  const actor=randomUUID(),customer=randomUUID(),lounge=randomUUID(),otherLounge=randomUUID(),device=randomUUID(),
   room=randomUUID(),shift=randomUUID(),otherShift=randomUUID(),booking=randomUUID(),product=randomUUID();
- const start=Math.floor(Date.now()/60000)*60000-120*60000;
+ const start=await fixtureSessionStart(db);
  const read=path=>readFile(new URL(path,import.meta.url),'utf8');
  const admin=sql=>db.exec(`RESET ROLE;${sql}`);
  const login=()=>db.exec(`RESET ROLE;SET test.actor='${actor}';SET ROLE authenticated;`);

@@ -92,7 +92,8 @@ try {
     assert.equal((await release()).released,true);
   });
   await check('next writer keeps global operation sequence rather than restarting at one',async()=>{
-    assert.equal((await f.send(f.operation())).status,'applied');
+    const firstReceipt=await f.send(f.operation());
+    assert.equal(firstReceipt.status,'applied',JSON.stringify(firstReceipt));
     await closeShift();await release({sequence:1});
     await admin(`UPDATE public.shifts SET status='open',closed_at=NULL WHERE id='${shift}'`);await login();
     const r=(await db.query("SELECT public.bootstrap_offline_cashier($1,$2,false)->'authority' AS authority",[lounge,randomUUID()])).rows[0].authority;
