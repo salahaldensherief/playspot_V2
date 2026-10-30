@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.util.Base64
 
 plugins {
     id("com.android.application")
@@ -27,6 +28,17 @@ val releaseTaskRequested = gradle.startParameter.taskNames.any {
 val allowDebugReleaseSigning =
     providers.gradleProperty("allowDebugReleaseSigning").orNull == "true"
 
+// Native startup happens before Dart: keep Firebase's automatic provider off
+// for the explicitly selected local acceptance build as well.
+val localAcceptanceBuild = providers.gradleProperty("localAcceptanceBuild").orNull == "true"
+val localAcceptanceDart = providers.gradleProperty("dart-defines").orNull.orEmpty()
+    .split(",").filter { it.isNotEmpty() }.map {
+        String(Base64.getDecoder().decode(it), Charsets.UTF_8)
+    }.contains("PLAYSPOT_LOCAL_ACCEPTANCE=true")
+if (localAcceptanceBuild != localAcceptanceDart) {
+    throw GradleException("Local acceptance requires both -PlocalAcceptanceBuild=true and PLAYSPOT_LOCAL_ACCEPTANCE=true")
+}
+
 if (releaseTaskRequested && !hasReleaseSigning && !allowDebugReleaseSigning) {
     throw GradleException(
         "Release signing is not configured. Copy android/key.properties.example " +
@@ -51,6 +63,8 @@ android {
 
     defaultConfig {
         applicationId = "com.playspot.client"
+        if (localAcceptanceBuild) applicationIdSuffix = ".local"
+        manifestPlaceholders["firebaseInitEnabled"] = (!localAcceptanceBuild).toString()
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -80,6 +94,12 @@ android {
                 signingConfigs.getByName("debug")
             }
         }
+    }
+}
+
+if (localAcceptanceBuild) {
+    tasks.configureEach {
+        if (name.endsWith("GoogleServices")) enabled = false
     }
 }
 

@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -15,6 +15,9 @@
         android:label="playspot"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <provider android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:enabled="${firebaseInitEnabled}" tools:replace="android:enabled" />
 
         <!-- Disable Impeller on Android to prevent OpenGL ES emulator startup crashes -->
         <meta-data

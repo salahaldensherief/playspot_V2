@@ -22,6 +22,17 @@
         "--web-port=51652",
         "--dart-define-from-file=${workspaceFolder}/.env.isolated.json"
       ]
+    },
+    {
+      "name": "PlaySpot Mobile - Isolated USB Android (select Android device)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--no-pub",
+        "--dart-define-from-file=${workspaceFolder}/.env.isolated.json",
+        "--android-project-arg=localAcceptanceBuild=true"
+      ]
     }
   ]
 }

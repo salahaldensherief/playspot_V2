@@ -38,6 +38,10 @@ void main() async {
     enabled: localAcceptance,
     url: AppConfig.supabaseUrl,
   );
+  validateLocalAcceptancePublicKey(
+    enabled: localAcceptance,
+    key: AppConfig.supabaseAnonKey,
+  );
   if (localAcceptance) GoogleFonts.config.allowRuntimeFetching = false;
 
   SystemChrome.setSystemUIOverlayStyle(

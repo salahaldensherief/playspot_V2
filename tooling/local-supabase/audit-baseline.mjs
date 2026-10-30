@@ -27,7 +27,11 @@ const partialCommit='28184d1aa8821ccc955092ed75970191c4abf9af';
 const partialName='20261025000001_open_time_partial_payment_status.sql';
 const partial=execFileSync('git',['-C',financialSource,'show',`${partialCommit}:supabase/migrations/${partialName}`]);
 candidates.push({name:partialName,sourceCommit:partialCommit,sha256:hash(partial),disposition:'separate unmerged Open Time candidate; review dependency/order before any Open Time journey'});
-const result={snapshot:{sha256:hash(bytes),bytes:bytes.length,schemas,
+const requiredSnapshotRoles=[...new Set([
+ ...sql.matchAll(/OWNER TO "([^"]+)"/g),
+ ...sql.matchAll(/TO "(anon|authenticated|service_role|supabase_[^"]+|authenticator|postgres)"/g),
+].map(m=>m[1]))].sort();
+const result={requiredSnapshotRoles,snapshot:{sha256:hash(bytes),bytes:bytes.length,schemas,
  functions:[...sql.matchAll(/^CREATE OR REPLACE FUNCTION /gm)].length,
  triggers:[...sql.matchAll(/^CREATE (?:OR REPLACE )?TRIGGER /gm)].length,
  policies:[...sql.matchAll(/^CREATE POLICY /gm)].length,

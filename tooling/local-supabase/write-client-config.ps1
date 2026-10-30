@@ -20,7 +20,7 @@ try {
    & git -C $root check-ignore --quiet .env.isolated.json
    if($LASTEXITCODE -ne 0){throw 'Client config must be gitignored'}
  }
- @{SUPABASE_URL=$status.API_URL;SUPABASE_ANON_KEY=$status.ANON_KEY}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $DashboardRoot '.env.isolated.json')
+ @{SUPABASE_URL=$status.API_URL;SUPABASE_ANON_KEY=$status.ANON_KEY;PLAYSPOT_LOCAL_ACCEPTANCE=$true}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $DashboardRoot '.env.isolated.json')
  @{SUPABASE_URL=$status.API_URL;SUPABASE_ANON_KEY=$status.ANON_KEY;PLAYSPOT_LOCAL_ACCEPTANCE=$true}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $MobileRoot '.env.isolated.json')
  Write-Output 'Same isolated public configuration written to ignored client files; no application launched.'
 } finally {Remove-Item -LiteralPath $tmp -ErrorAction SilentlyContinue}

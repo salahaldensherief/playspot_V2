@@ -1,4 +1,13 @@
 {
+  "requiredSnapshotRoles": [
+    "anon",
+    "authenticated",
+    "pg_database_owner",
+    "postgres",
+    "service_role",
+    "supabase_admin",
+    "supabase_auth_admin"
+  ],
   "snapshot": {
     "sha256": "08d6c1d70278da715a5af80bc3a832358d098f9dd72eb1b6c2f56935ed5293ca",
     "bytes": 1342424,

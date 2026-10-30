@@ -10,6 +10,7 @@ import 'signin_state.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'package:playspot/features/profile/domain/repositories/profile_repository.dart';
 import '../../../../core/notifications/push_notification_service.dart';
+import '../../../../core/config/local_acceptance.dart';
 
 class SignInCubit extends Cubit<LoginState> {
   final AuthRepository _authRepository;
@@ -23,12 +24,14 @@ class SignInCubit extends Cubit<LoginState> {
     : super(LoginState.init());
 
   Future<void> _onLoginSuccess() async {
-    final token = await PushNotificationService.instance.getToken();
-    if (token != null) {
-      await _profileRepository.updateFcmToken(token);
+    if (!localAcceptance) {
+      final token = await PushNotificationService.instance.getToken();
+      if (token != null) {
+        await _profileRepository.updateFcmToken(token);
+      }
     }
     await sl<ProfileCubit>().claimPendingReferralCode();
-    unawaited(_updateLocationAfterAuth());
+    if (!localAcceptance) unawaited(_updateLocationAfterAuth());
   }
 
   Future<void> _updateLocationAfterAuth() async {

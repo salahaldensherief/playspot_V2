@@ -14,13 +14,27 @@ async function request(path,key,body){
 }
 let accounts;
 try {accounts=JSON.parse(await readFile(accountPath,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
-if(!accounts){
- accounts=[];
- for(const persona of ['owner','cashier','customer']){
-  const email=`${persona}-${randomUUID()}@playspot.invalid`,password=randomBytes(32).toString('base64url');
-  const created=await request('/auth/v1/admin/users',status.SERVICE_ROLE_KEY,{email,password,email_confirm:true});
-  accounts.push({persona,id:created.id,email,password});
-  // Persist after each creation to preserve retry credentials without printing them.
+if(!accounts) accounts=[];
+if(!Array.isArray(accounts)||accounts.some(a=>!['owner','cashier','customer'].includes(a.persona)||!a.email?.endsWith('@playspot.invalid')||typeof a.password!=='string'||a.password.length<32)||new Set(accounts.map(a=>a.persona)).size!==accounts.length) throw new Error('Unexpected private account file; preserve and review');
+for(const persona of ['owner','cashier','customer']){
+ let account=accounts.find(a=>a.persona===persona);
+ if(!account){
+  account={persona,id:null,email:`${persona}-${randomUUID()}@playspot.invalid`,password:randomBytes(32).toString('base64url')};
+  accounts.push(account);
+  // Persist the exact operation intent before sending. A lost create ACK can
+  // recover through password sign-in rather than creating another identity.
+  await writeFile(accountPath,JSON.stringify(accounts,null,2),{mode:0o600});
+ }
+ if(!account.id){
+  let recovered;
+  try {recovered=await request('/auth/v1/token?grant_type=password',status.ANON_KEY,{email:account.email,password:account.password});}
+  catch(error){if(error.message!=='Local Auth operation failed; HTTP 400')throw error;}
+  if(recovered?.user?.id) account.id=recovered.user.id;
+  else {
+   const created=await request('/auth/v1/admin/users',status.SERVICE_ROLE_KEY,{email:account.email,password:account.password,email_confirm:true});
+   if(!created.id)throw new Error('Missing synthetic user creation receipt');
+   account.id=created.id;
+  }
   await writeFile(accountPath,JSON.stringify(accounts,null,2),{mode:0o600});
  }
 }
