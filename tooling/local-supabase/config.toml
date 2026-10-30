@@ -1,0 +1,48 @@
+project_id = "playspot-acceptance-20261030"
+[api]
+enabled = true
+port = 56621
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+[db]
+port = 56622
+shadow_port = 56620
+major_version = 17
+[db.migrations]
+enabled = false
+schema_paths = []
+[db.seed]
+enabled = false
+sql_paths = []
+[db.pooler]
+enabled = false
+[realtime]
+enabled = true
+[studio]
+enabled = true
+port = 56623
+api_url = "http://127.0.0.1"
+[inbucket]
+enabled = true
+port = 56624
+[storage]
+enabled = true
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:51651"
+additional_redirect_urls = ["http://127.0.0.1:51651/**", "http://127.0.0.1:51652/**"]
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = false
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+[edge_runtime]
+enabled = false
+[analytics]
+enabled = false

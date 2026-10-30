@@ -1,3 +1,6 @@
+import 'package:google_fonts/google_fonts.dart';
+import 'core/config/local_acceptance.dart';
+import 'core/constants/app_config.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +34,11 @@ import 'core/services/play_spot_live_activity_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  validateLocalAcceptanceTarget(
+    enabled: localAcceptance,
+    url: AppConfig.supabaseUrl,
+  );
+  if (localAcceptance) GoogleFonts.config.allowRuntimeFetching = false;
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -49,7 +57,7 @@ void main() async {
     // dev.log alone only reaches the VM logging stream.
     if (kDebugMode) FlutterError.presentError(details);
     dev.log("FLUTTER ERROR: ${details.exception}", stackTrace: details.stack);
-    if (!kIsWeb) {
+    if (!kIsWeb && !localAcceptance) {
       FirebaseCrashlytics.instance.recordFlutterFatalError(details);
     }
   };
@@ -60,27 +68,28 @@ void main() async {
       debugPrintStack(stackTrace: stack);
     }
     dev.log("PLATFORM ERROR: $error", stackTrace: stack);
-    if (!kIsWeb) {
+    if (!kIsWeb && !localAcceptance) {
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
     }
     return true;
   };
 
   await Future.wait([
-    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    if (!localAcceptance)
+      Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
     EasyLocalization.ensureInitialized(),
     init(),
     initSupabase(),
   ]);
 
   // Explicitly enable Crashlytics collection for production error tracking
-  if (!kIsWeb) {
+  if (!kIsWeb && !localAcceptance) {
     await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
   }
 
   NetworkConnectivityService().initialize();
 
-  if (!kIsWeb) {
+  if (!kIsWeb && !localAcceptance) {
     FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);
   }
 
@@ -97,6 +106,7 @@ void main() async {
 }
 
 void _initPostAppServices() {
+  if (localAcceptance) return;
   try {
     LocalNotificationService.instance
         .initialize()
