@@ -356,46 +356,6 @@ try {
       created_at timestamptz NOT NULL DEFAULT now()
     );
 
-    CREATE TABLE public.audit_events (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      entity_type text NOT NULL,
-      entity_id text NOT NULL,
-      event_type text NOT NULL,
-      booking_id uuid,
-      actor_id uuid,
-      severity text NOT NULL DEFAULT 'info',
-      payload jsonb NOT NULL DEFAULT '{}'::jsonb,
-      created_at timestamptz NOT NULL DEFAULT now()
-    );
-
-    CREATE OR REPLACE FUNCTION private.log_audit_event(
-      p_entity_type text,
-      p_entity_id text,
-      p_event_type text,
-      p_booking_id uuid DEFAULT NULL,
-      p_actor_id uuid DEFAULT NULL,
-      p_severity text DEFAULT 'info',
-      p_payload jsonb DEFAULT '{}'::jsonb
-    )
-    RETURNS uuid
-    LANGUAGE plpgsql
-    SECURITY DEFINER
-    SET search_path = ''
-    AS $$
-    DECLARE
-      v_id uuid;
-    BEGIN
-      INSERT INTO public.audit_events(
-        entity_type, entity_id, event_type, booking_id, actor_id, severity, payload
-      )
-      VALUES (
-        p_entity_type, p_entity_id, p_event_type, p_booking_id, p_actor_id, COALESCE(p_severity, 'info'), COALESCE(p_payload, '{}'::jsonb)
-      )
-      RETURNING id INTO v_id;
-      RETURN v_id;
-    END;
-    $$;
-
     CREATE OR REPLACE FUNCTION public.apply_booking_discount(
       p_booking_id uuid,
       p_discount_amount numeric,
@@ -499,6 +459,15 @@ try {
   await db.exec(await sqlFile('../migrations/20261025225255_canonical_booking_collections.sql'));
   await db.exec(await sqlFile('../migrations/20261025225913_branch_booking_refund_policy.sql'));
   await db.exec(await sqlFile('../migrations/20261027150000_manual_refund_reversal_accounting.sql'));
+  await db.exec(await sqlFile('../migrations/20261031111003_refund_audit_contract.sql'));
+  // Model the real baseline's customer booking-read boundary for audit RLS.
+  // RPC-only fixtures previously had no authenticated table reads at all.
+  await db.exec(`
+    GRANT SELECT(id,user_id) ON public.bookings TO authenticated;
+    ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY fixture_booking_customer_read ON public.bookings FOR SELECT
+      TO authenticated USING (user_id=(SELECT auth.uid()));
+  `);
 
   // Seed actors, lounges, room, and shift
   await admin(`
@@ -703,6 +672,34 @@ try {
     ).rows[0].r;
     assert.equal(replay.replayed, true);
     assert.equal(replay.refund_request_id, refundRequest1Id);
+  });
+
+  await check('canonical audit records lounge and actor once despite initiation replay', async () => {
+    const events = (await admin(
+      "SELECT lounge_id, actor_user_id, event_code, payload FROM public.audit_events WHERE entity_id=$1",
+      [refundRequest1Id]
+    )).rows;
+    assert.equal(events.length, 1);
+    assert.equal(events[0].lounge_id, lounge);
+    assert.equal(events[0].actor_user_id, cashier);
+    assert.equal(events[0].event_code, 'payment_refunded');
+    assert.equal(events[0].payload.stage, 'initiated');
+    assert.equal(events[0].payload.requested_amount_minor, 800);
+  });
+
+  await expectReject('authenticated caller cannot forge canonical audit records', () => db.query(
+    "SELECT private.log_audit_event($1,'payment','forged','payment_refunded',$2,$3,'info','{}'::jsonb)",
+    [lounge, depositBooking, cashier]
+  ), '42501');
+
+  await check('audit RLS hides records from unrelated lounge actor', async () => {
+    await asActor(outsider);
+    assert.equal((await db.query('SELECT id FROM public.audit_events')).rows.length, 0);
+  });
+
+  await check('audit events stay immutable even for the fixture table owner', async () => {
+    await assert.rejects(admin('UPDATE public.audit_events SET payload=payload WHERE entity_id=$1',
+      [refundRequest1Id]), error => error.code === '42501');
   });
 
   await expectReject(

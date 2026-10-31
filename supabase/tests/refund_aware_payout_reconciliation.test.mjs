@@ -54,6 +54,9 @@ async function expectReject(name, fn, expectedCode, actorId = superAdmin) {
 
 async function resetLoungeFinancialState(targetLounge = lounge) {
   await admin(`
+    -- This database is unique to the fixture. Reset its scenario audit records
+    -- before deleting bookings; real audit UPDATE/DELETE remains immutable.
+    TRUNCATE public.audit_events;
     ALTER TABLE private.booking_movement_payout_entries DISABLE TRIGGER USER;
     DELETE FROM private.booking_movement_payout_entries
     WHERE movement_id IN (SELECT id FROM private.booking_money_movements WHERE lounge_id = '${targetLounge}');
@@ -586,46 +589,6 @@ try {
       metadata jsonb
     );
 
-    CREATE TABLE public.audit_events (
-      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      entity_type text NOT NULL,
-      entity_id text NOT NULL,
-      event_type text NOT NULL,
-      booking_id uuid,
-      actor_id uuid,
-      severity text NOT NULL DEFAULT 'info',
-      payload jsonb NOT NULL DEFAULT '{}'::jsonb,
-      created_at timestamptz NOT NULL DEFAULT now()
-    );
-
-    CREATE OR REPLACE FUNCTION private.log_audit_event(
-      p_entity_type text,
-      p_entity_id text,
-      p_event_type text,
-      p_booking_id uuid DEFAULT NULL,
-      p_actor_id uuid DEFAULT NULL,
-      p_severity text DEFAULT 'info',
-      p_payload jsonb DEFAULT '{}'::jsonb
-    )
-    RETURNS uuid
-    LANGUAGE plpgsql
-    SECURITY DEFINER
-    SET search_path = ''
-    AS $$
-    DECLARE
-      v_id uuid;
-    BEGIN
-      INSERT INTO public.audit_events(
-        entity_type, entity_id, event_type, booking_id, actor_id, severity, payload
-      )
-      VALUES (
-        p_entity_type, p_entity_id, p_event_type, p_booking_id, p_actor_id, COALESCE(p_severity, 'info'), COALESCE(p_payload, '{}'::jsonb)
-      )
-      RETURNING id INTO v_id;
-      RETURN v_id;
-    END;
-    $$;
-
     CREATE OR REPLACE FUNCTION public.apply_booking_discount(
       p_booking_id uuid,
       p_discount_amount numeric,
@@ -732,6 +695,7 @@ try {
   await db.exec(await sqlFile('../migrations/20261025225255_canonical_booking_collections.sql'));
   await db.exec(await sqlFile('../migrations/20261025225913_branch_booking_refund_policy.sql'));
   await db.exec(await sqlFile('../migrations/20261027150000_manual_refund_reversal_accounting.sql'));
+  await db.exec(await sqlFile('../migrations/20261031111003_refund_audit_contract.sql'));
   await db.exec(await sqlFile('../migrations/20261027180000_refund_aware_payout_reconciliation.sql'));
 
   // Seed actors, lounges, room, and shift
