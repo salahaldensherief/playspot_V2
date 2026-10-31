@@ -1,0 +1,51 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "evidence": "Real local Auth/PostgREST refund and blind-close RPCs plus independent read-only ledger reconciliation",
+  "booking": "1e8014ef-722f-498f-9a01-a7df04129e65",
+  "receipt": {
+    "success": true,
+    "replayed": false,
+    "shift_id": "545cf3e6-5ef2-4bdf-a4ba-0adba32b2481",
+    "booking_id": "1e8014ef-722f-498f-9a01-a7df04129e65",
+    "payment_id": "230d2f8b-c074-4f97-916a-77a67a056426",
+    "reversal_of": "30305c4e-68d1-4602-9fcc-ed3fec912dc0",
+    "funds_holder": "lounge",
+    "operation_id": "c83aad85-48aa-4b39-bf0e-e2fad42fd2e1",
+    "payment_status": "refunded",
+    "refunded_amount": 80,
+    "shift_expense_id": "868cf39d-8934-4c52-bbf9-d971bd71c6ee",
+    "refund_request_id": "5610e247-e163-4b88-90c1-60a13909b66f",
+    "payment_row_status": "refunded",
+    "refund_movement_id": "63f0618b-3c02-407e-802b-c0f61bc924d0",
+    "net_collected_minor": 0,
+    "total_refunded_minor": 10000,
+    "gross_collected_minor": 10000,
+    "refunded_amount_minor": 8000,
+    "return_payment_method": "cash",
+    "commission_reversed_minor": 1200,
+    "net_to_lounge_reversed_minor": 6800
+  },
+  "closed": {
+    "status": "closed",
+    "success": true,
+    "shift_id": "545cf3e6-5ef2-4bdf-a4ba-0adba32b2481",
+    "difference": null,
+    "expected_cash": null,
+    "manager_report": false,
+    "financials_visible": false,
+    "actual_cash_counted": 0
+  },
+  "actual": {
+    "signed_minor": 0,
+    "commission_minor": 0,
+    "payment_minor": 0,
+    "drawer_in_minor": 10000,
+    "drawer_out_minor": 10000,
+    "reversals": 2,
+    "audit_events": 4,
+    "shift_status": "closed"
+  },
+  "replay": true,
+  "directAuditForgeryDenied": true,
+  "limitation": "Synthetic return attestations; no external money, hosted compatibility or complete UI acceptance"
+}

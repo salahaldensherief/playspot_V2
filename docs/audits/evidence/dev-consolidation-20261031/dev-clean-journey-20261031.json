@@ -1,0 +1,88 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "evidence": "Real local GoTrue + PostgREST JWT requests shaped from both client data sources; not browser UI E2E",
+  "authentication": [
+    "owner",
+    "cashier",
+    "customer"
+  ],
+  "booking": "1e8014ef-722f-498f-9a01-a7df04129e65",
+  "quote": {
+    "rooms": [
+      {
+        "room_id": "32ffd6e4-db8a-4a4a-afde-8e76c85e7a21",
+        "play_mode": "single",
+        "room_name_ar": "بلايستيشن 1 — اختبار محلي",
+        "room_name_en": "PS5 1",
+        "discount_type": null,
+        "discount_label": null,
+        "discount_value": null,
+        "discount_source": "none",
+        "base_hourly_rate": 100,
+        "pricing_segments": [
+          {
+            "to": "18:54:00",
+            "from": "17:54:00",
+            "rate": 100,
+            "amount": 100,
+            "minutes": 60,
+            "rule_id": null,
+            "rule_name_ar": null,
+            "rule_name_en": null
+          }
+        ],
+        "extra_controllers": 0,
+        "original_subtotal": 100,
+        "applied_hourly_rate": 100,
+        "discounted_subtotal": 100,
+        "effective_hourly_rate": 100,
+        "promo_discount_amount": 0,
+        "controller_hourly_rate": 0
+      }
+    ],
+    "end_at": "2026-10-31T18:54:00",
+    "extras": [],
+    "success": true,
+    "start_at": "2026-10-31T17:54:00",
+    "lounge_id": "0d67a040-798d-4248-a7c8-61b4f1243c39",
+    "hold_token": "8897cb5f-6d0c-4894-bbb8-ffdffb6bf119",
+    "final_total": 100,
+    "extras_total": 0,
+    "voucher_code": null,
+    "original_total": 100,
+    "duration_minutes": 60,
+    "voucher_discount": 0,
+    "original_rooms_total": 100,
+    "promo_discount_total": 0,
+    "discounted_rooms_total": 100
+  },
+  "completed": {
+    "success": true,
+    "booking_id": "1e8014ef-722f-498f-9a01-a7df04129e65",
+    "lounge_id": "0d67a040-798d-4248-a7c8-61b4f1243c39",
+    "status": "completed",
+    "final_total": 100,
+    "amount_paid": 0,
+    "amount_due": 100,
+    "payment_status": "unpaid"
+  },
+  "receipt": {
+    "replayed": false,
+    "shift_id": "545cf3e6-5ef2-4bdf-a4ba-0adba32b2481",
+    "due_minor": 0,
+    "lounge_id": "0d67a040-798d-4248-a7c8-61b4f1243c39",
+    "booking_id": "1e8014ef-722f-498f-9a01-a7df04129e65",
+    "paid_minor": 10000,
+    "movement_id": "30305c4e-68d1-4602-9fcc-ed3fec912dc0",
+    "total_minor": 10000,
+    "operation_id": "6dd19946-dfad-4cfc-829d-798c98b31ca3",
+    "payment_status": "paid",
+    "collected_minor": 10000,
+    "discount_amount": 0,
+    "shift_payment_id": "856a338f-8e36-4dcf-ae07-0c0c92ae3937",
+    "discount_percentage": 0
+  },
+  "unauthorizedCustomerDenied": true,
+  "lostResponseReplay": true,
+  "accounting": "Pending independent ledger reconciliation"
+}

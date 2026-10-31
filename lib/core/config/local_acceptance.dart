@@ -12,12 +12,14 @@ void validateLocalAcceptanceTarget({
   if (uri == null ||
       uri.scheme != 'http' ||
       uri.host != '127.0.0.1' ||
-      uri.port != 56621 ||
+      !const {56621, 56821}.contains(uri.port) ||
       (uri.path.isNotEmpty && uri.path != '/') ||
       uri.hasQuery ||
       uri.hasFragment ||
       uri.userInfo.isNotEmpty) {
-    throw StateError('Local acceptance requires http://127.0.0.1:56621.');
+    throw StateError(
+      'Local development requires the explicit loopback API on port 56621 or 56821.',
+    );
   }
 }
 
@@ -38,7 +40,8 @@ void validateLocalAcceptancePublicKey({
           claims['role'] == 'anon' &&
           claims['iss'] == 'supabase-demo' &&
           (claims['ref'] == null ||
-              claims['ref'] == 'playspot-acceptance-20261030')) {
+              claims['ref'] == 'playspot-acceptance-20261030' ||
+              claims['ref'] == 'playspot-dev-clean-20261031')) {
         return;
       }
     }

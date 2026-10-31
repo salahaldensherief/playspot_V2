@@ -8,8 +8,8 @@ const {Client}=require('pg');
 const [directory,report]=process.argv.slice(2);
 const load=async name=>JSON.parse(await readFile(directory+'/'+name,'utf8'));
 const status=await load('status.json'),accounts=await load('accounts.json'),journey=await load('journey-state.json');
-const base='http://127.0.0.1:56621';assert.equal(status.API_URL,base);
-const url=new URL(status.DB_URL);assert.equal(url.hostname,'127.0.0.1');assert.equal(url.port,'56622');
+const base=status.API_URL;assert.ok(['http://127.0.0.1:56621','http://127.0.0.1:56821'].includes(base));
+const url=new URL(status.DB_URL);assert.equal(url.hostname,'127.0.0.1');assert.equal(url.port,String(new URL(status.API_URL).port === '56821' ? 56822 : 56622));
 let state;try{state=await load('full-refund-state.json');}catch(e){if(e.code!=='ENOENT')throw e;state={initiate:randomUUID(),execute:randomUUID()};}
 const save=()=>writeFile(directory+'/full-refund-state.json',JSON.stringify(state,null,2),{mode:0o600});await save();
 async function request(path,token,body,method='POST'){

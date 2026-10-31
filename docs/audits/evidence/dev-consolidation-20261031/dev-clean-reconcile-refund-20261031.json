@@ -1,0 +1,19 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "booking": "1e8014ef-722f-498f-9a01-a7df04129e65",
+  "actual": {
+    "payment_minor": 8000,
+    "movement_minor": 8000,
+    "commission_minor": 1200,
+    "net_minor": 6800,
+    "refunds": 1,
+    "drawer_in_minor": 10000,
+    "drawer_out_minor": 2000,
+    "completed_requests": 1,
+    "audit_events": 2,
+    "missing_audit_scope": 0,
+    "collection_receipts": 1
+  },
+  "result": "Independent read-only payment/movement/commission/drawer/receipt/audit reconciliation passed",
+  "limitation": "Synthetic local return attestation; no external money, hosted compatibility or browser UI acceptance"
+}

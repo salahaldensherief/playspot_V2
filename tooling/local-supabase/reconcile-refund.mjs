@@ -7,9 +7,9 @@ const {Client}=require('pg');
 const [directory,report]=process.argv.slice(2);
 const load=async name=>JSON.parse(await readFile(directory+'/'+name,'utf8'));
 const status=await load('status.json'),state=await load('refund-state.json');
-assert.equal(status.API_URL,'http://127.0.0.1:56621');
+assert.ok(['http://127.0.0.1:56621','http://127.0.0.1:56821'].includes(status.API_URL));
 const url=new URL(status.DB_URL);
-assert.equal(url.hostname,'127.0.0.1');assert.equal(url.port,'56622');
+assert.equal(url.hostname,'127.0.0.1');assert.equal(url.port,String(new URL(status.API_URL).port === '56821' ? 56822 : 56622));
 const client=new Client({connectionString:status.DB_URL});
 await client.connect();
 try {

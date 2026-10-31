@@ -1,0 +1,47 @@
+{
+  "note": "Historical log reconciliation, not a new database test run",
+  "addedByCommit": "aa8628f4262f198e79f158399fae20d1b9221c7b",
+  "delta": 3,
+  "results": [
+    {
+      "name": "verification-payout-refund_aware_payout_reconciliation.log",
+      "sha256": "612e90a994f0de4be54b11893a684776fe82789dcef3399fece49eb291ce2b22",
+      "passed": 32,
+      "printedPasses": 32,
+      "environment": "native PostgreSQL",
+      "serializationChecks": []
+    },
+    {
+      "name": "restack-refund_aware_payout_reconciliation.log",
+      "sha256": "612e90a994f0de4be54b11893a684776fe82789dcef3399fece49eb291ce2b22",
+      "passed": 32,
+      "printedPasses": 32,
+      "environment": "native PostgreSQL",
+      "serializationChecks": []
+    },
+    {
+      "name": "rc-backend-refund_aware_payout_reconciliation.log",
+      "sha256": "2d47f25d50f013506e44b8120b43e6c56ba9910e02a65350c327c2bae5de5a12",
+      "passed": 35,
+      "printedPasses": 35,
+      "environment": "native PostgreSQL",
+      "serializationChecks": [
+        "PASS refund initiation versus payout creation: refund commits first",
+        "PASS refund initiation versus payout creation: payout commits first",
+        "PASS payout waiting for refund execution settles the committed reversal exactly once"
+      ]
+    },
+    {
+      "name": "refinement-backend-refund_aware_payout_reconciliation.log",
+      "sha256": "2d47f25d50f013506e44b8120b43e6c56ba9910e02a65350c327c2bae5de5a12",
+      "passed": 35,
+      "printedPasses": 35,
+      "environment": "native PostgreSQL",
+      "serializationChecks": [
+        "PASS refund initiation versus payout creation: refund commits first",
+        "PASS refund initiation versus payout creation: payout commits first",
+        "PASS payout waiting for refund execution settles the committed reversal exactly once"
+      ]
+    }
+  ]
+}

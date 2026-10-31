@@ -1,5 +1,10 @@
 # PlaySpot Mobile: agent engineering guide
 
+## Current dev consolidation scope — 31 October 2026
+The latest owner directive supersedes earlier rollout authorization: local isolated dev consolidation only; no Production or hosted Staging connections, hosted changes, deployments, main changes or release PR merges. Preserve user edits, keys, disks and recovery assets. Dashboard dev push triggers Preview and requires fresh approval for its exact commit/effects.
+
+Use risk-based verification: inspect cosmetic changes; focus tests on changed behavior/contracts; use real isolated authorization, concurrency and accounting checks for financial/Auth/database work. Group related changes, reuse exact unchanged evidence, and run broader checks only at the combined integration gate. Do not create tests for colors/constants, repeatedly rerun successful unchanged suites, refactor unrelated code or produce duplicate inventories. Efficiency must never weaken financial/security/recovery checks. Current bootstrap and evidence: tooling/dev-stack/README.md and docs/audits/DEV_CONSOLIDATION_20261031.md in the canonical Mobile repository.
+
 ## Current owner destination — 31 October 2026
 Latest recovery clarification: no verified Production backup exists. Do not connect to Production or modify/create its backup configuration until the owner explicitly authorizes a supported backup acquisition or a valid independent candidate is available for isolated verification. The pending owned export client was stopped; no migrations/deployment follow. See docs/audits/BACKUP_RECOVERY_INVENTORY_20261031.md. This restriction supersedes the earlier conditional rollout authorization below.
 

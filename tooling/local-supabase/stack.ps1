@@ -7,7 +7,9 @@ if($registeredDistro.Count -ne 1 -or $registeredDistro[0].BasePath.TrimEnd('\') 
 & wsl.exe -d $distro --exec /bin/sh /opt/playspot-acceptance/stack.sh $Action
 if($LASTEXITCODE -ne 0){throw 'Isolated stack operation failed; do not fall back to Docker Desktop'}
 if ($Action -ne 'stop') {
-  $ids=@(& wsl.exe -d $distro --exec env DOCKER_HOST=unix:///run/playspot-docker.sock docker ps -q)
+  # Multiple separately networked local projects may share the verified daemon.
+  # Inspect only this preserved project's containers; never alter other projects.
+  $ids=@(& wsl.exe -d $distro --exec env DOCKER_HOST=unix:///run/playspot-docker.sock docker ps --filter 'name=playspot-acceptance-20261030$' -q)
   if($LASTEXITCODE -ne 0 -or $ids.Count -eq 0){throw 'No verified running local services'}
   foreach($id in $ids){
     $raw=& wsl.exe -d $distro --exec env DOCKER_HOST=unix:///run/playspot-docker.sock docker inspect $id

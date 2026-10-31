@@ -1,0 +1,48 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "evidence": "Real local authenticated refund RPC and synthetic return attestation; no external return executed; not UI acceptance",
+  "customerDenied": true,
+  "request": {
+    "status": "approved_pending_return",
+    "success": true,
+    "replayed": false,
+    "booking_id": "1e8014ef-722f-498f-9a01-a7df04129e65",
+    "payment_id": "230d2f8b-c074-4f97-916a-77a67a056426",
+    "funds_holder": "lounge",
+    "operation_id": "61806dc3-c0a1-47e5-bfd0-c551ea2210f3",
+    "policy_decision": {
+      "decision": "not_cancelled"
+    },
+    "policy_override": true,
+    "requested_amount": 20,
+    "refund_request_id": "eae12d49-58ea-4118-b11b-547a89f7eb3f",
+    "collection_movement_id": "30305c4e-68d1-4602-9fcc-ed3fec912dc0",
+    "requested_amount_minor": 2000,
+    "approved_commission_reversal_minor": 300
+  },
+  "receipt": {
+    "success": true,
+    "replayed": false,
+    "shift_id": "545cf3e6-5ef2-4bdf-a4ba-0adba32b2481",
+    "booking_id": "1e8014ef-722f-498f-9a01-a7df04129e65",
+    "payment_id": "230d2f8b-c074-4f97-916a-77a67a056426",
+    "reversal_of": "30305c4e-68d1-4602-9fcc-ed3fec912dc0",
+    "funds_holder": "lounge",
+    "operation_id": "a5679dcf-b228-4cf6-96e6-e45362caf7e1",
+    "payment_status": "partial",
+    "refunded_amount": 20,
+    "shift_expense_id": "57d83feb-eafb-4f34-93d2-2e466fdbb9c3",
+    "refund_request_id": "eae12d49-58ea-4118-b11b-547a89f7eb3f",
+    "payment_row_status": "completed",
+    "refund_movement_id": "94fb0a5a-89d1-4134-a348-d67c1b85d15e",
+    "net_collected_minor": 8000,
+    "total_refunded_minor": 2000,
+    "gross_collected_minor": 10000,
+    "refunded_amount_minor": 2000,
+    "return_payment_method": "cash",
+    "commission_reversed_minor": 300,
+    "net_to_lounge_reversed_minor": 1700
+  },
+  "replay": true,
+  "accounting": "Requires independent signed-ledger and shift-expense check"
+}

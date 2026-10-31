@@ -81,6 +81,8 @@ jobs:
           cache-dependency-path: supabase/tests/runtime/package-lock.json
       - name: Install pinned fixture dependencies
         run: npm ci --prefix supabase/tests/runtime
+      - name: Verify canonical Edge Function contracts
+        run: node --test supabase/functions/*/*.test.mjs
       - name: Run isolated PostgreSQL contracts
         env:
           PLAYSPOT_NATIVE_PG_PORT: '55439'

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 const [directory,report]=process.argv.slice(2);
 const load=async name=>JSON.parse(await readFile(directory+'/'+name,'utf8'));
 const status=await load('status.json'),accounts=await load('accounts.json'),f=await load('business-fixture.json'),s=await load('journey-state.json');
-const base='http://127.0.0.1:56621';assert.equal(status.API_URL,base);const tokens={};
+const base=status.API_URL;assert.ok(['http://127.0.0.1:56621','http://127.0.0.1:56821'].includes(base));const tokens={};
 async function request(path,token,body){const r=await fetch(base+path,{method:'POST',redirect:'error',headers:{apikey:status.ANON_KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000)});const b=await r.json();if(!r.ok)throw Object.assign(new Error(b.message),{code:b.code,http:r.status});return b;}
 for(const a of accounts){tokens[a.persona]=(await request('/auth/v1/token?grant_type=password',status.ANON_KEY,{email:a.email,password:a.password})).access_token;}
 const rpc=(actor,name,args)=>request('/rest/v1/rpc/'+name,tokens[actor],args);

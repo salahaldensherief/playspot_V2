@@ -19,3 +19,16 @@ test('local acceptance server scopes files and blocks hosted subresources by pol
   assert.equal((await fetch(base+'/',{method:'POST'})).status,405);
  }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 });
+
+test('consolidated server permits only its selected loopback API and rejects arbitrary ports',async()=>{
+ const temporary=await mkdtemp(join(tmpdir(),'playspot-dev-web-')),root=join(temporary,'build','web');
+ await mkdir(root,{recursive:true});await writeFile(join(root,'index.html'),'fixture index');
+ await assert.rejects(localWebServer(root,{apiPort:443}),/explicit isolated API/);
+ const server=await localWebServer(root,{apiPort:56821});server.listen(0,'127.0.0.1');await once(server,'listening');
+ try{
+  const page=await fetch('http://127.0.0.1:'+server.address().port+'/');
+  const policy=page.headers.get('content-security-policy');
+  assert.match(policy,/connect-src 'self' http:\/\/127\.0\.0\.1:56821 ws:\/\/127\.0\.0\.1:56821;/);
+  assert.ok(!policy.includes('56621'));assert.ok(!policy.includes('https:'));
+ }finally{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
+});

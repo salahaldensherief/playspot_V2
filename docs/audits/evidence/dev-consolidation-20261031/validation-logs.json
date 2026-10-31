@@ -1,0 +1,109 @@
+{
+  "rawLogs": "Preserved in workspace outputs; hashes and final summary lines below, not aggregated across evidence levels",
+  "summaries": [
+    {
+      "file": "dev-clean-bootstrap-20261031.log",
+      "sha256": "07b14c50601902128e911d7bd91bd60bb2822e62c32af7cf9b0b16871bca9a16",
+      "lastLines": [
+        "Fresh synthetic Auth sign-ins, metadata-role rejection and 40 mixed stations passed.",
+        "Consolidated local backend selected on 127.0.0.1:56821. Private accounts stay in the runtime directory. No app launched."
+      ]
+    },
+    {
+      "file": "dev-mobile-analyze-20261031.log",
+      "sha256": "c5ec89bff7a589941cd834307701349ec16de764c3e05395dfdc1cf7985a3e12",
+      "lastLines": [
+        "Analyzing dev-consolidation-mobile-20261031...                  ",
+        "No issues found! (ran in 33.3s)"
+      ]
+    },
+    {
+      "file": "dev-dashboard-analyze-20261031.log",
+      "sha256": "6e9a4e792f96f85a2f5885658cbdd5b6b6dc32f3c6ad67039a1606ad2f6c036b",
+      "lastLines": [
+        "Analyzing dev-consolidation-dashboard-20261031...               ",
+        "No issues found! (ran in 28.0s)"
+      ]
+    },
+    {
+      "file": "dev-mobile-tests-20261031.log",
+      "sha256": "d83a6c8f48ee3494bda46162a446714bc53b5a3719c9ea21150115170dd1686c",
+      "lastLines": [
+        "03:11 +647 ~1: C:/Users/salah/Documents/Codex/2026-10-21/files-pasted-by-the-user-playspot/dev-consolidation-mobile-20261031/test/widgets/lounge_details_visual_test.dart: (tearDownAll)",
+        "03:11 +647 ~1: All tests passed!"
+      ]
+    },
+    {
+      "file": "dev-dashboard-tests-20261031.log",
+      "sha256": "25d5e92737b6ecb7e2558e8a7a3701a36b3f8de99b1dac53906ff2aca8e0f4b5",
+      "lastLines": [
+        "\u001b[38;5;196m└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────\u001b[0m",
+        "02:22 +1357 ~2: All tests passed!"
+      ]
+    },
+    {
+      "file": "dev-mobile-build-local-resources-20261031.log",
+      "sha256": "3ef098f2d08ce156749ad4a327b3997f78ecddac325a5fdfd0ef39d5b46ad688",
+      "lastLines": [
+        "Compiling lib\\main.dart for the Web...                            120.9s",
+        "√ Built build\\web"
+      ]
+    },
+    {
+      "file": "dev-dashboard-build-local-resources-20261031.log",
+      "sha256": "8b60c4e282be92b4fac2454ee495288190dec54df60380cf93d893d735e87381",
+      "lastLines": [
+        "Compiling lib\\main.dart for the Web...                             92.2s",
+        "√ Built build\\web"
+      ]
+    },
+    {
+      "file": "dev-final-manual_refund_reversal-20261031.log",
+      "sha256": "683e82a14f9577e6e91fcdac45029c313e2a19a246155ef77dbe77caf83a3c28",
+      "lastLines": [
+        "PASS refund cancellation waits for booking lock without holding the request row",
+        "{\"passed\":39,\"engine\":\"native-pg17\",\"status\":\"ALL_MANUAL_REFUND_REVERSAL_INVARIANTS_PASSED\"}"
+      ]
+    },
+    {
+      "file": "dev-final-refund_aware_payout_reconciliation-20261031.log",
+      "sha256": "2d47f25d50f013506e44b8120b43e6c56ba9910e02a65350c327c2bae5de5a12",
+      "lastLines": [
+        "PASS Scenario 11b (Native PG scoped locking): create_payout does not lock historical already-paid bookings, payments, or movements that have no unsettled movements or pending refund requests",
+        "{\"passed\":35,\"environment\":\"native PostgreSQL\"}"
+      ]
+    },
+    {
+      "file": "dev-final-payout_funds_custody-20261031.log",
+      "sha256": "58df68b53be9df174da628092f98b509f7946812090ad61f4474a80892683b29",
+      "lastLines": [
+        "PASS concurrent payout creation waits then rejects duplicate allocation",
+        "{\"passed\":17,\"environment\":\"isolated synthetic PostgreSQL; no production writes\"}"
+      ]
+    },
+    {
+      "file": "dev-final-partial_cash_collection-20261031.log",
+      "sha256": "6c1c29c11f5e3402385824fa700251105c39f701de0ad99db82da9b78a75aecd",
+      "lastLines": [
+        "PASS approved 50 debt after paid 180 is collected exactly once",
+        "{\"passed\":48,\"limitations\":[\"Synthetic schema and Auth claims\",\"Hosted audit trigger not reproduced\",\"Not yet the offline apply endpoint\",\"No deployed SQL or client integration\"]}"
+      ]
+    },
+    {
+      "file": "dev-canonical-edge-tests-20261031.log",
+      "sha256": "b86cbe80e17a83f95c421a521b22240c004b3ac77864970848544a32c60b0ac1",
+      "lastLines": [
+        "ℹ todo 0",
+        "ℹ duration_ms 629.4775"
+      ]
+    },
+    {
+      "file": "dev-local-web-server-tests-20261031.log",
+      "sha256": "8fefbdfc995c628328b934949d9afa4e97e7e704a09aa01347e91777d110df92",
+      "lastLines": [
+        "ℹ todo 0",
+        "ℹ duration_ms 374.7926"
+      ]
+    }
+  ]
+}

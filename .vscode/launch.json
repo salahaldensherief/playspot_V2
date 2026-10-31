@@ -33,6 +33,29 @@
         "--dart-define-from-file=${workspaceFolder}/.env.isolated.json",
         "--android-project-arg=localAcceptanceBuild=true"
       ]
+    },
+    {
+      "name": "PlaySpot Mobile - Consolidated dev (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--no-pub",
+        "--web-port=51752",
+        "--dart-define-from-file=${workspaceFolder}/.env.dev-local.json"
+      ]
+    },
+    {
+      "name": "PlaySpot Mobile - Consolidated dev (Android)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--no-pub",
+        "--dart-define-from-file=${workspaceFolder}/.env.dev-local.json",
+        "--android-project-arg=localAcceptanceBuild=true"
+      ]
     }
   ]
 }

@@ -1,0 +1,30 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "results": [
+    {
+      "persona": "owner",
+      "realAuth": true,
+      "profileRead": true,
+      "role": "owner"
+    },
+    {
+      "persona": "cashier",
+      "realAuth": true,
+      "profileRead": true,
+      "role": "cashier"
+    },
+    {
+      "persona": "customer",
+      "realAuth": true,
+      "profileRead": true,
+      "role": "user"
+    },
+    {
+      "storageApi": true,
+      "visibleBuckets": 0,
+      "receiptUpload": "NOT TESTED; managed bucket/policy baseline not imported",
+      "realtimeAuthenticatedChannelJoin": true,
+      "postgresChangeDelivery": "NOT TESTED"
+    }
+  ]
+}

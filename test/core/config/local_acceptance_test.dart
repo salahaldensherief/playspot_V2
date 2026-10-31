@@ -12,6 +12,13 @@ void main() {
     expect(
       () => validateLocalAcceptanceTarget(
         enabled: true,
+        url: 'http://127.0.0.1:56821',
+      ),
+      returnsNormally,
+    );
+    expect(
+      () => validateLocalAcceptanceTarget(
+        enabled: true,
         url: 'http://127.0.0.1:56621',
       ),
       returnsNormally,
