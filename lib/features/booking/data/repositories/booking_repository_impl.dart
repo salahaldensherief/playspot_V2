@@ -1,9 +1,15 @@
 import 'package:dartz/dartz.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/core/utils/repository_helper.dart';
+import 'package:playspot/features/booking/data/models/booking_price_quote_model.dart';
+import 'package:playspot/features/booking/data/models/lounge_price_range_model.dart';
+import 'package:playspot/features/booking/data/models/room_slot_price_model.dart';
+import 'package:playspot/features/booking/domain/entities/booking_price_quote.dart';
+import 'package:playspot/features/booking/domain/entities/lounge_price_range.dart';
+import 'package:playspot/features/booking/domain/entities/room_slot_price.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
 import 'package:playspot/features/booking/data/datasources/remote/booking_remote_data_source.dart';
-import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 
 class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
@@ -92,8 +98,8 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
     String? senderWalletPhone,
     String? receiptUrl,
   }) async {
-    return await callRepository(
-      () => _remoteDataSource.createBookingCheckout(
+    try {
+      final res = await _remoteDataSource.createBookingCheckout(
         holdToken: holdToken,
         roomRequests: roomRequests,
         extraItems: extraItems,
@@ -101,8 +107,73 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
         paymentMethod: paymentMethod,
         senderWalletPhone: senderWalletPhone,
         receiptUrl: receiptUrl,
-      ),
-    );
+      );
+      return Right(res);
+    } catch (e) {
+      if (e.toString().contains('PRICE_CHANGED')) {
+        return const Left(
+          PriceChangedFailure(
+            message: AppStrings.priceUpdatedDesc,
+            oldPrice: 0.0,
+            newPrice: 0.0,
+          ),
+        );
+      }
+      return await callRepository(() => throw e);
+    }
+  }
+
+  @override
+  Future<Either<Failure, BookingPriceQuote>> quoteBookingPrice({
+    required String roomId,
+    required String date,
+    required String startTime,
+    required String endTime,
+    String playMode = 'single',
+    int extraControllers = 0,
+    String? couponCode,
+  }) async {
+    return await callRepository<BookingPriceQuote>(() async {
+      final res = await _remoteDataSource.quoteBookingPrice(
+        roomId: roomId,
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+        playMode: playMode,
+        extraControllers: extraControllers,
+        couponCode: couponCode,
+      );
+      return BookingPriceQuoteModel.fromJson(res);
+    });
+  }
+
+  @override
+  Future<Either<Failure, List<RoomSlotPrice>>> getRoomSlotsWithPrices({
+    required String roomId,
+    required String date,
+  }) async {
+    return await callRepository<List<RoomSlotPrice>>(() async {
+      final rawList = await _remoteDataSource.getRoomSlotsWithPrices(
+        roomId: roomId,
+        date: date,
+      );
+      final slots = rawList
+          .map((json) => RoomSlotPriceModel.fromJson(json))
+          // Rule requirement: filter out unpriced slots (hourlyRate <= 0)
+          .where((slot) => slot.isValidPriced)
+          .toList();
+      return slots;
+    });
+  }
+
+  @override
+  Future<Either<Failure, LoungePriceRange>> getLoungePriceRange(
+    String loungeId,
+  ) async {
+    return await callRepository<LoungePriceRange>(() async {
+      final res = await _remoteDataSource.getLoungePriceRange(loungeId);
+      return LoungePriceRangeModel.fromJson(res);
+    });
   }
 
   @override
@@ -116,13 +187,6 @@ class BookingRepositoryImpl with RepositoryHelper implements BookingRepository {
         receiptPath: receiptPath,
       ),
     );
-  }
-
-  @override
-  Future<Either<Failure, Map<String, dynamic>>> createBooking(
-    CreateBookingParams params,
-  ) async {
-    return await callRepository(() => _remoteDataSource.createBooking(params));
   }
 
   @override

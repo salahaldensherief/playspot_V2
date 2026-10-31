@@ -1,4 +1,8 @@
 class AppStrings {
+  static const reviewSubmissionFailed = 'reviewSubmissionFailed';
+  static const reviewSubmissionInProgress = 'reviewSubmissionInProgress';
+  static const String futureBookingsAvailableFrom =
+      'future_bookings_available_from';
   static const String playSpot = 'PlaySpot';
   static const String showMore = "showMore";
   static const String showLess = "showLess";
@@ -82,6 +86,8 @@ class AppStrings {
   static const String myBookings = "myBookings";
   static const String paymentMethods = "paymentMethods";
   static const String notifications = "notifications";
+  static const String refreshNotifications = "refreshNotifications";
+  static const String markAllAsRead = "markAllAsRead";
   static const String language = "language";
   static const String arabicEnglish = "arabicEnglish";
   static const String helpSupport = "helpSupport";
@@ -115,7 +121,7 @@ class AppStrings {
   static const String from = "from";
   static const String today = "today";
   static const String hour = "hour";
-  static const String hour_plural = "hour_plural";
+  static const String hourPlural = "hour_plural";
   static const String duration = "duration";
   static const String totalPrice = "totalPrice";
   static const String selectTime = "selectTime";
@@ -183,6 +189,13 @@ class AppStrings {
   // New Strings
   static const String cancelBookingTitle = "cancelBookingTitle";
   static const String cancelBookingSubtitle = "cancelBookingSubtitle";
+  static const String cancelReasonPrompt = "cancelReasonPrompt";
+  static const String cancelReasonEmergency = "cancelReasonEmergency";
+  static const String cancelReasonCannotArrive = "cancelReasonCannotArrive";
+  static const String cancelReasonPlansChanged = "cancelReasonPlansChanged";
+  static const String cancelReasonOther = "cancelReasonOther";
+  static const String cancelReasonDetailsHint = "cancelReasonDetailsHint";
+  static const String cancelReasonRequired = "cancelReasonRequired";
   static const String keepBooking = "keepBooking";
   static const String yesCancel = "yesCancel";
   static const String upcoming = "upcoming";
@@ -227,6 +240,7 @@ class AppStrings {
   static const String total = "total";
   static const String addOns = "addOns";
   static const String manualTransfer = "manualTransfer";
+  static const String mixedPayment = "mixedPayment";
   static const String firstBooking = "firstBooking";
   static const String cashArrivalNotice = "cashArrivalNotice";
   static const String cancellationReason = "cancellationReason";
@@ -311,6 +325,16 @@ class AppStrings {
   static const String staffNotifiedSuccess = "staffNotifiedSuccess";
   static const String overtime = "overtime";
   static const String remaining = "remaining";
+  static const String openTimeElapsed = "openTimeElapsed";
+  static const String openTimeBillPending = "openTimeBillPending";
+  static const String openTimePolicy = "openTimePolicy";
+  static const String openTimeMinimum = "openTimeMinimum";
+  static const String openTimeRounding = "openTimeRounding";
+  static const String openTimeCanteenCharges = "openTimeCanteenCharges";
+  static const String openTimeAmountDuePending = "openTimeAmountDuePending";
+  static const String openTimeCollectionUnconfirmed =
+      "openTimeCollectionUnconfirmed";
+  static const String sessionTimeRemaining = "sessionTimeRemaining";
   static const String addNote = "addNote";
   static const String placeOrder = "placeOrder";
   static const String egpSymbol = "egp";
@@ -344,7 +368,6 @@ class AppStrings {
   static const String statusStaffCalling = "statusStaffCalling";
   static const String statusOrderPlacing = "statusOrderPlacing";
   static const String statusExtending = "statusExtending";
-  static const String statusActive = "statusActive";
   static const String statusExpiringSoon = "statusExpiringSoon";
   static const String statusOvertime = "statusOvertime";
   static const String backToHome = "backToHome";
@@ -392,6 +415,7 @@ class AppStrings {
   static const String firstPlace = "firstPlace";
   static const String secondPlace = "secondPlace";
   static const String thirdPlace = "thirdPlace";
+  static const String locationUnavailable = "locationUnavailable";
   static const String tournamentBracket = "tournamentBracket";
   static const String tournamentSchedule = "tournamentSchedule";
   static const String registerForTournament = "registerForTournament";
@@ -405,6 +429,16 @@ class AppStrings {
   static const String tournamentCancelled = "tournamentCancelled";
   static const String alreadyRegistered = "alreadyRegistered";
   static const String waitlist = "waitlist";
+  static const String waitlistNotify = "waitlistNotify";
+  static const String waitlistExplain = "waitlistExplain";
+  static const String waitlistJoined = "waitlistJoined";
+  static const String waitlistAvailableNow = "waitlistAvailableNow";
+  static const String waitlistUnavailable = "waitlistUnavailable";
+  static const String waitlistLimit = "waitlistLimit";
+  static const String waitlistFailed = "waitlistFailed";
+  static const String waitlistCancel = "waitlistCancel";
+  static const String waitlistCancelExplain = "waitlistCancelExplain";
+  static const String waitlistCancelled = "waitlistCancelled";
   static const String pendingPayment = "pendingPayment";
   static const String uploadReceipt = "uploadReceipt";
   static const String receiptImageSizeLimit = "receiptImageSizeLimit";
@@ -432,7 +466,11 @@ class AppStrings {
   static const String bye = "bye";
   static const String walkover = "walkover";
   static const String noTournamentsFound = "noTournamentsFound";
+  static const String searchTournamentsHint = "searchTournamentsHint";
+  static const String tournamentResultsCount = "tournamentResultsCount";
+  static const String clearTournamentFilters = "clearTournamentFilters";
   static const String filterByGame = "filterByGame";
+  static const String filterByActivity = "filterByActivity";
   static const String filterByCity = "filterByCity";
   static const String filterByStatus = "filterByStatus";
   static const String paymentSubmittedSuccess = "paymentSubmittedSuccess";
@@ -497,7 +535,11 @@ class AppStrings {
   static const String checkInClosed = "checkInClosed";
   static const String eliminated = "eliminated";
   static const String bookingPendingReview = "bookingPendingReview";
+  static const String bookingCreatedProofUploadFailed =
+      "bookingCreatedProofUploadFailed";
   static const String multiRoomAllowedNote = "multiRoomAllowedNote";
+  static const String bookingPendingReviewWithMultiRoomNote =
+      "bookingPendingReviewWithMultiRoomNote";
   static const String withdrawn = "withdrawn";
   static const String noShow = "noShow";
   static const String unpaid = "unpaid";
@@ -539,6 +581,14 @@ class AppStrings {
   static const String issueCategoryOther = "issueCategoryOther";
   static const String describeIssue = "describeIssue";
   static const String ticketSentSuccess = "ticketSentSuccess";
+  static const String ticketSendFailed = "ticketSendFailed";
+  static const String supportFormIntro = "supportFormIntro";
+  static const String supportDataLoadFailed = "supportDataLoadFailed";
+  static const String supportWhatsAppGreeting = "supportWhatsAppGreeting";
+  static const String bannedSupportWhatsAppMessage =
+      "bannedSupportWhatsAppMessage";
+  static const String languageEnglish = "languageEnglish";
+  static const String languageArabic = "languageArabic";
 
   // Legal & Policy Strings
   static const String privacyPolicyTitle = "privacyPolicyTitle";
@@ -586,12 +636,198 @@ class AppStrings {
   static const String instantCheckout = "instantCheckout";
   static const String previousAddons = "previousAddons";
   static const String quickRebookChecking = "quickRebookChecking";
-  static const String quickRebookUnavailableTitle = "quickRebookUnavailableTitle";
-  static const String quickRebookUnavailableMessage = "quickRebookUnavailableMessage";
+  static const String quickRebookUnavailableTitle =
+      "quickRebookUnavailableTitle";
+  static const String quickRebookUnavailableMessage =
+      "quickRebookUnavailableMessage";
   static const String quickRebookBrowseLounge = "quickRebookBrowseLounge";
   static const String quickRebookNearestSlots = "quickRebookNearestSlots";
   static const String quickRebookNoSlots = "quickRebookNoSlots";
   static const String quickRebookRemovedAddons = "quickRebookRemovedAddons";
-  static const String quickRebookPricingAtCheckout = "quickRebookPricingAtCheckout";
+  static const String quickRebookPricingAtCheckout =
+      "quickRebookPricingAtCheckout";
   static const String quickRebookCustomize = "quickRebookCustomize";
+  // Booking Timeline
+  static const String bookingTimelineTitle = "bookingTimelineTitle";
+  static const String bookingTimelineFailed = "bookingTimelineFailed";
+  static const String noTimelineUpdates = "noTimelineUpdates";
+  static const String bookingDetailsAndReceipt = "bookingDetailsAndReceipt";
+  static const String done = "done";
+
+  // Pricing Engine
+  static const String priceUpdated = "priceUpdated";
+  static const String priceUpdatedDesc = "priceUpdatedDesc";
+  static const String oldPrice = "oldPrice";
+  static const String newTotalPrice = "newTotalPrice";
+  static const String segmentBreakdown = "segmentBreakdown";
+  static const String proceedWithNewPrice = "proceedWithNewPrice";
+  static const String peak = "peak";
+  static const String pricingSegmentsBreakdown = "pricingSegmentsBreakdown";
+
+  // Canteen Combos & Upsell
+  static const String canteenMenu = "canteenMenu";
+  static const String combosAndOffers = "combosAndOffers";
+  static const String singleItems = "singleItems";
+  static const String comboContents = "comboContents";
+  static const String saveAmount = "saveAmount";
+  static const String notAvailableCurrently = "notAvailableCurrently";
+  static const String specialOffer = "specialOffer";
+  static const String addSuggestion = "addSuggestion";
+  static const String dismiss = "dismiss";
+  static const String outOfStockError = "outOfStockError";
+  static const String remainingQuantity = "remainingQuantity";
+  static const String orderStatusPending = "orderStatusPending";
+  static const String orderStatusPreparing = "orderStatusPreparing";
+  static const String orderStatusDelivered = "orderStatusDelivered";
+  static const String orderStatusCompleted = "orderStatusCompleted";
+  static const String orderStatusCancelled = "orderStatusCancelled";
+  static const String orderStatusQueued = "orderStatusQueued";
+  static const String canteenClosed = "canteenClosed";
+  static const String cart = "cart";
+  static const String confirmOrder = "confirmOrder";
+  static const String orderNoteHint = "orderNoteHint";
+  static const String cartEmpty = "cartEmpty";
+  static const String totalCanteen = "totalCanteen";
+
+  // Quick Rebook & Alternatives
+  static const String suggestedAlternativeDates = "suggestedAlternativeDates";
+
+  // Active Session Banner & Waitlist
+  static const String liveNow = "liveNow";
+  static const String join = "join";
+  static const String sessionEnded = "sessionEnded";
+  static const String notifyMe = "notifyMe";
+  static const String notifyMeForSlot = "notifyMeForSlot";
+  static const String notifyMeSuccess = "notifyMeSuccess";
+  static const String notifyMeFailure = "notifyMeFailure";
+  static const String notifyMePartial = "notifyMePartial";
+  static const String waitlistSubscribed = "waitlistSubscribed";
+  static const String allSlotsBookedOrPast = "allSlotsBookedOrPast";
+  static const String retryPriceCalculation = "retryPriceCalculation";
+  static const String holdExpiredLabel = "holdExpiredLabel";
+  static const String loungeTechnicalIssue = "lounge_technical_issue";
+  static const String loungeTechnicalIssueCallToBook =
+      "lounge_technical_issue_call_to_book";
+  static const String callLounge = "call_lounge";
+  static const String technicalIssue = "technical_issue";
+
+  // Lounge canteen catalogue
+  static const String canteenMenuTitle = "canteen_menu_title";
+  static const String canteenMenuSubtitle = "canteen_menu_subtitle";
+  static const String canteenItemCount = "canteen_item_count";
+  static const String canteenOfferCount = "canteen_offer_count";
+  static const String canteenSelectedCount = "canteen_selected_count";
+  static const String canteenMenuEmpty = "canteen_menu_empty";
+  static const String canteenBrowseMenu = "canteen_browse_menu";
+  static const String canteenIndividualItems = "canteen_individual_items";
+  static const String canteenComboOffers = "canteen_combo_offers";
+  static const String canteenOtherCategory = "canteen_other_category";
+  static const String canteenComboPreviewHint = "canteen_combo_preview_hint";
+  static const String canteenNoOffers = "canteen_no_offers";
+  static const String canteenItemUnavailable = "canteen_item_unavailable";
+  static const String canteenRemoveItem = "canteen_remove_item";
+  static const String canteenAddItem = "canteen_add_item";
+  static const String canteenRefreshError = "canteen_refresh_error";
+  static const String bookingCanteenOfferTitle = "booking_canteen_offer_title";
+  static const String bookingCanteenOfferSubtitle =
+      "booking_canteen_offer_subtitle";
+  static const String bookingCanteenOfferNoThanks =
+      "booking_canteen_offer_no_thanks";
+  static const String bookingCanteenOfferAdd = "booking_canteen_offer_add";
+  static const String bookingCanteenOfferPriceNote =
+      "booking_canteen_offer_price_note";
+  static const String bookingCanteenOfferEyebrow =
+      "booking_canteen_offer_eyebrow";
+  static const String bookingCanteenOfferSection =
+      "booking_canteen_offer_section";
+  static const String bookingCanteenOfferAddItem =
+      "booking_canteen_offer_add_item";
+  static const String bookingCanteenOfferNothingSelected =
+      "booking_canteen_offer_nothing_selected";
+  static const String bookingCanteenCheckingMenu =
+      "booking_canteen_checking_menu";
+  static const String desserts = "desserts";
+  // Shared localized labels used across mobile screens.
+  static const String afternoon = "afternoon";
+  static const String chooseSlotHint = "choose_slot_hint";
+  static const String directionsCoordinatesUnavailable =
+      "directions_coordinates_unavailable";
+  static const String evening = "evening";
+  static const String favoritesEmptyDescription = "favorites_empty_description";
+  static const String favoritesEmptyTitle = "favorites_empty_title";
+  static const String favoritesLoadError = "favorites_load_error";
+  static const String favoritesTitle = "favorites_title";
+  static const String loungeComparisonCapacity = "lounge_comparison_capacity";
+  static const String loungeComparisonFrom = "lounge_comparison_from";
+  static const String loungeComparisonRooms = "lounge_comparison_rooms";
+  static const String loungeComparisonTitle = "lounge_comparison_title";
+  static const String loungeFirstBookingPrepaid =
+      "lounge_first_booking_prepaid";
+  static const String loungeNoReviews = "lounge_no_reviews";
+  static const String loungePaymentCash = "lounge_payment_cash";
+  static const String loungePaymentInstapay = "lounge_payment_instapay";
+  static const String loungePaymentMethods = "lounge_payment_methods";
+  static const String loungePaymentWallet = "lounge_payment_wallet";
+  static const String loungeRatingSummary = "lounge_rating_summary";
+  static const String morning = "morning";
+  static const String operatingStatusUnavailable =
+      "operating_status_unavailable";
+  static const String pointsHistoryLoadMore = "pointsHistoryLoadMore";
+  static const String policyContentUnavailable = "policyContentUnavailable";
+  static const String quickRebookSlotsLoadFailed = "quickRebookSlotsLoadFailed";
+  static const String receiptImageLoadError = "receipt_image_load_error";
+  static const String roomActivities = "room_activities";
+  static const String roomAvailabilityUnavailable =
+      "room_availability_unavailable";
+  static const String roomCapacity = "room_capacity";
+  static const String roomPrivate = "room_private";
+  static const String search = "search";
+  static const String slotSelected = "slot_selected";
+  static const String splashTagline = "splash_tagline";
+  static const String tournamentUpdatesUnavailable =
+      "tournamentUpdatesUnavailable";
+  static const String clearSearchFilters = "clearSearchFilters";
+  static const String remainingTime = "remainingTime";
+  static const String profileActivitySection = "profileActivitySection";
+  static const String profileRewardsSection = "profileRewardsSection";
+  static const String profileSupportSection = "profileSupportSection";
+  static const String canteenComboBadge = "canteenComboBadge";
+  static const String supportEmailSubject = "supportEmailSubject";
+  static const String bookingIdLabel = "bookingIdLabel";
+  static const String bookingQrTitle = "bookingQrTitle";
+  static const String bookingPaymentApprovedQrHint =
+      "bookingPaymentApprovedQrHint";
+  static const String bookingDeclinedTitle = "bookingDeclinedTitle";
+  static const String bookingDeclinedReasonLabel = "bookingDeclinedReasonLabel";
+  static const String bookingDeclinedNoReason = "bookingDeclinedNoReason";
+  static const String retryPayment = "retryPayment";
+  static const String bookingHoldExpired = "bookingHoldExpired";
+  static const String bookingHoldTimer = "bookingHoldTimer";
+  static const String bookingHoldExpiredHint = "bookingHoldExpiredHint";
+  static const String bookingHoldTimerHint = "bookingHoldTimerHint";
+  static const String reselectTime = "reselectTime";
+  static const String tapToZoomReceipt = "tapToZoomReceipt";
+  static const String cashPaymentAtLounge = "cashPaymentAtLounge";
+  static const String noReceiptImageAttached = "noReceiptImageAttached";
+  static const String bookingId = "bookingId";
+  static const String senderAccount = "senderAccount";
+  static const String transferReference = "transferReference";
+  static const String receiptTotalAmount = "receiptTotalAmount";
+  static const String date = "date";
+  static const String bookingStatusUpcoming = "bookingStatusUpcoming";
+  static const String bookingStatusPending = "bookingStatusPending";
+  static const String bookingStatusCancelled = "bookingStatusCancelled";
+  static const String bookingStatusCompleted = "bookingStatusCompleted";
+  static const String bookingPromoFallback = "bookingPromoFallback";
+  static const String checkingAvailability = "checkingAvailability";
+  static const String maxDurationBeforeNextBooking =
+      "maxDurationBeforeNextBooking";
+  static const String moreCanteenItems = "moreCanteenItems";
+  static const String cashLateArrivalTitle = "cashLateArrivalTitle";
+  static const String prepaidLateArrivalTitle = "prepaidLateArrivalTitle";
+  static const String senderWalletOrInstapay = "senderWalletOrInstapay";
+  static const String senderWalletOrInstapayHint = "senderWalletOrInstapayHint";
+  static const String transactionReferenceNumber = "transactionReferenceNumber";
+  static const String transactionReferenceHint = "transactionReferenceHint";
+  static const String roomDiscountPercent = "roomDiscountPercent";
 }

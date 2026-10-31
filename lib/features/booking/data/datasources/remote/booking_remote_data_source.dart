@@ -1,8 +1,6 @@
 import 'dart:developer' as dev;
-import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../models/booking_params.dart';
 
 abstract class BookingRemoteDataSource {
   Future<List<Map<String, dynamic>>> getRoomBookingsForDate(
@@ -37,11 +35,24 @@ abstract class BookingRemoteDataSource {
     String? senderWalletPhone,
     String? receiptUrl,
   });
+  Future<Map<String, dynamic>> quoteBookingPrice({
+    required String roomId,
+    required String date,
+    required String startTime,
+    required String endTime,
+    String playMode = 'single',
+    int extraControllers = 0,
+    String? couponCode,
+  });
+  Future<List<Map<String, dynamic>>> getRoomSlotsWithPrices({
+    required String roomId,
+    required String date,
+  });
+  Future<Map<String, dynamic>> getLoungePriceRange(String loungeId);
   Future<void> attachBookingReceipt({
     required String bookingId,
     required String receiptPath,
   });
-  Future<Map<String, dynamic>> createBooking(CreateBookingParams params);
   Stream<BookingModel> streamBookingStatus(String bookingId);
   Future<List<Map<String, dynamic>>> getBookingItems(String bookingId);
   Future<void> extendSession({
@@ -170,20 +181,82 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     String? senderWalletPhone,
     String? receiptUrl,
   }) async {
+    try {
+      final response = await _client.rpc(
+        'create_my_booking_checkout',
+        params: {
+          'p_hold_token': holdToken,
+          'p_room_requests': roomRequests,
+          'p_extra_items': extraItems,
+          'p_voucher_code': voucherCode,
+          'p_payment_method': paymentMethod,
+          'p_sender_wallet_phone': senderWalletPhone,
+          'p_receipt_url': receiptUrl,
+        },
+      );
+
+      return Map<String, dynamic>.from(response as Map);
+    } catch (e) {
+      _checkPriceChangedError(e);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> quoteBookingPrice({
+    required String roomId,
+    required String date,
+    required String startTime,
+    required String endTime,
+    String playMode = 'single',
+    int extraControllers = 0,
+    String? couponCode,
+  }) async {
     final response = await _client.rpc(
-      'create_my_booking_checkout',
+      'quote_booking_price',
       params: {
-        'p_hold_token': holdToken,
-        'p_room_requests': roomRequests,
-        'p_extra_items': extraItems,
-        'p_voucher_code': voucherCode,
-        'p_payment_method': paymentMethod,
-        'p_sender_wallet_phone': senderWalletPhone,
-        'p_receipt_url': receiptUrl,
+        'p_room_id': roomId,
+        'p_date': date,
+        'p_start': startTime,
+        'p_end': endTime,
+        'p_play_mode': playMode,
+        'p_extra_controllers': extraControllers,
+        'p_coupon_code': couponCode,
       },
     );
 
     return Map<String, dynamic>.from(response as Map);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getRoomSlotsWithPrices({
+    required String roomId,
+    required String date,
+  }) async {
+    final response = await _client.rpc(
+      'get_room_slots_with_prices',
+      params: {'p_room_id': roomId, 'p_date': date},
+    );
+
+    return List<Map<String, dynamic>>.from(response as List);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLoungePriceRange(String loungeId) async {
+    final response = await _client.rpc(
+      'get_lounge_price_range',
+      params: {'p_lounge_id': loungeId},
+    );
+
+    return Map<String, dynamic>.from(response as Map);
+  }
+
+  void _checkPriceChangedError(dynamic error) {
+    final errStr = error.toString();
+    if (errStr.contains('PRICE_CHANGED') ||
+        (error is PostgrestException && error.code == 'PRICE_CHANGED')) {
+      throw Exception('PRICE_CHANGED: $errStr');
+    }
   }
 
   @override
@@ -209,198 +282,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
           }
           throw Exception('Booking record not found');
         });
-  }
-
-  @override
-  Future<Map<String, dynamic>> createBooking(CreateBookingParams params) async {
-    final user = _client.auth.currentUser;
-    if (user != null) {
-      try {
-        final profile = await _client
-            .from('profiles')
-            .select('is_banned, banned_reason')
-            .eq('id', user.id)
-            .maybeSingle();
-        if (profile != null && profile['is_banned'] == true) {
-          throw Exception('تم حظر حسابك لمخالفة الشروط');
-        }
-
-        final loungeBan = await _client
-            .from('lounge_banned_users')
-            .select('id')
-            .eq('lounge_id', params.loungeId)
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-        if (loungeBan != null) {
-          throw Exception(
-            'لا يمكنك الحجز في هذه الصالة بناءً على سياسة الإدارة',
-          );
-        }
-      } catch (e) {
-        if (e.toString().contains('تم حظر حسابك') ||
-            e.toString().contains('لا يمكنك الحجز')) {
-          rethrow;
-        }
-      }
-    }
-
-    final datePart =
-        "${params.startTime.year}-${params.startTime.month.toString().padLeft(2, '0')}-${params.startTime.day.toString().padLeft(2, '0')}";
-    final startPart =
-        "${params.startTime.hour.toString().padLeft(2, '0')}:${params.startTime.minute.toString().padLeft(2, '0')}:${params.startTime.second.toString().padLeft(2, '0')}";
-    final endPart =
-        "${params.endTime.hour.toString().padLeft(2, '0')}:${params.endTime.minute.toString().padLeft(2, '0')}:${params.endTime.second.toString().padLeft(2, '0')}";
-
-    final fallbackName =
-        user?.userMetadata?['full_name']?.toString() ??
-        user?.userMetadata?['name']?.toString() ??
-        '';
-    final fallbackPhone =
-        user?.phone ?? user?.userMetadata?['phone']?.toString() ?? '';
-
-    final finalUserName = params.userName.isNotEmpty
-        ? params.userName
-        : fallbackName;
-    final finalUserPhone = params.userPhone.isNotEmpty
-        ? params.userPhone
-        : fallbackPhone;
-
-    final durationMinutes = params.endTime
-        .difference(params.startTime)
-        .inMinutes;
-
-    final String cleanPaymentMethod =
-        (params.paymentMethod?.toLowerCase() == 'cash')
-        ? 'cash'
-        : 'manual_transfer';
-
-    final bookingPayload = <String, dynamic>{
-      'room_id': params.roomId,
-      'room_name': params.roomName,
-      'lounge_id': params.loungeId,
-      'user_id': user?.id,
-      'user_name': finalUserName,
-      'user_phone': finalUserPhone,
-      'date': datePart,
-      'start_time': startPart,
-      'end_time': endPart,
-      'duration_minutes': durationMinutes,
-      'original_room_price': params.originalRoomPrice,
-      'discounted_room_price': params.discountedRoomPrice,
-      'room_price': params.discountedRoomPrice,
-      'discount_amount': params.discountAmount,
-      'discount_percentage': params.discountPercentage,
-      if (params.discountLabel != null) 'discount_label': params.discountLabel,
-      if (params.discountReason != null)
-        'discount_reason': params.discountReason,
-      if (params.discountSource != null)
-        'discount_source': params.discountSource,
-      'duration_hours': params.durationHours,
-      'room_subtotal': params.roomSubtotal,
-      'addons_total': params.addonsTotal,
-      'addons_price': params.addonsTotal,
-      'total_price': params.totalPrice,
-      'status': BookingStatus.mapToDbStatus(params.status),
-      'payment_status': params.paymentStatus,
-      'play_mode': params.playMode,
-      'payment_method': cleanPaymentMethod,
-      if (params.receiptUrl != null && params.receiptUrl!.isNotEmpty)
-        'receipt_url': params.receiptUrl,
-      if (cleanPaymentMethod == 'manual_transfer' &&
-          params.senderWalletPhone != null &&
-          params.senderWalletPhone!.isNotEmpty)
-        'sender_wallet_phone': params.senderWalletPhone,
-      if (params.expiresAt != null)
-        'expires_at': params.expiresAt!.toIso8601String(),
-    };
-
-    dynamic response;
-    try {
-      response = await _client
-          .from('bookings')
-          .insert(bookingPayload)
-          .select('id, is_first_booking, payment_method, status')
-          .single();
-    } catch (e) {
-      // Fallback in case Postgres table doesn't have all optional snapshot columns
-      response = await _client
-          .from('bookings')
-          .insert({
-            'room_id': params.roomId,
-            'room_name': params.roomName,
-            'lounge_id': params.loungeId,
-            'user_id': user?.id,
-            'user_name': finalUserName,
-            'user_phone': finalUserPhone,
-            'date': datePart,
-            'start_time': startPart,
-            'end_time': endPart,
-            'duration_minutes': durationMinutes,
-            'total_price': params.totalPrice,
-            'room_price': params.discountedRoomPrice,
-            if (params.discountAmount > 0)
-              'discount_amount': params.discountAmount,
-            'status': BookingStatus.mapToDbStatus(params.status),
-            'payment_status': params.paymentStatus,
-            'payment_method': cleanPaymentMethod,
-            'play_mode': params.playMode,
-            if (params.receiptUrl != null && params.receiptUrl!.isNotEmpty)
-              'receipt_url': params.receiptUrl,
-            if (cleanPaymentMethod == 'manual_transfer' &&
-                params.senderWalletPhone != null &&
-                params.senderWalletPhone!.isNotEmpty)
-              'sender_wallet_phone': params.senderWalletPhone,
-          })
-          .select('id, is_first_booking, payment_method, status')
-          .single();
-    }
-
-    final bookingId = response['id']?.toString();
-
-    // Call place_canteen_order RPC for canteen/extras items
-    if (bookingId != null && params.addOns.isNotEmpty) {
-      try {
-        final formattedItems = params.addOns.map((e) {
-          final id =
-              e['id']?.toString() ??
-              e['extra_id']?.toString() ??
-              e['item_id']?.toString() ??
-              e['product_id']?.toString() ??
-              '';
-          final name =
-              e['name']?.toString() ?? e['title']?.toString() ?? 'Extra';
-          final nameAr = e['name_ar']?.toString() ?? name;
-          final nameEn = e['name_en']?.toString() ?? name;
-          final p =
-              (e['unit_price'] as num?)?.toDouble() ??
-              (e['price'] as num?)?.toDouble() ??
-              0.0;
-          final q = (e['quantity'] as num?)?.toInt() ?? 1;
-
-          return {
-            'id': id,
-            'extra_id': id,
-            'item_id': id,
-            'product_id': id,
-            'name_ar': nameAr,
-            'name_en': nameEn,
-            'unit_price': p,
-            'price': p,
-            'quantity': q,
-          };
-        }).toList();
-
-        await _client.rpc(
-          'place_canteen_order',
-          params: {'p_booking_id': bookingId, 'p_items': formattedItems},
-        );
-      } catch (e) {
-        dev.log("place_canteen_order RPC in createBooking failed: $e");
-      }
-    }
-
-    return Map<String, dynamic>.from(response);
   }
 
   @override
@@ -503,13 +384,13 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String bookingId,
     required int requestedMinutes,
   }) async {
-    await _client
-        .from('bookings')
-        .update({
-          'extension_status': 'pending',
-          'requested_extension_minutes': requestedMinutes,
-        })
-        .eq('id', bookingId);
+    await _client.rpc(
+      'request_booking_extension',
+      params: {
+        'p_booking_id': bookingId,
+        'p_requested_minutes': requestedMinutes,
+      },
+    );
   }
 
   @override
@@ -519,68 +400,14 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required String reason,
     required String note,
   }) async {
-    final userId = _client.auth.currentUser?.id;
-
-    try {
-      await _client.rpc(
-        'request_staff_assistance',
-        params: {
-          'p_booking_id': bookingId,
-          'p_user_id': userId,
-          'p_call_type': reason,
-          'p_notes': note,
-        },
-      );
-      return;
-    } catch (rpc1Error) {
-      dev.log(
-        "RPC request_staff_assistance failed: $rpc1Error, trying call_staff_request",
-      );
-    }
-
-    try {
-      await _client.rpc(
-        'call_staff_request',
-        params: {'p_booking_id': bookingId, 'p_reason': reason, 'p_note': note},
-      );
-      return;
-    } catch (rpc2Error) {
-      dev.log(
-        "RPC call_staff_request failed: $rpc2Error, inserting directly into service_calls",
-      );
-    }
-
-    try {
-      // Fetch lounge_id and room_id directly from the booking record using bookingId
-      final bookingData = await _client
-          .from('bookings')
-          .select('lounge_id, room_id, user_id')
-          .eq('id', bookingId)
-          .maybeSingle();
-
-      final String? fetchedLoungeId =
-          bookingData?['lounge_id']?.toString() ??
-          (loungeId.isNotEmpty ? loungeId : null);
-      final String? roomId = bookingData?['room_id']?.toString();
-      final String? bookingUserId =
-          bookingData?['user_id']?.toString() ?? userId;
-
-      await _client.from('service_calls').insert({
-        'booking_id': bookingId,
-        if (fetchedLoungeId != null && fetchedLoungeId.isNotEmpty)
-          'lounge_id': fetchedLoungeId,
-        if (roomId != null && roomId.isNotEmpty) 'room_id': roomId,
-        if (bookingUserId != null && bookingUserId.isNotEmpty)
-          'user_id': bookingUserId,
-        'call_type': reason,
-        'status': 'pending',
-        if (note.isNotEmpty) 'notes': note,
-      });
-      dev.log("Inserted directly into service_calls SUCCESS");
-    } catch (e) {
-      dev.log("callStaff failed to insert into service_calls: $e");
-      rethrow;
-    }
+    await _client.rpc(
+      'request_staff_assistance_for_booking',
+      params: {
+        'p_booking_id': bookingId,
+        'p_call_type': reason,
+        'p_notes': note.isEmpty ? null : note,
+      },
+    );
   }
 
   @override
@@ -592,8 +419,6 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
     required double totalPrice,
     required String note,
   }) async {
-    final validUserId = _client.auth.currentUser?.id ?? userId;
-
     final formattedItems = items.map((item) {
       final id =
           item['id']?.toString() ??
@@ -624,31 +449,14 @@ class BookingRemoteDataSourceImpl implements BookingRemoteDataSource {
       };
     }).toList();
 
-    try {
-      final response = await _client.rpc(
-        'place_canteen_order',
-        params: {'p_booking_id': bookingId, 'p_items': formattedItems},
-      );
-      dev.log("place_canteen_order RPC SUCCESS: $response");
-    } catch (e) {
-      dev.log("place_canteen_order RPC failed: $e, trying full params...");
-      try {
-        final response = await _client.rpc(
-          'place_canteen_order',
-          params: {
-            'p_booking_id': bookingId,
-            'p_lounge_id': loungeId,
-            'p_user_id': validUserId,
-            'p_items': formattedItems,
-            'p_total_price': totalPrice > 0 ? totalPrice : null,
-            'p_note': note.isNotEmpty ? note : null,
-          },
-        );
-        dev.log("place_canteen_order RPC with full params SUCCESS: $response");
-      } catch (e2) {
-        dev.log("place_canteen_order RPC with full params failed: $e2");
-        rethrow;
-      }
-    }
+    final response = await _client.rpc(
+      'place_canteen_order',
+      params: {
+        'p_booking_id': bookingId,
+        'p_items': formattedItems,
+        'p_note': note.isEmpty ? null : note,
+      },
+    );
+    dev.log("place_canteen_order RPC SUCCESS: $response");
   }
 }

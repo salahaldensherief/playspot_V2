@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -56,8 +57,8 @@ class LanguageToggleWidget extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                   SizedBox(width: 6.w),
-                  Text(
-                    targetLanguageLabel,
+                  AppText(
+                    text: targetLanguageLabel,
                     style: TextStyle(
                       fontFamily: isArabic
                           ? 'Orbitron'

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,17 +15,19 @@ class PhotoIndicator extends StatefulWidget {
 
 class _PhotoIndicatorState extends State<PhotoIndicator> {
   bool _isExpanded = false;
+  Timer? _expandTimer;
+  Timer? _collapseTimer;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 500), () {
+    _expandTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() => _isExpanded = true);
       }
     });
 
-    Future.delayed(const Duration(seconds: 4), () {
+    _collapseTimer = Timer(const Duration(seconds: 4), () {
       if (mounted) {
         setState(() => _isExpanded = false);
       }
@@ -32,7 +35,17 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
   }
 
   @override
+  void dispose() {
+    _expandTimer?.cancel();
+    _collapseTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final count = widget.totalImages ?? 0;
+    if (count <= 0) return const SizedBox.shrink();
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeInOutBack,
@@ -40,7 +53,10 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(25.r),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),
@@ -56,6 +72,7 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
           AnimatedSize(
             duration: const Duration(milliseconds: 400),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 if (_isExpanded) ...[
                   SizedBox(width: 8.w),
@@ -69,7 +86,7 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
               ],
             ),
           ),
-          if (widget.totalImages != null && widget.totalImages! > 1) ...[
+          if (count > 1) ...[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.w),
               child: Container(
@@ -79,7 +96,7 @@ class _PhotoIndicatorState extends State<PhotoIndicator> {
               ),
             ),
             AppText(
-              text: "1/${widget.totalImages}",
+              text: "1/$count",
               fontSize: 10.sp,
               color: Colors.white,
               fontWeight: FontWeight.bold,

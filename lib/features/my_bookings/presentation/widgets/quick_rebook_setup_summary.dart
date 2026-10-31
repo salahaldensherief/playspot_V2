@@ -22,8 +22,7 @@ class QuickRebookSetupSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final isArabic = context.locale.languageCode == 'ar';
     final loungeName = state.lounge?.name ?? booking.loungeName;
-    final roomName =
-        state.room?.getDisplayTitle(isArabic) ?? booking.roomName;
+    final roomName = state.room?.getDisplayTitle(isArabic) ?? booking.roomName;
     final playMode = state.pastBooking?.playMode == 'multi'
         ? AppStrings.multiPlay.tr()
         : AppStrings.singlePlay.tr();

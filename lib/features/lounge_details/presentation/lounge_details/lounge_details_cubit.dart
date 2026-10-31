@@ -14,12 +14,15 @@ import 'package:playspot/features/lounge_details/data/models/lounge_details_para
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/domain/repositories/lounge_details_repository.dart';
+import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
 import 'package:playspot/features/tournaments/domain/usecases/get_tournaments_usecase.dart';
 
 import 'lounge_details_state.dart';
 
 class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
+  int _detailsEpoch = 0;
+  int _categoryRequestVersion = 0;
   final LoungeDetailsRepository _loungeDetailsRepository;
   final HomeRepository _homeRepository;
   final BookingRepository _bookingRepository;
@@ -43,13 +46,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   }
 
   void init(LoungeModel lounge) {
-    emit(state.copyWith(lounge: lounge));
+    emit(LoungeDetailsState(lounge: lounge));
     getLoungeDetails(lounge.id);
   }
 
   Future<void> initById(String loungeId) async {
+    final epoch = ++_detailsEpoch;
     emit(state.copyWith(status: LoungeDetailsStatus.loading));
     final result = await _homeRepository.getLoungeById(loungeId);
+    if (isClosed || epoch != _detailsEpoch) return;
     result.fold(
       (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
       (lounge) {
@@ -64,7 +69,14 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
   Future<void> getLoungeDetails(String loungeId) async {
     if (loungeId.isEmpty) return;
-    emit(state.copyWith(status: LoungeDetailsStatus.loading));
+    final epoch = ++_detailsEpoch;
+    ++_categoryRequestVersion;
+    emit(
+      state.copyWith(
+        status: LoungeDetailsStatus.loading,
+        clearOperatingStatus: true,
+      ),
+    );
 
     try {
       log("FETCHING LOUNGE DETAILS IN PARALLEL...");
@@ -77,7 +89,9 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
         _loungeDetailsRepository.getLoungeCategories(loungeId),
         _loungeDetailsRepository.getLoungeReviews(loungeId),
         _getTournamentsUseCase(loungeId: loungeId),
+        _loungeDetailsRepository.getLoungeOperatingStatus(loungeId),
       ]);
+      if (isClosed || epoch != _detailsEpoch) return;
 
       final roomsRes = results[0] as Either<Failure, List<RoomModel>>;
       final extrasRes = results[1] as Either<Failure, List<ExtraModel>>;
@@ -85,12 +99,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       final reviewsRes = results[3] as Either<Failure, List<ReviewModel>>;
       final tournamentsRes =
           results[4] as Either<Failure, List<TournamentEntity>>;
+      final operatingStatusRes =
+          results[5] as Either<Failure, LoungeOperatingStatus?>;
 
       List<RoomModel>? rooms;
       List<ExtraModel>? extras;
       List<CategoryModel>? deviceCategories;
       List<ReviewModel>? reviews;
       List<TournamentEntity> tournaments = [];
+      LoungeOperatingStatus? operatingStatus;
 
       roomsRes.fold(
         (l) {
@@ -122,7 +139,6 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       reviewsRes.fold(
         (l) {
           log("Reviews Fold Failure: ${l.message}");
-          reviews = [];
         },
         (r) {
           reviews = r;
@@ -137,6 +153,19 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           tournaments = t;
         },
       );
+      operatingStatusRes.fold(
+        (_) => operatingStatus = const LoungeOperatingStatus(
+          status: 'unavailable',
+          canBookOnline: false,
+        ),
+        (s) => operatingStatus =
+            s ??
+            const LoungeOperatingStatus(
+              status: 'unavailable',
+              canBookOnline: false,
+            ),
+      );
+      emit(state.copyWith(operatingStatus: operatingStatus));
 
       if (rooms == null) {
         if (state.rooms.isNotEmpty) {
@@ -148,19 +177,41 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
 
       final date = state.selectedDate ?? DateTime.now();
 
+      final lounge = state.lounge!;
+      final currentLounge = reviews == null
+          ? lounge
+          : LoungeModel.fromJson({
+              ...lounge.toJson(),
+              'total_reviews': reviews!.length,
+              'rating': reviews!.isEmpty
+                  ? 0
+                  : reviews!.fold<double>(
+                          0,
+                          (sum, review) => sum + review.rating,
+                        ) /
+                        reviews!.length,
+            });
+
       final updateParams = UpdateBookingsParams(
         loungeId: loungeId,
         date: date,
         rooms: rooms!,
         extras: extras ?? [],
-        lounge: state.lounge!,
+        lounge: currentLounge,
         deviceCategories: deviceCategories ?? [],
-        reviews: reviews ?? [],
+        reviews: reviews,
+        operatingStatus: operatingStatus,
       );
 
-      await _updateBookings(updateParams, tournaments: tournaments);
+      await _updateBookings(
+        updateParams,
+        tournaments: tournaments,
+        detailsEpoch: epoch,
+        requestToken: _selectDateFetchToken,
+      );
       log("getLoungeDetails COMPLETED");
     } catch (e, stack) {
+      if (isClosed || epoch != _detailsEpoch) return;
       log("CUBIT ERROR: $e", stackTrace: stack);
       emit(state.copyWith(status: LoungeDetailsStatus.error));
     }
@@ -191,6 +242,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           reviews: state.reviews,
         ),
         requestToken: currentToken,
+        detailsEpoch: _detailsEpoch,
       );
     } catch (e) {
       if (currentToken == _selectDateFetchToken) {
@@ -203,12 +255,18 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     UpdateBookingsParams params, {
     List<TournamentEntity>? tournaments,
     int? requestToken,
+    int? detailsEpoch,
   }) async {
     log("FETCHING BOOKINGS FOR DATE: ${params.date}");
     final bookingsResult = await _bookingRepository.getRoomBookingsForDate(
       params.loungeId,
       params.date,
     );
+    if (isClosed ||
+        (detailsEpoch != null && detailsEpoch != _detailsEpoch) ||
+        state.lounge?.id != params.loungeId) {
+      return;
+    }
 
     if (requestToken != null && requestToken != _selectDateFetchToken) {
       log("STALE DATE FETCH DISCARDED for token: $requestToken");
@@ -218,14 +276,20 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     bookingsResult.fold(
       (failure) {
         log("CRITICAL BOOKINGS ERROR: ${failure.message}");
-        final currentRooms = state.rooms.isNotEmpty ? state.rooms : params.rooms;
+        final currentRooms = state.rooms.isNotEmpty
+            ? state.rooms
+            : params.rooms;
         emit(
           state.copyWith(
             isDateLoading: false,
-            status: currentRooms.isNotEmpty ? LoungeDetailsStatus.success : LoungeDetailsStatus.error,
+            availabilityLoadFailed: true,
+            status: currentRooms.isNotEmpty
+                ? LoungeDetailsStatus.success
+                : LoungeDetailsStatus.error,
             rooms: currentRooms,
             extras: state.extras.isNotEmpty ? state.extras : params.extras,
             lounge: params.lounge,
+            operatingStatus: params.operatingStatus ?? state.operatingStatus,
           ),
         );
       },
@@ -263,13 +327,15 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
           return a.compareTo(b);
         });
 
-        final Set<String> updatedSelectedRooms = Set<String>.from(state.selectedRoomIds)
-          ..removeWhere((id) => fullyBookedIds.contains(id));
+        final Set<String> updatedSelectedRooms = Set<String>.from(
+          state.selectedRoomIds,
+        )..removeWhere((id) => fullyBookedIds.contains(id));
 
         emit(
           state.copyWith(
             status: LoungeDetailsStatus.success,
             isDateLoading: false,
+            availabilityLoadFailed: false,
             rooms: params.rooms,
             extras: params.extras,
             reviews: params.reviews ?? state.reviews,
@@ -283,6 +349,7 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
             selectedCategory: state.selectedCategory,
             selectedRoomIds: updatedSelectedRooms,
             lounge: params.lounge,
+            operatingStatus: params.operatingStatus ?? state.operatingStatus,
           ),
         );
       },
@@ -328,6 +395,11 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
   void setCategory(String categoryId) async {
     if (state.selectedCategory == categoryId) return;
 
+    final loungeId = state.lounge?.id ?? '';
+    if (loungeId.isEmpty) return;
+    final requestVersion = ++_categoryRequestVersion;
+    final detailsEpoch = _detailsEpoch;
+
     HapticFeedback.selectionClick();
     emit(
       state.copyWith(
@@ -336,13 +408,16 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
       ),
     );
 
-    final loungeId = state.lounge?.id ?? '';
-    if (loungeId.isEmpty) return;
-
     final result = await _loungeDetailsRepository.getRoomsByLoungeId(
       loungeId,
       categoryId: categoryId.toLowerCase() == 'all' ? null : categoryId,
     );
+    if (isClosed ||
+        requestVersion != _categoryRequestVersion ||
+        detailsEpoch != _detailsEpoch ||
+        state.lounge?.id != loungeId) {
+      return;
+    }
 
     result.fold(
       (failure) => emit(state.copyWith(status: LoungeDetailsStatus.error)),
@@ -369,5 +444,29 @@ class LoungeDetailsCubit extends Cubit<LoungeDetailsState> {
     }
 
     emit(state.copyWith(selectedExtras: updatedExtras));
+  }
+
+  void clearSelectedExtras() {
+    if (state.selectedExtras.isEmpty) return;
+    emit(state.copyWith(selectedExtras: const {}));
+  }
+
+  /// Check the live catalogue before offering food with a booking. Cached
+  /// products may belong to a lounge that has stopped serving canteen items.
+  /// Returns null when the catalogue could not be checked.
+  Future<bool?> refreshBookingCanteen(String loungeId) async {
+    final result = await _loungeDetailsRepository.getExtras(
+      loungeId,
+      forceRefresh: true,
+    );
+    if (isClosed || state.lounge?.id != loungeId) return null;
+    return result.fold((_) => null, (extras) {
+      final available = extras.where((extra) => extra.isAvailable).toList();
+      final ids = available.map((extra) => extra.id).toSet();
+      final selected = Map<String, int>.from(state.selectedExtras)
+        ..removeWhere((id, _) => !ids.contains(id));
+      emit(state.copyWith(extras: available, selectedExtras: selected));
+      return available.isNotEmpty;
+    });
   }
 }

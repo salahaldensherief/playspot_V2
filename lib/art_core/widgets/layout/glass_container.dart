@@ -32,8 +32,10 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gradientBaseColor = useBorderColorForGradient ? (borderColor ?? Colors.white) : Colors.white;
-    
+    final gradientBaseColor = useBorderColorForGradient
+        ? (borderColor ?? Colors.white)
+        : Colors.white;
+
     return Container(
       width: width,
       height: height,
@@ -48,18 +50,22 @@ class GlassContainer extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: Container(
             decoration: BoxDecoration(
-              color: color ?? Colors.white.withOpacity(0.03),
+              color: color ?? Colors.white.withAlpha((255 * 0.03).round()),
               borderRadius: BorderRadius.circular(borderRadius.r),
               border: Border.all(
-                color: borderColor ?? Colors.white.withOpacity(borderOpacity),
+                color:
+                    borderColor ??
+                    Colors.white.withAlpha((255 * borderOpacity).round()),
                 width: 1.0,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  gradientBaseColor.withOpacity(borderOpacity + 0.02),
-                  gradientBaseColor.withOpacity(0.01),
+                  gradientBaseColor.withAlpha(
+                    (255 * (borderOpacity + 0.02)).round(),
+                  ),
+                  gradientBaseColor.withAlpha((255 * 0.01).round()),
                 ],
               ),
             ),

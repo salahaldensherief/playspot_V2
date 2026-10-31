@@ -24,6 +24,7 @@ class SignUpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return BlocListener<SignupCubit, SignupState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: _handleStateChange,
@@ -35,7 +36,12 @@ class SignUpScreen extends StatelessWidget {
                 title: AppStrings.createAnAcc.tr(),
                 subTitle: AppStrings.signUpSubtitle.tr(),
               ),
-              180.verticalSpace,
+              SizedBox(
+                height: (MediaQuery.sizeOf(context).height * 0.08).clamp(
+                  24.0,
+                  80.0,
+                ),
+              ),
               const SignupSocialSection(),
               20.verticalSpace,
               BlocSelector<SignupCubit, SignupState, String?>(
@@ -84,10 +90,7 @@ class SignUpScreen extends StatelessWidget {
     }
 
     if (state.status == SignupStatus.successSocial || state.params.isNewUser) {
-      context.goNamed(
-        RouterKeys.completeProfile,
-        extra: state.params,
-      );
+      context.goNamed(RouterKeys.completeProfile, extra: state.params);
       return;
     }
 

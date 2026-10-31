@@ -42,13 +42,10 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
       vsync: this,
       duration: const Duration(milliseconds: 400),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
     _slideController.forward();
   }
 
@@ -60,7 +57,7 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
 
   void _handleDismiss() {
     _slideController.reverse().then((_) {
-      widget.onDismiss();
+      if (mounted) widget.onDismiss();
     });
   }
 
@@ -132,7 +129,10 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Colors.white54),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white54,
+                    ),
                     onPressed: _handleDismiss,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -147,7 +147,11 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                 children: [15, 30, 60].map((mins) {
                   final isSelected = _selectedMinutes == mins;
                   final chipCost = cubit.calculateExtensionCost(mins);
-                  final label = mins == 60 ? AppStrings.hr1.tr() : (mins == 15 ? AppStrings.min15.tr() : AppStrings.min30.tr());
+                  final label = mins == 60
+                      ? AppStrings.hr1.tr()
+                      : (mins == 15
+                            ? AppStrings.min15.tr()
+                            : AppStrings.min30.tr());
 
                   return Expanded(
                     child: GestureDetector(
@@ -166,7 +170,9 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                               : AppColors.mutedBackground,
                           borderRadius: BorderRadius.circular(12.r),
                           border: Border.all(
-                            color: isSelected ? AppColors.neonBlue : AppColors.divider,
+                            color: isSelected
+                                ? AppColors.neonBlue
+                                : AppColors.divider,
                             width: isSelected ? 1.8 : 1.0,
                           ),
                         ),
@@ -176,13 +182,18 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                               text: label,
                               fontSize: 13.sp,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? AppColors.neonBlue : Colors.white,
+                              color: isSelected
+                                  ? AppColors.neonBlue
+                                  : Colors.white,
                             ),
                             SizedBox(height: 4.h),
                             AppText(
-                              text: '${chipCost.toInt()} ${AppStrings.egpSymbol.tr()}',
+                              text:
+                                  '${chipCost.toInt()} ${AppStrings.egpSymbol.tr()}',
                               fontSize: 11.sp,
-                              color: isSelected ? Colors.white : AppColors.textSecondary,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.textSecondary,
                             ),
                           ],
                         ),
@@ -208,7 +219,8 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                         ),
                         SizedBox(height: 2.h),
                         AppText(
-                          text: '${expectedCost.toInt()} ${AppStrings.egpSymbol.tr()}',
+                          text:
+                              '${expectedCost.toInt()} ${AppStrings.egpSymbol.tr()}',
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w900,
                           color: AppColors.neonBlue,
@@ -219,19 +231,26 @@ class _ExtensionPromptCardState extends State<ExtensionPromptCard>
                   SizedBox(width: 12.w),
                   BlocBuilder<ActiveSessionCubit, ActiveSessionState>(
                     builder: (context, state) {
-                      final isLoading = state.extendStatus == ActionStatus.loading;
+                      final isLoading =
+                          state.extendStatus == ActionStatus.loading;
                       return AppButton(
                         content: ButtonContent(
-                          label: isLoading ? null : AppStrings.confirmExtensionTitle.tr(),
+                          label: isLoading
+                              ? null
+                              : AppStrings.confirmExtensionTitle.tr(),
                           body: isLoading
                               ? SizedBox(
                                   width: 20.w,
                                   height: 20.w,
-                                  child: const AppLoader(size: 20, strokeWidth: 2),
+                                  child: const AppLoader(
+                                    size: 20,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : null,
                         ),
                         behavior: ButtonBehavior.tap(
+                          isEnabled: !isLoading,
                           onTap: () {
                             HapticFeedback.mediumImpact();
                             cubit.requestExtension(_selectedMinutes);

@@ -39,7 +39,7 @@ Core application services, dependency injection, caching, notifications, and sha
 
 Business rules belong in domain/use-case layers. Cubits orchestrate use cases and widgets render state. Server-authoritative operations such as booking integrity, pricing validation, payments, inventory, loyalty, permissions, and tournament lifecycle rules must be enforced in Postgres/RPCs rather than trusted to client-side calculations.
 
-Project-specific engineering rules are documented in `AGENTS_RULES.md`.
+Agent engineering rules are in `AGENTS.md`.
 
 ## Configuration
 
@@ -115,3 +115,7 @@ GitHub Actions runs on pull requests and pushes to `dev` / `main` and checks for
 ## Localization
 
 User-facing copy must use Easy Localization. Arabic and English resources live under `assets/lang/`. UI changes must be safe in both RTL and LTR layouts.
+
+## Agent and developer onboarding
+
+Start with **[PlaySpot Complete System Atlas](docs/PLAYSPOT_SYSTEM_ATLAS.md)** for architecture, business invariants, UI/UX, feature/file index, cross-client data flows, Supabase ownership, open PRs, risks, verification and safe branch instructions. Then read this repository's `AGENTS.md` and current feature source. The atlas is synchronized as a docs-only copy in the companion repository; refresh it when contracts change.

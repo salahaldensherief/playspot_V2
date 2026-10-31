@@ -111,9 +111,7 @@ class LoyaltyMissionsSection extends StatelessWidget {
         padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: statusColor.withValues(alpha: 0.3),
-          ),
+          border: Border.all(color: statusColor.withValues(alpha: 0.3)),
           color: AppColors.cardBackground.withValues(alpha: 0.6),
         ),
         child: Column(
@@ -165,7 +163,10 @@ class LoyaltyMissionsSection extends StatelessWidget {
                 SizedBox(width: 8.w),
                 // Points Reward Badge
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.warning.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20.r),
@@ -212,7 +213,8 @@ class LoyaltyMissionsSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: AppText(
-                    text: "$statusText (${mission.currentProgress}/${mission.targetProgress})",
+                    text:
+                        "$statusText (${mission.currentProgress}/${mission.targetProgress})",
                     fontSize: 11.sp,
                     fontWeight: FontWeight.bold,
                     color: statusColor,
@@ -227,7 +229,9 @@ class LoyaltyMissionsSection extends StatelessWidget {
   }
 
   String _getStatusText(LoyaltyMissionModel mission) {
-    if (mission.isCompleted || (mission.currentProgress >= mission.targetProgress && mission.targetProgress > 0)) {
+    if (mission.isCompleted ||
+        (mission.currentProgress >= mission.targetProgress &&
+            mission.targetProgress > 0)) {
       return AppStrings.completed.tr();
     }
     if (mission.currentProgress > 0) {
@@ -237,7 +241,9 @@ class LoyaltyMissionsSection extends StatelessWidget {
   }
 
   Color _getStatusColor(LoyaltyMissionModel mission) {
-    if (mission.isCompleted || (mission.currentProgress >= mission.targetProgress && mission.targetProgress > 0)) {
+    if (mission.isCompleted ||
+        (mission.currentProgress >= mission.targetProgress &&
+            mission.targetProgress > 0)) {
       return AppColors.success;
     }
     if (mission.currentProgress > 0) {

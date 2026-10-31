@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import '../../../../art_core/widgets/buttons/res/button_content.dart';
 import '../../../../art_core/widgets/buttons/res/button_style_config.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_state_view.dart';
 import '../../../../art_core/widgets/notifications/game_hud_toast.dart';
 import '../../domain/entities/tournament_entity.dart';
 import '../widgets/match_countdown_timer.dart';
@@ -34,16 +36,17 @@ class TournamentMatchScreen extends StatefulWidget {
 }
 
 class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
-  final TextEditingController _disputeReasonController = TextEditingController();
+  final TextEditingController _disputeReasonController =
+      TextEditingController();
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     context.read<TournamentMatchCubit>().loadMatch(
-          tournamentId: widget.tournamentId,
-          matchId: widget.matchId,
-        );
+      tournamentId: widget.tournamentId,
+      matchId: widget.matchId,
+    );
   }
 
   @override
@@ -78,83 +81,108 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
     _disputeReasonController.clear();
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => Dialog(
         backgroundColor: AppColors.cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.r),
           side: const BorderSide(color: AppColors.danger),
         ),
-        title: Text(
-          AppStrings.disputeResult.tr(),
-          style: TextStyle(
-            color: AppColors.danger,
-            fontWeight: FontWeight.bold,
-            fontSize: 16.sp,
-            fontFamily: 'Orbitron',
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              AppStrings.disputeReason.tr(),
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 13.sp),
-            ),
-            SizedBox(height: 8.h),
-            TextField(
-              controller: _disputeReasonController,
-              maxLines: 3,
-              style: TextStyle(color: AppColors.textPrimary, fontSize: 13.sp),
-              decoration: InputDecoration(
-                hintText: AppStrings.enterDisputeReason.tr(),
-                hintStyle: TextStyle(color: AppColors.hintText, fontSize: 12.sp),
-                filled: true,
-                fillColor: AppColors.mutedBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: const BorderSide(color: AppColors.borderDefault),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: AppStrings.disputeResult.tr(),
+                  style: TextStyle(
+                    color: AppColors.danger,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.sp,
+                  ),
                 ),
-              ),
+                SizedBox(height: 16.h),
+                AppText(
+                  text: AppStrings.disputeReason.tr(),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13.sp,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: _disputeReasonController,
+                  maxLines: 3,
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 13.sp,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.enterDisputeReason.tr(),
+                    hintStyle: TextStyle(
+                      color: AppColors.hintText,
+                      fontSize: 12.sp,
+                    ),
+                    filled: true,
+                    fillColor: AppColors.mutedBackground,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: const BorderSide(
+                        color: AppColors.borderDefault,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    AppButton(
+                      buttonConfig: ButtonConfig(
+                        backgroundColor: Colors.transparent,
+                        borderColor: AppColors.borderDefault,
+                        isOutlined: true,
+                        width: 90.w,
+                      ),
+                      content: ButtonContent(label: AppStrings.close.tr()),
+                      behavior: TapBehavior(
+                        onTap: () => Navigator.pop(dialogContext),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    AppButton(
+                      buttonConfig: ButtonConfig(
+                        backgroundColor: AppColors.danger,
+                        width: 120.w,
+                      ),
+                      content: ButtonContent(
+                        label: AppStrings.disputeResult.tr(),
+                      ),
+                      behavior: TapBehavior(
+                        onTap: () {
+                          final reason = _disputeReasonController.text.trim();
+                          if (reason.isEmpty) {
+                            GameHudToast.show(
+                              context,
+                              AppStrings.enterDisputeReason.tr(),
+                              type: ToastType.error,
+                            );
+                            return;
+                          }
+                          Navigator.pop(dialogContext);
+                          context.read<TournamentMatchCubit>().disputeResult(
+                            reason,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-        actions: [
-          AppButton(
-            buttonConfig: ButtonConfig(
-              backgroundColor: Colors.transparent,
-              borderColor: AppColors.borderDefault,
-              isOutlined: true,
-              width: 90.w,
-            ),
-            content: ButtonContent(label: AppStrings.close.tr()),
-            behavior: TapBehavior(
-              onTap: () => Navigator.pop(dialogContext),
-            ),
-          ),
-          AppButton(
-            buttonConfig: ButtonConfig(
-              backgroundColor: AppColors.danger,
-              width: 120.w,
-            ),
-            content: ButtonContent(label: AppStrings.disputeResult.tr()),
-            behavior: TapBehavior(
-              onTap: () {
-                final reason = _disputeReasonController.text.trim();
-                if (reason.isEmpty) {
-                  GameHudToast.show(
-                    context,
-                    AppStrings.enterDisputeReason.tr(),
-                    type: ToastType.error,
-                  );
-                  return;
-                }
-                Navigator.pop(dialogContext);
-                context.read<TournamentMatchCubit>().disputeResult(reason);
-              },
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -166,14 +194,14 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
         if (state.errorMessage != null) {
           GameHudToast.show(
             context,
-            state.errorMessage!,
+            state.errorMessage ?? '',
             type: ToastType.error,
           );
         }
         if (state.successMessage != null) {
           GameHudToast.show(
             context,
-            state.successMessage!.tr(),
+            (state.successMessage ?? '').tr(),
             type: ToastType.success,
           );
         }
@@ -186,20 +214,25 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           );
         }
 
-        if (state.match == null) {
+        final match = state.match;
+        if (match == null) {
           return Scaffold(
             backgroundColor: AppColors.scaffoldBackground,
             appBar: AppBar(leading: const BackButtonWidget()),
-            body: Center(
-              child: Text(
-                AppStrings.noResults.tr(),
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
-              ),
-            ),
+            body: state.status == MatchScreenStatus.failure
+                ? AppStateView.error(
+                    title:
+                        state.errorMessage ??
+                        AppStrings.somethingWentWrong.tr(),
+                    onRetry: () =>
+                        context.read<TournamentMatchCubit>().loadMatch(
+                          tournamentId: widget.tournamentId,
+                          matchId: widget.matchId,
+                        ),
+                  )
+                : AppStateView.empty(title: AppStrings.noResults.tr()),
           );
         }
-
-        final match = state.match!;
 
         return Scaffold(
           backgroundColor: AppColors.scaffoldBackground,
@@ -207,13 +240,12 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
             backgroundColor: AppColors.scaffoldBackground,
             elevation: 0,
             leading: const BackButtonWidget(),
-            title: Text(
-              AppStrings.matchDetails.tr(),
+            title: AppText(
+              text: AppStrings.matchDetails.tr(),
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                fontFamily: 'Orbitron',
               ),
             ),
             centerTitle: true,
@@ -225,9 +257,10 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Countdown Timer Header (If pending_confirmation)
-                  if (match.status == MatchStatus.pendingConfirmation && match.confirmationDeadline != null) ...[
+                  if (match.status == MatchStatus.pendingConfirmation &&
+                      match.confirmationDeadline != null) ...[
                     MatchCountdownTimer(
-                      deadline: match.confirmationDeadline!,
+                      deadline: match.confirmationDeadline ?? DateTime.now(),
                       onExpired: () {
                         context.read<TournamentMatchCubit>().confirmResult();
                       },
@@ -238,19 +271,29 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                   // Room/Station Info
                   if (match.stationNumber != null) ...[
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 8.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.cardBackground,
                         borderRadius: BorderRadius.circular(20.r),
-                        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.4)),
+                        border: Border.all(
+                          color: AppColors.neonBlue.withValues(alpha: 0.4),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(TablerIcons.device_tv, color: AppColors.neonBlue, size: 18.sp),
+                          Icon(
+                            TablerIcons.device_tv,
+                            color: AppColors.neonBlue,
+                            size: 18.sp,
+                          ),
                           SizedBox(width: 8.w),
-                          Text(
-                            '${AppStrings.roomStation.tr()}: ${match.stationNumber}',
+                          AppText(
+                            text:
+                                '${AppStrings.roomStation.tr()}: ${match.stationNumber}',
                             style: TextStyle(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
@@ -269,7 +312,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: AppColors.neonPurple.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -279,22 +324,29 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                           child: _buildPlayerScoreColumn(
                             name: match.player1Name ?? AppStrings.player1.tr(),
                             score: state.player1Score,
-                            onIncrement: () => context.read<TournamentMatchCubit>().updatePlayer1Score(state.player1Score + 1),
-                            onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer1Score((state.player1Score - 1).clamp(0, 999)),
-                            isEditable: match.status == MatchStatus.inProgress || match.status == MatchStatus.scheduled,
+                            onIncrement: () => context
+                                .read<TournamentMatchCubit>()
+                                .updatePlayer1Score(state.player1Score + 1),
+                            onDecrement: () => context
+                                .read<TournamentMatchCubit>()
+                                .updatePlayer1Score(
+                                  (state.player1Score - 1).clamp(0, 999),
+                                ),
+                            isEditable:
+                                match.status == MatchStatus.inProgress ||
+                                match.status == MatchStatus.scheduled,
                           ),
                         ),
 
                         // VS Divider
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12.w),
-                          child: Text(
-                            AppStrings.vs.tr(),
+                          child: AppText(
+                            text: AppStrings.vs.tr(),
                             style: TextStyle(
                               color: AppColors.neonBlue,
                               fontSize: 22.sp,
                               fontWeight: FontWeight.bold,
-                              fontFamily: 'Orbitron',
                             ),
                           ),
                         ),
@@ -304,9 +356,17 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                           child: _buildPlayerScoreColumn(
                             name: match.player2Name ?? AppStrings.player2.tr(),
                             score: state.player2Score,
-                            onIncrement: () => context.read<TournamentMatchCubit>().updatePlayer2Score(state.player2Score + 1),
-                            onDecrement: () => context.read<TournamentMatchCubit>().updatePlayer2Score((state.player2Score - 1).clamp(0, 999)),
-                            isEditable: match.status == MatchStatus.inProgress || match.status == MatchStatus.scheduled,
+                            onIncrement: () => context
+                                .read<TournamentMatchCubit>()
+                                .updatePlayer2Score(state.player2Score + 1),
+                            onDecrement: () => context
+                                .read<TournamentMatchCubit>()
+                                .updatePlayer2Score(
+                                  (state.player2Score - 1).clamp(0, 999),
+                                ),
+                            isEditable:
+                                match.status == MatchStatus.inProgress ||
+                                match.status == MatchStatus.scheduled,
                           ),
                         ),
                       ],
@@ -315,11 +375,12 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                   SizedBox(height: 24.h),
 
                   // Proof Screenshot Section
-                  if (match.status == MatchStatus.inProgress || match.status == MatchStatus.scheduled) ...[
+                  if (match.status == MatchStatus.inProgress ||
+                      match.status == MatchStatus.scheduled) ...[
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        AppStrings.uploadMatchProof.tr(),
+                      child: AppText(
+                        text: AppStrings.uploadMatchProof.tr(),
                         style: TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 14.sp,
@@ -329,13 +390,13 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                     ),
                     SizedBox(height: 8.h),
 
-                    if (state.proofFile != null) ...[
+                    if (state.proofFile case final proofFile?) ...[
                       Stack(
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12.r),
                             child: Image.file(
-                              state.proofFile!,
+                              proofFile,
                               height: 180.h,
                               width: double.infinity,
                               fit: BoxFit.cover,
@@ -345,10 +406,18 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                             top: 8.h,
                             right: 8.w,
                             child: CircleAvatar(
-                              backgroundColor: Colors.black.withValues(alpha: 0.7),
+                              backgroundColor: Colors.black.withValues(
+                                alpha: 0.7,
+                              ),
                               child: IconButton(
-                                icon: Icon(Icons.close, color: Colors.white, size: 18.sp),
-                                onPressed: () => context.read<TournamentMatchCubit>().setProofFile(null),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 18.sp,
+                                ),
+                                onPressed: () => context
+                                    .read<TournamentMatchCubit>()
+                                    .setProofFile(null),
                               ),
                             ),
                           ),
@@ -366,13 +435,25 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.mutedBackground,
                                   borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(color: AppColors.borderDefault),
+                                  border: Border.all(
+                                    color: AppColors.borderDefault,
+                                  ),
                                 ),
                                 child: Column(
                                   children: [
-                                    Icon(TablerIcons.photo, color: AppColors.neonBlue, size: 28.sp),
+                                    Icon(
+                                      TablerIcons.photo,
+                                      color: AppColors.neonBlue,
+                                      size: 28.sp,
+                                    ),
                                     SizedBox(height: 6.h),
-                                    Text(AppStrings.gallery.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
+                                    AppText(
+                                      text: AppStrings.gallery.tr(),
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12.sp,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -388,13 +469,25 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.mutedBackground,
                                   borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(color: AppColors.borderDefault),
+                                  border: Border.all(
+                                    color: AppColors.borderDefault,
+                                  ),
                                 ),
                                 child: Column(
                                   children: [
-                                    Icon(TablerIcons.camera, color: AppColors.neonPurple, size: 28.sp),
+                                    Icon(
+                                      TablerIcons.camera,
+                                      color: AppColors.neonPurple,
+                                      size: 28.sp,
+                                    ),
                                     SizedBox(height: 6.h),
-                                    Text(AppStrings.camera.tr(), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.sp)),
+                                    AppText(
+                                      text: AppStrings.camera.tr(),
+                                      style: TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12.sp,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -412,10 +505,13 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                         glowColor: AppColors.neonBlueAlt,
                         width: double.infinity,
                       ),
-                      content: ButtonContent(label: AppStrings.submitResult.tr()),
+                      content: ButtonContent(
+                        label: AppStrings.submitResult.tr(),
+                      ),
                       behavior: TapBehavior(
                         isLoading: state.isSubmittingResult,
-                        onTap: () => context.read<TournamentMatchCubit>().submitResult(),
+                        onTap: () =>
+                            context.read<TournamentMatchCubit>().submitResult(),
                       ),
                     ),
                   ],
@@ -430,10 +526,14 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                               gradient: AppColors.primaryGradient,
                               glowColor: AppColors.neonBlueAlt,
                             ),
-                            content: ButtonContent(label: AppStrings.confirmResult.tr()),
+                            content: ButtonContent(
+                              label: AppStrings.confirmResult.tr(),
+                            ),
                             behavior: TapBehavior(
                               isLoading: state.isConfirmingResult,
-                              onTap: () => context.read<TournamentMatchCubit>().confirmResult(),
+                              onTap: () => context
+                                  .read<TournamentMatchCubit>()
+                                  .confirmResult(),
                             ),
                           ),
                         ),
@@ -443,7 +543,9 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                             buttonConfig: ButtonConfig(
                               backgroundColor: AppColors.danger,
                             ),
-                            content: ButtonContent(label: AppStrings.disputeResult.tr()),
+                            content: ButtonContent(
+                              label: AppStrings.disputeResult.tr(),
+                            ),
                             behavior: TapBehavior(
                               isLoading: state.isSubmittingDispute,
                               onTap: () => _showDisputeDialog(),
@@ -471,8 +573,8 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
   }) {
     return Column(
       children: [
-        Text(
-          name,
+        AppText(
+          text: name,
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
@@ -490,17 +592,18 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
           decoration: BoxDecoration(
             color: AppColors.mutedBackground,
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: AppColors.neonBlue.withValues(alpha: 0.3),
+            ),
           ),
           child: Column(
             children: [
-              Text(
-                '$score',
+              AppText(
+                text: '$score',
                 style: TextStyle(
                   color: AppColors.neonBlue,
                   fontSize: 28.sp,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Orbitron',
                 ),
               ),
               if (isEditable) ...[
@@ -509,11 +612,19 @@ class _TournamentMatchScreenState extends State<TournamentMatchScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      icon: Icon(TablerIcons.minus, color: AppColors.textSecondary, size: 20.sp),
+                      icon: Icon(
+                        TablerIcons.minus,
+                        color: AppColors.textSecondary,
+                        size: 20.sp,
+                      ),
                       onPressed: onDecrement,
                     ),
                     IconButton(
-                      icon: Icon(TablerIcons.plus, color: AppColors.neonBlue, size: 20.sp),
+                      icon: Icon(
+                        TablerIcons.plus,
+                        color: AppColors.neonBlue,
+                        size: 20.sp,
+                      ),
                       onPressed: onIncrement,
                     ),
                   ],

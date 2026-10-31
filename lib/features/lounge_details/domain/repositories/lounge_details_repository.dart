@@ -5,6 +5,7 @@ import '../../data/models/extra_model.dart';
 import '../../data/models/room_model.dart';
 import '../../data/models/review_model.dart';
 import '../../../home/data/models/category_model.dart';
+import '../entities/lounge_operating_status.dart';
 
 abstract class LoungeDetailsRepository {
   Future<Either<Failure, List<RoomModel>>> getRoomsByLoungeId(
@@ -29,13 +30,18 @@ abstract class LoungeDetailsRepository {
     int page = 1,
     int pageSize = 20,
   });
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getLoungeRolePermissionsPage(
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getLoungeRolePermissionsPage(
     String loungeId, {
     int page = 1,
     int pageSize = 50,
   });
   Future<Either<Failure, RoomModel?>> getRoomById(
     String roomId, {
+    bool forceRefresh = false,
+  });
+  Future<Either<Failure, LoungeOperatingStatus?>> getLoungeOperatingStatus(
+    String loungeId, {
     bool forceRefresh = false,
   });
 }

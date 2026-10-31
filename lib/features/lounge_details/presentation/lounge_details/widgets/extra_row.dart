@@ -21,8 +21,17 @@ class ExtraRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText(text: extra.name, fontSize: 14.sp, color: AppColors.white, fontWeight: FontWeight.bold),
-                AppText(text: "${extra.price.toInt()} ${AppStrings.egp.tr()}", fontSize: 12.sp, color: AppColors.neonPurple),
+                AppText(
+                  text: extra.name,
+                  fontSize: 14.sp,
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                AppText(
+                  text: "${extra.price.toInt()} ${AppStrings.egp.tr()}",
+                  fontSize: 12.sp,
+                  color: AppColors.neonPurple,
+                ),
               ],
             ),
           ),

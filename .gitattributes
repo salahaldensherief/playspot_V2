@@ -1,0 +1,3 @@
+# Preserve reviewed schema checkpoint formatting and its pinned normalized hash.
+# pg_dump function bodies include historical trailing whitespace; do not rewrite them.
+tooling/dev-stack/app-checkpoint.sql -whitespace

@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -10,9 +10,19 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/play_spot_data_extraction_rules"
         android:label="playspot"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <provider android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:enabled="${firebaseInitEnabled}" tools:replace="android:enabled" />
+
+        <!-- Disable Impeller on Android to prevent OpenGL ES emulator startup crashes -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
 
         <!-- Default Notification Icon & Channel for Firebase -->
         <meta-data

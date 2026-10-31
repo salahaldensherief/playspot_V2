@@ -25,12 +25,16 @@ class _NetworkStatusWrapperState extends State<NetworkStatusWrapper> {
   @override
   void initState() {
     super.initState();
-    NetworkConnectivityService().isConnectedNotifier.addListener(_onConnectivityChanged);
+    NetworkConnectivityService().isConnectedNotifier.addListener(
+      _onConnectivityChanged,
+    );
   }
 
   @override
   void dispose() {
-    NetworkConnectivityService().isConnectedNotifier.removeListener(_onConnectivityChanged);
+    NetworkConnectivityService().isConnectedNotifier.removeListener(
+      _onConnectivityChanged,
+    );
     _restoredTimer?.cancel();
     super.dispose();
   }
@@ -67,59 +71,66 @@ class _NetworkStatusWrapperState extends State<NetworkStatusWrapper> {
         final isOffline = !isConnected;
         final showBanner = isOffline || _showRestoredBanner;
 
-        return Stack(
+        return Column(
           children: [
-            widget.child,
             if (showBanner)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Material(
-                  color: Colors.transparent,
-                  elevation: 6,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + 6.h,
-                      bottom: 8.h,
-                      left: 16.w,
-                      right: 16.w,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isOffline
-                          ? AppColors.danger.withOpacity(0.92)
-                          : AppColors.success.withOpacity(0.92),
-                      boxShadow: [
-                        BoxShadow(
-                          color: (isOffline ? AppColors.danger : AppColors.success).withOpacity(0.4),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isOffline ? TablerIcons.wifi_off : TablerIcons.wifi,
-                          color: Colors.white,
-                          size: 18.sp,
-                        ),
-                        SizedBox(width: 8.w),
-                        AppText(
+              Material(
+                color: Colors.transparent,
+                elevation: 6,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).padding.top + 6.h,
+                    bottom: 8.h,
+                    left: 16.w,
+                    right: 16.w,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isOffline
+                        ? AppColors.danger.withAlpha((255 * 0.92).round())
+                        : AppColors.success.withAlpha((255 * 0.92).round()),
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            (isOffline ? AppColors.danger : AppColors.success)
+                                .withAlpha((255 * 0.4).round()),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isOffline ? TablerIcons.wifi_off : TablerIcons.wifi,
+                        color: Colors.white,
+                        size: 18.sp,
+                      ),
+                      SizedBox(width: 8.w),
+                      Flexible(
+                        child: AppText(
                           text: isOffline
                               ? AppStrings.noInternetConnection.tr()
                               : AppStrings.internetRestored.tr(),
                           color: Colors.white,
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+            Expanded(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: showBanner,
+                child: widget.child,
+              ),
+            ),
           ],
         );
       },

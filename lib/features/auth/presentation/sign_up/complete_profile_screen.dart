@@ -39,11 +39,15 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<SignupCubit>().initWithUser(widget.initialUser, userId: widget.userId);
+    context.read<SignupCubit>().initWithUser(
+      widget.initialUser,
+      userId: widget.userId,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return BlocConsumer<SignupCubit, SignupState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
@@ -74,7 +78,12 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     title: AppStrings.completeProfile.tr(),
                     subTitle: AppStrings.completeProfileSubtitle.tr(),
                   ),
-                  180.verticalSpace,
+                  SizedBox(
+                    height: (MediaQuery.sizeOf(context).height * 0.08).clamp(
+                      24.0,
+                      80.0,
+                    ),
+                  ),
                   AvatarPickerWidget(
                     avatarFile: cubit.avatarFile,
                     imageUrl: state.params.avatarUrl,
@@ -103,7 +112,9 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         width: double.infinity,
                         height: 50.h,
                       ),
-                      content: ButtonContent(label: AppStrings.continueText.tr()),
+                      content: ButtonContent(
+                        label: AppStrings.continueText.tr(),
+                      ),
                       behavior: TapBehavior(
                         isEnabled: !isLoading,
                         isLoading: isLoading,

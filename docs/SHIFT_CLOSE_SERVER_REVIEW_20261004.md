@@ -1,0 +1,16 @@
+# Shift close server authorization — 2026-10-04
+
+All three deployed close APIs (`blind_close_shift`, `close_shift`, `close_lounge_shift`) now require the actor to be active, unbanned and scoped to the venue, with `shifts_blind_close`. Closing another cashier's shift additionally requires manager authority. The blind RPC retains its existing service-role path. Existing cash/expense calculations and return signatures remain unchanged. Anonymous/PUBLIC/auth-maintenance execution is revoked; authenticated/service execution remains available. Every function uses an empty search path.
+
+Two newly authored migrations were applied through Supabase after local verification. Their filenames were aligned to the actual server migration versions returned by migration history, preventing these changes being replayed under different timestamps:
+
+- `20261004021519_shift_close_authorization`
+- `20261004022323_lounge_shift_close_authorization`
+
+Native PostgreSQL 17 verification passed **24 checks**: seven actor/grant scenarios through each API, anonymous execution exclusion, authenticated execution availability, and blind audit persistence. Successful fixture closure preserves expected cash 130, counted cash 140 and difference 10; unauthorized attempts leave the shift open. Tests roll back fixture operations. No real booking, payment or shift was submitted. Local fixture helper functions model the inspected live scope/grant contracts; this is not an exhaustive integration test of every production RLS policy or concurrent payment/closure trigger.
+
+To reproduce, use a fresh isolated local database, never the hosted production database. Load `supabase/tests/fixtures/shift_close_authorization_fixture.sql`, both migrations above in order, then `supabase/tests/shift_close_authorization_native.sql` using `psql -v ON_ERROR_STOP=1`. The review ran on localhost:55439 in `playspot_shift_review_20261004`.
+
+Live metadata confirmed all three grant checks, no anonymous execute, and authenticated/service grants after deployment. Mobile analyze passed with 110 informational lints, no warnings/errors (182.9s); read-only formatter found 312 baseline differences in 636 files. No Mobile Flutter/UI code changed in this backend commit. Generated plugin files and `test_cache_box.bak` remain excluded.
+
+Security advisor follow-up: the remaining RLS-disabled object is PostGIS `spatial_ref_sys`, with PostGIS/btree_gist installed in public. This migration does not move extensions or change coordinate queries. Review [RLS advisor guidance](https://supabase.com/docs/guides/database/database-linter?lint=0013_rls_disabled_in_public) and [extension guidance](https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public) before a separate extension change. Leaked-password protection is disabled and needs a separate Auth configuration review ([password security](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)). Execute advisories include legitimate public discovery RPCs and authenticated commands; each needs its actual authorization contract assessed, not a blanket revoke. Private internal tables and booking holds intentionally have RLS with no direct policies; their scoped RPC paths require separate review. These findings preclude claiming blanket production approval.

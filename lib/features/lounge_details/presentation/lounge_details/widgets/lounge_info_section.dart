@@ -1,71 +1,76 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
-import 'package:playspot/art_core/widgets/rating/rating_display_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
-import '../lounge_details_cubit.dart';
-import '../lounge_details_state.dart';
+import 'lounge_detail_panel.dart';
+import 'lounge_location_summary.dart';
+import 'lounge_operating_hours.dart';
+import 'lounge_payment_summary.dart';
+import 'lounge_rating_summary.dart';
+import 'lounge_room_comparison.dart';
 
 class LoungeInfoSection extends StatelessWidget {
   final LoungeModel lounge;
-
   const LoungeInfoSection({super.key, required this.lounge});
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
+    final description =
+        (lounge.getDescription(context.locale.languageCode == 'ar') ?? '')
+            .trim();
     return SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: AppSizes.screenPadding),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-              buildWhen: (previous, current) => previous.reviews != current.reviews,
-              builder: (context, state) {
-                final int reviewCount = state.reviews.isNotEmpty
-                    ? state.reviews.length
-                    : (lounge.totalReviews ?? 0);
-                final double displayRating = (state.reviews.isNotEmpty)
-                    ? (state.reviews.fold(0.0, (sum, item) => sum + item.rating) / state.reviews.length)
-                    : lounge.rating;
-
-                return Row(
-                  children: [
-                    RatingDisplayWidget(
-                      rating: displayRating,
-                      starSize: 18.sp,
-                      spacing: 2.w,
+            LoungeDetailPanel(
+              titleKey: 'lounge_about_section',
+              icon: Icons.info_outline_rounded,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LoungeRatingSummary(lounge: lounge),
+                  if (description.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: AppText(
+                        text: description,
+                        fontFamily: 'Tajawal',
+                        fontSize: 13,
+                        color: Colors.white70,
+                        maxLines: 2,
+                        showAllTextOnTap: true,
+                      ),
                     ),
-                    SizedBox(width: 8.w),
-                    AppText(
-                      text: "${displayRating > 0 ? displayRating.toStringAsFixed(1) : "N/A"} · $reviewCount ${AppStrings.reviews.tr()}",
-                      fontSize: 13.sp,
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ],
-                );
-              },
-            ),
-            if (lounge.getDescription(isArabic) != null) ...[
-              SizedBox(height: 8.h),
-              AppText(
-                text: lounge.getDescription(isArabic)!,
-                fontSize: 13.sp,
-                color: AppColors.textSecondary,
-                height: 1.5,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                showAllTextOnTap: true,
+                ],
               ),
-            ],
-            SizedBox(height: 12.h),
+            ),
+            LoungeDetailPanel(
+              titleKey: 'lounge_visit_section',
+              collapsible: true,
+              icon: Icons.near_me_outlined,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LoungeOperatingHours(lounge: lounge),
+                  const Divider(height: 28, color: Colors.white12),
+                  LoungeLocationSummary(lounge: lounge),
+                ],
+              ),
+            ),
+            if (lounge.allowCashPayment ||
+                (lounge.effectiveWalletNumber?.trim().isNotEmpty ?? false) ||
+                (lounge.effectiveInstapayHandle?.trim().isNotEmpty ?? false) ||
+                lounge.requirePrepaidFirstTime)
+              LoungeDetailPanel(
+                titleKey: 'lounge_payment_section',
+                collapsible: true,
+                icon: Icons.account_balance_wallet_outlined,
+                child: LoungePaymentSummary(lounge: lounge),
+              ),
+            const LoungeRoomComparison(),
           ],
         ),
       ),

@@ -9,6 +9,7 @@ import 'package:playspot/art_core/utils/app_logger.dart';
 import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import 'package:playspot/core/di.dart';
+import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/core/services/supabase_storage_service.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/booking/domain/repositories/booking_repository.dart';
@@ -26,6 +27,12 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   CheckoutParams? _checkoutParams;
   Timer? _holdTimer;
   StreamSubscription<BookingModel>? _realtimeSubscription;
+  bool _closing = false;
+  bool _paymentInFlight = false;
+  int _quoteRequestVersion = 0;
+  int _initRequestVersion = 0;
+  int _bookingStatusVersion = 0;
+  bool get _inactive => _closing || isClosed;
 
   CheckoutCubit(
     this._bookingRepository,
@@ -38,8 +45,12 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   @override
   Future<void> close() async {
+    if (_closing) return;
+    _closing = true;
+    ++_quoteRequestVersion;
+    ++_initRequestVersion;
     _holdTimer?.cancel();
-    _realtimeSubscription?.cancel();
+    await _realtimeSubscription?.cancel();
     await _releaseHold();
     return super.close();
   }
@@ -71,7 +82,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     );
 
     _holdTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (isClosed) {
+      if (_inactive) {
         timer.cancel();
         return;
       }
@@ -98,7 +109,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         'Failed to release booking hold: ${failure.message}',
       ),
       (_) {
-        if (!isClosed) {
+        if (!_inactive && state.holdToken == holdToken) {
           emit(state.copyWith(clearHold: true));
         }
       },
@@ -114,7 +125,20 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     CheckoutParams params, {
     int? completedBookingsCount,
   }) async {
+    if (_inactive || _paymentInFlight) return;
+    ++_quoteRequestVersion;
+    final initVersion = ++_initRequestVersion;
     _checkoutParams = params;
+    _holdTimer?.cancel();
+    ++_bookingStatusVersion;
+    unawaited(_realtimeSubscription?.cancel());
+    _realtimeSubscription = null;
+    emit(
+      CheckoutState(
+        status: CheckoutStatus.loading,
+        selectedMethod: state.selectedMethod,
+      ),
+    );
 
     final lounge = params.lounge;
     final holdToken = params.holdToken;
@@ -146,6 +170,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         (count) => userBookingsCount = count,
       );
     }
+    if (_inactive || initVersion != _initRequestVersion) return;
 
     final allowCash = lounge.allowCashPayment;
     var isCashEnabled = true;
@@ -172,6 +197,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   void selectPaymentMethod(PaymentMethod method) {
+    if (_inactive || _paymentInFlight || state.createdBookingId != null) return;
     if (method == PaymentMethod.cash &&
         (!state.allowCashPayment || !state.isCashEnabled)) {
       HapticFeedback.vibrate();
@@ -183,18 +209,23 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   void updateSenderWalletNumber(String value) {
+    if (_inactive || _paymentInFlight || state.createdBookingId != null) return;
     emit(state.copyWith(senderWalletNumber: value.trim()));
   }
 
   void listenToBookingStatus(String bookingId) {
+    if (_inactive) return;
     _realtimeSubscription?.cancel();
+    final subscriptionVersion = ++_bookingStatusVersion;
     emit(state.copyWith(createdBookingId: bookingId));
 
     _realtimeSubscription = _bookingRepository
         .watchBookingStatus(bookingId)
         .listen(
           (updatedBooking) {
-            if (isClosed) return;
+            if (_inactive || subscriptionVersion != _bookingStatusVersion) {
+              return;
+            }
 
             if (updatedBooking.status == BookingStatus.upcoming) {
               emit(
@@ -223,7 +254,9 @@ class CheckoutCubit extends Cubit<CheckoutState> {
               error,
               stackTrace,
             );
-            if (isClosed) return;
+            if (_inactive || subscriptionVersion != _bookingStatusVersion) {
+              return;
+            }
 
             emit(
               state.copyWith(
@@ -236,6 +269,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   Future<void> applyVoucher(String code) async {
+    if (_inactive || _paymentInFlight || state.createdBookingId != null) return;
     final cleanCode = code.trim().toUpperCase();
     if (cleanCode.isEmpty) return;
 
@@ -244,6 +278,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   Future<void> selectVoucher(Map<String, dynamic> voucher) async {
+    if (_inactive || _paymentInFlight || state.createdBookingId != null) return;
     final code =
         (voucher['code'] ?? voucher['id'])?.toString().trim().toUpperCase() ??
         '';
@@ -253,6 +288,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   Future<void> removeVoucher() async {
+    if (_inactive || _paymentInFlight || state.createdBookingId != null) return;
     HapticFeedback.lightImpact();
     emit(state.copyWith(clearVoucher: true, status: CheckoutStatus.loading));
     await _refreshServerQuote();
@@ -268,6 +304,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   Future<void> _refreshServerQuote({String? voucherCode}) async {
+    if (_inactive || _paymentInFlight || state.createdBookingId != null) return;
+    final requestVersion = ++_quoteRequestVersion;
     final params = _checkoutParams;
     final holdToken = state.holdToken ?? params?.holdToken;
 
@@ -287,7 +325,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
           : cleanVoucher,
     );
 
-    if (isClosed) return;
+    if (_inactive || requestVersion != _quoteRequestVersion) return;
 
     result.fold(
       (failure) {
@@ -306,6 +344,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
         emit(
           state.copyWith(
             status: CheckoutStatus.initial,
+            clearPriceChangedFailure: true,
             serverQuote: quote,
             selectedVoucher:
                 quotedVoucherCode == null || quotedVoucherCode.isEmpty
@@ -371,6 +410,14 @@ class CheckoutCubit extends Cubit<CheckoutState> {
     String? senderAccount,
     String? transactionReference,
   }) async {
+    if (_inactive ||
+        _paymentInFlight ||
+        state.createdBookingId != null ||
+        state.status == CheckoutStatus.loading) {
+      return;
+    }
+    ++_quoteRequestVersion;
+
     final holdToken = state.holdToken ?? checkoutParams.holdToken;
     if (state.isHoldExpired || holdToken == null || holdToken.isEmpty) {
       emit(
@@ -382,126 +429,157 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       return;
     }
 
-    emit(state.copyWith(status: CheckoutStatus.loading));
-
-    final method =
-        (paymentMethod?.toLowerCase() == 'cash' ||
-            state.selectedMethod == PaymentMethod.cash)
-        ? 'cash'
-        : 'manual_transfer';
-
-    final effectiveAccount =
-        senderAccount ?? senderWalletPhone ?? state.senderWalletNumber;
-
-    final voucherCode = state.selectedVoucher?['code']
-        ?.toString()
-        .trim()
-        .toUpperCase();
-
-    final result = await _bookingRepository.createBookingCheckout(
-      holdToken: holdToken,
-      roomRequests: _buildRoomRequests(checkoutParams),
-      extraItems: _buildExtraItems(checkoutParams),
-      voucherCode: voucherCode == null || voucherCode.isEmpty
-          ? null
-          : voucherCode,
-      paymentMethod: method,
-      senderWalletPhone: method == 'manual_transfer' ? effectiveAccount : null,
-      receiptUrl: null,
-    );
-
-    if (isClosed) return;
-
-    String? checkoutError;
-    Map<String, dynamic>? checkoutData;
-    result.fold(
-      (failure) => checkoutError = failure.message,
-      (data) => checkoutData = data,
-    );
-
-    if (checkoutError != null || checkoutData == null) {
+    _paymentInFlight = true;
+    try {
       emit(
         state.copyWith(
-          status: CheckoutStatus.failure,
-          errorMessage: checkoutError ?? AppStrings.somethingWentWrong.tr(),
+          status: CheckoutStatus.loading,
+          paymentProofUploadFailed: false,
+          clearPriceChangedFailure: true,
         ),
       );
-      return;
-    }
 
-    final primaryBookingId = checkoutData!['primary_booking_id']?.toString();
-    final quote = checkoutData!['quote'];
+      final method =
+          (paymentMethod == null
+              ? state.selectedMethod == PaymentMethod.cash
+              : paymentMethod.toLowerCase() == 'cash')
+          ? 'cash'
+          : 'manual_transfer';
 
-    if (primaryBookingId == null || primaryBookingId.isEmpty) {
-      emit(
-        state.copyWith(
-          status: CheckoutStatus.failure,
-          errorMessage: AppStrings.somethingWentWrong.tr(),
-        ),
+      final effectiveAccount =
+          senderAccount ?? senderWalletPhone ?? state.senderWalletNumber;
+
+      final voucherCode = state.selectedVoucher?['code']
+          ?.toString()
+          .trim()
+          .toUpperCase();
+
+      final result = await _bookingRepository.createBookingCheckout(
+        holdToken: holdToken,
+        roomRequests: _buildRoomRequests(checkoutParams),
+        extraItems: _buildExtraItems(checkoutParams),
+        voucherCode: voucherCode == null || voucherCode.isEmpty
+            ? null
+            : voucherCode,
+        paymentMethod: method,
+        senderWalletPhone: method == 'manual_transfer'
+            ? effectiveAccount
+            : null,
+        receiptUrl: null,
       );
-      return;
-    }
 
-    _clearLocalHold();
+      if (_inactive) return;
 
-    if (receiptFile != null && method == 'manual_transfer') {
-      try {
-        final userId = _preferenceManager.userId();
-        if (userId == null || userId.isEmpty) {
-          throw StateError('Authenticated user id is missing');
+      String? checkoutError;
+      Map<String, dynamic>? checkoutData;
+      result.fold((failure) {
+        if (failure is PriceChangedFailure) {
+          emit(
+            state.copyWith(
+              status: CheckoutStatus.failure,
+              priceChangedFailure: failure,
+              errorMessage: failure.message,
+            ),
+          );
+        } else {
+          checkoutError = failure.message;
         }
+      }, (data) => checkoutData = data);
 
-        final receiptPath = await _storageService.uploadPaymentProof(
-          userId: userId,
-          bookingId: primaryBookingId,
-          file: receiptFile,
-        );
+      if (state.priceChangedFailure != null) {
+        return;
+      }
 
-        if (receiptPath == null || receiptPath.isEmpty) {
-          throw StateError('Payment proof upload returned an empty path');
-        }
-
-        final attachResult = await _bookingRepository.attachBookingReceipt(
-          bookingId: primaryBookingId,
-          receiptPath: receiptPath,
-        );
-
-        String? attachError;
-        attachResult.fold((failure) => attachError = failure.message, (_) {});
-
-        final resolvedAttachError = attachError;
-        if (resolvedAttachError != null) {
-          throw StateError(resolvedAttachError);
-        }
-      } catch (error, stackTrace) {
-        AppLogger.error(
-          'Payment proof attach failed for booking $primaryBookingId',
-          error,
-          stackTrace,
-        );
-
+      if (checkoutError != null || checkoutData == null) {
         emit(
           state.copyWith(
             status: CheckoutStatus.failure,
-            createdBookingId: primaryBookingId,
+            errorMessage: checkoutError ?? AppStrings.somethingWentWrong.tr(),
+          ),
+        );
+        return;
+      }
+
+      final primaryBookingId = checkoutData!['primary_booking_id']?.toString();
+      final quote = checkoutData!['quote'];
+
+      if (primaryBookingId == null || primaryBookingId.isEmpty) {
+        emit(
+          state.copyWith(
+            status: CheckoutStatus.failure,
             errorMessage: AppStrings.somethingWentWrong.tr(),
           ),
         );
         return;
       }
+
+      _clearLocalHold();
+
+      if (receiptFile != null && method == 'manual_transfer') {
+        try {
+          final userId = _preferenceManager.userId();
+          if (userId == null || userId.isEmpty) {
+            throw StateError('Authenticated user id is missing');
+          }
+
+          final receiptPath = await _storageService.uploadPaymentProof(
+            userId: userId,
+            bookingId: primaryBookingId,
+            file: receiptFile,
+          );
+          if (_inactive) return;
+
+          if (receiptPath == null || receiptPath.isEmpty) {
+            throw StateError('Payment proof upload returned an empty path');
+          }
+
+          final attachResult = await _bookingRepository.attachBookingReceipt(
+            bookingId: primaryBookingId,
+            receiptPath: receiptPath,
+          );
+          if (_inactive) return;
+
+          String? attachError;
+          attachResult.fold((failure) => attachError = failure.message, (_) {});
+
+          final resolvedAttachError = attachError;
+          if (resolvedAttachError != null) {
+            throw StateError(resolvedAttachError);
+          }
+        } catch (error, stackTrace) {
+          if (_inactive) return;
+          AppLogger.error(
+            'Payment proof attach failed for booking $primaryBookingId',
+            error,
+            stackTrace,
+          );
+
+          // The authoritative checkout already committed the booking. Treat the
+          // receipt as a follow-up failure so the user cannot mistake an existing
+          // booking for a failed checkout and submit it again.
+          emit(
+            state.copyWith(
+              createdBookingId: primaryBookingId,
+              paymentProofUploadFailed: true,
+            ),
+          );
+        }
+      }
+
+      if (quote is Map) {
+        emit(state.copyWith(serverQuote: Map<String, dynamic>.from(quote)));
+      }
+
+      listenToBookingStatus(primaryBookingId);
+
+      emit(
+        state.copyWith(
+          status: CheckoutStatus.success,
+          createdBookingId: primaryBookingId,
+        ),
+      );
+    } finally {
+      _paymentInFlight = false;
     }
-
-    if (quote is Map) {
-      emit(state.copyWith(serverQuote: Map<String, dynamic>.from(quote)));
-    }
-
-    listenToBookingStatus(primaryBookingId);
-
-    emit(
-      state.copyWith(
-        status: CheckoutStatus.success,
-        createdBookingId: primaryBookingId,
-      ),
-    );
   }
 }

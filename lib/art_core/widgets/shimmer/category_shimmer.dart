@@ -16,11 +16,7 @@ class CategoryShimmer extends StatelessWidget {
         itemCount: 4,
         separatorBuilder: (context, index) => SizedBox(width: 12.w),
         itemBuilder: (context, index) {
-          return BaseShimmer(
-            width: 100.w,
-            height: 40.h,
-            borderRadius: 25.r,
-          );
+          return BaseShimmer(width: 100.w, height: 40.h, borderRadius: 25.r);
         },
       ),
     );

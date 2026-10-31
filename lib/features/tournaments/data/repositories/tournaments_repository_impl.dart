@@ -9,7 +9,9 @@ import 'package:playspot/features/tournaments/data/models/user_tournament_partic
 import 'package:playspot/features/tournaments/domain/repositories/tournaments_repository.dart';
 import 'package:playspot/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart';
 
-class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepository {
+class TournamentsRepositoryImpl
+    with RepositoryHelper
+    implements TournamentsRepository {
   final TournamentsRemoteDataSource _remoteDataSource;
 
   TournamentsRepositoryImpl(this._remoteDataSource);
@@ -24,35 +26,54 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
     double? longitude,
     String? loungeId,
   }) {
-    return callRepository(() => _remoteDataSource.getTournaments(
-          game: game,
-          cityId: cityId,
-          statusFilter: statusFilter,
-          searchQuery: searchQuery,
-          latitude: latitude,
-          longitude: longitude,
-          loungeId: loungeId,
-        ));
+    return callRepository(
+      () => _remoteDataSource.getTournaments(
+        game: game,
+        cityId: cityId,
+        statusFilter: statusFilter,
+        searchQuery: searchQuery,
+        latitude: latitude,
+        longitude: longitude,
+        loungeId: loungeId,
+      ),
+    );
   }
 
   @override
-  Future<Either<Failure, TournamentEntity>> getTournamentById(String tournamentId) {
-    return callRepository(() => _remoteDataSource.getTournamentById(tournamentId));
+  Future<Either<Failure, TournamentEntity>> getTournamentById(
+    String tournamentId,
+  ) {
+    return callRepository(
+      () => _remoteDataSource.getTournamentById(tournamentId),
+    );
   }
 
   @override
-  Future<Either<Failure, List<TournamentPrizeEntity>>> getTournamentPrizes(String tournamentId) {
-    return callRepository(() => _remoteDataSource.getTournamentPrizes(tournamentId));
+  Future<Either<Failure, List<TournamentPrizeEntity>>> getTournamentPrizes(
+    String tournamentId,
+  ) {
+    return callRepository(
+      () => _remoteDataSource.getTournamentPrizes(tournamentId),
+    );
   }
 
   @override
-  Future<Either<Failure, List<TournamentMatchEntity>>> getTournamentMatches(String tournamentId) {
-    return callRepository(() => _remoteDataSource.getTournamentMatches(tournamentId));
+  Future<Either<Failure, List<TournamentMatchEntity>>> getTournamentMatches(
+    String tournamentId,
+  ) {
+    return callRepository(
+      () => _remoteDataSource.getTournamentMatches(tournamentId),
+    );
   }
 
   @override
-  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(String tournamentId, String matchId) {
-    return callRepository(() => _remoteDataSource.getMatchById(tournamentId, matchId));
+  Future<Either<Failure, TournamentMatchEntity?>> getMatchById(
+    String tournamentId,
+    String matchId,
+  ) {
+    return callRepository(
+      () => _remoteDataSource.getMatchById(tournamentId, matchId),
+    );
   }
 
   @override
@@ -60,16 +81,23 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
     String tournamentId,
     String userId,
   ) {
-    return callRepository(() => _remoteDataSource.getUserParticipant(tournamentId, userId));
+    return callRepository(
+      () => _remoteDataSource.getUserParticipant(tournamentId, userId),
+    );
   }
 
   @override
-  Future<Either<Failure, TournamentParticipantEntity?>> registerForTournament(String tournamentId) {
-    return callRepository(() => _remoteDataSource.registerForTournament(tournamentId));
+  Future<Either<Failure, TournamentParticipantEntity?>> registerForTournament(
+    String tournamentId,
+  ) {
+    return callRepository(
+      () => _remoteDataSource.registerForTournament(tournamentId),
+    );
   }
 
   @override
-  Future<Either<Failure, TournamentParticipantEntity?>> submitTournamentPayment({
+  Future<Either<Failure, TournamentParticipantEntity?>>
+  submitTournamentPayment({
     required String participantId,
     required String tournamentId,
     required String userId,
@@ -77,19 +105,25 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
     required String paymentMethod,
     required File receiptFile,
   }) {
-    return callRepository(() => _remoteDataSource.submitTournamentPayment(
-          participantId: participantId,
-          tournamentId: tournamentId,
-          userId: userId,
-          amount: amount,
-          paymentMethod: paymentMethod,
-          receiptFile: receiptFile,
-        ));
+    return callRepository(
+      () => _remoteDataSource.submitTournamentPayment(
+        participantId: participantId,
+        tournamentId: tournamentId,
+        userId: userId,
+        amount: amount,
+        paymentMethod: paymentMethod,
+        receiptFile: receiptFile,
+      ),
+    );
   }
 
   @override
-  Future<Either<Failure, TournamentParticipantEntity?>> checkInParticipant(String participantId) {
-    return callRepository(() => _remoteDataSource.checkInParticipant(participantId));
+  Future<Either<Failure, TournamentParticipantEntity?>> checkInParticipant(
+    String participantId,
+  ) {
+    return callRepository(
+      () => _remoteDataSource.checkInParticipant(participantId),
+    );
   }
 
   @override
@@ -100,13 +134,15 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
     required int player2Score,
     File? proofFile,
   }) {
-    return callRepository(() => _remoteDataSource.submitMatchResult(
-          matchId: matchId,
-          tournamentId: tournamentId,
-          player1Score: player1Score,
-          player2Score: player2Score,
-          proofFile: proofFile,
-        ));
+    return callRepository(
+      () => _remoteDataSource.submitMatchResult(
+        matchId: matchId,
+        tournamentId: tournamentId,
+        player1Score: player1Score,
+        player2Score: player2Score,
+        proofFile: proofFile,
+      ),
+    );
   }
 
   @override
@@ -119,19 +155,24 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
     required String matchId,
     required String disputeReason,
   }) {
-    return callRepository(() => _remoteDataSource.disputeMatchResult(
-          matchId: matchId,
-          disputeReason: disputeReason,
-        ));
+    return callRepository(
+      () => _remoteDataSource.disputeMatchResult(
+        matchId: matchId,
+        disputeReason: disputeReason,
+      ),
+    );
   }
 
   @override
-  Stream<List<TournamentMatchEntity>> watchTournamentMatches(String tournamentId) {
+  Stream<List<TournamentMatchEntity>> watchTournamentMatches(
+    String tournamentId,
+  ) {
     return _remoteDataSource.watchTournamentMatches(tournamentId);
   }
 
   @override
-  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>> getTournamentAuditLogsPage({
+  Future<Either<Failure, PaginatedResponse<Map<String, dynamic>>>>
+  getTournamentAuditLogsPage({
     required String tournamentId,
     int page = 1,
     int pageSize = 50,
@@ -146,15 +187,26 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   }
 
   @override
-  Future<Either<Failure, TournamentParticipantEntity?>> withdrawFromTournament(String participantId, {String? tournamentId}) {
-    return callRepository(() => _remoteDataSource.withdrawFromTournament(participantId, tournamentId: tournamentId));
+  Future<Either<Failure, TournamentParticipantEntity?>> withdrawFromTournament(
+    String participantId, {
+    String? tournamentId,
+  }) {
+    return callRepository(
+      () => _remoteDataSource.withdrawFromTournament(
+        participantId,
+        tournamentId: tournamentId,
+      ),
+    );
   }
 
   @override
-  Future<Either<Failure, List<UserTournamentParticipationEntity>>> getUserTournamentHistory(String userId) {
+  Future<Either<Failure, List<UserTournamentParticipationEntity>>>
+  getUserTournamentHistory(String userId) {
     return callRepository(() async {
       final list = await _remoteDataSource.getUserTournamentHistory(userId);
-      return list.map((json) => UserTournamentParticipationModel.fromJson(json)).toList();
+      return list
+          .map((json) => UserTournamentParticipationModel.fromJson(json))
+          .toList();
     });
   }
 
@@ -164,7 +216,8 @@ class TournamentsRepositoryImpl with RepositoryHelper implements TournamentsRepo
   }
 
   @override
-  Future<Either<Failure, UserTournamentParticipationEntity?>> getMyActiveTournament() {
+  Future<Either<Failure, UserTournamentParticipationEntity?>>
+  getMyActiveTournament() {
     return callRepository(() => _remoteDataSource.getMyActiveTournament());
   }
 

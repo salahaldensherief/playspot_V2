@@ -46,7 +46,9 @@ class RatingDisplayWidget extends StatelessWidget {
               if (fillFraction > 0)
                 ClipRect(
                   child: Align(
-                    alignment: isRtl ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment: isRtl
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     widthFactor: fillFraction,
                     child: Icon(
                       Icons.star_rounded,
@@ -72,10 +74,7 @@ class RatingDisplayWidget extends StatelessWidget {
               color: filledColor,
             );
             starWidget = isRtl
-                ? Transform.scale(
-                    scaleX: -1.0,
-                    child: halfIcon,
-                  )
+                ? Transform.scale(scaleX: -1.0, child: halfIcon)
                 : halfIcon;
           } else {
             starWidget = Icon(

@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../booking_cubit.dart';
@@ -49,7 +50,9 @@ class DurationSelector extends StatelessWidget {
                           : AppColors.textSecondary.withValues(alpha: 0.2),
                       size: 28.sp,
                     ),
-                    onPressed: canDecrease ? () => bookingCubit.updateDuration(-30) : null,
+                    onPressed: canDecrease
+                        ? () => bookingCubit.updateDuration(-30)
+                        : null,
                   ),
                   SizedBox(width: 20.w),
                   Column(
@@ -71,7 +74,9 @@ class DurationSelector extends StatelessWidget {
                           : AppColors.textSecondary.withValues(alpha: 0.2),
                       size: 28.sp,
                     ),
-                    onPressed: canIncrease ? () => bookingCubit.updateDuration(30) : null,
+                    onPressed: canIncrease
+                        ? () => bookingCubit.updateDuration(30)
+                        : null,
                   ),
                 ],
               ),
@@ -80,12 +85,14 @@ class DurationSelector extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.info_outline, color: AppColors.warning, size: 12.sp),
+                    Icon(
+                      Icons.info_outline,
+                      color: AppColors.warning,
+                      size: 12.sp,
+                    ),
                     SizedBox(width: 4.w),
                     AppText(
-                      text: isArabic
-                          ? "أقصى مدة مجهزة حتى الحجز التالي"
-                          : "Max duration reached before next booking",
+                      text: AppStrings.maxDurationBeforeNextBooking.tr(),
                       fontSize: 10.sp,
                       color: AppColors.warning,
                       fontWeight: FontWeight.w600,

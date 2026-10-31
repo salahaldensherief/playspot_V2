@@ -1,0 +1,10 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "results": [
+    "revoked cashier cannot replay receipt with an existing JWT",
+    "four concurrent identical requests return the same canonical receipt",
+    "same operation with changed amount rejected",
+    "new overpayment after full settlement rejected"
+  ],
+  "evidence": "Real authenticated local RPCs; no UI concurrency claim"
+}

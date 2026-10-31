@@ -1,17 +1,21 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:ui' as ui;
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
 import 'package:playspot/art_core/widgets/logo/logo_widget.dart';
 import 'package:playspot/core/di.dart';
-import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
-import 'package:playspot/features/app_status/presentation/cubit/app_status_cubit.dart';
 import 'package:playspot/features/app_status/domain/entities/app_status_type.dart';
+import 'package:playspot/features/app_status/presentation/cubit/app_status_cubit.dart';
 import 'package:playspot/features/app_status/presentation/widgets/soft_update_dialog.dart';
+import 'package:playspot/features/auth/domain/repositories/auth_repository.dart';
 
 import '../../../art_core/theme/app_colors.dart';
 import '../../../core/cache/caching_key.dart';
@@ -69,7 +73,10 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
 
     if (statusType == AppStatusType.maintenance) {
-      context.goNamed(RouterKeys.maintenance, extra: appStatusCubit.state.statusEntity);
+      context.goNamed(
+        RouterKeys.maintenance,
+        extra: appStatusCubit.state.statusEntity,
+      );
       return;
     }
 
@@ -107,25 +114,30 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-
   Future<void> _fetchUserLocation() async {
     try {
       final locationService = sl<LocationService>();
-      final position = await locationService.getCurrentLocation();
-      if (position != null) {
-        final pref = sl<PreferenceManager>();
-        await pref.saveLatitude(position.latitude);
-        await pref.saveLongitude(position.longitude);
+      final permission = await locationService.checkPermission();
+      if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        final position = await locationService.getCurrentLocation();
+        if (position != null) {
+          final pref = sl<PreferenceManager>();
+          await pref.saveLatitude(position.latitude);
+          await pref.saveLongitude(position.longitude);
 
-        final address = await locationService.getAddressFromLatLng(
-          position.latitude,
-          position.longitude,
-        );
-        if (address != null) {
-          await pref.saveValue(CachingKey.CURRENT_ADDRESS, address);
+          final address = await locationService.getAddressFromLatLng(
+            position.latitude,
+            position.longitude,
+          );
+          if (address != null) {
+            await pref.saveValue(CachingKey.currentAddress, address);
+          }
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      dev.log("SPLASH_LOCATION_FETCH_ERROR: $e");
+    }
   }
 
   void _safeRemoveNativeSplash() {
@@ -176,7 +188,7 @@ class _SplashScreenState extends State<SplashScreen>
               FadeTransition(
                 opacity: _fadeAnim,
                 child: Text(
-                  'BOOK • PLAY • WIN',
+                  AppStrings.splashTagline.tr(),
                   style: TextStyle(
                     shadows: [
                       Shadow(
@@ -187,7 +199,6 @@ class _SplashScreenState extends State<SplashScreen>
                     ],
                     color: AppColors.primary,
                     fontSize: 18.sp,
-                    fontFamily: "Orbitron",
                   ),
                 ),
               ),

@@ -9,31 +9,37 @@ class TournamentHistoryCubit extends Cubit<TournamentHistoryState> {
   final GetUserTournamentHistoryUseCase _getUserTournamentHistoryUseCase;
 
   TournamentHistoryCubit(this._getUserTournamentHistoryUseCase)
-      : super(const TournamentHistoryState());
+    : super(const TournamentHistoryState());
 
   Future<void> loadHistory() async {
     emit(state.copyWith(status: TournamentHistoryStatus.loading));
 
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
-      emit(state.copyWith(
-        status: TournamentHistoryStatus.failure,
-        errorMessage: AppStrings.userNotLoggedIn.tr(),
-      ));
+      emit(
+        state.copyWith(
+          status: TournamentHistoryStatus.failure,
+          errorMessage: AppStrings.userNotLoggedIn.tr(),
+        ),
+      );
       return;
     }
 
     final result = await _getUserTournamentHistoryUseCase(userId);
 
     result.fold(
-      (failure) => emit(state.copyWith(
-        status: TournamentHistoryStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (participations) => emit(state.copyWith(
-        status: TournamentHistoryStatus.success,
-        participations: participations,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: TournamentHistoryStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (participations) => emit(
+        state.copyWith(
+          status: TournamentHistoryStatus.success,
+          participations: participations,
+        ),
+      ),
     );
   }
 }

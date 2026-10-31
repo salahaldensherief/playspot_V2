@@ -1,4 +1,3 @@
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
@@ -14,10 +13,9 @@ class RoomPromoBadge extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 3.h),
       decoration: BoxDecoration(
         color: AppColors.warning,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(8.r),
-          topRight: context.locale.languageCode == 'ar' ? Radius.zero : Radius.circular(18.r),
-          topLeft: context.locale.languageCode == 'ar' ? Radius.circular(18.r) : Radius.zero,
+        borderRadius: BorderRadiusDirectional.only(
+          topEnd: Radius.circular(16.r),
+          bottomStart: Radius.circular(8.r),
         ),
         boxShadow: [
           BoxShadow(

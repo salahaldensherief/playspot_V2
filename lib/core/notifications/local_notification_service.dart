@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:playspot/art_core/utils/app_logger.dart';
+import 'package:playspot/core/cache/preference_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -33,14 +34,15 @@ class LocalNotificationService {
     enableVibration: true,
   );
 
-  static const AndroidNotificationChannel _sessionChannel = AndroidNotificationChannel(
-    sessionChannelId,
-    sessionChannelName,
-    description: sessionChannelDescription,
-    importance: Importance.max,
-    playSound: true,
-    enableVibration: true,
-  );
+  static const AndroidNotificationChannel _sessionChannel =
+      AndroidNotificationChannel(
+        sessionChannelId,
+        sessionChannelName,
+        description: sessionChannelDescription,
+        importance: Importance.max,
+        playSound: true,
+        enableVibration: true,
+      );
 
   String? _pendingInitialPayload;
   bool _initialized = false;
@@ -131,7 +133,11 @@ class LocalNotificationService {
 
       NotificationRouter.navigate({});
     } catch (e, st) {
-      AppLogger.error('Error decoding local notification response payload', e, st);
+      AppLogger.error(
+        'Error decoding local notification response payload',
+        e,
+        st,
+      );
       NotificationRouter.navigate({});
     }
   }
@@ -221,7 +227,12 @@ class LocalNotificationService {
   /// Local notifications are scheduled outside the widget tree, so the
   /// language comes from stored preferences instead of the build context.
   String _currentNotificationLang() {
-    return 'ar';
+    try {
+      final lang = PreferenceManager().currentLang().trim().toLowerCase();
+      return lang == 'en' ? 'en' : 'ar';
+    } catch (_) {
+      return 'ar';
+    }
   }
 
   String _sessionExpiringTitle() {
@@ -284,7 +295,11 @@ class LocalNotificationService {
         payload: jsonEncode({'type': 'active_session'}),
       );
     } catch (e, st) {
-      AppLogger.error('Error showing active session ongoing notification', e, st);
+      AppLogger.error(
+        'Error showing active session ongoing notification',
+        e,
+        st,
+      );
     }
   }
 

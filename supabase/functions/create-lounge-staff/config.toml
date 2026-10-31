@@ -1,0 +1,2 @@
+[functions.create-lounge-staff]
+verify_jwt = true

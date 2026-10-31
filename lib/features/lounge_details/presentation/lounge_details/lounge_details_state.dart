@@ -3,6 +3,7 @@ import 'package:playspot/art_core/models/time_range.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 import 'package:playspot/features/lounge_details/data/models/review_model.dart';
+import 'package:playspot/features/lounge_details/domain/entities/lounge_operating_status.dart';
 import 'package:playspot/features/home/data/models/category_model.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
@@ -12,6 +13,7 @@ enum LoungeDetailsStatus { initial, loading, success, error }
 class LoungeDetailsState extends Equatable {
   final LoungeDetailsStatus status;
   final bool isDateLoading;
+  final bool availabilityLoadFailed;
   final List<RoomModel> rooms;
   final List<ExtraModel> extras;
   final List<ReviewModel> reviews;
@@ -29,10 +31,12 @@ class LoungeDetailsState extends Equatable {
   final Map<String, int> roomExtraControllers; // {roomId: count}
   final LoungeModel? lounge;
   final List<TournamentEntity> tournaments;
+  final LoungeOperatingStatus? operatingStatus;
 
   const LoungeDetailsState({
     this.status = LoungeDetailsStatus.initial,
     this.isDateLoading = false,
+    this.availabilityLoadFailed = false,
     this.rooms = const [],
     this.extras = const [],
     this.reviews = const [],
@@ -51,12 +55,14 @@ class LoungeDetailsState extends Equatable {
     this.roomExtraControllers = const {},
     this.lounge,
     this.tournaments = const [],
+    this.operatingStatus,
   }) : _initialSelectedRoomId = selectedRoomId;
 
   final String? _initialSelectedRoomId;
 
-  String? get selectedRoomId =>
-      selectedRoomIds.isNotEmpty ? selectedRoomIds.first : _initialSelectedRoomId;
+  String? get selectedRoomId => selectedRoomIds.isNotEmpty
+      ? selectedRoomIds.first
+      : _initialSelectedRoomId;
 
   List<RoomModel> get selectedRooms =>
       rooms.where((r) => selectedRoomIds.contains(r.id)).toList();
@@ -68,6 +74,7 @@ class LoungeDetailsState extends Equatable {
   LoungeDetailsState copyWith({
     LoungeDetailsStatus? status,
     bool? isDateLoading,
+    bool? availabilityLoadFailed,
     List<RoomModel>? rooms,
     List<ExtraModel>? extras,
     List<ReviewModel>? reviews,
@@ -87,6 +94,8 @@ class LoungeDetailsState extends Equatable {
     Map<String, int>? roomExtraControllers,
     LoungeModel? lounge,
     List<TournamentEntity>? tournaments,
+    LoungeOperatingStatus? operatingStatus,
+    bool clearOperatingStatus = false,
   }) {
     Set<String> nextSelectedRoomIds = selectedRoomIds ?? this.selectedRoomIds;
     if (clearRoom) {
@@ -98,6 +107,8 @@ class LoungeDetailsState extends Equatable {
     return LoungeDetailsState(
       status: status ?? this.status,
       isDateLoading: isDateLoading ?? this.isDateLoading,
+      availabilityLoadFailed:
+          availabilityLoadFailed ?? this.availabilityLoadFailed,
       rooms: rooms ?? this.rooms,
       extras: extras ?? this.extras,
       reviews: reviews ?? this.reviews,
@@ -115,6 +126,9 @@ class LoungeDetailsState extends Equatable {
       roomExtraControllers: roomExtraControllers ?? this.roomExtraControllers,
       lounge: lounge ?? this.lounge,
       tournaments: tournaments ?? this.tournaments,
+      operatingStatus: clearOperatingStatus
+          ? null
+          : (operatingStatus ?? this.operatingStatus),
     );
   }
 
@@ -147,24 +161,26 @@ class LoungeDetailsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        isDateLoading,
-        rooms,
-        extras,
-        reviews,
-        selectedExtras,
-        selectedRoomIds,
-        selectedDate,
-        bookedRoomIds,
-        bookedSlotsByRoom,
-        categories,
-        deviceCategories,
-        availableRoomsCount,
-        selectedCategory,
-        selectedSpaceType,
-        roomPlayModes,
-        roomExtraControllers,
-        lounge,
-        tournaments,
-      ];
+    status,
+    isDateLoading,
+    availabilityLoadFailed,
+    rooms,
+    extras,
+    reviews,
+    selectedExtras,
+    selectedRoomIds,
+    selectedDate,
+    bookedRoomIds,
+    bookedSlotsByRoom,
+    categories,
+    deviceCategories,
+    availableRoomsCount,
+    selectedCategory,
+    selectedSpaceType,
+    roomPlayModes,
+    roomExtraControllers,
+    lounge,
+    tournaments,
+    operatingStatus,
+  ];
 }

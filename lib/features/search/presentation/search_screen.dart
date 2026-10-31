@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:playspot/art_core/app_strings.dart';
-import 'package:playspot/art_core/assets_manager.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/buttons/back_button_widget.dart';
-import 'package:playspot/art_core/widgets/svg_icon/svg_icon_widget.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
@@ -72,7 +70,6 @@ class _SearchScreenState extends State<SearchScreen> {
   bool get _hasActiveFilters =>
       _isOpenNowFilter || _sortFilterIndex != 0 || _searchQuery.isNotEmpty;
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,7 +87,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     previous.status != current.status ||
                     previous.lounges != current.lounges,
                 builder: (context, state) {
-                  if (state.status == SearchStatus.loading && state.lounges.isEmpty) {
+                  if (state.status == SearchStatus.loading &&
+                      state.lounges.isEmpty) {
                     return const AppLoader(size: 40);
                   }
 
@@ -125,7 +123,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   return ListView.separated(
                     padding: EdgeInsets.all(16.w),
                     itemCount: lounges.length + 1,
-                    separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                    separatorBuilder: (context, index) =>
+                        SizedBox(height: 16.h),
                     itemBuilder: (context, index) {
                       if (index == lounges.length) {
                         return const SafeBottomSpacer();
@@ -157,10 +156,16 @@ class _SearchScreenState extends State<SearchScreen> {
                   hint: AppStrings.searchLoungesHint.tr(),
                   borderRadius: 25.r,
                   onChanged: _onSearchChanged,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 6.h,
+                  ),
                   suffixIcon: value.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, color: AppColors.textSecondary),
+                          icon: const Icon(
+                            Icons.clear,
+                            color: AppColors.textSecondary,
+                          ),
                           onPressed: () {
                             _searchController.clear();
                             _onSearchChanged('');
@@ -172,28 +177,13 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
           SizedBox(width: 8.w),
-          InkWell(
-            onTap: _resetAllFilters,
-            borderRadius: BorderRadius.circular(12.r),
-            child: Container(
-              padding: EdgeInsets.all(10.w),
-              decoration: BoxDecoration(
-                color: _hasActiveFilters
-                    ? AppColors.neonBlue.withValues(alpha: 0.15)
-                    : AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: _hasActiveFilters ? AppColors.neonBlue : AppColors.borderDefault,
-                ),
-              ),
-              child: SvgIconWidget(
-                path: AssetsManager.filter,
-                color: _hasActiveFilters ? AppColors.neonBlue : AppColors.white,
-                width: 20.w,
-                height: 20.h,
-              ),
+          if (_hasActiveFilters)
+            IconButton(
+              onPressed: _resetAllFilters,
+              tooltip: AppStrings.clearSearchFilters.tr(),
+              icon: const Icon(Icons.filter_alt_off_outlined),
+              color: AppColors.neonBlue,
             ),
-          ),
         ],
       ),
     );
@@ -246,10 +236,14 @@ class _SearchScreenState extends State<SearchScreen> {
               duration: const Duration(milliseconds: 200),
               padding: EdgeInsets.symmetric(horizontal: 14.w),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.15) : AppColors.cardBackground,
+                color: isSelected
+                    ? AppColors.neonBlue.withValues(alpha: 0.15)
+                    : AppColors.cardBackground,
                 borderRadius: BorderRadius.circular(20.r),
                 border: Border.all(
-                  color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,
+                  color: isSelected
+                      ? AppColors.neonBlue
+                      : AppColors.borderDefault,
                   width: isSelected ? 1.2 : 0.8,
                 ),
                 boxShadow: isSelected
@@ -258,7 +252,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           color: AppColors.neonBlue.withValues(alpha: 0.2),
                           blurRadius: 4.r,
                           spreadRadius: 1.r,
-                        )
+                        ),
                       ]
                     : null,
               ),

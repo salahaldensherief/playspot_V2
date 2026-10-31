@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:playspot/art_core/utils/extensions/date_time_extensions.dart';
+import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/widgets/images/app_images.dart';
+import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/features/home/data/models/lounge_model.dart';
+import 'lounge_gallery_action.dart';
+
+class LoungeHeroHeader extends StatelessWidget {
+  final LoungeModel lounge;
+  final String heroTag;
+  const LoungeHeroHeader({
+    super.key,
+    required this.lounge,
+    required this.heroTag,
+  });
+
+  bool _photoActionVisible(BuildContext context) {
+    final settings = context
+        .dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
+    return settings == null || settings.currentExtent > settings.minExtent + 60;
+  }
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand,
+    children: [
+      if (lounge.galleryImages.isNotEmpty)
+        Hero(
+          tag: heroTag,
+          child: AppImage(
+            urlImg: lounge.galleryImages.first,
+            fit: BoxFit.cover,
+            borderRadius: 0,
+          ),
+        ),
+      DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: const [0, 0.45, 0.8, 1],
+            colors: [
+              Colors.black.withValues(alpha: 0.5),
+              Colors.black.withValues(alpha: 0.15),
+              AppColors.scaffoldBackground.withValues(alpha: 0.7),
+              AppColors.scaffoldBackground,
+            ],
+          ),
+        ),
+      ),
+      if (lounge.galleryImages.isNotEmpty && _photoActionVisible(context))
+        PositionedDirectional(
+          top: MediaQuery.paddingOf(context).top + 12,
+          end: 12,
+          child: LoungeGalleryAction(initialLounge: lounge, heroTag: heroTag),
+        ),
+      Align(
+        alignment: Alignment.bottomCenter,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText(
+                  text: lounge.name,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if ((lounge.location ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  AppText(
+                    text: lounge.location!,
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 4),
+                AppText(
+                  text:
+                      '${AppStrings.openHours.tr()} ${lounge.opensAt.toAppTimeString(locale: context.locale.languageCode)} – ${lounge.closesAt.toAppTimeString(locale: context.locale.languageCode)}',
+                  fontSize: 12,
+                  color: AppColors.neonBlue,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}

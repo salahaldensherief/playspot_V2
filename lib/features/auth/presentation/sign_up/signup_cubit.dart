@@ -14,6 +14,7 @@ import 'package:playspot/features/profile/data/models/claim_referral_result.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/notifications/push_notification_service.dart';
+import '../../../../core/config/local_acceptance.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'signup_state.dart';
 
@@ -41,12 +42,14 @@ class SignupCubit extends Cubit<SignupState> {
   }
 
   Future<void> _onSignupSuccess() async {
-    final token = await PushNotificationService.instance.getToken();
-    if (token != null) {
-      await _profileRepository.updateFcmToken(token);
+    if (!localAcceptance) {
+      final token = await PushNotificationService.instance.getToken();
+      if (token != null) {
+        await _profileRepository.updateFcmToken(token);
+      }
     }
     await _claimPendingReferralCode();
-    unawaited(_updateLocationAfterAuth());
+    if (!localAcceptance) unawaited(_updateLocationAfterAuth());
   }
 
   Future<void> _claimPendingReferralCode() async {
@@ -55,16 +58,13 @@ class SignupCubit extends Cubit<SignupState> {
     if (pendingCode.isEmpty) return;
 
     final result = await _profileRepository.claimReferralCode(pendingCode);
-    await result.fold(
-      (_) async {},
-      (claimResult) async {
-        if (claimResult.status == ClaimReferralStatus.success ||
-            claimResult.status == ClaimReferralStatus.alreadyClaimed ||
-            claimResult.status == ClaimReferralStatus.invalidCode) {
-          await preferences.clearPendingReferralCode();
-        }
-      },
-    );
+    await result.fold((_) async {}, (claimResult) async {
+      if (claimResult.status == ClaimReferralStatus.success ||
+          claimResult.status == ClaimReferralStatus.alreadyClaimed ||
+          claimResult.status == ClaimReferralStatus.invalidCode) {
+        await preferences.clearPendingReferralCode();
+      }
+    });
   }
 
   Future<void> _updateLocationAfterAuth() async {

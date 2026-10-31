@@ -1,10 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
+import 'package:playspot/art_core/widgets/text/font_manager.dart';
 import 'package:playspot/art_core/widgets/layout/glass_container.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
@@ -36,6 +38,84 @@ class HomeHeader extends StatelessWidget {
     final clean = fullName.trim();
     if (clean.isEmpty) return '';
     return clean.split(' ').first;
+  }
+
+  double _lineHeight(
+    BuildContext context,
+    String text,
+    double size, {
+    FontWeight weight = FontWeight.bold,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: FontsManager.getStyle(
+          context: context,
+          fontSize: size,
+          fontWeight: weight,
+        ),
+      ),
+      maxLines: 1,
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final height = painter.height;
+    painter.dispose();
+    return height;
+  }
+
+  double _cityHeight(BuildContext context) {
+    final labels = [
+      AppStrings.all.tr(),
+      ...cities.map((c) => '${c['city'] ?? ''}'),
+    ];
+    final line = labels
+        .map(
+          (s) => _lineHeight(
+            context,
+            s.toUpperCase(),
+            10.sp,
+            weight: FontWeight.w900,
+          ),
+        )
+        .reduce(math.max);
+    return math.max(32.h, line + 8.h + 3);
+  }
+
+  /// Match the actual font metrics, text scaling, padding and glass borders.
+  /// A fixed 120.h clips the search row on short Arabic phone viewports.
+  double expandedHeight(BuildContext context) {
+    final greeting = _lineHeight(
+      context,
+      AppStrings.heyUser.tr(args: [_getDisplayName(userName)]),
+      18.sp,
+    );
+    final location = math.max(
+      13.sp,
+      _lineHeight(context, currentLocation, 12.sp),
+    );
+    final identity = greeting + 2.h + location;
+    final points = _lineHeight(context, '$pointsBalance', 12.sp) + 16.h + 2;
+    final firstRow = math.max(identity, math.max(points, 38.h + 2));
+    final search =
+        math.max(
+          18.sp,
+          _lineHeight(
+            context,
+            AppStrings.searchLoungesHint.tr(),
+            12.sp,
+            weight: FontWeight.w400,
+          ),
+        ) +
+        20.h +
+        2;
+    final content =
+        16.h +
+        firstRow +
+        10.h +
+        search +
+        (cities.isEmpty ? 0 : 10.h + _cityHeight(context));
+    return math.max(cities.isEmpty ? 120.h : 165.h, content.ceilToDouble());
   }
 
   @override
@@ -76,8 +156,8 @@ class HomeHeader extends StatelessWidget {
                         SizedBox(width: 4.w),
                         Expanded(
                           child: AppText(
-                            text: currentLocation.toUpperCase(),
-                            fontSize: 10.sp,
+                            text: currentLocation,
+                            fontSize: 12.sp,
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.bold,
                             maxLines: 1,
@@ -110,7 +190,10 @@ class HomeHeader extends StatelessWidget {
                   child: GlassContainer(
                     borderRadius: AppSizes.r12,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 10.h,
+                      ),
                       child: Row(
                         children: [
                           Icon(
@@ -146,7 +229,7 @@ class HomeHeader extends StatelessWidget {
           if (cities.isNotEmpty) ...[
             SizedBox(height: 10.h),
             SizedBox(
-              height: 32.h,
+              height: _cityHeight(context),
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: cities.length + 1,
@@ -200,16 +283,13 @@ class HomeHeader extends StatelessWidget {
           width: 38.w,
           height: 38.h,
           child: BlocBuilder<NotificationsCubit, NotificationsState>(
-            buildWhen: (previous, current) => previous.unreadCount != current.unreadCount,
+            buildWhen: (previous, current) =>
+                previous.unreadCount != current.unreadCount,
             builder: (context, state) {
               return Stack(
                 alignment: Alignment.center,
                 children: [
-                  Icon(
-                    TablerIcons.bell,
-                    color: Colors.white,
-                    size: 19.sp,
-                  ),
+                  Icon(TablerIcons.bell, color: Colors.white, size: 19.sp),
                   if (state.unreadCount > 0)
                     Positioned(
                       right: 8.w,

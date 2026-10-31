@@ -13,22 +13,34 @@ class ProfileMenuSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(24.r),
-        border: Border.all(color: AppColors.borderDefault),
-      ),
-      child: Column(
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildMenuGroup(context, AppStrings.profileActivitySection.tr(), [
+          _buildMenuItem(
+            context: context,
+            icon: TablerIcons.trophy,
+            title: AppStrings.tournaments.tr(),
+            onTap: () => context.pushNamed(RouterKeys.tournaments),
+            showBorder: true,
+          ),
+          _buildMenuItem(
+            context: context,
+            icon: TablerIcons.history,
+            title: AppStrings.myTournamentHistory.tr(),
+            onTap: () => context.pushNamed(RouterKeys.tournamentHistory),
+            showBorder: true,
+          ),
           _buildMenuItem(
             context: context,
             icon: TablerIcons.heart,
             title: AppStrings.favorite.tr(),
             onTap: () => context.pushNamed(RouterKeys.favorites),
-            showBorder: true,
+            showBorder: false,
           ),
+        ]),
+        SizedBox(height: 20.h),
+        _buildMenuGroup(context, AppStrings.profileRewardsSection.tr(), [
           _buildMenuItem(
             context: context,
             icon: TablerIcons.stars,
@@ -48,8 +60,11 @@ class ProfileMenuSection extends StatelessWidget {
             icon: TablerIcons.ticket,
             title: AppStrings.myRewards.tr(),
             onTap: () => context.pushNamed(RouterKeys.myVouchers),
-            showBorder: true,
+            showBorder: false,
           ),
+        ]),
+        SizedBox(height: 20.h),
+        _buildMenuGroup(context, AppStrings.profileSupportSection.tr(), [
           _buildMenuItem(
             context: context,
             icon: TablerIcons.settings,
@@ -71,8 +86,38 @@ class ProfileMenuSection extends StatelessWidget {
             onTap: () => context.pushNamed(RouterKeys.termsAndConditions),
             showBorder: false,
           ),
-        ],
-      ),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildMenuGroup(
+    BuildContext context,
+    String title,
+    List<Widget> items,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.only(start: 4.w, bottom: 8.h),
+          child: AppText(
+            text: title,
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(24.r),
+            border: Border.all(color: AppColors.borderDefault),
+          ),
+          child: Column(children: items),
+        ),
+      ],
     );
   }
 
@@ -94,7 +139,9 @@ class ProfileMenuSection extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
           decoration: BoxDecoration(
             border: showBorder
-                ? const Border(bottom: BorderSide(color: AppColors.borderDefault))
+                ? const Border(
+                    bottom: BorderSide(color: AppColors.borderDefault),
+                  )
                 : null,
           ),
           child: Row(

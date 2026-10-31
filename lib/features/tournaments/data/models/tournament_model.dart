@@ -70,14 +70,15 @@ class TournamentModel extends TournamentEntity {
     final String parsedTitle = (titleEn.trim().isNotEmpty)
         ? titleEn
         : (titleAr.trim().isNotEmpty)
-            ? titleAr
-            : (json['title']?.toString().trim().isNotEmpty == true)
-                ? json['title'].toString()
-                : (json['name']?.toString().trim().isNotEmpty == true)
-                    ? json['name'].toString()
-                    : (json['game']?.toString().trim().isNotEmpty == true || json['game_name']?.toString().trim().isNotEmpty == true)
-                        ? '${json['game'] ?? json['game_name']} Championship'
-                        : 'PlaySpot Tournament';
+        ? titleAr
+        : (json['title']?.toString().trim().isNotEmpty == true)
+        ? json['title'].toString()
+        : (json['name']?.toString().trim().isNotEmpty == true)
+        ? json['name'].toString()
+        : (json['game']?.toString().trim().isNotEmpty == true ||
+              json['game_name']?.toString().trim().isNotEmpty == true)
+        ? '${json['game'] ?? json['game_name']} Championship'
+        : 'PlaySpot Tournament';
 
     return TournamentModel(
       id: json['id']?.toString() ?? '',
@@ -87,44 +88,69 @@ class TournamentModel extends TournamentEntity {
       description: json['description']?.toString(),
       descriptionAr: json['description_ar']?.toString(),
       descriptionEn: json['description_en']?.toString(),
-      game: json['game_name']?.toString() ?? json['game']?.toString() ?? json['game_title']?.toString() ?? 'PlayStation',
+      game:
+          json['game_name']?.toString() ??
+          json['game']?.toString() ??
+          json['game_title']?.toString() ??
+          'PlayStation',
       cityId: json['city_id']?.toString(),
-      cityName: cityData?['name_ar']?.toString() ?? cityData?['name_en']?.toString() ?? cityData?['name']?.toString() ?? json['city_name']?.toString(),
+      cityName:
+          cityData?['name_ar']?.toString() ??
+          cityData?['name_en']?.toString() ??
+          cityData?['name']?.toString() ??
+          json['city_name']?.toString(),
       loungeId: json['lounge_id']?.toString(),
-      loungeName: loungeData?['name']?.toString() ?? json['lounge_name']?.toString(),
-      latitude: (loungeData?['latitude'] as num?)?.toDouble() ?? (json['latitude'] as num?)?.toDouble(),
-      longitude: (loungeData?['longitude'] as num?)?.toDouble() ?? (json['longitude'] as num?)?.toDouble(),
-      mapsLink: loungeData?['maps_link']?.toString() ?? json['maps_link']?.toString(),
-      imageUrl: json['banner_url']?.toString() ?? json['image_url']?.toString() ?? json['cover_image']?.toString(),
-      bannerUrl: json['banner_url']?.toString() ?? json['image_url']?.toString(),
+      loungeName:
+          loungeData?['name']?.toString() ?? json['lounge_name']?.toString(),
+      latitude:
+          (loungeData?['latitude'] as num?)?.toDouble() ??
+          (json['latitude'] as num?)?.toDouble(),
+      longitude:
+          (loungeData?['longitude'] as num?)?.toDouble() ??
+          (json['longitude'] as num?)?.toDouble(),
+      mapsLink:
+          loungeData?['maps_link']?.toString() ?? json['maps_link']?.toString(),
+      imageUrl:
+          json['banner_url']?.toString() ??
+          json['image_url']?.toString() ??
+          json['cover_image']?.toString(),
+      bannerUrl:
+          json['banner_url']?.toString() ?? json['image_url']?.toString(),
       thumbnailUrl: json['thumbnail_url']?.toString(),
       status: TournamentStatus.fromString(json['status']?.toString()),
       maxParticipants: (json['max_participants'] as num?)?.toInt() ?? 16,
       registeredParticipantsCount: registeredCount,
-      bracketSize: (json['bracket_size'] as num?)?.toInt() ?? (json['max_participants'] as num?)?.toInt() ?? 16,
+      bracketSize:
+          (json['bracket_size'] as num?)?.toInt() ??
+          (json['max_participants'] as num?)?.toInt() ??
+          16,
       entryFee: (json['entry_fee'] as num?)?.toDouble() ?? 0.0,
-      rules: json['rules']?.toString() ?? json['rules_ar']?.toString() ?? json['rules_en']?.toString(),
+      rules:
+          json['rules']?.toString() ??
+          json['rules_ar']?.toString() ??
+          json['rules_en']?.toString(),
       rulesAr: json['rules_ar']?.toString(),
       rulesEn: json['rules_en']?.toString(),
       startDate: json['tournament_starts_at'] != null
           ? DateTime.tryParse(json['tournament_starts_at'].toString())
           : json['start_date'] != null
-              ? DateTime.tryParse(json['start_date'].toString())
-              : null,
+          ? DateTime.tryParse(json['start_date'].toString())
+          : null,
       endDate: json['registration_closes_at'] != null
           ? DateTime.tryParse(json['registration_closes_at'].toString())
           : json['tournament_starts_at'] != null
-              ? DateTime.tryParse(json['tournament_starts_at'].toString())
-              : json['end_date'] != null
-                  ? DateTime.tryParse(json['end_date'].toString())
-                  : null,
+          ? DateTime.tryParse(json['tournament_starts_at'].toString())
+          : json['end_date'] != null
+          ? DateTime.tryParse(json['end_date'].toString())
+          : null,
       registrationOpensAt: json['registration_opens_at'] != null
           ? DateTime.tryParse(json['registration_opens_at'].toString())
           : null,
       registrationClosesAt: json['registration_closes_at'] != null
           ? DateTime.tryParse(json['registration_closes_at'].toString())
           : null,
-      paymentDeadlineMinutes: (json['payment_deadline_minutes'] as num?)?.toInt(),
+      paymentDeadlineMinutes: (json['payment_deadline_minutes'] as num?)
+          ?.toInt(),
       checkInOpensAt: json['check_in_opens_at'] != null
           ? DateTime.tryParse(json['check_in_opens_at'].toString())
           : null,
@@ -134,15 +160,21 @@ class TournamentModel extends TournamentEntity {
       checkInDeadline: json['check_in_closes_at'] != null
           ? DateTime.tryParse(json['check_in_closes_at'].toString())
           : json['check_in_deadline'] != null
-              ? DateTime.tryParse(json['check_in_deadline'].toString())
-              : null,
+          ? DateTime.tryParse(json['check_in_deadline'].toString())
+          : null,
       championParticipantId: json['champion_participant_id']?.toString(),
       allowWaitlist: json['allow_waitlist'] != false,
       currency: json['currency']?.toString() ?? 'EGP',
-      visibilityScope: TournamentVisibilityScope.fromString(json['visibility_scope']?.toString()),
+      visibilityScope: TournamentVisibilityScope.fromString(
+        json['visibility_scope']?.toString(),
+      ),
       visibilityRadiusKm: (json['visibility_radius_km'] as num?)?.toDouble(),
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString()) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString())
+          : null,
     );
   }
 
@@ -205,7 +237,8 @@ class TournamentParticipantModel extends TournamentParticipantEntity {
       profileData = json['profiles'] as Map<String, dynamic>;
     }
 
-    final bool isCheckedIn = json['is_checked_in'] == true ||
+    final bool isCheckedIn =
+        json['is_checked_in'] == true ||
         json['checked_in'] == true ||
         json['registration_status'] == 'checked_in';
 
@@ -213,23 +246,41 @@ class TournamentParticipantModel extends TournamentParticipantEntity {
       id: json['id']?.toString() ?? '',
       tournamentId: json['tournament_id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
-      userName: profileData?['full_name']?.toString() ?? json['user_name']?.toString(),
-      userAvatarUrl: profileData?['avatar_url']?.toString() ?? json['user_avatar']?.toString(),
-      status: ParticipantStatus.fromString(json['registration_status']?.toString() ?? json['status']?.toString()),
-      paymentStatus: PaymentStatus.fromString(json['payment_status']?.toString()),
+      userName:
+          profileData?['full_name']?.toString() ??
+          json['user_name']?.toString(),
+      userAvatarUrl:
+          profileData?['avatar_url']?.toString() ??
+          json['user_avatar']?.toString(),
+      status: ParticipantStatus.fromString(
+        json['registration_status']?.toString() ?? json['status']?.toString(),
+      ),
+      paymentStatus: PaymentStatus.fromString(
+        json['payment_status']?.toString(),
+      ),
       paymentMethod: json['payment_method']?.toString(),
       receiptUrl: json['receipt_url']?.toString(),
-      paymentDeadline: json['payment_deadline'] != null ? DateTime.tryParse(json['payment_deadline'].toString()) : null,
+      paymentDeadline: json['payment_deadline'] != null
+          ? DateTime.tryParse(json['payment_deadline'].toString())
+          : null,
       approvedBy: json['approved_by']?.toString(),
-      approvedAt: json['approved_at'] != null ? DateTime.tryParse(json['approved_at'].toString()) : null,
+      approvedAt: json['approved_at'] != null
+          ? DateTime.tryParse(json['approved_at'].toString())
+          : null,
       paymentRejectionReason: json['payment_rejection_reason']?.toString(),
       checkedIn: isCheckedIn,
-      checkedInAt: json['checked_in_at'] != null ? DateTime.tryParse(json['checked_in_at'].toString()) : null,
+      checkedInAt: json['checked_in_at'] != null
+          ? DateTime.tryParse(json['checked_in_at'].toString())
+          : null,
       waitlistPosition: (json['waitlist_position'] as num?)?.toInt(),
       cashReceivedBy: json['cash_received_by']?.toString(),
-      cashReceivedAt: json['cash_received_at'] != null ? DateTime.tryParse(json['cash_received_at'].toString()) : null,
+      cashReceivedAt: json['cash_received_at'] != null
+          ? DateTime.tryParse(json['cash_received_at'].toString())
+          : null,
       cashReferenceNote: json['cash_reference_note']?.toString(),
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) : null,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
     );
   }
 
@@ -257,6 +308,7 @@ class TournamentMatchModel extends TournamentMatchEntity {
     required super.tournamentId,
     required super.roundNumber,
     required super.matchOrder,
+    super.matchType,
     super.player1Id,
     super.player1Name,
     super.player1Avatar,
@@ -303,35 +355,62 @@ class TournamentMatchModel extends TournamentMatchEntity {
       tournamentId: json['tournament_id']?.toString() ?? '',
       roundNumber: (json['round_number'] as num?)?.toInt() ?? 1,
       matchOrder: (json['match_order'] as num?)?.toInt() ?? 1,
+      matchType: json['match_type']?.toString() ?? 'bracket',
       player1Id: json['player1_id']?.toString(),
-      player1Name: p1Data?['full_name']?.toString() ?? json['player1_name']?.toString(),
-      player1Avatar: p1Data?['avatar_url']?.toString() ?? json['player1_avatar']?.toString(),
-      player1Score: (json['score_player1'] as num?)?.toInt() ?? (json['player1_score'] as num?)?.toInt(),
+      player1Name:
+          p1Data?['full_name']?.toString() ?? json['player1_name']?.toString(),
+      player1Avatar:
+          p1Data?['avatar_url']?.toString() ??
+          json['player1_avatar']?.toString(),
+      player1Score:
+          (json['score_player1'] as num?)?.toInt() ??
+          (json['player1_score'] as num?)?.toInt(),
       player2Id: json['player2_id']?.toString(),
-      player2Name: p2Data?['full_name']?.toString() ?? json['player2_name']?.toString(),
-      player2Avatar: p2Data?['avatar_url']?.toString() ?? json['player2_avatar']?.toString(),
-      player2Score: (json['score_player2'] as num?)?.toInt() ?? (json['player2_score'] as num?)?.toInt(),
+      player2Name:
+          p2Data?['full_name']?.toString() ?? json['player2_name']?.toString(),
+      player2Avatar:
+          p2Data?['avatar_url']?.toString() ??
+          json['player2_avatar']?.toString(),
+      player2Score:
+          (json['score_player2'] as num?)?.toInt() ??
+          (json['player2_score'] as num?)?.toInt(),
       winnerId: json['winner_id']?.toString(),
       nextMatchId: json['next_match_id']?.toString(),
       nextMatchSlot: (json['next_match_slot'] as num?)?.toInt(),
       roomId: json['room_id']?.toString(),
-      stationNumber: json['station_number']?.toString() ?? json['room_number']?.toString(),
-      scheduledAt: json['scheduled_at'] != null ? DateTime.tryParse(json['scheduled_at'].toString()) : null,
-      scheduledEndAt: json['scheduled_end_at'] != null ? DateTime.tryParse(json['scheduled_end_at'].toString()) : null,
-      startedAt: json['started_at'] != null ? DateTime.tryParse(json['started_at'].toString()) : null,
-      completedAt: json['completed_at'] != null ? DateTime.tryParse(json['completed_at'].toString()) : null,
+      stationNumber:
+          json['station_number']?.toString() ?? json['room_number']?.toString(),
+      scheduledAt: json['scheduled_at'] != null
+          ? DateTime.tryParse(json['scheduled_at'].toString())
+          : null,
+      scheduledEndAt: json['scheduled_end_at'] != null
+          ? DateTime.tryParse(json['scheduled_end_at'].toString())
+          : null,
+      startedAt: json['started_at'] != null
+          ? DateTime.tryParse(json['started_at'].toString())
+          : null,
+      completedAt: json['completed_at'] != null
+          ? DateTime.tryParse(json['completed_at'].toString())
+          : null,
       status: MatchStatus.fromString(json['status']?.toString()),
-      proofUrl: json['proof_image_url']?.toString() ?? json['proof_url']?.toString(),
+      proofUrl:
+          json['proof_image_url']?.toString() ?? json['proof_url']?.toString(),
       submittedBy: json['submitted_by']?.toString(),
-      resultSubmittedAt: json['result_submitted_at'] != null ? DateTime.tryParse(json['result_submitted_at'].toString()) : null,
+      resultSubmittedAt: json['result_submitted_at'] != null
+          ? DateTime.tryParse(json['result_submitted_at'].toString())
+          : null,
       confirmationDeadline: json['confirmation_deadline'] != null
           ? DateTime.tryParse(json['confirmation_deadline'].toString())
           : null,
       disputeReason: json['dispute_reason']?.toString(),
       disputedBy: json['disputed_by']?.toString(),
-      disputedAt: json['disputed_at'] != null ? DateTime.tryParse(json['disputed_at'].toString()) : null,
+      disputedAt: json['disputed_at'] != null
+          ? DateTime.tryParse(json['disputed_at'].toString())
+          : null,
       resolvedBy: json['resolved_by']?.toString(),
-      resolvedAt: json['resolved_at'] != null ? DateTime.tryParse(json['resolved_at'].toString()) : null,
+      resolvedAt: json['resolved_at'] != null
+          ? DateTime.tryParse(json['resolved_at'].toString())
+          : null,
       resolutionNotes: json['resolution_notes']?.toString(),
     );
   }
@@ -359,13 +438,16 @@ class TournamentPrizeModel extends TournamentPrizeEntity {
     final double cashVal = (json['cash_amount'] as num?)?.toDouble() ?? 0.0;
     final double bonusVal = (json['bonus'] as num?)?.toDouble() ?? 0.0;
     final int pointsVal = (json['points'] as num?)?.toInt() ?? 0;
-    final double totalAmount = (json['amount'] as num?)?.toDouble() ?? (cashVal > 0 ? cashVal : bonusVal);
+    final double totalAmount =
+        (json['amount'] as num?)?.toDouble() ??
+        (cashVal > 0 ? cashVal : bonusVal);
 
     return TournamentPrizeModel(
       id: json['id']?.toString() ?? '',
       tournamentId: json['tournament_id']?.toString() ?? '',
       placement: (json['placement'] as num?)?.toInt() ?? 1,
-      title: json['prize_title_ar']?.toString() ??
+      title:
+          json['prize_title_ar']?.toString() ??
           json['prize_title_en']?.toString() ??
           json['title']?.toString() ??
           json['name']?.toString() ??
@@ -379,7 +461,9 @@ class TournamentPrizeModel extends TournamentPrizeEntity {
       bonus: bonusVal,
       productName: json['product_name']?.toString(),
       description: json['description']?.toString(),
-      metadata: json['metadata'] is Map<String, dynamic> ? json['metadata'] as Map<String, dynamic> : null,
+      metadata: json['metadata'] is Map<String, dynamic>
+          ? json['metadata'] as Map<String, dynamic>
+          : null,
     );
   }
 }
@@ -405,10 +489,19 @@ class TournamentPlacementModel extends TournamentPlacementEntity {
       id: json['id']?.toString() ?? '',
       tournamentId: json['tournament_id']?.toString() ?? '',
       userId: json['user_id']?.toString() ?? '',
-      userName: profileData?['full_name']?.toString() ?? json['user_name']?.toString(),
-      rank: (json['rank'] as num?)?.toInt() ?? (json['placement'] as num?)?.toInt() ?? 1,
-      pointsEarned: (json['points_earned'] as num?)?.toInt() ?? (json['points'] as num?)?.toInt(),
-      prizeAmount: (json['prize_amount'] as num?)?.toDouble() ?? (json['amount'] as num?)?.toDouble(),
+      userName:
+          profileData?['full_name']?.toString() ??
+          json['user_name']?.toString(),
+      rank:
+          (json['rank'] as num?)?.toInt() ??
+          (json['placement'] as num?)?.toInt() ??
+          1,
+      pointsEarned:
+          (json['points_earned'] as num?)?.toInt() ??
+          (json['points'] as num?)?.toInt(),
+      prizeAmount:
+          (json['prize_amount'] as num?)?.toDouble() ??
+          (json['amount'] as num?)?.toDouble(),
     );
   }
 }

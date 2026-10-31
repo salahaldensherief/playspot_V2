@@ -1,0 +1,16 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "authentication": [
+    "owner",
+    "cashier",
+    "customer"
+  ],
+  "signupMetadataEscalationDenied": true,
+  "rooms": 40,
+  "fixture": {
+    "lounge": "0d67a040-798d-4248-a7c8-61b4f1243c39",
+    "room": "32ffd6e4-db8a-4a4a-afde-8e76c85e7a21"
+  },
+  "credentials": "Private accounts.json outside Git; not included in report",
+  "result": "Fresh real GoTrue synthetic accounts, automatic safe profiles and mixed station data ready"
+}

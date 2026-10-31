@@ -31,7 +31,8 @@ class CheckoutVoucherSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileCubit, ProfileState>(
-      buildWhen: (previous, current) => previous.myVouchers != current.myVouchers,
+      buildWhen: (previous, current) =>
+          previous.myVouchers != current.myVouchers,
       builder: (context, profileState) {
         final availableVouchers = profileState.myVouchers
             .where((v) => v['status'] == 'active')
@@ -94,9 +95,7 @@ class CheckoutVoucherSection extends StatelessWidget {
                       ),
                       SizedBox(width: 10.w),
                       AppButton(
-                        content: ButtonContent(
-                          label: AppStrings.redeem.tr(),
-                        ),
+                        content: ButtonContent(label: AppStrings.redeem.tr()),
                         buttonConfig: ButtonConfig(
                           gradient: voucherController.text.trim().isNotEmpty
                               ? AppColors.primaryGradient
@@ -117,7 +116,8 @@ class CheckoutVoucherSection extends StatelessWidget {
                           ),
                         ),
                         behavior: ButtonBehavior.tap(
-                          isEnabled: voucherController.text.trim().isNotEmpty &&
+                          isEnabled:
+                              voucherController.text.trim().isNotEmpty &&
                               checkoutState.status != CheckoutStatus.loading,
                           onTap: () => context
                               .read<CheckoutCubit>()
@@ -163,7 +163,11 @@ class _AppliedVoucherCard extends StatelessWidget {
                 color: AppColors.success.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.confirmation_number_outlined, color: AppColors.success, size: 20.sp),
+              child: Icon(
+                Icons.confirmation_number_outlined,
+                color: AppColors.success,
+                size: 20.sp,
+              ),
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -179,7 +183,9 @@ class _AppliedVoucherCard extends StatelessWidget {
                   SizedBox(height: 2.h),
                   AppText(
                     text: discountAmount > 0
-                        ? AppStrings.youSaved.tr(args: [discountAmount.toStringAsFixed(2)])
+                        ? AppStrings.youSaved.tr(
+                            args: [discountAmount.toStringAsFixed(2)],
+                          )
                         : AppStrings.voucherApplied.tr(),
                     fontSize: 12.5.sp,
                     fontWeight: FontWeight.bold,

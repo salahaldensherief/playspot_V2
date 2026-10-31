@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class AppSizes {
   // Screen padding
   static double get screenPadding => 16.w;
-  
+
   // Spacing
   static double get s4 => 4.h;
   static double get s8 => 8.h;

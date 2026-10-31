@@ -1,5 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'services/secure_supabase_auth_options.dart';
+import 'services/request_diagnostics_client.dart';
 
 import 'constants/app_config.dart';
 import 'di/modules/active_session_module.dart';
@@ -13,6 +15,7 @@ import 'di/modules/lounge_module.dart';
 import 'di/modules/my_bookings_module.dart';
 import 'di/modules/notifications_module.dart';
 import 'di/modules/profile_module.dart';
+import 'di/modules/search_module.dart';
 import 'di/modules/tournaments_module.dart';
 
 final sl = GetIt.instance;
@@ -24,6 +27,7 @@ Future<void> init() async {
   // Feature modules
   initAuthModule();
   initHomeModule();
+  initSearchModule();
   initLoungeModule();
   initBookingModule();
   initMyBookingsModule();
@@ -46,5 +50,7 @@ Future<void> initSupabase() async {
   await Supabase.initialize(
     url: AppConfig.supabaseUrl,
     publishableKey: AppConfig.supabaseAnonKey,
+    httpClient: RequestDiagnosticsClient(),
+    authOptions: SecureSupabaseAuthOptions.forUrl(AppConfig.supabaseUrl),
   );
 }

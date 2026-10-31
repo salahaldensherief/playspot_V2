@@ -34,6 +34,7 @@ class ForgotPasswordBottomSheetContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     final cubit = context.read<ForgotPasswordCubit>();
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
@@ -109,7 +110,11 @@ class ForgotPasswordBottomSheetContent extends StatelessWidget {
     }
   }
 
-  Widget _buildBody(BuildContext context, ForgotPasswordCubit cubit, ForgotPasswordState state) {
+  Widget _buildBody(
+    BuildContext context,
+    ForgotPasswordCubit cubit,
+    ForgotPasswordState state,
+  ) {
     final isLoading = state.status.isLoading;
 
     if (state.status == ForgotPasswordStatus.emailSent) {

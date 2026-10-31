@@ -1,9 +1,16 @@
 import 'package:get_it/get_it.dart';
 import '../../../features/booking/data/datasources/remote/booking_remote_data_source.dart';
+import '../../../features/booking/data/datasources/remote/booking_waitlist_remote_data_source.dart';
 import '../../../features/booking/data/models/booking_params.dart';
 import '../../../features/booking/data/repositories/booking_repository_impl.dart';
+import '../../../features/booking/data/repositories/booking_waitlist_repository_impl.dart';
 import '../../../features/booking/data/strategies/standard_booking_slot_strategy.dart';
 import '../../../features/booking/domain/repositories/booking_repository.dart';
+import '../../../features/booking/domain/repositories/booking_waitlist_repository.dart';
+import '../../../features/booking/domain/usecases/get_lounge_price_range_usecase.dart';
+import '../../../features/booking/domain/usecases/get_room_slots_with_prices_usecase.dart';
+import '../../../features/booking/domain/usecases/join_booking_waitlist_usecase.dart';
+import '../../../features/booking/domain/usecases/quote_booking_price_usecase.dart';
 import '../../../features/booking/domain/strategies/booking_slot_strategy.dart';
 import '../../../features/booking/presentation/booking_cubit.dart';
 import '../../../features/checkout/presentation/checkout_cubit.dart';
@@ -33,11 +40,33 @@ void initBookingModule() {
     () => BookingRepositoryImpl(sl()),
   );
 
+  sl.registerLazySingleton<BookingWaitlistRemoteDataSource>(
+    () => BookingWaitlistRemoteDataSource(sl()),
+  );
+  sl.registerLazySingleton<BookingWaitlistRepository>(
+    () => BookingWaitlistRepositoryImpl(sl()),
+  );
+  sl.registerLazySingleton<JoinBookingWaitlistUseCase>(
+    () => JoinBookingWaitlistUseCase(sl()),
+  );
+
+  sl.registerLazySingleton<QuoteBookingPriceUseCase>(
+    () => QuoteBookingPriceUseCase(sl<BookingRepository>()),
+  );
+  sl.registerLazySingleton<GetRoomSlotsWithPricesUseCase>(
+    () => GetRoomSlotsWithPricesUseCase(sl<BookingRepository>()),
+  );
+  sl.registerLazySingleton<GetLoungePriceRangeUseCase>(
+    () => GetLoungePriceRangeUseCase(sl<BookingRepository>()),
+  );
+
   sl.registerFactoryParam<BookingCubit, BookingDetailsParams, void>(
     (params, _) => BookingCubit(
       sl<BookingRepository>(),
       sl<BookingSlotStrategy>(),
       params,
+      joinWaitlist: sl<JoinBookingWaitlistUseCase>(),
+      waitlistRepository: sl<BookingWaitlistRepository>(),
     ),
   );
 

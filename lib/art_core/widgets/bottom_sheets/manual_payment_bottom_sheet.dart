@@ -31,7 +31,8 @@ class ManualPaymentBottomSheet extends StatefulWidget {
     File receiptFile,
     String senderAccount,
     String transactionReference,
-  ) onConfirm;
+  )
+  onConfirm;
 
   const ManualPaymentBottomSheet({
     super.key,
@@ -53,7 +54,8 @@ class ManualPaymentBottomSheet extends StatefulWidget {
       File receiptFile,
       String senderAccount,
       String transactionReference,
-    ) onConfirm,
+    )
+    onConfirm,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -73,7 +75,8 @@ class ManualPaymentBottomSheet extends StatefulWidget {
   }
 
   @override
-  State<ManualPaymentBottomSheet> createState() => _ManualPaymentBottomSheetState();
+  State<ManualPaymentBottomSheet> createState() =>
+      _ManualPaymentBottomSheetState();
 }
 
 class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
@@ -109,10 +112,16 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
   Future<void> _fetchFallbackSettingsIfNeeded() async {
     if (!_hasVodafoneCash && !_hasInstaPay) {
       try {
-        final settings = await sl<SupportRemoteDataSource>().getSupportSettings();
+        final settings = await sl<SupportRemoteDataSource>()
+            .getSupportSettings();
         if (settings.isNotEmpty) {
-          final vcNumber = settings['vodafone_cash_number']?.toString().trim() ?? settings['vodafone_cash']?.toString().trim();
-          final ipAccount = settings['instapay_account']?.toString().trim() ?? settings['instapay_number']?.toString().trim() ?? settings['instapay']?.toString().trim();
+          final vcNumber =
+              settings['vodafone_cash_number']?.toString().trim() ??
+              settings['vodafone_cash']?.toString().trim();
+          final ipAccount =
+              settings['instapay_account']?.toString().trim() ??
+              settings['instapay_number']?.toString().trim() ??
+              settings['instapay']?.toString().trim();
 
           setState(() {
             if (vcNumber != null && vcNumber.isNotEmpty) {
@@ -140,7 +149,9 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
     super.dispose();
   }
 
-  String get _activeDestination => _selectedMethod == 'Vodafone Cash' ? _vodafoneCashNumber : _instaPayAccount;
+  String get _activeDestination => _selectedMethod == 'Vodafone Cash'
+      ? _vodafoneCashNumber
+      : _instaPayAccount;
 
   void _copyDestination() {
     if (_activeDestination.isEmpty) return;
@@ -155,7 +166,9 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
 
   Future<void> _pickReceipt(ImageSource source) async {
     try {
-      final compressedFile = await ImagePickerUtils.pickAndCompressImage(source);
+      final compressedFile = await ImagePickerUtils.pickAndCompressImage(
+        source,
+      );
       if (compressedFile != null && mounted) {
         setState(() {
           _receiptFile = compressedFile;
@@ -174,14 +187,17 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
   Future<void> _launchWhatsApp() async {
     final senderAccount = _senderAccountController.text.trim();
     final transRef = _transactionRefController.text.trim();
-    final message = "أهلاً PlaySpot 👋\n"
+    final message =
+        "أهلاً PlaySpot 👋\n"
         "أود تأكيد تحويل $_selectedMethod بقيمة ${widget.amount.toStringAsFixed(0)} ج.م "
         "لصالة ${widget.loungeName}.\n"
         "${senderAccount.isNotEmpty ? 'حساب / رقم التحويل: $senderAccount\n' : ''}"
         "${transRef.isNotEmpty ? 'الرقم المرجعي: $transRef' : ''}";
 
     await ContactLauncherService.launchWhatsApp(
-      phone: _vodafoneCashNumber.isNotEmpty ? _vodafoneCashNumber : '01012345678',
+      phone: _vodafoneCashNumber.isNotEmpty
+          ? _vodafoneCashNumber
+          : '01012345678',
       message: message,
     );
   }
@@ -191,23 +207,21 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
     final senderAccount = _senderAccountController.text.trim();
     final transRef = _transactionRefController.text.trim();
 
-    final accountError = PaymentFormValidators.validateSenderAccount(senderAccount, isArabic: isArabic);
+    final accountError = PaymentFormValidators.validateSenderAccount(
+      senderAccount,
+      isArabic: isArabic,
+    );
     if (accountError != null) {
-      GameHudToast.show(
-        context,
-        accountError,
-        type: ToastType.error,
-      );
+      GameHudToast.show(context, accountError, type: ToastType.error);
       return;
     }
 
-    final refError = PaymentFormValidators.validateTransactionReference(transRef, isArabic: isArabic);
+    final refError = PaymentFormValidators.validateTransactionReference(
+      transRef,
+      isArabic: isArabic,
+    );
     if (refError != null) {
-      GameHudToast.show(
-        context,
-        refError,
-        type: ToastType.error,
-      );
+      GameHudToast.show(context, refError, type: ToastType.error);
       return;
     }
 
@@ -250,7 +264,11 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                   color: AppColors.neonBlue.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(TablerIcons.receipt_2, color: AppColors.neonBlue, size: 24.sp),
+                child: Icon(
+                  TablerIcons.receipt_2,
+                  color: AppColors.neonBlue,
+                  size: 24.sp,
+                ),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -285,7 +303,8 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                       title: 'Vodafone Cash',
                       isSelected: _selectedMethod == 'Vodafone Cash',
                       icon: TablerIcons.wallet,
-                      onTap: () => setState(() => _selectedMethod = 'Vodafone Cash'),
+                      onTap: () =>
+                          setState(() => _selectedMethod = 'Vodafone Cash'),
                     ),
                   ),
                 if (_hasVodafoneCash && _hasInstaPay) SizedBox(width: 12.w),
@@ -323,7 +342,9 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                     children: [
                       Expanded(
                         child: AppText(
-                          text: _activeDestination.isNotEmpty ? _activeDestination : '---',
+                          text: _activeDestination.isNotEmpty
+                              ? _activeDestination
+                              : '---',
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
                           color: AppColors.neonBlue,
@@ -334,16 +355,27 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                         GestureDetector(
                           onTap: _copyDestination,
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 6.h,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.neonBlue.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8.r),
-                              border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
+                              border: Border.all(
+                                color: AppColors.neonBlue.withValues(
+                                  alpha: 0.3,
+                                ),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(TablerIcons.copy, size: 14.sp, color: AppColors.neonBlue),
+                                Icon(
+                                  TablerIcons.copy,
+                                  size: 14.sp,
+                                  color: AppColors.neonBlue,
+                                ),
                                 SizedBox(width: 4.w),
                                 AppText(
                                   text: AppStrings.copyNumber.tr(),
@@ -369,7 +401,8 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                         color: AppColors.textSecondary,
                       ),
                       AppText(
-                        text: "${widget.amount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                        text:
+                            "${widget.amount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.white,
@@ -384,16 +417,24 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
 
           AppTextField(
             controller: _senderAccountController,
-            label: isArabic ? 'رقم المحفظة / حساب InstaPay المحول منه' : 'Sender Wallet / InstaPay Handle',
-            hint: isArabic ? 'مثال: 01012345678 أو username@instapay' : 'e.g., 01012345678 or username@instapay',
+            label: isArabic
+                ? 'رقم المحفظة / حساب InstaPay المحول منه'
+                : 'Sender Wallet / InstaPay Handle',
+            hint: isArabic
+                ? 'مثال: 01012345678 أو username@instapay'
+                : 'e.g., 01012345678 or username@instapay',
             textInputType: TextInputType.text,
           ),
           SizedBox(height: 12.h),
 
           AppTextField(
             controller: _transactionRefController,
-            label: isArabic ? 'الرقم المرجعي للتحويل' : 'Transaction Reference Number',
-            hint: isArabic ? 'أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل' : 'Enter transaction reference (min 6 characters)',
+            label: isArabic
+                ? 'الرقم المرجعي للتحويل'
+                : 'Transaction Reference Number',
+            hint: isArabic
+                ? 'أدخل الرقم المرجعي المكون من 6 أرقام/حروف على الأقل'
+                : 'Enter transaction reference (min 6 characters)',
             textInputType: TextInputType.text,
           ),
           SizedBox(height: 16.h),
@@ -426,7 +467,11 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                     radius: 16,
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      icon: const Icon(Icons.close, color: Colors.white, size: 18),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                       onPressed: () => setState(() => _receiptFile = null),
                     ),
                   ),
@@ -449,7 +494,11 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                       ),
                       child: Column(
                         children: [
-                          Icon(TablerIcons.photo, color: AppColors.neonBlue, size: 24.sp),
+                          Icon(
+                            TablerIcons.photo,
+                            color: AppColors.neonBlue,
+                            size: 24.sp,
+                          ),
                           SizedBox(height: 6.h),
                           AppText(
                             text: AppStrings.selectReceiptImage.tr(),
@@ -475,7 +524,11 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                       ),
                       child: Column(
                         children: [
-                          Icon(TablerIcons.camera, color: AppColors.neonPurple, size: 24.sp),
+                          Icon(
+                            TablerIcons.camera,
+                            color: AppColors.neonPurple,
+                            size: 24.sp,
+                          ),
                           SizedBox(height: 6.h),
                           AppText(
                             text: AppStrings.camera.tr(),
@@ -498,26 +551,30 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
                 child: AppButton(
                   content: ButtonContent(
                     label: AppStrings.confirmViaWhatsApp.tr(),
-                    icon: Icon(TablerIcons.brand_whatsapp, color: Colors.green, size: 18.sp),
+                    icon: Icon(
+                      TablerIcons.brand_whatsapp,
+                      color: Colors.green,
+                      size: 18.sp,
+                    ),
                   ),
                   buttonConfig: ButtonConfig(
                     height: 48.h,
                     backgroundColor: Colors.green.withValues(alpha: 0.15),
                     borderColor: Colors.green,
                     borderRadius: 12.r,
-                    textStyle: TextStyle(color: Colors.green, fontSize: 12.sp, fontWeight: FontWeight.bold),
+                    textStyle: TextStyle(
+                      color: Colors.green,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  behavior: ButtonBehavior.tap(
-                    onTap: _launchWhatsApp,
-                  ),
+                  behavior: ButtonBehavior.tap(onTap: _launchWhatsApp),
                 ),
               ),
               SizedBox(width: 12.w),
               Expanded(
                 child: AppButton(
-                  content: ButtonContent(
-                    label: AppStrings.confirmAndPay.tr(),
-                  ),
+                  content: ButtonContent(label: AppStrings.confirmAndPay.tr()),
                   buttonConfig: ButtonConfig(
                     height: 48.h,
                     gradient: AppColors.primaryGradient,
@@ -549,7 +606,9 @@ class _ManualPaymentBottomSheetState extends State<ManualPaymentBottomSheet> {
       child: Container(
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.neonBlue.withValues(alpha: 0.1) : AppColors.cardBackground,
+          color: isSelected
+              ? AppColors.neonBlue.withValues(alpha: 0.1)
+              : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
             color: isSelected ? AppColors.neonBlue : AppColors.borderDefault,

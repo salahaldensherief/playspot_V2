@@ -13,55 +13,70 @@ class PreferenceManager {
 
   final GetStorage _box = GetStorage();
 
-  Future<void> saveLatitude(double latitude) => _box.write(CachingKey.LATITUDE, latitude);
+  Future<void> saveLatitude(double latitude) =>
+      _box.write(CachingKey.latitude, latitude);
 
-  String latitude() => _box.read(CachingKey.LATITUDE)?.toString() ?? '';
+  String latitude() => _box.read(CachingKey.latitude)?.toString() ?? '';
 
-  Future<void> saveLongitude(double longitude) => _box.write(CachingKey.LONGITUDE, longitude);
+  Future<void> saveLongitude(double longitude) =>
+      _box.write(CachingKey.longitude, longitude);
 
-  String longitude() => _box.read(CachingKey.LONGITUDE)?.toString() ?? '';
+  String longitude() => _box.read(CachingKey.longitude)?.toString() ?? '';
 
-  Future<void> saveFCMToken(String fcmToken) => _box.write(CachingKey.FCM_TOKEN, fcmToken);
+  Future<void> saveFCMToken(String fcmToken) =>
+      _box.write(CachingKey.fcmToken, fcmToken);
 
-  String fcmToken() => _box.read(CachingKey.FCM_TOKEN) as String? ?? "";
+  String fcmToken() => _box.read(CachingKey.fcmToken) as String? ?? "";
 
-  Future<void> saveIsFirstTime(bool isFirstTime) => _box.write(CachingKey.IS_FIRST_TIME, isFirstTime);
+  Future<void> saveIsFirstTime(bool isFirstTime) =>
+      _box.write(CachingKey.isFirstTime, isFirstTime);
 
-  bool isFirstTime() => _box.read(CachingKey.IS_FIRST_TIME) as bool? ?? true;
+  bool isFirstTime() => _box.read(CachingKey.isFirstTime) as bool? ?? true;
 
-  Future<void> saveIsOpenAsGuestUser(bool isGustUser) => _box.write(CachingKey.IS_GUEST_USER, isGustUser);
+  Future<void> saveIsOpenAsGuestUser(bool isGustUser) =>
+      _box.write(CachingKey.isGuestUser, isGustUser);
 
-  bool isOpenAsGuestUser() => _box.read(CachingKey.IS_GUEST_USER) as bool? ?? false;
+  bool isOpenAsGuestUser() =>
+      _box.read(CachingKey.isGuestUser) as bool? ?? false;
 
-  Future<void> saveIsLoggedIn(bool isLoggedIn) => _box.write(CachingKey.IS_LOGGED_IN, isLoggedIn);
+  Future<void> saveIsLoggedIn(bool isLoggedIn) =>
+      _box.write(CachingKey.isLoggedIn, isLoggedIn);
 
-  bool get isLoggedIn => _box.read(CachingKey.IS_LOGGED_IN) as bool? ?? false;
+  bool get isLoggedIn => _box.read(CachingKey.isLoggedIn) as bool? ?? false;
 
-  Future<void> saveAuthToken(String? authToken) => _box.write(CachingKey.AUTH_TOKEN, authToken ?? '');
+  Future<void> saveAuthToken(String? authToken) =>
+      _box.write(CachingKey.authToken, authToken ?? '');
 
-  String authToken() => _box.read(CachingKey.AUTH_TOKEN) as String? ?? "";
+  String authToken() => _box.read(CachingKey.authToken) as String? ?? "";
 
-  Future<void> saveToken(String? cooke) => _box.write(CachingKey.TOKEN, cooke ?? '');
+  Future<void> saveToken(String? cooke) =>
+      _box.write(CachingKey.token, cooke ?? '');
 
-  String token() => _box.read(CachingKey.TOKEN) as String? ?? "";
+  String token() => _box.read(CachingKey.token) as String? ?? "";
 
+  Future<void> saveFullName(String? fullName) =>
+      _box.write(CachingKey.fullName, fullName ?? '');
 
-  Future<void> saveFullName(String? fullName) => _box.write(CachingKey.FullName, fullName ?? '');
+  String? fullName() => _box.read(CachingKey.fullName) as String? ?? "";
 
-  String? fullName() => _box.read(CachingKey.FullName) as String? ?? "";
+  Future<void> savePhoneNumber(String? phone) =>
+      _box.write(CachingKey.phoneNumber, phone ?? '');
 
-  Future<void> savePhoneNumber(String? phone) => _box.write(CachingKey.PhoneNumber, phone ?? '');
+  String? phoneNumber() =>
+      _box.read(CachingKey.phoneNumber) as String? ??
+      getUserData()?.phone ??
+      "";
 
-  String? phoneNumber() => _box.read(CachingKey.PhoneNumber) as String? ?? getUserData()?.phone ?? "";
-
-  Future<void> saveValue(String cachingKey, String value) => _box.write(cachingKey, value);
+  Future<void> saveValue(String cachingKey, String value) =>
+      _box.write(cachingKey, value);
 
   String getValue(String cachingKey) => _box.read(cachingKey)?.toString() ?? "";
 
-  Future<void> saveLanguage(String lang) => _box.write(CachingKey.LANGUAGE, lang);
+  Future<void> saveLanguage(String lang) =>
+      _box.write(CachingKey.language, lang);
 
   String currentLang() {
-    final savedLang = _box.read(CachingKey.LANGUAGE) as String?;
+    final savedLang = _box.read(CachingKey.language) as String?;
     if (savedLang != null) return savedLang;
     if (kIsWeb) return 'en';
     try {
@@ -71,29 +86,33 @@ class PreferenceManager {
     }
   }
 
-  Future<void> saveUserId(String? userId) => _box.write(CachingKey.UserId, userId ?? '');
+  Future<void> saveUserId(String? userId) =>
+      _box.write(CachingKey.userId, userId ?? '');
 
-  String? userId() => _box.read(CachingKey.UserId) as String? ?? "";
+  String? userId() => _box.read(CachingKey.userId) as String? ?? "";
 
   Future<void> savePendingReferralCode(String? code) {
     if (code == null || code.trim().isEmpty) return Future.value();
-    return _box.write(CachingKey.PENDING_REFERRAL_CODE, code.trim().toUpperCase());
+    return _box.write(
+      CachingKey.pendingReferralCode,
+      code.trim().toUpperCase(),
+    );
   }
 
   String getPendingReferralCode() {
-    return _box.read(CachingKey.PENDING_REFERRAL_CODE) as String? ?? '';
+    return _box.read(CachingKey.pendingReferralCode) as String? ?? '';
   }
 
   Future<void> clearPendingReferralCode() {
-    return _box.remove(CachingKey.PENDING_REFERRAL_CODE);
+    return _box.remove(CachingKey.pendingReferralCode);
   }
 
   Future<void> saveUserData(UserModel user) {
-    return _box.write(CachingKey.UserData, user.toJson());
+    return _box.write(CachingKey.userData, user.toJson());
   }
 
   UserModel? getUserData() {
-    final data = _box.read(CachingKey.UserData);
+    final data = _box.read(CachingKey.userData);
     if (data != null) {
       return UserModel.fromJson(Map<String, dynamic>.from(data));
     }
@@ -101,40 +120,48 @@ class PreferenceManager {
   }
 
   Future<void> clearUserData() async {
-    await _box.remove(CachingKey.UserData);
-    await _box.remove(CachingKey.UserId);
-    await _box.remove(CachingKey.FullName);
-    await _box.remove(CachingKey.PhoneNumber);
-    await _box.remove(CachingKey.UserDataBackup);
-    await _box.remove(CachingKey.REVIEWED_BOOKINGS);
-    await _box.remove(CachingKey.CACHED_LOUNGES);
-    await _box.remove(CachingKey.CURRENT_ADDRESS);
-    await _box.remove(CachingKey.LATITUDE);
-    await _box.remove(CachingKey.LONGITUDE);
-    await _box.remove(CachingKey.PENDING_REFERRAL_CODE);
+    await _box.remove(CachingKey.userData);
+    await _box.remove(CachingKey.userId);
+    await _box.remove(CachingKey.fullName);
+    await _box.remove(CachingKey.phoneNumber);
+    await _box.remove(CachingKey.userDataBackup);
+    await _box.remove(CachingKey.reviewedBookings);
+    await _box.remove(CachingKey.cachedLounges);
+    await _box.remove(CachingKey.currentAddress);
+    await _box.remove(CachingKey.latitude);
+    await _box.remove(CachingKey.longitude);
+    await _box.remove(CachingKey.pendingReferralCode);
     await saveIsLoggedIn(false);
 
     // Session & Auth Cleanup: Clear local entity caches on logout
     final keys = _box.getKeys<Iterable<String>>();
-    final keysToRemove = keys.where((k) =>
-        k.startsWith(CachingKey.LOUNGE_PROFILES_PREFIX) ||
-        k.startsWith(CachingKey.LOUNGE_ROOMS_PREFIX) ||
-        k.startsWith(CachingKey.LOUNGE_EXTRAS_PREFIX) ||
-        k == CachingKey.CATEGORIES_CACHE ||
-        k == CachingKey.PROMOTIONS_CACHE).toList();
+    final keysToRemove = keys
+        .where(
+          (k) =>
+              k.startsWith(CachingKey.loungeProfilesPrefix) ||
+              k.startsWith(CachingKey.loungeRoomsPrefix) ||
+              k.startsWith(CachingKey.loungeExtrasPrefix) ||
+              k == CachingKey.categoriesCache ||
+              k == CachingKey.promotionsCache,
+        )
+        .toList();
 
     for (final key in keysToRemove) {
       await _box.remove(key);
     }
   }
 
-
   // =========================
   // Apple Profile Cache (email/name first time)
   // =========================
-  String _appleProfileKey(String appleUserId) => '${CachingKey.AppleProfilePrefix}$appleUserId';
+  String _appleProfileKey(String appleUserId) =>
+      '${CachingKey.appleProfilePrefix}$appleUserId';
 
-  Future<void> saveAppleProfile({required String appleUserId, String? email, String? name}) {
+  Future<void> saveAppleProfile({
+    required String appleUserId,
+    String? email,
+    String? name,
+  }) {
     return _box.write(_appleProfileKey(appleUserId), {
       'email': email,
       'name': name,
@@ -148,45 +175,53 @@ class PreferenceManager {
     return Map<String, dynamic>.from(data);
   }
 
+  bool? isDarkMode() => _box.read(CachingKey.isDarkMode) as bool?;
 
-  bool? isDarkMode() => _box.read(CachingKey.IS_DARK_MODE) as bool?;
-
-  void setDarkMode(bool? isDarkMode) => _box.write(CachingKey.IS_DARK_MODE, isDarkMode);
+  void setDarkMode(bool? isDarkMode) =>
+      _box.write(CachingKey.isDarkMode, isDarkMode);
 
   // --- Notification Settings ---
-  Future<void> savePushEnabled(bool val) => _box.write(CachingKey.PUSH_NOTIF_ENABLED, val);
-  bool pushEnabled() => _box.read(CachingKey.PUSH_NOTIF_ENABLED) as bool? ?? true;
+  Future<void> savePushEnabled(bool val) =>
+      _box.write(CachingKey.pushNotifEnabled, val);
+  bool pushEnabled() => _box.read(CachingKey.pushNotifEnabled) as bool? ?? true;
 
-  Future<void> saveBookingUpdatesEnabled(bool val) => _box.write(CachingKey.BOOKING_UPDATES_ENABLED, val);
-  bool bookingUpdatesEnabled() => _box.read(CachingKey.BOOKING_UPDATES_ENABLED) as bool? ?? true;
+  Future<void> saveBookingUpdatesEnabled(bool val) =>
+      _box.write(CachingKey.bookingUpdatesEnabled, val);
+  bool bookingUpdatesEnabled() =>
+      _box.read(CachingKey.bookingUpdatesEnabled) as bool? ?? true;
 
-  Future<void> saveOffersEnabled(bool val) => _box.write(CachingKey.OFFERS_ENABLED, val);
-  bool offersEnabled() => _box.read(CachingKey.OFFERS_ENABLED) as bool? ?? true;
+  Future<void> saveOffersEnabled(bool val) =>
+      _box.write(CachingKey.offersEnabled, val);
+  bool offersEnabled() => _box.read(CachingKey.offersEnabled) as bool? ?? true;
 
-  Future<void> saveSystemNotifEnabled(bool val) => _box.write(CachingKey.SYSTEM_NOTIF_ENABLED, val);
-  bool systemNotifEnabled() => _box.read(CachingKey.SYSTEM_NOTIF_ENABLED) as bool? ?? true;
+  Future<void> saveSystemNotifEnabled(bool val) =>
+      _box.write(CachingKey.systemNotifEnabled, val);
+  bool systemNotifEnabled() =>
+      _box.read(CachingKey.systemNotifEnabled) as bool? ?? true;
 
-  Future<void> saveTournamentsEnabled(bool val) => _box.write(CachingKey.TOURNAMENTS_ENABLED, val);
-  bool tournamentsEnabled() => _box.read(CachingKey.TOURNAMENTS_ENABLED) as bool? ?? true;
+  Future<void> saveTournamentsEnabled(bool val) =>
+      _box.write(CachingKey.tournamentsEnabled, val);
+  bool tournamentsEnabled() =>
+      _box.read(CachingKey.tournamentsEnabled) as bool? ?? true;
 
   bool? isGuestUser() => authToken().isEmpty;
 
   // void saveActiveCountry(ActiveCountryModel activeCountry) =>
-  //     _box.write(CachingKey.ActiveCountry, activeCountry.toJson());
+  //     _box.write(CachingKey.activeCountry, activeCountry.toJson());
   //
   // ActiveCountryModel? getActiveCountry() {
-  //   final data = _box.read(CachingKey.ActiveCountry);
+  //   final data = _box.read(CachingKey.activeCountry);
   //   if (data == null) return null;
   //   return ActiveCountryModel.fromJson(data);
   // }
   //
   // void logout() {
   //   LogoutService().logout();
-  //   _box.remove(CachingKey.UserData);
-  //   _box.remove(CachingKey.UserDataBackup);
+  //   _box.remove(CachingKey.userData);
+  //   _box.remove(CachingKey.userDataBackup);
   //
-  //   _box.remove(CachingKey.AUTH_TOKEN);
-  //   _box.remove(CachingKey.FullName);
+  //   _box.remove(CachingKey.authToken);
+  //   _box.remove(CachingKey.fullName);
   //   saveIsLoggedIn(false);
   //   saveIsOpenAsGuestUser(true);
   //   GoogleAuthService().signOutFromGoogle();

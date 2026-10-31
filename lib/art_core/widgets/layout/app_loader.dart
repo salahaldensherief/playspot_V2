@@ -70,10 +70,7 @@ class _NeonGlowSpinnerPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
 
-  _NeonGlowSpinnerPainter({
-    required this.color,
-    required this.strokeWidth,
-  });
+  _NeonGlowSpinnerPainter({required this.color, required this.strokeWidth});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -94,11 +91,7 @@ class _NeonGlowSpinnerPainter extends CustomPainter {
     final rect = Rect.fromCircle(center: center, radius: radius);
     final arcPaint = Paint()
       ..shader = SweepGradient(
-        colors: [
-          color.withValues(alpha: 0.0),
-          color,
-          AppColors.neonPurple,
-        ],
+        colors: [color.withValues(alpha: 0.0), color, AppColors.neonPurple],
         stops: const [0.0, 0.7, 1.0],
       ).createShader(rect)
       ..style = PaintingStyle.stroke

@@ -29,7 +29,8 @@ class CheckoutPaymentMethodsSection extends StatelessWidget {
           children: [
             _PaymentMethodCard(
               method: PaymentMethod.vodafoneCash,
-              isSelected: state.selectedMethod == PaymentMethod.vodafoneCash ||
+              isSelected:
+                  state.selectedMethod == PaymentMethod.vodafoneCash ||
                   state.selectedMethod == PaymentMethod.instaPay,
               isEnabled: true,
               title: AppStrings.vodafoneCash.tr(),
@@ -52,7 +53,9 @@ class CheckoutPaymentMethodsSection extends StatelessWidget {
                     ? AppStrings.cashAtLoungeSubtitle.tr()
                     : AppStrings.cashDisabledFirstTime.tr(),
                 icon: TablerIcons.cash,
-                iconColor: state.isCashEnabled ? AppColors.success : AppColors.textSecondary,
+                iconColor: state.isCashEnabled
+                    ? AppColors.success
+                    : AppColors.textSecondary,
               ),
             ],
           ],
@@ -94,7 +97,9 @@ class _PaymentMethodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveBgColor = iconColor.withValues(alpha: 0.18);
-    final effectivePadding = padding ?? (imagePath != null ? EdgeInsets.all(4.w) : EdgeInsets.all(10.w));
+    final effectivePadding =
+        padding ??
+        (imagePath != null ? EdgeInsets.all(4.w) : EdgeInsets.all(10.w));
 
     return InkWell(
       onTap: isEnabled
@@ -174,7 +179,9 @@ class _PaymentMethodCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(imageBorderRadius ?? 8.r),
+                    borderRadius: BorderRadius.circular(
+                      imageBorderRadius ?? 8.r,
+                    ),
                     child: imagePath != null
                         ? Image.asset(
                             imagePath!,
@@ -205,7 +212,9 @@ class _PaymentMethodCard extends StatelessWidget {
                     AppText(
                       text: subtitle,
                       fontSize: 12.sp,
-                      color: !isEnabled ? AppColors.warning : AppColors.textSecondary,
+                      color: !isEnabled
+                          ? AppColors.warning
+                          : AppColors.textSecondary,
                       height: 1.3,
                     ),
                   ],

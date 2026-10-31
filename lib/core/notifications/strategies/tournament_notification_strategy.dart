@@ -8,7 +8,9 @@ class TournamentNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ?? '';
+    final type =
+        NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase() ??
+        '';
     final tournamentId = NotificationStrategyHelper.getTournamentId(data);
     return type.contains('tournament') || tournamentId != null;
   }
@@ -43,4 +45,3 @@ class TournamentNotificationStrategy implements NotificationActionStrategy {
     return true;
   }
 }
-

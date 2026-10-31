@@ -19,12 +19,8 @@ void initProfileModule() {
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(sl(), sl()),
   );
-  sl.registerFactory<ProfileCubit>(
-    () => ProfileCubit(sl(), sl(), sl()),
-  );
-  sl.registerFactory<EditProfileCubit>(
-    () => EditProfileCubit(sl(), sl()),
-  );
+  sl.registerFactory<ProfileCubit>(() => ProfileCubit(sl(), sl(), sl()));
+  sl.registerFactory<EditProfileCubit>(() => EditProfileCubit(sl(), sl()));
   sl.registerFactory<NotificationSettingsCubit>(
     () => NotificationSettingsCubit(sl(), sl()),
   );

@@ -18,10 +18,11 @@ import '../active_session_state.dart';
 import 'active_session_action_bar.dart';
 import 'billing_breakdown.dart';
 import 'lounge_review_bottom_sheet.dart';
-import 'quick_actions.dart';
+import 'extend_session_button.dart';
 import 'session_summary_card.dart';
 import 'station_info.dart';
 import 'timer_section.dart';
+import 'upsell_suggestion_banner.dart';
 
 class ActiveSessionBody extends StatelessWidget {
   const ActiveSessionBody({super.key});
@@ -32,10 +33,15 @@ class ActiveSessionBody extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      enableDrag: false,
+      isDismissible: false,
       builder: (context) => LoungeReviewBottomSheet(
         loungeName: session.loungeName,
-        onSubmit: (rating, comment) =>
-            cubit.submitReview(rating: rating, comment: comment),
+        onSubmit: (rating, comment) => cubit.submitReview(
+          rating: rating,
+          comment: comment,
+          reviewSession: session,
+        ),
       ),
     );
   }
@@ -68,7 +74,9 @@ class ActiveSessionBody extends StatelessWidget {
                   ),
                   SizedBox(height: 16.h),
                   AppText(
-                    text: state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                    text:
+                        state.errorMessage ??
+                        AppStrings.somethingWentWrong.tr(),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 16.h),
@@ -163,8 +171,10 @@ class ActiveSessionBody extends StatelessWidget {
                 SizedBox(height: 20.h),
                 _buildPendingExtensionBanner(context, session),
                 StationInfo(session: session),
-                SizedBox(height: 24.h),
-                const QuickActions(),
+                SizedBox(height: 16.h),
+                const UpsellSuggestionBanner(),
+                SizedBox(height: 8.h),
+                if (!session.isOpenTime) const ExtendSessionButton(),
                 SizedBox(height: 24.h),
                 const ActiveSessionActionBar(),
                 SizedBox(height: 24.h),
@@ -178,11 +188,13 @@ class ActiveSessionBody extends StatelessWidget {
     );
   }
 
-  Widget _buildPendingExtensionBanner(BuildContext context, ActiveSession session) {
-    final status = session.extensionStatus?.toLowerCase();
+  Widget _buildPendingExtensionBanner(
+    BuildContext context,
+    ActiveSession session,
+  ) {
     final mins = session.requestedExtensionMinutes ?? 0;
 
-    if (status != 'pending' && mins <= 0) {
+    if (!session.isExtensionPending) {
       return const SizedBox.shrink();
     }
 
@@ -208,7 +220,11 @@ class ActiveSessionBody extends StatelessWidget {
               color: AppColors.warning.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.hourglass_top_rounded, color: AppColors.warning, size: 20.sp),
+            child: Icon(
+              Icons.hourglass_top_rounded,
+              color: AppColors.warning,
+              size: 20.sp,
+            ),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -223,7 +239,9 @@ class ActiveSessionBody extends StatelessWidget {
                 ),
                 SizedBox(height: 3.h),
                 AppText(
-                  text: AppStrings.extensionPendingSubtitle.tr(args: [displayMins.toString()]),
+                  text: AppStrings.extensionPendingSubtitle.tr(
+                    args: [displayMins.toString()],
+                  ),
                   fontSize: 11.5.sp,
                   color: Colors.white.withValues(alpha: 0.9),
                   height: 1.3,

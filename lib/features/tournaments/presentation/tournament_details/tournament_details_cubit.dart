@@ -1,5 +1,7 @@
+import 'package:playspot/art_core/app_strings.dart';
 import 'dart:async';
 import 'dart:io';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,9 +22,11 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
   final CheckInParticipantUseCase _checkInParticipantUseCase;
   final WatchTournamentMatchesUseCase _watchTournamentMatchesUseCase;
   final WithdrawTournamentUseCase _withdrawTournamentUseCase;
+  final String? Function() _currentUserId;
 
   StreamSubscription? _matchesSubscription;
   String? _activeTournamentId;
+  int _loadRevision = 0;
 
   TournamentDetailsCubit(
     this._getTournamentDetailsUseCase,
@@ -30,60 +34,88 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     this._submitTournamentPaymentUseCase,
     this._checkInParticipantUseCase,
     this._watchTournamentMatchesUseCase,
-    this._withdrawTournamentUseCase,
-  ) : super(const TournamentDetailsState());
+    this._withdrawTournamentUseCase, {
+    String? Function()? currentUserId,
+  }) : _currentUserId =
+           currentUserId ??
+           (() => Supabase.instance.client.auth.currentUser?.id),
+       super(const TournamentDetailsState());
 
   @override
   Future<void> close() {
+    _loadRevision++;
     _matchesSubscription?.cancel();
     return super.close();
   }
 
   Future<void> init(String tournamentId) async {
+    final revision = ++_loadRevision;
     _activeTournamentId = tournamentId;
     emit(state.copyWith(status: TournamentDetailsStatus.loading));
 
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId = _currentUserId();
 
     final coreFutures = await Future.wait([
       _getTournamentDetailsUseCase.getTournamentById(tournamentId),
       _getTournamentDetailsUseCase.getPrizes(tournamentId),
       _getTournamentDetailsUseCase.getMatches(tournamentId),
     ]);
+    if (isClosed || revision != _loadRevision) return;
 
     final tournamentRes = coreFutures[0] as Either<Failure, TournamentEntity>;
-    final prizesRes = coreFutures[1] as Either<Failure, List<TournamentPrizeEntity>>;
-    final matchesRes = coreFutures[2] as Either<Failure, List<TournamentMatchEntity>>;
+    final prizesRes =
+        coreFutures[1] as Either<Failure, List<TournamentPrizeEntity>>;
+    final matchesRes =
+        coreFutures[2] as Either<Failure, List<TournamentMatchEntity>>;
 
     // Only fetch participant if the user is authenticated.
     TournamentParticipantEntity? participant;
     if (currentUserId != null) {
-      final participantRes = await _getTournamentDetailsUseCase.getUserParticipant(
-        tournamentId,
-        currentUserId,
-      );
+      final participantRes = await _getTournamentDetailsUseCase
+          .getUserParticipant(tournamentId, currentUserId);
       participant = participantRes.fold((_) => null, (p) => p);
     }
+    if (isClosed || revision != _loadRevision) return;
 
     tournamentRes.fold(
-      (failure) => emit(state.copyWith(
-        status: TournamentDetailsStatus.failure,
-        errorMessage: failure.message,
-      )),
+      (failure) => emit(
+        state.copyWith(
+          status: TournamentDetailsStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
       (tournament) {
-        prizesRes.fold((_) {}, (prizes) {
-          matchesRes.fold((_) {}, (matches) {
-            emit(state.copyWith(
-              status: TournamentDetailsStatus.success,
-              tournament: tournament,
-              prizes: prizes,
-              matches: matches,
-              userParticipant: participant,
-            ));
+        prizesRes.fold(
+          (failure) => emit(
+            state.copyWith(
+              status: TournamentDetailsStatus.failure,
+              errorMessage: failure.message,
+            ),
+          ),
+          (prizes) {
+            matchesRes.fold(
+              (failure) => emit(
+                state.copyWith(
+                  status: TournamentDetailsStatus.failure,
+                  errorMessage: failure.message,
+                ),
+              ),
+              (matches) {
+                emit(
+                  state.copyWith(
+                    status: TournamentDetailsStatus.success,
+                    tournament: tournament,
+                    prizes: prizes,
+                    matches: matches,
+                    userParticipant: participant,
+                  ),
+                );
 
-            _startWatchingMatches(tournamentId);
-          });
-        });
+                _startWatchingMatches(tournamentId);
+              },
+            );
+          },
+        );
       },
     );
   }
@@ -92,11 +124,19 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     _matchesSubscription?.cancel();
     _matchesSubscription = _watchTournamentMatchesUseCase(tournamentId).listen(
       (updatedMatches) {
-        if (!isClosed) {
+        if (!isClosed && _activeTournamentId == tournamentId) {
           emit(state.copyWith(matches: updatedMatches));
         }
       },
-      onError: (err) {},
+      onError: (Object error) {
+        if (!isClosed && _activeTournamentId == tournamentId) {
+          emit(
+            state.copyWith(
+              errorMessage: AppStrings.tournamentUpdatesUnavailable.tr(),
+            ),
+          );
+        }
+      },
     );
   }
 
@@ -110,17 +150,18 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          isRegistering: false,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(isRegistering: false, errorMessage: failure.message),
+        );
       },
       (participant) {
-        emit(state.copyWith(
-          isRegistering: false,
-          userParticipant: participant ?? state.userParticipant,
-          successMessage: 'registeredSuccessfully',
-        ));
+        emit(
+          state.copyWith(
+            isRegistering: false,
+            userParticipant: participant ?? state.userParticipant,
+            successMessage: 'registeredSuccessfully',
+          ),
+        );
       },
     );
   }
@@ -140,29 +181,31 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     if (userParticipant.paymentStatus == PaymentStatus.pending ||
         userParticipant.paymentStatus == PaymentStatus.approved ||
         userParticipant.status == ParticipantStatus.confirmed) {
-      emit(state.copyWith(
-        isSubmittingPayment: false,
-        successMessage: 'paymentSubmittedSuccess',
-      ));
+      emit(
+        state.copyWith(
+          isSubmittingPayment: false,
+          successMessage: 'paymentSubmittedSuccess',
+        ),
+      );
       return;
     }
 
     // Server status re-check to handle previous timeout recovery
     try {
-      final participantRes = await _getTournamentDetailsUseCase.getUserParticipant(
-        tournament.id,
-        currentUser.id,
-      );
+      final participantRes = await _getTournamentDetailsUseCase
+          .getUserParticipant(tournament.id, currentUser.id);
       final latestParticipant = participantRes.fold((_) => null, (p) => p);
       if (latestParticipant != null) {
         if (latestParticipant.paymentStatus == PaymentStatus.pending ||
             latestParticipant.paymentStatus == PaymentStatus.approved ||
             latestParticipant.status == ParticipantStatus.confirmed) {
-          emit(state.copyWith(
-            isSubmittingPayment: false,
-            userParticipant: latestParticipant,
-            successMessage: 'paymentSubmittedSuccess',
-          ));
+          emit(
+            state.copyWith(
+              isSubmittingPayment: false,
+              userParticipant: latestParticipant,
+              successMessage: 'paymentSubmittedSuccess',
+            ),
+          );
           return;
         }
       }
@@ -171,38 +214,50 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
     emit(state.copyWith(isSubmittingPayment: true));
 
     try {
-      final result = await _submitTournamentPaymentUseCase(
-        participantId: userParticipant.id,
-        tournamentId: tournament.id,
-        userId: currentUser.id,
-        amount: tournament.entryFee,
-        paymentMethod: paymentMethod,
-        receiptFile: receiptFile,
-      ).timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => Left(ServerFailure('Connection timed out while uploading receipt. Please try again.')),
-      );
+      final result =
+          await _submitTournamentPaymentUseCase(
+            participantId: userParticipant.id,
+            tournamentId: tournament.id,
+            userId: currentUser.id,
+            amount: tournament.entryFee,
+            paymentMethod: paymentMethod,
+            receiptFile: receiptFile,
+          ).timeout(
+            const Duration(seconds: 30),
+            onTimeout: () => Left(
+              ServerFailure(
+                'Connection timed out while uploading receipt. Please try again.',
+              ),
+            ),
+          );
 
       result.fold(
         (failure) {
-          emit(state.copyWith(
-            isSubmittingPayment: false,
-            errorMessage: failure.message,
-          ));
+          emit(
+            state.copyWith(
+              isSubmittingPayment: false,
+              errorMessage: failure.message,
+            ),
+          );
         },
         (participant) {
-          emit(state.copyWith(
-            isSubmittingPayment: false,
-            userParticipant: participant ?? state.userParticipant,
-            successMessage: 'paymentSubmittedSuccess',
-          ));
+          emit(
+            state.copyWith(
+              isSubmittingPayment: false,
+              userParticipant: participant ?? state.userParticipant,
+              successMessage: 'paymentSubmittedSuccess',
+            ),
+          );
         },
       );
     } catch (_) {
-      emit(state.copyWith(
-        isSubmittingPayment: false,
-        errorMessage: 'Connection timed out while uploading receipt. Please check your network and try again.',
-      ));
+      emit(
+        state.copyWith(
+          isSubmittingPayment: false,
+          errorMessage:
+              'Connection timed out while uploading receipt. Please check your network and try again.',
+        ),
+      );
     }
   }
 
@@ -216,17 +271,18 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          isCheckingIn: false,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(isCheckingIn: false, errorMessage: failure.message),
+        );
       },
       (participant) {
-        emit(state.copyWith(
-          isCheckingIn: false,
-          userParticipant: participant ?? state.userParticipant,
-          successMessage: 'checkInSuccess',
-        ));
+        emit(
+          state.copyWith(
+            isCheckingIn: false,
+            userParticipant: participant ?? state.userParticipant,
+            successMessage: 'checkInSuccess',
+          ),
+        );
       },
     );
   }
@@ -244,17 +300,18 @@ class TournamentDetailsCubit extends Cubit<TournamentDetailsState> {
 
     result.fold(
       (failure) {
-        emit(state.copyWith(
-          isWithdrawing: false,
-          errorMessage: failure.message,
-        ));
+        emit(
+          state.copyWith(isWithdrawing: false, errorMessage: failure.message),
+        );
       },
       (participant) {
-        emit(state.copyWith(
-          isWithdrawing: false,
-          userParticipant: participant ?? state.userParticipant,
-          successMessage: 'withdrawSuccess',
-        ));
+        emit(
+          state.copyWith(
+            isWithdrawing: false,
+            userParticipant: participant ?? state.userParticipant,
+            successMessage: 'withdrawSuccess',
+          ),
+        );
       },
     );
   }

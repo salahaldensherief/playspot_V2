@@ -1,11 +1,7 @@
 import '../../data/models/user_model.dart';
 
 /// Enum representing supported authentication providers in the application.
-enum AuthProviderType {
-  email,
-  google,
-  facebook,
-}
+enum AuthProviderType { email, google, facebook }
 
 /// Abstract Strategy interface for authentication.
 /// Each authentication provider implements this contract, following the Strategy Pattern

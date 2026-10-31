@@ -31,15 +31,18 @@ class AvatarPickerWidget extends StatelessWidget {
             backgroundImage: avatarFile != null ? FileImage(avatarFile!) : null,
             child: avatarFile == null
                 ? imageUrl != null && imageUrl!.trim().isNotEmpty
-                    ? AppImage(
-                        urlImg: imageUrl!.trim(),
-                        width: radius * 2.r,
-                        height: radius * 2.r,
-                        fit: BoxFit.cover,
-                        boxShape: BoxShape.circle,
-                      )
-                    : Icon(Icons.person,
-                        size: radius.sp, color: AppColors.white)
+                      ? AppImage(
+                          urlImg: imageUrl!.trim(),
+                          width: radius * 2.r,
+                          height: radius * 2.r,
+                          fit: BoxFit.cover,
+                          boxShape: BoxShape.circle,
+                        )
+                      : Icon(
+                          Icons.person,
+                          size: radius.sp,
+                          color: AppColors.white,
+                        )
                 : null,
           ),
           Container(
@@ -48,11 +51,7 @@ class AvatarPickerWidget extends StatelessWidget {
               color: AppColors.cardBackground,
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.camera_alt,
-              color: AppColors.white,
-              size: 18.sp,
-            ),
+            child: Icon(Icons.camera_alt, color: AppColors.white, size: 18.sp),
           ),
         ],
       ),

@@ -1,5 +1,7 @@
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'tournament_evidence_upload.dart';
+import 'tournament_match_roster.dart';
 
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/tournaments/domain/entities/tournament_entity.dart';
@@ -208,10 +210,10 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .order('match_order', ascending: true);
 
       final list = (response as List).cast<Map<String, dynamic>>();
-      return list.map((json) => TournamentMatchModel.fromJson(json)).toList();
+      return await mapTournamentMatchesWithNames(_client, tournamentId, list);
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentMatches: $e');
-      return [];
+      rethrow;
     }
   }
 
@@ -225,15 +227,18 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
           .from('tournament_matches')
           .select()
           .eq('id', matchId)
+          .eq('tournament_id', tournamentId)
           .maybeSingle();
 
       if (response != null) {
-        return TournamentMatchModel.fromJson(response);
+        return (await mapTournamentMatchesWithNames(_client, tournamentId, [
+          response,
+        ])).single;
       }
       return null;
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] Error in getMatchById: $e');
-      return null;
+      rethrow;
     }
   }
 
@@ -316,18 +321,17 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     required String paymentMethod,
     required File receiptFile,
   }) async {
-    final fileExt = receiptFile.path.split('.').last;
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-    final storagePath = '$tournamentId/$userId/$fileName';
+    final upload = TournamentEvidenceUpload(
+      tournamentId: tournamentId,
+      scopeId: userId,
+      filePath: receiptFile.path,
+    );
+    final storagePath = upload.path;
 
     final bytes = await receiptFile.readAsBytes();
     await _client.storage
         .from('tournament-receipts')
-        .uploadBinary(
-          storagePath,
-          bytes,
-          fileOptions: FileOptions(contentType: 'image/$fileExt', upsert: true),
-        );
+        .uploadBinary(storagePath, bytes, fileOptions: upload.options);
 
     final signedUrl = await _client.storage
         .from('tournament-receipts')
@@ -392,21 +396,17 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     String? proofUrl;
 
     if (proofFile != null) {
-      final fileExt = proofFile.path.split('.').last;
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-      final storagePath = '$tournamentId/$matchId/$fileName';
+      final upload = TournamentEvidenceUpload(
+        tournamentId: tournamentId,
+        scopeId: matchId,
+        filePath: proofFile.path,
+      );
+      final storagePath = upload.path;
 
       final bytes = await proofFile.readAsBytes();
       await _client.storage
           .from('tournament-result-proofs')
-          .uploadBinary(
-            storagePath,
-            bytes,
-            fileOptions: FileOptions(
-              contentType: 'image/$fileExt',
-              upsert: true,
-            ),
-          );
+          .uploadBinary(storagePath, bytes, fileOptions: upload.options);
 
       proofUrl = await _client.storage
           .from('tournament-result-proofs')
@@ -450,7 +450,7 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
     try {
       await _client.rpc(
         'dispute_match_result',
-        params: {'p_match_id': matchId, 'p_dispute_reason': disputeReason},
+        params: {'p_match_id': matchId, 'p_reason': disputeReason},
       );
     } catch (e) {
       dev.log('[TOURNAMENTS_REMOTE] RPC dispute_match_result error: $e');
@@ -468,9 +468,8 @@ class TournamentsRemoteDataSourceImpl implements TournamentsRemoteDataSource {
         .eq('tournament_id', tournamentId)
         .order('round_number', ascending: true)
         .order('match_order', ascending: true)
-        .map(
-          (list) =>
-              list.map((json) => TournamentMatchModel.fromJson(json)).toList(),
+        .asyncMap(
+          (list) => mapTournamentMatchesWithNames(_client, tournamentId, list),
         );
   }
 

@@ -67,13 +67,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final type = notification.type;
 
     if (type == NotificationType.booking) {
+      if (data['event'] == 'waitlist_available') {
+        final loungeId = data['lounge_id']?.toString();
+        if (loungeId != null && loungeId.isNotEmpty) {
+          context.pushNamed(
+            RouterKeys.loungeDetails,
+            extra: {'loungeId': loungeId},
+          );
+        }
+        return;
+      }
       final bookingId = _extractBookingId(
         data,
         "${notification.body} ${notification.title}",
       );
 
-      final textToCheck = "${notification.title} ${notification.body} ${data['type']} ${data['status']} ${data['action']}".toLowerCase();
-      final isCancelled = textToCheck.contains('cancel') ||
+      final textToCheck =
+          "${notification.title} ${notification.body} ${data['type']} ${data['status']} ${data['action']}"
+              .toLowerCase();
+      final isCancelled =
+          textToCheck.contains('cancel') ||
           textToCheck.contains('reject') ||
           textToCheck.contains('declin') ||
           textToCheck.contains('إلغاء') ||
@@ -95,17 +108,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         );
       }
     } else if (type == NotificationType.offer) {
-      context.pushNamed(RouterKeys.myVouchers);
-
       final promoCode = _extractPromoCode(data, notification.body);
       if (promoCode.isNotEmpty) {
         Clipboard.setData(ClipboardData(text: promoCode));
         GameHudToast.show(
           context,
-          "Promo code copied: $promoCode",
+          AppStrings.promoCodeCopied.tr(args: [promoCode]),
           type: ToastType.success,
         );
       }
+      context.pushNamed(RouterKeys.myVouchers);
     } else if (type == NotificationType.loyalty) {
       context.goNamed(RouterKeys.redeemPoints);
     } else {
@@ -201,10 +213,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       if (state.status == NotificationsStatus.loading &&
                           state.notifications.isEmpty) {
                         return const Center(
-                          child: AppLoader(
-                            size: 32,
-                            color: AppColors.neonBlue,
-                          ),
+                          child: AppLoader(size: 32, color: AppColors.neonBlue),
                         );
                       }
 
@@ -223,7 +232,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 controller: _scrollController,
                                 physics: const AlwaysScrollableScrollPhysics(),
                                 padding: 16.allPadding,
-                                itemCount: state.notifications.length +
+                                itemCount:
+                                    state.notifications.length +
                                     (state.isLoadingMore ? 1 : 0) +
                                     1,
                                 itemBuilder: (context, index) {
@@ -240,8 +250,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   if (index == state.notifications.length &&
                                       state.isLoadingMore) {
                                     return Padding(
-                                      padding:
-                                          EdgeInsets.symmetric(vertical: 16.h),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 16.h,
+                                      ),
                                       child: const Center(
                                         child: AppLoader(
                                           size: 24,
@@ -274,18 +285,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const BackButtonWidget(),
-          AppText(
-            text: AppStrings.notifications.tr(),
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontFamily: "Orbitron",
+          Expanded(
+            child: AppText(
+              text: AppStrings.notifications.tr(),
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           Row(
             children: [
               IconButton(
                 onPressed: _onRefresh,
-                icon: const Icon(TablerIcons.refresh, color: AppColors.neonBlue),
+                tooltip: AppStrings.refreshNotifications.tr(),
+                icon: const Icon(
+                  TablerIcons.refresh,
+                  color: AppColors.neonBlue,
+                ),
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.neonBlue.withValues(alpha: 0.05),
                   shape: RoundedRectangleBorder(
@@ -294,14 +313,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
               ),
               SizedBox(width: 8.w),
-              IconButton(
-                onPressed: () =>
-                    context.read<NotificationsCubit>().markAllAsRead(),
-                icon: const Icon(TablerIcons.checks, color: AppColors.neonBlue),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppColors.neonBlue.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+              BlocSelector<NotificationsCubit, NotificationsState, bool>(
+                selector: (state) => state.unreadCount > 0,
+                builder: (context, hasUnread) => IconButton(
+                  onPressed: hasUnread
+                      ? () => context.read<NotificationsCubit>().markAllAsRead()
+                      : null,
+                  tooltip: AppStrings.markAllAsRead.tr(),
+                  icon: const Icon(TablerIcons.checks),
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppColors.neonBlue,
+                    backgroundColor: AppColors.neonBlue.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
                   ),
                 ),
               ),

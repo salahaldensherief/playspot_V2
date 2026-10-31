@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
@@ -29,9 +30,13 @@ class ForceUpdateScreen extends StatelessWidget {
   Future<void> _openStore() async {
     String? url;
     if (!kIsWeb && Platform.isAndroid) {
-      url = statusEntity?.storeUrlAndroid ?? 'https://play.google.com/store/apps/details?id=com.playspot.app';
+      url =
+          statusEntity?.storeUrlAndroid ??
+          'https://play.google.com/store/apps/details?id=com.playspot.app';
     } else if (!kIsWeb && Platform.isIOS) {
-      url = statusEntity?.storeUrlIos ?? 'https://apps.apple.com/app/playspot/id123456789';
+      url =
+          statusEntity?.storeUrlIos ??
+          'https://apps.apple.com/app/playspot/id123456789';
     } else {
       url = statusEntity?.storeUrlAndroid;
     }
@@ -47,8 +52,11 @@ class ForceUpdateScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = AppStrings.updateRequiredTitle.tr();
-    final message = statusEntity?.updateMessage?.isNotEmpty == true
-        ? statusEntity!.updateMessage!
+    final localizedMessage = statusEntity?.updateMessageFor(
+      context.locale.languageCode,
+    );
+    final message = localizedMessage?.isNotEmpty == true
+        ? localizedMessage!
         : AppStrings.updateRequiredDesc.tr();
 
     final minVersion = statusEntity?.minSupportedVersion ?? '1.0.0';
@@ -99,19 +107,21 @@ class ForceUpdateScreen extends StatelessWidget {
                   ),
                 ),
                 28.verticalSpace,
-                Text(
-                  title,
+                AppText(
+                  text: title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
-                    fontFamily: context.locale.languageCode == 'ar' ? FontsManager.arabicFontFamily : 'Orbitron',
+                    fontFamily: context.locale.languageCode == 'ar'
+                        ? FontsManager.arabicFontFamily
+                        : 'Orbitron',
                   ),
                 ),
                 12.verticalSpace,
-                Text(
-                  message,
+                AppText(
+                  text: message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textSecondary,
@@ -122,7 +132,10 @@ class ForceUpdateScreen extends StatelessWidget {
                 24.verticalSpace,
                 GlassContainer(
                   borderRadius: 16.r,
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 12.h,
+                  ),
                   color: AppColors.cardBackground.withValues(alpha: 0.8),
                   borderColor: AppColors.purple.withValues(alpha: 0.3),
                   child: Flexible(
@@ -131,8 +144,8 @@ class ForceUpdateScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'v$currentVersion',
+                          AppText(
+                            text: 'v$currentVersion',
                             style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 13.sp,
@@ -146,8 +159,8 @@ class ForceUpdateScreen extends StatelessWidget {
                             size: 18.r,
                           ),
                           12.horizontalSpace,
-                          Text(
-                            'v$minVersion+',
+                          AppText(
+                            text: 'v$minVersion+',
                             style: TextStyle(
                               color: AppColors.purple,
                               fontSize: 14.sp,
@@ -163,12 +176,13 @@ class ForceUpdateScreen extends StatelessWidget {
                 AppButton(
                   content: ButtonContent(
                     label: AppStrings.updateNow.tr(),
-                    icon: Icon(TablerIcons.download, color: Colors.white, size: 20.r),
+                    icon: Icon(
+                      TablerIcons.download,
+                      color: Colors.white,
+                      size: 20.r,
+                    ),
                   ),
-                  behavior: TapBehavior(
-                    isEnabled: true,
-                    onTap: _openStore,
-                  ),
+                  behavior: TapBehavior(isEnabled: true, onTap: _openStore),
                   buttonConfig: ButtonConfig(
                     backgroundColor: AppColors.purple,
                     borderRadius: 12.r,

@@ -19,10 +19,7 @@ class SliverAppDivider extends StatelessWidget {
     return SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding.w),
-        child: AppDivider(
-          verticalPadding: verticalPadding,
-          color: color,
-        ),
+        child: AppDivider(verticalPadding: verticalPadding, color: color),
       ),
     );
   }

@@ -1,0 +1,16 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "clients": [
+    {
+      "client": "Mobile",
+      "literalCalls": 125,
+      "missing": []
+    },
+    {
+      "client": "Dashboard",
+      "literalCalls": 269,
+      "missing": []
+    }
+  ],
+  "limitation": "Literal call/name availability only; dynamic calls, views, payload/response semantics, permissions and complete UI execution require separate verification."
+}

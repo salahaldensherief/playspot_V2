@@ -1,8 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:playspot/core/constants/booking_status.dart';
+import 'package:playspot/core/error/failures.dart';
 import 'package:playspot/features/my_bookings/data/models/booking_model.dart';
 
 enum PaymentMethod { vodafoneCash, instaPay, cash }
+
 enum CheckoutStatus { initial, loading, success, failure }
 
 class CheckoutState extends Equatable {
@@ -17,6 +19,7 @@ class CheckoutState extends Equatable {
   final String? cashDisabledReason;
   final String? senderWalletNumber;
   final Map<String, dynamic>? serverQuote;
+  final bool paymentProofUploadFailed;
 
   double? get serverFinalTotal =>
       (serverQuote?['final_total'] as num?)?.toDouble();
@@ -39,6 +42,8 @@ class CheckoutState extends Equatable {
   final String? rejectionReason;
   final BookingModel? confirmedBooking;
 
+  final PriceChangedFailure? priceChangedFailure;
+
   const CheckoutState({
     this.status = CheckoutStatus.initial,
     this.selectedMethod = PaymentMethod.vodafoneCash,
@@ -51,6 +56,7 @@ class CheckoutState extends Equatable {
     this.cashDisabledReason,
     this.senderWalletNumber,
     this.serverQuote,
+    this.paymentProofUploadFailed = false,
     this.remainingSeconds = 600,
     this.isHoldExpired = false,
     this.holdExpiresAt,
@@ -59,6 +65,7 @@ class CheckoutState extends Equatable {
     this.liveBookingStatus,
     this.rejectionReason,
     this.confirmedBooking,
+    this.priceChangedFailure,
   });
 
   String get formattedRemainingTime {
@@ -79,6 +86,7 @@ class CheckoutState extends Equatable {
     String? cashDisabledReason,
     String? senderWalletNumber,
     Map<String, dynamic>? serverQuote,
+    bool? paymentProofUploadFailed,
     bool clearVoucher = false,
     int? remainingSeconds,
     bool? isHoldExpired,
@@ -89,20 +97,28 @@ class CheckoutState extends Equatable {
     BookingStatus? liveBookingStatus,
     String? rejectionReason,
     BookingModel? confirmedBooking,
+    PriceChangedFailure? priceChangedFailure,
+    bool clearPriceChangedFailure = false,
   }) {
     return CheckoutState(
       status: status ?? this.status,
       selectedMethod: selectedMethod ?? this.selectedMethod,
       errorMessage: errorMessage,
-      selectedVoucher:
-          clearVoucher ? null : (selectedVoucher ?? this.selectedVoucher),
-      discountAmount: clearVoucher ? 0 : (discountAmount ?? this.discountAmount),
+      selectedVoucher: clearVoucher
+          ? null
+          : (selectedVoucher ?? this.selectedVoucher),
+      discountAmount: clearVoucher
+          ? 0
+          : (discountAmount ?? this.discountAmount),
       allowCashPayment: allowCashPayment ?? this.allowCashPayment,
       isCashEnabled: isCashEnabled ?? this.isCashEnabled,
-      completedBookingsCount: completedBookingsCount ?? this.completedBookingsCount,
+      completedBookingsCount:
+          completedBookingsCount ?? this.completedBookingsCount,
       cashDisabledReason: cashDisabledReason ?? this.cashDisabledReason,
       senderWalletNumber: senderWalletNumber ?? this.senderWalletNumber,
       serverQuote: serverQuote ?? this.serverQuote,
+      paymentProofUploadFailed:
+          paymentProofUploadFailed ?? this.paymentProofUploadFailed,
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       isHoldExpired: isHoldExpired ?? this.isHoldExpired,
       holdExpiresAt: clearHold ? null : (holdExpiresAt ?? this.holdExpiresAt),
@@ -111,29 +127,34 @@ class CheckoutState extends Equatable {
       liveBookingStatus: liveBookingStatus ?? this.liveBookingStatus,
       rejectionReason: rejectionReason ?? this.rejectionReason,
       confirmedBooking: confirmedBooking ?? this.confirmedBooking,
+      priceChangedFailure: clearPriceChangedFailure
+          ? null
+          : (priceChangedFailure ?? this.priceChangedFailure),
     );
   }
 
   @override
   List<Object?> get props => [
-        status,
-        selectedMethod,
-        errorMessage,
-        selectedVoucher,
-        discountAmount,
-        allowCashPayment,
-        isCashEnabled,
-        completedBookingsCount,
-        cashDisabledReason,
-        senderWalletNumber,
-        serverQuote,
-        remainingSeconds,
-        isHoldExpired,
-        holdExpiresAt,
-        holdToken,
-        createdBookingId,
-        liveBookingStatus,
-        rejectionReason,
-        confirmedBooking,
-      ];
+    status,
+    selectedMethod,
+    errorMessage,
+    selectedVoucher,
+    discountAmount,
+    allowCashPayment,
+    isCashEnabled,
+    completedBookingsCount,
+    cashDisabledReason,
+    senderWalletNumber,
+    serverQuote,
+    paymentProofUploadFailed,
+    remainingSeconds,
+    isHoldExpired,
+    holdExpiresAt,
+    holdToken,
+    createdBookingId,
+    liveBookingStatus,
+    rejectionReason,
+    confirmedBooking,
+    priceChangedFailure,
+  ];
 }

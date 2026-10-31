@@ -11,7 +11,8 @@ class DateSelectionSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-        buildWhen: (previous, current) => previous.selectedDate != current.selectedDate,
+        buildWhen: (previous, current) =>
+            previous.selectedDate != current.selectedDate,
         builder: (context, state) {
           return DateSelector(
             selectedDate: state.selectedDate ?? DateTime.now(),

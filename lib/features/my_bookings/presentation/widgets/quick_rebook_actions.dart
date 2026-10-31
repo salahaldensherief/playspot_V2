@@ -66,8 +66,7 @@ class QuickRebookActions extends StatelessWidget {
           ),
           buttonConfig: ButtonConfig(
             height: 48.h,
-            backgroundColor:
-                canCheckout ? AppColors.neonBlue : Colors.white24,
+            backgroundColor: canCheckout ? AppColors.neonBlue : Colors.white24,
             borderRadius: 14.r,
           ),
           behavior: ButtonBehavior.tap(
@@ -77,18 +76,14 @@ class QuickRebookActions extends StatelessWidget {
         ),
         SizedBox(height: 10.h),
         AppButton(
-          content: ButtonContent(
-            label: AppStrings.quickRebookCustomize.tr(),
-          ),
+          content: ButtonContent(label: AppStrings.quickRebookCustomize.tr()),
           buttonConfig: ButtonConfig(
             height: 42.h,
             backgroundColor: Colors.transparent,
             borderColor: AppColors.borderDefault,
             borderRadius: 12.r,
           ),
-          behavior: ButtonBehavior.tap(
-            onTap: onCustomize,
-          ),
+          behavior: ButtonBehavior.tap(onTap: onCustomize),
         ),
       ],
     );

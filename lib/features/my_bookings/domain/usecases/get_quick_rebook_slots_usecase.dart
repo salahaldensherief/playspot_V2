@@ -10,10 +10,7 @@ class GetQuickRebookSlotsUseCase {
   final BookingRepository _bookingRepository;
   final BookingSlotStrategy _slotStrategy;
 
-  const GetQuickRebookSlotsUseCase(
-    this._bookingRepository,
-    this._slotStrategy,
-  );
+  const GetQuickRebookSlotsUseCase(this._bookingRepository, this._slotStrategy);
 
   Future<Either<Failure, List<TimeOfDay>>> call({
     required String loungeId,
@@ -27,9 +24,7 @@ class GetQuickRebookSlotsUseCase {
     final closingMinutes = _parseTimeToMinutes(closingTime);
 
     if (openingMinutes == null || closingMinutes == null) {
-      return const Left(
-        ServerFailure('quickRebookOperatingHoursUnavailable'),
-      );
+      return const Left(ServerFailure('quickRebookOperatingHoursUnavailable'));
     }
 
     final bookingsResult = await _bookingRepository.getRoomBookingsForDate(
@@ -69,30 +64,20 @@ class GetQuickRebookSlotsUseCase {
       final results = <TimeOfDay>[];
       var cursor = operationalStart;
 
-      while (!cursor.add(Duration(minutes: durationMinutes)).isAfter(
-        operationalEnd,
-      )) {
-        final candidateEnd = cursor.add(
-          Duration(minutes: durationMinutes),
-        );
+      while (!cursor
+          .add(Duration(minutes: durationMinutes))
+          .isAfter(operationalEnd)) {
+        final candidateEnd = cursor.add(Duration(minutes: durationMinutes));
 
-        final isTooSoon = cursor.isBefore(
-          now.add(const Duration(minutes: 10)),
-        );
+        final isTooSoon = cursor.isBefore(now.add(const Duration(minutes: 10)));
 
         final isConflict = ranges.any(
           (range) =>
-              range.start.isBefore(candidateEnd) &&
-              range.end.isAfter(cursor),
+              range.start.isBefore(candidateEnd) && range.end.isAfter(cursor),
         );
 
         if (!isTooSoon && !isConflict) {
-          results.add(
-            TimeOfDay(
-              hour: cursor.hour,
-              minute: cursor.minute,
-            ),
-          );
+          results.add(TimeOfDay(hour: cursor.hour, minute: cursor.minute));
         }
 
         cursor = cursor.add(const Duration(minutes: 30));

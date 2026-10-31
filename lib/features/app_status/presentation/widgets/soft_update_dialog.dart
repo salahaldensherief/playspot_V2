@@ -34,19 +34,21 @@ class SoftUpdateDialog extends StatelessWidget {
     return showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (context) => SoftUpdateDialog(
-        statusEntity: statusEntity,
-        onDismiss: onDismiss,
-      ),
+      builder: (context) =>
+          SoftUpdateDialog(statusEntity: statusEntity, onDismiss: onDismiss),
     );
   }
 
   Future<void> _openStore() async {
     String? url;
     if (!kIsWeb && Platform.isAndroid) {
-      url = statusEntity?.storeUrlAndroid ?? 'https://play.google.com/store/apps/details?id=com.playspot.app';
+      url =
+          statusEntity?.storeUrlAndroid ??
+          'https://play.google.com/store/apps/details?id=com.playspot.app';
     } else if (!kIsWeb && Platform.isIOS) {
-      url = statusEntity?.storeUrlIos ?? 'https://apps.apple.com/app/playspot/id123456789';
+      url =
+          statusEntity?.storeUrlIos ??
+          'https://apps.apple.com/app/playspot/id123456789';
     } else {
       url = statusEntity?.storeUrlAndroid;
     }
@@ -62,8 +64,11 @@ class SoftUpdateDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = AppStrings.newUpdateAvailableTitle.tr();
-    final message = statusEntity?.updateMessage?.isNotEmpty == true
-        ? statusEntity!.updateMessage!
+    final localizedMessage = statusEntity?.updateMessageFor(
+      context.locale.languageCode,
+    );
+    final message = localizedMessage?.isNotEmpty == true
+        ? localizedMessage!
         : AppStrings.newUpdateAvailableDesc.tr();
 
     return Dialog(
@@ -115,14 +120,14 @@ class SoftUpdateDialog extends StatelessWidget {
                   child: AppButton(
                     buttonConfig: ButtonConfig(
                       backgroundColor: Colors.transparent,
-                      borderColor: AppColors.textSecondary.withValues(alpha: 0.3),
+                      borderColor: AppColors.textSecondary.withValues(
+                        alpha: 0.3,
+                      ),
                       isOutlined: true,
                       height: 48.h,
                       borderRadius: 12.r,
                     ),
-                    content: ButtonContent(
-                      label: AppStrings.later.tr(),
-                    ),
+                    content: ButtonContent(label: AppStrings.later.tr()),
                     behavior: TapBehavior(
                       onTap: () {
                         Navigator.of(context).pop();
@@ -134,9 +139,7 @@ class SoftUpdateDialog extends StatelessWidget {
                 12.horizontalSpace,
                 Expanded(
                   child: AppButton(
-                    content: ButtonContent(
-                      label: AppStrings.updateNow.tr(),
-                    ),
+                    content: ButtonContent(label: AppStrings.updateNow.tr()),
                     behavior: TapBehavior(
                       isEnabled: true,
                       onTap: () {

@@ -28,7 +28,21 @@ class CategoryModel extends Equatable {
       case 'view_in_ar':
         return Icons.view_in_ar;
       case 'sports_pool':
-        return Icons.sports_baseball_rounded;
+        return Icons.sports;
+      case 'sports_tennis':
+        return Icons.sports_tennis;
+      case 'sports_soccer':
+        return Icons.sports_soccer;
+      case 'sports_motorsports':
+        return Icons.sports_motorsports;
+      case 'casino':
+        return Icons.casino;
+      case 'adjust':
+        return Icons.adjust;
+      case 'mic':
+        return Icons.mic;
+      case 'desktop_windows':
+        return Icons.desktop_windows;
       case 'live_tv':
         return Icons.live_tv;
       case 'videogame_asset':
@@ -41,7 +55,11 @@ class CategoryModel extends Equatable {
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['id']?.toString() ?? '',
-      nameAr: json['name_ar']?.toString() ?? json['name']?.toString() ?? json['name_en']?.toString() ?? '',
+      nameAr:
+          json['name_ar']?.toString() ??
+          json['name']?.toString() ??
+          json['name_en']?.toString() ??
+          '',
       nameEn: json['name_en']?.toString() ?? json['name']?.toString() ?? '',
       iconKey: json['icon_key']?.toString() ?? '',
     );

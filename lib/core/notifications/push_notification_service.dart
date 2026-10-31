@@ -203,7 +203,8 @@ class PushNotificationService {
     // iOS auto-presents notification payloads in the foreground via
     // setForegroundNotificationPresentationOptions; Android does not, so a
     // local notification is required there or the message is invisible.
-    final shouldShowLocal = !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+    final shouldShowLocal =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.android
         ? true
         : message.notification == null;
     if (shouldShowLocal) {

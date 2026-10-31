@@ -1,3 +1,5 @@
+import 'package:dartz/dartz.dart' hide State;
+import '../../../../core/error/failures.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,7 +16,10 @@ import 'package:playspot/art_core/widgets/text_field/app_text_field.dart';
 
 class LoungeReviewBottomSheet extends StatefulWidget {
   final String loungeName;
-  final Function(double rating, String? comment) onSubmit;
+
+  /// Right means the backend confirmed persistence; Left leaves the sheet open.
+  final Future<Either<Failure, void>> Function(double rating, String? comment)
+  onSubmit;
 
   const LoungeReviewBottomSheet({
     super.key,
@@ -23,17 +28,60 @@ class LoungeReviewBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<LoungeReviewBottomSheet> createState() => _LoungeReviewBottomSheetState();
+  State<LoungeReviewBottomSheet> createState() =>
+      _LoungeReviewBottomSheetState();
 }
 
 class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
   double _rating = 5.0;
+  bool _submitting = false;
+  String? _error;
   final _commentController = TextEditingController();
 
   @override
   void dispose() {
     _commentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_submitting || _rating <= 0) return;
+    final route = ModalRoute.of(context);
+    final comment = _commentController.text.trim();
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    Either<Failure, void> result;
+    try {
+      result = await widget.onSubmit(_rating, comment.isEmpty ? null : comment);
+    } catch (_) {
+      result = const Left(ServerFailure(AppStrings.reviewSubmissionFailed));
+    }
+    if (!mounted) return;
+    result.fold(
+      (failure) {
+        setState(() {
+          _submitting = false;
+          _error = failure.message.isEmpty
+              ? AppStrings.reviewSubmissionFailed.tr()
+              : failure.message.tr();
+        });
+      },
+      (_) {
+        setState(() {
+          _submitting = false;
+        });
+        // A late result must never pop a different route pushed above this sheet.
+        if (route?.isCurrent != true) return;
+        GameHudToast.show(
+          context,
+          AppStrings.reviewSubmittedSuccess.tr(),
+          type: ToastType.success,
+        );
+        Navigator.pop(context, true);
+      },
+    );
   }
 
   String _getRatingLabel(double rating) {
@@ -53,128 +101,146 @@ class _LoungeReviewBottomSheetState extends State<LoungeReviewBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-      ),
-      padding: EdgeInsets.only(
-        left: 24.w,
-        right: 24.w,
-        top: 16.h,
-        bottom: 24.h + MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Container(
-                width: 40.w,
-                height: 4.h,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(2.r),
+    return PopScope(
+      canPop: !_submitting,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.cardBackground,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        padding: EdgeInsets.only(
+          left: 24.w,
+          right: 24.w,
+          top: 16.h,
+          bottom: 24.h + MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
                 ),
               ),
-            ),
-            20.verticalSpace,
-            AppText(
-              text: AppStrings.rateExperience.tr(),
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            8.verticalSpace,
-            AppText(
-              text: AppStrings.howWasYourSession.tr(args: [widget.loungeName]),
-              fontSize: 14.sp,
-              color: AppColors.textSecondary,
-              textAlign: TextAlign.center,
-            ),
-            24.verticalSpace,
-            _buildRatingBar(),
-            12.verticalSpace,
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AppText(
-                  text: _rating.toStringAsFixed(1),
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.bold,
-                  color: _getRatingColor(_rating),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: IconButton(
+                  key: const ValueKey('review-close'),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  onPressed: _submitting ? null : () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
                 ),
-                8.horizontalSpace,
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: _getRatingColor(_rating).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(
-                      color: _getRatingColor(_rating).withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: AppText(
-                    text: _getRatingLabel(_rating),
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
+              ),
+              20.verticalSpace,
+              AppText(
+                text: AppStrings.rateExperience.tr(),
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              8.verticalSpace,
+              AppText(
+                text: AppStrings.howWasYourSession.tr(
+                  args: [widget.loungeName],
+                ),
+                fontSize: 14.sp,
+                color: AppColors.textSecondary,
+                textAlign: TextAlign.center,
+              ),
+              24.verticalSpace,
+              _buildRatingBar(),
+              12.verticalSpace,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AppText(
+                    text: _rating.toStringAsFixed(1),
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.bold,
                     color: _getRatingColor(_rating),
                   ),
+                  8.horizontalSpace,
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getRatingColor(_rating).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(
+                        color: _getRatingColor(_rating).withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: AppText(
+                      text: _getRatingLabel(_rating),
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: _getRatingColor(_rating),
+                    ),
+                  ),
+                ],
+              ),
+              24.verticalSpace,
+              AppTextField(
+                controller: _commentController,
+                hint: AppStrings.feedbackHint.tr(),
+                maxLines: 3,
+                borderRadius: 16.r,
+              ),
+              if (_error != null)
+                Padding(
+                  padding: EdgeInsets.only(top: 12.h),
+                  child: AppText(
+                    text: _error ?? '',
+                    key: const ValueKey('review-error'),
+                    style: const TextStyle(color: AppColors.danger),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ],
-            ),
-            24.verticalSpace,
-            AppTextField(
-              controller: _commentController,
-              hint: AppStrings.feedbackHint.tr(),
-              maxLines: 3,
-              borderRadius: 16.r,
-            ),
-            32.verticalSpace,
-            AppButton(
-              content: ButtonContent(label: AppStrings.submitReview.tr()),
-              behavior: TapBehavior(
-                isEnabled: _rating > 0,
-                onTap: () {
-                  if (_rating <= 0) return;
-                  final comment = _commentController.text.trim();
-                  widget.onSubmit(
-                    _rating,
-                    comment.isEmpty ? null : comment,
-                  );
-                  GameHudToast.show(
-                    context,
-                    AppStrings.reviewSubmittedSuccess.tr(),
-                    type: ToastType.success,
-                  );
-                  Navigator.pop(context);
-                },
+              32.verticalSpace,
+              AppButton(
+                content: ButtonContent(label: AppStrings.submitReview.tr()),
+                behavior: TapBehavior(
+                  isEnabled: _rating > 0 && !_submitting,
+                  isLoading: _submitting,
+                  onTap: _submit,
+                ),
+                buttonConfig: ButtonConfig(
+                  width: double.infinity,
+                  gradient: _rating > 0 ? AppColors.primaryGradient : null,
+                  backgroundColor: AppColors.backgroundAlt,
+                ),
               ),
-              buttonConfig: ButtonConfig(
-                width: double.infinity,
-                gradient: _rating > 0 ? AppColors.primaryGradient : null,
-                backgroundColor: AppColors.backgroundAlt,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildRatingBar() {
-    return Center(
-      child: InteractiveRatingInput(
-        initialRating: _rating,
-        starSize: 44.sp,
-        spacing: 8.w,
-        onRatingChanged: (newRating) {
-          setState(() {
-            _rating = newRating;
-          });
-        },
+    return IgnorePointer(
+      ignoring: _submitting,
+      child: Center(
+        child: InteractiveRatingInput(
+          initialRating: _rating,
+          starSize: 44.sp,
+          spacing: 8.w,
+          onRatingChanged: (newRating) {
+            setState(() {
+              _rating = newRating;
+            });
+          },
+        ),
       ),
     );
   }

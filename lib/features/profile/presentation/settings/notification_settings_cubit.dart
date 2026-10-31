@@ -10,48 +10,47 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
   final PreferenceManager _pref;
 
   NotificationSettingsCubit(this._profileRepository, this._pref)
-      : super(const NotificationSettingsState()) {
+    : super(const NotificationSettingsState()) {
     _loadSettings();
   }
 
   Future<void> _loadSettings() async {
-    emit(state.copyWith(
-      pushNotificationsEnabled: _pref.pushEnabled(),
-      bookingUpdates: _pref.bookingUpdatesEnabled(),
-      offersPromotions: _pref.offersEnabled(),
-      systemStatus: _pref.systemNotifEnabled(),
-      tournamentsAndEvents: _pref.tournamentsEnabled(),
-    ));
+    emit(
+      state.copyWith(
+        pushNotificationsEnabled: _pref.pushEnabled(),
+        bookingUpdates: _pref.bookingUpdatesEnabled(),
+        offersPromotions: _pref.offersEnabled(),
+        systemStatus: _pref.systemNotifEnabled(),
+        tournamentsAndEvents: _pref.tournamentsEnabled(),
+      ),
+    );
 
     final result = await _profileRepository.getNotificationSettings();
-    result.fold(
-      (_) {},
-      (model) {
-        if (!isClosed) {
-          _pref.savePushEnabled(model.pushEnabled);
-          _pref.saveBookingUpdatesEnabled(model.bookingUpdates);
-          _pref.saveOffersEnabled(model.offersEnabled);
-          _pref.saveTournamentsEnabled(model.eventsEnabled);
-          _pref.saveSystemNotifEnabled(model.systemNotifications);
+    result.fold((_) {}, (model) {
+      if (!isClosed) {
+        _pref.savePushEnabled(model.pushEnabled);
+        _pref.saveBookingUpdatesEnabled(model.bookingUpdates);
+        _pref.saveOffersEnabled(model.offersEnabled);
+        _pref.saveTournamentsEnabled(model.eventsEnabled);
+        _pref.saveSystemNotifEnabled(model.systemNotifications);
 
-          final newState = state.copyWith(
-            pushNotificationsEnabled: model.pushEnabled,
-            bookingUpdates: model.bookingUpdates,
-            offersPromotions: model.offersEnabled,
-            tournamentsAndEvents: model.eventsEnabled,
-            systemStatus: model.systemNotifications,
-          );
+        final newState = state.copyWith(
+          pushNotificationsEnabled: model.pushEnabled,
+          bookingUpdates: model.bookingUpdates,
+          offersPromotions: model.offersEnabled,
+          tournamentsAndEvents: model.eventsEnabled,
+          systemStatus: model.systemNotifications,
+        );
 
-          emit(newState);
+        emit(newState);
 
-          if (model.pushEnabled) {
-            _syncAllToFirebase(newState);
-          } else {
-            _unsubscribeFromAll();
-          }
+        if (model.pushEnabled) {
+          _syncAllToFirebase(newState);
+        } else {
+          _unsubscribeFromAll();
         }
-      },
-    );
+      }
+    });
   }
 
   Future<void> togglePreference(String key, bool value) async {
@@ -97,7 +96,10 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
 
   void _toggleTopic(String topic, bool enable) {
     if (state.pushNotificationsEnabled) {
-      PushNotificationService.instance.toggleTopicSubscription(topic: topic, enable: enable);
+      PushNotificationService.instance.toggleTopicSubscription(
+        topic: topic,
+        enable: enable,
+      );
     }
   }
 
@@ -133,17 +135,16 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
         systemNotifications: s.systemStatus,
       );
       final result = await _profileRepository.updateNotificationSettings(model);
-      result.fold(
-        (failure) {
-          if (!isClosed) {
-            emit(state.copyWith(
+      result.fold((failure) {
+        if (!isClosed) {
+          emit(
+            state.copyWith(
               status: NotificationSettingsStatus.failure,
               errorMessage: failure.message,
-            ));
-          }
-        },
-        (_) {},
-      );
+            ),
+          );
+        }
+      }, (_) {});
     } catch (_) {}
   }
 }

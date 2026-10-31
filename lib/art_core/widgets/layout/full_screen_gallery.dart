@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import '../images/app_images.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
@@ -58,16 +58,14 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
                 child: Center(
                   child: Hero(
                     tag: index == 0 ? widget.heroTag : 'gallery_image_$index',
-                    child: CachedNetworkImage(
-                      imageUrl: widget.images[index],
+                    child: AppImage(
+                      urlImg: widget.images[index],
                       fit: BoxFit.contain,
-                      placeholder: (context, url) => const Center(
+                      borderRadius: 0,
+                      placeholderWidget: const Center(
                         child: AppLoader(size: 36),
                       ),
-                      errorWidget: (context, url, error) => const Icon(
-                        Icons.error,
-                        color: Colors.white,
-                      ),
+                      errorWidget: const Icon(Icons.error, color: Colors.white),
                     ),
                   ),
                 ),
@@ -88,8 +86,10 @@ class _FullScreenGalleryState extends State<FullScreenGallery> {
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 6.h,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(20.r),

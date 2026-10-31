@@ -9,10 +9,7 @@ import '../../../../../art_core/widgets/text/app_text.dart';
 class QuickRebookHeader extends StatelessWidget {
   final VoidCallback onClose;
 
-  const QuickRebookHeader({
-    super.key,
-    required this.onClose,
-  });
+  const QuickRebookHeader({super.key, required this.onClose});
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +48,7 @@ class QuickRebookHeader extends StatelessWidget {
           ),
         ),
         IconButton(
-          icon: Icon(
-            Icons.close_rounded,
-            color: Colors.white70,
-            size: 20.sp,
-          ),
+          icon: Icon(Icons.close_rounded, color: Colors.white70, size: 20.sp),
           onPressed: onClose,
         ),
       ],

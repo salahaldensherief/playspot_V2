@@ -1,0 +1,59 @@
+{
+  "sessionCanonicalMigration": "20261016211005_cash_session_start_before_collection.sql",
+  "environment": "PlaySpotAcceptance20261030",
+  "postgres": "17.11",
+  "snapshotSha256": "08d6c1d70278da715a5af80bc3a832358d098f9dd72eb1b6c2f56935ed5293ca",
+  "custodyCanonicalMigration": "20261011065428_payout_cash_commission_settlement.sql",
+  "notes": [
+    "Payout first attempt failed on missing canonical custody prerequisite before successful retry. Earlier function definitions were reapplied; no data yet existed.",
+    "Custody prerequisite was applied after newer cash guard: exact current private.guard_partial_cash_payment() saved and restored.",
+    "Application-only schema restored transactionally with local no-op notification function; managed schemas not overwritten.",
+    "Spatial extension-owned guards restored separately; no hosted migration ledger changes."
+  ],
+  "files": [
+    {
+      "sha256": "50da7df5c9a2d15586b25055758fc610f139b300ec73ebd298aefae07a41eee1",
+      "runtimeFile": "20261025000001_open_time_partial_payment_status.sql"
+    },
+    {
+      "sha256": "69f24e6f646926abc6b0c1d68f4aaf893899f77b973bb57d1bf6222a67203ef0",
+      "runtimeFile": "20261025101139_atomic_discount_cash_checkout.sql"
+    },
+    {
+      "sha256": "32e0762bce8b87d573749ba2c3379a67513c6ae6a61325aabb583f49a3117b55",
+      "runtimeFile": "20261025151217_owner_permission_write_boundary.sql"
+    },
+    {
+      "sha256": "f3cf6e947594210410accbd16d763a94a78b269ab68aab22eee955c124c8c924",
+      "runtimeFile": "20261025170000_guard_pre_session_manual_transfer_total.sql"
+    },
+    {
+      "sha256": "38b960e1384ec786b8d88b546124b9b1c07e990e64a94d89c30eb2152dc55f3e",
+      "runtimeFile": "20261025225255_canonical_booking_collections.sql"
+    },
+    {
+      "sha256": "0052425208c5215f5bd5446bb0459ecd5162a871f2d902c918b90747d1df1657",
+      "runtimeFile": "20261025225913_branch_booking_refund_policy.sql"
+    },
+    {
+      "sha256": "e7055a51ad8deb8b811c102ad7a1feacf978f8c7e73f79b25b984fe66b74e48a",
+      "runtimeFile": "20261026100000_guard_paid_deposit_payment_quote.sql"
+    },
+    {
+      "sha256": "ce704f246441f8d0d5117ad7447a26afba59165ebe680c06823ffb7beda2f44e",
+      "runtimeFile": "20261027150000_manual_refund_reversal_accounting.sql"
+    },
+    {
+      "sha256": "5fe0b9c6dd4a2102021b5a36ab3b825324fdbd4cf24c0466193b5a4ef636a032",
+      "runtimeFile": "custody-prerequisite.sql"
+    },
+    {
+      "sha256": "15984353a70d4e92d441ea3d82481b577777a45c7a1f6fa55b55e56ed0b2a8b9",
+      "runtimeFile": "20261027180000_refund_aware_payout_reconciliation.sql"
+    },
+    {
+      "sha256": "ecefc2efb7a8a1b32efd40dbd4636375af7fb8c66f0f0e10cd3b6a4d2217d5ca",
+      "runtimeFile": "cash-session-start-reviewed.sql"
+    }
+  ]
+}

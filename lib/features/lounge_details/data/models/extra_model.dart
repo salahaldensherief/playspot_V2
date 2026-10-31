@@ -9,6 +9,8 @@ class ExtraModel extends Equatable {
   final double price;
   final String category; // drinks, food, snacks, desserts, other
   final String? icon;
+  final String? imageUrl;
+  final bool isAvailable;
 
   const ExtraModel({
     required this.id,
@@ -18,23 +20,49 @@ class ExtraModel extends Equatable {
     required this.price,
     required this.category,
     this.icon,
-  })  : nameAr = nameAr ?? name,
-        nameEn = nameEn ?? name;
+    this.imageUrl,
+    this.isAvailable = true,
+  }) : nameAr = nameAr ?? name,
+       nameEn = nameEn ?? name;
 
   @override
-  List<Object?> get props => [id, name, nameAr, nameEn, price, category, icon];
+  List<Object?> get props => [
+    id,
+    name,
+    nameAr,
+    nameEn,
+    price,
+    category,
+    icon,
+    imageUrl,
+    isAvailable,
+  ];
 
   factory ExtraModel.fromJson(Map<String, dynamic> json) {
     try {
-      final nameArStr = json['name_ar']?.toString() ?? json['name']?.toString() ?? json['title']?.toString() ?? json['item_name']?.toString() ?? '';
-      final nameEnStr = json['name_en']?.toString() ?? json['name']?.toString() ?? json['title']?.toString() ?? json['item_name']?.toString() ?? '';
-      final nameStr = json['name']?.toString() ?? (nameArStr.isNotEmpty ? nameArStr : nameEnStr);
+      final nameArStr =
+          json['name_ar']?.toString() ??
+          json['name']?.toString() ??
+          json['title']?.toString() ??
+          json['item_name']?.toString() ??
+          '';
+      final nameEnStr =
+          json['name_en']?.toString() ??
+          json['name']?.toString() ??
+          json['title']?.toString() ??
+          json['item_name']?.toString() ??
+          '';
+      final nameStr =
+          json['name']?.toString() ??
+          (nameArStr.isNotEmpty ? nameArStr : nameEnStr);
 
-      final iconStr = json['icon']?.toString() ??
+      final iconStr =
+          json['icon']?.toString() ??
           json['image']?.toString() ??
           json['image_url']?.toString();
 
-      final rawCategory = json['category']?.toString() ??
+      final rawCategory =
+          json['category']?.toString() ??
           json['category_name']?.toString() ??
           json['category_slug']?.toString() ??
           'other';
@@ -47,11 +75,26 @@ class ExtraModel extends Equatable {
         price: (json['price'] as num?)?.toDouble() ?? 0.0,
         category: rawCategory.trim().toLowerCase(),
         icon: iconStr,
+        imageUrl: _imageUrl(json),
+        isAvailable: json['is_available'] != false,
       );
     } catch (e) {
       dev.log("Error parsing ExtraModel: $e");
       rethrow;
     }
+  }
+
+  static String? _imageUrl(Map<String, dynamic> json) {
+    for (final raw in [json['image_url'], json['image'], json['icon']]) {
+      final value = raw?.toString().trim() ?? '';
+      final uri = Uri.tryParse(value);
+      if (uri != null &&
+          (uri.scheme == 'https' || uri.scheme == 'http') &&
+          uri.host.isNotEmpty) {
+        return value;
+      }
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -63,6 +106,8 @@ class ExtraModel extends Equatable {
       'price': price,
       'category': category.trim().toLowerCase(),
       'icon': icon,
+      if (imageUrl != null) 'image_url': imageUrl,
+      'is_available': isAvailable,
     };
   }
 }

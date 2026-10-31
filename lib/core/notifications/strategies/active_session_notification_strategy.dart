@@ -8,12 +8,14 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
 
   @override
   bool canHandle(Map<String, dynamic> data) {
-    final type = NotificationStrategyHelper.cleanString(data['type'])?.toLowerCase();
+    final type = NotificationStrategyHelper.cleanString(
+      data['type'],
+    )?.toLowerCase();
     final sessionId = NotificationStrategyHelper.getSessionId(data);
-    final reminderKey = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['reminder_key', 'reminderKey'],
-    );
+    final reminderKey = NotificationStrategyHelper.extractFirst(data, const [
+      'reminder_key',
+      'reminderKey',
+    ]);
     return type == 'session' ||
         type == 'active_session' ||
         type == 'active-session' ||
@@ -31,24 +33,28 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
       return true;
     }
 
-    final reminderKey = NotificationStrategyHelper.extractFirst(
-      data,
-      const ['reminder_key', 'reminderKey'],
-    );
+    final reminderKey = NotificationStrategyHelper.extractFirst(data, const [
+      'reminder_key',
+      'reminderKey',
+    ]);
     if (reminderKey == 'extension_offer') {
       final bookingId = NotificationStrategyHelper.getBookingId(data) ?? '';
-      final extensionMinutes = int.tryParse(
-            NotificationStrategyHelper.extractFirst(
-              data,
-              const ['extension_minutes', 'extensionMinutes'],
-            ) ??
-            '',
+      final extensionMinutes =
+          int.tryParse(
+            NotificationStrategyHelper.extractFirst(data, const [
+                  'extension_minutes',
+                  'extensionMinutes',
+                ]) ??
+                '',
           ) ??
           60;
       if (bookingId.isNotEmpty) {
         context.pushNamed(
           RouterKeys.activeSession,
-          extra: {'booking_id': bookingId, 'extension_minutes': extensionMinutes},
+          extra: {
+            'booking_id': bookingId,
+            'extension_minutes': extensionMinutes,
+          },
         );
       } else {
         context.pushNamed(RouterKeys.activeSession);
@@ -68,4 +74,3 @@ class ActiveSessionNotificationStrategy implements NotificationActionStrategy {
     return true;
   }
 }
-

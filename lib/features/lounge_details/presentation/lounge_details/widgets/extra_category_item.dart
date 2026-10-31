@@ -11,7 +11,11 @@ class ExtraCategoryItem extends StatefulWidget {
   final String category;
   final List<ExtraModel> items;
 
-  const ExtraCategoryItem({super.key, required this.category, required this.items});
+  const ExtraCategoryItem({
+    super.key,
+    required this.category,
+    required this.items,
+  });
 
   @override
   State<ExtraCategoryItem> createState() => _ExtraCategoryItemState();
@@ -71,10 +75,7 @@ class _ExtraCategoryItemState extends State<ExtraCategoryItem> {
             children: [
               ListTile(
                 onTap: () => setState(() => isExpanded = !isExpanded),
-                leading: Icon(
-                  categoryIcon,
-                  color: AppColors.white,
-                ),
+                leading: Icon(categoryIcon, color: AppColors.white),
                 title: AppText(
                   text: translatedCategory,
                   fontSize: 18.sp,

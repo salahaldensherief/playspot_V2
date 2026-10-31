@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,8 +52,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
-          title: Text(
-            AppStrings.editProfile.tr(),
+          title: AppText(
+            text: AppStrings.editProfile.tr(),
             style: TextStyle(
               color: Colors.white,
               fontSize: 18.sp,
@@ -168,9 +169,7 @@ class _SaveButton extends StatelessWidget {
             isLoading: isLoading,
             onTap: cubit.updateProfile,
           ),
-          content: ButtonContent(
-            label: AppStrings.saveChanges.tr(),
-          ),
+          content: ButtonContent(label: AppStrings.saveChanges.tr()),
         );
       },
     );
@@ -183,9 +182,7 @@ class _DeleteAccountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppButton(
-      content: ButtonContent(
-        label: AppStrings.deleteAccount.tr(),
-      ),
+      content: ButtonContent(label: AppStrings.deleteAccount.tr()),
       behavior: ButtonBehavior.tap(
         onTap: () => _showDeleteConfirmation(context),
       ),

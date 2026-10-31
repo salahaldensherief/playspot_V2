@@ -32,7 +32,11 @@ class InfoRow extends StatelessWidget {
             child: Row(
               children: [
                 if (prefixIcon != null) ...[
-                  Icon(prefixIcon, size: 16.sp, color: labelColor ?? AppColors.textSecondary),
+                  Icon(
+                    prefixIcon,
+                    size: 16.sp,
+                    color: labelColor ?? AppColors.textSecondary,
+                  ),
                   SizedBox(width: 8.w),
                 ],
                 Flexible(

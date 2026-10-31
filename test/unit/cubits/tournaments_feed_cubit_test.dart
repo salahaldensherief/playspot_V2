@@ -8,6 +8,7 @@ import 'package:playspot/features/tournaments/presentation/tournaments_feed/tour
 import 'package:playspot/features/tournaments/presentation/tournaments_feed/tournaments_feed_state.dart';
 
 class MockGetTournamentsUseCase extends Mock implements GetTournamentsUseCase {}
+
 class MockLocationService extends Mock implements LocationService {}
 
 void main() {
@@ -30,9 +31,14 @@ void main() {
     mockGetTournamentsUseCase = MockGetTournamentsUseCase();
     mockLocationService = MockLocationService();
 
-    when(() => mockLocationService.getCurrentLocation()).thenAnswer((_) async => null);
+    when(
+      () => mockLocationService.getCurrentLocation(),
+    ).thenAnswer((_) async => null);
 
-    cubit = TournamentsFeedCubit(mockGetTournamentsUseCase, mockLocationService);
+    cubit = TournamentsFeedCubit(
+      mockGetTournamentsUseCase,
+      mockLocationService,
+    );
   });
 
   tearDown(() {
@@ -42,26 +48,65 @@ void main() {
   });
 
   group('Batch 2 — TournamentsFeedCubit Unit Tests', () {
+    test('clearing filters sends an unfiltered request', () async {
+      when(
+        () => mockGetTournamentsUseCase(
+          game: any(named: 'game'),
+          cityId: any(named: 'cityId'),
+          statusFilter: any(named: 'statusFilter'),
+          searchQuery: any(named: 'searchQuery'),
+          latitude: any(named: 'latitude'),
+          longitude: any(named: 'longitude'),
+        ),
+      ).thenAnswer((_) async => const Right([testTournament]));
+
+      cubit.filterByGame('EA FC 24');
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.selectedGame, 'EA FC 24');
+      cubit.filterByStatus('registration_open');
+      await Future<void>.delayed(Duration.zero);
+      cubit.clearFilters();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state.selectedGame, isNull);
+      expect(cubit.state.selectedStatus, isNull);
+      verify(
+        () => mockGetTournamentsUseCase(
+          game: null,
+          cityId: any(named: 'cityId'),
+          statusFilter: null,
+          searchQuery: '',
+          latitude: any(named: 'latitude'),
+          longitude: any(named: 'longitude'),
+        ),
+      ).called(1);
+    });
+
     test('initial state is correct', () {
       expect(cubit.state.status, equals(TournamentsFeedStatus.initial));
       expect(cubit.state.tournaments, isEmpty);
     });
 
-    test('loadTournaments emits [loading, success] on successful fetch', () async {
-      when(() => mockGetTournamentsUseCase(
+    test(
+      'loadTournaments emits [loading, success] on successful fetch',
+      () async {
+        when(
+          () => mockGetTournamentsUseCase(
             game: any(named: 'game'),
             cityId: any(named: 'cityId'),
             statusFilter: any(named: 'statusFilter'),
             searchQuery: any(named: 'searchQuery'),
             latitude: any(named: 'latitude'),
             longitude: any(named: 'longitude'),
-          )).thenAnswer((_) async => const Right([testTournament]));
+          ),
+        ).thenAnswer((_) async => const Right([testTournament]));
 
-      await cubit.loadTournaments();
+        await cubit.loadTournaments();
 
-      expect(cubit.state.status, equals(TournamentsFeedStatus.success));
-      expect(cubit.state.tournaments, hasLength(1));
-      expect(cubit.state.availableGames, contains('EA FC 24'));
-    });
+        expect(cubit.state.status, equals(TournamentsFeedStatus.success));
+        expect(cubit.state.tournaments, hasLength(1));
+        expect(cubit.state.availableGames, contains('EA FC 24'));
+      },
+    );
   });
 }

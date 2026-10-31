@@ -68,16 +68,16 @@ class TournamentDetailsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        tournament,
-        userParticipant,
-        prizes,
-        matches,
-        isRegistering,
-        isSubmittingPayment,
-        isCheckingIn,
-        isWithdrawing,
-        errorMessage,
-        successMessage,
-      ];
+    status,
+    tournament,
+    userParticipant,
+    prizes,
+    matches,
+    isRegistering,
+    isSubmittingPayment,
+    isCheckingIn,
+    isWithdrawing,
+    errorMessage,
+    successMessage,
+  ];
 }

@@ -18,6 +18,7 @@ class SpaceTypeSelector extends StatelessWidget {
     'all',
     'vip_room',
     'standard_room',
+    'private',
     'open_area',
     'simulator',
     'vr',
@@ -27,6 +28,7 @@ class SpaceTypeSelector extends StatelessWidget {
     'all': Icons.grid_view,
     'vip_room': Icons.stars,
     'standard_room': Icons.meeting_room,
+    'private': Icons.lock_outline,
     'open_area': Icons.monitor,
     'simulator': Icons.speed,
     'vr': Icons.view_in_ar,
@@ -36,6 +38,7 @@ class SpaceTypeSelector extends StatelessWidget {
     'all': AppColors.neonBlue,
     'vip_room': AppColors.warning,
     'standard_room': AppColors.neonPurple,
+    'private': AppColors.neonPurple,
     'open_area': AppColors.neonBlue,
     'simulator': AppColors.cyan,
     'vr': AppColors.neonPurple,
@@ -47,6 +50,8 @@ class SpaceTypeSelector extends StatelessWidget {
         return AppStrings.all.tr();
       case 'vip_room':
         return AppStrings.vipRoom.tr();
+      case 'private':
+        return AppStrings.roomPrivate.tr();
       case 'standard_room':
         return AppStrings.standardRoom.tr();
       case 'open_area':
@@ -57,9 +62,10 @@ class SpaceTypeSelector extends StatelessWidget {
         return AppStrings.vr.tr();
       default:
         if (kDebugMode) {
-          AppLogger.debug("⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.");
+          AppLogger.debug(
+            "⚠️ SpaceTypeSelector: Unrecognized space type key '$key' from database.",
+          );
         }
-        // Fallback: Format raw snake_case/slug into human-readable Title Case
         return key.replaceAll('_', ' ').toUpperCase();
     }
   }
@@ -80,15 +86,20 @@ class SpaceTypeSelector extends StatelessWidget {
             .where((slug) => slug != null && slug.isNotEmpty)
             .toSet();
 
-        final List<String> activeKeys = _orderedKeys
+        final activeKeys = _orderedKeys
             .where((key) => key == 'all' || availableTypeSlugs.contains(key))
             .toList();
+        final dynamicKeys =
+            availableTypeSlugs
+                .whereType<String>()
+                .where((key) => key != 'all' && !_orderedKeys.contains(key))
+                .toList()
+              ..sort();
 
-        final List<String> displayKeys =
-            activeKeys.length > 1 ? activeKeys : _orderedKeys;
+        final displayKeys = [...activeKeys, ...dynamicKeys];
 
         return Container(
-          height: 45.h,
+          height: 48 * MediaQuery.textScalerOf(context).scale(1),
           margin: EdgeInsets.symmetric(vertical: 12.h),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -102,9 +113,8 @@ class SpaceTypeSelector extends StatelessWidget {
               final label = _getSpaceTypeLabel(key);
 
               return GestureDetector(
-                onTap: () => context
-                    .read<LoungeDetailsCubit>()
-                    .setSpaceType(key),
+                onTap: () =>
+                    context.read<LoungeDetailsCubit>().setSpaceType(key),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: EdgeInsetsDirectional.only(end: 10.w),
@@ -121,7 +131,7 @@ class SpaceTypeSelector extends StatelessWidget {
                               color: themeColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
-                            )
+                            ),
                           ]
                         : null,
                   ),
@@ -129,15 +139,16 @@ class SpaceTypeSelector extends StatelessWidget {
                     children: [
                       Icon(
                         icon,
-                        size: 18.sp,
+                        size: 18,
                         color: isSelected ? AppColors.black : themeColor,
                       ),
                       SizedBox(width: 8.w),
                       AppText(
                         text: label,
-                        fontSize: 13.sp,
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 13,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         color: isSelected
                             ? AppColors.black
                             : AppColors.textSecondary,

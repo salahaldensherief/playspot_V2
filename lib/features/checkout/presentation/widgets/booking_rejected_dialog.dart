@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:playspot/art_core/theme/app_colors.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/widgets/buttons/app_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
@@ -40,8 +41,6 @@ class BookingRejectedDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isArabic = context.locale.languageCode == 'ar';
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -66,7 +65,7 @@ class BookingRejectedDialog extends StatelessWidget {
               ),
               SizedBox(height: 16.h),
               AppText(
-                text: isArabic ? 'تم رفض الحجز من الصالة' : 'Booking Declined',
+                text: AppStrings.bookingDeclinedTitle.tr(),
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -81,13 +80,15 @@ class BookingRejectedDialog extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.danger.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.danger.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText(
-                      text: isArabic ? 'سبب الرفض الصادر من الصالة:' : 'Reason from venue:',
+                      text: AppStrings.bookingDeclinedReasonLabel.tr(),
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,
                       color: AppColors.danger,
@@ -96,7 +97,7 @@ class BookingRejectedDialog extends StatelessWidget {
                     AppText(
                       text: rejectionReason.isNotEmpty
                           ? rejectionReason
-                          : (isArabic ? 'لم يتم تحديد سبب الرفض' : 'No specific reason provided.'),
+                          : AppStrings.bookingDeclinedNoReason.tr(),
                       fontSize: 13.sp,
                       color: Colors.white,
                       height: 1.4,
@@ -110,9 +111,7 @@ class BookingRejectedDialog extends StatelessWidget {
                 children: [
                   Expanded(
                     child: AppButton(
-                      content: ButtonContent(
-                        label: isArabic ? 'إلغاء' : 'Cancel',
-                      ),
+                      content: ButtonContent(label: AppStrings.cancel.tr()),
                       buttonConfig: ButtonConfig(
                         height: 48.h,
                         backgroundColor: AppColors.transparent,
@@ -131,7 +130,7 @@ class BookingRejectedDialog extends StatelessWidget {
                   Expanded(
                     child: AppButton(
                       content: ButtonContent(
-                        label: isArabic ? 'إعادة المحاولة' : 'Retry Payment',
+                        label: AppStrings.retryPayment.tr(),
                       ),
                       buttonConfig: ButtonConfig(
                         height: 48.h,

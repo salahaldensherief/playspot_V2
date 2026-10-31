@@ -6,25 +6,30 @@ import '../../domain/repositories/notifications_repository.dart';
 import '../datasources/remote/notifications_remote_data_source.dart';
 import '../models/notification_model.dart';
 
-class NotificationsRepositoryImpl with RepositoryHelper implements NotificationsRepository {
+class NotificationsRepositoryImpl
+    with RepositoryHelper
+    implements NotificationsRepository {
   final NotificationsRemoteDataSource _remoteDataSource;
 
   NotificationsRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<Either<Failure, PaginatedResponse<NotificationModel>>> getNotifications(
-    String lang, {
-    int page = 1,
-    int pageSize = 20,
-  }) async {
+  Future<Either<Failure, PaginatedResponse<NotificationModel>>>
+  getNotifications(String lang, {int page = 1, int pageSize = 20}) async {
     return await callRepository(
-      () => _remoteDataSource.getNotifications(lang, page: page, pageSize: pageSize),
+      () => _remoteDataSource.getNotifications(
+        lang,
+        page: page,
+        pageSize: pageSize,
+      ),
     );
   }
 
   @override
   Future<Either<Failure, void>> markAsRead(String notificationId) async {
-    return await callRepository(() => _remoteDataSource.markAsRead(notificationId));
+    return await callRepository(
+      () => _remoteDataSource.markAsRead(notificationId),
+    );
   }
 
   @override

@@ -1,10 +1,15 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+
 import 'package:playspot/core/models/paginated_response.dart';
 import 'package:playspot/features/lounge_details/data/models/extra_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../models/active_session_model.dart';
+import 'active_session_watcher.dart';
+import '../../models/canteen_menu_data_model.dart';
 import '../../models/order_item_model.dart';
+import '../../models/upsell_suggestion_model.dart';
 
 abstract class ActiveSessionRemoteDataSource {
   Future<ActiveSessionModel?> getActiveSession({String? bookingId});
@@ -21,6 +26,15 @@ abstract class ActiveSessionRemoteDataSource {
   });
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items);
   Future<List<ExtraModel>> getLoungeMenu(String loungeId);
+  Future<CanteenMenuData> getCanteenMenu(String loungeId);
+  Future<List<UpsellSuggestionModel>> getUpsellSuggestions(String bookingId);
+  Future<void> recordUpsellEvent({
+    required String ruleId,
+    required String bookingId,
+    required String event,
+    String? canteenOrderId,
+    double? amount,
+  });
   Future<void> requestStaffAssistance({
     required String bookingId,
     required String callType,
@@ -55,8 +69,7 @@ class ActiveSessionRemoteDataSourceImpl
     }
 
     const selectQuery =
-        '*, lounges(name), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*))';
-    final now = DateTime.now();
+        '*, lounges(name, timezone), rooms(name, name_en), booking_items(*), canteen_orders(*, canteen_order_items(*))';
 
     // Try RPC get_active_session_details first for rich hydrated session details
     try {
@@ -140,7 +153,7 @@ class ActiveSessionRemoteDataSourceImpl
         dev.log(
           "[LIVESESSION_DS] Fetching specific booking $bookingId error: $e",
         );
-        return null;
+        rethrow;
       }
     }
 
@@ -160,18 +173,16 @@ class ActiveSessionRemoteDataSourceImpl
         final activeModel = ActiveSessionModel.fromJson(
           Map<String, dynamic>.from(activeResponse),
         );
-        final isExpired = now.isAfter(
-          activeModel.endTime.add(const Duration(minutes: 5)),
+        // The server owns the session lifecycle. A booking may remain in
+        // progress while staff settles overtime or completes checkout.
+        dev.log(
+          "[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}",
         );
-        if (!isExpired) {
-          dev.log(
-            "[LIVESESSION_DS] Found active in_progress session: ${activeModel.bookingId}",
-          );
-          return activeModel;
-        }
+        return activeModel;
       }
     } catch (e) {
       dev.log("[LIVESESSION_DS] Fetching active in_progress session error: $e");
+      rethrow;
     }
 
     dev.log("[LIVESESSION_DS] No active session found");
@@ -194,6 +205,7 @@ class ActiveSessionRemoteDataSourceImpl
         dev.log(
           "[LIVESESSION_DS] Error fetching active session in stream for $bookingId: $e",
         );
+        if (!controller.isClosed) controller.addError(e);
       }
     }
 
@@ -258,130 +270,8 @@ class ActiveSessionRemoteDataSourceImpl
   }
 
   @override
-  Stream<ActiveSessionModel?> watchUserActiveSession() {
-    dev.log("[LIVESESSION_DS] WATCH_USER_ACTIVE_SESSION");
-    final controller = StreamController<ActiveSessionModel?>.broadcast();
-    RealtimeChannel? bookingChannel;
-    RealtimeChannel? userBookingsChannel;
-    StreamSubscription<AuthState>? authSubscription;
-    String? currentBookingId;
-    String? subscribedUserId;
-
-    Future<void> clearChannels() async {
-      final booking = bookingChannel;
-      if (booking != null) {
-        await _client.removeChannel(booking);
-        bookingChannel = null;
-      }
-
-      final userBookings = userBookingsChannel;
-      if (userBookings != null) {
-        await _client.removeChannel(userBookings);
-        userBookingsChannel = null;
-      }
-
-      currentBookingId = null;
-    }
-
-    Future<void> syncSession() async {
-      try {
-        final session = await getActiveSession();
-        if (controller.isClosed) return;
-
-        controller.add(session);
-
-        if (session != null && session.bookingId != currentBookingId) {
-          final previous = bookingChannel;
-          if (previous != null) {
-            await _client.removeChannel(previous);
-          }
-
-          currentBookingId = session.bookingId;
-          bookingChannel = _client.channel('booking_${session.bookingId}');
-          bookingChannel!
-              .onPostgresChanges(
-                event: PostgresChangeEvent.all,
-                schema: 'public',
-                table: 'bookings',
-                filter: PostgresChangeFilter(
-                  type: PostgresChangeFilterType.eq,
-                  column: 'id',
-                  value: session.bookingId,
-                ),
-                callback: (_) => syncSession(),
-              )
-              .onPostgresChanges(
-                event: PostgresChangeEvent.all,
-                schema: 'public',
-                table: 'canteen_orders',
-                filter: PostgresChangeFilter(
-                  type: PostgresChangeFilterType.eq,
-                  column: 'booking_id',
-                  value: session.bookingId,
-                ),
-                callback: (_) => syncSession(),
-              )
-              .subscribe();
-        } else if (session == null && bookingChannel != null) {
-          await _client.removeChannel(bookingChannel!);
-          bookingChannel = null;
-          currentBookingId = null;
-        }
-      } catch (e) {
-        dev.log("[LIVESESSION_DS] Error in watchUserActiveSession sync: $e");
-      }
-    }
-
-    Future<void> bindUser(String? userId) async {
-      if (subscribedUserId == userId) {
-        await syncSession();
-        return;
-      }
-
-      await clearChannels();
-      subscribedUserId = userId;
-
-      if (userId == null) {
-        if (!controller.isClosed) {
-          controller.add(null);
-        }
-        return;
-      }
-
-      userBookingsChannel = _client.channel('user_bookings_$userId');
-      userBookingsChannel!
-          .onPostgresChanges(
-            event: PostgresChangeEvent.all,
-            schema: 'public',
-            table: 'bookings',
-            filter: PostgresChangeFilter(
-              type: PostgresChangeFilterType.eq,
-              column: 'user_id',
-              value: userId,
-            ),
-            callback: (_) => syncSession(),
-          )
-          .subscribe();
-
-      await syncSession();
-    }
-
-    authSubscription = _client.auth.onAuthStateChange.listen((authState) {
-      unawaited(bindUser(authState.session?.user.id));
-    });
-
-    unawaited(bindUser(_client.auth.currentUser?.id));
-
-    controller.onCancel = () async {
-      await authSubscription?.cancel();
-      await clearChannels();
-      if (!controller.isClosed) {
-        await controller.close();
-      }
-    };
-
-    return controller.stream;
-  }
+  Stream<ActiveSessionModel?> watchUserActiveSession() =>
+      ActiveSessionWatcher(_client, fetch: () => getActiveSession()).stream;
 
   @override
   Future<void> extendTime(
@@ -390,31 +280,12 @@ class ActiveSessionRemoteDataSourceImpl
     double additionalCost,
   ) async {
     dev.log(
-      "[LIVESESSION_DS] EXTEND_TIME: bookingId=$bookingId, minutes=$additionalMinutes, cost=$additionalCost",
+      "[LIVESESSION_DS] EXTEND_TIME delegating to requestExtension: bookingId=$bookingId, minutes=$additionalMinutes",
     );
-    try {
-      await _client.rpc(
-        'extend_booking_session',
-        params: {
-          'p_booking_id': bookingId,
-          'p_additional_minutes': additionalMinutes,
-          'p_additional_cost': additionalCost,
-        },
-      );
-      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC SUCCESS");
-    } catch (e) {
-      dev.log("[LIVESESSION_DS] EXTEND_BOOKING_SESSION RPC error: $e");
-      final errorStr = e.toString();
-      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||
-          errorStr.contains('conflict') ||
-          errorStr.contains('23P01') ||
-          errorStr.contains('exclusion constraint')) {
-        throw Exception(
-          "لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.",
-        );
-      }
-      rethrow;
-    }
+    await requestExtension(
+      bookingId: bookingId,
+      requestedMinutes: additionalMinutes,
+    );
   }
 
   @override
@@ -426,26 +297,48 @@ class ActiveSessionRemoteDataSourceImpl
       "[LIVESESSION_DS] REQUEST_EXTENSION: bookingId=$bookingId, requestedMinutes=$requestedMinutes",
     );
 
-    await _client.rpc(
-      'request_booking_extension',
-      params: {
-        'p_booking_id': bookingId,
-        'p_requested_minutes': requestedMinutes,
-      },
-    );
+    try {
+      await _client.rpc(
+        'request_booking_extension',
+        params: {
+          'p_booking_id': bookingId,
+          'p_requested_minutes': requestedMinutes,
+        },
+      );
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] REQUEST_BOOKING_EXTENSION RPC error: $e");
+      final errorStr = e.toString();
+      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||
+          errorStr.contains('conflict') ||
+          errorStr.contains('23P01') ||
+          errorStr.contains('exclusion constraint')) {
+        throw Exception(
+          "لا يمكن تمديد الحجز لأن هناك حجزاً آخر يبدأ بعد وقت حجزك مباشرة.",
+        );
+      }
+      if (errorStr.contains('Extension request already pending') ||
+          errorStr.contains('already pending') ||
+          errorStr.contains('55000')) {
+        throw Exception("يوجد طلب تمديد قيد المراجعة بالفعل لهذا الحجز.");
+      }
+      rethrow;
+    }
   }
 
   @override
   Future<void> placeOrder(String bookingId, List<OrderItemModel> items) async {
     if (items.isEmpty) return;
 
-    final formattedItems = items
-        .map((item) => {'extra_id': item.id, 'quantity': item.quantity})
-        .toList();
+    final formattedItems = items.map((item) => item.toOrderPayload()).toList();
 
     final notes = items
-        .where((item) => item.note != null && item.note!.trim().isNotEmpty)
-        .map((item) => item.note!.trim())
+        .where(
+          (item) =>
+              item.note != null && (item.note?.trim().isNotEmpty ?? false),
+        )
+        .map((item) => item.note?.trim() ?? '')
+        .where((n) => n.isNotEmpty)
+        .toSet()
         .join(', ');
 
     await _client.rpc(
@@ -456,6 +349,82 @@ class ActiveSessionRemoteDataSourceImpl
         if (notes.isNotEmpty) 'p_note': notes,
       },
     );
+  }
+
+  @override
+  Future<CanteenMenuData> getCanteenMenu(String loungeId) async {
+    dev.log("[LIVESESSION_DS] GET_CANTEEN_MENU: loungeId=$loungeId");
+    try {
+      final response = await _client.rpc(
+        'get_canteen_menu',
+        params: {'p_lounge_id': loungeId},
+      );
+
+      if (response != null && response is Map<String, dynamic>) {
+        return CanteenMenuData.fromJson(response);
+      } else if (response != null && response is Map) {
+        return CanteenMenuData.fromJson(Map<String, dynamic>.from(response));
+      }
+      return const CanteenMenuData();
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] GET_CANTEEN_MENU ERROR: $e");
+      final legacy = await getLoungeMenu(loungeId);
+      return CanteenMenuData(extras: legacy);
+    }
+  }
+
+  @override
+  Future<List<UpsellSuggestionModel>> getUpsellSuggestions(
+    String bookingId,
+  ) async {
+    dev.log("[LIVESESSION_DS] GET_UPSELL_SUGGESTIONS: bookingId=$bookingId");
+    try {
+      final response = await _client.rpc(
+        'get_upsell_suggestions',
+        params: {'p_booking_id': bookingId},
+      );
+
+      if (response != null && response is List) {
+        return response
+            .map(
+              (e) => UpsellSuggestionModel.fromJson(
+                Map<String, dynamic>.from(e as Map),
+              ),
+            )
+            .toList();
+      }
+      return const [];
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] GET_UPSELL_SUGGESTIONS ERROR: $e");
+      return const [];
+    }
+  }
+
+  @override
+  Future<void> recordUpsellEvent({
+    required String ruleId,
+    required String bookingId,
+    required String event,
+    String? canteenOrderId,
+    double? amount,
+  }) async {
+    dev.log(
+      "[LIVESESSION_DS] RECORD_UPSELL_EVENT: ruleId=$ruleId, event=$event",
+    );
+    try {
+      await _client.rpc(
+        'record_upsell_event',
+        params: {
+          'p_rule_id': ruleId,
+          'p_booking_id': bookingId,
+          'p_event': event,
+          'p_canteen_order_id': canteenOrderId,
+          'p_amount': amount,
+        },
+      );
+    } catch (e) {
+      dev.log("[LIVESESSION_DS] RECORD_UPSELL_EVENT ERROR: $e");
+    }
   }
 
   @override

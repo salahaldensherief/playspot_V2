@@ -18,7 +18,8 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     Duration staleDuration = const Duration(seconds: 10),
     bool force = false,
   }) async {
-    final isStale = _lastFetchTime == null ||
+    final isStale =
+        _lastFetchTime == null ||
         DateTime.now().difference(_lastFetchTime!) > staleDuration;
 
     if (!force && !isStale && state.status == MyBookingsStatus.success) {
@@ -29,6 +30,7 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
   }
 
   Future<void> getMyBookings({bool force = true}) async {
+    if (isClosed) return;
     if (_isFetching) {
       _hasPendingFetch = true;
       return;
@@ -36,7 +38,8 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
     _isFetching = true;
 
     try {
-      final hasExistingData = state.upcomingBookings.isNotEmpty ||
+      final hasExistingData =
+          state.upcomingBookings.isNotEmpty ||
           state.pastBookings.isNotEmpty ||
           state.cancelledBookings.isNotEmpty;
 
@@ -46,64 +49,79 @@ class MyBookingsCubit extends Cubit<MyBookingsState> {
       }
 
       final result = await _repository.getMyBookings();
+      if (isClosed) return;
 
       result.fold(
-        (failure) => emit(state.copyWith(
-          status: MyBookingsStatus.failure,
-          errorMessage: failure.message,
-        )),
+        (failure) => emit(
+          state.copyWith(
+            status: MyBookingsStatus.failure,
+            errorMessage: failure.message,
+          ),
+        ),
         (bookings) {
           _lastFetchTime = DateTime.now();
           final upcoming = bookings.where((b) => b.isUpcoming).toList();
           final past = bookings
-              .where((b) =>
-                  b.status == BookingStatus.completed ||
-                  b.status == BookingStatus.inProgress)
+              .where(
+                (b) =>
+                    b.status == BookingStatus.completed ||
+                    b.status == BookingStatus.inProgress,
+              )
               .toList();
           final cancelled = bookings
               .where((b) => b.status == BookingStatus.cancelled)
               .toList();
 
-          emit(state.copyWith(
-            status: MyBookingsStatus.success,
-            upcomingBookings: upcoming,
-            pastBookings: past,
-            cancelledBookings: cancelled,
-          ));
+          emit(
+            state.copyWith(
+              status: MyBookingsStatus.success,
+              upcomingBookings: upcoming,
+              pastBookings: past,
+              cancelledBookings: cancelled,
+            ),
+          );
         },
       );
     } catch (e) {
-      emit(state.copyWith(
-        status: MyBookingsStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      if (isClosed) return;
+      emit(
+        state.copyWith(
+          status: MyBookingsStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     } finally {
       _isFetching = false;
-      if (_hasPendingFetch) {
+      if (!isClosed && _hasPendingFetch) {
         _hasPendingFetch = false;
-        getMyBookings(force: true);
+        unawaited(getMyBookings(force: true));
       }
     }
   }
 
-  Future<void> cancelBooking(String bookingId) async {
+  Future<void> cancelBooking(String bookingId, String reason) async {
     // Guard against duplicate / in-flight double-tap cancellation requests
-    if (state.cancellingBookingId != null) return;
+    if (isClosed || state.cancellingBookingId != null) return;
 
     emit(state.copyWith(cancellingBookingId: bookingId));
-    final result = await _repository.cancelBooking(bookingId);
+    final result = await _repository.cancelBooking(bookingId, reason);
+    if (isClosed) return;
     result.fold(
-      (failure) => emit(state.copyWith(
-        clearCancelling: true,
-        status: MyBookingsStatus.failure,
-        errorMessage: failure.message,
-      )),
-      (_) {
-        emit(state.copyWith(
+      (failure) => emit(
+        state.copyWith(
           clearCancelling: true,
-          status: MyBookingsStatus.success,
-        ));
-        getMyBookings(force: true);
+          status: MyBookingsStatus.failure,
+          errorMessage: failure.message,
+        ),
+      ),
+      (_) {
+        emit(
+          state.copyWith(
+            clearCancelling: true,
+            status: MyBookingsStatus.success,
+          ),
+        );
+        unawaited(getMyBookings(force: true));
       },
     );
   }

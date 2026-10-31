@@ -9,6 +9,7 @@ import '../../../../art_core/router/router_keys.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/widgets/buttons/back_button_widget.dart';
 import '../../../../art_core/widgets/layout/app_loader.dart';
+import '../../../../art_core/widgets/layout/app_state_view.dart';
 import '../../../../art_core/widgets/layout/app_refresh_indicator.dart';
 import '../../../../art_core/widgets/layout/glass_container.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
@@ -19,7 +20,8 @@ class TournamentHistoryScreen extends StatefulWidget {
   const TournamentHistoryScreen({super.key});
 
   @override
-  State<TournamentHistoryScreen> createState() => _TournamentHistoryScreenState();
+  State<TournamentHistoryScreen> createState() =>
+      _TournamentHistoryScreenState();
 }
 
 class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
@@ -37,13 +39,12 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
         backgroundColor: AppColors.scaffoldBackground,
         elevation: 0,
         leading: const BackButtonWidget(),
-        title: Text(
-          AppStrings.myTournamentHistory.tr(),
+        title: AppText(
+          text: AppStrings.myTournamentHistory.tr(),
           style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
-            fontFamily: 'Orbitron',
           ),
         ),
         centerTitle: true,
@@ -56,11 +57,10 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
             }
 
             if (state.status == TournamentHistoryStatus.failure) {
-              return Center(
-                child: Text(
-                  state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
-                ),
+              return AppStateView.error(
+                title: state.errorMessage ?? AppStrings.somethingWentWrong.tr(),
+                onRetry: () =>
+                    context.read<TournamentHistoryCubit>().loadHistory(),
               );
             }
 
@@ -80,11 +80,13 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                           Icon(
                             TablerIcons.trophy_off,
                             size: 64.sp,
-                            color: AppColors.textSecondary.withValues(alpha: 0.5),
+                            color: AppColors.textSecondary.withValues(
+                              alpha: 0.5,
+                            ),
                           ),
                           SizedBox(height: 16.h),
-                          Text(
-                            AppStrings.noResults.tr(),
+                          AppText(
+                            text: AppStrings.noResults.tr(),
                             style: TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 16.sp,
@@ -111,11 +113,15 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                   final participant = item.participant;
                   final tournament = item.tournament;
 
-                  final String tournamentTitle = tournament?.title ?? AppStrings.tournaments.tr();
+                  final String tournamentTitle =
+                      tournament?.title ?? AppStrings.tournaments.tr();
                   final String loungeName = tournament?.loungeName ?? '-';
                   final String gameName = tournament?.game ?? '-';
-                  final DateTime? date = participant.createdAt ?? tournament?.startDate;
-                  final String formattedDate = date != null ? DateFormat('yyyy-MM-dd').format(date) : '-';
+                  final DateTime? date =
+                      participant.createdAt ?? tournament?.startDate;
+                  final String formattedDate = date != null
+                      ? DateFormat('yyyy-MM-dd').format(date)
+                      : '-';
 
                   return InkWell(
                     onTap: () {
@@ -153,11 +159,19 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                               GlassContainer(
                                 borderRadius: 20,
                                 blur: 8,
-                                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                                borderColor: AppColors.neonBlue.withValues(alpha: 0.4),
-                                color: AppColors.neonBlue.withValues(alpha: 0.15),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10.w,
+                                  vertical: 4.h,
+                                ),
+                                borderColor: AppColors.neonBlue.withValues(
+                                  alpha: 0.4,
+                                ),
+                                color: AppColors.neonBlue.withValues(
+                                  alpha: 0.15,
+                                ),
                                 child: AppText(
-                                  text: participant.paymentStatus.toLocalizedName(),
+                                  text: participant.paymentStatus
+                                      .toLocalizedName(),
                                   color: AppColors.neonBlue,
                                   fontSize: 11.sp,
                                   fontWeight: FontWeight.bold,
@@ -168,20 +182,36 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                           SizedBox(height: 8.h),
                           Row(
                             children: [
-                              Icon(TablerIcons.device_gamepad, size: 14.sp, color: AppColors.textSecondary),
-                              SizedBox(width: 4.w),
-                              AppText(
-                                text: gameName,
+                              Icon(
+                                TablerIcons.device_gamepad,
+                                size: 14.sp,
                                 color: AppColors.textSecondary,
-                                fontSize: 13.sp,
+                              ),
+                              SizedBox(width: 4.w),
+                              Flexible(
+                                child: AppText(
+                                  text: gameName,
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13.sp,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                               SizedBox(width: 16.w),
-                              Icon(TablerIcons.building, size: 14.sp, color: AppColors.textSecondary),
-                              SizedBox(width: 4.w),
-                              AppText(
-                                text: loungeName,
+                              Icon(
+                                TablerIcons.building,
+                                size: 14.sp,
                                 color: AppColors.textSecondary,
-                                fontSize: 13.sp,
+                              ),
+                              SizedBox(width: 4.w),
+                              Flexible(
+                                child: AppText(
+                                  text: loungeName,
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13.sp,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
@@ -189,11 +219,17 @@ class _TournamentHistoryScreenState extends State<TournamentHistoryScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              AppText(
-                                text: '${AppStrings.bookingDate.tr()}: $formattedDate',
-                                color: AppColors.textSecondary,
-                                fontSize: 12.sp,
+                              Flexible(
+                                child: AppText(
+                                  text:
+                                      '${AppStrings.bookingDate.tr()}: $formattedDate',
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12.sp,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                              SizedBox(width: 8.w),
                               AppText(
                                 text: participant.status.toLocalizedName(),
                                 color: AppColors.success,

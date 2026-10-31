@@ -1,14 +1,14 @@
-
 import 'package:flutter/material.dart';
 
 import '../../text/app_text.dart';
 
 class ButtonContent {
-  final String ?label;
+  final String? label;
   final Widget? icon;
   final Widget? body;
+  final int? maxLines;
 
-  const ButtonContent({ this.label, this.icon , this.body});
+  const ButtonContent({this.label, this.icon, this.body, this.maxLines = 1});
 }
 
 class ButtonContentWidget extends StatelessWidget {
@@ -20,18 +20,28 @@ class ButtonContentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (content.body != null) return content.body!;
+    final maxLines = content.maxLines ?? 1;
+    final textWidget = AppText(
+      text: content.label ?? 'Button',
+      textAlign: TextAlign.center,
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
+      style: textStyle ?? Theme.of(context).textTheme.bodyMedium,
+    );
+
     return Row(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         if (content.icon != null) ...[
           content.icon!,
-          const SizedBox(width: 8.0),
+          const SizedBox(width: 6.0),
         ],
         Flexible(
-          child: AppText(
-            text: content.label ?? 'Button',
-            style: textStyle ?? Theme.of(context).textTheme.bodyMedium,
-          ),
+          child: maxLines == 1
+              ? FittedBox(fit: BoxFit.scaleDown, child: textWidget)
+              : textWidget,
         ),
       ],
     );

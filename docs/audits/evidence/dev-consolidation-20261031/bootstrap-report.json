@@ -1,0 +1,91 @@
+{
+  "environment": "http://127.0.0.1:56821",
+  "baseline": {
+    "file": "app-checkpoint.sql",
+    "normalizedSha256": "f072564f9ad289e353ff86855c0c5f16981bf4d4151604e9787161b0664fd11d",
+    "originalExportSha256": "08d6c1d70278da715a5af80bc3a832358d098f9dd72eb1b6c2f56935ed5293ca",
+    "originalExportDate": "2026-10-25",
+    "source": "Authorized public/private schema-only export preserved before this task; 3607 catalog fingerprints matched in earlier read-only evidence. No new hosted access.",
+    "contents": "90 application tables, types, functions, RLS/grants. No customer rows, secrets, managed-schema replacement or executable hosted endpoints.",
+    "transformation": "Line endings normalized; one notification transport function replaced by explicit local-marker-guarded delivery suppression. Financial/audit functions are not substituted.",
+    "necessity": "Current migration history begins with deltas against missing core tables and contains duplicate timestamp 20260927000010. Not an independently replayable initial schema."
+  },
+  "stages": [
+    {
+      "stage": "managed",
+      "sha256": "37a1976ae58e7fa81735a10512fc819c82bf2ac57cd3e106364df48d6bc93592"
+    },
+    {
+      "stage": "app-checkpoint",
+      "sha256": "f072564f9ad289e353ff86855c0c5f16981bf4d4151604e9787161b0664fd11d"
+    },
+    {
+      "stage": "local-marker",
+      "sha256": "031ea401a1f575d6bc31f88261355098ccfa6c4e6b4e421455e6d34effdb3495"
+    },
+    {
+      "stage": "20261011065428_payout_cash_commission_settlement.sql",
+      "sha256": "7c77442b64e2be3beee64234d23bedfc49c974a3e2c725cc8dcdd5088c3520c9"
+    },
+    {
+      "stage": "20261016211005_cash_session_start_before_collection.sql",
+      "sha256": "67180a2bc629c9172bd76ae12cfea68aaab73bd91c3a84932516dff88fd84264"
+    },
+    {
+      "stage": "20261021120000_extension_approval_is_not_collection.sql",
+      "sha256": "a5dbe2208cc4f518ed4b7fc5a1d7e0944d875ced4cc15834d36afef83459a4ac"
+    },
+    {
+      "stage": "20261025000001_open_time_partial_payment_status.sql",
+      "sha256": "50da7df5c9a2d15586b25055758fc610f139b300ec73ebd298aefae07a41eee1"
+    },
+    {
+      "stage": "20261025101139_atomic_discount_cash_checkout.sql",
+      "sha256": "1fbf312de76d6fe6657cbc2b7be27c3f27c65ea9c4aae2c8136d7758315e60f5"
+    },
+    {
+      "stage": "20261025151217_owner_permission_write_boundary.sql",
+      "sha256": "29822ad4fd873ead61d70a1548c84f5c86319db0ba97a92fc9ddd9b4855afb6d"
+    },
+    {
+      "stage": "20261025170000_guard_pre_session_manual_transfer_total.sql",
+      "sha256": "7bb6c6c8cb8d149edbd1c7c9caf605cd51611da3b508aa64d47dee3fe80ef0e7"
+    },
+    {
+      "stage": "20261025225255_canonical_booking_collections.sql",
+      "sha256": "c9b285617d41adf064db95bb15fdac7e3abfeb5a0427d03249c5bd514d8b3526"
+    },
+    {
+      "stage": "20261025225913_branch_booking_refund_policy.sql",
+      "sha256": "f7e2e5369bd62f3bf609edf82e8b36d9c3fdc6525e3cdafaf0185b21c5b380cf"
+    },
+    {
+      "stage": "20261026100000_guard_paid_deposit_payment_quote.sql",
+      "sha256": "b2b1e871da65a1433a379da19949d4679b52f69328d032952b4a39fa60b9619f"
+    },
+    {
+      "stage": "20261027150000_manual_refund_reversal_accounting.sql",
+      "sha256": "140a2a9673b6f8a5ffab5ae01ca4cedd737f956f07ffc4e7374d0c6fce83fa88"
+    },
+    {
+      "stage": "20261027180000_refund_aware_payout_reconciliation.sql",
+      "sha256": "933f6a23224406d92c94c07a59acc372b7b0ec63201240048a3d847390558cb5"
+    },
+    {
+      "stage": "20261031111003_refund_audit_contract.sql",
+      "sha256": "cc6d0e2548fc768f1eeb74944cd1014cb6e96aeb384f4e562fe767c6a1efcce9"
+    },
+    {
+      "stage": "local-auth-bindings",
+      "sha256": "cee1645a64e3580c5adf1d399d0dd3346ea3554aa1e8c768570c28a4ae89b717"
+    }
+  ],
+  "objects": {
+    "tables": "101",
+    "policies": "170",
+    "active_jobs": "0",
+    "audit_logger": true
+  },
+  "result": "Fresh managed Auth/database plus versioned app checkpoint and dependency-ordered reviewed deltas applied",
+  "limitation": "No claim that all historical migrations replay from empty or any hosted database was changed"
+}

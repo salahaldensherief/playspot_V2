@@ -18,13 +18,30 @@ class QuantitySelector extends StatelessWidget {
         return Row(
           children: [
             IconButton(
-              icon: Icon(Icons.remove_circle_outline, color: AppColors.textSecondary, size: 20.sp),
-              onPressed: () => context.read<LoungeDetailsCubit>().updateExtraQuantity(extraId, -1),
+              icon: Icon(
+                Icons.remove_circle_outline,
+                color: AppColors.textSecondary,
+                size: 20.sp,
+              ),
+              onPressed: () => context
+                  .read<LoungeDetailsCubit>()
+                  .updateExtraQuantity(extraId, -1),
             ),
-            AppText(text: "$qty", fontSize: 16.sp, color: AppColors.white, fontWeight: FontWeight.bold),
+            AppText(
+              text: "$qty",
+              fontSize: 16.sp,
+              color: AppColors.white,
+              fontWeight: FontWeight.bold,
+            ),
             IconButton(
-              icon: Icon(Icons.add_circle_outline, color: AppColors.neonPurple, size: 20.sp),
-              onPressed: () => context.read<LoungeDetailsCubit>().updateExtraQuantity(extraId, 1),
+              icon: Icon(
+                Icons.add_circle_outline,
+                color: AppColors.neonPurple,
+                size: 20.sp,
+              ),
+              onPressed: () => context
+                  .read<LoungeDetailsCubit>()
+                  .updateExtraQuantity(extraId, 1),
             ),
           ],
         );

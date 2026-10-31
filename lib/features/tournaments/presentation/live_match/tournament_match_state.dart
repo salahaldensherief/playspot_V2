@@ -57,15 +57,15 @@ class TournamentMatchState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        match,
-        player1Score,
-        player2Score,
-        proofFile,
-        isSubmittingResult,
-        isConfirmingResult,
-        isSubmittingDispute,
-        errorMessage,
-        successMessage,
-      ];
+    status,
+    match,
+    player1Score,
+    player2Score,
+    proofFile,
+    isSubmittingResult,
+    isConfirmingResult,
+    isSubmittingDispute,
+    errorMessage,
+    successMessage,
+  ];
 }

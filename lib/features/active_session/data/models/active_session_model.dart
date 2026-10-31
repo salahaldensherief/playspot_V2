@@ -1,6 +1,8 @@
 import '../../domain/entities/active_session.dart';
 import '../../domain/entities/order_item.dart';
 import 'order_item_model.dart';
+import 'package:timezone/data/latest_all.dart' as timezone_data;
+import 'package:timezone/timezone.dart' as tz;
 
 class ActiveSessionModel extends ActiveSession {
   const ActiveSessionModel({
@@ -15,8 +17,11 @@ class ActiveSessionModel extends ActiveSession {
     super.extensionsPrice = 0.0,
     super.orders = const [],
     required super.status,
+    super.isOpenTime,
+    super.openTimePricingSnapshot,
     super.extensionStatus,
     super.requestedExtensionMinutes,
+    super.openTimeEndedAt,
   });
 
   factory ActiveSessionModel.fromEntity(ActiveSession entity) {
@@ -32,8 +37,11 @@ class ActiveSessionModel extends ActiveSession {
       extensionsPrice: entity.extensionsPrice,
       orders: entity.orders,
       status: entity.status,
+      isOpenTime: entity.isOpenTime,
+      openTimePricingSnapshot: entity.openTimePricingSnapshot,
       extensionStatus: entity.extensionStatus,
       requestedExtensionMinutes: entity.requestedExtensionMinutes,
+      openTimeEndedAt: entity.openTimeEndedAt,
     );
   }
 
@@ -50,8 +58,11 @@ class ActiveSessionModel extends ActiveSession {
     double? extensionsPrice,
     List<OrderItem>? orders,
     String? status,
+    bool? isOpenTime,
+    Map<String, dynamic>? openTimePricingSnapshot,
     String? extensionStatus,
     int? requestedExtensionMinutes,
+    DateTime? openTimeEndedAt,
   }) {
     return ActiveSessionModel(
       bookingId: bookingId ?? this.bookingId,
@@ -65,8 +76,13 @@ class ActiveSessionModel extends ActiveSession {
       extensionsPrice: extensionsPrice ?? this.extensionsPrice,
       orders: orders ?? this.orders,
       status: status ?? this.status,
+      isOpenTime: isOpenTime ?? this.isOpenTime,
+      openTimePricingSnapshot:
+          openTimePricingSnapshot ?? this.openTimePricingSnapshot,
       extensionStatus: extensionStatus ?? this.extensionStatus,
-      requestedExtensionMinutes: requestedExtensionMinutes ?? this.requestedExtensionMinutes,
+      requestedExtensionMinutes:
+          requestedExtensionMinutes ?? this.requestedExtensionMinutes,
+      openTimeEndedAt: openTimeEndedAt ?? this.openTimeEndedAt,
     );
   }
 
@@ -74,12 +90,14 @@ class ActiveSessionModel extends ActiveSession {
     final loungeData = json['lounges'] as Map<String, dynamic>?;
     final roomData = json['rooms'] as Map<String, dynamic>?;
 
-    final loungeName = loungeData?['name']?.toString() ??
+    final loungeName =
+        loungeData?['name']?.toString() ??
         json['lounge_name']?.toString() ??
         json['loungeName']?.toString() ??
         '';
 
-    final roomName = roomData?['name_en'] ??
+    final roomName =
+        roomData?['name_en'] ??
         roomData?['name'] ??
         json['room_name']?.toString() ??
         json['roomName']?.toString() ??
@@ -89,7 +107,8 @@ class ActiveSessionModel extends ActiveSession {
     final startTime = _parseStartTime(json);
 
     // 2. Read Duration Minutes from Supabase
-    final rawDuration = json['duration_minutes'] ??
+    final rawDuration =
+        json['duration_minutes'] ??
         json['duration'] ??
         json['booking_duration'] ??
         json['play_duration'];
@@ -110,45 +129,53 @@ class ActiveSessionModel extends ActiveSession {
 
     // 3. Fallback calculation if duration_minutes is missing in DB:
     // Compute duration from total_price / room_price (or hourly rate)
-    final totalPrice = (json['total_price'] as num?)?.toDouble() ??
+    final totalPrice =
+        (json['total_price'] as num?)?.toDouble() ??
         (json['base_price'] as num?)?.toDouble() ??
         0.0;
-    final roomPrice = (json['room_price'] as num?)?.toDouble() ??
+    final roomPrice =
+        (json['room_price'] as num?)?.toDouble() ??
         (json['hourly_rate'] as num?)?.toDouble() ??
         (roomData?['hourly_rate_single'] as num?)?.toDouble() ??
         0.0;
 
-    if (durationMins == 0 && totalPrice > 0 && roomPrice > 0) {
+    if (json['is_open_time'] != true &&
+        durationMins == 0 &&
+        totalPrice > 0 &&
+        roomPrice > 0) {
       durationMins = ((totalPrice / roomPrice) * 60).round();
     }
 
     // 4. Read Extended / Added Minutes
-    final addedMins = (json['extended_minutes'] as num?)?.toInt() ??
+    final addedMins =
+        (json['extended_minutes'] as num?)?.toInt() ??
         (json['added_minutes'] as num?)?.toInt() ??
         0;
 
-    // 5. Calculate End Time matching Dashboard formula:
-    // End Time = Start Time + Duration Minutes (+ Extra Extension Minutes)
-    DateTime endTime;
-    if (durationMins > 0) {
-      endTime = startTime.add(Duration(minutes: durationMins + addedMins));
-    } else {
-      endTime = _parseEndTimeFallback(json, startTime);
-      if (addedMins > 0) {
-        endTime = endTime.add(Duration(minutes: addedMins));
-      }
-    }
+    // The booked end is updated by the server when an extension is approved.
+    // Duration already includes that extension; adding it again extends the
+    // client's countdown without changing the actual booking.
+    final endTime = _parseEndTimeFallback(
+      json,
+      startTime,
+      fallbackMinutes: json['is_open_time'] == true
+          ? durationMins
+          : (durationMins > 0 ? durationMins : 30 + addedMins),
+    );
 
     // Parse canteen order items:
     // Check canteen_orders -> canteen_order_items -> extras, OR fallback to booking_items
     final List<OrderItemModel> parsedOrders = [];
 
-    final bookingItems = json['items'] as List? ?? json['booking_items'] as List?;
+    final bookingItems =
+        json['items'] as List? ?? json['booking_items'] as List?;
     if (bookingItems != null) {
       for (var item in bookingItems) {
         if (item is Map) {
           try {
-            parsedOrders.add(OrderItemModel.fromJson(Map<String, dynamic>.from(item)));
+            parsedOrders.add(
+              OrderItemModel.fromJson(Map<String, dynamic>.from(item)),
+            );
           } catch (_) {}
         }
       }
@@ -158,12 +185,18 @@ class ActiveSessionModel extends ActiveSession {
     if (canteenOrders != null && canteenOrders.isNotEmpty) {
       for (var cOrder in canteenOrders) {
         if (cOrder is! Map) continue;
-        final cItems = cOrder['items'] as List? ?? cOrder['canteen_order_items'] as List?;
+        final String? orderStatus = cOrder['status']?.toString();
+        final cItems =
+            cOrder['items'] as List? ?? cOrder['canteen_order_items'] as List?;
         if (cItems != null) {
           for (var item in cItems) {
             if (item is Map) {
               try {
-                parsedOrders.add(OrderItemModel.fromJson(Map<String, dynamic>.from(item)));
+                final map = Map<String, dynamic>.from(item);
+                if (map['status'] == null && orderStatus != null) {
+                  map['status'] = orderStatus;
+                }
+                parsedOrders.add(OrderItemModel.fromJson(map));
               } catch (_) {}
             }
           }
@@ -172,17 +205,34 @@ class ActiveSessionModel extends ActiveSession {
     }
 
     // Calculate Room Base Price (excluding add-ons)
-    double roomBasePrice = (json['room_price'] as num?)?.toDouble() ??
+    double roomBasePrice =
+        (json['room_price'] as num?)?.toDouble() ??
         (json['room_subtotal'] as num?)?.toDouble() ??
         (json['discounted_room_price'] as num?)?.toDouble() ??
         (json['base_price'] as num?)?.toDouble() ??
         0.0;
 
-    final double rawTotalPrice = (json['total_price'] as num?)?.toDouble() ?? 0.0;
+    final double rawTotalPrice =
+        (json['total_price'] as num?)?.toDouble() ?? 0.0;
 
     if (roomBasePrice == 0.0 && rawTotalPrice > 0) {
-      final double ordersSum = parsedOrders.fold(0.0, (sum, o) => sum + o.total);
+      final double ordersSum = parsedOrders
+          .where((o) => o.isCommittedCharge)
+          .fold(0.0, (sum, o) => sum + o.total);
       roomBasePrice = (rawTotalPrice - ordersSum).clamp(0.0, double.infinity);
+    }
+
+    DateTime? openTimeEndedAt;
+    if (json['is_open_time'] == true) {
+      final rawOpenEnd =
+          json['open_time_ended_at'] ?? json['open_time_closed_at'];
+      if (rawOpenEnd != null && rawOpenEnd.toString().isNotEmpty) {
+        try {
+          final parsed = DateTime.parse(rawOpenEnd.toString().trim());
+          final local = _asLoungeTime(json, parsed);
+          if (!local.isBefore(startTime)) openTimeEndedAt = local;
+        } catch (_) {}
+      }
     }
 
     return ActiveSessionModel(
@@ -196,17 +246,31 @@ class ActiveSessionModel extends ActiveSession {
       basePrice: roomBasePrice,
       extensionsPrice: (json['extensions_price'] as num?)?.toDouble() ?? 0.0,
       extensionStatus: json['extension_status']?.toString(),
-      requestedExtensionMinutes: (json['requested_extension_minutes'] as num?)?.toInt(),
+      requestedExtensionMinutes: (json['requested_extension_minutes'] as num?)
+          ?.toInt(),
       orders: parsedOrders,
       status: json['status']?.toString() ?? 'in_progress',
+      isOpenTime: json['is_open_time'] == true,
+      openTimePricingSnapshot: json['open_time_pricing_snapshot'] is Map
+          ? Map<String, dynamic>.from(json['open_time_pricing_snapshot'] as Map)
+          : const {},
+      openTimeEndedAt: openTimeEndedAt,
     );
   }
 
   static DateTime _parseStartTime(Map<String, dynamic> json) {
+    if (json['is_open_time'] == true) {
+      final started = DateTime.tryParse(
+        json['open_time_started_at']?.toString() ?? '',
+      );
+      if (started != null) return started.toLocal();
+    }
     final rawStartTime = json['start_time'] ?? json['startTime'];
     final dateRaw = json['date'] ?? json['booking_date'];
 
-    if (dateRaw != null && rawStartTime != null && rawStartTime.toString().isNotEmpty) {
+    if (dateRaw != null &&
+        rawStartTime != null &&
+        rawStartTime.toString().isNotEmpty) {
       final dateStr = dateRaw.toString().split('T')[0].trim();
       String timeStr = rawStartTime.toString().trim();
       if (timeStr.contains(' ')) {
@@ -217,12 +281,13 @@ class ActiveSessionModel extends ActiveSession {
         final isPm = parts[1].toUpperCase() == 'PM';
         if (isPm && hour < 12) hour += 12;
         if (!isPm && hour == 12) hour = 0;
-        timeStr = "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00";
+        timeStr =
+            "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00";
       }
       try {
         final fullIso = "${dateStr}T$timeStr";
         final parsed = DateTime.parse(fullIso);
-        return parsed.isUtc ? parsed.toLocal() : parsed;
+        return _asLoungeTime(json, parsed);
       } catch (_) {}
     }
 
@@ -230,25 +295,59 @@ class ActiveSessionModel extends ActiveSession {
     if (rawStartAt != null && rawStartAt.toString().isNotEmpty) {
       try {
         final parsed = DateTime.parse(rawStartAt.toString().trim());
-        return parsed.isUtc ? parsed.toLocal() : parsed;
+        return _asLoungeTime(json, parsed);
       } catch (_) {}
     }
 
     if (rawStartTime != null && rawStartTime.toString().contains('T')) {
       try {
         final parsed = DateTime.parse(rawStartTime.toString().trim());
-        return parsed.isUtc ? parsed.toLocal() : parsed;
+        return _asLoungeTime(json, parsed);
       } catch (_) {}
     }
 
     return DateTime.now();
   }
 
-  static DateTime _parseEndTimeFallback(Map<String, dynamic> json, DateTime defaultStart) {
+  static DateTime _parseEndTimeFallback(
+    Map<String, dynamic> json,
+    DateTime defaultStart, {
+    required int fallbackMinutes,
+  }) {
+    if (json['is_open_time'] == true) {
+      // Prioritize authoritative Open Time completion timestamp from backend:
+      // 1. open_time_ended_at (explicit database column)
+      // 2. open_time_closed_at (historical completion RPC timestamp)
+      final rawOpenEnd =
+          json['open_time_ended_at'] ?? json['open_time_closed_at'];
+      if (rawOpenEnd != null && rawOpenEnd.toString().isNotEmpty) {
+        try {
+          final parsed = DateTime.parse(rawOpenEnd.toString().trim());
+          final local = _asLoungeTime(json, parsed);
+          if (!local.isBefore(defaultStart)) return local;
+        } catch (_) {}
+      }
+
+      final isCompleted =
+          json['status']?.toString().trim().toLowerCase() == 'completed';
+      // If completed and duration/billing minutes are provided by server settlement
+      if (isCompleted && fallbackMinutes > 0) {
+        return defaultStart.add(Duration(minutes: fallbackMinutes));
+      }
+
+      // A generic end_time can remain equal to the start for Open Time and is
+      // not authoritative. Without a server end timestamp or settled duration,
+      // keep the duration unknown (zero) instead of inventing 30 minutes or a
+      // next-day end.
+      return defaultStart;
+    }
+
     final rawEndTime = json['end_time'] ?? json['endTime'];
     final dateRaw = json['date'] ?? json['booking_date'];
 
-    if (dateRaw != null && rawEndTime != null && rawEndTime.toString().isNotEmpty) {
+    if (dateRaw != null &&
+        rawEndTime != null &&
+        rawEndTime.toString().isNotEmpty) {
       final dateStr = dateRaw.toString().split('T')[0].trim();
       String timeStr = rawEndTime.toString().trim();
       if (timeStr.contains(' ')) {
@@ -259,13 +358,15 @@ class ActiveSessionModel extends ActiveSession {
         final isPm = parts[1].toUpperCase() == 'PM';
         if (isPm && hour < 12) hour += 12;
         if (!isPm && hour == 12) hour = 0;
-        timeStr = "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00";
+        timeStr =
+            "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00";
       }
       try {
         final fullIso = "${dateStr}T$timeStr";
         final parsed = DateTime.parse(fullIso);
-        final local = parsed.isUtc ? parsed.toLocal() : parsed;
+        final local = _asLoungeTime(json, parsed);
         if (local.isAfter(defaultStart)) return local;
+        return local.add(const Duration(days: 1));
       } catch (_) {}
     }
 
@@ -273,7 +374,7 @@ class ActiveSessionModel extends ActiveSession {
     if (rawEndAt != null && rawEndAt.toString().isNotEmpty) {
       try {
         final parsed = DateTime.parse(rawEndAt.toString().trim());
-        final local = parsed.isUtc ? parsed.toLocal() : parsed;
+        final local = _asLoungeTime(json, parsed);
         if (local.isAfter(defaultStart)) return local;
       } catch (_) {}
     }
@@ -281,11 +382,39 @@ class ActiveSessionModel extends ActiveSession {
     if (rawEndTime != null && rawEndTime.toString().contains('T')) {
       try {
         final parsed = DateTime.parse(rawEndTime.toString().trim());
-        final local = parsed.isUtc ? parsed.toLocal() : parsed;
+        final local = _asLoungeTime(json, parsed);
         if (local.isAfter(defaultStart)) return local;
       } catch (_) {}
     }
 
-    return defaultStart.add(const Duration(minutes: 30));
+    return defaultStart.add(Duration(minutes: fallbackMinutes));
+  }
+
+  static bool _timezonesReady = false;
+
+  static DateTime _asLoungeTime(Map<String, dynamic> json, DateTime parsed) {
+    if (parsed.isUtc) return parsed.toLocal();
+    final lounge = json['lounges'];
+    final timezone =
+        (lounge is Map ? lounge['timezone'] : null) ?? json['timezone'];
+    if (timezone == null || timezone.toString().isEmpty) return parsed;
+    try {
+      if (!_timezonesReady) {
+        timezone_data.initializeTimeZones();
+        _timezonesReady = true;
+      }
+      final location = tz.getLocation(timezone.toString());
+      return tz.TZDateTime(
+        location,
+        parsed.year,
+        parsed.month,
+        parsed.day,
+        parsed.hour,
+        parsed.minute,
+        parsed.second,
+      ).toLocal();
+    } catch (_) {
+      return parsed;
+    }
   }
 }

@@ -20,8 +20,8 @@ class BackButtonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Container(
-        width: 36.w,
-        height: 36.h,
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
           color: backgroundColor ?? Colors.black.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(10.r),
@@ -32,9 +32,10 @@ class BackButtonWidget extends StatelessWidget {
           icon: Icon(
             icon ?? Icons.arrow_back,
             color: color ?? Colors.white,
-            size: 20.sp,
+            size: 20,
           ),
-          onPressed: onPressed ??
+          onPressed:
+              onPressed ??
               () {
                 if (context.canPop()) {
                   context.pop();

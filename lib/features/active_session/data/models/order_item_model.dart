@@ -10,6 +10,9 @@ class OrderItemModel extends OrderItem {
     required super.quantity,
     super.totalPriceOverride,
     super.note,
+    super.isCombo,
+    super.status,
+    super.upsellRuleId,
   });
 
   factory OrderItemModel.fromEntity(OrderItem entity) {
@@ -22,18 +25,25 @@ class OrderItemModel extends OrderItem {
       quantity: entity.quantity,
       totalPriceOverride: entity.totalPriceOverride,
       note: entity.note,
+      isCombo: entity.isCombo,
+      status: entity.status,
+      upsellRuleId: entity.upsellRuleId,
     );
   }
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
-    final extraData = json['extras'] as Map<String, dynamic>? ??
+    final extraData =
+        json['extras'] as Map<String, dynamic>? ??
         json['products'] as Map<String, dynamic>? ??
         json['item'] as Map<String, dynamic>?;
 
-    final String? parsedNameAr = json['name_ar']?.toString() ?? extraData?['name_ar']?.toString();
-    final String? parsedNameEn = json['name_en']?.toString() ?? extraData?['name_en']?.toString();
+    final String? parsedNameAr =
+        json['name_ar']?.toString() ?? extraData?['name_ar']?.toString();
+    final String? parsedNameEn =
+        json['name_en']?.toString() ?? extraData?['name_en']?.toString();
 
-    final String rawName = parsedNameAr ??
+    final String rawName =
+        parsedNameAr ??
         parsedNameEn ??
         json['name']?.toString() ??
         json['product_name']?.toString() ??
@@ -48,11 +58,13 @@ class OrderItemModel extends OrderItem {
 
     final int parsedQty = (json['quantity'] as num?)?.toInt() ?? 1;
 
-    final double? rawTotal = (json['total_price'] as num?)?.toDouble() ??
+    final double? rawTotal =
+        (json['total_price'] as num?)?.toDouble() ??
         (json['total'] as num?)?.toDouble() ??
         (json['amount'] as num?)?.toDouble();
 
-    double parsedPrice = (json['unit_price'] as num?)?.toDouble() ??
+    double parsedPrice =
+        (json['unit_price'] as num?)?.toDouble() ??
         (json['price'] as num?)?.toDouble() ??
         (json['item_price'] as num?)?.toDouble() ??
         (extraData?['price'] as num?)?.toDouble() ??
@@ -62,8 +74,15 @@ class OrderItemModel extends OrderItem {
       parsedPrice = rawTotal / (parsedQty > 0 ? parsedQty : 1);
     }
 
+    final bool isCombo =
+        json['is_combo'] == true ||
+        json['combo_id'] != null ||
+        json['line_kind'] == 'combo_parent';
+
     return OrderItemModel(
-      id: json['id']?.toString() ??
+      id:
+          json['id']?.toString() ??
+          json['combo_id']?.toString() ??
           json['extra_id']?.toString() ??
           json['product_id']?.toString() ??
           extraData?['id']?.toString() ??
@@ -75,17 +94,38 @@ class OrderItemModel extends OrderItem {
       quantity: parsedQty,
       totalPriceOverride: rawTotal,
       note: json['note']?.toString() ?? json['notes']?.toString(),
+      isCombo: isCombo,
+      status: json['status']?.toString(),
+      upsellRuleId: json['upsell_rule_id']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        if (nameAr != null) 'name_ar': nameAr,
-        if (nameEn != null) 'name_en': nameEn,
-        'unit_price': price,
-        'price': price,
+    'id': id,
+    'name': name,
+    if (nameAr != null) 'name_ar': nameAr,
+    if (nameEn != null) 'name_en': nameEn,
+    'unit_price': price,
+    'price': price,
+    'quantity': quantity,
+    if (note != null) 'note': note,
+    'is_combo': isCombo,
+    if (status != null) 'status': status,
+    if (upsellRuleId != null) 'upsell_rule_id': upsellRuleId,
+  };
+
+  Map<String, dynamic> toOrderPayload() {
+    if (isCombo) {
+      return {
+        'combo_id': id,
+        if (upsellRuleId != null) 'upsell_rule_id': upsellRuleId,
         'quantity': quantity,
-        if (note != null) 'note': note,
       };
+    }
+    return {
+      'extra_id': id,
+      if (upsellRuleId != null) 'upsell_rule_id': upsellRuleId,
+      'quantity': quantity,
+    };
+  }
 }

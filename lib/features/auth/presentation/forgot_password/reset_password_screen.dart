@@ -24,6 +24,7 @@ class ResetPasswordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     final cubit = context.read<ForgotPasswordCubit>();
     return BlocListener<ForgotPasswordCubit, ForgotPasswordState>(
       listenWhen: (previous, current) => previous.status != current.status,
@@ -54,11 +55,15 @@ class ResetPasswordScreen extends StatelessWidget {
                   title: AppStrings.resetPassword.tr(),
                   subTitle: AppStrings.resetPasswordSubtitle.tr(),
                 ),
-                SizedBox(height: 260.h),
+                SizedBox(
+                  height: (MediaQuery.sizeOf(context).height * 0.12).clamp(
+                    24.0,
+                    100.0,
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: AppTextField(
-
                     controller: cubit.passwordController,
                     hint: AppStrings.newPassword.tr(),
                     isPassword: true,
@@ -72,14 +77,18 @@ class ResetPasswordScreen extends StatelessWidget {
                     controller: cubit.confirmPasswordController,
                     hint: AppStrings.confirmPassword.tr(),
                     isPassword: true,
-                    validator: (val) => AppValidators.validateConfirmPassword(val, cubit.passwordController.text),
+                    validator: (val) => AppValidators.validateConfirmPassword(
+                      val,
+                      cubit.passwordController.text,
+                    ),
                   ),
                 ),
                 SizedBox(height: 40.h),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: BlocBuilder<ForgotPasswordCubit, ForgotPasswordState>(
-                    buildWhen: (previous, current) => previous.status != current.status,
+                    buildWhen: (previous, current) =>
+                        previous.status != current.status,
                     builder: (context, state) {
                       return AppButton(
                         buttonConfig: ButtonConfig.gradient(
@@ -89,11 +98,14 @@ class ResetPasswordScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 50.h,
                         ),
-                        content: ButtonContent(label: AppStrings.resetPassword.tr()),
+                        content: ButtonContent(
+                          label: AppStrings.resetPassword.tr(),
+                        ),
                         behavior: TapBehavior(
                           isLoading: state.status.isLoading,
                           onTap: () {
-                            if (cubit.resetFormKey.currentState?.validate() ?? false) {
+                            if (cubit.resetFormKey.currentState?.validate() ??
+                                false) {
                               cubit.resetPassword();
                             }
                           },

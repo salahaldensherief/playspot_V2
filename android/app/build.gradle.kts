@@ -1,4 +1,5 @@
 import java.util.Properties
+import java.util.Base64
 
 plugins {
     id("com.android.application")
@@ -21,6 +22,31 @@ val hasReleaseSigning =
         !keystoreProperties.getProperty("keyAlias").isNullOrBlank() &&
         !keystoreProperties.getProperty("keyPassword").isNullOrBlank()
 
+val releaseTaskRequested = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+val allowDebugReleaseSigning =
+    providers.gradleProperty("allowDebugReleaseSigning").orNull == "true"
+
+// Native startup happens before Dart: keep Firebase's automatic provider off
+// for the explicitly selected local acceptance build as well.
+val localAcceptanceBuild = providers.gradleProperty("localAcceptanceBuild").orNull == "true"
+val localAcceptanceDart = providers.gradleProperty("dart-defines").orNull.orEmpty()
+    .split(",").filter { it.isNotEmpty() }.map {
+        String(Base64.getDecoder().decode(it), Charsets.UTF_8)
+    }.contains("PLAYSPOT_LOCAL_ACCEPTANCE=true")
+if (localAcceptanceBuild != localAcceptanceDart) {
+    throw GradleException("Local acceptance requires both -PlocalAcceptanceBuild=true and PLAYSPOT_LOCAL_ACCEPTANCE=true")
+}
+
+if (releaseTaskRequested && !hasReleaseSigning && !allowDebugReleaseSigning) {
+    throw GradleException(
+        "Release signing is not configured. Copy android/key.properties.example " +
+            "to android/key.properties and provide the release keystore values. " +
+            "CI compile-only builds may explicitly set -PallowDebugReleaseSigning=true.",
+    )
+}
+
 android {
     namespace = "com.playspot.app"
     compileSdk = 37
@@ -36,8 +62,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.playspot.client"
+        if (localAcceptanceBuild) applicationIdSuffix = ".local"
+        manifestPlaceholders["firebaseInitEnabled"] = (!localAcceptanceBuild).toString()
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -59,15 +86,20 @@ android {
 
     buildTypes {
         release {
-            signingConfig = when {
-                hasReleaseSigning -> signingConfigs.getByName("release")
-                System.getenv("CI") == "true" -> signingConfigs.getByName("debug")
-                else -> throw GradleException(
-                    "Release signing is not configured. Add android/key.properties " +
-                        "with storeFile, storePassword, keyAlias, and keyPassword."
-                )
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                // This path is allowed only by the explicit compile-only flag
+                // checked above. Production releases fail closed.
+                signingConfigs.getByName("debug")
             }
         }
+    }
+}
+
+if (localAcceptanceBuild) {
+    tasks.configureEach {
+        if (name.endsWith("GoogleServices")) enabled = false
     }
 }
 

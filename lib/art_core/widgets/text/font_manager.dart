@@ -1,14 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../theme/app_colors.dart';
 
 class FontsManager {
   static const String englishFontFamily = "Orbitron";
 
-  /// Returns Tajawal Google Font for Arabic
-  static String get arabicFontFamily => GoogleFonts.tajawal().fontFamily ?? 'Tajawal';
+  /// Bundled Arabic family, available without network access.
+  static const String arabicFontFamily = 'Tajawal';
 
   /// Helper to check if current locale is Arabic
   static bool isArabic(BuildContext context) {
@@ -76,14 +75,32 @@ class FontsManager {
     TextStyle? baseStyle,
   }) {
     final isAr = isArabic(context);
-    final rawSize = fontSize ?? 14.sp;
+    final rawSize = fontSize ?? baseStyle?.fontSize ?? 14.sp;
     final finalSize = getScaledFontSize(context, rawSize);
-    final finalFamily = fontFamily ?? (isAr ? arabicFontFamily : englishFontFamily);
-    final finalWeight = getFontWeight(context, fontWeight ?? baseStyle?.fontWeight);
-    final finalHeight = getLineHeight(context, height: height ?? baseStyle?.height);
-    final finalLetterSpacing = getLetterSpacing(context, letterSpacing ?? baseStyle?.letterSpacing);
+    final finalFamily = isAr
+        ? arabicFontFamily
+        : (fontFamily ?? englishFontFamily);
+    // Lounge names and addresses can contain Arabic in the English interface.
+    // Orbitron does not contain those glyphs; use the bundled family offline.
+    final fallbackFamilies = <String>{
+      ...?baseStyle?.fontFamilyFallback,
+      if (finalFamily != arabicFontFamily) arabicFontFamily,
+    }.toList();
+    final finalWeight = getFontWeight(
+      context,
+      fontWeight ?? baseStyle?.fontWeight,
+    );
+    final finalHeight = getLineHeight(
+      context,
+      height: height ?? baseStyle?.height,
+    );
+    final finalLetterSpacing = getLetterSpacing(
+      context,
+      letterSpacing ?? baseStyle?.letterSpacing,
+    );
 
-    final defaultColor = color ??
+    final defaultColor =
+        color ??
         baseStyle?.color ??
         Theme.of(context).textTheme.bodyMedium?.color ??
         AppColors.primary;
@@ -92,6 +109,7 @@ class FontsManager {
       return baseStyle.copyWith(
         fontSize: finalSize,
         fontFamily: finalFamily,
+        fontFamilyFallback: fallbackFamilies,
         fontWeight: finalWeight,
         color: defaultColor,
         height: finalHeight,
@@ -107,6 +125,7 @@ class FontsManager {
       fontWeight: finalWeight,
       height: finalHeight,
       fontFamily: finalFamily,
+      fontFamilyFallback: fallbackFamilies,
       letterSpacing: finalLetterSpacing,
       decoration: textDecoration,
       decorationColor: defaultColor,

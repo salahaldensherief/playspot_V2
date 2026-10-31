@@ -23,14 +23,14 @@ class BookingOfferInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-        originalHourlyRate,
-        discountedHourlyRate,
-        hourlyDiscountAmount,
-        discountPercentage,
-        discountLabel,
-        discountSource,
-        hasOffer,
-      ];
+    originalHourlyRate,
+    discountedHourlyRate,
+    hourlyDiscountAmount,
+    discountPercentage,
+    discountLabel,
+    discountSource,
+    hasOffer,
+  ];
 
   /// Priority Rules:
   /// 1. Direct Room Offer (`room.hasActivePromo && room.promoDiscountValue > 0`)
@@ -42,7 +42,9 @@ class BookingOfferInfo extends Equatable {
     required bool isSinglePlay,
     required bool isArabic,
   }) {
-    final originalRate = isSinglePlay ? room.hourlyRateSingle : room.hourlyRateMulti;
+    final originalRate = isSinglePlay
+        ? room.hourlyRateSingle
+        : room.hourlyRateMulti;
 
     // Priority 1: Direct Room Offer
     if (room.hasActivePromo && room.promoDiscountValue > 0) {
@@ -56,11 +58,18 @@ class BookingOfferInfo extends Equatable {
         discountAmount = originalRate - discountedRate;
       } else {
         discountAmount = room.promoDiscountValue;
-        discountedRate = (originalRate - room.promoDiscountValue).clamp(0.0, double.infinity);
-        percentage = originalRate > 0 ? ((discountAmount / originalRate) * 100.0) : 0.0;
+        discountedRate = (originalRate - room.promoDiscountValue).clamp(
+          0.0,
+          double.infinity,
+        );
+        percentage = originalRate > 0
+            ? ((discountAmount / originalRate) * 100.0)
+            : 0.0;
       }
 
-      final label = room.getPromoTag(isArabic) ?? (isArabic ? "عرض الغرفة" : "Room Offer");
+      final label =
+          room.getPromoTag(isArabic) ??
+          (isArabic ? "عرض الغرفة" : "Room Offer");
 
       return BookingOfferInfo(
         originalHourlyRate: originalRate,
@@ -78,7 +87,8 @@ class BookingOfferInfo extends Equatable {
       final percentage = lounge.discountPercentage.toDouble();
       final discountedRate = originalRate * (1 - (percentage / 100.0));
       final discountAmount = originalRate - discountedRate;
-      final label = lounge.getDiscountTitle(isArabic) ??
+      final label =
+          lounge.getDiscountTitle(isArabic) ??
           (isArabic ? "عرض الصالة $percentage%" : "Lounge Offer $percentage%");
 
       return BookingOfferInfo(
@@ -114,13 +124,18 @@ class BookingOfferInfo extends Equatable {
     final durationHours = durationMinutes / 60.0;
     final controllersRate = extraControllersCount * extraControllerPrice;
 
-    final originalRoomSubtotal = (originalHourlyRate + controllersRate) * durationHours;
-    final discountedRoomSubtotal = (discountedHourlyRate + controllersRate) * durationHours;
+    final originalRoomSubtotal =
+        (originalHourlyRate + controllersRate) * durationHours;
+    final discountedRoomSubtotal =
+        (discountedHourlyRate + controllersRate) * durationHours;
     final roomDiscountAmount = originalRoomSubtotal - discountedRoomSubtotal;
 
     final addonsTotal = extras.fold<double>(
       0.0,
-      (sum, item) => sum + (((item['price'] as num?)?.toDouble() ?? 0.0) * ((item['quantity'] as num?)?.toDouble() ?? 1.0)),
+      (sum, item) =>
+          sum +
+          (((item['price'] as num?)?.toDouble() ?? 0.0) *
+              ((item['quantity'] as num?)?.toDouble() ?? 1.0)),
     );
 
     final totalPrice = discountedRoomSubtotal + addonsTotal;

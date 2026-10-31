@@ -1,0 +1,13 @@
+# Room/session server invariants — 2026-10-04
+
+The previous operational-status RPC could mark a room available or under maintenance while a booking remained in progress. Session-start RPCs could also advance a booking even when the room had just entered maintenance; their subsequent conditional room update could simply affect no rows. UI-disabled controls did not protect the server invariant.
+
+New migration `20261004035454_room_active_session_invariants` was verified locally and applied live. Room status changes and transitions into `in_progress` share the room-row mutex. A room with a running booking must remain occupied/unavailable. A running booking cannot enter a missing/deleted/maintenance room, and a second running booking cannot enter the same room. The guards are table triggers, so alternate RPC/table writes cannot bypass them. The operational RPC now rejects inactive/banned actors, including stale super-admin accounts, while keeping its response and permission keys unchanged.
+
+Local PostgreSQL 17 passed 12 sequential fixture checks and three real concurrent transaction scenarios: maintenance versus start, start versus maintenance, and two simultaneous starts. The losing transaction waited approximately 1.52 seconds for the same row lock before receiving SQLSTATE 55000. The fixture models a start with its booking status transition; it does not replicate all hosted booking/loyalty/payment triggers. Initial concurrency instrumentation consumed buffered stdout after commit; it was corrected to observe `pg_stat_activity` showing PgSleep while the lock is held. The corrected tests passed all three cases.
+
+Reproduce only in a fresh local fixture database with administrative fixture privileges: load `supabase/tests/fixtures/room_active_session_fixture.sql`, the migration, then `supabase/tests/room_active_session_native.sql`. Run `python supabase/tests/room_active_session_concurrency.py PATH_TO_PSQL` against the dedicated localhost:55439 database `playspot_room_review_20261004`. Concurrent fixture records are cleaned up afterwards. Never target hosted production with these fixture scripts.
+
+Hosted read-only verification confirmed both enabled guards, no anonymous execution of the operational RPC and zero existing in-progress bookings when this review ran. No real session was started or ended, and no hosted room state was changed for testing. Dashboard displays safe Arabic/English messages for the new rejections. All financial calculations, room pricing, geographic coordinates and migration history remain outside this change.
+
+This closes these specific state races; it does not certify all reservation/hold/session financial flows, multi-device offline coordination, KYC lifecycle or Mobile UI readiness.

@@ -4,11 +4,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../data/models/booking_params.dart';
 import '../domain/repositories/booking_repository.dart';
 import '../domain/strategies/booking_slot_strategy.dart';
+import '../domain/repositories/booking_waitlist_repository.dart';
+import '../domain/usecases/join_booking_waitlist_usecase.dart';
+import '../domain/services/operational_slot_clock.dart';
 import 'booking_state.dart';
 
 class BookingCubit extends Cubit<BookingState> {
   final BookingRepository _bookingRepository;
   final BookingSlotStrategy _slotStrategy;
+  final JoinBookingWaitlistUseCase _joinWaitlist;
+  final BookingWaitlistRepository _waitlistRepository;
+  bool _waitlistInFlight = false;
+  bool _holdInFlight = false;
+  int _holdRequestVersion = 0;
+  int _availabilityRequestVersion = 0;
+  int _slotPricesRequestVersion = 0;
+  int _quoteRequestVersion = 0;
   final List<String> roomIds;
   final String loungeId;
   final String loungeOpeningTime;
@@ -19,64 +30,98 @@ class BookingCubit extends Cubit<BookingState> {
   BookingCubit(
     this._bookingRepository,
     this._slotStrategy,
-    BookingDetailsParams params,
-  )   : roomIds = params.rooms.map((r) => r.id).toList(),
-        loungeId = params.lounge.id,
-        loungeOpeningTime = params.lounge.openingTime,
-        loungeClosingTime = params.lounge.closingTime,
-        super(BookingState(
-          selectedDate: params.selectedDate,
-          playMode: params.playMode == 'multi' ? PlayMode.multi : PlayMode.single,
-          extraControllersCount: params.extraControllers,
-        )) {
+    BookingDetailsParams params, {
+    required JoinBookingWaitlistUseCase joinWaitlist,
+    required BookingWaitlistRepository waitlistRepository,
+  }) : roomIds = params.rooms.map((r) => r.id).toList(),
+       _joinWaitlist = joinWaitlist,
+       _waitlistRepository = waitlistRepository,
+       loungeId = params.lounge.id,
+       loungeOpeningTime = params.lounge.openingTime,
+       loungeClosingTime = params.lounge.closingTime,
+       super(
+         BookingState(
+           selectedDate: params.selectedDate,
+           playMode: params.playMode == 'multi'
+               ? PlayMode.multi
+               : PlayMode.single,
+           extraControllersCount: params.extraControllers,
+         ),
+       ) {
     fetchBookedSlots(state.selectedDate);
+    fetchRoomSlotsWithPrices(state.selectedDate);
   }
 
-  Future<void> fetchBookedSlots(DateTime date) async {
-    emit(state.copyWith(status: BookingStatus.loading, selectedDate: date));
-
-    final Set<TimeOfDay> allBookedSlots = {};
-    String? failureMsg;
-
-    for (final rid in roomIds) {
-      final result = await _bookingRepository.getRoomBookingsForDate(loungeId, date, roomId: rid);
-      result.fold(
-        (failure) => failureMsg = failure.message,
-        (rawBookings) {
-          final slots = _slotStrategy.calculateBookedSlots(
-            rawBookings: rawBookings,
-            roomId: rid,
-            date: date,
-          );
-          allBookedSlots.addAll(slots);
-        },
+  Future<String> joinWaitlist(TimeOfDay slot) async {
+    if (_waitlistInFlight || roomIds.length != 1) return 'waitlistUnavailable';
+    _waitlistInFlight = true;
+    try {
+      final startAt = _resolveOperationalDateTime(state.selectedDate, slot);
+      final result = await _joinWaitlist(
+        roomId: roomId,
+        startAt: startAt,
+        endAt: startAt.add(const Duration(hours: 1)),
       );
+      if (isClosed) return 'waitlistUnavailable';
+      final messageKey = result.fold<String>(
+        (failure) => switch (failure.message) {
+          'SLOT_AVAILABLE_NOW' => 'waitlistAvailableNow',
+          'ROOM_UNAVAILABLE' ||
+          'OUTSIDE_WORKING_HOURS' => 'waitlistUnavailable',
+          'WAITLIST_LIMIT' => 'waitlistLimit',
+          _ => 'waitlistFailed',
+        },
+        (_) => 'waitlistJoined',
+      );
+      return messageKey;
+    } finally {
+      _waitlistInFlight = false;
     }
-
-    if (failureMsg != null && allBookedSlots.isEmpty) {
-      emit(state.copyWith(
-        status: BookingStatus.error,
-        errorMessage: failureMsg,
-      ));
-      return;
-    }
-
-    emit(state.copyWith(
-      status: BookingStatus.success,
-      selectedDate: date,
-      bookedTimeSlots: allBookedSlots.toList(),
-    ));
   }
 
-  /// Atomically acquires a server-side hold for the full requested range.
-  Future<bool> verifyAvailabilityBeforeProceed() async {
-    final startTime = state.startTime;
-    if (startTime == null) return false;
+  Future<(bool, String?)> activeWaitlistRequest(TimeOfDay slot) async {
+    if (roomIds.length != 1) return (false, null);
+    final startAt = _resolveOperationalDateTime(state.selectedDate, slot);
+    final result = await _waitlistRepository.activeRequest(
+      roomId: roomId,
+      startAt: startAt,
+      endAt: startAt.add(const Duration(hours: 1)),
+    );
+    return result.fold((_) => (false, null), (id) => (true, id));
+  }
 
-    emit(state.copyWith(
-      status: BookingStatus.loading,
-      clearHold: true,
-    ));
+  Future<String> cancelWaitlist(String requestId) async {
+    final result = await _waitlistRepository.cancel(requestId);
+    return result.fold(
+      (_) => 'waitlistFailed',
+      (cancelled) => cancelled ? 'waitlistCancelled' : 'waitlistUnavailable',
+    );
+  }
+
+  Future<void> fetchRoomSlotsWithPrices(DateTime date) async {
+    if (roomId.isEmpty) return;
+    final requestVersion = ++_slotPricesRequestVersion;
+    final dateStr =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    final result = await _bookingRepository.getRoomSlotsWithPrices(
+      roomId: roomId,
+      date: dateStr,
+    );
+
+    if (isClosed || requestVersion != _slotPricesRequestVersion) return;
+
+    result.fold((_) => null, (slots) {
+      // Rule #2: filter out unpriced slots (hourlyRate <= 0)
+      final validSlots = slots.where((s) => s.isValidPriced).toList();
+      emit(state.copyWith(slotPrices: validSlots));
+    });
+  }
+
+  Future<void> fetchPriceQuote() async {
+    final requestVersion = ++_quoteRequestVersion;
+    final startTime = state.startTime;
+    if (startTime == null || roomId.isEmpty) return;
 
     final startDateTime = _resolveOperationalDateTime(
       state.selectedDate,
@@ -86,104 +131,175 @@ class BookingCubit extends Cubit<BookingState> {
       Duration(minutes: state.durationMinutes),
     );
 
-    final result = await _bookingRepository.acquireBookingHold(
-      roomIds: roomIds,
-      startTime: startDateTime,
-      endTime: endDateTime,
+    final dateStr =
+        "${startDateTime.year}-${startDateTime.month.toString().padLeft(2, '0')}-${startDateTime.day.toString().padLeft(2, '0')}";
+    final startStr =
+        "${startDateTime.hour.toString().padLeft(2, '0')}:${startDateTime.minute.toString().padLeft(2, '0')}:00";
+    final endStr =
+        "${endDateTime.hour.toString().padLeft(2, '0')}:${endDateTime.minute.toString().padLeft(2, '0')}:00";
+
+    final result = await _bookingRepository.quoteBookingPrice(
+      roomId: roomId,
+      date: dateStr,
+      startTime: startStr,
+      endTime: endStr,
+      playMode: state.playMode == PlayMode.single ? 'single' : 'multi',
+      extraControllers: state.extraControllersCount,
     );
 
-    if (isClosed) return false;
+    if (isClosed || requestVersion != _quoteRequestVersion) return;
 
-    return result.fold(
-      (failure) {
-        emit(
-          state.copyWith(
-            status: BookingStatus.error,
-            errorMessage: failure.message,
-            clearHold: true,
-          ),
-        );
-        return false;
-      },
-      (data) {
-        if (data['success'] != true) {
-          emit(
-            state.copyWith(
-              status: BookingStatus.error,
-              clearStartTime: true,
-              clearHold: true,
-              errorMessage:
-                  data['error_code']?.toString() ?? 'overlappingBookingError',
-            ),
-          );
-          return false;
-        }
-
-        final holdToken = data['hold_token']?.toString();
-        final holdExpiresAt = DateTime.tryParse(
-          data['hold_expires_at']?.toString() ?? '',
-        );
-
-        if (holdToken == null ||
-            holdToken.isEmpty ||
-            holdExpiresAt == null) {
-          emit(
-            state.copyWith(
-              status: BookingStatus.error,
-              clearHold: true,
-              errorMessage: 'bookingHoldFailed',
-            ),
-          );
-          return false;
-        }
-
-        emit(
-          state.copyWith(
-            status: BookingStatus.success,
-            holdToken: holdToken,
-            holdExpiresAt: holdExpiresAt,
-            heldStartAt: startDateTime,
-          ),
-        );
-        return true;
-      },
+    result.fold(
+      (_) => null,
+      (quote) => emit(state.copyWith(priceQuote: quote)),
     );
   }
 
-  DateTime _resolveOperationalDateTime(
-    DateTime selectedDate,
-    TimeOfDay time,
-  ) {
-    final openingMinutes = _parseTimeToMinutes(loungeOpeningTime);
-    final closingMinutes = _parseTimeToMinutes(loungeClosingTime);
-    final selectedMinutes = time.hour * 60 + time.minute;
+  Future<void> fetchBookedSlots(DateTime date) async {
+    final requestVersion = ++_availabilityRequestVersion;
+    emit(state.copyWith(status: BookingStatus.loading, selectedDate: date));
 
-    var dayOffset = 0;
-    if (openingMinutes != null &&
-        closingMinutes != null &&
-        closingMinutes <= openingMinutes &&
-        selectedMinutes < closingMinutes) {
-      dayOffset = 1;
+    final Set<TimeOfDay> allBookedSlots = {};
+    String? failureMsg;
+
+    for (final rid in roomIds) {
+      final result = await _bookingRepository.getRoomBookingsForDate(
+        loungeId,
+        date,
+        roomId: rid,
+      );
+      if (isClosed || requestVersion != _availabilityRequestVersion) return;
+      result.fold((failure) => failureMsg = failure.message, (rawBookings) {
+        final slots = _slotStrategy.calculateBookedSlots(
+          rawBookings: rawBookings,
+          roomId: rid,
+          date: date,
+        );
+        allBookedSlots.addAll(slots);
+      });
     }
 
-    return DateTime(
-      selectedDate.year,
-      selectedDate.month,
-      selectedDate.day + dayOffset,
-      time.hour,
-      time.minute,
+    if (failureMsg != null) {
+      emit(
+        state.copyWith(status: BookingStatus.error, errorMessage: failureMsg),
+      );
+      return;
+    }
+
+    emit(
+      state.copyWith(
+        status: BookingStatus.success,
+        selectedDate: date,
+        bookedTimeSlots: allBookedSlots.toList(),
+      ),
     );
   }
 
-  int? _parseTimeToMinutes(String raw) {
-    final parts = raw.split(':');
-    if (parts.length < 2) return null;
+  /// Atomically acquires a server-side hold for the full requested range.
+  Future<bool> verifyAvailabilityBeforeProceed() async {
+    if (isClosed || _holdInFlight || state.status == BookingStatus.loading) {
+      return false;
+    }
+    final startTime = state.startTime;
+    if (startTime == null) return false;
 
-    final hour = int.tryParse(parts[0]);
-    final minute = int.tryParse(parts[1]);
-    if (hour == null || minute == null) return null;
+    _holdInFlight = true;
+    final requestVersion = ++_holdRequestVersion;
+    try {
+      emit(state.copyWith(status: BookingStatus.loading, clearHold: true));
 
-    return hour * 60 + minute;
+      final startDateTime = _resolveOperationalDateTime(
+        state.selectedDate,
+        startTime,
+      );
+      final endDateTime = startDateTime.add(
+        Duration(minutes: state.durationMinutes),
+      );
+
+      final result = await _bookingRepository.acquireBookingHold(
+        roomIds: roomIds,
+        startTime: startDateTime,
+        endTime: endDateTime,
+      );
+
+      if (isClosed || requestVersion != _holdRequestVersion) {
+        final abandonedToken = result.fold<String?>(
+          (_) => null,
+          (data) =>
+              data['success'] == true ? data['hold_token']?.toString() : null,
+        );
+        if (abandonedToken != null && abandonedToken.isNotEmpty) {
+          await _bookingRepository.releaseBookingHold(abandonedToken);
+        }
+        return false;
+      }
+
+      return result.fold<bool>(
+        (failure) {
+          emit(
+            state.copyWith(
+              status: BookingStatus.error,
+              errorMessage: failure.message,
+              clearHold: true,
+            ),
+          );
+          return false;
+        },
+        (data) {
+          if (data['success'] != true) {
+            emit(
+              state.copyWith(
+                status: BookingStatus.error,
+                clearStartTime: true,
+                clearHold: true,
+                errorMessage:
+                    data['error_code']?.toString() ?? 'bookingHoldFailed',
+              ),
+            );
+            return false;
+          }
+
+          final holdToken = data['hold_token']?.toString();
+          final holdExpiresAt = DateTime.tryParse(
+            data['hold_expires_at']?.toString() ??
+                data['expires_at']?.toString() ??
+                '',
+          );
+
+          if (holdToken == null || holdToken.isEmpty || holdExpiresAt == null) {
+            emit(
+              state.copyWith(
+                status: BookingStatus.error,
+                clearHold: true,
+                errorMessage: 'bookingHoldFailed',
+              ),
+            );
+            return false;
+          }
+
+          emit(
+            state.copyWith(
+              status: BookingStatus.success,
+              holdToken: holdToken,
+              holdExpiresAt: holdExpiresAt,
+              heldStartAt: startDateTime,
+            ),
+          );
+          return true;
+        },
+      );
+    } finally {
+      _holdInFlight = false;
+    }
+  }
+
+  DateTime _resolveOperationalDateTime(DateTime selectedDate, TimeOfDay time) {
+    return const OperationalSlotClock().resolve(
+      businessDate: selectedDate,
+      slot: time,
+      opensAt: loungeOpeningTime,
+      closesAt: loungeClosingTime,
+    );
   }
 
   void selectDate(DateTime date) {
@@ -193,12 +309,28 @@ class BookingCubit extends Cubit<BookingState> {
       return;
     }
 
+    ++_holdRequestVersion;
     HapticFeedback.lightImpact();
+    emit(
+      state.copyWith(
+        selectedDate: date,
+        clearStartTime: true,
+        clearHold: true,
+        clearPriceQuote: true,
+        slotPrices: const [],
+        bookedTimeSlots: const [],
+      ),
+    );
     fetchBookedSlots(date);
+    fetchRoomSlotsWithPrices(date);
+    fetchPriceQuote();
   }
 
   /// Calculates maximum continuous free duration in minutes before the next booked slot
-  int getMaxAvailableDurationMinutes([TimeOfDay? customStartTime, BookingState? customState]) {
+  int getMaxAvailableDurationMinutes([
+    TimeOfDay? customStartTime,
+    BookingState? customState,
+  ]) {
     final sState = customState ?? state;
     final start = customStartTime ?? sState.startTime;
     if (start == null) return 720;
@@ -213,7 +345,9 @@ class BookingCubit extends Cubit<BookingState> {
     for (int i = 0; i < 48; i++) {
       final checkTime = startDateTime.add(Duration(minutes: i * 15));
       final tod = TimeOfDay(hour: checkTime.hour, minute: checkTime.minute);
-      if (sState.bookedTimeSlots.any((slot) => slot.hour == tod.hour && slot.minute == tod.minute)) {
+      if (sState.bookedTimeSlots.any(
+        (slot) => slot.hour == tod.hour && slot.minute == tod.minute,
+      )) {
         break; // Stop at the first booked slot!
       }
       free15MinCount++;
@@ -227,7 +361,8 @@ class BookingCubit extends Cubit<BookingState> {
     if (isSlotBooked(time)) return;
 
     final now = DateTime.now();
-    final isToday = state.selectedDate.year == now.year &&
+    final isToday =
+        state.selectedDate.year == now.year &&
         state.selectedDate.month == now.month &&
         state.selectedDate.day == now.day;
 
@@ -249,19 +384,26 @@ class BookingCubit extends Cubit<BookingState> {
     final maxAllowed = getMaxAvailableDurationMinutes(time, tempState);
     final cappedDuration = state.durationMinutes.clamp(15, maxAllowed);
 
-    emit(tempState.copyWith(durationMinutes: cappedDuration));
+    ++_holdRequestVersion;
+    emit(tempState.copyWith(durationMinutes: cappedDuration, clearHold: true));
+    fetchPriceQuote();
   }
 
   void setDurationMinutes(int minutes) {
     final maxAllowed = getMaxAvailableDurationMinutes();
     final cappedMinutes = minutes.clamp(15, maxAllowed);
     HapticFeedback.lightImpact();
-    emit(state.copyWith(durationMinutes: cappedMinutes));
+    ++_holdRequestVersion;
+    emit(state.copyWith(durationMinutes: cappedMinutes, clearHold: true));
+    fetchPriceQuote();
   }
 
   void updateDuration(int deltaMinutes) {
     final maxAllowed = getMaxAvailableDurationMinutes();
-    final newDuration = (state.durationMinutes + deltaMinutes).clamp(15, maxAllowed);
+    final newDuration = (state.durationMinutes + deltaMinutes).clamp(
+      15,
+      maxAllowed,
+    );
 
     if (newDuration == state.durationMinutes && deltaMinutes > 0) {
       HapticFeedback.vibrate();
@@ -269,11 +411,15 @@ class BookingCubit extends Cubit<BookingState> {
     }
 
     HapticFeedback.lightImpact();
-    emit(state.copyWith(durationMinutes: newDuration));
+    ++_holdRequestVersion;
+    emit(state.copyWith(durationMinutes: newDuration, clearHold: true));
+    fetchPriceQuote();
   }
 
   bool isSlotBooked(TimeOfDay time) {
-    return state.bookedTimeSlots.any((slot) => slot.hour == time.hour && slot.minute == time.minute);
+    return state.bookedTimeSlots.any(
+      (slot) => slot.hour == time.hour && slot.minute == time.minute,
+    );
   }
 
   bool isRangeAvailable(TimeOfDay start, int durationMinutes) {

@@ -1,5 +1,4 @@
-import 'dart:async';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:playspot/art_core/widgets/images/app_images.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,7 +10,9 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/theme/app_sizes.dart';
 import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
+
 import '../../../../art_core/widgets/text/app_text.dart';
+import '../../../../art_core/widgets/time/app_clock.dart';
 import '../../../tournaments/domain/entities/tournament_entity.dart';
 
 class TournamentPromoCard extends StatelessWidget {
@@ -32,11 +33,20 @@ class TournamentPromoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     final isArabic = context.locale.languageCode == 'ar';
-    final title = (isArabic ? (tournament.titleAr ?? tournament.title) : (tournament.titleEn ?? tournament.title)).isNotEmpty
-        ? (isArabic ? (tournament.titleAr ?? tournament.title) : (tournament.titleEn ?? tournament.title))
+    final title =
+        (isArabic
+                ? (tournament.titleAr ?? tournament.title)
+                : (tournament.titleEn ?? tournament.title))
+            .isNotEmpty
+        ? (isArabic
+              ? (tournament.titleAr ?? tournament.title)
+              : (tournament.titleEn ?? tournament.title))
         : tournament.title;
 
-    final targetDate = tournament.registrationClosesAt ?? tournament.startDate ?? DateTime.now().add(const Duration(days: 1));
+    final targetDate =
+        tournament.registrationClosesAt ??
+        tournament.startDate ??
+        DateTime.now().add(const Duration(days: 1));
 
     return GestureDetector(
       onTap: onTap,
@@ -59,11 +69,14 @@ class TournamentPromoCard extends StatelessWidget {
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(AppSizes.r24),
-                child: tournament.imageUrl != null && tournament.imageUrl!.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: tournament.imageUrl!,
+                child:
+                    tournament.imageUrl != null &&
+                        tournament.imageUrl!.isNotEmpty
+                    ? AppImage(
+                        borderRadius: 0,
+                        urlImg: tournament.imageUrl!,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
+                        placeholderWidget: Container(
                           color: AppColors.tournamentHeaderBg,
                           child: const Center(
                             child: AppLoader(
@@ -73,7 +86,7 @@ class TournamentPromoCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
+                        errorWidget: Container(
                           decoration: const BoxDecoration(
                             gradient: AppColors.tournamentPromoGradient,
                           ),
@@ -122,7 +135,10 @@ class TournamentPromoCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.neonBlue.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(AppSizes.r8),
@@ -132,13 +148,17 @@ class TournamentPromoCard extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(TablerIcons.swords, size: 12.sp, color: AppColors.neonBlue),
+                            Icon(
+                              TablerIcons.swords,
+                              size: 12.sp,
+                              color: AppColors.neonBlue,
+                            ),
                             4.horizontalSpace,
                             AppText(
                               text: AppStrings.tournaments.tr().toUpperCase(),
                               fontSize: 10.sp,
                               fontWeight: FontWeight.w900,
-                              fontFamily: 'Orbitron',
+
                               color: AppColors.neonBlue,
                             ),
                           ],
@@ -146,17 +166,22 @@ class TournamentPromoCard extends StatelessWidget {
                       ),
                       if (isRegistered && participant != null)
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.neonPurple.withValues(alpha: 0.35),
                             borderRadius: BorderRadius.circular(AppSizes.r8),
                             border: Border.all(color: AppColors.neonPurple),
                           ),
                           child: AppText(
-                            text: participant!.status.toDbString().toUpperCase(),
+                            text: participant!.status
+                                .toDbString()
+                                .toUpperCase(),
                             fontSize: 9.sp,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Orbitron',
+
                             color: AppColors.white,
                           ),
                         ),
@@ -167,7 +192,7 @@ class TournamentPromoCard extends StatelessWidget {
                     text: title,
                     fontSize: 17.sp,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'Orbitron',
+
                     color: AppColors.white,
                     height: 1.2,
                     maxLines: 1,
@@ -176,7 +201,11 @@ class TournamentPromoCard extends StatelessWidget {
                   Row(
                     children: [
                       if (isRegistered) ...[
-                        Icon(TablerIcons.clock, size: 14.sp, color: AppColors.neonBlue),
+                        Icon(
+                          TablerIcons.clock,
+                          size: 14.sp,
+                          color: AppColors.neonBlue,
+                        ),
                         4.horizontalSpace,
                         _TournamentCountdownTimer(targetDate: targetDate),
                         8.horizontalSpace,
@@ -184,7 +213,11 @@ class TournamentPromoCard extends StatelessWidget {
                       Expanded(
                         child: Row(
                           children: [
-                            Icon(TablerIcons.device_gamepad_2, size: 14.sp, color: AppColors.textSecondary),
+                            Icon(
+                              TablerIcons.device_gamepad_2,
+                              size: 14.sp,
+                              color: AppColors.textSecondary,
+                            ),
                             4.horizontalSpace,
                             Expanded(
                               child: AppText(
@@ -210,65 +243,40 @@ class TournamentPromoCard extends StatelessWidget {
   }
 }
 
-/// Isolated sub-widget for 1-second ticker badge (prevents rebuilding parent promo card)
-class _TournamentCountdownTimer extends StatefulWidget {
+class _TournamentCountdownTimer extends StatelessWidget {
   final DateTime targetDate;
 
   const _TournamentCountdownTimer({required this.targetDate});
 
   @override
-  State<_TournamentCountdownTimer> createState() => _TournamentCountdownTimerState();
-}
-
-class _TournamentCountdownTimerState extends State<_TournamentCountdownTimer> {
-  Timer? _timer;
-  Duration _timeLeft = Duration.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTimeLeft();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateTimeLeft();
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _updateTimeLeft() {
-    final now = DateTime.now();
-    final difference = widget.targetDate.difference(now);
-    if (mounted) {
-      setState(() {
-        _timeLeft = difference.isNegative ? Duration.zero : difference;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final hours = _timeLeft.inHours;
-    final minutes = _timeLeft.inMinutes.remainder(60);
-    final seconds = _timeLeft.inSeconds.remainder(60);
+    return AppClockBuilder(
+      builder: (context, now, child) {
+        final difference = targetDate.difference(now);
+        final timeLeft = difference.isNegative ? Duration.zero : difference;
+        final hours = timeLeft.inHours;
+        final minutes = timeLeft.inMinutes.remainder(60);
+        final seconds = timeLeft.inSeconds.remainder(60);
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-      decoration: BoxDecoration(
-        color: AppColors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.3)),
-      ),
-      child: AppText(
-        text: '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
-        fontSize: 11.sp,
-        fontWeight: FontWeight.bold,
-        fontFamily: 'Orbitron',
-        color: AppColors.neonBlue,
-      ),
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+          decoration: BoxDecoration(
+            color: AppColors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(6.r),
+            border: Border.all(
+              color: AppColors.neonBlue.withValues(alpha: 0.3),
+            ),
+          ),
+          child: AppText(
+            text:
+                '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+            fontSize: 11.sp,
+            fontWeight: FontWeight.bold,
+
+            color: AppColors.neonBlue,
+          ),
+        );
+      },
     );
   }
 }

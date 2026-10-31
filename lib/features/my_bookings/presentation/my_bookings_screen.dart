@@ -12,12 +12,12 @@ import 'package:playspot/art_core/widgets/layout/app_refresh_indicator.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 import 'package:playspot/features/my_bookings/presentation/widgets/booking_card.dart';
+import 'package:playspot/features/my_bookings/presentation/widgets/cancel_booking_reason_dialog.dart';
 import '../../../../art_core/app_strings.dart';
 import '../../../../art_core/theme/app_colors.dart';
 import '../../../../art_core/theme/app_sizes.dart';
 import '../../../../art_core/widgets/text/app_text.dart';
 import '../../../../art_core/widgets/layout/app_state_view.dart';
-import '../../../../art_core/widgets/layout/app_dialog.dart';
 import 'my_bookings_cubit.dart';
 import 'my_bookings_state.dart';
 
@@ -47,12 +47,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
   @override
   void initState() {
     super.initState();
-    final initIdx = (widget.initialTabIndex != null &&
+    final initIdx =
+        (widget.initialTabIndex != null &&
             widget.initialTabIndex! >= 0 &&
             widget.initialTabIndex! <= 2)
         ? widget.initialTabIndex!
         : 0;
-    _tabController = TabController(length: 3, vsync: this, initialIndex: initIdx);
+    _tabController = TabController(
+      length: 3,
+      vsync: this,
+      initialIndex: initIdx,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<MyBookingsCubit>().refreshBookingsIfStale();
@@ -99,7 +104,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       }
     }
 
-    if (targetTabIndex == -1 && widget.initialTabIndex != null && widget.initialTabIndex! >= 0 && widget.initialTabIndex! <= 2) {
+    if (targetTabIndex == -1 &&
+        widget.initialTabIndex != null &&
+        widget.initialTabIndex! >= 0 &&
+        widget.initialTabIndex! <= 2) {
       targetTabIndex = widget.initialTabIndex!;
     }
 
@@ -112,7 +120,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       if (targetId != null && targetId.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          final key = _cardKeys[targetId];
+          final key =
+              _cardKeys['${_tabController.index}_$targetId'] ??
+              _cardKeys[targetId];
           if (key != null && key.currentContext != null) {
             Scrollable.ensureVisible(
               key.currentContext!,
@@ -140,7 +150,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
         _checkAndHighlightBooking(state);
 
         // Toast feedback on cancellation success / failure
-        if (_previousCancellingId != null && state.cancellingBookingId == null) {
+        if (_previousCancellingId != null &&
+            state.cancellingBookingId == null) {
           if (state.status == MyBookingsStatus.success) {
             GameHudToast.show(
               context,
@@ -170,7 +181,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             backgroundColor: Colors.transparent,
             elevation: 0,
             automaticallyImplyLeading: false,
-            leading: (!widget.isTab || context.canPop() || Navigator.canPop(context))
+            leading:
+                (!widget.isTab || context.canPop() || Navigator.canPop(context))
                 ? BackButtonWidget(
                     onPressed: () {
                       if (context.canPop() || Navigator.canPop(context)) {
@@ -186,7 +198,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
               fontSize: 24.sp,
               fontWeight: FontWeight.bold,
               color: AppColors.white,
-              fontFamily: 'Orbitron',
             ),
             bottom: TabBar(
               controller: _tabController,
@@ -198,17 +209,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
               unselectedLabelColor: AppColors.textSecondary,
               indicatorSize: TabBarIndicatorSize.tab,
               dividerColor: AppColors.borderDefault,
-              labelStyle: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
+              labelStyle: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.bold,
+              ),
               tabs: [
-                Tab(
-                  text: AppStrings.upcoming.tr(),
-                ),
-                Tab(
-                  text: AppStrings.past.tr(),
-                ),
-                Tab(
-                  text: AppStrings.cancelled.tr(),
-                ),
+                Tab(text: AppStrings.upcoming.tr()),
+                Tab(text: AppStrings.past.tr()),
+                Tab(text: AppStrings.cancelled.tr()),
               ],
             ),
           ),
@@ -226,7 +234,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                   state.pastBookings.isEmpty &&
                   state.cancelledBookings.isEmpty) {
                 return AppStateView.error(
-                  title: state.errorMessage ?? AppStrings.errorLoadingBookings.tr(),
+                  title:
+                      state.errorMessage ??
+                      AppStrings.errorLoadingBookings.tr(),
                   onRetry: () => context
                       .read<MyBookingsCubit>()
                       .refreshBookingsIfStale(force: true),
@@ -288,8 +298,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                 child: AppStateView.empty(
                   title: emptyMessage,
                   icon: emptyIcon,
-                  actionLabel: isUpcomingTab ? AppStrings.exploreLoungesAndBook.tr() : null,
-                  onAction: isUpcomingTab ? () => context.goNamed(RouterKeys.home) : null,
+                  actionLabel: isUpcomingTab
+                      ? AppStrings.exploreLoungesAndBook.tr()
+                      : null,
+                  onAction: isUpcomingTab
+                      ? () => context.goNamed(RouterKeys.home)
+                      : null,
                 ),
               ),
             )
@@ -302,12 +316,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
               itemBuilder: (context, index) {
                 if (index == bookings.length) {
                   return const SafeBottomSpacer(
-                      extraPadding: 150, androidOnly: false);
+                    extraPadding: 150,
+                    androidOnly: false,
+                  );
                 }
                 final booking = bookings[index];
                 final isHighlighted = booking.id == widget.highlightedBookingId;
                 final isCancelling = booking.id == cancellingBookingId;
-                final cardKey = _cardKeys.putIfAbsent(booking.id, () => GlobalKey());
+                final cardKey = _cardKeys.putIfAbsent(
+                  '${_tabController.index}_${booking.id}',
+                  () => GlobalKey(),
+                );
 
                 return KeyedSubtree(
                   key: cardKey,
@@ -324,16 +343,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     );
   }
 
-  void _showCancelConfirmation(BuildContext context, String bookingId) {
-    AppDialog.show(
-      context,
-      type: AppDialogType.confirm,
-      title: AppStrings.cancelBookingTitle,
-      description: AppStrings.cancelBookingSubtitle,
-      confirmText: AppStrings.yesCancel,
-      cancelText: AppStrings.keepBooking,
-      onConfirm: () =>
-          context.read<MyBookingsCubit>().cancelBooking(bookingId),
+  Future<void> _showCancelConfirmation(
+    BuildContext context,
+    String bookingId,
+  ) async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => const CancelBookingReasonDialog(),
     );
+    if (!context.mounted || reason == null) return;
+    await context.read<MyBookingsCubit>().cancelBooking(bookingId, reason);
   }
 }

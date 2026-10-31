@@ -23,6 +23,7 @@ class SignInScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return BlocListener<SignInCubit, LoginState>(
       listenWhen: (previous, current) => previous.status != current.status,
       listener: _handleStateChange,
@@ -34,13 +35,15 @@ class SignInScreen extends StatelessWidget {
                 title: AppStrings.signIn.tr(),
                 subTitle: AppStrings.signInSubtitle.tr(),
               ),
-              180.verticalSpace,
+              SizedBox(
+                height: (MediaQuery.sizeOf(context).height * 0.08).clamp(
+                  24.0,
+                  80.0,
+                ),
+              ),
               const SocialSection(),
               20.verticalSpace,
-              Padding(
-                padding: 16.horizontalPadding,
-                child: const SignInForm(),
-              ),
+              Padding(padding: 16.horizontalPadding, child: const SignInForm()),
               20.verticalSpace,
               Padding(
                 padding: 16.horizontalPadding,

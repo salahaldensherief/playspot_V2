@@ -1,7 +1,16 @@
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
-enum NotificationType { booking, offer, loyalty, system, kyc, tournament, canteen, staff }
+enum NotificationType {
+  booking,
+  offer,
+  loyalty,
+  system,
+  kyc,
+  tournament,
+  canteen,
+  staff,
+}
 
 class NotificationModel extends Equatable {
   final String id;
@@ -62,19 +71,19 @@ class NotificationModel extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        title,
-        body,
-        titleAr,
-        titleEn,
-        bodyAr,
-        bodyEn,
-        createdAt,
-        isRead,
-        type,
-        status,
-        data,
-      ];
+    id,
+    title,
+    body,
+    titleAr,
+    titleEn,
+    bodyAr,
+    bodyEn,
+    createdAt,
+    isRead,
+    type,
+    status,
+    data,
+  ];
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     final titleAr = json['title_ar']?.toString();
@@ -118,7 +127,9 @@ class NotificationModel extends Equatable {
       titleEn: titleEn,
       bodyAr: bodyAr,
       bodyEn: bodyEn,
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+          : DateTime.now(),
       isRead: json['is_read'] as bool? ?? false,
       type: _parseType(json['type'] as String? ?? ''),
       status: status,
@@ -167,14 +178,19 @@ class NotificationModel extends Equatable {
       titleEn: titleEn,
       bodyAr: bodyAr,
       bodyEn: bodyEn,
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now() : DateTime.now(),
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+          : DateTime.now(),
       isRead: json['is_read'] as bool? ?? false,
       type: _parseType(json['type'] as String? ?? ''),
       data: parsedData,
     );
   }
 
-  static Map<String, dynamic>? _parseData(dynamic rawData, [dynamic rawMetadata]) {
+  static Map<String, dynamic>? _parseData(
+    dynamic rawData, [
+    dynamic rawMetadata,
+  ]) {
     final raw = rawData ?? rawMetadata;
     if (raw == null) return null;
     if (raw is Map) {
@@ -197,7 +213,9 @@ class NotificationModel extends Equatable {
       return NotificationType.booking;
     } else if (t.contains('tournament')) {
       return NotificationType.tournament;
-    } else if (t.contains('canteen') || t.contains('order') || t.contains('service')) {
+    } else if (t.contains('canteen') ||
+        t.contains('order') ||
+        t.contains('service')) {
       return NotificationType.canteen;
     } else if (t.contains('staff') || t.contains('shift')) {
       return NotificationType.staff;

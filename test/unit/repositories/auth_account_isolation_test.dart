@@ -6,6 +6,7 @@ import 'package:playspot/features/auth/data/models/user_model.dart';
 import 'package:playspot/features/auth/data/repositories/auth_repository_impl.dart';
 
 class _Remote extends Mock implements AuthRemoteSource {}
+
 class _Local extends Mock implements AuthLocalDataSource {}
 
 void main() {
@@ -22,22 +23,24 @@ void main() {
 
   test('new account never inherits the previous account phone', () {
     when(() => remote.getCurrentUser()).thenReturn(const UserModel(id: 'new'));
-    when(() => local.getCachedUser()).thenReturn(
-      const UserModel(id: 'previous', phone: '01000000000'),
-    );
+    when(
+      () => local.getCachedUser(),
+    ).thenReturn(const UserModel(id: 'previous', phone: '01000000000'));
     final user = repository.getCurrentUser();
     expect(user?.id, 'new');
     expect(user?.phone, isNull);
-    final saved = verify(() => local.saveUserData(captureAny())).captured.single as UserModel;
+    final saved =
+        verify(() => local.saveUserData(captureAny())).captured.single
+            as UserModel;
     expect(saved.id, 'new');
     expect(saved.phone, isNull);
   });
 
   test('same account can retain its cached phone', () {
     when(() => remote.getCurrentUser()).thenReturn(const UserModel(id: 'same'));
-    when(() => local.getCachedUser()).thenReturn(
-      const UserModel(id: 'same', phone: '01000000000'),
-    );
+    when(
+      () => local.getCachedUser(),
+    ).thenReturn(const UserModel(id: 'same', phone: '01000000000'));
     expect(repository.getCurrentUser()?.phone, '01000000000');
   });
 
@@ -48,7 +51,11 @@ void main() {
   });
 
   test('profile copy retains and updates the ban explanation', () {
-    const user = UserModel(id: 'same', isBanned: true, bannedReason: 'existing');
+    const user = UserModel(
+      id: 'same',
+      isBanned: true,
+      bannedReason: 'existing',
+    );
     expect(user.copyWith(phone: '01000000000').bannedReason, 'existing');
     expect(user.copyWith(bannedReason: 'updated').bannedReason, 'updated');
   });
@@ -64,10 +71,15 @@ void main() {
   test('session metadata does not erase a cached database ban', () {
     when(() => remote.getCurrentUser()).thenReturn(const UserModel(id: 'same'));
     when(() => local.getCachedUser()).thenReturn(
-      const UserModel(id: 'same', role: 'user', isBanned: true, bannedReason: 'server reason'));
+      const UserModel(
+        id: 'same',
+        role: 'user',
+        isBanned: true,
+        bannedReason: 'server reason',
+      ),
+    );
     final user = repository.getCurrentUser();
     expect(user?.isBanned, true);
     expect(user?.bannedReason, 'server reason');
   });
-
 }

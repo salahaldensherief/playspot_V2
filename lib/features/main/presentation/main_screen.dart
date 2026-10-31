@@ -1,3 +1,4 @@
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
@@ -42,7 +43,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   late int _selectedIndex;
   int? _previousPointsBalance;
-  
+
   final Map<int, DateTime> _lastRefreshTime = {};
   final Map<int, bool> _hasPendingRefresh = {};
   final Map<int, Timer?> _pendingRefreshTimers = {};
@@ -55,9 +56,14 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _selectedIndex = widget.initialIndex;
     _previousPointsBalance = context.read<ProfileCubit>().state.pointsBalance;
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshModuleData(_selectedIndex);
+      if (!mounted) return;
+      if (_selectedIndex == 0) {
+        context.read<ActiveSessionCubit>().loadActiveSession();
+      } else {
+        _refreshModuleData(_selectedIndex);
+      }
       _lastRefreshTime[_selectedIndex] = DateTime.now();
     });
   }
@@ -67,7 +73,9 @@ class _MainScreenState extends State<MainScreen> {
     for (final timer in _pendingRefreshTimers.values) {
       timer?.cancel();
     }
-    AppLogger.debug("CLEAN_UP: MainScreen and Home branch disposed successfully.");
+    AppLogger.debug(
+      "CLEAN_UP: MainScreen and Home branch disposed successfully.",
+    );
     super.dispose();
   }
 
@@ -99,7 +107,8 @@ class _MainScreenState extends State<MainScreen> {
       }
     }
 
-    final bool isStale = lastRefresh == null || now.difference(lastRefresh) > _refreshThreshold;
+    final bool isStale =
+        lastRefresh == null || now.difference(lastRefresh) > _refreshThreshold;
 
     if (force || isStale) {
       _lastRefreshTime[index] = now;
@@ -112,7 +121,9 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _refreshModuleData(int index, {bool force = false}) {
-    AppLogger.debug("AUTO_REFRESH: Refreshing data for module index $index (force=$force)");
+    AppLogger.debug(
+      "AUTO_REFRESH: Refreshing data for module index $index (force=$force)",
+    );
     try {
       switch (index) {
         case 0:
@@ -132,8 +143,6 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-
-
   @override
   void didUpdateWidget(covariant MainScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -147,13 +156,13 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     context.watch<LocaleCubit>();
     final screens = [
-      const HomeScreen(),
+      HomeScreen(isActive: _selectedIndex == 0),
       const MyBookingsScreen(isTab: true),
       const ProfileScreen(),
     ];
 
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    final double navBarBottom = !kIsWeb && Platform.isAndroid 
+    final double navBarBottom = !kIsWeb && Platform.isAndroid
         ? (bottomPadding > 0 ? bottomPadding + 10.h : 20.h)
         : 30.h;
 
@@ -166,7 +175,9 @@ class _MainScreenState extends State<MainScreen> {
         ),
         BlocListener<ActiveSessionCubit, ActiveSessionState>(
           listenWhen: (prev, curr) =>
-              prev.status != ActiveSessionStatus.loaded && curr.status == ActiveSessionStatus.loaded && curr.session != null,
+              prev.status != ActiveSessionStatus.loaded &&
+              curr.status == ActiveSessionStatus.loaded &&
+              curr.session != null,
           listener: (context, state) {
             try {
               context.pushNamed(RouterKeys.activeSession);
@@ -181,10 +192,12 @@ class _MainScreenState extends State<MainScreen> {
               final gainedPoints = state.pointsBalance - prev;
               GameHudToast.show(
                 context,
-                AppStrings.pointsEarnedToast.tr(args: [
-                  gainedPoints.toString(),
-                  state.pointsBalance.toString(),
-                ]),
+                AppStrings.pointsEarnedToast.tr(
+                  args: [
+                    gainedPoints.toString(),
+                    state.pointsBalance.toString(),
+                  ],
+                ),
                 type: ToastType.success,
               );
             }
@@ -225,9 +238,7 @@ class _MainScreenState extends State<MainScreen> {
                     left: 0,
                     right: 0,
                     bottom: navBarBottom,
-                    child: RepaintBoundary(
-                      child: _buildGlassNavBar(),
-                    ),
+                    child: RepaintBoundary(child: _buildGlassNavBar()),
                   ),
                 ],
               ),
@@ -244,12 +255,14 @@ class _MainScreenState extends State<MainScreen> {
 
     return Container(
       margin: 24.horizontalPadding,
-      height: 68.h,
+      height:
+          72.h +
+          20.h * (MediaQuery.textScalerOf(context).scale(1) - 1).clamp(0, 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(34.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withAlpha((255 * 0.4).round()),
             blurRadius: 25,
             offset: const Offset(0, 10),
           ),
@@ -261,18 +274,26 @@ class _MainScreenState extends State<MainScreen> {
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.02),
+              color: isDark
+                  ? Colors.white.withAlpha((255 * 0.03).round())
+                  : Colors.black.withAlpha((255 * 0.02).round()),
               borderRadius: BorderRadius.circular(34.r),
               border: Border.all(
-                color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.08),
+                color: isDark
+                    ? Colors.white.withAlpha((255 * 0.08).round())
+                    : Colors.black.withAlpha((255 * 0.08).round()),
                 width: 1.0,
               ),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
-                  isDark ? Colors.white.withOpacity(0.01) : Colors.black.withOpacity(0.01),
+                  isDark
+                      ? Colors.white.withAlpha((255 * 0.08).round())
+                      : Colors.black.withAlpha((255 * 0.05).round()),
+                  isDark
+                      ? Colors.white.withAlpha((255 * 0.01).round())
+                      : Colors.black.withAlpha((255 * 0.01).round()),
                 ],
               ),
             ),
@@ -280,7 +301,11 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(0, TablerIcons.home, AppStrings.home.tr()),
-                _buildNavItem(1, TablerIcons.calendar, AppStrings.bookings.tr()),
+                _buildNavItem(
+                  1,
+                  TablerIcons.calendar,
+                  AppStrings.bookings.tr(),
+                ),
                 _buildNavItem(2, TablerIcons.user, AppStrings.profile.tr()),
               ],
             ),
@@ -293,52 +318,71 @@ class _MainScreenState extends State<MainScreen> {
   Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _selectedIndex == index;
 
-    return GestureDetector(
-      onTap: () => _onItemTapped(index),
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            width: 50.w,
-            duration: const Duration(milliseconds: 300),
-            padding: 8.allPadding,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppSizes.r12),
-              color: isSelected ? AppColors.neonBlue.withOpacity(0.12) : Colors.transparent, 
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: AppColors.neonBlue.withOpacity(0.3),
-                        blurRadius: 15,
-                        spreadRadius: 1,
-                      )
-                    ]
-                  : [],
-            ),
-            child: Icon(
-              icon,
-              color: isSelected ? AppColors.neonBlue : Colors.white.withOpacity(0.4),
-              size: 20.sp,
-            ),
-          ),
-          4.verticalSpace,
-          if (isSelected)
-            Text(
-              label,
-              style: TextStyle(
-                color: AppColors.neonBlue,
-                fontSize: 9.sp,
-                fontWeight: FontWeight.w600,
-                shadows: [
-                  Shadow(
-                    color: AppColors.neonBlue.withOpacity(0.6),
-                    blurRadius: 10,
-                  ),
-                ],
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: label,
+        child: InkWell(
+          onTap: () => _onItemTapped(index),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                width: 50.w,
+                duration: const Duration(milliseconds: 300),
+                padding: 8.allPadding,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppSizes.r12),
+                  color: isSelected
+                      ? AppColors.neonBlue.withAlpha((255 * 0.12).round())
+                      : Colors.transparent,
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.neonBlue.withAlpha(
+                              (255 * 0.3).round(),
+                            ),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Icon(
+                  icon,
+                  color: isSelected
+                      ? AppColors.neonBlue
+                      : Colors.white.withAlpha((255 * 0.4).round()),
+                  size: 20.sp,
+                ),
               ),
-            ),
-        ],
+              4.verticalSpace,
+              AppText(
+                text: label,
+                style: TextStyle(
+                  color: isSelected
+                      ? AppColors.neonBlue
+                      : AppColors.textSecondary,
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                  shadows: isSelected
+                      ? [
+                          Shadow(
+                            color: AppColors.neonBlue.withAlpha(
+                              (255 * 0.6).round(),
+                            ),
+                            blurRadius: 10,
+                          ),
+                        ]
+                      : null,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

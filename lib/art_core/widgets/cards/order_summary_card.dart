@@ -10,24 +10,27 @@ class OrderItemData {
   final String name;
   final int quantity;
   final double price;
+  final double? totalPrice;
   final IconData? icon;
+  final String? status;
 
   const OrderItemData({
     required this.name,
     required this.quantity,
     required this.price,
+    this.totalPrice,
     this.icon,
+    this.status,
   });
+
+  double get effectiveTotal => totalPrice ?? (price * quantity);
 }
 
 class DiscountData {
   final String label;
   final double amount;
 
-  const DiscountData({
-    required this.label,
-    required this.amount,
-  });
+  const DiscountData({required this.label, required this.amount});
 }
 
 class OrderSummaryCard extends StatefulWidget {
@@ -35,18 +38,18 @@ class OrderSummaryCard extends StatefulWidget {
   final String? subtitle;
   final String? statusText;
   final Color? statusColor;
-  
+
   // Session / Base cost breakdown
   final String baseCostLabel;
   final double baseCostAmount;
   final List<Map<String, dynamic>> sessionDetailsRows;
-  
+
   // Canteen / Add-ons items
   final List<OrderItemData> canteenItems;
-  
+
   // Discounts & Vouchers
   final List<DiscountData> discounts;
-  
+
   final double grandTotal;
   final String? currencySymbol;
 
@@ -94,10 +97,9 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
         ? widget.canteenItems
         : widget.canteenItems.take(maxVisibleCanteenItems).toList();
 
-    final canteenSubtotal = widget.canteenItems.fold<double>(
-      0.0,
-      (sum, item) => sum + (item.price * item.quantity),
-    );
+    final canteenSubtotal = widget.canteenItems
+        .where((item) => item.status?.toLowerCase() != 'cancelled')
+        .fold<double>(0.0, (sum, item) => sum + item.effectiveTotal);
 
     return Container(
       decoration: BoxDecoration(
@@ -147,20 +149,27 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                 ),
                 if (widget.statusText != null) ...[
                   SizedBox(width: 8.w),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                    decoration: BoxDecoration(
-                      color: (widget.statusColor ?? AppColors.success).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: (widget.statusColor ?? AppColors.success).withValues(alpha: 0.4),
+                  Flexible(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 5.h,
                       ),
-                    ),
-                    child: AppText(
-                      text: widget.statusText!,
-                      fontSize: 11.5.sp,
-                      fontWeight: FontWeight.bold,
-                      color: widget.statusColor ?? AppColors.success,
+                      decoration: BoxDecoration(
+                        color: (widget.statusColor ?? AppColors.success)
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(
+                          color: (widget.statusColor ?? AppColors.success)
+                              .withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: AppText(
+                        text: widget.statusText!,
+                        fontSize: 11.5.sp,
+                        fontWeight: FontWeight.bold,
+                        color: widget.statusColor ?? AppColors.success,
+                      ),
                     ),
                   ),
                 ],
@@ -187,11 +196,13 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                       color: AppColors.neonBlue,
                     ),
                     SizedBox(width: 8.w),
-                    AppText(
-                      text: AppStrings.sessionDetails.tr(),
-                      fontSize: 13.5.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.neonBlue,
+                    Expanded(
+                      child: AppText(
+                        text: AppStrings.sessionDetails.tr(),
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.neonBlue,
+                      ),
                     ),
                   ],
                 ),
@@ -211,7 +222,8 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                       ),
                       SizedBox(width: 8.w),
                       AppText(
-                        text: "${widget.baseCostAmount.toStringAsFixed(2)} $currency",
+                        text:
+                            "${widget.baseCostAmount.toStringAsFixed(2)} $currency",
                         fontSize: 13.5.sp,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -272,7 +284,9 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                             SizedBox(width: 8.w),
                             Expanded(
                               child: AppText(
-                                text: isArabic ? "الكانتين والأصناف الإضافية" : "Canteen & Items",
+                                text: isArabic
+                                    ? "الكانتين والأصناف الإضافية"
+                                    : "Canteen & Items",
                                 fontSize: 13.5.sp,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -282,7 +296,6 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                           ],
                         ),
                       ),
-                      SizedBox(width: 8.w),
                       AppText(
                         text: "${canteenSubtotal.toStringAsFixed(2)} $currency",
                         fontSize: 13.sp,
@@ -300,33 +313,47 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                         children: [
                           // Quantity Chip before item name (solves Arabic RTL text direction & rapid scanning)
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 7.w,
+                              vertical: 2.5.h,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.neonBlue.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(6.r),
                             ),
                             child: AppText(
                               text: "${item.quantity}×",
-                              fontSize: 11.5.sp,
+                              fontSize: 11.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.neonBlue,
                             ),
                           ),
-                          SizedBox(width: 10.w),
+                          SizedBox(width: 8.w),
                           Expanded(
                             child: AppText(
                               text: item.name,
-                              fontSize: 13.sp,
-                              color: Colors.white,
+                              fontSize: 12.5.sp,
+                              maxLines: 1,
+                              color: item.status?.toLowerCase() == 'cancelled'
+                                  ? AppColors.textSecondary
+                                  : Colors.white,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          SizedBox(width: 8.w),
+                          if (item.status != null &&
+                              item.status!.isNotEmpty) ...[
+                            SizedBox(width: 4.w),
+                            _buildOrderStatusBadge(item.status!),
+                          ],
+                          SizedBox(width: 6.w),
                           AppText(
-                            text: "${(item.price * item.quantity).toStringAsFixed(2)} $currency",
-                            fontSize: 13.sp,
+                            text:
+                                "${item.effectiveTotal.toStringAsFixed(2)} $currency",
+                            fontSize: 12.5.sp,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: item.status?.toLowerCase() == 'cancelled'
+                                ? AppColors.textSecondary
+                                : Colors.white,
                           ),
                         ],
                       ),
@@ -334,7 +361,9 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                   if (hasMoreCanteen) ...[
                     SizedBox(height: 6.h),
                     GestureDetector(
-                      onTap: () => setState(() => _isCanteenExpanded = !_isCanteenExpanded),
+                      onTap: () => setState(
+                        () => _isCanteenExpanded = !_isCanteenExpanded,
+                      ),
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 4.h),
                         child: Row(
@@ -342,15 +371,24 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                           children: [
                             AppText(
                               text: _isCanteenExpanded
-                                  ? (isArabic ? "عرض أقل" : "Show less")
-                                  : "+${widget.canteenItems.length - maxVisibleCanteenItems} ${isArabic ? "أصناف أخرى" : "more items"}...",
+                                  ? AppStrings.showLess.tr()
+                                  : AppStrings.moreCanteenItems.tr(
+                                      namedArgs: {
+                                        'count':
+                                            (widget.canteenItems.length -
+                                                    maxVisibleCanteenItems)
+                                                .toString(),
+                                      },
+                                    ),
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold,
                               color: AppColors.neonBlue,
                             ),
                             SizedBox(width: 4.w),
                             Icon(
-                              _isCanteenExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                              _isCanteenExpanded
+                                  ? Icons.keyboard_arrow_up
+                                  : Icons.keyboard_arrow_down,
                               size: 16.sp,
                               color: AppColors.neonBlue,
                             ),
@@ -390,7 +428,8 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                           ),
                           SizedBox(width: 8.w),
                           AppText(
-                            text: "-${discount.amount.toStringAsFixed(2)} $currency",
+                            text:
+                                "-${discount.amount.toStringAsFixed(2)} $currency",
                             fontSize: 13.sp,
                             fontWeight: FontWeight.bold,
                             color: AppColors.success,
@@ -429,16 +468,60 @@ class _OrderSummaryCardState extends State<OrderSummaryCard> {
                   ),
                 ),
                 SizedBox(width: 8.w),
-                AppText(
-                  text: "${widget.grandTotal.toStringAsFixed(2)} $currency",
-                  fontSize: 20.sp,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.neonBlue,
+                Flexible(
+                  child: AppText(
+                    text: "${widget.grandTotal.toStringAsFixed(2)} $currency",
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.neonBlue,
+                  ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOrderStatusBadge(String status) {
+    String label;
+    Color color;
+    switch (status.toLowerCase()) {
+      case 'preparing':
+        label = AppStrings.orderStatusPreparing.tr();
+        color = AppColors.neonBlue;
+        break;
+      case 'delivered':
+        label = AppStrings.orderStatusDelivered.tr();
+        color = AppColors.success;
+        break;
+      case 'completed':
+        label = AppStrings.orderStatusCompleted.tr();
+        color = AppColors.success;
+        break;
+      case 'cancelled':
+        label = AppStrings.orderStatusCancelled.tr();
+        color = AppColors.danger;
+        break;
+      case 'pending':
+      default:
+        label = AppStrings.orderStatusPending.tr();
+        color = AppColors.warning;
+        break;
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: AppText(
+        text: label,
+        fontSize: 9.5.sp,
+        fontWeight: FontWeight.bold,
+        color: color,
       ),
     );
   }

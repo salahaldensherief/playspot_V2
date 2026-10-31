@@ -17,7 +17,9 @@ abstract class AuthRepository {
     required SignUpParams params,
   });
   Future<Either<Failure, void>> resendSignupOTP(String email);
-  Future<Either<Failure, UserModel>> completeProfile(CompleteProfileParams params);
+  Future<Either<Failure, UserModel>> completeProfile(
+    CompleteProfileParams params,
+  );
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
   Future<Either<Failure, void>> verifyPasswordResetOTP({
     required String email,

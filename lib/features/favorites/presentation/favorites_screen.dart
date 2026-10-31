@@ -1,3 +1,5 @@
+import 'package:playspot/art_core/app_strings.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -38,8 +40,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButtonWidget(),
-        title: const AppText(
-          text: "My Favorites",
+        title: AppText(
+          text: AppStrings.favoritesTitle.tr(),
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
@@ -54,7 +56,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
             if (state.status == FavoritesStatus.failure) {
               return AppStateView.error(
-                title: state.errorMessage ?? "Error loading favorites",
+                title: AppStrings.favoritesLoadError.tr(),
                 onRetry: () =>
                     context.read<FavoritesCubit>().getFavoriteLounges(),
               );
@@ -62,11 +64,21 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
             if (state.favoriteLounges.isEmpty) {
               return AppStateView.empty(
-                title: "No favorites yet",
-                subtitle: "Your favorite lounges will appear here",
+                title: AppStrings.favoritesEmptyTitle.tr(),
+                subtitle: AppStrings.favoritesEmptyDescription.tr(),
                 icon: Icons.favorite_border,
               );
             }
+
+            final width = MediaQuery.sizeOf(context).width;
+            final textScale = MediaQuery.textScalerOf(context).scale(1);
+            final columns = width >= 900
+                ? 4
+                : width >= 600
+                ? 3
+                : width < 390 || textScale > 1.3
+                ? 1
+                : 2;
 
             return CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -75,31 +87,25 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   padding: EdgeInsets.all(AppSizes.screenPadding),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
+                      crossAxisCount: columns,
                       crossAxisSpacing: AppSizes.w12,
                       mainAxisSpacing: AppSizes.s12,
-                      mainAxisExtent: 215.h,
+                      mainAxisExtent: columns == 1 ? 250.h : 215.h,
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final lounge = state.favoriteLounges[index];
-                        final heroTag = 'lounge_${lounge.id}_fav';
-                        return LoungeCard(
-                          lounge: lounge,
-                          heroTag: heroTag,
-                          onTap: () {
-                            context.pushNamed(
-                              RouterKeys.loungeDetails,
-                              extra: {
-                                'lounge': lounge,
-                                'heroTag': heroTag,
-                              },
-                            );
-                          },
-                        );
-                      },
-                      childCount: state.favoriteLounges.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final lounge = state.favoriteLounges[index];
+                      final heroTag = 'lounge_${lounge.id}_fav';
+                      return LoungeCard(
+                        lounge: lounge,
+                        heroTag: heroTag,
+                        onTap: () {
+                          context.pushNamed(
+                            RouterKeys.loungeDetails,
+                            extra: {'lounge': lounge, 'heroTag': heroTag},
+                          );
+                        },
+                      );
+                    }, childCount: state.favoriteLounges.length),
                   ),
                 ),
                 const SliverBottomSpacing(),

@@ -38,13 +38,19 @@ class CheckoutSummaryCard extends StatelessWidget {
 
         // Build session details rows
         final List<Map<String, dynamic>> sessionRows = [
-          {'label': AppStrings.selectDate.tr(), 'value': params.date.toAppDateString()},
-          {'label': AppStrings.startTime.tr(), 'value': params.startTime.toAppTimeString()},
+          {
+            'label': AppStrings.selectDate.tr(),
+            'value': params.date.toAppDateString(),
+          },
+          {
+            'label': AppStrings.startTime.tr(),
+            'value': params.startTime.toAppTimeString(),
+          },
           {
             'label': AppStrings.duration.tr(),
             'value': params.duration >= 60
-                ? "${params.duration / 60.0} ${AppStrings.hour_plural.tr(args: [''])}"
-                : "${params.duration} ${AppStrings.min30.tr()}"
+                ? "${params.duration / 60.0} ${AppStrings.hourPlural.tr(args: [''])}"
+                : "${params.duration} ${AppStrings.min30.tr()}",
           },
         ];
 
@@ -59,7 +65,9 @@ class CheckoutSummaryCard extends StatelessWidget {
         if (params.playMode != null) {
           sessionRows.add({
             'label': AppStrings.playMode.tr(),
-            'value': params.playMode == 'single' ? AppStrings.singlePlay.tr() : AppStrings.multiPlay.tr(),
+            'value': params.playMode == 'single'
+                ? AppStrings.singlePlay.tr()
+                : AppStrings.multiPlay.tr(),
             'color': AppColors.neonBlue,
           });
         }
@@ -67,7 +75,8 @@ class CheckoutSummaryCard extends StatelessWidget {
         if (params.extraControllers != null && params.extraControllers! > 0) {
           sessionRows.add({
             'label': AppStrings.extraControllers.tr(),
-            'value': "${params.extraControllers}x (+${params.extraControllersChargePerHour.toStringAsFixed(2)} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
+            'value':
+                "${params.extraControllers}x (+${params.extraControllersChargePerHour.toStringAsFixed(2)} ${AppStrings.egp.tr()}/${AppStrings.hour.tr()})",
             'color': AppColors.warning,
           });
         }
@@ -90,7 +99,8 @@ class CheckoutSummaryCard extends StatelessWidget {
           return OrderItemData(
             name: itemName,
             quantity: (addOn['quantity'] as num?)?.toInt() ?? 1,
-            price: (addOn['unit_price'] as num?)?.toDouble() ??
+            price:
+                (addOn['unit_price'] as num?)?.toDouble() ??
                 (addOn['price'] as num?)?.toDouble() ??
                 0,
             icon: icon,
@@ -100,16 +110,20 @@ class CheckoutSummaryCard extends StatelessWidget {
         // Build discounts
         final List<DiscountData> discounts = [];
         if (roomDiscount > 0) {
-          discounts.add(DiscountData(
-            label: params.discountLabel ?? AppStrings.offerDiscount.tr(),
-            amount: roomDiscount,
-          ));
+          discounts.add(
+            DiscountData(
+              label: params.discountLabel ?? AppStrings.offerDiscount.tr(),
+              amount: roomDiscount,
+            ),
+          );
         }
         if (voucherDiscount > 0) {
-          discounts.add(DiscountData(
-            label: AppStrings.voucherDiscount.tr(),
-            amount: voucherDiscount,
-          ));
+          discounts.add(
+            DiscountData(
+              label: AppStrings.voucherDiscount.tr(),
+              amount: voucherDiscount,
+            ),
+          );
         }
 
         final roomSubtitle = params.rooms.length > 1

@@ -19,14 +19,19 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
     required String password,
   }) async {
     return await callRepository(() async {
-      final user = await _remoteSource.signInWithEmail(email: email, password: password);
+      final user = await _remoteSource.signInWithEmail(
+        email: email,
+        password: password,
+      );
       await _localDataSource.saveUserData(user);
       return user;
     });
   }
 
   @override
-  Future<Either<Failure, UserModel>> signUpWithEmail(SignUpParams params) async {
+  Future<Either<Failure, UserModel>> signUpWithEmail(
+    SignUpParams params,
+  ) async {
     return await callRepository(() async {
       final user = await _remoteSource.signUpWithEmail(params);
       if (!user.isRequiresOtp) {
@@ -77,7 +82,9 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserModel>> completeProfile(CompleteProfileParams params) async {
+  Future<Either<Failure, UserModel>> completeProfile(
+    CompleteProfileParams params,
+  ) async {
     return await callRepository(() async {
       final user = await _remoteSource.completeProfile(params);
       await _localDataSource.saveUserData(user);
@@ -87,10 +94,14 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> signOut() async {
-    return await callRepository(() async {
-      await _remoteSource.signOut();
-      await _localDataSource.clearUserData();
-    });
+    final signOutResult = await callRepository<void>(_remoteSource.signOut);
+    final cleanupResult = await callRepository<void>(
+      _localDataSource.clearUserData,
+    );
+    return cleanupResult.fold(
+      (_) => const Left(CacheFailure('auth.cache_cleanup_failed')),
+      (_) => signOutResult,
+    );
   }
 
   @override
@@ -103,7 +114,8 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
 
     final storedUser = _localDataSource.getCachedUser();
     final cachedUser = storedUser?.id == remoteUser.id ? storedUser : null;
-    final phone = (remoteUser.phone != null && remoteUser.phone!.trim().isNotEmpty)
+    final phone =
+        (remoteUser.phone != null && remoteUser.phone!.trim().isNotEmpty)
         ? remoteUser.phone
         : cachedUser?.phone;
     final merged = (cachedUser ?? remoteUser).copyWith(phone: phone);
@@ -120,7 +132,9 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
-    return await callRepository(() => _remoteSource.sendPasswordResetEmail(email));
+    return await callRepository(
+      () => _remoteSource.sendPasswordResetEmail(email),
+    );
   }
 
   @override
@@ -128,7 +142,9 @@ class AuthRepositoryImpl with RepositoryHelper implements AuthRepository {
     required String email,
     required String otp,
   }) async {
-    return await callRepository(() => _remoteSource.verifyPasswordResetOTP(email: email, otp: otp));
+    return await callRepository(
+      () => _remoteSource.verifyPasswordResetOTP(email: email, otp: otp),
+    );
   }
 
   @override

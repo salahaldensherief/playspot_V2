@@ -13,8 +13,11 @@ class ActiveSession extends Equatable {
   final double extensionsPrice;
   final List<OrderItem> orders;
   final String status;
+  final bool isOpenTime;
+  final Map<String, dynamic> openTimePricingSnapshot;
   final String? extensionStatus;
   final int? requestedExtensionMinutes;
+  final DateTime? openTimeEndedAt;
 
   const ActiveSession({
     required this.bookingId,
@@ -28,26 +31,32 @@ class ActiveSession extends Equatable {
     this.extensionsPrice = 0.0,
     this.orders = const [],
     required this.status,
+    this.isOpenTime = false,
+    this.openTimePricingSnapshot = const {},
     this.extensionStatus,
     this.requestedExtensionMinutes,
+    this.openTimeEndedAt,
   });
 
   @override
   List<Object?> get props => [
-        bookingId,
-        loungeId,
-        loungeName,
-        roomName,
-        deviceName,
-        startTime,
-        endTime,
-        basePrice,
-        extensionsPrice,
-        orders,
-        status,
-        extensionStatus,
-        requestedExtensionMinutes,
-      ];
+    bookingId,
+    loungeId,
+    loungeName,
+    roomName,
+    deviceName,
+    startTime,
+    endTime,
+    basePrice,
+    extensionsPrice,
+    orders,
+    status,
+    isOpenTime,
+    openTimePricingSnapshot,
+    extensionStatus,
+    requestedExtensionMinutes,
+    openTimeEndedAt,
+  ];
 
   ActiveSession copyWith({
     String? bookingId,
@@ -61,8 +70,11 @@ class ActiveSession extends Equatable {
     double? extensionsPrice,
     List<OrderItem>? orders,
     String? status,
+    bool? isOpenTime,
+    Map<String, dynamic>? openTimePricingSnapshot,
     String? extensionStatus,
     int? requestedExtensionMinutes,
+    DateTime? openTimeEndedAt,
   }) {
     return ActiveSession(
       bookingId: bookingId ?? this.bookingId,
@@ -76,12 +88,19 @@ class ActiveSession extends Equatable {
       extensionsPrice: extensionsPrice ?? this.extensionsPrice,
       orders: orders ?? this.orders,
       status: status ?? this.status,
+      isOpenTime: isOpenTime ?? this.isOpenTime,
+      openTimePricingSnapshot:
+          openTimePricingSnapshot ?? this.openTimePricingSnapshot,
       extensionStatus: extensionStatus ?? this.extensionStatus,
-      requestedExtensionMinutes: requestedExtensionMinutes ?? this.requestedExtensionMinutes,
+      requestedExtensionMinutes:
+          requestedExtensionMinutes ?? this.requestedExtensionMinutes,
+      openTimeEndedAt: openTimeEndedAt ?? this.openTimeEndedAt,
     );
   }
 
-  double get ordersTotal => orders.fold(0.0, (sum, item) => sum + item.total);
+  double get ordersTotal => orders
+      .where((item) => item.isCommittedCharge)
+      .fold(0.0, (sum, item) => sum + item.total);
   double get grandTotal => basePrice + extensionsPrice + ordersTotal;
 
   bool get hasStarted => !DateTime.now().isBefore(startTime);
@@ -92,11 +111,13 @@ class ActiveSession extends Equatable {
   bool get isExtensionRejected => extensionStatus == 'rejected';
 
   bool get isExpiringSoon {
+    if (isOpenTime) return false;
     final remaining = endTime.difference(DateTime.now());
     return remaining.inMinutes > 0 && remaining.inMinutes <= 15;
   }
 
   bool get isOvertime {
+    if (isOpenTime) return false;
     return DateTime.now().isAfter(endTime);
   }
 
@@ -113,7 +134,8 @@ class ActiveSession extends Equatable {
   }
 
   int get totalPlayDurationMinutes {
-    final diff = endTime.difference(startTime).inMinutes;
+    final effectiveEnd = openTimeEndedAt ?? endTime;
+    final diff = effectiveEnd.difference(startTime).inMinutes;
     return diff > 0 ? diff : 0;
   }
 

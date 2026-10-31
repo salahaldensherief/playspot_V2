@@ -13,15 +13,13 @@ import '../checkout_state.dart';
 class CheckoutLateArrivalBanner extends StatelessWidget {
   final LoungeModel lounge;
 
-  const CheckoutLateArrivalBanner({
-    super.key,
-    required this.lounge,
-  });
+  const CheckoutLateArrivalBanner({super.key, required this.lounge});
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CheckoutCubit, CheckoutState>(
-      buildWhen: (previous, current) => previous.selectedMethod != current.selectedMethod,
+      buildWhen: (previous, current) =>
+          previous.selectedMethod != current.selectedMethod,
       builder: (context, state) {
         final isCash = state.selectedMethod == PaymentMethod.cash;
         final graceMinutes = lounge.cashGracePeriodMinutes > 0
@@ -29,43 +27,24 @@ class CheckoutLateArrivalBanner extends StatelessWidget {
             : 10;
 
         final bannerColor = isCash ? AppColors.warning : AppColors.neonBlue;
-        final iconData = isCash ? Icons.timer_outlined : Icons.verified_outlined;
-        final isArabic = context.locale.languageCode == 'ar';
-
+        final iconData = isCash
+            ? Icons.timer_outlined
+            : Icons.verified_outlined;
         final String titleText = isCash
-            ? (isArabic ? "سياسة التأخير للدفع الكاش" : "Cash Late Arrival Policy")
-            : (isArabic ? "سياسة التأخير للدفع الإلكتروني" : "E-Wallet Late Arrival Policy");
-
-        String noticeText;
-        if (isCash) {
-          final rawMsg = AppStrings.cashLatePolicyNotice.tr(args: [graceMinutes.toString()]);
-          if (rawMsg == AppStrings.cashLatePolicyNotice || rawMsg.contains('cashLatePolicyNotice')) {
-            noticeText = isArabic
-                ? "يرجى التواجد بالصالة قبل الموعد بـ $graceMinutes دقائق؛ في حالة التأخير يتم إلغاء الحجز تلقائياً لإتاحة الغرفة للآخرين."
-                : "Please arrive at the lounge $graceMinutes minutes before your appointment; in case of delay, the booking will be automatically cancelled to free the room for others.";
-          } else {
-            noticeText = rawMsg;
-          }
-        } else {
-          final rawMsg = AppStrings.prepaidLatePolicyNotice.tr();
-          if (rawMsg == AppStrings.prepaidLatePolicyNotice || rawMsg.contains('prepaidLatePolicyNotice')) {
-            noticeText = isArabic
-                ? "يبدأ وقتك من موعد الحجز الرسمي، وأي تأخير يُخصم من وقت جلستك الفعلي للحفاظ على المواعيد."
-                : "Your session time starts at the booked time; any delay will be deducted from your actual playing time.";
-          } else {
-            noticeText = rawMsg;
-          }
-        }
+            ? AppStrings.cashLateArrivalTitle.tr()
+            : AppStrings.prepaidLateArrivalTitle.tr();
+        final noticeText = isCash
+            ? AppStrings.cashLatePolicyNotice.tr(
+                args: [graceMinutes.toString()],
+              )
+            : AppStrings.prepaidLatePolicyNotice.tr();
 
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (child, animation) {
             return FadeTransition(
               opacity: animation,
-              child: SizeTransition(
-                sizeFactor: animation,
-                child: child,
-              ),
+              child: SizeTransition(sizeFactor: animation, child: child),
             );
           },
           child: Container(
@@ -96,11 +75,7 @@ class CheckoutLateArrivalBanner extends StatelessWidget {
                     color: bannerColor.withValues(alpha: 0.20),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    iconData,
-                    color: bannerColor,
-                    size: 20.sp,
-                  ),
+                  child: Icon(iconData, color: bannerColor, size: 20.sp),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(

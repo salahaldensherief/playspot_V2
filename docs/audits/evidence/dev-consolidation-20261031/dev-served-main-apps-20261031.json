@@ -1,0 +1,22 @@
+[
+  {
+    "app": "Dashboard",
+    "base": "http://127.0.0.1:51751",
+    "mainEntrypoint": true,
+    "assets": true,
+    "localCanvasKit": true,
+    "configFileDenied": true,
+    "cspLoopbackOnly": true,
+    "evidence": "HTTP asset serving, NOT browser rendering or UI authentication"
+  },
+  {
+    "app": "Mobile",
+    "base": "http://127.0.0.1:51752",
+    "mainEntrypoint": true,
+    "assets": true,
+    "localCanvasKit": true,
+    "configFileDenied": true,
+    "cspLoopbackOnly": true,
+    "evidence": "HTTP asset serving, NOT browser rendering or UI authentication"
+  }
+]

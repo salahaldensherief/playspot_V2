@@ -10,8 +10,8 @@ class NotificationStrategyRegistry {
   NotificationStrategyRegistry({
     required List<NotificationActionStrategy> strategies,
     required NotificationActionStrategy fallbackStrategy,
-  })  : _strategies = strategies,
-        _fallbackStrategy = fallbackStrategy;
+  }) : _strategies = strategies,
+       _fallbackStrategy = fallbackStrategy;
 
   /// Routes and handles notification payload using the matching strategy
   bool handleNotification(Map<String, dynamic> data) {
@@ -23,9 +23,12 @@ class NotificationStrategyRegistry {
       }
       return _fallbackStrategy.handle(data);
     } catch (e, st) {
-      AppLogger.error('Error executing notification strategy in registry', e, st);
+      AppLogger.error(
+        'Error executing notification strategy in registry',
+        e,
+        st,
+      );
       return false;
     }
   }
 }
-

@@ -1,4 +1,4 @@
-
+import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -10,6 +10,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../core/cache/app_cache_manager.dart';
 import '../../theme/app_colors.dart';
+import 'image_decode_size.dart';
 
 class AppImage extends StatelessWidget {
   /// The URL or path of the image (e.g., HTTP URL, asset path, or file path).
@@ -90,12 +91,24 @@ class AppImage extends StatelessWidget {
         color: backgroundColor,
         width: width,
         height: height,
-        child: enableZoom
-            ? GestureDetector(
-          onTap: () => _showZoomDialog(context),
-          child: _buildImageBasedOnSource(),
-        )
-            : _buildImageBasedOnSource(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final cacheWidth = imageDecodeWidth(
+              width,
+              MediaQuery.devicePixelRatioOf(context),
+              fallbackWidth: constraints.hasBoundedWidth
+                  ? constraints.maxWidth
+                  : null,
+            );
+            final image = _buildImageBasedOnSource(cacheWidth: cacheWidth);
+            return enableZoom
+                ? GestureDetector(
+                    onTap: () => _showZoomDialog(context),
+                    child: image,
+                  )
+                : image;
+          },
+        ),
       ),
     );
   }
@@ -171,19 +184,19 @@ class AppImage extends StatelessWidget {
   }
 
   /// Determines the image source and delegates to the appropriate builder.
-  Widget _buildImageBasedOnSource() {
+  Widget _buildImageBasedOnSource({int? cacheWidth}) {
     final cleanUrl = urlImg.trim();
     if (cleanUrl.isEmpty || cleanUrl == 'null') {
       return _buildError();
     }
     if (cleanUrl.startsWith('http')) {
-      return _buildNetworkImage();
+      return _buildNetworkImage(cacheWidth: cacheWidth);
     }
     return _buildLocalImage();
   }
 
   /// Builds the network image using CachedNetworkImage with 7-day disk cache.
-  Widget _buildNetworkImage() {
+  Widget _buildNetworkImage({int? cacheWidth}) {
     final cleanUrl = urlImg.trim();
     if (cleanUrl.isEmpty || cleanUrl == 'null') {
       return _buildError();
@@ -199,8 +212,7 @@ class AppImage extends StatelessWidget {
       errorWidget: (_, _, _) => errorWidget ?? _buildError(),
       fadeInDuration: const Duration(milliseconds: 300),
       fadeOutDuration: const Duration(milliseconds: 200),
-      memCacheWidth: (width != null && width! > 0 && width!.isFinite) ? (width! * 2).toInt() : null,
-      memCacheHeight: (height != null && height! > 0 && height!.isFinite) ? (height! * 2).toInt() : null,
+      memCacheWidth: cacheWidth,
     );
   }
 
@@ -210,39 +222,39 @@ class AppImage extends StatelessWidget {
         urlImg.startsWith('assets') || (path?.startsWith('assets') ?? false);
     final imageWidget = isAsset
         ? Image.asset(
-      path ?? urlImg,
-      width: width,
-      height: height,
-      fit: fit,
-      color: color,
-      errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: child,
-        );
-      },
-    )
+            path ?? urlImg,
+            width: width,
+            height: height,
+            fit: fit,
+            color: color,
+            errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) return child;
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },
+          )
         : Image.file(
-      File(urlImg),
-      width: width,
-      height: height,
-      fit: fit,
-      color: color,
-      errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded) return child;
-        return AnimatedOpacity(
-          opacity: frame == null ? 0 : 1,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: child,
-        );
-      },
-    );
+            File(urlImg),
+            width: width,
+            height: height,
+            fit: fit,
+            color: color,
+            errorBuilder: (_, _, _) => errorWidget ?? _buildError(),
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) return child;
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },
+          );
     return imageWidget;
   }
 
@@ -271,12 +283,7 @@ class AppImage extends StatelessWidget {
       return errorWidget!;
     }
     if (useLogo60IXIfError) {
-      return Icon(
-        TablerIcons.device_gamepad,
-        weight: width,
-        color: color,
-
-      );
+      return Icon(TablerIcons.device_gamepad, weight: width, color: color);
     }
     if (useFirstNameIfError) {
       return _buildImageForFirstName();
@@ -300,7 +307,9 @@ class AppImage extends StatelessWidget {
       width: width,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: borderColor?.withAlpha(64) ?? Colors.grey.withOpacity(0.25),
+        color:
+            borderColor?.withAlpha(64) ??
+            Colors.grey.withAlpha((255 * 0.25).round()),
         borderRadius: boxShape == BoxShape.circle
             ? null
             : BorderRadius.circular(borderRadius),
@@ -323,18 +332,22 @@ class AppImage extends StatelessWidget {
       width: width,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: borderColor?.withAlpha(64) ?? Colors.grey.withOpacity(0.25),
+        color:
+            borderColor?.withAlpha(64) ??
+            Colors.grey.withAlpha((255 * 0.25).round()),
         borderRadius: isCircle ? null : BorderRadius.circular(borderRadius),
         shape: boxShape ?? BoxShape.rectangle,
       ),
       child: FittedBox(
-        child: Text(
-           nameIfError ==null || nameIfError!.isEmpty  ? "G":nameIfError?.substring(0, 1).toUpperCase() ?? "G",
-       style: TextStyle(
-    color: AppColors.primary,
-         fontWeight: FontWeight.w600,
-         fontSize: 20.sp,
-       )
+        child: AppText(
+          text: nameIfError == null || nameIfError!.isEmpty
+              ? "G"
+              : nameIfError?.substring(0, 1).toUpperCase() ?? "G",
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+            fontSize: 20.sp,
+          ),
         ),
       ),
     );

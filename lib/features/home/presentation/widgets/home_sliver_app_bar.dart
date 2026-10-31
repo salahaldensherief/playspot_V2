@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/features/home/presentation/home_cubit.dart';
 import 'package:playspot/features/home/presentation/home_state.dart';
 import 'package:playspot/features/home/presentation/widgets/home_header.dart';
@@ -26,23 +27,23 @@ class HomeSliverAppBar extends StatelessWidget {
           (previous.status == HomeStatus.initial &&
               current.status == HomeStatus.loading),
       builder: (context, state) {
-        final hasCities = state.availableCities.isNotEmpty;
+        final address = (state.currentAddress ?? currentLocation).trim();
+        final header = HomeHeader(
+          userName: userName,
+          currentLocation: address.isEmpty
+              ? AppStrings.locationUnavailable.tr()
+              : address,
+          cities: state.availableCities,
+          selectedCity: state.selectedCity,
+          pointsBalance: state.pointsBalance,
+          onCitySelected: (city) => context.read<HomeCubit>().selectCity(city),
+        );
         return SliverAppBar(
           backgroundColor: Colors.transparent,
-          expandedHeight: hasCities ? 165.h : 120.h,
+          expandedHeight: header.expandedHeight(context),
           pinned: true,
           elevation: 0,
-          flexibleSpace: FlexibleSpaceBar(
-            background: HomeHeader(
-              userName: userName,
-              currentLocation: state.currentAddress ?? currentLocation,
-              cities: state.availableCities,
-              selectedCity: state.selectedCity,
-              pointsBalance: state.pointsBalance,
-              onCitySelected: (city) =>
-                  context.read<HomeCubit>().selectCity(city),
-            ),
-          ),
+          flexibleSpace: FlexibleSpaceBar(background: header),
         );
       },
     );

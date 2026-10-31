@@ -9,6 +9,7 @@ import 'package:playspot/art_core/utils/extensions/spacing_extensions.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text/price_widget.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
+import 'package:playspot/features/booking/domain/entities/booking_price_quote.dart';
 
 import '../booking_cubit.dart';
 import '../booking_state.dart';
@@ -16,10 +17,7 @@ import '../booking_state.dart';
 class BookingSessionSummary extends StatelessWidget {
   final BookingDetailsParams params;
 
-  const BookingSessionSummary({
-    super.key,
-    required this.params,
-  });
+  const BookingSessionSummary({super.key, required this.params});
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +26,7 @@ class BookingSessionSummary extends StatelessWidget {
           previous.startTime != current.startTime ||
           previous.durationMinutes != current.durationMinutes ||
           previous.playMode != current.playMode ||
+          previous.priceQuote != current.priceQuote ||
           previous.extraControllersCount != current.extraControllersCount,
       builder: (context, state) {
         final startTime = state.startTime;
@@ -40,9 +39,13 @@ class BookingSessionSummary extends StatelessWidget {
 
         final offerInfo = state.getOfferInfo(params, isArabic);
         final subtotals = state.getCalculatedSubtotals(params, isArabic);
-        final origRoomSubtotal = (subtotals['originalRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
-        final discRoomSubtotal = (subtotals['discountedRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
-        final roomDiscountAmount = (subtotals['roomDiscountAmount'] as num?)?.toDouble() ?? 0.0;
+        final origRoomSubtotal =
+            (subtotals['originalRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
+        final discRoomSubtotal =
+            (subtotals['discountedRoomSubtotal'] as num?)?.toDouble() ?? 0.0;
+        final roomDiscountAmount =
+            (subtotals['roomDiscountAmount'] as num?)?.toDouble() ?? 0.0;
+        final priceQuote = state.priceQuote;
 
         return Container(
           padding: 16.allPadding,
@@ -63,7 +66,7 @@ class BookingSessionSummary extends StatelessWidget {
               16.verticalSpace,
               _buildSummaryRow(
                 AppStrings.selectTime.tr(),
-                "${_formatTimeOfDay(startTime)} - ${_formatTimeOfDay(endTime)}",
+                _formatTimeRange(startTime, endTime, isArabic),
               ),
               8.verticalSpace,
               _buildSummaryRow(
@@ -84,6 +87,32 @@ class BookingSessionSummary extends StatelessWidget {
                 AppStrings.duration.tr(),
                 state.getFormattedDuration(isArabic),
               ),
+
+              // Segments Breakdown Section (If server returns segments crossing different rates)
+              if (priceQuote != null && priceQuote.segments.isNotEmpty) ...[
+                const Divider(color: AppColors.borderDefault, height: 20),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.pie_chart_outline_rounded,
+                      color: AppColors.neonBlue,
+                      size: 14.sp,
+                    ),
+                    SizedBox(width: 6.w),
+                    AppText(
+                      text: AppStrings.pricingSegmentsBreakdown.tr(),
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white70,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                ...priceQuote.segments.map(
+                  (seg) => _buildSegmentRow(seg, isArabic),
+                ),
+              ],
+
               const Divider(color: AppColors.borderDefault, height: 24),
               if (offerInfo.hasOffer) ...[
                 Row(
@@ -99,7 +128,7 @@ class BookingSessionSummary extends StatelessWidget {
                     ),
                     AppText(
                       text:
-                          "-${roomDiscountAmount.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                          "-${roomDiscountAmount.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                       fontSize: 12.sp,
                       color: AppColors.success,
                       fontWeight: FontWeight.bold,
@@ -120,8 +149,9 @@ class BookingSessionSummary extends StatelessWidget {
                   Row(
                     children: [
                       if (offerInfo.hasOffer) ...[
-                        Text(
-                          "${origRoomSubtotal.toStringAsFixed(2)} ${AppStrings.egp.tr()}",
+                        AppText(
+                          text:
+                              "${origRoomSubtotal.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
                           style: TextStyle(
                             color: AppColors.textSecondary.withValues(
                               alpha: 0.5,
@@ -151,6 +181,41 @@ class BookingSessionSummary extends StatelessWidget {
     );
   }
 
+  Widget _buildSegmentRow(PricingSegment seg, bool isArabic) {
+    final fromTime = seg.from.length >= 5 ? seg.from.substring(0, 5) : seg.from;
+    final toTime = seg.to.length >= 5 ? seg.to.substring(0, 5) : seg.to;
+    final isPeak = seg.isPeak;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 3.h),
+      child: Row(
+        children: [
+          Icon(
+            isPeak
+                ? Icons.local_fire_department_rounded
+                : Icons.schedule_rounded,
+            color: isPeak ? AppColors.warning : AppColors.neonBlue,
+            size: 13.sp,
+          ),
+          SizedBox(width: 6.w),
+          AppText(
+            text:
+                "$fromTime - $toTime ${isPeak ? "(${AppStrings.peak.tr()})" : ''}",
+            fontSize: 11.sp,
+            color: Colors.white70,
+          ),
+          const Spacer(),
+          AppText(
+            text: "${seg.amount.toStringAsFixed(0)} ${AppStrings.egp.tr()}",
+            fontSize: 11.sp,
+            fontWeight: FontWeight.bold,
+            color: isPeak ? AppColors.warning : Colors.white,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSummaryRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -166,10 +231,22 @@ class BookingSessionSummary extends StatelessWidget {
     );
   }
 
-  String _formatTimeOfDay(TimeOfDay time) {
-    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-    return "$hour:$minute $period";
+  String _formatTimeRange(TimeOfDay start, TimeOfDay end, bool isArabic) {
+    final startHour = start.hourOfPeriod == 0 ? 12 : start.hourOfPeriod;
+    final startMin = start.minute.toString().padLeft(2, '0');
+    final startPeriod = start.period == DayPeriod.am
+        ? (isArabic ? 'ص' : 'AM')
+        : (isArabic ? 'م' : 'PM');
+
+    final endHour = end.hourOfPeriod == 0 ? 12 : end.hourOfPeriod;
+    final endMin = end.minute.toString().padLeft(2, '0');
+    final endPeriod = end.period == DayPeriod.am
+        ? (isArabic ? 'ص' : 'AM')
+        : (isArabic ? 'م' : 'PM');
+
+    if (start.period == end.period) {
+      return '$startHour:$startMin – $endHour:$endMin $endPeriod';
+    }
+    return '$startHour:$startMin $startPeriod – $endHour:$endMin $endPeriod';
   }
 }

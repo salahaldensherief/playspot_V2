@@ -10,10 +10,7 @@ import 'package:playspot/features/lounge_details/data/models/room_model.dart';
 class BookingRoomsChips extends StatelessWidget {
   final List<RoomModel> rooms;
 
-  const BookingRoomsChips({
-    super.key,
-    required this.rooms,
-  });
+  const BookingRoomsChips({super.key, required this.rooms});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +27,9 @@ class BookingRoomsChips extends StatelessWidget {
           child: Row(
             children: rooms.map((r) {
               final hasPromo = r.hasActivePromo && r.promoDiscountValue > 0;
-              final promoTag = r.getPromoTag(isArabic) ?? (isArabic ? 'خصم خاص' : 'SPECIAL OFFER');
+              final promoTag =
+                  r.getPromoTag(isArabic) ??
+                  AppStrings.bookingPromoFallback.tr();
 
               return Container(
                 margin: EdgeInsetsDirectional.only(end: 10.w),
@@ -39,7 +38,9 @@ class BookingRoomsChips extends StatelessWidget {
                   color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(AppSizes.r12),
                   border: Border.all(
-                    color: hasPromo ? AppColors.warning : AppColors.neonBlue.withValues(alpha: 0.5),
+                    color: hasPromo
+                        ? AppColors.warning
+                        : AppColors.neonBlue.withValues(alpha: 0.5),
                     width: hasPromo ? 1.2 : 1.0,
                   ),
                   boxShadow: hasPromo
@@ -48,7 +49,7 @@ class BookingRoomsChips extends StatelessWidget {
                             color: AppColors.warning.withValues(alpha: 0.2),
                             blurRadius: 8,
                             spreadRadius: 1,
-                          )
+                          ),
                         ]
                       : null,
                 ),
@@ -76,7 +77,10 @@ class BookingRoomsChips extends StatelessWidget {
                             if (hasPromo) ...[
                               6.horizontalSpace,
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6.w,
+                                  vertical: 2.h,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.warning,
                                   borderRadius: BorderRadius.circular(6.r),
@@ -95,10 +99,13 @@ class BookingRoomsChips extends StatelessWidget {
                           2.verticalSpace,
                           Row(
                             children: [
-                              Text(
-                                "${r.hourlyRateSingle.toInt()} ${AppStrings.egp.tr()}",
+                              AppText(
+                                text:
+                                    "${r.hourlyRateSingle.toInt()} ${AppStrings.egp.tr()}",
                                 style: TextStyle(
-                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                  color: AppColors.textSecondary.withValues(
+                                    alpha: 0.5,
+                                  ),
                                   fontSize: 10.sp,
                                   fontWeight: FontWeight.bold,
                                   decoration: TextDecoration.lineThrough,
@@ -106,7 +113,8 @@ class BookingRoomsChips extends StatelessWidget {
                               ),
                               6.horizontalSpace,
                               AppText(
-                                text: "${r.effectivePriceSingle.toInt()} ${AppStrings.egp.tr()}",
+                                text:
+                                    "${r.effectivePriceSingle.toInt()} ${AppStrings.egp.tr()}",
                                 fontSize: 11.sp,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.success,

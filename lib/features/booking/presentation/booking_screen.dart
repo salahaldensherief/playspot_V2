@@ -10,6 +10,7 @@ import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/features/booking/data/models/booking_params.dart';
 
 import '../../../core/utils/booking_error_formatter.dart';
+import '../../../art_core/widgets/notifications/game_hud_toast.dart';
 import 'booking_cubit.dart';
 import 'booking_state.dart';
 import 'widgets/booking_bottom_bar.dart';
@@ -28,34 +29,12 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollToDurationAndSummary() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<BookingCubit, BookingState>(
       listenWhen: (previous, current) =>
-          (previous.status != current.status &&
-              current.status == BookingStatus.error) ||
-          (previous.startTime != current.startTime &&
-              current.startTime != null),
+          previous.status != current.status &&
+          current.status == BookingStatus.error,
       listener: (context, state) {
         if (state.status == BookingStatus.error && state.errorMessage != null) {
           final isEnglish = context.locale.languageCode == 'en';
@@ -63,19 +42,7 @@ class _BookingScreenState extends State<BookingScreen> {
             state.errorMessage!,
             isEnglish,
           );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                errorMsg,
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: AppColors.danger,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-        if (state.startTime != null) {
-          _scrollToDurationAndSummary();
+          GameHudToast.show(context, errorMsg, type: ToastType.error);
         }
       },
       child: Scaffold(
@@ -86,8 +53,9 @@ class _BookingScreenState extends State<BookingScreen> {
           leading: const BackButtonWidget(),
           title: AppText(
             text: widget.params.rooms.length > 1
-                ? AppStrings.bookRoomsCount
-                    .tr(args: [widget.params.rooms.length.toString()])
+                ? AppStrings.bookRoomsCount.tr(
+                    args: [widget.params.rooms.length.toString()],
+                  )
                 : "${AppStrings.book.tr()} ${widget.params.room.getDisplayTitle(context.locale.languageCode == 'ar')}",
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -98,7 +66,6 @@ class _BookingScreenState extends State<BookingScreen> {
           children: [
             Expanded(
               child: SingleChildScrollView(
-                controller: _scrollController,
                 padding: 16.allPadding,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

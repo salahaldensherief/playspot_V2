@@ -7,9 +7,10 @@ import 'package:playspot/art_core/theme/app_colors.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/art_core/widgets/text/price_widget.dart';
 import 'package:playspot/features/lounge_details/data/models/room_model.dart';
-import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_cubit.dart';
-import 'package:playspot/features/lounge_details/presentation/lounge_details/lounge_details_state.dart';
-import 'room_constants.dart';
+import '../../lounge_details_cubit.dart';
+import '../../lounge_details_state.dart';
+import '../../room_rate_presentation.dart';
+import 'room_select_button.dart';
 
 class RoomActionArea extends StatelessWidget {
   final RoomModel room;
@@ -35,80 +36,46 @@ class RoomActionArea extends StatelessWidget {
               curr.roomExtraControllers[room.id] ||
           prev.lounge != curr.lounge,
       builder: (context, state) {
-        final playMode = state.roomPlayModes[room.id] ?? 'single';
-        final extraControllers = state.roomExtraControllers[room.id] ?? 0;
-        final lounge = state.lounge;
-        final double loungeDiscount = (lounge != null && lounge.isDiscountActive)
-            ? lounge.discountPercentage.toDouble()
-            : 0.0;
-        final bool hasOffer = (room.hasActivePromo && room.promoDiscountValue > 0) ||
-            loungeDiscount > 0;
-
-        final double finalEffectivePrice = room.calculateEffectiveRate(
-          playMode: playMode,
-          extraControllers: extraControllers,
-          loungeDiscountPercentage: loungeDiscount,
-        );
-        final double finalOriginalPrice = room.calculateOriginalRate(
-          playMode: playMode,
-          extraControllers: extraControllers,
-        );
+        final rate = RoomRatePresentation.fromState(room, state);
 
         return Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.w),
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
           decoration: BoxDecoration(
-            border: Border(left: BorderSide(color: Colors.white.withValues(alpha: 0.03))),
+            border: BorderDirectional(
+              start: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (hasOffer) 25.verticalSpace,
-              if (hasOffer) ...[
+              if (rate.hasOffer) ...[
                 AppText(
-                  text: "${finalOriginalPrice.toInt()} ${AppStrings.egp.tr()}",
-                  color: AppColors.textSecondary.withValues(alpha: 0.5),
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.bold,
-                  textDecoration: TextDecoration.lineThrough,
+                  text: '${rate.original.toInt()} ${AppStrings.egp.tr()}',
+                  style: TextStyle(
+                    color: AppColors.textSecondary.withValues(alpha: 0.6),
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.lineThrough,
+                  ),
                 ),
                 2.verticalSpace,
               ],
               PriceWidget(
-                price: finalEffectivePrice,
+                price: rate.effective,
                 fontSize: 16.sp,
-                color: hasOffer ? AppColors.success : themeColor,
+                color: rate.hasOffer ? AppColors.success : themeColor,
               ),
               AppText(
                 text: AppStrings.perHour.tr().toUpperCase(),
-                fontSize: 7.sp,
+                fontSize: 8.sp,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.bold,
               ),
               SizedBox(height: 8.h),
-              GestureDetector(
-                onTap: () =>
-                    context.read<LoungeDetailsCubit>().toggleRoomSelection(room.id),
-                child: AnimatedContainer(
-                  duration: RoomConstants.toggleDuration,
-                  padding: EdgeInsets.all(7.w),
-                  decoration: BoxDecoration(
-                    color: isSelected ? themeColor : Colors.white.withValues(alpha: 0.05),
-                    shape: BoxShape.circle,
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                                color: themeColor.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                spreadRadius: 1)
-                          ]
-                        : null,
-                  ),
-                  child: Icon(
-                    isSelected ? Icons.check : Icons.add,
-                    color: isSelected ? AppColors.black : Colors.white,
-                    size: 14.sp,
-                  ),
-                ),
+              RoomSelectButton(
+                roomId: room.id,
+                selected: isSelected,
+                color: themeColor,
               ),
             ],
           ),

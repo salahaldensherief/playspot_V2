@@ -11,7 +11,6 @@ import 'package:playspot/art_core/widgets/buttons/directions_button.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_behavior.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
-import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
 import 'package:playspot/core/constants/booking_status.dart';
 import '../../data/models/booking_model.dart';
@@ -103,8 +102,8 @@ class _BookingCardState extends State<BookingCard> {
         : '';
     final spaceText =
         widget.booking.spaceType != null && widget.booking.spaceType!.isNotEmpty
-            ? '${widget.booking.spaceType} - '
-            : '';
+        ? '${widget.booking.spaceType} - '
+        : '';
     final roomSpecsText =
         "$spaceText${widget.booking.roomName}$playModeText · ${widget.booking.controllersCount} ${AppStrings.controllers.tr()} · ${widget.booking.screenSize}";
 
@@ -169,40 +168,29 @@ class _BookingCardState extends State<BookingCard> {
           _buildBadgesRow(),
           SizedBox(height: 12.h),
 
-          // 3. Room & Specs Card
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-            decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: AppColors.borderDefault.withValues(alpha: 0.5)),
-            ),
-            child: AppText(
-              text: roomSpecsText,
-              fontSize: 12.sp,
-              color: AppColors.white.withValues(alpha: 0.9),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          SizedBox(height: 12.h),
-
-          // 4. Date & Time Info Bar
+          // Keep the visit time ahead of secondary room specifications.
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: AppColors.backgroundAlt,
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(color: AppColors.neonBlue.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColors.neonBlue.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today_rounded, color: AppColors.neonBlue, size: 15.sp),
+                Icon(
+                  Icons.calendar_today_rounded,
+                  color: AppColors.neonBlue,
+                  size: 15.sp,
+                ),
                 SizedBox(width: 6.w),
                 Flexible(
                   child: AppText(
-                    text: widget.booking.date.toAppDateString(),
+                    text: widget.booking.date.toAppDateString(
+                      locale: context.locale.languageCode,
+                    ),
                     fontSize: 12.sp,
                     color: AppColors.white,
                     fontWeight: FontWeight.w600,
@@ -211,15 +199,40 @@ class _BookingCardState extends State<BookingCard> {
                   ),
                 ),
                 SizedBox(width: 12.w),
-                Icon(Icons.access_time_filled_rounded, color: AppColors.neonBlue, size: 15.sp),
+                Icon(
+                  Icons.access_time_filled_rounded,
+                  color: AppColors.neonBlue,
+                  size: 15.sp,
+                ),
                 SizedBox(width: 6.w),
                 AppText(
-                  text: widget.booking.startDateTime.toAppTimeString(),
+                  text: widget.booking.startDateTime.toAppTimeString(
+                    locale: context.locale.languageCode,
+                  ),
                   fontSize: 12.sp,
                   color: AppColors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ],
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: AppColors.borderDefault.withValues(alpha: 0.5),
+              ),
+            ),
+            child: AppText(
+              text: roomSpecsText,
+              fontSize: 12.sp,
+              color: AppColors.textSecondary,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
 
@@ -232,102 +245,110 @@ class _BookingCardState extends State<BookingCard> {
             _buildLatePolicyBanner(),
             SizedBox(height: 14.h),
 
-            // Action Buttons Row (Upcoming)
-            Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: DirectionsButton(
-                    lat: widget.booking.lat,
-                    lng: widget.booking.lng,
-                    loungeName: widget.booking.loungeName,
-                    loungeLocation: widget.booking.loungeLocation,
-                    mapsLink: widget.booking.mapsLink,
-                    height: 44.h,
-                    isPrimary: true,
-                  ),
-                ),
-                SizedBox(width: 8.w),
-                _buildReceiptButton(isPrimary: true),
-                SizedBox(width: 8.w),
-                Expanded(
-                  flex: 2,
-                  child: AppButton(
-                    content: ButtonContent(
-                      label: widget.isCancelling ? null : AppStrings.cancel.tr(),
-                      body: widget.isCancelling
-                          ? SizedBox(
-                              width: 16.w,
-                              height: 16.w,
-                              child: const AppLoader(strokeWidth: 2),
-                            )
-                          : null,
-                    ),
-                    behavior: ButtonBehavior.tap(
-                      isEnabled: !widget.isCancelling,
-                      onTap: widget.isCancelling ? null : widget.onCancel,
-                    ),
-                    buttonConfig: ButtonConfig(
-                      height: 44.h,
-                      borderRadius: 12.r,
-                      backgroundColor: AppColors.transparent,
-                      borderColor: AppColors.danger.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildActions(true),
           ] else ...[
             SizedBox(height: 14.h),
-            Row(
-              children: [
-                if (widget.booking.mapsLink != null || widget.booking.lat != null) ...[
-                  Expanded(
-                    flex: 2,
-                    child: DirectionsButton(
-                      lat: widget.booking.lat,
-                      lng: widget.booking.lng,
-                      loungeName: widget.booking.loungeName,
-                      loungeLocation: widget.booking.loungeLocation,
-                      mapsLink: widget.booking.mapsLink,
-                      height: 44.h,
-                      isPrimary: false,
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                ],
-                _buildReceiptButton(isPrimary: false),
-                SizedBox(width: 8.w),
-                Expanded(
-                  flex: 2,
-                  child: AppButton(
-                    content: ButtonContent(
-                      label: AppStrings.rebook.tr(),
-                      icon: Icon(Icons.refresh_rounded, size: 16.sp, color: Colors.white),
-                    ),
-                    behavior: ButtonBehavior.tap(
-                      onTap: () => QuickRebookBottomSheet.show(context, widget.booking),
-                    ),
-                    buttonConfig: ButtonConfig(
-                      height: 44.h,
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: 12.r,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildActions(false),
           ],
         ],
       ),
     );
   }
 
+  Widget _buildActions(bool upcoming) {
+    final directions = DirectionsButton(
+      lat: widget.booking.lat,
+      lng: widget.booking.lng,
+      height: 48,
+      isPrimary: upcoming,
+    );
+    final showDirections =
+        upcoming ||
+        widget.booking.mapsLink != null ||
+        widget.booking.lat != null;
+    final action = upcoming
+        ? AppButton(
+            content: ButtonContent(label: AppStrings.cancel.tr()),
+            behavior: ButtonBehavior.tap(
+              isEnabled: !widget.isCancelling,
+              isLoading: widget.isCancelling,
+              onTap: widget.onCancel,
+            ),
+            buttonConfig: ButtonConfig(
+              height: 48,
+              borderRadius: 12,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              borderColor: AppColors.danger.withValues(alpha: .3),
+              textStyle: const TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          )
+        : AppButton(
+            content: ButtonContent(
+              label: AppStrings.rebook.tr(),
+              icon: const Icon(
+                Icons.refresh_rounded,
+                size: 18,
+                color: Colors.black,
+              ),
+            ),
+            behavior: ButtonBehavior.tap(
+              onTap: () => QuickRebookBottomSheet.show(context, widget.booking),
+            ),
+            buttonConfig: ButtonConfig(
+              height: 48,
+              gradient: AppColors.primaryGradient,
+              borderRadius: 12,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              textStyle: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+        if (constraints.maxWidth < 280 * scale) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showDirections) ...[directions, const SizedBox(height: 8)],
+              action,
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: _buildReceiptButton(isPrimary: upcoming),
+              ),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            if (showDirections) ...[
+              Expanded(child: directions),
+              const SizedBox(width: 8),
+            ],
+            _buildReceiptButton(isPrimary: upcoming),
+            const SizedBox(width: 8),
+            Expanded(child: action),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildBadgesRow() {
-    final isCash = widget.booking.paymentMethod?.toLowerCase() == 'cash';
-    final paymentMethodText = isCash
-        ? AppStrings.cashAtLounge.tr()
-        : AppStrings.manualTransfer.tr();
+    final method = widget.booking.paymentMethod?.toLowerCase();
+    final paymentMethodText = switch (method) {
+      'cash' => AppStrings.cashAtLounge.tr(),
+      'mixed' => AppStrings.mixedPayment.tr(),
+      _ => AppStrings.manualTransfer.tr(),
+    };
 
     return Wrap(
       spacing: 6.w,
@@ -355,7 +376,9 @@ class _BookingCardState extends State<BookingCard> {
             decoration: BoxDecoration(
               color: AppColors.neonPurple.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.neonPurple.withValues(alpha: 0.3),
+              ),
             ),
             child: AppText(
               text: AppStrings.firstBooking.tr(),
@@ -381,6 +404,7 @@ class _BookingCardState extends State<BookingCard> {
         text = AppStrings.paid.tr();
         icon = Icons.check_circle_outline;
         break;
+      case 'partial':
       case 'partially_paid':
         color = AppColors.neonBlue;
         text = AppStrings.partiallyPaid.tr();
@@ -428,11 +452,14 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   Widget _buildCancellationReasonBanner() {
-    final reason = widget.booking.rejectionReason ?? widget.booking.cancellationReason;
+    final reason =
+        widget.booking.rejectionReason ?? widget.booking.cancellationReason;
     if (reason == null || reason.trim().isEmpty) {
       return const SizedBox.shrink();
     }
-    final isRejection = widget.booking.rejectionReason != null && widget.booking.rejectionReason!.trim().isNotEmpty;
+    final isRejection =
+        widget.booking.rejectionReason != null &&
+        widget.booking.rejectionReason!.trim().isNotEmpty;
 
     return Container(
       width: double.infinity,
@@ -447,7 +474,9 @@ class _BookingCardState extends State<BookingCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppText(
-            text: isRejection ? AppStrings.rejectionReason.tr() : AppStrings.cancellationReason.tr(),
+            text: isRejection
+                ? AppStrings.rejectionReason.tr()
+                : AppStrings.cancellationReason.tr(),
             fontSize: 12.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.danger,
@@ -465,26 +494,25 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   Widget _buildStatusBadge() {
-    final isArabic = context.locale.languageCode == 'ar';
     Color color;
     String text;
 
     switch (widget.booking.status) {
       case BookingStatus.upcoming:
         color = AppColors.success;
-        text = isArabic ? 'قادم' : 'Upcoming';
+        text = AppStrings.bookingStatusUpcoming.tr();
         break;
       case BookingStatus.pending:
         color = AppColors.warning;
-        text = isArabic ? 'قيد المراجعة' : 'Pending';
+        text = AppStrings.bookingStatusPending.tr();
         break;
       case BookingStatus.cancelled:
         color = AppColors.danger;
-        text = isArabic ? 'ملغي' : 'Cancelled';
+        text = AppStrings.bookingStatusCancelled.tr();
         break;
       default:
         color = AppColors.textSecondary;
-        text = isArabic ? 'مكتمل' : 'Completed';
+        text = AppStrings.bookingStatusCompleted.tr();
     }
 
     return Container(
@@ -613,47 +641,52 @@ class _BookingCardState extends State<BookingCard> {
   }
 
   Widget _buildReceiptButton({required bool isPrimary}) {
-    final hasProofImage = widget.booking.proofImageUrl != null && widget.booking.proofImageUrl!.trim().isNotEmpty;
+    final hasProofImage =
+        widget.booking.proofImageUrl != null &&
+        widget.booking.proofImageUrl!.trim().isNotEmpty;
 
-    return InkWell(
-      onTap: () => BookingReceiptDialog.show(context, widget.booking),
-      borderRadius: BorderRadius.circular(12.r),
-      child: Container(
-        width: 44.w,
-        height: 44.h,
-        decoration: BoxDecoration(
-          color: isPrimary
-              ? AppColors.neonBlue.withValues(alpha: 0.12)
-              : Colors.black26,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(
+    return Tooltip(
+      message: AppStrings.bookingDetailsAndReceipt.tr(),
+      child: InkWell(
+        onTap: () => BookingReceiptDialog.show(context, widget.booking),
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
             color: isPrimary
-                ? AppColors.neonBlue.withValues(alpha: 0.4)
-                : AppColors.borderDefault,
-          ),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_rounded,
-              color: isPrimary ? AppColors.neonBlue : AppColors.textSecondary,
-              size: 22.sp,
+                ? AppColors.neonBlue.withValues(alpha: 0.12)
+                : Colors.black26,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: isPrimary
+                  ? AppColors.neonBlue.withValues(alpha: 0.4)
+                  : AppColors.borderDefault,
             ),
-            if (hasProofImage)
-              Positioned(
-                top: 6.h,
-                right: 6.w,
-                child: Container(
-                  width: 8.w,
-                  height: 8.w,
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.receipt_long_rounded,
+                color: isPrimary ? AppColors.neonBlue : AppColors.textSecondary,
+                size: 22.sp,
+              ),
+              if (hasProofImage)
+                Positioned(
+                  top: 7.h,
+                  right: 7.w,
+                  child: Container(
+                    width: 8.w,
+                    height: 8.w,
+                    decoration: const BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

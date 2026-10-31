@@ -1,7 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:playspot/art_core/app_strings.dart';
 import 'package:playspot/art_core/router/router_keys.dart';
@@ -12,110 +11,144 @@ import 'package:playspot/art_core/widgets/buttons/res/button_content.dart';
 import 'package:playspot/art_core/widgets/buttons/res/button_style_config.dart';
 import 'package:playspot/art_core/widgets/layout/sticky_bottom_bar.dart';
 import 'package:playspot/art_core/widgets/text/app_text.dart';
-import 'package:playspot/features/booking/data/models/booking_params.dart';
 import 'package:playspot/features/home/data/models/lounge_model.dart';
+
+import '../lounge_booking_selection.dart';
 import '../lounge_details_cubit.dart';
 import '../lounge_details_state.dart';
+import 'booking_canteen_offer_dialog.dart';
 
-class LoungeDetailsBottomBar extends StatelessWidget {
+class LoungeDetailsBottomBar extends StatefulWidget {
   final LoungeModel lounge;
-
   const LoungeDetailsBottomBar({super.key, required this.lounge});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
-      buildWhen: (previous, current) =>
-          previous.selectedRoomIds != current.selectedRoomIds ||
-          previous.selectedExtras != current.selectedExtras ||
-          previous.rooms != current.rooms ||
-          previous.extras != current.extras ||
-          previous.lounge != current.lounge,
-      builder: (context, state) {
-        final isRoomSelected = state.selectedRoomIds.isNotEmpty;
-        final selectedCount = state.selectedRoomIds.length;
-        final isOpen = lounge.isOpen;
+  State<LoungeDetailsBottomBar> createState() => _LoungeDetailsBottomBarState();
+}
 
-        String buttonText;
-        if (!isOpen) {
-          buttonText = AppStrings.closed.tr().toUpperCase();
-        } else if (!isRoomSelected) {
-          buttonText = AppStrings.selectRoomsPrompt.tr();
-        } else if (selectedCount == 1) {
-          buttonText = AppStrings.bookARoom.tr();
-        } else {
-          buttonText = "${AppStrings.bookRoomsCount.tr()} ($selectedCount)";
-        }
+class _LoungeDetailsBottomBarState extends State<LoungeDetailsBottomBar> {
+  bool _checkingMenu = false;
 
-        return StickyBottomBar(
-          child: AppButton(
-            content: ButtonContent(
-              body: AppText(
-                fontFamily: 'Orbitron',
-                textAlign: TextAlign.center,
-                text: buttonText,
-                fontSize: 15.sp,
-                fontWeight: FontWeight.bold,
-                color: (isRoomSelected && isOpen) ? AppColors.black : AppColors.white,
+  @override
+  Widget build(BuildContext context) =>
+      BlocBuilder<LoungeDetailsCubit, LoungeDetailsState>(
+        buildWhen: (a, b) =>
+            a.selectedRoomIds != b.selectedRoomIds ||
+            a.rooms != b.rooms ||
+            a.lounge != b.lounge ||
+            a.operatingStatus != b.operatingStatus ||
+            a.isDateLoading != b.isDateLoading ||
+            a.status != b.status ||
+            a.availabilityLoadFailed != b.availabilityLoadFailed ||
+            a.bookedRoomIds != b.bookedRoomIds,
+        builder: (context, state) {
+          final selection = LoungeBookingSelection(
+            state,
+            state.lounge ?? widget.lounge,
+          );
+          return StickyBottomBar(
+            child: AppButton(
+              content: ButtonContent(
+                body: AppText(
+                  text: _checkingMenu
+                      ? AppStrings.bookingCanteenCheckingMenu.tr()
+                      : _label(state),
+                  textAlign: TextAlign.center,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: selection.isEnabled && !_checkingMenu
+                      ? AppColors.black
+                      : AppColors.textSecondary,
+                ),
+              ),
+              behavior: ButtonBehavior.tap(
+                isEnabled: selection.isEnabled && !_checkingMenu,
+                onTap: () => _book(context),
+              ),
+              buttonConfig: ButtonConfig(
+                width: double.infinity,
+                height: 56 * MediaQuery.textScalerOf(context).scale(1),
+                borderRadius: 15,
+                gradient: AppColors.primaryGradient,
+                glowColor: AppColors.neonBlueAlt,
+                backgroundColor: AppColors.neonBlue,
+                borderColor: AppColors.neonBlue,
+                textStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            behavior: ButtonBehavior.tap(
-              isEnabled: isRoomSelected && isOpen,
-              onTap: (isRoomSelected && isOpen)
-                  ? () {
-                      final selectedRooms = state.selectedRooms;
-                      if (selectedRooms.isEmpty) return;
+          );
+        },
+      );
 
-                      final selectedExtras =
-                          state.selectedExtras.entries.map((entry) {
-                        final extra =
-                            state.extras.where((e) => e.id == entry.key).firstOrNull;
-                        return {
-                          'id': entry.key,
-                          'name': extra?.name ?? 'Extra',
-                          'price': extra?.price ?? 0.0,
-                          'quantity': entry.value,
-                        };
-                      }).toList();
+  String _label(LoungeDetailsState state) {
+    if (state.operatingStatus == null ||
+        state.operatingStatus?.status == 'unavailable') {
+      return AppStrings.operatingStatusUnavailable.tr();
+    }
+    if (state.operatingStatus?.canBookOnline == false &&
+        state.operatingStatus?.canBookOnDate(state.selectedDate) != true &&
+        state.operatingStatus?.status != 'closed') {
+      return AppStrings.technicalIssue.tr();
+    }
+    if (state.operatingStatus?.isOpen == false &&
+        state.operatingStatus?.canBookOnDate(state.selectedDate) != true) {
+      return AppStrings.closed.tr();
+    }
+    if (state.availabilityLoadFailed) {
+      return AppStrings.roomAvailabilityUnavailable.tr();
+    }
+    if (state.selectedRooms.isEmpty) return AppStrings.selectRoomsPrompt.tr();
+    if (state.selectedRooms.length == 1) return AppStrings.bookARoom.tr();
+    return '${AppStrings.bookRoomsCount.tr()} (${state.selectedRooms.length})';
+  }
 
-                      final firstRoom = selectedRooms.first;
-                      final primaryPlayMode = state.roomPlayModes[firstRoom.id] ??
-                          (firstRoom.isOpenArea ? 'single' : 'multi');
-                      final primaryExtraControllers =
-                          state.roomExtraControllers[firstRoom.id] ?? 0;
-
-                      context.pushNamed(
-                        RouterKeys.booking,
-                        extra: BookingDetailsParams(
-                          lounge: lounge,
-                          rooms: selectedRooms,
-                          selectedDate: state.selectedDate ?? DateTime.now(),
-                          extras: selectedExtras,
-                          playMode: primaryPlayMode,
-                          extraControllers: primaryExtraControllers,
-                          roomPlayModes: state.roomPlayModes,
-                          roomExtraControllers: state.roomExtraControllers,
-                        ),
-                      );
-                    }
-                  : null,
-            ),
-            buttonConfig: ButtonConfig(
-              gradient: (isRoomSelected && isOpen) ? AppColors.primaryGradient : null,
-              glowColor: (isRoomSelected && isOpen) ? AppColors.neonBlueAlt : Colors.transparent,
-              borderRadius: 15.r,
-              width: 340.w,
-              height: 50.h,
-              backgroundColor: (isRoomSelected && isOpen)
-                  ? AppColors.neonBlue
-                  : AppColors.cardBackground,
-              borderColor: (isRoomSelected && isOpen)
-                  ? AppColors.neonBlue
-                  : AppColors.borderDefault,
-            ),
+  Future<void> _book(BuildContext context) async {
+    if (_checkingMenu) return;
+    final cubit = context.read<LoungeDetailsCubit>();
+    final state = cubit.state;
+    final lounge = state.lounge ?? widget.lounge;
+    if (LoungeBookingSelection(state, lounge).params == null) {
+      return;
+    }
+    setState(() => _checkingMenu = true);
+    try {
+      final hasCanteen = await cubit.refreshBookingCanteen(lounge.id);
+      if (!context.mounted) return;
+      if (hasCanteen == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: AppText(text: AppStrings.canteenRefreshError.tr())),
+        );
+        return;
+      }
+      if (hasCanteen) {
+        final keepExtras = await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          constraints: const BoxConstraints(maxWidth: 600),
+          backgroundColor: Colors.transparent,
+          builder: (_) => BlocProvider.value(
+            value: cubit,
+            child: const BookingCanteenOfferDialog(),
           ),
         );
-      },
-    );
+        if (!context.mounted || keepExtras == null) return;
+        if (!keepExtras) cubit.clearSelectedExtras();
+      }
+
+      final currentState = cubit.state;
+      final params = LoungeBookingSelection(
+        currentState,
+        currentState.lounge ?? widget.lounge,
+      ).params;
+      if (params != null && context.mounted) {
+        context.pushNamed(RouterKeys.booking, extra: params);
+      }
+    } finally {
+      if (mounted) setState(() => _checkingMenu = false);
+    }
   }
 }

@@ -16,7 +16,9 @@ class SafeBottomSpacer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (androidOnly && (kIsWeb || !Platform.isAndroid)) return const SizedBox.shrink();
+    if (androidOnly && (kIsWeb || !Platform.isAndroid)) {
+      return const SizedBox.shrink();
+    }
 
     // Calculate maximum bottom inset from system padding or viewPadding (Android System Nav Bar)
     final bottomInset = math.max(

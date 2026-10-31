@@ -15,12 +15,15 @@ import 'package:playspot/art_core/widgets/layout/safe_bottom_spacer.dart';
 import 'package:playspot/art_core/widgets/layout/app_loader.dart';
 import 'profile_cubit.dart';
 import 'profile_state.dart';
+import 'profile_reward_labels.dart';
+import 'package:playspot/art_core/widgets/notifications/game_hud_toast.dart';
 
 class MyVouchersScreen extends StatelessWidget {
   const MyVouchersScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    EasyLocalization.of(context);
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -64,12 +67,21 @@ class MyVouchersScreen extends StatelessWidget {
             }
 
             final vouchers = state.myVouchers;
-            
+
             return TabBarView(
               children: [
-                _buildVoucherList(context, vouchers.where((v) => v['status'] == 'active').toList()),
-                _buildVoucherList(context, vouchers.where((v) => v['status'] == 'used').toList()),
-                _buildVoucherList(context, vouchers.where((v) => v['status'] == 'expired').toList()),
+                _buildVoucherList(
+                  context,
+                  vouchers.where((v) => v['status'] == 'active').toList(),
+                ),
+                _buildVoucherList(
+                  context,
+                  vouchers.where((v) => v['status'] == 'used').toList(),
+                ),
+                _buildVoucherList(
+                  context,
+                  vouchers.where((v) => v['status'] == 'expired').toList(),
+                ),
               ],
             );
           },
@@ -78,7 +90,10 @@ class MyVouchersScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVoucherList(BuildContext context, List<Map<String, dynamic>> vouchers) {
+  Widget _buildVoucherList(
+    BuildContext context,
+    List<Map<String, dynamic>> vouchers,
+  ) {
     if (vouchers.isEmpty) {
       return AppStateView.empty(title: AppStrings.noVouchers.tr());
     }
@@ -89,13 +104,13 @@ class MyVouchersScreen extends StatelessWidget {
       separatorBuilder: (context, index) => SizedBox(height: 16.h),
       itemBuilder: (context, index) {
         if (index == vouchers.length) return const SafeBottomSpacer();
-        
+
         final voucher = vouchers[index];
         final isExpired = voucher['status'] == 'expired';
         final isUsed = voucher['status'] == 'used';
         final isInactive = isExpired || isUsed;
         final String code = voucher['code']?.toString() ?? '';
-        
+
         return GlassContainer(
           borderRadius: 20,
           child: Padding(
@@ -131,7 +146,10 @@ class MyVouchersScreen extends StatelessWidget {
                   GestureDetector(
                     onTap: () => _copyCode(context, code),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 10.h,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.neonBlue.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12.r),
@@ -161,7 +179,10 @@ class MyVouchersScreen extends StatelessWidget {
                           ),
                           SizedBox(width: 8.w),
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.w,
+                              vertical: 4.h,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.neonBlue.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8.r),
@@ -202,11 +223,10 @@ class MyVouchersScreen extends StatelessWidget {
                       SizedBox(width: 4.w),
                       Expanded(
                         child: AppText(
-                          text: isUsed 
-                              ? "Used on ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['used_at']))}"
-                              : isExpired 
-                                  ? "Expired on ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['expires_at']))}"
-                                  : "Valid until ${DateFormat('dd MMM yyyy').format(DateTime.parse(voucher['expires_at']))}",
+                          text: ProfileRewardLabels.date(
+                            voucher,
+                            context.locale.toString(),
+                          ),
                           fontSize: 12.sp,
                           color: AppColors.textSecondary,
                           maxLines: 1,
@@ -227,25 +247,28 @@ class MyVouchersScreen extends StatelessWidget {
   void _copyCode(BuildContext context, String code) {
     if (code.isEmpty) return;
     Clipboard.setData(ClipboardData(text: code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.codeCopied.tr()),
-        backgroundColor: AppColors.neonBlue,
-        duration: const Duration(seconds: 2),
-      ),
+    GameHudToast.show(
+      context,
+      AppStrings.codeCopied.tr(),
+      type: ToastType.success,
     );
   }
 
   String _getRewardText(Map<String, dynamic> voucher) {
     if (voucher['reward_type'] == 'free_hour') {
-      return "1 Free Hour";
+      return AppStrings.freeHourReward.tr();
     }
-    return "${voucher['reward_value']} EGP Discount";
+    return AppStrings.egpDiscount.tr(
+      args: [voucher['reward_value']?.toString() ?? '0'],
+    );
   }
 
-  Widget _buildExpiryCountdown(String expiresAt) {
-    final expiry = DateTime.parse(expiresAt);
-    final daysLeft = expiry.difference(DateTime.now()).inDays;
+  Widget _buildExpiryCountdown(Object? expiresAt) {
+    final expiry = DateTime.tryParse(expiresAt?.toString() ?? '');
+    if (expiry == null) return const SizedBox.shrink();
+    final daysLeft = (expiry.difference(DateTime.now()).inSeconds / 86400)
+        .ceil()
+        .clamp(0, 999999);
     final isUrgent = daysLeft < 5;
 
     return Row(
@@ -258,7 +281,9 @@ class MyVouchersScreen extends StatelessWidget {
         ),
         SizedBox(width: 4.w),
         AppText(
-          text: "$daysLeft days left",
+          text: 'profile_rewards.days_left'.tr(
+            namedArgs: {'count': daysLeft.toString()},
+          ),
           fontSize: 11.sp,
           color: isUrgent ? AppColors.danger : AppColors.textSecondary,
         ),

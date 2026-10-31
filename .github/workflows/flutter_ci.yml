@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
 
       - name: Check formatting of changed Dart files
-        if: github.event_name == 'pull_request' && github.base_ref != 'main'
+        if: github.event_name == 'pull_request'
         shell: bash
         run: |
           files=$(git diff --name-only --diff-filter=ACMRT "${{ github.event.pull_request.base.sha }}"...HEAD -- '*.dart')
@@ -51,4 +51,52 @@ jobs:
         run: flutter test
 
       - name: Verify Android release build
-        run: flutter build apk --release
+        env:
+          ORG_GRADLE_PROJECT_allowDebugReleaseSigning: "true"
+        run: flutter build apk --release --android-project-arg=allowDebugReleaseSigning=true
+
+  backend-fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17.11
+        env:
+          POSTGRES_USER: playspot_fixture
+          POSTGRES_DB: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 55439:5432
+        options: >-
+          --health-cmd "pg_isready -U playspot_fixture -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: supabase/tests/runtime/package-lock.json
+      - name: Install pinned fixture dependencies
+        run: npm ci --prefix supabase/tests/runtime
+      - name: Verify canonical Edge Function contracts
+        run: node --test supabase/functions/*/*.test.mjs
+      - name: Run isolated PostgreSQL contracts
+        env:
+          PLAYSPOT_NATIVE_PG_PORT: '55439'
+        run: |
+          for suite in supabase/tests/*.test.mjs; do
+            node "$suite"
+          done
+      - name: Verify the deployed coordinated offline migration
+        env:
+          PLAYSPOT_NATIVE_PG_PORT: '55439'
+          PLAYSPOT_OFFLINE_PROTOCOL_SQL: supabase/migrations/20261004132112_coordinated_offline_cashier_protocol.sql
+          PLAYSPOT_ROOM_GUARD_SQL: supabase/migrations/20261004035454_room_active_session_invariants.sql
+          PLAYSPOT_WRITER_RELEASE_SQL: supabase/migrations/20261004151006_cashier_writer_generation_handover.sql
+        run: |
+          node supabase/tests/offline_fixed_session_reconciliation.test.mjs
+          node supabase/tests/offline_cashier_bootstrap.test.mjs
+          node supabase/tests/cashier_writer_release.test.mjs
