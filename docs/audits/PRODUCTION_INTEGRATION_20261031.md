@@ -1,5 +1,7 @@
 # Real-system integration — 31 October 2026
 
+**Latest owner boundary:** all Production connections are now stopped because no restorable backup is verified. See [the local recovery inventory](BACKUP_RECOVERY_INVENTORY_20261031.md). Prior read-only catalog/backup attempts below predate that clarification and do not authorize reconnecting.
+
 The owner authorizes the actual Production destination, conditional on verified recovery, compatibility, ordered migrations and meaningful combined testing. Local Supabase is a verification environment, not a substitute final product. Google Play upload/publication remains excluded. This report supersedes historical prohibitions only within that explicit authorization; it does not establish that any Production change occurred.
 
 ## Source reconciliation
@@ -51,6 +53,8 @@ Owner confirms no prior Google Play upload and authorizes a dedicated upload key
 
 Public certificate SHA-256: `F3:09:2C:E6:7A:6E:31:02:EA:BE:68:C9:BA:92:71:78:9F:88:C5:EF:92:B9:2B:4A:45:EA:14:2D:7C:D8:5B:83`.
 
-Actual application ID remains **com.playspot.client**, version **1.0.0+1**. Both ignored Production configuration files explicitly select `https://tgpdexoitemmpruepgyt.supabase.co` with an independently checked anon-role public key; no secret/service-role key or local opt-in. A signed AAB still requires actual build/signature/manifest verification before claiming delivery. Production-configured compilation is not runtime/backend acceptance. Google Play App Signing enrollment is separate at the first store submission; no upload/publication is authorized.
+Actual application ID remains **com.playspot.client**, version **1.0.0+1**. Both ignored Production configuration files explicitly select `https://tgpdexoitemmpruepgyt.supabase.co` with an independently checked anon-role public key; no secret/service-role key or local opt-in. Signed AAB built from source `0d5becf9dd985a563b151dad6ad820dc69e8ba45` in 460.7s, exit 0. Kotlin cross-drive incremental-cache failures fell back to compilation; no dependencies/caches were upgraded or discarded. jarsigner verifies the archive and its certificate matches the upload certificate above; official bundletool 1.18.3 (verified SHA-256 a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29) validates it. Built manifest: applicationId com.playspot.client, versionName 1.0.0/code 1, minSdk 24, targetSdk 36, no debuggable=true. AOT library contains the intended Production URL and checked public key. Artifact is 80,985,102 bytes, SHA-256 `3F5CB7A488D4B203C11FB640C9B9C9650DAB6687505C58D4C8CE5511EFE10151`, copied to D:/PlaySpotReleaseDelivery/20261031/PlaySpot-1.0.0+1-production-HOLD.aab. This is a held build, not runtime/backend acceptance or approval to install/use financial paths. Google Play App Signing enrollment is separate at the first store submission; no upload/publication is authorized.
+
+Source 0d5becf9 was fast-forwarded into local dev and normally pushed; independent ls-remote matched. [Remote CI 41197071021](https://github.com/salahaldensherief/playspot_V2/actions/runs/41197071021) completed success, including backend fixtures and Android compile-only verification; formatting review also succeeded. These source/CI results do not alter the unresolved Production release gates.
 
 Official references: [Supabase backups](https://supabase.com/docs/guides/platform/backups), [Android signing](https://developer.android.com/studio/publish/app-signing), [Flutter Android release](https://docs.flutter.dev/deployment/android).

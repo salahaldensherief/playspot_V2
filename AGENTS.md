@@ -1,6 +1,8 @@
 # PlaySpot Mobile: agent engineering guide
 
 ## Current owner destination — 31 October 2026
+Latest recovery clarification: no verified Production backup exists. Do not connect to Production or modify/create its backup configuration until the owner explicitly authorizes a supported backup acquisition or a valid independent candidate is available for isolated verification. The pending owned export client was stopped; no migrations/deployment follow. See docs/audits/BACKUP_RECOVERY_INVENTORY_20261031.md. This restriction supersedes the earlier conditional rollout authorization below.
+
 The final destination is the real PlaySpot system. The owner authorizes Production rollout only after verified backup/recovery, effective-schema compatibility, correct ordering, combined tests and compatible clients. Local acceptance is verification infrastructure, not a separate final app. Integrate reviewed source into dev, promote through the actual main/release process, and preserve all unrelated work. Google Play publication is excluded. See docs/audits/PRODUCTION_INTEGRATION_20261031.md for current evidence, the forward refund-audit fix and unresolved recovery/rollout gates. Historical Draft or Production prohibitions below are dated evidence; current explicit owner scope takes precedence, while unverified safety conditions remain blocking.
 
 This is the single source of agent guidance for the Flutter mobile repository. User instructions and verified product requirements take precedence. Apply these rules to code you touch; improve unrelated legacy code in focused follow-up changes.
