@@ -1,0 +1,56 @@
+Fixture database: 17.11
+PASS walk-in can reserve without account even when first registered customer must prepay
+PASS registered first customer still cannot bypass prepaid policy
+PASS offline reservation cannot invent an implicit cash payment
+PASS unprivileged customer cannot disguise a first booking as an account-free walk-in
+PASS same reservation replay neither creates another booking nor advances twice
+PASS overlapping reservation rolls back and blocks later sequences
+PASS adjacent room bookings do not falsely overlap
+PASS room tariff drift refuses the saved local quote
+PASS invalid walk-in identity {"customer_name":null}
+PASS invalid walk-in identity {"customer_name":1}
+PASS invalid walk-in identity {"customer_name":""}
+PASS invalid walk-in identity {"customer_name":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+PASS invalid walk-in identity {"customer_phone":1}
+PASS invalid walk-in identity {"customer_phone":"111111111111111111111111111111111"}
+PASS mismatched reservation snapshot rolls back insertion and private proof contexts
+PASS room eligibility {"status":"maintenance"}
+PASS room eligibility {"is_active":false}
+PASS room eligibility {"is_available":false}
+PASS other venue room cannot be reserved
+PASS cash-disabled lounge remains protected for walk-ins
+PASS caller timezone must match venue timezone
+PASS invalid interval {"start_ms":1792605660001}
+PASS invalid interval {"end_ms":1792609260001}
+PASS invalid interval {"end_ms":1792605660000}
+PASS invalid interval {"end_ms":1792692120000}
+PASS invalid interval {"start_ms":"1"}
+PASS 61 actual minutes use canonical cent rounding rather than open-time quantum
+PASS overnight booking preserves the full UTC planned interval
+PASS DST-crossing interval is retained for review instead of billing the wrong duration
+PASS existing tournament room allocation cannot be consumed by offline reservation
+PASS starting recorded session uses original event time and does not collect
+PASS session-control permission starts without booking-management permission
+PASS canonical super admin reconciles reserve/start/cash/close without staff grants
+PASS missing session snapshot never acknowledges a transition
+PASS rescheduled server booking refuses the old offline start snapshot
+PASS incorrect saved start event cannot mutate the session
+PASS start outside booked window -1
+PASS start outside booked window 60
+PASS an overdue physical session still prevents a second session starting
+PASS shift belonging to another cashier cannot receive reservation
+PASS closed shift cannot start recorded session
+PASS early close preserves planned duration, price and unpaid debt while releasing capacity
+PASS completed actual occupancy remains protected against overlapping historical reservations
+PASS legacy completed rows retain their planned capacity until explicitly reconciled
+PASS close before recorded start is rejected without releasing room
+PASS stale paid-balance snapshot cannot close after a separate cash collection
+PASS microsecond close event produces an exact integer millisecond capacity receipt
+PASS maintenance stays maintenance after close
+PASS changed tariff during close rolls back status and capacity release
+PASS cash collection cannot silently reprice a booking through the hosted trigger
+PASS untrusted direct capacity edits cannot free a room
+PASS full recorded flow reconciles order, partial cash and early close without duplicate money
+PASS simultaneous reservation retries actually wait and commit exactly one booking
+PASS an online booking lock cannot deadlock the offline lounge-first writer
+{"passed":54,"limitations":["Synthetic local tests; no hosted writes or UI enablement","Synthetic Auth/permissions and incomplete hosted audit/moderation/loyalty triggers","DST-crossing/ambiguous intervals retained for review; advanced pricing and open time excluded","New capacity index requires deployment planning and discovery adapter changes"]}

@@ -1,0 +1,16 @@
+Fixture database: 17.11
+PASS online renewal preserves the existing permit
+PASS stale online tab cannot reopen an offline writer
+PASS explicit online bootstrap still reopens an offline writer
+PASS network recovery renews an expired heartbeat without mode change
+PASS different device cannot renew or take over
+PASS different venue cannot be renewed
+PASS banned actor cannot renew
+PASS inactive actor cannot renew
+PASS missing permission cannot renew
+PASS another authenticated actor cannot renew
+PASS released generation cannot be reclaimed by a heartbeat
+PASS RPC grants are limited to authenticated callers
+PASS migration reapplication installs exactly one guard
+PASS reviewed rollback and reapplication preserve the RPC contract
+{"passed":14}

@@ -1,0 +1,45 @@
+Fixture database: 17.11
+PASS fixture reproduces broad truncate grant despite RLS
+PASS anon lacks TRUNCATE on public.fixture_records
+PASS anon lacks REFERENCES on public.fixture_records
+PASS anon lacks TRIGGER on public.fixture_records
+PASS anon lacks MAINTAIN on public.fixture_records
+PASS anon lacks TRUNCATE on public.fixture_permissions
+PASS anon lacks REFERENCES on public.fixture_permissions
+PASS anon lacks TRIGGER on public.fixture_permissions
+PASS anon lacks MAINTAIN on public.fixture_permissions
+PASS anon lacks TRUNCATE on public.fixture_future
+PASS anon lacks REFERENCES on public.fixture_future
+PASS anon lacks TRIGGER on public.fixture_future
+PASS anon lacks MAINTAIN on public.fixture_future
+PASS anon lacks TRUNCATE on fixture_private.fixture_future
+PASS anon lacks REFERENCES on fixture_private.fixture_future
+PASS anon lacks TRIGGER on fixture_private.fixture_future
+PASS anon lacks MAINTAIN on fixture_private.fixture_future
+PASS anon actual truncate denied on public.fixture_records
+PASS anon actual truncate denied on public.fixture_permissions
+PASS anon actual truncate denied on public.fixture_future
+PASS authenticated lacks TRUNCATE on public.fixture_records
+PASS authenticated lacks REFERENCES on public.fixture_records
+PASS authenticated lacks TRIGGER on public.fixture_records
+PASS authenticated lacks MAINTAIN on public.fixture_records
+PASS authenticated lacks TRUNCATE on public.fixture_permissions
+PASS authenticated lacks REFERENCES on public.fixture_permissions
+PASS authenticated lacks TRIGGER on public.fixture_permissions
+PASS authenticated lacks MAINTAIN on public.fixture_permissions
+PASS authenticated lacks TRUNCATE on public.fixture_future
+PASS authenticated lacks REFERENCES on public.fixture_future
+PASS authenticated lacks TRIGGER on public.fixture_future
+PASS authenticated lacks MAINTAIN on public.fixture_future
+PASS authenticated lacks TRUNCATE on fixture_private.fixture_future
+PASS authenticated lacks REFERENCES on fixture_private.fixture_future
+PASS authenticated lacks TRIGGER on fixture_private.fixture_future
+PASS authenticated lacks MAINTAIN on fixture_private.fixture_future
+PASS authenticated actual truncate denied on public.fixture_records
+PASS authenticated actual truncate denied on public.fixture_permissions
+PASS authenticated actual truncate denied on public.fixture_future
+PASS existing data remains intact
+PASS trusted service-role maintenance privileges retained
+PASS authenticated scoped SELECT INSERT UPDATE DELETE still work
+PASS future ordinary DML grants retained
+{"passed":43,"limitations":["PostgreSQL 17 MAINTAIN privilege","Only current executor default privileges are changed","Other owner defaults and inherited grants require deployment audit","No production write or destructive live probe"]}

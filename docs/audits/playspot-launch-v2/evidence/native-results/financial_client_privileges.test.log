@@ -1,0 +1,36 @@
+Fixture database: 17.11
+PASS anon denied direct TRUNCATE on payments
+PASS anon denied direct DELETE on payments
+PASS anon denied direct UPDATE on payments
+PASS anon denied direct INSERT on payments
+PASS anon lacks TRIGGER on payments
+PASS anon lacks REFERENCES on payments
+PASS anon denied direct TRUNCATE on shift_payments
+PASS anon denied direct DELETE on shift_payments
+PASS anon denied direct UPDATE on shift_payments
+PASS anon denied direct INSERT on shift_payments
+PASS anon lacks TRIGGER on shift_payments
+PASS anon lacks REFERENCES on shift_payments
+PASS authenticated denied direct TRUNCATE on payments
+PASS authenticated denied direct DELETE on payments
+PASS authenticated denied direct UPDATE on payments
+PASS authenticated denied direct INSERT on payments
+PASS authenticated lacks TRIGGER on payments
+PASS authenticated lacks REFERENCES on payments
+PASS authenticated denied direct TRUNCATE on shift_payments
+PASS authenticated denied direct DELETE on shift_payments
+PASS authenticated denied direct UPDATE on shift_payments
+PASS authenticated denied direct INSERT on shift_payments
+PASS authenticated lacks TRIGGER on shift_payments
+PASS authenticated lacks REFERENCES on shift_payments
+PASS anonymous financial reads revoked
+PASS active customer sees their own payment only
+PASS restrictive guard contains leftover permissive read policies
+PASS cashier with exact billing grant sees venue financials
+PASS banned assigned cashier reads nothing
+PASS inactive assigned cashier reads nothing
+PASS active canonical super admin sees records
+PASS banned super admin has no ALL-policy bypass
+PASS authorized RPC still records partial cash after direct writes revoked
+PASS deleted Auth identity cannot read surviving financial data
+{"passed":34,"limitations":["Synthetic Auth/RLS schema","Known hosted policy names; additional deployment policies must be reviewed","No production writes or deployed privilege changes"]}

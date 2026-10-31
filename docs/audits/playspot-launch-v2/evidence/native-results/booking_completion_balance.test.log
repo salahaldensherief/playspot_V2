@@ -1,0 +1,15 @@
+Fixture database: 17.11
+PASS prepaid open-time growth leaves a real balance and never inserts phantom cash
+PASS explicit canonical collection settles only the remainder then close retry reports collected funds
+PASS electronic prepayment remains electronic and its increased balance is not recorded as cash
+PASS unpaid session closes with full balance and no payment rows
+PASS partial prepayment is reported from the ledger instead of zero
+PASS unproven legacy paid flags require reconciliation without releasing the room
+PASS payment in a different lounge or refunded ledger is not accepted as collected
+PASS canonical cash receipt mismatch fails closed without updating totals
+PASS standard sessions keep their price and actual paid balance
+PASS inactive, banned and wrong-lounge callers cannot close sessions
+PASS Dashboard cash confirmation collects only the remainder and retries without duplicating
+PASS electronic and mixed installments retain history and require separate receipts
+PASS wallet method cannot fabricate payment without debiting verified wallet
+{"passed":13,"environment":"isolated actual RPC and cash-collector bodies; no production writes"}

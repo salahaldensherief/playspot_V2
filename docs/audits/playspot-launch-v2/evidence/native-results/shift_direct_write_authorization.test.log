@@ -1,0 +1,10 @@
+Fixture database: 17.11
+PASS forged approval denied
+PASS forged expected cash denied
+PASS foreign cashier insertion denied
+PASS direct financial deletion denied
+PASS existing shift read contract retained
+PASS authorized SECURITY DEFINER transitions retain owner write ability
+PASS anon lacks direct write grants
+PASS authenticated lacks direct write grants
+{"passed":8,"limitations":["Synthetic privilege test; operational RPC authorization is covered separately, not by fixture functions"]}

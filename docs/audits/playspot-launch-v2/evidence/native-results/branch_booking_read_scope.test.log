@@ -1,0 +1,10 @@
+Fixture database: 17.11
+PASS owner can read another owned branch despite a different profile lounge
+PASS other owner branch is denied and global requests never expose it
+PASS staff membership authorizes its branch and explicit view denial is honored
+PASS canonical platform membership grants all branches without a super-admin role string
+PASS inactive, banned, missing Auth and anonymous actors cannot use retained credentials
+PASS status filter and pagination retain exact branch scope
+PASS discounts require checkout authority and reject unverified voucher and invalid money
+PASS customer voucher lookup requires an explicit authorized target instead of a role shortcut
+{"passed":8,"environment":"isolated RPC with actual canonical permission functions"}

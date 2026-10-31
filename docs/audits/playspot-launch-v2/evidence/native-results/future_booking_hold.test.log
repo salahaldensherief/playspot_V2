@@ -1,0 +1,11 @@
+Fixture database: 17.11
+PASS occupied room accepts a nonoverlapping future hold
+PASS occupied room rejects overlapping confirmed booking
+PASS maintenance rejects even an inconsistent available flag
+PASS administratively disabled available room rejects
+PASS inactive occupied room rejects
+PASS other customer active hold rejects overlap
+PASS adjacent booking periods do not overlap
+PASS offline writer barrier is preserved for future occupied room
+PASS concurrent customers cannot hold the same future interval
+{"passed":9}

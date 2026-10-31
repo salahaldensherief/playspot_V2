@@ -1,0 +1,12 @@
+Fixture database: 17.11
+PASS connected lounge reports open
+PASS expired heartbeat during open shift reports technical issue and venue phone
+PASS local operation during open shift reports technical issue
+PASS no open shift never reports technical issue
+PASS manual closure takes precedence over disconnection
+PASS inactive venue does not leak phone
+PASS banned writer is not presented as a network outage
+PASS empty contact phone is never invented
+PASS unknown lounge leaks no data
+PASS public response exposes only three intended fields and grants
+{"passed":10}

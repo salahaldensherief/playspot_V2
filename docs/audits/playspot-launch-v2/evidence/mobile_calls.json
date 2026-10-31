@@ -1,0 +1,2204 @@
+[
+  {
+    "repo": "mobile-dev",
+    "file": "lib/core/services/supabase_storage_service.dart",
+    "line": 90,
+    "kind": "storage",
+    "target": "payment-proofs",
+    "params": [],
+    "status": "BUCKET EXISTS; object authorization unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('payment-proofs')",
+    "context": "|png|webp|pdf)$', caseSensitive: false),\n      '',\n    );\n    final path = '$userId/$cleanBookingId/receipt.$fileExt';\n\n    try {\n      await _supabase.storage\n          .from('payment-proofs')\n          .upload(path, file, fileOptions: const FileOptions(upsert: true));\n      return path;\n    } catch (e, st) {\n      AppLogger.error('[StorageService] Payment proof upload failed', e, st);\n      return null;\n    }\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 76,
+    "kind": "rpc",
+    "target": "get_active_session_details",
+    "params": [
+      "p_booking_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "",
+      "p_booking_id uuid"
+    ],
+    "returns": [
+      "jsonb",
+      "json"
+    ],
+    "snippet": ".rpc(\n        'get_active_session_details',\n        params: {\n          if (bookingId != null && bookingId.isNotEmpty)\n            'p_booking_id': bookingId,\n        },\n      )",
+    "context": "anteen_orders(*, canteen_order_items(*))';\n\n    // Try RPC get_active_session_details first for rich hydrated session details\n    try {\n      final rpcRes = await _client.rpc(\n        'get_active_session_details',\n        params: {\n          if (bookingId != null && bookingId.isNotEmpty)\n            'p_booking_id': bookingId,\n        },\n      );\n      if (rpcRes != null) {\n        final Map<String, dynamic> rpcMap = rpcRes is List\n            ? (rpcRes.isNotEmpty ? Map<String, dynamic>.from(rpcRes.first) : {})\n            : Map<String, dynamic>.from(rpcRes);\n\n        if (rpcMap.isNotEmpty) {\n          Map<String, dynamic> hydrated = rpcMa"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 139,
+    "kind": "from",
+    "target": "bookings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('bookings')",
+    "context": "= null && bookingId.isNotEmpty) {\n      dev.log(\"[LIVESESSION_DS] Fetching specific booking: $bookingId\");\n      try {\n        final response = await _client\n            .from('bookings')\n            .select(selectQuery)\n            .eq('id', bookingId)\n            .maybeSingle();\n\n        if (response == null) return null;\n        final model = ActiveSessionModel.fromJson(\n          Map<String, dynamic>.from(response),\n        );\n        dev.log(\n          \"[LIVESESSION_DS] GET_ACT"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 164,
+    "kind": "from",
+    "target": "bookings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('bookings')",
+    "context": "ch active in_progress session ONLY\n    dev.log(\"[LIVESESSION_DS] Fetching active in_progress session...\");\n    try {\n      final activeResponse = await _client\n          .from('bookings')\n          .select(selectQuery)\n          .eq('user_id', userId)\n          .eq('status', 'in_progress')\n          .order('created_at', ascending: false)\n          .limit(1)\n          .maybeSingle();\n\n      if (activeResponse != null) {\n        final activeModel = ActiveSessionModel.fromJson(\n       "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 301,
+    "kind": "rpc",
+    "target": "request_booking_extension",
+    "params": [
+      "p_booking_id",
+      "p_requested_minutes"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid, p_requested_minutes integer"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'request_booking_extension',\n        params: {\n          'p_booking_id': bookingId,\n          'p_requested_minutes': requestedMinutes,\n        },\n      )",
+    "context": "tes,\n  }) async {\n    dev.log(\n      \"[LIVESESSION_DS] REQUEST_EXTENSION: bookingId=$bookingId, requestedMinutes=$requestedMinutes\",\n    );\n\n    try {\n      await _client.rpc(\n        'request_booking_extension',\n        params: {\n          'p_booking_id': bookingId,\n          'p_requested_minutes': requestedMinutes,\n        },\n      );\n    } catch (e) {\n      dev.log(\"[LIVESESSION_DS] REQUEST_BOOKING_EXTENSION RPC error: $e\");\n      final errorStr = e.toString();\n      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||\n          errorStr.contains('conflict') ||\n          errorStr.contains('23P01') ||\n          errorStr.conta"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 344,
+    "kind": "rpc",
+    "target": "place_canteen_order",
+    "params": [
+      "p_booking_id",
+      "p_items",
+      "p_note"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid DEFAULT NULL::uuid, p_items jsonb DEFAULT '[]'::jsonb, p_note text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'place_canteen_order',\n      params: {\n        'p_booking_id': bookingId,\n        'p_items': formattedItems,\n        if (notes.isNotEmpty) 'p_note': notes,\n      },\n    )",
+    "context": "NotEmpty ?? false),\n        )\n        .map((item) => item.note?.trim() ?? '')\n        .where((n) => n.isNotEmpty)\n        .toSet()\n        .join(', ');\n\n    await _client.rpc(\n      'place_canteen_order',\n      params: {\n        'p_booking_id': bookingId,\n        'p_items': formattedItems,\n        if (notes.isNotEmpty) 'p_note': notes,\n      },\n    );\n  }\n\n  @override\n  Future<CanteenMenuData> getCanteenMenu(String loungeId) async {\n    dev.log(\"[LIVESESSION_DS] GET_CANTEEN_MENU: loungeId=$loungeId\");\n    try {\n      final response = await _client.rpc(\n        'get_canteen_menu',\n        params: {'p_lounge_id': loungeId},\n      );\n\n      if (re"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 358,
+    "kind": "rpc",
+    "target": "get_canteen_menu",
+    "params": [
+      "p_lounge_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'get_canteen_menu',\n        params: {'p_lounge_id': loungeId},\n      )",
+    "context": "teenMenuData> getCanteenMenu(String loungeId) async {\n    dev.log(\"[LIVESESSION_DS] GET_CANTEEN_MENU: loungeId=$loungeId\");\n    try {\n      final response = await _client.rpc(\n        'get_canteen_menu',\n        params: {'p_lounge_id': loungeId},\n      );\n\n      if (response != null && response is Map<String, dynamic>) {\n        return CanteenMenuData.fromJson(response);\n      } else if (response != null && response is Map) {\n        return CanteenMenuData.fromJson(Map<String, dynamic>.from(response));\n      }\n      return const CanteenMenuData();\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 382,
+    "kind": "rpc",
+    "target": "get_upsell_suggestions",
+    "params": [
+      "p_booking_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'get_upsell_suggestions',\n        params: {'p_booking_id': bookingId},\n      )",
+    "context": "uggestions(\n    String bookingId,\n  ) async {\n    dev.log(\"[LIVESESSION_DS] GET_UPSELL_SUGGESTIONS: bookingId=$bookingId\");\n    try {\n      final response = await _client.rpc(\n        'get_upsell_suggestions',\n        params: {'p_booking_id': bookingId},\n      );\n\n      if (response != null && response is List) {\n        return response\n            .map(\n              (e) => UpsellSuggestionModel.fromJson(\n                Map<String, dynamic>.from(e as Map),\n              ),\n            )\n            .toList();\n      }\n      return const [];\n    } catch (e"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 415,
+    "kind": "rpc",
+    "target": "record_upsell_event",
+    "params": [
+      "p_amount",
+      "p_booking_id",
+      "p_canteen_order_id",
+      "p_event",
+      "p_rule_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_rule_id uuid, p_booking_id uuid, p_event text, p_canteen_order_id uuid DEFAULT NULL::uuid, p_amount numeric DEFAULT NULL::numeric"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'record_upsell_event',\n        params: {\n          'p_rule_id': ruleId,\n          'p_booking_id': bookingId,\n          'p_event': event,\n          'p_canteen_order_id': canteenOrderId,\n          'p_amount': amount,\n        },\n      )",
+    "context": "eenOrderId,\n    double? amount,\n  }) async {\n    dev.log(\n      \"[LIVESESSION_DS] RECORD_UPSELL_EVENT: ruleId=$ruleId, event=$event\",\n    );\n    try {\n      await _client.rpc(\n        'record_upsell_event',\n        params: {\n          'p_rule_id': ruleId,\n          'p_booking_id': bookingId,\n          'p_event': event,\n          'p_canteen_order_id': canteenOrderId,\n          'p_amount': amount,\n        },\n      );\n    } catch (e) {\n      dev.log(\"[LIVESESSION_DS] RECORD_UPSELL_EVENT ERROR: $e\");\n    }\n  }\n\n  @override\n  Future<List<ExtraModel>> getLoungeMenu(String loungeId) async {\n    dev.log(\"[LIVESESSION_DS] GET_LOUNGE_MENU: loungeId=$loungeId\");\n    try {\n      final response = await _client\n          "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 435,
+    "kind": "from",
+    "target": "extras",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('extras')",
+    "context": "el>> getLoungeMenu(String loungeId) async {\n    dev.log(\"[LIVESESSION_DS] GET_LOUNGE_MENU: loungeId=$loungeId\");\n    try {\n      final response = await _client\n          .from('extras')\n          .select()\n          .eq('lounge_id', loungeId);\n\n      final menu = (response as List)\n          .map((e) => ExtraModel.fromJson(e))\n          .toList();\n      dev.log(\"[LIVESESSION_DS] GET_LOUNGE_MENU SUCCESS: ${menu.length} items\");\n      return menu;\n    } catch (e) {\n      dev.log(\"[L"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 456,
+    "kind": "rpc",
+    "target": "request_staff_assistance_for_booking",
+    "params": [
+      "p_booking_id",
+      "p_call_type",
+      "p_notes"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid, p_call_type text, p_notes text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'request_staff_assistance_for_booking',\n      params: {\n        'p_booking_id': bookingId,\n        'p_call_type': callType,\n        'p_notes': notes,\n      },\n    )",
+    "context": " }\n  }\n\n  @override\n  Future<void> requestStaffAssistance({\n    required String bookingId,\n    required String callType,\n    String? notes,\n  }) async {\n    await _client.rpc(\n      'request_staff_assistance_for_booking',\n      params: {\n        'p_booking_id': bookingId,\n        'p_call_type': callType,\n        'p_notes': notes,\n      },\n    );\n  }\n\n  @override\n  Future<void> submitLoungeReview({\n    required String loungeId,\n    required String bookingId,\n    required double rating,\n    String? comment,\n  }) async {\n    await _client.rpc(\n      'submit_lounge_review',\n      params: {\n        'p_lounge_id': loungeId,\n        'p_booking_i"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 473,
+    "kind": "rpc",
+    "target": "submit_lounge_review",
+    "params": [
+      "p_booking_id",
+      "p_comment",
+      "p_lounge_id",
+      "p_rating"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid, p_booking_id uuid, p_rating numeric, p_comment text DEFAULT NULL::text",
+      "p_lounge_id uuid, p_rating numeric, p_comment text DEFAULT NULL::text",
+      "p_lounge_id uuid, p_id_document_path text, p_business_document_path text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb",
+      "jsonb",
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'submit_lounge_review',\n      params: {\n        'p_lounge_id': loungeId,\n        'p_booking_id': bookingId,\n        'p_rating': rating,\n        'p_comment': comment,\n      },\n    )",
+    "context": "re<void> submitLoungeReview({\n    required String loungeId,\n    required String bookingId,\n    required double rating,\n    String? comment,\n  }) async {\n    await _client.rpc(\n      'submit_lounge_review',\n      params: {\n        'p_lounge_id': loungeId,\n        'p_booking_id': bookingId,\n        'p_rating': rating,\n        'p_comment': comment,\n      },\n    );\n  }\n\n  @override\n  Future<PaginatedResponse<Map<String, dynamic>>> getActiveLoungeRequestsPage({\n    required String loungeId,\n    int page = 1,\n    int pageSize = 20,\n  }) async {\n    try {\n      final response = await _client.rpc(\n        'get_active_lounge_requests_page',\n        params: {\n    "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/active_session/data/datasources/remote/active_session_remote_data_source.dart",
+    "line": 491,
+    "kind": "rpc",
+    "target": "get_active_lounge_requests_page",
+    "params": [
+      "p_lounge_id",
+      "p_page",
+      "p_page_size"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 20"
+    ],
+    "returns": [
+      "TABLE(data jsonb, total_count bigint, page integer, page_size integer)"
+    ],
+    "snippet": ".rpc(\n        'get_active_lounge_requests_page',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      )",
+    "context": "ynamic>>> getActiveLoungeRequestsPage({\n    required String loungeId,\n    int page = 1,\n    int pageSize = 20,\n  }) async {\n    try {\n      final response = await _client.rpc(\n        'get_active_lounge_requests_page',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      );\n\n      return PaginatedResponse.fromRpc(\n        response: response,\n        fromJson: (json) => json,\n        requestedPage: page,\n        requestedPageSize: pageSize,\n      );\n    } catch (e) {\n      dev.log(\"[LIVESESSION_DS] get_active_lounge_requests_page error: $e\");\n      return PaginatedRes"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/app_status/data/datasources/remote/app_status_remote_data_source.dart",
+    "line": 20,
+    "kind": "from",
+    "target": "app_status",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('app_status')",
+    "context": "nt;\n\n  AppStatusRemoteDataSourceImpl(this._client);\n\n  @override\n  Future<AppStatusModel> getAppStatus() async {\n    try {\n      final response = await _client\n          .from('app_status')\n          .select()\n          .limit(1)\n          .maybeSingle();\n\n      if (response == null) {\n        return const AppStatusModel(\n          maintenanceMode: false,\n          minSupportedVersion: '1.0.0',\n          latestVersion: '1.0.0',\n        );\n      }\n\n      return AppStatusModel.fromJson("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/app_status/data/datasources/remote/app_status_remote_data_source.dart",
+    "line": 49,
+    "kind": "from",
+    "target": "app_status",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('app_status')",
+    "context": "lse,\n        minSupportedVersion: '1.0.0',\n        latestVersion: '1.0.0',\n      );\n    }\n  }\n\n  @override\n  Stream<AppStatusModel> streamAppStatus() {\n    return _client.from('app_status').stream(primaryKey: ['id']).map((data) {\n      if (data.isEmpty) {\n        return const AppStatusModel(\n          maintenanceMode: false,\n          minSupportedVersion: '1.0.0',\n          latestVersion: '1.0.0',\n        );\n      }\n      return AppStatusModel.fromJson(data.first);\n    });\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_profile_initializer.dart",
+    "line": 11,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": " const AuthProfileInitializer(this._client);\n\n  final SupabaseClient _client;\n\n  Future<bool> ensureProfile(User user) async {\n    final existing = await _client\n        .from('profiles')\n        .select('id')\n        .eq('id', user.id)\n        .maybeSingle();\n    if (existing != null) return false;\n\n    final metadata = user.userMetadata ?? {};\n    final inserted = await _client\n        .from('profiles')\n        .upsert(\n          {\n            'id': user.id,\n            'email': u"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_profile_initializer.dart",
+    "line": 19,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "('id', user.id)\n        .maybeSingle();\n    if (existing != null) return false;\n\n    final metadata = user.userMetadata ?? {};\n    final inserted = await _client\n        .from('profiles')\n        .upsert(\n          {\n            'id': user.id,\n            'email': user.email,\n            'role': 'user',\n            'full_name':\n                metadata['full_name'] ??\n                metadata['name'] ??\n                user.email?.split('@').first ??\n                'User',\n        "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 128,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "!= null) {\n        avatarUrl = await _storageService.uploadAvatar(\n          userId: userId,\n          file: params.avatarFile!,\n        );\n      }\n\n      await _supabase.from('profiles').upsert({\n        'id': userId,\n        'full_name': params.name,\n        'email': params.email,\n        'phone': params.phone,\n        'avatar_url': avatarUrl,\n      });\n\n      return UserModel.fromSupabaseUser(\n        response.user!.toJson(),\n        isNewUser: false,\n      ).copyWith(name: param"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 175,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "!= null) {\n        avatarUrl = await _storageService.uploadAvatar(\n          userId: userId,\n          file: params.avatarFile!,\n        );\n      }\n\n      await _supabase.from('profiles').upsert({\n        'id': userId,\n        'full_name': params.name,\n        'email': params.email,\n        'phone': params.phone,\n        'avatar_url': avatarUrl,\n      });\n\n      return UserModel.fromSupabaseUser(\n        user.toJson(),\n        isNewUser: false,\n      ).copyWith(name: params.name, ph"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 242,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "['picture'] as String?;\n      final finalAvatarUrl = avatarUrl ?? currentAvatarUrl;\n\n      // Save profile to profiles table - throw if saving fails\n      await _supabase.from('profiles').upsert({\n        'id': userId,\n        'full_name': fullName,\n        'email': user.email,\n        'phone': params.phone,\n        'avatar_url': ?finalAvatarUrl,\n      });\n\n      try {\n        await _supabase.auth.updateUser(\n          UserAttributes(\n            data: {'phone': params.phone, 'avata"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/data/datasources/remote/auth_remote_data_source.dart",
+    "line": 361,
+    "kind": "invoke",
+    "target": "delete-account",
+    "params": [],
+    "status": "EDGE/SPECIAL TARGET; inspect",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".invoke('delete-account')",
+    "context": " Future<void> deleteAccount() async {\n    try {\n      AppLogger.debug(' [Auth] Calling delete-account Edge Function...');\n      final response = await _supabase.functions.invoke('delete-account');\n      if (response.status < 200 ||\n          response.status >= 300 ||\n          response.data is! Map ||\n          response.data['success'] != true) {\n        throw const AppException(\n          'Account deletion was not confirmed. Please try again.',\n        );\n      }\n      AppLogger.debug(' [A"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/presentation/sign_in/signin_cubit.dart",
+    "line": 41,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "inal user = Supabase.instance.client.auth.currentUser;\n        if (user == null) return;\n        try {\n          final res = await Supabase.instance.client\n              .from('profiles')\n              .select('id')\n              .eq('id', user.id)\n              .maybeSingle();\n          if (res != null) {\n            await _profileRepository.updateUserLocation();\n            break;\n          }\n        } catch (_) {}\n        await Future.delayed(const Duration(seconds: 1));\n      }\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/auth/presentation/sign_up/signup_cubit.dart",
+    "line": 74,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "inal user = Supabase.instance.client.auth.currentUser;\n        if (user == null) return;\n        try {\n          final res = await Supabase.instance.client\n              .from('profiles')\n              .select('id')\n              .eq('id', user.id)\n              .maybeSingle();\n          if (res != null) {\n            await _profileRepository.updateUserLocation();\n            break;\n          }\n        } catch (_) {}\n        await Future.delayed(const Duration(seconds: 1));\n      }\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 97,
+    "kind": "rpc",
+    "target": "get_room_bookings_for_operational_date",
+    "params": [
+      "p_date",
+      "p_lounge_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid, p_date date"
+    ],
+    "returns": [
+      "TABLE(room_id uuid, start_at timestamp without time zone, end_at timestamp without time zone, status text, expires_at timestamp with time zone)"
+    ],
+    "snippet": ".rpc(\n      'get_room_bookings_for_operational_date',\n      params: {'p_lounge_id': loungeId, 'p_date': dateStr},\n    )",
+    "context": "}) async {\n    final dateStr =\n        \"${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}\";\n\n    final response = await _client.rpc(\n      'get_room_bookings_for_operational_date',\n      params: {'p_lounge_id': loungeId, 'p_date': dateStr},\n    );\n\n    final rows = List<Map<String, dynamic>>.from(response as List);\n    if (roomId == null || roomId.isEmpty) return rows;\n\n    return rows.where((row) => row['room_id']?.toString() == roomId).toList();\n  }\n\n  @override\n  Future<bool> checkRoomAvailability({\n    required String roomId,\n    requir"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 114,
+    "kind": "rpc",
+    "target": "check_room_availability_local",
+    "params": [
+      "p_end_time",
+      "p_room_id",
+      "p_start_time"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_room_id uuid, p_start_time timestamp without time zone, p_end_time timestamp without time zone"
+    ],
+    "returns": [
+      "boolean"
+    ],
+    "snippet": ".rpc(\n      'check_room_availability_local',\n      params: {\n        'p_room_id': roomId,\n        'p_start_time': startTime.toIso8601String(),\n        'p_end_time': endTime.toIso8601String(),\n      },\n    )",
+    "context": "<bool> checkRoomAvailability({\n    required String roomId,\n    required DateTime startTime,\n    required DateTime endTime,\n  }) async {\n    final response = await _client.rpc(\n      'check_room_availability_local',\n      params: {\n        'p_room_id': roomId,\n        'p_start_time': startTime.toIso8601String(),\n        'p_end_time': endTime.toIso8601String(),\n      },\n    );\n\n    return response == true;\n  }\n\n  @override\n  Future<Map<String, dynamic>> acquireBookingHold({\n    required List<String> roomIds,\n    required DateTime startTime,\n    required DateTime endTime,\n    int holdMinutes = 10,\n  }) async {\n    final response = await _client.rpc(\n      'acquire_bookin"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 133,
+    "kind": "rpc",
+    "target": "acquire_booking_hold",
+    "params": [
+      "p_end_at",
+      "p_hold_minutes",
+      "p_room_ids",
+      "p_start_at"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_room_ids uuid[], p_start_at timestamp without time zone, p_end_at timestamp without time zone, p_hold_minutes integer DEFAULT 10"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'acquire_booking_hold',\n      params: {\n        'p_room_ids': roomIds,\n        'p_start_at': startTime.toIso8601String(),\n        'p_end_at': endTime.toIso8601String(),\n        'p_hold_minutes': holdMinutes,\n      },\n    )",
+    "context": "  required List<String> roomIds,\n    required DateTime startTime,\n    required DateTime endTime,\n    int holdMinutes = 10,\n  }) async {\n    final response = await _client.rpc(\n      'acquire_booking_hold',\n      params: {\n        'p_room_ids': roomIds,\n        'p_start_at': startTime.toIso8601String(),\n        'p_end_at': endTime.toIso8601String(),\n        'p_hold_minutes': holdMinutes,\n      },\n    );\n\n    return Map<String, dynamic>.from(response as Map);\n  }\n\n  @override\n  Future<void> releaseBookingHold(String holdToken) async {\n    await _client.rpc(\n      'release_booking_hold',\n      params: {'p_hold_token': holdToken},\n    );\n  }\n\n  @override\n  Future<Map<String, dynamic>> quoteBookingCh"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 148,
+    "kind": "rpc",
+    "target": "release_booking_hold",
+    "params": [
+      "p_hold_token"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_hold_token uuid"
+    ],
+    "returns": [
+      "boolean"
+    ],
+    "snippet": ".rpc(\n      'release_booking_hold',\n      params: {'p_hold_token': holdToken},\n    )",
+    "context": "es,\n      },\n    );\n\n    return Map<String, dynamic>.from(response as Map);\n  }\n\n  @override\n  Future<void> releaseBookingHold(String holdToken) async {\n    await _client.rpc(\n      'release_booking_hold',\n      params: {'p_hold_token': holdToken},\n    );\n  }\n\n  @override\n  Future<Map<String, dynamic>> quoteBookingCheckout({\n    required String holdToken,\n    required List<Map<String, dynamic>> roomRequests,\n    required List<Map<String, dynamic>> extraItems,\n    String? voucherCode,\n  }) async {\n    final response = await _client.rpc(\n      'quote"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 161,
+    "kind": "rpc",
+    "target": "quote_my_booking_checkout",
+    "params": [
+      "p_extra_items",
+      "p_hold_token",
+      "p_room_requests",
+      "p_voucher_code"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_hold_token uuid, p_room_requests jsonb, p_extra_items jsonb DEFAULT '[]'::jsonb, p_voucher_code text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'quote_my_booking_checkout',\n      params: {\n        'p_hold_token': holdToken,\n        'p_room_requests': roomRequests,\n        'p_extra_items': extraItems,\n        'p_voucher_code': voucherCode,\n      },\n    )",
+    "context": "ired List<Map<String, dynamic>> roomRequests,\n    required List<Map<String, dynamic>> extraItems,\n    String? voucherCode,\n  }) async {\n    final response = await _client.rpc(\n      'quote_my_booking_checkout',\n      params: {\n        'p_hold_token': holdToken,\n        'p_room_requests': roomRequests,\n        'p_extra_items': extraItems,\n        'p_voucher_code': voucherCode,\n      },\n    );\n\n    return Map<String, dynamic>.from(response as Map);\n  }\n\n  @override\n  Future<Map<String, dynamic>> createBookingCheckout({\n    required String holdToken,\n    required List<Map<String, dynamic>> roomRequests,\n    required List<Map<String, dynamic>> extraItems,\n    String? voucherCode,\n    requ"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 185,
+    "kind": "rpc",
+    "target": "create_my_booking_checkout",
+    "params": [
+      "p_extra_items",
+      "p_hold_token",
+      "p_payment_method",
+      "p_receipt_url",
+      "p_room_requests",
+      "p_sender_wallet_phone",
+      "p_voucher_code"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_hold_token uuid, p_room_requests jsonb, p_extra_items jsonb DEFAULT '[]'::jsonb, p_voucher_code text DEFAULT NULL::text, p_payment_method text DEFAULT 'cash'::text, p_sender_wallet_phone text DEFAULT NULL::text, p_receipt_url text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'create_my_booking_checkout',\n        params: {\n          'p_hold_token': holdToken,\n          'p_room_requests': roomRequests,\n          'p_extra_items': extraItems,\n          'p_voucher_code': voucherCode,\n          'p_payment_method': paymentMethod,\n          'p_sender_wallet_phone': senderWalletPhone,\n          'p_receipt_url': receiptUrl,\n        },\n      )",
+    "context": "String? voucherCode,\n    required String paymentMethod,\n    String? senderWalletPhone,\n    String? receiptUrl,\n  }) async {\n    try {\n      final response = await _client.rpc(\n        'create_my_booking_checkout',\n        params: {\n          'p_hold_token': holdToken,\n          'p_room_requests': roomRequests,\n          'p_extra_items': extraItems,\n          'p_voucher_code': voucherCode,\n          'p_payment_method': paymentMethod,\n          'p_sender_wallet_phone': senderWalletPhone,\n          'p_receipt_url': receiptUrl,\n        },\n      );\n\n      return Map<String, dynamic>.from(response as Map);\n    } catch (e) {\n      _checkPriceChangedError(e);\n      rethrow;\n    }\n  }\n\n  @override\n  Future<Map<String, dynamic>> quoteBookingPrice({\n    required String roomId,\n    required String date,\n    required String startTime,\n    required S"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 215,
+    "kind": "rpc",
+    "target": "quote_booking_price",
+    "params": [
+      "p_coupon_code",
+      "p_date",
+      "p_end",
+      "p_extra_controllers",
+      "p_play_mode",
+      "p_room_id",
+      "p_start"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_room_id uuid, p_date date, p_start time without time zone, p_end time without time zone, p_play_mode text DEFAULT 'single'::text, p_extra_controllers integer DEFAULT 0, p_coupon_code text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'quote_booking_price',\n      params: {\n        'p_room_id': roomId,\n        'p_date': date,\n        'p_start': startTime,\n        'p_end': endTime,\n        'p_play_mode': playMode,\n        'p_extra_controllers': extraControllers,\n        'p_coupon_code': couponCode,\n      },\n    )",
+    "context": "rtTime,\n    required String endTime,\n    String playMode = 'single',\n    int extraControllers = 0,\n    String? couponCode,\n  }) async {\n    final response = await _client.rpc(\n      'quote_booking_price',\n      params: {\n        'p_room_id': roomId,\n        'p_date': date,\n        'p_start': startTime,\n        'p_end': endTime,\n        'p_play_mode': playMode,\n        'p_extra_controllers': extraControllers,\n        'p_coupon_code': couponCode,\n      },\n    );\n\n    return Map<String, dynamic>.from(response as Map);\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getRoomSlotsWithPrices({\n    required String roomId,\n    required String date,\n  }) async {\n    final response = await _client.rpc(\n      'get_room_slots_with_prices',\n      params: {'p_ro"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 236,
+    "kind": "rpc",
+    "target": "get_room_slots_with_prices",
+    "params": [
+      "p_date",
+      "p_room_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_room_id uuid, p_date date"
+    ],
+    "returns": [
+      "json"
+    ],
+    "snippet": ".rpc(\n      'get_room_slots_with_prices',\n      params: {'p_room_id': roomId, 'p_date': date},\n    )",
+    "context": "erride\n  Future<List<Map<String, dynamic>>> getRoomSlotsWithPrices({\n    required String roomId,\n    required String date,\n  }) async {\n    final response = await _client.rpc(\n      'get_room_slots_with_prices',\n      params: {'p_room_id': roomId, 'p_date': date},\n    );\n\n    return List<Map<String, dynamic>>.from(response as List);\n  }\n\n  @override\n  Future<Map<String, dynamic>> getLoungePriceRange(String loungeId) async {\n    final response = await _client.rpc(\n      'get_lounge_price_range',\n      params: {'p_lounge_id': loungeId},\n    );\n\n    return Map<String"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 246,
+    "kind": "rpc",
+    "target": "get_lounge_price_range",
+    "params": [
+      "p_lounge_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'get_lounge_price_range',\n      params: {'p_lounge_id': loungeId},\n    )",
+    "context": "<String, dynamic>>.from(response as List);\n  }\n\n  @override\n  Future<Map<String, dynamic>> getLoungePriceRange(String loungeId) async {\n    final response = await _client.rpc(\n      'get_lounge_price_range',\n      params: {'p_lounge_id': loungeId},\n    );\n\n    return Map<String, dynamic>.from(response as Map);\n  }\n\n  void _checkPriceChangedError(dynamic error) {\n    final errStr = error.toString();\n    if (errStr.contains('PRICE_CHANGED') ||\n        (error is PostgrestException && error.code == 'PRICE_CHANGED')) {\n      throw Exception('PRICE_CHANG"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 267,
+    "kind": "rpc",
+    "target": "attach_my_booking_receipt",
+    "params": [
+      "p_booking_id",
+      "p_receipt_url"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid, p_receipt_url text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'attach_my_booking_receipt',\n      params: {'p_booking_id': bookingId, 'p_receipt_url': receiptPath},\n    )",
+    "context": "ED: $errStr');\n    }\n  }\n\n  @override\n  Future<void> attachBookingReceipt({\n    required String bookingId,\n    required String receiptPath,\n  }) async {\n    await _client.rpc(\n      'attach_my_booking_receipt',\n      params: {'p_booking_id': bookingId, 'p_receipt_url': receiptPath},\n    );\n  }\n\n  @override\n  Stream<BookingModel> streamBookingStatus(String bookingId) {\n    return _client\n        .from('bookings')\n        .stream(primaryKey: ['id'])\n        .eq('id', bookingId)\n        .map((list) {\n          if (list.isNotEmpty) {\n            return BookingModel.fromJson(list.first);"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 276,
+    "kind": "from",
+    "target": "bookings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('bookings')",
+    "context": "_booking_id': bookingId, 'p_receipt_url': receiptPath},\n    );\n  }\n\n  @override\n  Stream<BookingModel> streamBookingStatus(String bookingId) {\n    return _client\n        .from('bookings')\n        .stream(primaryKey: ['id'])\n        .eq('id', bookingId)\n        .map((list) {\n          if (list.isNotEmpty) {\n            return BookingModel.fromJson(list.first);\n          }\n          throw Exception('Booking record not found');\n        });\n  }\n\n  @override\n  Future<List<Map<String, dyn"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 291,
+    "kind": "from",
+    "target": "canteen_orders",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('canteen_orders')",
+    "context": "        });\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getBookingItems(String bookingId) async {\n    try {\n      final canteenOrders = await _client\n          .from('canteen_orders')\n          .select(\n            '*, canteen_order_items(*, extras(id, name, name_ar, name_en, price))',\n          )\n          .eq('booking_id', bookingId);\n\n      final List<Map<String, dynamic>> extractedItems = [];\n\n      for (var cOrder in (canteenOrders as List)) {\n        final cItems = cOrder["
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 346,
+    "kind": "from",
+    "target": "booking_items",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('booking_items')",
+    "context": ";\n    } catch (e) {\n      dev.log(\n        \"Error querying canteen_orders: $e, falling back to booking_items\",\n      );\n    }\n\n    final response = await _client\n        .from('booking_items')\n        .select('*')\n        .eq('booking_id', bookingId);\n\n    return List<Map<String, dynamic>>.from(response as List);\n  }\n\n  @override\n  Future<void> extendSession({\n    required String bookingId,\n    required int additionalMinutes,\n    required double additionalCost,\n  }) async {\n    try {\n   "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 360,
+    "kind": "rpc",
+    "target": "extend_booking_session",
+    "params": [
+      "p_additional_cost",
+      "p_additional_minutes",
+      "p_booking_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid, p_additional_minutes integer, p_additional_cost numeric DEFAULT NULL::numeric"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'extend_booking_session',\n        params: {\n          'p_booking_id': bookingId,\n          'p_additional_minutes': additionalMinutes,\n          'p_additional_cost': additionalCost,\n        },\n      )",
+    "context": "re<void> extendSession({\n    required String bookingId,\n    required int additionalMinutes,\n    required double additionalCost,\n  }) async {\n    try {\n      await _client.rpc(\n        'extend_booking_session',\n        params: {\n          'p_booking_id': bookingId,\n          'p_additional_minutes': additionalMinutes,\n          'p_additional_cost': additionalCost,\n        },\n      );\n    } catch (e) {\n      final errorStr = e.toString();\n      if (errorStr.contains('BOOKING_EXTENSION_CONFLICT') ||\n          errorStr.contains('conflict') ||\n          errorStr.contains('23P01') ||\n          errorStr.contains('exclusion constraint')) {\n        throw Exception(\n          \"\u0644\u0627 \u064a\u0645\u0643\u0646 "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 387,
+    "kind": "rpc",
+    "target": "request_booking_extension",
+    "params": [
+      "p_booking_id",
+      "p_requested_minutes"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid, p_requested_minutes integer"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'request_booking_extension',\n      params: {\n        'p_booking_id': bookingId,\n        'p_requested_minutes': requestedMinutes,\n      },\n    )",
+    "context": "}\n      rethrow;\n    }\n  }\n\n  @override\n  Future<void> requestExtension({\n    required String bookingId,\n    required int requestedMinutes,\n  }) async {\n    await _client.rpc(\n      'request_booking_extension',\n      params: {\n        'p_booking_id': bookingId,\n        'p_requested_minutes': requestedMinutes,\n      },\n    );\n  }\n\n  @override\n  Future<void> callStaff({\n    required String loungeId,\n    required String bookingId,\n    required String reason,\n    required String note,\n  }) async {\n    await _client.rpc(\n      'request_staff_assistance_for_booking',\n      params: {\n        'p_booking_id': bookingId,\n      "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 403,
+    "kind": "rpc",
+    "target": "request_staff_assistance_for_booking",
+    "params": [
+      "p_booking_id",
+      "p_call_type",
+      "p_notes"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid, p_call_type text, p_notes text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'request_staff_assistance_for_booking',\n      params: {\n        'p_booking_id': bookingId,\n        'p_call_type': reason,\n        'p_notes': note.isEmpty ? null : note,\n      },\n    )",
+    "context": "Future<void> callStaff({\n    required String loungeId,\n    required String bookingId,\n    required String reason,\n    required String note,\n  }) async {\n    await _client.rpc(\n      'request_staff_assistance_for_booking',\n      params: {\n        'p_booking_id': bookingId,\n        'p_call_type': reason,\n        'p_notes': note.isEmpty ? null : note,\n      },\n    );\n  }\n\n  @override\n  Future<void> placeCanteenOrder({\n    required String bookingId,\n    required String loungeId,\n    required String userId,\n    required List<Map<String, dynamic>> items,\n    required double totalPrice,\n    required String note,\n  }) async {\n    final formattedItems = items.map((i"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_remote_data_source.dart",
+    "line": 452,
+    "kind": "rpc",
+    "target": "place_canteen_order",
+    "params": [
+      "p_booking_id",
+      "p_items",
+      "p_note"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid DEFAULT NULL::uuid, p_items jsonb DEFAULT '[]'::jsonb, p_note text DEFAULT NULL::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'place_canteen_order',\n      params: {\n        'p_booking_id': bookingId,\n        'p_items': formattedItems,\n        'p_note': note.isEmpty ? null : note,\n      },\n    )",
+    "context": "_ar': nameAr,\n        'name_en': nameEn,\n        'unit_price': p,\n        'price': p,\n        'quantity': q,\n      };\n    }).toList();\n\n    final response = await _client.rpc(\n      'place_canteen_order',\n      params: {\n        'p_booking_id': bookingId,\n        'p_items': formattedItems,\n        'p_note': note.isEmpty ? null : note,\n      },\n    );\n    dev.log(\"place_canteen_order RPC SUCCESS: $response\");\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_waitlist_remote_data_source.dart",
+    "line": 14,
+    "kind": "from",
+    "target": "booking_waitlist",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('booking_waitlist')",
+    "context": "Future<String?> activeRequest({\n    required String roomId,\n    required DateTime startAt,\n    required DateTime endAt,\n  }) async {\n    final row = await client\n        .from('booking_waitlist')\n        .select('id')\n        .eq('room_id', roomId)\n        .eq('start_at', startAt.toIso8601String())\n        .eq('end_at', endAt.toIso8601String())\n        .eq('status', 'waiting')\n        .maybeSingle();\n    return row?['id']?.toString();\n  }\n\n  Future<Map<String, dynamic>> join({\n    required "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_waitlist_remote_data_source.dart",
+    "line": 29,
+    "kind": "rpc",
+    "target": "join_booking_waitlist",
+    "params": [
+      "p_end_at",
+      "p_room_id",
+      "p_start_at"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_room_id uuid, p_start_at timestamp without time zone, p_end_at timestamp without time zone",
+      "p_room_id uuid, p_requested_date date, p_duration_minutes integer DEFAULT 60, p_preferred_start_time time without time zone DEFAULT NULL::time without time zone"
+    ],
+    "returns": [
+      "jsonb",
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'join_booking_waitlist',\n      params: {\n        'p_room_id': roomId,\n        'p_start_at': startAt.toIso8601String(),\n        'p_end_at': endAt.toIso8601String(),\n      },\n    )",
+    "context": "  Future<Map<String, dynamic>> join({\n    required String roomId,\n    required DateTime startAt,\n    required DateTime endAt,\n  }) async {\n    final result = await client.rpc(\n      'join_booking_waitlist',\n      params: {\n        'p_room_id': roomId,\n        'p_start_at': startAt.toIso8601String(),\n        'p_end_at': endAt.toIso8601String(),\n      },\n    );\n    return Map<String, dynamic>.from(result as Map);\n  }\n\n  Future<bool> cancel(String requestId) async {\n    final result = await client.rpc(\n      'cancel_booking_waitlist',\n      params: {'p_waitlist_id': requestId},\n    );\n    return result == true;\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/booking/data/datasources/remote/booking_waitlist_remote_data_source.dart",
+    "line": 41,
+    "kind": "rpc",
+    "target": "cancel_booking_waitlist",
+    "params": [
+      "p_waitlist_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_waitlist_id uuid"
+    ],
+    "returns": [
+      "boolean"
+    ],
+    "snippet": ".rpc(\n      'cancel_booking_waitlist',\n      params: {'p_waitlist_id': requestId},\n    )",
+    "context": "Iso8601String(),\n      },\n    );\n    return Map<String, dynamic>.from(result as Map);\n  }\n\n  Future<bool> cancel(String requestId) async {\n    final result = await client.rpc(\n      'cancel_booking_waitlist',\n      params: {'p_waitlist_id': requestId},\n    );\n    return result == true;\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/favorites/data/datasources/remote/favorites_remote_data_source.dart",
+    "line": 29,
+    "kind": "from",
+    "target": "favorites",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('favorites')",
+    "context": "<LoungeModel>> getFavorites() async {\n    try {\n      final userId = _currentUserId;\n      if (userId == null) return [];\n\n      final response = await _client\n          .from('favorites')\n          .select('*, lounges(*)')\n          .eq('user_id', userId);\n\n      final List<LoungeModel> lounges = [];\n      for (final e in (response as List)) {\n        if (e['lounges'] != null) {\n          final loungeData = e['lounges'];\n          LoungeModel? model;\n          if (loungeData is List"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/favorites/data/datasources/remote/favorites_remote_data_source.dart",
+    "line": 62,
+    "kind": "from",
+    "target": "favorites",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('favorites')",
+    "context": " {\n    try {\n      final userId = _currentUserId;\n      if (userId == null) {\n        throw const AuthException('User is not authenticated');\n      }\n\n      await _client.from('favorites').upsert({\n        'user_id': userId,\n        'lounge_id': loungeId,\n      }, onConflict: 'user_id,lounge_id');\n    } catch (e) {\n      rethrow;\n    }\n  }\n\n  @override\n  Future<void> removeFavorite(String loungeId) async {\n    try {\n      final userId = _currentUserId;\n      if (userId == null) {\n   "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/favorites/data/datasources/remote/favorites_remote_data_source.dart",
+    "line": 80,
+    "kind": "from",
+    "target": "favorites",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('favorites')",
+    "context": "{\n    try {\n      final userId = _currentUserId;\n      if (userId == null) {\n        throw Exception('User is not authenticated');\n      }\n\n      await _client\n          .from('favorites')\n          .delete()\n          .eq('user_id', userId)\n          .eq('lounge_id', loungeId);\n    } catch (e) {\n      rethrow;\n    }\n  }\n\n  @override\n  Future<List<String>> getFavoriteIds() async {\n    try {\n      final userId = _currentUserId;\n      if (userId == null) return [];\n\n      final respons"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/favorites/data/datasources/remote/favorites_remote_data_source.dart",
+    "line": 96,
+    "kind": "from",
+    "target": "favorites",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('favorites')",
+    "context": "ist<String>> getFavoriteIds() async {\n    try {\n      final userId = _currentUserId;\n      if (userId == null) return [];\n\n      final response = await _client\n          .from('favorites')\n          .select('lounge_id')\n          .eq('user_id', userId);\n\n      return (response as List).map((e) => e['lounge_id'].toString()).toList();\n    } catch (e) {\n      rethrow;\n    }\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 30,
+    "kind": "from",
+    "target": "promotions",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('promotions')",
+    "context": "romotions'] as List).isEmpty)) &&\n          l['has_discount'] != true,\n    );\n\n    if (needsPromoFetch) {\n      try {\n        final promosRes = await _client\n            .from('promotions')\n            .select()\n            .eq('is_active', true);\n        if (promosRes.isNotEmpty) {\n          final Map<String, List<Map<String, dynamic>>> promoByLounge = {};\n          for (var p in promosRes) {\n            final lid = p['lounge_id']?.toString();\n            if (lid != null && lid.isNot"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 67,
+    "kind": "from",
+    "target": "lounges",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('lounges')",
+    "context": ") => LoungeModel.fromJson(e)).toList();\n  }\n\n  @override\n  Future<LoungeModel?> getLoungeById(String id) async {\n    try {\n      final response = await _client\n          .from('lounges')\n          .select(\n            '*, promotions:promotions!lounge_id(id, tag_ar, tag_en, is_active, expires_at, discount_value, discount_type, discount_percentage, title_ar, title_en)',\n          )\n          .eq('id', id)\n          .eq('status', 'active')\n          .eq('is_active', true)\n          .m"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 83,
+    "kind": "from",
+    "target": "lounges",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('lounges')",
+    "context": ");\n        if (hydrated.isNotEmpty) return hydrated.first;\n      }\n      return null;\n    } catch (e) {\n      try {\n        final fallbackRes = await _client\n            .from('lounges')\n            .select()\n            .eq('id', id)\n            .eq('status', 'active')\n            .eq('is_active', true)\n            .maybeSingle();\n        if (fallbackRes == null) return null;\n        final hydrated = await _hydrateLoungesWithPromotions([fallbackRes]);\n        if (hydrated.isNotEmp"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 102,
+    "kind": "rpc",
+    "target": "get_user_points_balance",
+    "params": [
+      "p_user_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_user_id uuid"
+    ],
+    "returns": [
+      "integer"
+    ],
+    "snippet": ".rpc(\n        'get_user_points_balance',\n        params: {'p_user_id': userId},\n      )",
+    "context": "\n      } catch (_) {\n        return null;\n      }\n    }\n  }\n\n  @override\n  Future<int> getUserPoints(String userId) async {\n    try {\n      final response = await _client.rpc(\n        'get_user_points_balance',\n        params: {'p_user_id': userId},\n      );\n      return (response as num?)?.toInt() ?? 0;\n    } catch (e) {\n      return 0;\n    }\n  }\n\n  @override\n  Future<List<LoungeModel>> getLounges(GetLoungesParams params) async {\n    final response = await _client.rpc(\n      'discover_lounges',\n      params: params.toJson(),\n    );\n\n    final list = "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 114,
+    "kind": "rpc",
+    "target": "discover_lounges",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lat numeric DEFAULT NULL::numeric, p_lng numeric DEFAULT NULL::numeric, p_city text DEFAULT NULL::text, p_search_query text DEFAULT NULL::text, p_category_ids uuid[] DEFAULT NULL::uuid[], p_sort_type text DEFAULT 'nearest'::text, p_is_open_only boolean DEFAULT false, p_limit integer DEFAULT 20, p_offset integer DEFAULT 0"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'discover_lounges',\n      params: params.toJson(),\n    )",
+    "context": " ?? 0;\n    } catch (e) {\n      return 0;\n    }\n  }\n\n  @override\n  Future<List<LoungeModel>> getLounges(GetLoungesParams params) async {\n    final response = await _client.rpc(\n      'discover_lounges',\n      params: params.toJson(),\n    );\n\n    final list = response is List\n        ? response\n        : (response is Map && response['data'] is List\n              ? response['data'] as List\n              : const <dynamic>[]);\n\n    return list\n        .map(\n          (item) =>\n              LoungeModel.fromJson(Map<String, dynamic>.from("
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 135,
+    "kind": "rpc",
+    "target": "get_available_cities",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      ""
+    ],
+    "returns": [
+      "TABLE(city text, lounges_count bigint)"
+    ],
+    "snippet": ".rpc('get_available_cities')",
+    "context": "dynamic>.from(item as Map)),\n        )\n        .toList();\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getAvailableCities() async {\n    final res = await _client.rpc('get_available_cities');\n    return List<Map<String, dynamic>>.from(res);\n  }\n\n  @override\n  Future<List<PromoModel>> getPromotions({String? loungeId}) async {\n    try {\n      AppLogger.info(\"FETCHING_PROMOTIONS: loungeId=$loungeId\");\n\n      final response = await _client.rpc(\n        'get_active_promos',\n        params: "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 144,
+    "kind": "rpc",
+    "target": "get_active_promos",
+    "params": [
+      "p_lounge_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid DEFAULT NULL::uuid"
+    ],
+    "returns": [
+      "SETOF promotions"
+    ],
+    "snippet": ".rpc(\n        'get_active_promos',\n        params: {'p_lounge_id': loungeId},\n      )",
+    "context": "st<PromoModel>> getPromotions({String? loungeId}) async {\n    try {\n      AppLogger.info(\"FETCHING_PROMOTIONS: loungeId=$loungeId\");\n\n      final response = await _client.rpc(\n        'get_active_promos',\n        params: {'p_lounge_id': loungeId},\n      );\n\n      final List data = response as List;\n      AppLogger.info(\"PROMOTIONS_RAW_DATA_COUNT: ${data.length}\");\n\n      final promos = data\n          .map((e) {\n            try {\n              return PromoModel.fromJson(Map<String, dynamic>.from(e));\n            } catch (e) {\n              AppLogger."
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 170,
+    "kind": "from",
+    "target": "promotions",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('promotions')",
+    "context": "{promos.length}\");\n      return promos;\n    } catch (e) {\n      AppLogger.error(\"GET_PROMOTIONS_CRITICAL_ERROR: $e\");\n      try {\n        var query = _client\n            .from('promotions')\n            .select()\n            .eq('is_active', true)\n            .gt('expires_at', DateTime.now().toIso8601String());\n        if (loungeId != null && loungeId.isNotEmpty) {\n          query = query.eq('lounge_id', loungeId);\n        }\n        final fallbackRes = await query;\n        final List d"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 199,
+    "kind": "rpc",
+    "target": "get_discovery_activities",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      ""
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc('get_discovery_activities')",
+    "context": ": $fallbackError\");\n        return [];\n      }\n    }\n  }\n\n  @override\n  Future<List<CategoryModel>> getCategories() async {\n    try {\n      final response = await _client.rpc('get_discovery_activities');\n      if (response is List) {\n        return response\n            .map(\n              (item) => CategoryModel.fromJson(\n                Map<String, dynamic>.from(item as Map),\n              ),\n            )\n            .toList();\n      }\n    } catch (error) {\n      AppLogger.warning('DISCOVERY_ACT"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/home/data/datasources/remote/home_remote_data_source_impl.dart",
+    "line": 213,
+    "kind": "from",
+    "target": "categories",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('categories')",
+    "context": "       )\n            .toList();\n      }\n    } catch (error) {\n      AppLogger.warning('DISCOVERY_ACTIVITIES_RPC_ERROR: $error');\n    }\n\n    final response = await _client.from('categories').select().order('id');\n    return (response as List)\n        .map((item) => CategoryModel.fromJson(item))\n        .toList();\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 43,
+    "kind": "from",
+    "target": "rooms",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('rooms')",
+    "context": "eDetailsRemoteDataSourceImpl(this._client);\n\n  @override\n  Future<RoomModel?> getRoomById(String roomId) async {\n    try {\n      final response = await _client\n          .from('rooms')\n          .select(\n            '*, space_types(name, label), room_activities(activity_type_id, activity_types(id, name, label, category, icon_name)), promotions:promotions!room_id(*)',\n          )\n          .eq('id', roomId)\n          .neq('status', 'deleted')\n          .maybeSingle();\n\n      if (r"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 56,
+    "kind": "from",
+    "target": "rooms",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('rooms')",
+    "context": "();\n\n      if (response != null) return RoomModel.fromJson(response);\n      return null;\n    } catch (e) {\n      try {\n        final fallback = await _client\n            .from('rooms')\n            .select('*, space_types(name, label)')\n            .eq('id', roomId)\n            .neq('status', 'deleted')\n            .maybeSingle();\n        if (fallback != null) return RoomModel.fromJson(fallback);\n        return null;\n      } catch (_) {\n        rethrow;\n      }\n    }\n  }\n\n  Future"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 80,
+    "kind": "from",
+    "target": "promotions",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('promotions')",
+    "context": "      .map((e) => Map<String, dynamic>.from(e as Map))\n        .toList();\n    if (roomMaps.isEmpty) return [];\n\n    try {\n      final promosRes = await _client\n          .from('promotions')\n          .select()\n          .eq('is_active', true)\n          .eq('lounge_id', loungeId);\n\n      if (promosRes.isNotEmpty) {\n        final Map<String, List<Map<String, dynamic>>> promoByRoom = {};\n        final List<Map<String, dynamic>> loungePromos = [];\n\n        for (var p in promosRes) {\n     "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 131,
+    "kind": "rpc",
+    "target": "get_lounge_booking_rooms",
+    "params": [
+      "p_activity_id",
+      "p_lounge_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid, p_activity_id uuid DEFAULT NULL::uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'get_lounge_booking_rooms',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_activity_id': hasFilter ? categoryId : null,\n        },\n      )",
+    "context": "bool hasFilter =\n        categoryId != null &&\n        categoryId.isNotEmpty &&\n        categoryId.toLowerCase() != 'all';\n\n    try {\n      final response = await _client.rpc(\n        'get_lounge_booking_rooms',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_activity_id': hasFilter ? categoryId : null,\n        },\n      );\n      if (response is! List) {\n        throw const FormatException('Invalid lounge room catalog response');\n      }\n      return response\n          .map((item) => RoomModel.fromJson(Map<String, dynamic>.from(item)))\n          .toList();\n    } catch (e) {\n      dev.log(\n        \"[ROOMS_DS] Booking "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 150,
+    "kind": "from",
+    "target": "rooms",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('rooms')",
+    "context": "    dev.log(\n        \"[ROOMS_DS] Booking room catalog RPC failed: $e, trying direct fallback query\",\n      );\n      try {\n        var fallbackQuery = _client\n            .from('rooms')\n            .select('*, space_types(name, label), promotions(*)')\n            .eq('lounge_id', loungeId)\n            .eq('is_available', true)\n            .neq('status', 'deleted');\n        final response = await fallbackQuery;\n        return await _hydrateRoomsWithPromotions(loungeId, response as "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 163,
+    "kind": "from",
+    "target": "rooms",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('rooms')",
+    "context": " dev.log(\n          \"[ROOMS_DS] Error on secondary query: $fallbackError, trying plain select\",\n        );\n        try {\n          var plainQuery = _client\n              .from('rooms')\n              .select('*, space_types(name, label)')\n              .eq('lounge_id', loungeId)\n              .eq('is_available', true)\n              .neq('status', 'deleted');\n          final response = await plainQuery;\n          return await _hydrateRoomsWithPromotions(loungeId, response as List);"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 181,
+    "kind": "from",
+    "target": "extras",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('extras')",
+    "context": ");\n          return [];\n        }\n      }\n    }\n  }\n\n  @override\n  Future<List<ExtraModel>> getExtras(String loungeId) async {\n    final response = await _client\n        .from('extras')\n        .select()\n        .eq('lounge_id', loungeId)\n        .eq('is_available', true);\n    return (response as List).map((e) => ExtraModel.fromJson(e)).toList();\n  }\n\n  @override\n  Future<List<CategoryModel>> getLoungeCategories(String loungeId) async {\n    final response = await _client.rpc(\n    "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 190,
+    "kind": "rpc",
+    "target": "get_lounge_activities",
+    "params": [
+      "p_lounge_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'get_lounge_activities',\n      params: {'p_lounge_id': loungeId},\n    )",
+    "context": "ap((e) => ExtraModel.fromJson(e)).toList();\n  }\n\n  @override\n  Future<List<CategoryModel>> getLoungeCategories(String loungeId) async {\n    final response = await _client.rpc(\n      'get_lounge_activities',\n      params: {'p_lounge_id': loungeId},\n    );\n    if (response is! List) return const [];\n\n    return response\n        .map((item) {\n          final activity = Map<String, dynamic>.from(item as Map);\n          final label =\n              activity['label']?.toString() ??\n              activity['name']?.toString() ??\n              '';\n         "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 230,
+    "kind": "rpc",
+    "target": "get_lounge_reviews_page",
+    "params": [
+      "p_lounge_id",
+      "p_page",
+      "p_page_size"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 20"
+    ],
+    "returns": [
+      "TABLE(data jsonb, total_count bigint, page integer, page_size integer)"
+    ],
+    "snippet": ".rpc(\n        'get_lounge_reviews_page',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      )",
+    "context": "edResponse(\n        items: const [],\n        totalCount: 0,\n        page: page,\n        pageSize: pageSize,\n      );\n    }\n\n    try {\n      final response = await _client.rpc(\n        'get_lounge_reviews_page',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      );\n\n      return PaginatedResponse.fromRpc(\n        response: response,\n        fromJson: (json) => ReviewModel.fromJson(json),\n        requestedPage: page,\n        requestedPageSize: pageSize,\n      );\n    } catch (e) {\n      dev.log(\n        \"[REVIEWS_DS] get_lounge_reviews_page error: $e, fallback"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 275,
+    "kind": "rpc",
+    "target": "get_lounge_role_permissions_page",
+    "params": [
+      "p_lounge_id",
+      "p_page",
+      "p_page_size"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 50"
+    ],
+    "returns": [
+      "TABLE(data jsonb, total_count bigint, page integer, page_size integer)"
+    ],
+    "snippet": ".rpc(\n        'get_lounge_role_permissions_page',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      )",
+    "context": "edResponse(\n        items: const [],\n        totalCount: 0,\n        page: page,\n        pageSize: pageSize,\n      );\n    }\n\n    try {\n      final response = await _client.rpc(\n        'get_lounge_role_permissions_page',\n        params: {\n          'p_lounge_id': loungeId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      );\n\n      return PaginatedResponse.fromRpc(\n        response: response,\n        fromJson: (json) => json,\n        requestedPage: page,\n        requestedPageSize: pageSize,\n      );\n    } catch (e) {\n      dev.log(\"[LOUNGE_DS] get_lounge_role_permissions_page error: $e\");\n      return PaginatedRespons"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 335,
+    "kind": "rpc",
+    "target": "get_users_public_info",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "user_ids uuid[]"
+    ],
+    "returns": [
+      "TABLE(user_id uuid, full_name text, name text, avatar_url text)"
+    ],
+    "snippet": ".rpc(\n            'get_users_public_info',\n            params: {'user_ids': missingProfileUserIds},\n          )",
+    "context": "   .map((r) => r.userId!)\n          .toSet()\n          .toList();\n\n      if (missingProfileUserIds.isNotEmpty) {\n        try {\n          final profilesRes = await _client.rpc(\n            'get_users_public_info',\n            params: {'user_ids': missingProfileUserIds},\n          );\n\n          final profilesMap = <String, Map<String, dynamic>>{};\n          for (final p in (profilesRes as List)) {\n            final id = p['user_id']?.toString() ?? p['id']?.toString();\n            if (id != null) profilesMap[id] = Map<String, dynamic>.from(p);\n          }\n\n          return list"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 381,
+    "kind": "from",
+    "target": "lounge_reviews",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('lounge_reviews')",
+    "context": "Model> combinedReviews = [];\n\n    // Fetch lounge_reviews flat (since there is no direct FK relationship to profiles)\n    try {\n      final res = await _client\n          .from('lounge_reviews')\n          .select('*')\n          .eq('lounge_id', loungeId)\n          .order('created_at', ascending: false);\n      final result = await processAndHydrate(res as List);\n      combinedReviews.addAll(result);\n    } catch (e) {\n      dev.log(\"[REVIEWS_DS] lounge_reviews flat select error: $e\");\n      "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/lounge_details/data/datasources/remote/lounge_details_remote_data_source.dart",
+    "line": 414,
+    "kind": "rpc",
+    "target": "get_lounge_operating_status",
+    "params": [
+      "p_lounge_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'get_lounge_operating_status',\n      params: {'p_lounge_id': loungeId},\n    )",
+    "context": "At));\n    return uniqueReviews;\n  }\n\n  @override\n  Future<LoungeOperatingStatus?> getLoungeOperatingStatus(\n    String loungeId,\n  ) async {\n    final res = await _client.rpc(\n      'get_lounge_operating_status',\n      params: {'p_lounge_id': loungeId},\n    );\n    if (res != null && res is Map) {\n      return LoungeOperatingStatus.fromJson(Map<String, dynamic>.from(res));\n    }\n    throw const FormatException('invalid_lounge_operating_status');\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/data/datasources/remote/my_bookings_remote_data_source.dart",
+    "line": 28,
+    "kind": "from",
+    "target": "bookings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('bookings')",
+    "context": "c {\n    final userId = _client.auth.currentUser?.id;\n    if (userId == null) throw const AuthException(\"User not logged in\");\n\n    final response = await _client\n        .from('bookings')\n        .select(\n          '*, lounges(*), rooms(name, name_en, controllers_count, screen_size, space_types(label, name)), canteen_orders(*, canteen_order_items(*, extras(id, name, name_ar, name_en, price)))',\n        )\n        .eq('user_id', userId)\n        .order('date', ascending: false);\n\n    r"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/data/datasources/remote/my_bookings_remote_data_source.dart",
+    "line": 44,
+    "kind": "rpc",
+    "target": "get_lounge_bookings_page",
+    "params": [
+      "p_lounge_id",
+      "p_page",
+      "p_page_size"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lounge_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 20"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'get_lounge_bookings_page',\n      params: {\n        'p_lounge_id': loungeId,\n        'p_page': page,\n        'p_page_size': pageSize,\n      },\n    )",
+    "context": "atedResponse<BookingModel>> getLoungeBookingsPage({\n    required String loungeId,\n    int page = 1,\n    int pageSize = 20,\n  }) async {\n    final response = await _client.rpc(\n      'get_lounge_bookings_page',\n      params: {\n        'p_lounge_id': loungeId,\n        'p_page': page,\n        'p_page_size': pageSize,\n      },\n    );\n\n    return PaginatedResponse.fromRpc(\n      response: response,\n      fromJson: (json) => BookingModel.fromJson(json),\n      requestedPage: page,\n      requestedPageSize: pageSize,\n    );\n  }\n\n  @override\n  Future<void> cancelBooking(String bookingId, String reason) async {\n    final userId = _cl"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/data/datasources/remote/my_bookings_remote_data_source.dart",
+    "line": 66,
+    "kind": "rpc",
+    "target": "cancel_my_booking",
+    "params": [
+      "p_booking_id",
+      "p_reason"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid, p_reason text DEFAULT 'Cancelled by user'::text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n      'cancel_my_booking',\n      params: {'p_booking_id': bookingId, 'p_reason': reason.trim()},\n    )",
+    "context": "ingId, String reason) async {\n    final userId = _client.auth.currentUser?.id;\n    if (userId == null) throw const AuthException(\"User not logged in\");\n\n    await _client.rpc(\n      'cancel_my_booking',\n      params: {'p_booking_id': bookingId, 'p_reason': reason.trim()},\n    );\n  }\n\n  @override\n  Future<List<BookingTimelineItemModel>> getBookingTimeline(\n    String bookingId,\n  ) async {\n    final response = await _client.rpc(\n      'get_booking_timeline_for_customer',\n      params: {'p_booking_id': bookingId},\n    );\n\n    final rawList = response as List? ?? [];\n    fin"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/data/datasources/remote/my_bookings_remote_data_source.dart",
+    "line": 76,
+    "kind": "rpc",
+    "target": "get_booking_timeline_for_customer",
+    "params": [
+      "p_booking_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_booking_id uuid"
+    ],
+    "returns": [
+      "TABLE(id text, event_code text, title_ar text, title_en text, occurred_at timestamp with time zone, payload jsonb)"
+    ],
+    "snippet": ".rpc(\n      'get_booking_timeline_for_customer',\n      params: {'p_booking_id': bookingId},\n    )",
+    "context": " reason.trim()},\n    );\n  }\n\n  @override\n  Future<List<BookingTimelineItemModel>> getBookingTimeline(\n    String bookingId,\n  ) async {\n    final response = await _client.rpc(\n      'get_booking_timeline_for_customer',\n      params: {'p_booking_id': bookingId},\n    );\n\n    final rawList = response as List? ?? [];\n    final seenIds = <String>{};\n    final items = <BookingTimelineItemModel>[];\n\n    for (final raw in rawList) {\n      if (raw is Map<String, dynamic>) {\n        final model = BookingTimelineItemModel.fromJson(raw);\n        if (seenIds.add(model.id)) "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/presentation/widgets/booking_receipt_dialog.dart",
+    "line": 64,
+    "kind": "from",
+    "target": "bookings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('bookings')",
+    "context": "= null ||\n        raw.trim().isEmpty ||\n        raw == 'null' ||\n        raw == 'undefined') {\n      try {\n        final res = await Supabase.instance.client\n            .from('bookings')\n            .select('receipt_url')\n            .eq('id', widget.booking.id)\n            .maybeSingle();\n        if (res != null) {\n          raw = res['receipt_url']?.toString().trim();\n        }\n      } catch (_) {}\n    }\n\n    if (raw == null ||\n        raw.trim().isEmpty ||\n        raw == 'null' "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/my_bookings/presentation/widgets/booking_receipt_dialog.dart",
+    "line": 165,
+    "kind": "storage",
+    "target": "payment-proofs",
+    "params": [],
+    "status": "BUCKET EXISTS; object authorization unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('payment-proofs')",
+    "context": "lback\n          }\n        } catch (_) {}\n      }\n    }\n\n    if (mounted) {\n      setState(() {\n        _resolvedReceiptUrl = Supabase.instance.client.storage\n            .from('payment-proofs')\n            .getPublicUrl(cleanPath);\n        _isLoadingUrl = false;\n      });\n    }\n  }\n\n  void _showFullScreenImage(BuildContext context, String imageUrl) {\n    showDialog(\n      context: context,\n      builder: (_) => Dialog(\n        backgroundColor: Colors.black,\n        insetPadding: EdgeInset"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/notifications/data/datasources/remote/notifications_remote_data_source.dart",
+    "line": 36,
+    "kind": "rpc",
+    "target": "get_notifications_page",
+    "params": [
+      "p_page",
+      "p_page_size"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_page integer DEFAULT 1, p_page_size integer DEFAULT 20"
+    ],
+    "returns": [
+      "TABLE(data jsonb, total_count bigint, page integer, page_size integer)"
+    ],
+    "snippet": ".rpc(\n        'get_notifications_page',\n        params: {'p_page': page, 'p_page_size': pageSize},\n      )",
+    "context": "20,\n  }) async {\n    try {\n      dev.log(\n        \"FETCHING_NOTIFICATIONS_PAGE: lang=$lang, page=$page, pageSize=$pageSize\",\n      );\n      final response = await _client.rpc(\n        'get_notifications_page',\n        params: {'p_page': page, 'p_page_size': pageSize},\n      );\n\n      return PaginatedResponse.fromRpc(\n        response: response,\n        fromJson: (json) => NotificationModel.fromJson(json),\n        requestedPage: page,\n        requestedPageSize: pageSize,\n      );\n    } catch (e) {\n      dev.log(\"FETCH_NOTIFICATIONS_ERROR: $e\");\n      rethrow;\n    }\n  }\n\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/notifications/data/datasources/remote/notifications_remote_data_source.dart",
+    "line": 55,
+    "kind": "rpc",
+    "target": "mark_notification_read",
+    "params": [
+      "p_notification_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_notification_id uuid"
+    ],
+    "returns": [
+      "boolean"
+    ],
+    "snippet": ".rpc(\n      'mark_notification_read',\n      params: {'p_notification_id': notificationId},\n    )",
+    "context": "tch (e) {\n      dev.log(\"FETCH_NOTIFICATIONS_ERROR: $e\");\n      rethrow;\n    }\n  }\n\n  @override\n  Future<void> markAsRead(String notificationId) async {\n    await _client.rpc(\n      'mark_notification_read',\n      params: {'p_notification_id': notificationId},\n    );\n  }\n\n  @override\n  Future<void> markAllAsRead() async {\n    await _client.rpc('mark_all_notifications_read');\n  }\n\n  @override\n  Stream<Map<String, dynamic>> subscribeToNewNotifications() {\n    final userId = _client.auth.currentUser?.id;\n    if (userId == null) return const Stream.empty();\n\n    _"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/notifications/data/datasources/remote/notifications_remote_data_source.dart",
+    "line": 63,
+    "kind": "rpc",
+    "target": "mark_all_notifications_read",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      ""
+    ],
+    "returns": [
+      "integer"
+    ],
+    "snippet": ".rpc('mark_all_notifications_read')",
+    "context": "rpc(\n      'mark_notification_read',\n      params: {'p_notification_id': notificationId},\n    );\n  }\n\n  @override\n  Future<void> markAllAsRead() async {\n    await _client.rpc('mark_all_notifications_read');\n  }\n\n  @override\n  Stream<Map<String, dynamic>> subscribeToNewNotifications() {\n    final userId = _client.auth.currentUser?.id;\n    if (userId == null) return const Stream.empty();\n\n    _cleanupRealtime();\n\n    final controller = StreamController<Map<String, dynamic>>();\n    _activeController = c"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 65,
+    "kind": "rpc",
+    "target": "consume_voucher",
+    "params": [
+      "p_booking_id",
+      "p_voucher_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_voucher_id uuid, p_booking_id uuid"
+    ],
+    "returns": [
+      "void"
+    ],
+    "snippet": ".rpc(\n      'consume_voucher',\n      params: {'p_voucher_id': voucherId, 'p_booking_id': bookingId},\n    )",
+    "context": "pabase, this._storageService);\n\n  @override\n  Future<void> consumeVoucher({\n    required String voucherId,\n    required String bookingId,\n  }) async {\n    await _supabase.rpc(\n      'consume_voucher',\n      params: {'p_voucher_id': voucherId, 'p_booking_id': bookingId},\n    );\n  }\n\n  @override\n  Future<void> consumeVoucherByCode({\n    required String code,\n    required String bookingId,\n  }) async {\n    final cleanCode = code.trim().toUpperCase();\n    try {\n      await _supabase.rpc(\n        'consume_voucher_by_code',\n        params: {'p_code': cleanCode, 'p_booking_id'"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 78,
+    "kind": "rpc",
+    "target": "consume_voucher_by_code",
+    "params": [
+      "p_booking_id",
+      "p_code"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_code text, p_booking_id uuid"
+    ],
+    "returns": [
+      "boolean"
+    ],
+    "snippet": ".rpc(\n        'consume_voucher_by_code',\n        params: {'p_code': cleanCode, 'p_booking_id': bookingId},\n      )",
+    "context": "sumeVoucherByCode({\n    required String code,\n    required String bookingId,\n  }) async {\n    final cleanCode = code.trim().toUpperCase();\n    try {\n      await _supabase.rpc(\n        'consume_voucher_by_code',\n        params: {'p_code': cleanCode, 'p_booking_id': bookingId},\n      );\n    } catch (e) {\n      AppLogger.debug('[ProfileDS] consume_voucher_by_code error: $e');\n      try {\n        await _supabase.rpc(\n          'consume_voucher',\n          params: {'p_voucher_id': code, 'p_booking_id': bookingId},\n        );\n      } catch (_) {}\n    }\n  }\n\n  @override\n  Future<List<"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 85,
+    "kind": "rpc",
+    "target": "consume_voucher",
+    "params": [
+      "p_booking_id",
+      "p_voucher_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_voucher_id uuid, p_booking_id uuid"
+    ],
+    "returns": [
+      "void"
+    ],
+    "snippet": ".rpc(\n          'consume_voucher',\n          params: {'p_voucher_id': code, 'p_booking_id': bookingId},\n        )",
+    "context": "anCode, 'p_booking_id': bookingId},\n      );\n    } catch (e) {\n      AppLogger.debug('[ProfileDS] consume_voucher_by_code error: $e');\n      try {\n        await _supabase.rpc(\n          'consume_voucher',\n          params: {'p_voucher_id': code, 'p_booking_id': bookingId},\n        );\n      } catch (_) {}\n    }\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getMyVouchers() async {\n    try {\n      final response = await _supabase.rpc('get_my_vouchers');\n      return List<Map<String, dynamic>>.from(response);\n    } catch (e) {\n      return [];\n    }\n  }\n\n  @override\n  Futu"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 96,
+    "kind": "rpc",
+    "target": "get_my_vouchers",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      ""
+    ],
+    "returns": [
+      "TABLE(id uuid, code text, reward_type text, reward_value numeric, status text, expires_at timestamp with time zone, used_at timestamp with time zone)"
+    ],
+    "snippet": ".rpc('get_my_vouchers')",
+    "context": "gId},\n        );\n      } catch (_) {}\n    }\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getMyVouchers() async {\n    try {\n      final response = await _supabase.rpc('get_my_vouchers');\n      return List<Map<String, dynamic>>.from(response);\n    } catch (e) {\n      return [];\n    }\n  }\n\n  @override\n  Future<Map<String, dynamic>> validateVoucher(String voucherId) async {\n    try {\n      final response = await _supabase.rpc(\n        'validate_voucher',\n        params: {'p_voucher_i"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 106,
+    "kind": "rpc",
+    "target": "validate_voucher",
+    "params": [
+      "p_voucher_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_voucher_id uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'validate_voucher',\n        params: {'p_voucher_id': voucherId},\n      )",
+    "context": "ch (e) {\n      return [];\n    }\n  }\n\n  @override\n  Future<Map<String, dynamic>> validateVoucher(String voucherId) async {\n    try {\n      final response = await _supabase.rpc(\n        'validate_voucher',\n        params: {'p_voucher_id': voucherId},\n      );\n      return Map<String, dynamic>.from(response);\n    } catch (e) {\n      return {'valid': false, 'error': e.toString()};\n    }\n  }\n\n  @override\n  Future<Map<String, dynamic>> validateVoucherByCode(String code) async {\n    final cleanCode = code.trim().toUpperCase();\n    try {\n      final response"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 120,
+    "kind": "rpc",
+    "target": "validate_voucher_by_code",
+    "params": [
+      "p_code"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_code text, p_user_id uuid DEFAULT NULL::uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'validate_voucher_by_code',\n        params: {'p_code': cleanCode},\n      )",
+    "context": " Future<Map<String, dynamic>> validateVoucherByCode(String code) async {\n    final cleanCode = code.trim().toUpperCase();\n    try {\n      final response = await _supabase.rpc(\n        'validate_voucher_by_code',\n        params: {'p_code': cleanCode},\n      );\n      return Map<String, dynamic>.from(response);\n    } catch (e) {\n      return {'valid': false, 'error': e.toString()};\n    }\n  }\n\n  @override\n  Future<int> getPointsBalance() async {\n    try {\n      final user = _supabase.auth.currentUser;\n      if (user == null) return 0;\n      final response "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 135,
+    "kind": "rpc",
+    "target": "get_user_points_balance",
+    "params": [
+      "p_user_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_user_id uuid"
+    ],
+    "returns": [
+      "integer"
+    ],
+    "snippet": ".rpc(\n        'get_user_points_balance',\n        params: {'p_user_id': user.id},\n      )",
+    "context": "  Future<int> getPointsBalance() async {\n    try {\n      final user = _supabase.auth.currentUser;\n      if (user == null) return 0;\n      final response = await _supabase.rpc(\n        'get_user_points_balance',\n        params: {'p_user_id': user.id},\n      );\n      return (response as num?)?.toInt() ?? 0;\n    } catch (e) {\n      AppLogger.debug('[Profile] get_user_points_balance RPC error: $e');\n      return 0;\n    }\n  }\n\n  @override\n  Future<PaginatedResponse<Map<String, dynamic>>> getPointsHistory({\n    int page = 1,\n    int pageSize = 20,\n  }) async"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 161,
+    "kind": "rpc",
+    "target": "get_points_transactions_page",
+    "params": [
+      "p_page",
+      "p_page_size"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_page integer DEFAULT 1, p_page_size integer DEFAULT 20"
+    ],
+    "returns": [
+      "TABLE(data jsonb, total_count bigint, page integer, page_size integer)"
+    ],
+    "snippet": ".rpc(\n        'get_points_transactions_page',\n        params: {'p_page': page, 'p_page_size': pageSize},\n      )",
+    "context": "esponse(\n          items: const [],\n          totalCount: 0,\n          page: page,\n          pageSize: pageSize,\n        );\n      }\n      final response = await _supabase.rpc(\n        'get_points_transactions_page',\n        params: {'p_page': page, 'p_page_size': pageSize},\n      );\n      return PaginatedResponse.fromRpc(\n        response: response,\n        fromJson: (json) => json,\n        requestedPage: page,\n        requestedPageSize: pageSize,\n      );\n    } catch (_) {\n      rethrow;\n    }\n  }\n\n  @override\n  Future<List<RedemptionOptionModel>> getRedemptionOptions() asyn"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 180,
+    "kind": "from",
+    "target": "redemption_options",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('redemption_options')",
+    "context": ") {\n      rethrow;\n    }\n  }\n\n  @override\n  Future<List<RedemptionOptionModel>> getRedemptionOptions() async {\n    try {\n      final response = await _supabase\n          .from('redemption_options')\n          .select()\n          .eq('is_active', true);\n      return (response as List)\n          .map((e) => RedemptionOptionModel.fromJson(e))\n          .toList();\n    } catch (e) {\n      return [];\n    }\n  }\n\n  @override\n  Future<Map<String, dynamic>> redeemPoints(String optionId) async {\n    try "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 196,
+    "kind": "rpc",
+    "target": "redeem_points",
+    "params": [
+      "p_redemption_option_id",
+      "p_user_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_user_id uuid, p_redemption_option_id uuid"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'redeem_points',\n        params: {'p_user_id': user.id, 'p_redemption_option_id': optionId},\n      )",
+    "context": "onId) async {\n    try {\n      final user = _supabase.auth.currentUser;\n      if (user == null) throw const UserNotFoundException();\n      final response = await _supabase.rpc(\n        'redeem_points',\n        params: {'p_user_id': user.id, 'p_redemption_option_id': optionId},\n      );\n      return Map<String, dynamic>.from(response);\n    } catch (e) {\n      return {'success': false, 'error': e.toString()};\n    }\n  }\n\n  @override\n  Future<UserModel> updateProfile(UpdateProfileParams params) async {\n    try {\n      final user = _supabase.auth.currentUser;\n      if (user == null) "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 235,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "       (key, value) =>\n            value == null ||\n            value.toString() == 'undefined' ||\n            value.toString() == 'null',\n      );\n\n      await _supabase.from('profiles').update(updateData).eq('id', userId);\n\n      await _supabase.auth.updateUser(\n        UserAttributes(\n          email: params.email,\n          data: {'full_name': params.name, 'avatar_url': ?avatarUrl},\n        ),\n      );\n\n      AppLogger.debug(' [Profile] Profile updated');\n\n      return UserModel"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 296,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "   await pref.saveLongitude(position.longitude);\n\n    // 2. Direct update to profiles table so coordinates are always persisted\n    try {\n      await _supabase\n          .from('profiles')\n          .update({\n            'latitude': position.latitude,\n            'longitude': position.longitude,\n            'updated_at': DateTime.now().toUtc().toIso8601String(),\n          })\n          .eq('id', user.id);\n    } catch (e) {\n      AppLogger.debug('[Profile] Direct profiles location upda"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 309,
+    "kind": "invoke",
+    "target": "update-user-location",
+    "params": [],
+    "status": "EDGE/SPECIAL TARGET; inspect",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".invoke(\n        'update-user-location',\n        body: {'latitude': position.latitude, 'longitude': position.longitude},\n      )",
+    "context": "file] Direct profiles location update error: $e');\n    }\n\n    // 3. Invoke update-user-location Edge Function to resolve city_id\n    try {\n      await _supabase.functions.invoke(\n        'update-user-location',\n        body: {'latitude': position.latitude, 'longitude': position.longitude},\n      );\n    } on FunctionException catch (e) {\n      if (e.status == 422) {\n        AppLogger.debug('[Profile] City not in cities table yet.');\n      } else if (e.status == 401 || e.status == 403) {\n        throw const AppException('\u0627\u0646\u062a\u0647\u062a \u0627\u0644\u062c\u0644\u0633\u0629. \u064a\u0631\u062c\u0649 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649');\n      }\n    } catch (e) {\n   "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 338,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": ") async {\n    final user = _supabase.auth.currentUser;\n    if (user == null) throw const UserNotFoundException();\n\n    try {\n      final data = await _supabase\n          .from('profiles')\n          .select('*, cities:city_id(id, name_ar, name_en)')\n          .eq('id', user.id)\n          .single();\n\n      var userModel = UserModel.fromJson(Map<String, dynamic>.from(data));\n      if (userModel.referralCode == null ||\n          userModel.referralCode!.trim().isEmpty) {\n        final fa"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 349,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "Model.referralCode!.trim().isEmpty) {\n        final fallbackCode = 'PLAY-${user.id.substring(0, 6).toUpperCase()}';\n        try {\n          await _supabase\n              .from('profiles')\n              .update({'referral_code': fallbackCode})\n              .eq('id', user.id);\n          userModel = userModel.copyWith(referralCode: fallbackCode);\n        } catch (_) {}\n      }\n      return userModel;\n    } catch (e) {\n      final userModel = UserModel.fromSupabaseUser(user.toJson());\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 374,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "uture<void> updateFcmToken(String token) async {\n    try {\n      final user = _supabase.auth.currentUser;\n      if (user == null) return;\n      await _supabase\n          .from('profiles')\n          .update({'fcm_token': token})\n          .eq('id', user.id);\n      AppLogger.debug('[ProfileDS] FCM token updated for user: ${user.id}');\n    } catch (e) {\n      AppLogger.debug('[ProfileDS] Update FCM token error: $e');\n    }\n  }\n\n  @override\n  Future<NotificationSettingsModel> getNotific"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 390,
+    "kind": "from",
+    "target": "notification_settings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('notification_settings')",
+    "context": "\n    final user = _supabase.auth.currentUser;\n    if (user == null) return const NotificationSettingsModel();\n\n    try {\n      final response = await _supabase\n          .from('notification_settings')\n          .select()\n          .eq('user_id', user.id)\n          .maybeSingle();\n\n      if (response != null) {\n        return NotificationSettingsModel.fromJson(\n          Map<String, dynamic>.from(response),\n        );\n      }\n    } catch (e) {\n      AppLogger.debug(' [Profile] Error getting notif"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 417,
+    "kind": "from",
+    "target": "notification_settings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('notification_settings')",
+    "context": "user = _supabase.auth.currentUser;\n    if (user == null) return;\n\n    final data = {'user_id': user.id, ...settings.toJson()};\n\n    try {\n      await _supabase\n          .from('notification_settings')\n          .upsert(data, onConflict: 'user_id');\n    } catch (e) {\n      AppLogger.debug(' [Profile] Error updating notification settings: $e');\n    }\n  }\n\n  @override\n  Future<LoyaltyStatusModel> getLoyaltyStatus() async {\n    final user = _supabase.auth.currentUser;\n    if (user == null) {\n      r"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 437,
+    "kind": "rpc",
+    "target": "get_loyalty_status",
+    "params": [
+      "p_user_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_user_id uuid DEFAULT auth.uid()"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'get_loyalty_status',\n        params: {'p_user_id': user.id},\n      )",
+    "context": " pointsBalance: 0,\n        currentLevel: 'Bronze',\n        nextLevelPoints: 100,\n        multiplier: 1.0,\n      );\n    }\n\n    try {\n      final response = await _supabase.rpc(\n        'get_loyalty_status',\n        params: {'p_user_id': user.id},\n      );\n\n      if (response != null) {\n        if (response is Map) {\n          return LoyaltyStatusModel.fromJson(\n            Map<String, dynamic>.from(response),\n          );\n        } else if (response is List &&\n            response.isNotEmpty &&\n            response.first is Map) {\n          return "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 477,
+    "kind": "from",
+    "target": "loyalty_missions",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('loyalty_missions')",
+    "context": "getLoyaltyMissions() async {\n    final user = _supabase.auth.currentUser;\n    if (user == null) return [];\n\n    try {\n      final missionsRes = await _supabase\n          .from('loyalty_missions')\n          .select()\n          .eq('is_active', true);\n\n      final progressRes = await _supabase\n          .from('user_mission_progress')\n          .select()\n          .eq('user_id', user.id);\n\n      final progressMap = <String, Map<String, dynamic>>{};\n      for (final p in (progressRes as List)) "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 482,
+    "kind": "from",
+    "target": "user_mission_progress",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('user_mission_progress')",
+    "context": "sionsRes = await _supabase\n          .from('loyalty_missions')\n          .select()\n          .eq('is_active', true);\n\n      final progressRes = await _supabase\n          .from('user_mission_progress')\n          .select()\n          .eq('user_id', user.id);\n\n      final progressMap = <String, Map<String, dynamic>>{};\n      for (final p in (progressRes as List)) {\n        if (p is Map) {\n          final mId = p['mission_id']?.toString() ?? '';\n          if (mId.isNotEmpty) {\n            progressMap"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 524,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "de: '',\n        invitedUsersCount: 0,\n        referralPointsEarned: 0,\n      );\n    }\n\n    String refCode = '';\n    try {\n      final profile = await _supabase\n          .from('profiles')\n          .select('referral_code')\n          .eq('id', user.id)\n          .maybeSingle();\n      refCode =\n          profile?['referral_code']?.toString() ??\n          'PLAY-${user.id.substring(0, 6).toUpperCase()}';\n    } catch (_) {\n      refCode = 'PLAY-${user.id.substring(0, 6).toUpperCase()}';\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 540,
+    "kind": "from",
+    "target": "referrals",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('referrals')",
+    "context": " refCode = 'PLAY-${user.id.substring(0, 6).toUpperCase()}';\n    }\n\n    int count = 0;\n    int points = 0;\n\n    try {\n      final referralsRes = await _supabase\n          .from('referrals')\n          .select('*')\n          .eq('referrer_id', user.id);\n\n      final list = referralsRes as List;\n      count = list.length;\n      for (final item in list) {\n        if (item is Map) {\n          points +=\n              ((item['reward_points'] ??\n                          item['points'] ??\n   "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 564,
+    "kind": "from",
+    "target": "points_transactions",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('points_transactions')",
+    "context": " catch (e) {\n      AppLogger.debug('[Profile] Error fetching referrals: $e');\n    }\n\n    if (points == 0) {\n      try {\n        final txRes = await _supabase\n            .from('points_transactions')\n            .select('points')\n            .eq('user_id', user.id)\n            .or(\n              'source_type.eq.referral,source_type.eq.referral_bonus,description.ilike.%referral%',\n            );\n        for (final tx in (txRes as List)) {\n          if (tx is Map) {\n            points += ((tx['po"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 604,
+    "kind": "rpc",
+    "target": "claim_referral_code",
+    "params": [
+      "p_referral_code"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_referral_code text"
+    ],
+    "returns": [
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'claim_referral_code',\n        params: {'p_referral_code': cleanCode},\n      )",
+    "context": "ult(\n        status: ClaimReferralStatus.invalidCode,\n        messageKey: AppStrings.invalidReferralCode,\n      );\n    }\n\n    try {\n      final response = await _supabase.rpc(\n        'claim_referral_code',\n        params: {'p_referral_code': cleanCode},\n      );\n\n      if (response != null) {\n        if (response is Map) {\n          final map = Map<String, dynamic>.from(response);\n          if (map['success'] == true) {\n            return const ClaimReferralResult(\n              status: ClaimReferralStatus.success,\n              messageKey: AppStrings.ref"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/profile_remote_data_source.dart",
+    "line": 718,
+    "kind": "from",
+    "target": "bookings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('bookings')",
+    "context": "t> getTotalBookingsCount() async {\n    try {\n      final user = _supabase.auth.currentUser;\n      if (user == null) return 0;\n      final res = await _supabase\n          .from('bookings')\n          .select('id')\n          .eq('user_id', user.id);\n      return (res as List).length;\n    } catch (e) {\n      AppLogger.debug('[Profile] Error fetching total bookings count: $e');\n      return 0;\n    }\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/support_remote_data_source.dart",
+    "line": 20,
+    "kind": "rpc",
+    "target": "get_public_support_settings",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      ""
+    ],
+    "returns": [
+      "TABLE(whatsapp_phone text, support_phone text, support_email text, vodafone_cash_number text, updated_at timestamp with time zone)"
+    ],
+    "snippet": ".rpc('get_public_support_settings')",
+    "context": "t _supabase;\n\n  SupportRemoteDataSourceImpl(this._supabase);\n\n  @override\n  Future<Map<String, dynamic>> getSupportSettings() async {\n    final response = await _supabase.rpc('get_public_support_settings');\n    if (response is Map<String, dynamic>) {\n      return response;\n    } else if (response is Map) {\n      return Map<String, dynamic>.from(response);\n    } else if (response is List && response.isNotEmpty) {\n      return Map<String, dynamic>.from(response.first as Map);\n    }\n    if (response is "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/support_remote_data_source.dart",
+    "line": 34,
+    "kind": "rpc",
+    "target": "get_public_policies",
+    "params": [
+      "p_lang"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lang text DEFAULT 'ar'::text"
+    ],
+    "returns": [
+      "TABLE(policy_key text, title text, content text, updated_at timestamp with time zone)"
+    ],
+    "snippet": ".rpc(\n      'get_public_policies',\n      params: {'p_lang': lang},\n    )",
+    "context": "xception('Invalid support settings response');\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getPolicies(String lang) async {\n    final response = await _supabase.rpc(\n      'get_public_policies',\n      params: {'p_lang': lang},\n    );\n    if (response is List) {\n      return List<Map<String, dynamic>>.from(\n        response.map((item) => Map<String, dynamic>.from(item as Map)),\n      );\n    }\n    throw const FormatException('Invalid policies response');\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getFaqs(String lang) "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/support_remote_data_source.dart",
+    "line": 48,
+    "kind": "rpc",
+    "target": "get_public_faqs",
+    "params": [
+      "p_lang"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_lang text DEFAULT 'ar'::text"
+    ],
+    "returns": [
+      "TABLE(id uuid, question text, answer text, sort_order integer, updated_at timestamp with time zone)"
+    ],
+    "snippet": ".rpc(\n      'get_public_faqs',\n      params: {'p_lang': lang},\n    )",
+    "context": "onst FormatException('Invalid policies response');\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getFaqs(String lang) async {\n    final response = await _supabase.rpc(\n      'get_public_faqs',\n      params: {'p_lang': lang},\n    );\n    if (response is List) {\n      return List<Map<String, dynamic>>.from(\n        response.map((item) => Map<String, dynamic>.from(item as Map)),\n      );\n    }\n    throw const FormatException('Invalid FAQs response');\n  }\n\n  @override\n  Future<void> createSupportTicket({\n    required String issue"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/profile/data/datasources/remote/support_remote_data_source.dart",
+    "line": 65,
+    "kind": "rpc",
+    "target": "create_support_ticket",
+    "params": [
+      "p_issue_type",
+      "p_message"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_issue_type text, p_message text"
+    ],
+    "returns": [
+      "support_tickets"
+    ],
+    "snippet": ".rpc(\n      'create_support_ticket',\n      params: {'p_issue_type': issueType, 'p_message': message},\n    )",
+    "context": "nvalid FAQs response');\n  }\n\n  @override\n  Future<void> createSupportTicket({\n    required String issueType,\n    required String message,\n  }) async {\n    await _supabase.rpc(\n      'create_support_ticket',\n      params: {'p_issue_type': issueType, 'p_message': message},\n    );\n  }\n}\n"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 109,
+    "kind": "rpc",
+    "target": "get_visible_tournaments",
+    "params": [
+      "p_latitude",
+      "p_longitude"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_latitude double precision DEFAULT NULL::double precision, p_longitude double precision DEFAULT NULL::double precision"
+    ],
+    "returns": [
+      "SETOF tournaments"
+    ],
+    "snippet": ".rpc(\n      'get_visible_tournaments',\n      params: {'p_latitude': latitude, 'p_longitude': longitude},\n    )",
+    "context": "yId,\n    String? statusFilter,\n    String? searchQuery,\n    double? latitude,\n    double? longitude,\n    String? loungeId,\n  }) async {\n    final response = await _client.rpc(\n      'get_visible_tournaments',\n      params: {'p_latitude': latitude, 'p_longitude': longitude},\n    );\n\n    final list = (response as List).cast<Map<String, dynamic>>();\n    var models = list.map(TournamentModel.fromJson).toList();\n\n    if (statusFilter == 'completed') {\n      return const <TournamentModel>[];\n    }\n\n    if (loungeId != null && loungeId.isNotEmpty) {\n      models = models.where((t)"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 170,
+    "kind": "from",
+    "target": "tournaments",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournaments')",
+    "context": " }\n\n    return models;\n  }\n\n  @override\n  Future<TournamentModel> getTournamentById(String tournamentId) async {\n    try {\n      final response = await _client\n          .from('tournaments')\n          .select('*, cities:city_id(*), lounges:lounge_id(*)')\n          .eq('id', tournamentId)\n          .single();\n      return TournamentModel.fromJson(response);\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] Error in getTournamentById: $e');\n      rethrow;\n    }\n  }\n\n  @override\n  Fut"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 187,
+    "kind": "from",
+    "target": "tournament_prizes",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament_prizes')",
+    "context": "\n  }\n\n  @override\n  Future<List<TournamentPrizeModel>> getTournamentPrizes(\n    String tournamentId,\n  ) async {\n    try {\n      final response = await _client\n          .from('tournament_prizes')\n          .select()\n          .eq('tournament_id', tournamentId)\n          .order('placement', ascending: true);\n\n      final list = (response as List).cast<Map<String, dynamic>>();\n      return list.map((json) => TournamentPrizeModel.fromJson(json)).toList();\n    } catch (e) {\n      dev.log('[TOUR"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 206,
+    "kind": "from",
+    "target": "tournament_matches",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament_matches')",
+    "context": "  }\n\n  @override\n  Future<List<TournamentMatchModel>> getTournamentMatches(\n    String tournamentId,\n  ) async {\n    try {\n      final response = await _client\n          .from('tournament_matches')\n          .select()\n          .eq('tournament_id', tournamentId)\n          .order('round_number', ascending: true)\n          .order('match_order', ascending: true);\n\n      final list = (response as List).cast<Map<String, dynamic>>();\n      return await mapTournamentMatchesWithNames(_client, tournam"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 227,
+    "kind": "from",
+    "target": "tournament_matches",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament_matches')",
+    "context": "@override\n  Future<TournamentMatchModel?> getMatchById(\n    String tournamentId,\n    String matchId,\n  ) async {\n    try {\n      final response = await _client\n          .from('tournament_matches')\n          .select()\n          .eq('id', matchId)\n          .eq('tournament_id', tournamentId)\n          .maybeSingle();\n\n      if (response != null) {\n        return (await mapTournamentMatchesWithNames(_client, tournamentId, [\n          response,\n        ])).single;\n      }\n      return null;\n    "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 252,
+    "kind": "from",
+    "target": "tournament_participants",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament_participants')",
+    "context": " Future<TournamentParticipantModel?> getUserParticipant(\n    String tournamentId,\n    String userId,\n  ) async {\n    try {\n      final response = await _client\n          .from('tournament_participants')\n          .select()\n          .eq('tournament_id', tournamentId)\n          .eq('user_id', userId)\n          .maybeSingle();\n\n      if (response != null) {\n        return TournamentParticipantModel.fromJson(response);\n      }\n      return null;\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] E"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 275,
+    "kind": "from",
+    "target": "tournament_participants",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament_participants')",
+    "context": "ament() async {\n    try {\n      final currentUser = _client.auth.currentUser;\n      if (currentUser == null) return null;\n\n      final response = await _client\n          .from('tournament_participants')\n          .select('*, tournaments(*)')\n          .eq('user_id', currentUser.id)\n          .order('created_at', ascending: false)\n          .limit(1)\n          .maybeSingle();\n\n      if (response == null) return null;\n      return UserTournamentParticipationModel.fromJson(response);\n    } catch (e) "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 300,
+    "kind": "rpc",
+    "target": "register_for_tournament",
+    "params": [
+      "p_tournament_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_tournament_id uuid"
+    ],
+    "returns": [
+      "json"
+    ],
+    "snippet": ".rpc(\n        'register_for_tournament',\n        params: {'p_tournament_id': tournamentId},\n      )",
+    "context": "final currentUser = _client.auth.currentUser;\n    if (currentUser == null) {\n      throw Exception('User not logged in');\n    }\n\n    try {\n      final res = await _client.rpc(\n        'register_for_tournament',\n        params: {'p_tournament_id': tournamentId},\n      );\n\n      if (res is Map<String, dynamic>) {\n        return TournamentParticipantModel.fromJson(res);\n      }\n      return await getUserParticipant(tournamentId, currentUser.id);\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] RPC register_for_tournament error: $e');\n      rethrow;\n    }\n  }\n\n "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 333,
+    "kind": "storage",
+    "target": "tournament-receipts",
+    "params": [],
+    "status": "BUCKET EXISTS; object authorization unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament-receipts')",
+    "context": "erId,\n      filePath: receiptFile.path,\n    );\n    final storagePath = upload.path;\n\n    final bytes = await receiptFile.readAsBytes();\n    await _client.storage\n        .from('tournament-receipts')\n        .uploadBinary(storagePath, bytes, fileOptions: upload.options);\n\n    final signedUrl = await _client.storage\n        .from('tournament-receipts')\n        .createSignedUrl(storagePath, 60 * 60 * 24 * 365);\n\n    try {\n      final res = await _client.rpc(\n        'submit_tournament_payment',\n "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 337,
+    "kind": "storage",
+    "target": "tournament-receipts",
+    "params": [],
+    "status": "BUCKET EXISTS; object authorization unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament-receipts')",
+    "context": "storage\n        .from('tournament-receipts')\n        .uploadBinary(storagePath, bytes, fileOptions: upload.options);\n\n    final signedUrl = await _client.storage\n        .from('tournament-receipts')\n        .createSignedUrl(storagePath, 60 * 60 * 24 * 365);\n\n    try {\n      final res = await _client.rpc(\n        'submit_tournament_payment',\n        params: {\n          'p_participant_id': participantId,\n          'p_amount': amount,\n          'p_payment_method': paymentMethod,\n          'p_rece"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 341,
+    "kind": "rpc",
+    "target": "submit_tournament_payment",
+    "params": [
+      "p_amount",
+      "p_participant_id",
+      "p_payment_method",
+      "p_receipt_url"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_participant_id uuid, p_amount numeric, p_payment_method text, p_receipt_url text",
+      "p_participant_id uuid, p_tournament_id uuid, p_user_id uuid, p_amount numeric, p_payment_method text, p_receipt_url text"
+    ],
+    "returns": [
+      "json",
+      "jsonb"
+    ],
+    "snippet": ".rpc(\n        'submit_tournament_payment',\n        params: {\n          'p_participant_id': participantId,\n          'p_amount': amount,\n          'p_payment_method': paymentMethod,\n          'p_receipt_url': signedUrl,\n        },\n      )",
+    "context": "gnedUrl = await _client.storage\n        .from('tournament-receipts')\n        .createSignedUrl(storagePath, 60 * 60 * 24 * 365);\n\n    try {\n      final res = await _client.rpc(\n        'submit_tournament_payment',\n        params: {\n          'p_participant_id': participantId,\n          'p_amount': amount,\n          'p_payment_method': paymentMethod,\n          'p_receipt_url': signedUrl,\n        },\n      );\n\n      if (res is Map<String, dynamic>) {\n        return TournamentParticipantModel.fromJson(res);\n      }\n      return await getUserParticipant(tournamentId, userId);\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] RPC submit_tournament_payment error: $e');\n      rethrow;\n    }\n  }\n\n  @over"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 366,
+    "kind": "rpc",
+    "target": "check_in_tournament_participant",
+    "params": [
+      "p_participant_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_participant_id uuid"
+    ],
+    "returns": [
+      "json"
+    ],
+    "snippet": ".rpc(\n        'check_in_tournament_participant',\n        params: {'p_participant_id': participantId},\n      )",
+    "context": " rethrow;\n    }\n  }\n\n  @override\n  Future<TournamentParticipantModel?> checkInParticipant(\n    String participantId,\n  ) async {\n    try {\n      final res = await _client.rpc(\n        'check_in_tournament_participant',\n        params: {'p_participant_id': participantId},\n      );\n\n      if (res is Map<String, dynamic>) {\n        return TournamentParticipantModel.fromJson(res);\n      }\n      return null;\n    } catch (e) {\n      dev.log(\n        '[TOURNAMENTS_REMOTE] RPC check_in_tournament_participant error: $e',\n      );\n      rethrow;\n    }\n  }\n\n  @override\n  Future<void>"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 408,
+    "kind": "storage",
+    "target": "tournament-result-proofs",
+    "params": [],
+    "status": "BUCKET EXISTS; object authorization unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament-result-proofs')",
+    "context": "      filePath: proofFile.path,\n      );\n      final storagePath = upload.path;\n\n      final bytes = await proofFile.readAsBytes();\n      await _client.storage\n          .from('tournament-result-proofs')\n          .uploadBinary(storagePath, bytes, fileOptions: upload.options);\n\n      proofUrl = await _client.storage\n          .from('tournament-result-proofs')\n          .createSignedUrl(storagePath, 60 * 60 * 24 * 365);\n    }\n\n    try {\n      await _client.rpc(\n        'submit_match_result',\n       "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 412,
+    "kind": "storage",
+    "target": "tournament-result-proofs",
+    "params": [],
+    "status": "BUCKET EXISTS; object authorization unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament-result-proofs')",
+    "context": "e\n          .from('tournament-result-proofs')\n          .uploadBinary(storagePath, bytes, fileOptions: upload.options);\n\n      proofUrl = await _client.storage\n          .from('tournament-result-proofs')\n          .createSignedUrl(storagePath, 60 * 60 * 24 * 365);\n    }\n\n    try {\n      await _client.rpc(\n        'submit_match_result',\n        params: {\n          'p_match_id': matchId,\n          'p_score_player1': player1Score,\n          'p_score_player2': player2Score,\n          'p_proof_image_url"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 417,
+    "kind": "rpc",
+    "target": "submit_match_result",
+    "params": [
+      "p_match_id",
+      "p_proof_image_url",
+      "p_score_player1",
+      "p_score_player2"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_match_id uuid, p_score_player1 integer, p_score_player2 integer, p_proof_image_url text"
+    ],
+    "returns": [
+      "tournament_matches"
+    ],
+    "snippet": ".rpc(\n        'submit_match_result',\n        params: {\n          'p_match_id': matchId,\n          'p_score_player1': player1Score,\n          'p_score_player2': player2Score,\n          'p_proof_image_url': proofUrl,\n        },\n      )",
+    "context": "fUrl = await _client.storage\n          .from('tournament-result-proofs')\n          .createSignedUrl(storagePath, 60 * 60 * 24 * 365);\n    }\n\n    try {\n      await _client.rpc(\n        'submit_match_result',\n        params: {\n          'p_match_id': matchId,\n          'p_score_player1': player1Score,\n          'p_score_player2': player2Score,\n          'p_proof_image_url': proofUrl,\n        },\n      );\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] RPC submit_match_result error: $e');\n      rethrow;\n    }\n  }\n\n  @override\n  Future<void> confirmMatchResult(String matchId) async {\n    try {\n      await _client.rpc(\n        'confirm_match_result',\n        params: {'p_match_id': matchId},\n   "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 435,
+    "kind": "rpc",
+    "target": "confirm_match_result",
+    "params": [
+      "p_match_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_match_id uuid"
+    ],
+    "returns": [
+      "tournament_matches"
+    ],
+    "snippet": ".rpc(\n        'confirm_match_result',\n        params: {'p_match_id': matchId},\n      )",
+    "context": "REMOTE] RPC submit_match_result error: $e');\n      rethrow;\n    }\n  }\n\n  @override\n  Future<void> confirmMatchResult(String matchId) async {\n    try {\n      await _client.rpc(\n        'confirm_match_result',\n        params: {'p_match_id': matchId},\n      );\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] RPC confirm_match_result error: $e');\n      rethrow;\n    }\n  }\n\n  @override\n  Future<void> disputeMatchResult({\n    required String matchId,\n    required String disputeReason,\n  }) async {\n    try {\n      await _client.rpc(\n        'dispute_mat"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 451,
+    "kind": "rpc",
+    "target": "dispute_match_result",
+    "params": [
+      "p_match_id",
+      "p_reason"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_match_id uuid, p_reason text"
+    ],
+    "returns": [
+      "tournament_matches"
+    ],
+    "snippet": ".rpc(\n        'dispute_match_result',\n        params: {'p_match_id': matchId, 'p_reason': disputeReason},\n      )",
+    "context": "row;\n    }\n  }\n\n  @override\n  Future<void> disputeMatchResult({\n    required String matchId,\n    required String disputeReason,\n  }) async {\n    try {\n      await _client.rpc(\n        'dispute_match_result',\n        params: {'p_match_id': matchId, 'p_reason': disputeReason},\n      );\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] RPC dispute_match_result error: $e');\n      rethrow;\n    }\n  }\n\n  @override\n  Stream<List<TournamentMatchModel>> watchTournamentMatches(\n    String tournamentId,\n  ) {\n    return _client\n        .from('tournament_matches')\n        .stream(prima"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 466,
+    "kind": "from",
+    "target": "tournament_matches",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament_matches')",
+    "context": "error: $e');\n      rethrow;\n    }\n  }\n\n  @override\n  Stream<List<TournamentMatchModel>> watchTournamentMatches(\n    String tournamentId,\n  ) {\n    return _client\n        .from('tournament_matches')\n        .stream(primaryKey: ['id'])\n        .eq('tournament_id', tournamentId)\n        .order('round_number', ascending: true)\n        .order('match_order', ascending: true)\n        .asyncMap(\n          (list) => mapTournamentMatchesWithNames(_client, tournamentId, list),\n        );\n  }\n\n  @overrid"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 483,
+    "kind": "rpc",
+    "target": "get_tournament_audit_logs_page",
+    "params": [
+      "p_page",
+      "p_page_size",
+      "p_tournament_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_tournament_id uuid, p_page integer DEFAULT 1, p_page_size integer DEFAULT 50"
+    ],
+    "returns": [
+      "TABLE(data jsonb, total_count bigint, page integer, page_size integer)"
+    ],
+    "snippet": ".rpc(\n        'get_tournament_audit_logs_page',\n        params: {\n          'p_tournament_id': tournamentId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      )",
+    "context": "mic>>> getTournamentAuditLogsPage({\n    required String tournamentId,\n    int page = 1,\n    int pageSize = 50,\n  }) async {\n    try {\n      final response = await _client.rpc(\n        'get_tournament_audit_logs_page',\n        params: {\n          'p_tournament_id': tournamentId,\n          'p_page': page,\n          'p_page_size': pageSize,\n        },\n      );\n\n      return PaginatedResponse.fromRpc(\n        response: response,\n        fromJson: (json) => json,\n        requestedPage: page,\n        requestedPageSize: pageSize,\n      );\n    } catch (e) {\n      dev.log('[TOURNAMENTS_REMOTE] get_tournament_audit_logs_page error: $e');\n      return Paginated"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 516,
+    "kind": "from",
+    "target": "profiles",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('profiles')",
+    "context": "en(String token) async {\n    final currentUser = _client.auth.currentUser;\n    if (currentUser == null || token.isEmpty) return;\n\n    try {\n      await _client\n          .from('profiles')\n          .update({\n            'fcm_token': token,\n            'updated_at': DateTime.now().toUtc().toIso8601String(),\n          })\n          .eq('id', currentUser.id);\n    } catch (e) {\n      // Silent error for FCM token update\n    }\n  }\n\n  @override\n  Future<TournamentParticipantModel?> withdra"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 536,
+    "kind": "rpc",
+    "target": "withdraw_from_tournament",
+    "params": [
+      "p_tournament_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_tournament_id uuid"
+    ],
+    "returns": [
+      "json"
+    ],
+    "snippet": ".rpc(\n      'withdraw_from_tournament',\n      params: {'p_tournament_id': tournamentId},\n    )",
+    "context": " if (tournamentId == null || tournamentId.isEmpty) {\n      throw ArgumentError('tournamentId is required for tournament withdrawal');\n    }\n\n    final res = await _client.rpc(\n      'withdraw_from_tournament',\n      params: {'p_tournament_id': tournamentId},\n    );\n\n    if (res is Map<String, dynamic>) {\n      return TournamentParticipantModel.fromJson(res);\n    }\n    if (res is Map) {\n      return TournamentParticipantModel.fromJson(\n        Map<String, dynamic>.from(res),\n      );\n    }\n\n    return null;\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 559,
+    "kind": "from",
+    "target": "tournament_participants",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [],
+    "returns": [],
+    "snippet": ".from('tournament_participants')",
+    "context": ";\n  }\n\n  @override\n  Future<List<Map<String, dynamic>>> getUserTournamentHistory(\n    String userId,\n  ) async {\n    try {\n      final response = await _client\n          .from('tournament_participants')\n          .select('*, tournaments(*)')\n          .eq('user_id', userId)\n          .order('created_at', ascending: false);\n\n      return (response as List).cast<Map<String, dynamic>>();\n    } catch (e) {\n      dev.log(\n        '[TOURNAMENTS_REMOTE] Error fetching user tournament history: $e',\n      "
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournaments_remote_data_source.dart",
+    "line": 576,
+    "kind": "rpc",
+    "target": "get_home_tournament",
+    "params": [],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      ""
+    ],
+    "returns": [
+      "TABLE(id uuid, lounge_id uuid, city_id uuid, title_ar text, title_en text, description_ar text, description_en text, game_name text, banner_url text, entry_fee numeric, max_participants integer, registration_closes_at timestamp with time zone, tournament_starts_at timestamp with time zone, status text, lounge_name text, city_name_ar text, city_name_en text, participant_count bigint)"
+    ],
+    "snippet": ".rpc('get_home_tournament')",
+    "context": "ament history: $e',\n      );\n      return [];\n    }\n  }\n\n  @override\n  Future<TournamentModel?> getHomeTournament() async {\n    try {\n      final response = await _client.rpc('get_home_tournament');\n      if (response == null) return null;\n      if (response is List) {\n        if (response.isEmpty) return null;\n        return TournamentModel.fromJson(\n          (response.first as Map).cast<String, dynamic>(),\n        );\n      }\n      if (response is Map) {\n        return TournamentModel.fromJ"
+  },
+  {
+    "repo": "mobile-dev",
+    "file": "lib/features/tournaments/data/datasources/remote/tournament_match_roster.dart",
+    "line": 14,
+    "kind": "rpc",
+    "target": "get_tournament_participant_names",
+    "params": [
+      "p_tournament_id"
+    ],
+    "status": "TARGET EXISTS; semantics unverified",
+    "signatures": [
+      "p_tournament_id uuid"
+    ],
+    "returns": [
+      "TABLE(participant_id uuid, user_id uuid, user_name text)"
+    ],
+    "snippet": ".rpc(\n        'get_tournament_participant_names',\n        params: {'p_tournament_id': tournamentId},\n      )",
+    "context": ",\n) async {\n  final names = <String, String>{};\n  if (rows.any((r) => r['player1_id'] != null || r['player2_id'] != null)) {\n    try {\n      final response = await client.rpc(\n        'get_tournament_participant_names',\n        params: {'p_tournament_id': tournamentId},\n      );\n      if (response is! List) {\n        throw const FormatException('Invalid tournament roster');\n      }\n      for (final row in response) {\n        if (row is! Map || row['participant_id'] is! String) {\n          throw const FormatException('Invalid tournament participant name');\n        }\n      "
+  }
+]

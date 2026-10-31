@@ -1,0 +1,6 @@
+Fixture database: 17.11
+PASS direct expected-cash projection denied
+PASS cashier receives explicit masked values and own count
+PASS blind closure persists without audit read leakage
+PASS blind shift closure cannot silently release queued writer work
+{"passed":21,"liveSupabase":false}

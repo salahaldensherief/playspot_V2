@@ -1,0 +1,11 @@
+Fixture database: 17.11
+PASS late delete failure rolls back every preceding delete, profile and retry record
+PASS successful deletion atomically disables and anonymizes only the requested user
+PASS bookings and payments are preserved
+PASS Auth outage leaves a durable pending record; retry is idempotent
+PASS completion survives a duplicate request
+PASS anonymous and authenticated callers cannot select a victim through the service RPC
+PASS retry records are not readable or writable by ordinary clients
+PASS missing profile and null target fail without recording success
+PASS containment rollback blocks execution and preserves records; reapply restores the contract
+{"passed":9}

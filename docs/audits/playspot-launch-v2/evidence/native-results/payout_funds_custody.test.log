@@ -1,0 +1,19 @@
+Fixture database: 17.11
+PASS cash alone never creates an 85% payout
+PASS same electronic method pays different contributions according to custody
+PASS cash commission offsets platform money and prior-period debt is carried once
+PASS zero or negative balance is retained until later platform receipts offset it
+PASS unclassified historical transfers block payout even outside the start date
+PASS custody evidence is immutable and exact retries are idempotent
+PASS changed method requires reconciliation instead of stale custody reuse
+PASS new financial revision needs fresh review and preserves old custody evidence
+PASS legacy payouts without a snapshot cannot be approved or paid directly
+PASS refund or financial drift blocks settlement before transferring money
+PASS partial cash remains collectable and only finalized sessions enter settlement
+PASS review cancellation releases linked payments and missing review cannot fake success
+PASS canonical membership is accepted but inactive, banned and owner actors are denied
+PASS untrusted roles cannot write private evidence or call private helpers
+PASS Cairo calendar boundary is stable regardless of session timezone
+PASS invalid financial evidence rolls back all payout links
+PASS concurrent payout creation waits then rejects duplicate allocation
+{"passed":17,"environment":"isolated synthetic PostgreSQL; no production writes"}

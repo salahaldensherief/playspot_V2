@@ -1,0 +1,8 @@
+Fixture database: 17.11
+PASS inactive catalogue items remain editable until explicitly archived
+PASS combo archive survives reload, disables suggestions and preserves sales
+PASS upsell archive is permanent and idempotent without deleting reports
+PASS foreign lounge, explicit denial, inactive and banned actors cannot archive
+PASS invalid identifiers and anonymous actors fail without catalogue mutations
+PASS clients cannot physically delete catalogue rows or execute private guard
+{"passed":6,"environment":"isolated PostgreSQL with canonical lounge permissions"}

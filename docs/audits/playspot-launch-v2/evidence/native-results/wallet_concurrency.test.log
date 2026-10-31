@@ -1,0 +1,7 @@
+Fixture database: 17.11
+PASS simultaneous same payment debits and collects exactly once
+PASS different bookings cannot concurrently overspend one wallet
+PASS simultaneous cash topup records one receipt and one credit
+PASS simultaneous refund restores funds once
+PASS cash collection blocked by closing shift rechecks its state
+{"passed":5,"engine":"native PostgreSQL 17","limitations":["Synthetic schema; production triggers not mirrored","No live database contacted"]}

@@ -1,0 +1,62 @@
+Fixture database: 17.11
+PASS anonymous wallet read
+PASS cross-user wallet read
+PASS unverified credit revoked
+PASS unsafe refund revoked
+PASS private recorder inaccessible
+PASS anonymous payment
+PASS cross-user booking
+PASS underpayment
+PASS overpayment
+PASS invalid amount NULL
+PASS invalid amount 0
+PASS invalid amount -1
+PASS invalid amount 'NaN'::numeric
+PASS invalid amount 'Infinity'::numeric
+PASS invalid amount 100.001
+PASS missing key
+PASS empty key
+PASS cash wallet bypass
+PASS closed shift
+PASS frozen wallet
+PASS insufficient funds
+PASS open session unsettled total
+PASS cancelled booking
+PASS atomic rollback after payment insert
+PASS ledger-backed payment keeps completed status
+PASS same request does not debit or collect twice
+PASS same key altered amount
+PASS other owner raw key cannot reuse earlier receipt
+PASS new payment operation for paid booking
+PASS customer cannot collect cash
+PASS cashier cannot collect for another lounge
+PASS authorized cash collection credits target once
+PASS cash key changed amount
+PASS refund requires billing permission
+PASS refund cannot exceed payment
+PASS partial refund needs separate reviewed contract
+PASS negative refund
+PASS full wallet reversal restores funds once and keeps session completed
+PASS refund replay changed reason
+PASS customer cannot record cash collection
+PASS cash amount must match server total
+PASS cash collection records authoritative total once
+PASS cash replay different method
+PASS cash replay different amount
+PASS NULL capability fails closed
+PASS private function has no client execute grant
+PASS anonymous session close
+PASS session close capability required
+PASS session actor cannot be spoofed
+PASS session close requires open same-lounge shift
+PASS overrun billed without free max cap and no implicit payment
+PASS completed session price is stable after snapshot changes
+PASS paid flag is not proof of collection
+PASS receipt follows actual ledger instead of final total
+PASS fractional minute rounds up before billing quantum
+PASS invalid rounding fails atomically
+PASS close preserves maintenance state
+PASS long overrun can close beyond old 1440-minute constraint
+PASS closing one session cannot free a room with another active session
+PASS private completion receipt is not callable by clients
+{"passed":60,"engine":{"version":"PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit"},"limitations":["Synthetic minimal schema; production triggers are not mirrored","Single connection; concurrent sessions not tested","No live database contacted"]}

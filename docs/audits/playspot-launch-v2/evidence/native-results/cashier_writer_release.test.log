@@ -1,0 +1,27 @@
+Fixture database: 17.11
+PASS writer must close own shift before an explicit release
+PASS another cashier shift does not prevent release after own shift closes
+PASS release retains authority and immutable permits while leaving venue offline
+PASS release retry is stable and does not rotate permits or release timestamp
+PASS release refuses mismatched device
+PASS release refuses mismatched permit
+PASS release refuses mismatched sequence
+PASS another actor cannot release the current writer even with venue permission
+PASS banned and inactive owners cannot release a previously issued writer
+PASS revoked scoped session permission prevents release
+PASS unresolved recorded conflict cannot be bypassed by writer release
+PASS physical active session blocks release even if shift was closed elsewhere
+PASS released authority cannot synchronize old commands or private proof
+PASS next authorized actor claims only explicit release and receives a fresh permit
+PASS next writer keeps global operation sequence rather than restarting at one
+PASS heartbeat expiry alone still cannot authorize a device takeover
+PASS release RPC is authenticated-only with no system-role execution leak
+PASS competing next-device claims serialize and admit exactly one released writer
+PASS delayed heartbeat cannot reclaim a released writer from a closed shift
+PASS lost release receipt remains recoverable after another writer claims
+PASS same actor and device reclaim cannot reuse an old generation permit
+PASS heartbeat cannot reclaim even after own shift reopens
+PASS failed bootstrap rolls back reclaim and private claim context
+PASS renewed permit preserves generation so the original release request succeeds
+PASS private release records deny all client and system role table access
+{"passed":25,"limitations":["Review source only; no hosted release or writer mutation","Server cannot observe unsent client operations: a durable local release barrier is mandatory","Requires closed own shift and no physical active session; advanced handover is not implemented"]}

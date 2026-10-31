@@ -1,0 +1,10 @@
+Fixture database: 17.11
+PASS healthy writer admits a new hold
+PASS offline writer refuses a hold before it blocks local capacity
+PASS expired heartbeat refuses hold renewal
+PASS existing hold can still be released while lounge is offline
+PASS foreign room scope is rejected
+PASS legacy venue without writer retains its existing hold policy
+PASS guard function cannot be called by API or system roles
+PASS busy offline writer refuses immediately instead of a room/lounge deadlock
+{"passed":8}
