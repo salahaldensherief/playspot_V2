@@ -1,5 +1,8 @@
 # PlaySpot Mobile: agent engineering guide
 
+## Current owner destination — 31 October 2026
+The final destination is the real PlaySpot system. The owner authorizes Production rollout only after verified backup/recovery, effective-schema compatibility, correct ordering, combined tests and compatible clients. Local acceptance is verification infrastructure, not a separate final app. Integrate reviewed source into dev, promote through the actual main/release process, and preserve all unrelated work. Google Play publication is excluded. See docs/audits/PRODUCTION_INTEGRATION_20261031.md for current evidence, the forward refund-audit fix and unresolved recovery/rollout gates. Historical Draft or Production prohibitions below are dated evidence; current explicit owner scope takes precedence, while unverified safety conditions remain blocking.
+
 This is the single source of agent guidance for the Flutter mobile repository. User instructions and verified product requirements take precedence. Apply these rules to code you touch; improve unrelated legacy code in focused follow-up changes.
 
 ## Diagnose and respect the existing contract
