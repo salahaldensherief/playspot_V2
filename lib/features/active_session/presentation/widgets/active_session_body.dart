@@ -174,7 +174,7 @@ class ActiveSessionBody extends StatelessWidget {
                 SizedBox(height: 16.h),
                 const UpsellSuggestionBanner(),
                 SizedBox(height: 8.h),
-                const ExtendSessionButton(),
+                if (!session.isOpenTime) const ExtendSessionButton(),
                 SizedBox(height: 24.h),
                 const ActiveSessionActionBar(),
                 SizedBox(height: 24.h),

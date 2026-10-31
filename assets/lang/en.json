@@ -679,6 +679,7 @@
   "orderStatusPreparing": "Preparing",
   "orderStatusDelivered": "Delivered",
   "orderStatusCompleted": "Completed",
+  "orderStatusCancelled": "Cancelled",
   "canteenClosed": "Canteen is currently closed",
   "cart": "Cart",
   "confirmOrder": "Confirm Order",
@@ -814,5 +815,14 @@
   "senderWalletOrInstapayHint": "e.g., 01012345678 or username@instapay",
   "transactionReferenceNumber": "Transaction Reference Number",
   "transactionReferenceHint": "Enter transaction reference (min 6 characters)",
-  "roomDiscountPercent": "{percent}% OFF"
+  "roomDiscountPercent": "{percent}% OFF",
+  "openTimeElapsed": "Open Time · elapsed",
+  "openTimeBillPending": "Time charge is finalized by the lounge when the session ends. This is not a payment receipt.",
+  "openTimePolicy": "Open Time rate: {rate} EGP/hour",
+  "openTimeMinimum": "Minimum: {minutes} minutes",
+  "openTimeRounding": "Rounded in {minutes}-minute steps",
+  "openTimeCanteenCharges": "Committed canteen charges: {amount} EGP",
+  "openTimeAmountDuePending": "Amount due: pending final server settlement",
+  "openTimeCollectionUnconfirmed": "Actually collected: not confirmed in this view. Order status does not prove payment.",
+  "orderStatusQueued": "Queued"
 }

@@ -42,6 +42,22 @@ class OrderItem extends Equatable {
     upsellRuleId,
   ];
 
+  bool get isCancelled {
+    final normalized = status?.trim().toLowerCase();
+    return normalized == 'cancelled' || normalized == 'canceled';
+  }
+
+  bool get isCommittedCharge {
+    final normalized = status?.trim().toLowerCase();
+    return !{
+      'cancelled',
+      'canceled',
+      'rejected',
+      'failed',
+      'draft',
+    }.contains(normalized);
+  }
+
   double get total {
     final override = totalPriceOverride;
     if (override != null && override > 0) {

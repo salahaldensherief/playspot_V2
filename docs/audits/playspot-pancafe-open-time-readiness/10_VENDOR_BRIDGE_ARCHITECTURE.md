@@ -1,0 +1,5 @@
+# Vendor-neutral bridge architecture
+
+**DESIGN ONLY; no working PanCafe adapter.** Existing Bridge PRs #68/#69 must be reconciled before implementation. Define capability discovery, station identity mapping, read-only availability/status, reservation request/acknowledgment, session commands where authorized, receipt reconciliation, health and revocation as separate capabilities. Store provenance, vendor station ID, timestamp, version and uncertainty for every observation. Model `REQUESTED`, `HUMAN-CONFIRMED`, `EXTERNALLY-RESERVED`, `UNVERIFIED`, `CONFLICT` explicitly; a successful transport response alone is not an external reservation.
+
+Command lifecycle should distinguish requested, accepted, applied, rejected and unknown, with idempotency keys and recoverable replay. One authority at a time per station is essential during offline operation. Until written PanCafe integration documentation and a sandbox exist, booking-only/manual confirmation is the supported path. No private database writes, traffic interception, undocumented endpoint, credential capture or proprietary code reuse. See [PanCafe evidence](02_PANCAFE_TECHNOLOGY_RESEARCH.md).
